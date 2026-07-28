@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, loginAsProviderMember, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { TournamentPage } from '../pages/TournamentPage';
 
@@ -12,15 +12,34 @@ import { TournamentPage } from '../pages/TournamentPage';
  * the strip refresh (gridView.ts:2241, today-gated), so the decision is
  * observable at mount via the mutation collector. A regression here silently
  * calls matches to court at the wrong time — a participant-notification hazard.
+ *
+ * Auto-call is provider-member-gated (isTournamentProviderMember): it only fires
+ * for a user associated with the tournament's provider, so this journey seeds
+ * `parentOrganisation` on the record (synced into engine state so the load-time
+ * short-circuit doesn't serve a parent-less in-memory copy) and logs in as a
+ * provider member via `loginAsProviderMember`. Without that, the auth gate — not
+ * the due-gate under test — would suppress the call and the second case would
+ * pass for the wrong reason.
  */
 
 const DATE = new Date().toISOString().slice(0, 10);
 const STRIP = '.spl-active-strip';
+const PROVIDER_ID = 'e2e-provider-1';
+
+/** Server-first would emit to a socket that never acks in the client-only e2e run;
+ *  keep the auto-call mutation local so it applies + logs deterministically. Set
+ *  after the full-page goto (fresh module state) and before the scheduling strip
+ *  mounts — navigateToScheduling is an in-SPA hash route, so this persists. */
+async function forceLocalExecution(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    dev.env.serverFirst = false;
+  });
+}
 
 /** Seed a single-court venue and schedule one pending R1 matchUp on today with the given time. */
 async function seedOnePlaced(page: Page, scheduledTime?: string): Promise<{ tournamentId: string; matchUpId: string }> {
   return page.evaluate(
-    async ({ date, scheduledTime }) => {
+    async ({ date, scheduledTime, providerId }) => {
       await dev.tmx2db.initDB();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
         nonRandom: 1,
@@ -52,10 +71,21 @@ async function seedOnePlaced(page: Page, scheduledTime?: string): Promise<{ tour
       });
 
       const rec = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+      // Provider-scope the tournament so isTournamentProviderMember can match it
+      // against the seeded provider-member JWT (auto-call gate). Sync it into
+      // engine state too: `setState:true` already loaded a parent-less record, and
+      // loadTournament short-circuits when the engine already holds this id — so
+      // without this re-setState, goto would serve the parent-less in-memory copy.
+      rec.parentOrganisation = {
+        organisationId: providerId,
+        organisationName: 'E2E Provider',
+        organisationAbbreviation: 'E2EP',
+      };
+      dev.factory.tournamentEngine.setState(rec);
       await dev.tmx2db.addTournament(rec);
       return { tournamentId: tournamentRecord.tournamentId as string, matchUpId: match.matchUpId as string };
     },
-    { date: DATE, scheduledTime },
+    { date: DATE, scheduledTime, providerId: PROVIDER_ID },
   );
 }
 
@@ -75,6 +105,8 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
+    await loginAsProviderMember(page, PROVIDER_ID);
+    await forceLocalExecution(page);
     await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP, { timeout: 10_000 });
 
@@ -92,6 +124,8 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
 
     const tournament = new TournamentPage(page);
     await tournament.goto('e2e-auto-call');
+    await loginAsProviderMember(page, PROVIDER_ID);
+    await forceLocalExecution(page);
     await tournament.navigateToScheduling();
     await page.waitForSelector(STRIP, { timeout: 10_000 });
 

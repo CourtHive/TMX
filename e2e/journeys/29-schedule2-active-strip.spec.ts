@@ -97,6 +97,15 @@ async function seedAndScheduleFirstMatchUp(
         drawId: target.drawId,
         schedule: { scheduledDate: date, courtId: targetCourt.courtId, courtOrder: 1, venueId: targetCourt.venueId },
       });
+      // Stamp calledAt so the scheduled match surfaces on the Now strip as NEXT.
+      // Previously implicit via mount-time auto-call, which is now provider-member-
+      // gated (this journey runs unauthenticated); making the precondition explicit
+      // keeps this test focused on strip rendering, not the auto-call mechanism.
+      dev.factory.tournamentEngine.setMatchUpCalledAt({
+        matchUpId: target.matchUpId,
+        drawId: target.drawId,
+        calledAt: new Date().toISOString(),
+      });
 
       // One persist call — no race.
       const mutated = dev.factory.tournamentEngine.getTournament().tournamentRecord;

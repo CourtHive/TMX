@@ -168,6 +168,46 @@ export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
 }
 
 /**
+ * Seed a NON-super-admin JWT whose `providerAssociations` tie the user to a
+ * specific provider, so provider-member-gated behaviour fires in e2e. The
+ * schedule "Now" strip auto-call (isTournamentProviderMember → runAutoCallPass)
+ * only stamps calledAt for a user associated with the loaded tournament's
+ * provider, so any journey asserting auto-call must (a) seed the tournament with
+ * `parentOrganisation.organisationId === providerId` and (b) inject this token.
+ *
+ * Evaluate-based (not addInitScript): `getLoginState()` re-reads localStorage on
+ * every call, and the gate runs at strip-mount — after boot — so the token only
+ * needs to be present in localStorage by then. Call AFTER any beforeEach
+ * `localStorage.clear()` and before navigating to the scheduling view; the token
+ * persists across the in-SPA hash routes that follow. addInitScript would not
+ * work here: `tournament.goto('/#/...')` is a same-document hash change that
+ * doesn't reload, so an init script wouldn't re-fire, and the boot-set token
+ * would already be wiped by the clear. Roles deliberately exclude 'superadmin' —
+ * the gate must pass on genuine provider membership, not the super-admin escape.
+ */
+export async function loginAsProviderMember(page: Page, providerId: string): Promise<void> {
+  await page.evaluate((pid: string) => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(
+      JSON.stringify({
+        roles: ['client'],
+        sub: 'e2e-provider-member',
+        providerAssociations: [
+          {
+            providerId: pid,
+            providerRole: 'DIRECTOR',
+            organisationName: 'E2E Provider',
+            organisationAbbreviation: 'E2EP',
+          },
+        ],
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+    );
+    localStorage.setItem('tmxToken', `${header}.${payload}.fake-signature`);
+  }, providerId);
+}
+
+/**
  * Enable a beta feature flag in localStorage before the app boots.
  * Format Wizard, for example, is hidden from the UI until the user
  * opts in via Settings; e2e tests need the flag pre-seeded so the
