@@ -1,10 +1,16 @@
+import { version as factoryVersion } from 'tods-competition-factory';
 import EnvironmentPlugin from 'vite-plugin-environment';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { version as pkgVersion } from './package.json';
 import path from 'path';
 
-// Emits `dist/version.json` at build time so a long-lived TMX tab can poll
-// for newer deployments. See `src/services/version/checkTmxVersion.ts`.
+// Emits `dist/version.json` at build time so a long-lived TMX tab can poll for
+// newer deployments (`src/services/version/checkTmxVersion.ts`) AND so the
+// factory-mismatch check can tell whether a refresh would actually resolve a
+// client/server engine mismatch (`src/services/version/checkFactoryVersion.ts`).
+// `factoryVersion` is the `tods-competition-factory` build bundles — the same
+// version its runtime `version()` returns — so a client can compare "what a
+// refresh would load" against the server's running engine.
 const emitVersionJson = (): Plugin => ({
   name: 'tmx-emit-version-json',
   apply: 'build',
@@ -12,7 +18,9 @@ const emitVersionJson = (): Plugin => ({
     this.emitFile({
       type: 'asset',
       fileName: 'version.json',
-      source: JSON.stringify({ version: pkgVersion, builtAt: new Date().toISOString() }) + '\n',
+      source:
+        JSON.stringify({ version: pkgVersion, factoryVersion: factoryVersion(), builtAt: new Date().toISOString() }) +
+        '\n',
     });
   },
 });
