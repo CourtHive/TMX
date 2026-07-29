@@ -4,6 +4,7 @@ import {
   SERVER,
   ROLE_PASSWORD,
   uniqueSuffix,
+  uniqueAbbr,
   removeUser,
   ensureProvider,
   createProvisioner,
@@ -61,7 +62,7 @@ test.describe('Journey 36 — provider switcher + admin gating (real login)', ()
     token = await signInSuperAdmin(request);
     if (!token) return; // seed admin unavailable → tests skip below
 
-    providerId = await ensureProvider(request, token, 'TMXROLE', PROVIDER_NAME);
+    providerId = await ensureProvider(request, token, uniqueAbbr('R'), PROVIDER_NAME);
     await createLoginableUser(request, token, {
       email: PROVIDER_ADMIN_EMAIL,
       roles: ['client'],
