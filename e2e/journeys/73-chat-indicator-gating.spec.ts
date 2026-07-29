@@ -5,6 +5,7 @@ import {
   SERVER,
   ensureProvider,
   uniqueSuffix,
+  uniqueAbbr,
   signInSuperAdmin,
   SUPERADMIN_EMAIL,
   SUPERADMIN_PASSWORD,
@@ -24,7 +25,7 @@ import { AuthFlow } from '../pages/AuthFlow';
  */
 
 const CHAT = '#chatIndicator';
-const PROVIDER_ABBR = 'TMXCHT';
+const PROVIDER_ABBR = uniqueAbbr('C');
 const PROVIDER_NAME = `E2E Chat ${uniqueSuffix()}`;
 
 let seeded = false;

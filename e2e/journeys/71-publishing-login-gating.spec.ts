@@ -5,6 +5,7 @@ import {
   SERVER,
   ensureProvider,
   uniqueSuffix,
+  uniqueAbbr,
   signInSuperAdmin,
   SUPERADMIN_EMAIL,
   SUPERADMIN_PASSWORD,
@@ -30,7 +31,7 @@ import { AuthFlow } from '../pages/AuthFlow';
 const PART_TOGGLE =
   'xpath=//h3[contains(., "Participants")]/following-sibling::div[contains(@class,"pub-toggle-row")]//label[contains(@class,"pub-toggle")]/input';
 
-const PROVIDER_ABBR = 'TMXPUB';
+const PROVIDER_ABBR = uniqueAbbr('P');
 const PROVIDER_NAME = `E2E Publish ${uniqueSuffix()}`;
 
 let seeded = false;

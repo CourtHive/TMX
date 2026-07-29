@@ -4,6 +4,7 @@ import {
   SERVER,
   ensureProvider,
   uniqueSuffix,
+  uniqueAbbr,
   signInSuperAdmin,
   SUPERADMIN_EMAIL,
   SUPERADMIN_PASSWORD,
@@ -38,8 +39,8 @@ import {
  * SERVER.
  */
 const suffix = uniqueSuffix();
-const PROVIDER_A_ABBR = 'TMXSWA';
-const PROVIDER_B_ABBR = 'TMXSWB';
+const PROVIDER_A_ABBR = uniqueAbbr('A');
+const PROVIDER_B_ABBR = uniqueAbbr('B');
 const PROVIDER_A_NAME = `E2E Switch Alpha ${suffix}`;
 const PROVIDER_B_NAME = `E2E Switch Beta ${suffix}`;
 const PATCH_LAST_SELECTED = '/auth/me/last-selected-provider';

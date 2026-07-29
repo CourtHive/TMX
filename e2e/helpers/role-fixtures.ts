@@ -152,3 +152,20 @@ export async function cleanupProvisioner(
 export function uniqueSuffix(): string {
   return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
+
+/**
+ * A short, unique provider abbreviation for a single e2e run.
+ *
+ * `ensureProvider` keys on `organisationAbbreviation`, so a FIXED abbreviation
+ * makes the seed non-idempotent: a repeat local run finds the prior run's
+ * provider (with its stale name) instead of creating a fresh one, and any spec
+ * that selects the provider by its freshly-suffixed name times out. A unique
+ * abbreviation per run sidesteps that entirely. The `E2E` prefix keeps these in
+ * scope of CFS's cleanup-test-data.mjs (which matches abbreviation LIKE 'E2E%').
+ * Kept short (~8 chars) so it renders cleanly in the provider badge.
+ */
+export function uniqueAbbr(tag = ''): string {
+  const t = Date.now().toString(36).slice(-4);
+  const r = Math.floor(Math.random() * 46_656).toString(36); // up to 3 base-36 chars
+  return `E2E${tag}${t}${r}`.toUpperCase();
+}
