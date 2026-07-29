@@ -1,5 +1,29 @@
 # Changelog
 
+## [8.16.0](https://github.com/CourtHive/TMX/compare/v8.15.0...v8.16.0) (2026-07-29)
+
+
+### Features
+
+* **scheduling:** gate Plan tab behind schedulePlan beta flag ([#1241](https://github.com/CourtHive/TMX/issues/1241)) ([02c063a](https://github.com/CourtHive/TMX/commit/02c063afa3e9c02c81f0c4eafd6d9e3aa58c4de3))
+* **scheduling:** i18n keys for plan mode strings ([8712f3b](https://github.com/CourtHive/TMX/commit/8712f3bf1a98a0481a96f6a4c2c90a06aae32937))
+* **scheduling:** inert reference-only catalog + plan rename in plan mode ([9e06e47](https://github.com/CourtHive/TMX/commit/9e06e473492741d4934a83dce4251a72294c8208))
+* **scheduling:** plan duplicate, summary chip, locked + conflict cells ([4c38288](https://github.com/CourtHive/TMX/commit/4c38288894274443c1abb1f5b06679946616d411))
+* **scheduling:** plan mode — scenario overlay grid, drop interception, commit ([1e1c774](https://github.com/CourtHive/TMX/commit/1e1c77482041114d743c16e22fd2615eb3fc94b2))
+* **scheduling:** plan-aware interactive catalog (inert kept as reusable tooling) ([2daaeff](https://github.com/CourtHive/TMX/commit/2daaeffc9fa9351a47b3596d7141ffa7521e1191))
+* **scheduling:** schedule-scenarios client service + mutation constants ([13c86b4](https://github.com/CourtHive/TMX/commit/13c86b4680f471c909f41d469dbd2117d8eb0467))
+* stop futile-refresh loop on factory version mismatch ([#1243](https://github.com/CourtHive/TMX/issues/1243)) ([36b6fa9](https://github.com/CourtHive/TMX/commit/36b6fa9f8f777725955ea9c994fd04f0cdec7ea7))
+
+
+### Bug Fixes
+
+* **deps:** patch dompurify and fast-uri advisories ([ac53b48](https://github.com/CourtHive/TMX/commit/ac53b480c2ddc902d2990f73e3af0c9c6ac129d5))
+* **deps:** update courthive-components to 3.11.1 ([651b007](https://github.com/CourtHive/TMX/commit/651b0072d65f9836a4b13c940aa85a3fd6e69370))
+* **deps:** update tods-competition-factory to 6.13.0 ([79d7715](https://github.com/CourtHive/TMX/commit/79d7715df44760c9c87fdc1dfa32c5d2bcdea3fe))
+* **deps:** update tods-competition-factory to 6.13.1 ([6547a2b](https://github.com/CourtHive/TMX/commit/6547a2b739f48f55bde86cf2b226bece228de2a4))
+* **deps:** update tods-competition-factory to 6.13.2 ([28fc9ed](https://github.com/CourtHive/TMX/commit/28fc9ed055121fec7e8db0556affc1e07fb8b85b))
+* **scheduling:** gate schedule auto-call to tournament provider members ([#1240](https://github.com/CourtHive/TMX/issues/1240)) ([95129d8](https://github.com/CourtHive/TMX/commit/95129d8e9c822829c93d7e91e0ff518a50d5174b))
+
 ## [8.15.0](https://github.com/CourtHive/TMX/compare/v8.14.0...v8.15.0) (2026-07-21)
 
 
