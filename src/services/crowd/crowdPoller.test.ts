@@ -29,10 +29,7 @@ vi.mock('./scoreRelayClient', () => ({
 }));
 
 import { startCrowdPoller } from './crowdPoller';
-import {
-  __resetCrowdActivityIndex,
-  getActiveSessionCount,
-} from './crowdActivityIndex';
+import { __resetCrowdActivityIndex, getActiveSessionCount } from './crowdActivityIndex';
 
 describe('crowdPoller', () => {
   beforeEach(() => {

@@ -38,7 +38,7 @@ export function eventsView(): void {
         mode = m;
         writeEventsViewMode(m);
         renderForMode();
-      }
+      },
     });
   }
 
@@ -48,7 +48,7 @@ export function eventsView(): void {
       anchor,
       label: t('pages.events.title'),
       count,
-      trailing: buildToggle()
+      trailing: buildToggle(),
     });
   }
 
@@ -113,7 +113,7 @@ export function eventsView(): void {
         intent: 'is-danger',
         stateChange: true,
         hide: !providerConfig.isAllowed('canDeleteEvents') || mode === 'grid',
-        location: OVERLAY
+        location: OVERLAY,
       },
       {
         onKeyDown: (e: KeyboardEvent) =>
@@ -124,15 +124,15 @@ export function eventsView(): void {
         placeholder: t('pages.events.searchEvents'),
         location: LEFT,
         search: true,
-        value: currentQuery || undefined
+        value: currentQuery || undefined,
       },
       {
         onClick: () => (editEvent as any)({ callback: eventAdded }),
         label: t('pages.events.addEvent'),
         intent: 'is-info',
         hide: !providerConfig.isAllowed('canCreateEvents'),
-        location: RIGHT
-      }
+        location: RIGHT,
+      },
     ];
   }
 

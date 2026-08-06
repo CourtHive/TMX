@@ -16,27 +16,40 @@ const genderRank = (gender?: string): number => {
 const eventTypeOrder: Record<string, number> = { [SINGLES]: 0, [DOUBLES]: 1, [TEAM]: 2 };
 const eventTypeRank = (eventType?: string): number => eventTypeOrder[eventType ?? ''] ?? 3;
 
-export const eventsFormatter = (eventClick?: (params: any) => void) => (cell: any): HTMLDivElement => {
-  const def = cell.getColumn().getDefinition();
-  const content = document.createElement('div');
-  content.className = 'tags';
+export const eventsFormatter =
+  (eventClick?: (params: any) => void) =>
+  (cell: any): HTMLDivElement => {
+    const def = cell.getColumn().getDefinition();
+    const content = document.createElement('div');
+    content.className = 'tags';
 
-  const events = cell.getValue();
-  const rowData = cell.getRow().getData();
-  const { participantId } = rowData;
-  const eventSorter = (a: any, b: any) =>
-    genderRank(a?.gender) - genderRank(b?.gender) ||
-    eventTypeRank(a?.eventType) - eventTypeRank(b?.eventType) ||
-    (a?.eventName ?? '').localeCompare(b?.eventName ?? '', undefined, { numeric: true });
-  events.sort(eventSorter).forEach((event: any) => {
-    const pill = createPill({ def, participantId, event, eventClick });
-    content.appendChild(pill);
-  });
+    const events = cell.getValue();
+    const rowData = cell.getRow().getData();
+    const { participantId } = rowData;
+    const eventSorter = (a: any, b: any) =>
+      genderRank(a?.gender) - genderRank(b?.gender) ||
+      eventTypeRank(a?.eventType) - eventTypeRank(b?.eventType) ||
+      (a?.eventName ?? '').localeCompare(b?.eventName ?? '', undefined, { numeric: true });
+    events.sort(eventSorter).forEach((event: any) => {
+      const pill = createPill({ def, participantId, event, eventClick });
+      content.appendChild(pill);
+    });
 
-  return content;
-};
+    return content;
+  };
 
-function createPill({ matchUpId, participantId, event, eventClick }: { matchUpId?: string; participantId?: string; event: any; eventClick?: (params: any) => void; def?: any }): HTMLSpanElement {
+function createPill({
+  matchUpId,
+  participantId,
+  event,
+  eventClick,
+}: {
+  matchUpId?: string;
+  participantId?: string;
+  event: any;
+  eventClick?: (params: any) => void;
+  def?: any;
+}): HTMLSpanElement {
   const pill = document.createElement('span');
   if (isFunction(eventClick) && eventClick) {
     pill.onclick = () => eventClick({ eventId: event.eventId, participantId, matchUpId });
@@ -56,15 +69,17 @@ function createPill({ matchUpId, participantId, event, eventClick }: { matchUpId
   return pill;
 }
 
-export const eventFormatter = (eventClick?: (params: any) => void) => (cell: any): HTMLDivElement => {
-  const def = cell.getColumn().getDefinition();
-  const rowData = cell.getRow().getData();
-  const { matchUpId } = rowData;
+export const eventFormatter =
+  (eventClick?: (params: any) => void) =>
+  (cell: any): HTMLDivElement => {
+    const def = cell.getColumn().getDefinition();
+    const rowData = cell.getRow().getData();
+    const { matchUpId } = rowData;
 
-  const content = document.createElement('div');
-  content.className = 'tags';
-  const pill = createPill({ def, matchUpId, event: rowData, eventClick });
-  content.append(pill);
+    const content = document.createElement('div');
+    content.className = 'tags';
+    const pill = createPill({ def, matchUpId, event: rowData, eventClick });
+    content.append(pill);
 
-  return content;
-};
+    return content;
+  };

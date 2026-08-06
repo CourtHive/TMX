@@ -32,7 +32,8 @@ const NUMBER_LABEL_STYLE =
 const WARNINGS_ROW_STYLE = 'display: flex; flex-wrap: wrap; gap: 6px;';
 const WARNING_CHIP_STYLE_BASE =
   'font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; background: var(--tmx-warning-bg, #fff3cd); color: var(--tmx-warning-text, #856404);';
-const FOOTER_ROW_STYLE = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;';
+const FOOTER_ROW_STYLE =
+  'display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;';
 const SCORE_FOOTER_STYLE = 'font-size: 11px; color: var(--tmx-text-muted, #999);';
 const APPLY_BUTTON_STYLE =
   'background: var(--tmx-accent-teal, #00b8a9); color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer;';
@@ -62,7 +63,8 @@ function flightSummary(plan: RankedPlan): string {
   if (flights.length === 0) return '';
   const sizes = flights.map((fs) => fs.flight.participantIds.length);
   const distinct = new Set(sizes);
-  const flightCountKey = flights.length === 1 ? 'formatWizard.card.flightCount' : 'formatWizard.card.flightCount_plural';
+  const flightCountKey =
+    flights.length === 1 ? 'formatWizard.card.flightCount' : 'formatWizard.card.flightCount_plural';
   const countLabel = t(flightCountKey, { count: flights.length });
   if (distinct.size === 1) return `${countLabel} × ${sizes[0]}`;
   return `${countLabel} (${sizes.join(' / ')})`;
@@ -187,10 +189,15 @@ export function buildPlanCard(plan: RankedPlan, options: PlanCardOptions = {}): 
   const numbers = document.createElement('div');
   numbers.style.cssText = NUMBERS_ROW_STYLE;
   numbers.appendChild(
-    buildNumberBlock(formatMatchesPerPlayer(plan.aggregate.minMatchesPerPlayer), t('formatWizard.card.matchesPerPlayer')),
+    buildNumberBlock(
+      formatMatchesPerPlayer(plan.aggregate.minMatchesPerPlayer),
+      t('formatWizard.card.matchesPerPlayer'),
+    ),
   );
   numbers.appendChild(buildNumberBlock(formatPercent(plan.aggregate.competitive), t('formatWizard.card.competitive')));
-  numbers.appendChild(buildNumberBlock(formatHours(plan.aggregate.courtHoursRequired), t('formatWizard.card.courtHours')));
+  numbers.appendChild(
+    buildNumberBlock(formatHours(plan.aggregate.courtHoursRequired), t('formatWizard.card.courtHours')),
+  );
   card.appendChild(numbers);
 
   if (plan.warnings.length > 0) {

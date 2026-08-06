@@ -29,7 +29,7 @@ comparison), see
 
 3. **Bulk mode = queue + local apply.** `executeMethods` pushes the methods
    onto `pendingBatches` and runs `competitionEngine.executionQueue(methods,
-   true)` for in-memory visual feedback. `mutationRequest` does **not** fire.
+true)` for in-memory visual feedback. `mutationRequest` does **not** fire.
    The server has no awareness of the pending state until step 4.
 
 4. **One save flushes everything.** `savePending` issues exactly **one**
@@ -78,7 +78,8 @@ executeMethods({ mode: '<your-mode>', methods })`. Standalone callers (e.g.
 behavior.
 
 Either way: extend `queueService.test.ts` with at minimum a "queues in bulk
-+ flushes in one save" pair tagged with your new mode.
+
+- flushes in one save" pair tagged with your new mode.
 
 ## Things the queue does NOT do (today)
 

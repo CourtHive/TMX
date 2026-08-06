@@ -1,6 +1,6 @@
 export function highlightTeam(element: HTMLElement): void {
   for (const team of Array.from(document.querySelectorAll('.tmx-tm')).filter(
-    (x) => x.innerHTML === element.innerHTML
+    (x) => x.innerHTML === element.innerHTML,
   ) as HTMLElement[]) {
     team.style.fontWeight = 'bold';
     team.style.color = 'var(--tmx-accent-red)';
@@ -9,7 +9,7 @@ export function highlightTeam(element: HTMLElement): void {
 
 export function removeTeamHighlight(element: HTMLElement): void {
   for (const team of Array.from(document.querySelectorAll('.tmx-tm')).filter(
-    (x) => x.innerHTML === element.innerHTML
+    (x) => x.innerHTML === element.innerHTML,
   ) as HTMLElement[]) {
     team.style.fontWeight = '';
     team.style.color = '';

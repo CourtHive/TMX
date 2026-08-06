@@ -83,10 +83,7 @@ describe('providerConfig', () => {
       providerConfig.set({
         permissions: { allowedDrawTypes: ['SINGLE_ELIMINATION', 'ROUND_ROBIN'] },
       });
-      expect(providerConfig.getAllowedList('allowedDrawTypes')).toEqual([
-        'SINGLE_ELIMINATION',
-        'ROUND_ROBIN',
-      ]);
+      expect(providerConfig.getAllowedList('allowedDrawTypes')).toEqual(['SINGLE_ELIMINATION', 'ROUND_ROBIN']);
     });
 
     it('returns configured creation methods when set', () => {
@@ -100,19 +97,13 @@ describe('providerConfig', () => {
       providerConfig.set({
         policies: { allowedMatchUpFormats: [BEST_OF_3, 'SET1-S:6/TB7'] },
       });
-      expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual([
-        BEST_OF_3,
-        'SET1-S:6/TB7',
-      ]);
+      expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual([BEST_OF_3, 'SET1-S:6/TB7']);
     });
 
     it('returns allowed categories from policies', () => {
       providerConfig.set({
         policies: {
-          allowedCategories: [
-            { ageCategoryCode: 'U14', categoryName: 'Under 14' },
-            { ageCategoryCode: 'U18' },
-          ],
+          allowedCategories: [{ ageCategoryCode: 'U14', categoryName: 'Under 14' }, { ageCategoryCode: 'U18' }],
         },
       });
       const cats = providerConfig.getAllowedList('allowedCategories');
@@ -329,10 +320,7 @@ describe('providerConfig', () => {
       expect(providerConfig.isAllowed('canPublish')).toBe(true);
 
       // Restricted lists
-      expect(providerConfig.getAllowedList('allowedDrawTypes')).toEqual([
-        'SINGLE_ELIMINATION',
-        'ROUND_ROBIN',
-      ]);
+      expect(providerConfig.getAllowedList('allowedDrawTypes')).toEqual(['SINGLE_ELIMINATION', 'ROUND_ROBIN']);
       expect(providerConfig.getAllowedList('allowedMatchUpFormats')).toEqual([BEST_OF_3]);
       expect(providerConfig.getAllowedList('allowedCategories')).toHaveLength(2);
     });

@@ -3,7 +3,15 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
 
-export function generateQualifying({ drawData, eventId, drawId }: { drawData: any; eventId: string; drawId: string }): void {
+export function generateQualifying({
+  drawData,
+  eventId,
+  drawId,
+}: {
+  drawData: any;
+  eventId: string;
+  drawId: string;
+}): void {
   const generatePanel = document.createElement('div');
   generatePanel.className = 'flexcol flexcenter';
   generatePanel.style.width = '100%';
@@ -16,13 +24,15 @@ export function generateQualifying({ drawData, eventId, drawId }: { drawData: an
     const drawName = drawData.drawName;
     addDraw({
       callback: (result: any) => {
-        const structureId = result.drawDefinition?.structures?.find(({ stage }: any) => stage === QUALIFYING)?.structureId;
+        const structureId = result.drawDefinition?.structures?.find(
+          ({ stage }: any) => stage === QUALIFYING,
+        )?.structureId;
         navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
       },
       isQualifying: true,
       drawName,
       eventId,
-      drawId
+      drawId,
     } as any);
   };
   button.className = 'button is-info';

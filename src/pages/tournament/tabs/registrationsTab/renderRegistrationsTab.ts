@@ -113,12 +113,7 @@ function renderControlBar(tournamentId: string, target: HTMLElement): void {
     { label: `All (${state.allEntries.length})`, value: 'all', onClick: () => setFilter('all') },
   ];
   const selectedCount = tabState.selectedIds.length;
-  const buildBulkItem = (
-    action: AdminAction,
-    baseLabel: string,
-    intent: string,
-    id: string,
-  ) => ({
+  const buildBulkItem = (action: AdminAction, baseLabel: string, intent: string, id: string) => ({
     onClick: () => void runBulkAction(tournamentId, action),
     label: selectedCount ? `${baseLabel} ${selectedCount}` : baseLabel,
     intent,
@@ -152,11 +147,7 @@ function setFilter(value: FilterValue): void {
   if (tournamentId && controlTarget) renderControlBar(tournamentId, controlTarget);
 }
 
-async function runSingleAction(
-  tournamentId: string,
-  action: AdminAction,
-  registrationId: string,
-): Promise<void> {
+async function runSingleAction(tournamentId: string, action: AdminAction, registrationId: string): Promise<void> {
   try {
     if (action === 'accept') {
       // Accept is the ONE CFS touch (addParticipants); reject/waitlist go to declarations.
@@ -192,9 +183,7 @@ async function runBulkAction(tournamentId: string, action: AdminAction): Promise
     const okCount = results.filter((r) => r.ok).length;
     const failCount = results.length - okCount;
     tmxToast({
-      message: failCount
-        ? `${action}: ${okCount} succeeded, ${failCount} failed.`
-        : `${action}: ${okCount} processed.`,
+      message: failCount ? `${action}: ${okCount} succeeded, ${failCount} failed.` : `${action}: ${okCount} processed.`,
       intent: failCount ? INTENT_WARNING : INTENT_SUCCESS,
     });
     state.selectedIds = [];

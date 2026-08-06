@@ -17,7 +17,9 @@ vi.mock('constants/tmxConstants', () => ({ SUPER_ADMIN: 'superadmin', TOURNAMENT
 // mutation-name list. mutationRequest also reads `providerConfig.get()`
 // for the permissions snapshot it passes into `isMutationAllowed`.
 vi.mock('@courthive/provider-config', () => ({ isMutationAllowed: () => true }));
-vi.mock('config/providerConfig', () => ({ providerConfig: { isAllowed: () => true, get: () => ({ permissions: {} }) } }));
+vi.mock('config/providerConfig', () => ({
+  providerConfig: { isAllowed: () => true, get: () => ({ permissions: {} }) },
+}));
 vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({}) } }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('services/context', () => ({ context: {} }));

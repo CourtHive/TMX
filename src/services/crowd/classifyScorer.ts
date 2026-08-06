@@ -99,7 +99,10 @@ export function classifyScorer(args: {
     let classification: ScorerClassification;
     if (participant?.participantRole === OFFICIAL_ROLE) {
       classification = 'official';
-    } else if (hasScorekeeperRole(participant) || (!!nominatedScorekeeperId && participantId === nominatedScorekeeperId)) {
+    } else if (
+      hasScorekeeperRole(participant) ||
+      (!!nominatedScorekeeperId && participantId === nominatedScorekeeperId)
+    ) {
       classification = 'scorekeeper';
     } else {
       classification = 'participant';

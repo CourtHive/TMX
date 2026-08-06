@@ -39,13 +39,9 @@ function estimateColumnWidth(title: string, field: string, rows: Record<string, 
 // Row fields that carry IDs for CSV/JSON export but should not display in the table
 const HIDDEN_FIELDS = ['participantId', 'eventId', 'drawId', 'structureId'];
 
-export function createReportsTable({
-  columns,
-  rows,
-}: {
-  columns: ReportColumn[];
-  rows: Record<string, any>[];
-}): { table: any } {
+export function createReportsTable({ columns, rows }: { columns: ReportColumn[]; rows: Record<string, any>[] }): {
+  table: any;
+} {
   destroyTable({ anchorId: TOURNAMENT_REPORTS });
 
   // If rows contain participantId, resolve full participant objects for renderParticipant

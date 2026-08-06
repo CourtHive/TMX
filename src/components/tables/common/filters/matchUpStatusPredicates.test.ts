@@ -1,4 +1,9 @@
-import { classifyTodayBucket, popoverStatusPredicate, isWalkoverProfile, TODAY_BUCKETS } from './matchUpStatusPredicates';
+import {
+  classifyTodayBucket,
+  popoverStatusPredicate,
+  isWalkoverProfile,
+  TODAY_BUCKETS,
+} from './matchUpStatusPredicates';
 import { describe, expect, it } from 'vitest';
 
 // Minimal row builder — mirrors the fields mapMatchUp surfaces that the
@@ -15,7 +20,9 @@ const row = (over: any = {}) => ({
 
 describe('classifyTodayBucket', () => {
   it('buckets a completed matchUp as complete', () => {
-    expect(classifyTodayBucket(row({ matchUpStatus: 'COMPLETED', winningSide: 'side1', complete: true }))).toBe('complete');
+    expect(classifyTodayBucket(row({ matchUpStatus: 'COMPLETED', winningSide: 'side1', complete: true }))).toBe(
+      'complete',
+    );
   });
 
   it('buckets walkover/defaulted endings as complete', () => {

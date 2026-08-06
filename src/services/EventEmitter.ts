@@ -1,7 +1,7 @@
 /**
  * EventEmitter - Generic event management class.
  * Can be extended to provide event functionality in other classes.
- * 
+ *
  * @preserve
  * EventEmitter v5.2.6 - git.io/ee
  * Unlicense - http://unlicense.org/
@@ -54,7 +54,9 @@ export const EventEmitter = (function () {
   /**
    * Returns the listener array for the specified event.
    */
-  proto.getListeners = function getListeners(evt: string | RegExp): ListenerObject[] | Record<string, ListenerObject[]> {
+  proto.getListeners = function getListeners(
+    evt: string | RegExp,
+  ): ListenerObject[] | Record<string, ListenerObject[]> {
     const events = this._getEvents();
     let response: any;
     let key: string;
@@ -124,14 +126,17 @@ export const EventEmitter = (function () {
     let key: string;
 
     for (key in listeners) {
-      if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listenerIsWrapped ? (listener as ListenerObject).listener : listener) === -1) {
+      if (
+        listeners.hasOwnProperty(key) &&
+        indexOfListener(listeners[key], listenerIsWrapped ? (listener as ListenerObject).listener : listener) === -1
+      ) {
         listeners[key].push(
           listenerIsWrapped
             ? (listener as ListenerObject)
             : {
                 listener: listener as Function,
-                once: false
-              }
+                once: false,
+              },
         );
       }
     }
@@ -148,7 +153,7 @@ export const EventEmitter = (function () {
   proto.addOnceListener = function addOnceListener(this: any, evt: string | RegExp, listener: Function): any {
     return this.addListener(evt, {
       listener: listener,
-      once: true
+      once: true,
     });
   };
 
@@ -205,14 +210,23 @@ export const EventEmitter = (function () {
   /**
    * Removes listeners in bulk using the manipulateListeners method.
    */
-  proto.removeListeners = function removeListeners(this: any, evt: string | Record<string, Function | Function[]> | RegExp, listeners?: Function[]): any {
+  proto.removeListeners = function removeListeners(
+    this: any,
+    evt: string | Record<string, Function | Function[]> | RegExp,
+    listeners?: Function[],
+  ): any {
     return this.manipulateListeners(true, evt, listeners);
   };
 
   /**
    * Edits listeners in bulk.
    */
-  proto.manipulateListeners = function manipulateListeners(this: any, remove: boolean, evt: string | Record<string, Function | Function[]> | RegExp, listeners?: Function[]): any {
+  proto.manipulateListeners = function manipulateListeners(
+    this: any,
+    remove: boolean,
+    evt: string | Record<string, Function | Function[]> | RegExp,
+    listeners?: Function[],
+  ): any {
     let i: any;
     let value: any;
     const single = remove ? this.removeListener : this.addListener;

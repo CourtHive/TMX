@@ -51,14 +51,17 @@ morphdom(targetNode, content, {
 ```
 
 **Keyed elements** (matched by ID across the tree):
+
 - Matchup containers (`tmx-m`) — keyed by `matchUpId`
 - Round columns, score elements, schedule elements
 
 **Positionally matched elements** (no key):
+
 - Participant wrappers (`tmx-p`) — keyed by draw position, not participant
 - Participant info (`tmx-i`) — inner content that changes on assignment
 
 **Excluded from keying** (invalid IDs):
+
 - Elements with `id=""` (empty string) — e.g. TBD/unassigned slots
 - Elements with `id="undefined"` (literal string) — artifact of no participant
 
@@ -77,7 +80,7 @@ This creates two problems for morphdom's default ID-based keying:
 
 1. **Duplicate keys** — When `indexTree` builds its lookup, the inner `tmx-i` overwrites the outer `tmx-p` for the same key. This means deferred removal targets the wrong element.
 
-2. **Unstable keys** — Participant IDs change when participants are assigned to or removed from draw positions. The draw *position* is stable; the *participant* occupying it is not. Keying by participant ID causes morphdom to treat assignment changes as element additions/removals rather than in-place updates.
+2. **Unstable keys** — Participant IDs change when participants are assigned to or removed from draw positions. The draw _position_ is stable; the _participant_ occupying it is not. Keying by participant ID causes morphdom to treat assignment changes as element additions/removals rather than in-place updates.
 
 By returning `undefined` for these elements, morphdom falls back to **positional matching** within their parent container. Since each side of a matchup has exactly one participant slot, positional matching is correct and stable.
 
@@ -126,12 +129,12 @@ The `getNodeKey` callback addresses the root cause rather than the symptom. By e
 
 ## Related Files
 
-| File | Purpose |
-|------|---------|
-| `renderDrawView.ts` | morphdom integration, draw rendering orchestration |
-| `participantAssignmentMode.ts` | Alternative rendering path for assignment mode (no morphdom) |
-| `getEventHandlers.ts` | Click/interaction handlers passed to `renderStructure()` |
-| `courthive-components` | External library providing `renderStructure()` and `renderContainer()` |
+| File                           | Purpose                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `renderDrawView.ts`            | morphdom integration, draw rendering orchestration                     |
+| `participantAssignmentMode.ts` | Alternative rendering path for assignment mode (no morphdom)           |
+| `getEventHandlers.ts`          | Click/interaction handlers passed to `renderStructure()`               |
+| `courthive-components`         | External library providing `renderStructure()` and `renderContainer()` |
 
 ## Key Dependencies
 

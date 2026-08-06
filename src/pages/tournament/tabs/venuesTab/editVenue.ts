@@ -24,10 +24,7 @@ function findResource(resources: any[] | undefined, name: string): any {
   return resources.find((r) => r?.name === name);
 }
 
-export function editVenue({
-  venue,
-  callback,
-}: { venue?: any; callback?: (result: any) => void } = {}): void {
+export function editVenue({ venue, callback }: { venue?: any; callback?: (result: any) => void } = {}): void {
   // Get current venue details including courts and times
   const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
   const courts = venueDetails?.courts || [];
@@ -304,12 +301,7 @@ export function editVenue({
     const venueId = venue.venueId;
     const methods: any[] = [{ method: MODIFY_VENUE, params: { venueId, modifications: venueUpdates } }];
 
-    const resourceMutation = (
-      name: string,
-      resourceSubType: string,
-      currentURL: string,
-      previousResource: any,
-    ) => {
+    const resourceMutation = (name: string, resourceSubType: string, currentURL: string, previousResource: any) => {
       const previousURL = previousResource?.identifier || '';
       if (currentURL === previousURL) return;
       if (currentURL) {
@@ -393,4 +385,3 @@ export function editVenue({
     footer,
   });
 }
-

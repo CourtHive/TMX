@@ -98,9 +98,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
   const consolidationLinks = round.consolidationLinks || [];
 
   const selectionPrompt =
-    requiredCount === 1
-      ? 'Select a loser to advance.'
-      : `Select ${requiredCount} losers to advance.`;
+    requiredCount === 1 ? 'Select a loser to advance.' : `Select ${requiredCount} losers to advance.`;
 
   const statusText = round.isComplete
     ? round.needsLuckySelection

@@ -213,7 +213,12 @@ function renderDrawsHeader({
   trailing.style.cssText = 'display:flex; align-items:center; gap:0.4rem;';
   if (mode === 'grid') {
     trailing.appendChild(
-      buildDisplayOptionsButton({ current: displayMode, drawCount: count, availability, onChange: onDisplayModeChange }),
+      buildDisplayOptionsButton({
+        current: displayMode,
+        drawCount: count,
+        availability,
+        onChange: onDisplayModeChange,
+      }),
     );
   }
   trailing.appendChild(buildViewToggleElement({ mode, onChange: onModeChange }));
@@ -328,8 +333,7 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
           location: OVERLAY,
         },
         {
-          onClick: () =>
-            addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
+          onClick: () => addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
           intent: 'is-info',
           label: 'Add flights',
           location: RIGHT,

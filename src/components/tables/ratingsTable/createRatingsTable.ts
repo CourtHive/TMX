@@ -128,9 +128,7 @@ function computeDynamicRatings(
   matchUps: any[],
   activeScale: string,
 ): { computedRatings: Record<string, any>; isEloDynamic: boolean } {
-  const completedMatchUpIds = matchUps
-    .filter((mu: any) => mu.winningSide)
-    .map((mu: any) => mu.matchUpId);
+  const completedMatchUpIds = matchUps.filter((mu: any) => mu.winningSide).map((mu: any) => mu.matchUpId);
 
   if (!completedMatchUpIds.length) {
     return { computedRatings: {}, isEloDynamic: false };

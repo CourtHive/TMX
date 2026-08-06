@@ -95,9 +95,7 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
   const superAdminItems = isSuperAdmin
     ? [
         {
-          text: current?.organisationId
-            ? t('providerSwitcher.switchProvider')
-            : t('providerSwitcher.selectProvider'),
+          text: current?.organisationId ? t('providerSwitcher.switchProvider') : t('providerSwitcher.selectProvider'),
           onClick: () => {
             selectProviderModal({
               callback: (provider: ProviderValue) => {

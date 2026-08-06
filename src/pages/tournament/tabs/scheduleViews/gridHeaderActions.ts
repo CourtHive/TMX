@@ -13,11 +13,7 @@ import { printSchedule } from 'components/modals/printSchedule';
 import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 import { buildStepper } from './stepperControl';
-import {
-  buildToggleIconButton,
-  TOGGLE_BG_UNPRESSED,
-  TOGGLE_BTN_BASE_STYLE,
-} from 'components/buttons/toggleIconButton';
+import { buildToggleIconButton, TOGGLE_BG_UNPRESSED, TOGGLE_BTN_BASE_STYLE } from 'components/buttons/toggleIconButton';
 
 const MIN_ROWS_FLOOR = 1;
 const MIN_ROWS_CEILING = 200;
@@ -207,4 +203,3 @@ function buildMinRowsStepper(initial: number, onChange: (rows: number) => void):
     onChange,
   });
 }
-

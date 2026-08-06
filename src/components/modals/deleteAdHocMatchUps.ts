@@ -19,7 +19,13 @@ type DeleteAdHocMatchUpsParams = {
   callback?: (params: any) => void;
 };
 
-export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureId, callback }: DeleteAdHocMatchUpsParams = {}): void {
+export function deleteAdHocMatchUps({
+  drawId,
+  roundNumber,
+  structure,
+  structureId,
+  callback,
+}: DeleteAdHocMatchUpsParams = {}): void {
   structureId = structureId || structure?.structureId;
   if (!structureId) return;
 
@@ -44,7 +50,11 @@ export function deleteAdHocMatchUps({ drawId, roundNumber, structure, structureI
       .filter((matchUp: any) => {
         if (matchUp.roundNumber !== roundNumber) return;
         if (matchUp.winningSide && inputs.completed.checked) return true;
-        if (matchUp.sides.some(({ participantId }: any) => participantId) && !matchUp.winningSide && inputs.unscored.checked)
+        if (
+          matchUp.sides.some(({ participantId }: any) => participantId) &&
+          !matchUp.winningSide &&
+          inputs.unscored.checked
+        )
           return true;
         return matchUp.sides.every(({ participantId }: any) => !participantId) && inputs.empties.checked;
       })

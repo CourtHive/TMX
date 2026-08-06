@@ -38,7 +38,10 @@ function extractContacts(): ContactInfo[] {
     .filter((p: any) => p.participantRole && p.participantRole !== COMPETITOR)
     .map((p: any) => {
       const person = p.person || {};
-      const name = [person.standardGivenName, person.standardFamilyName].filter(Boolean).join(' ') || p.participantName || 'Unknown';
+      const name =
+        [person.standardGivenName, person.standardFamilyName].filter(Boolean).join(' ') ||
+        p.participantName ||
+        'Unknown';
       const role = ROLE_LABELS[p.participantRole] || p.participantRole;
       const contact = person.contacts?.[0] || {};
       return {

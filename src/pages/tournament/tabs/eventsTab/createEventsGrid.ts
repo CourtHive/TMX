@@ -15,7 +15,7 @@ import {
   EVENT_CARD_LIGHT_MODE_THRESHOLD,
   EventCardData,
   mapEventToCardData,
-  resolveCourtSport
+  resolveCourtSport,
 } from 'courthive-components';
 
 import './eventsGrid.css';
@@ -70,8 +70,7 @@ export function renderEventsGrid(anchor: HTMLElement, query?: string): number {
   const filtered = query
     ? rows.filter(
         (r) =>
-          (r.eventName || '').toLowerCase().includes(query) ||
-          (r.categoryLabel || '').toLowerCase().includes(query)
+          (r.eventName || '').toLowerCase().includes(query) || (r.categoryLabel || '').toLowerCase().includes(query),
       )
     : rows;
 
@@ -92,8 +91,8 @@ export function renderEventsGrid(anchor: HTMLElement, query?: string): number {
   for (const row of filtered) {
     grid.appendChild(
       buildEventCard(row, undefined, {
-        onClick: (data) => openEvent(data.eventId)
-      })
+        onClick: (data) => openEvent(data.eventId),
+      }),
     );
   }
 

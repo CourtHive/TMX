@@ -39,7 +39,8 @@ const INPUT_STYLE =
 const LABEL_STYLE = 'display:block; font-size:0.8rem; color:var(--tmx-text-secondary); margin-bottom:2px;';
 const SECTION_STYLE =
   'margin-bottom:16px; padding:12px; border-radius:6px; border:1px solid var(--tmx-border-primary);';
-const SECTION_TITLE_STYLE = 'font-size:0.95rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:6px;';
+const SECTION_TITLE_STYLE =
+  'font-size:0.95rem; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:6px;';
 
 function createField(label: string, value: string, type = 'text'): { container: HTMLElement; input: HTMLInputElement } {
   const container = document.createElement('div');
@@ -59,7 +60,11 @@ function createField(label: string, value: string, type = 'text'): { container: 
   return { container, input };
 }
 
-function createSelect(label: string, options: string[], value: string): { container: HTMLElement; select: HTMLSelectElement } {
+function createSelect(
+  label: string,
+  options: string[],
+  value: string,
+): { container: HTMLElement; select: HTMLSelectElement } {
   const container = document.createElement('div');
   container.style.marginBottom = '8px';
 
@@ -88,7 +93,11 @@ function createSelect(label: string, options: string[], value: string): { contai
   return { container, select };
 }
 
-function createTextarea(label: string, value: string, rows = 3): { container: HTMLElement; textarea: HTMLTextAreaElement } {
+function createTextarea(
+  label: string,
+  value: string,
+  rows = 3,
+): { container: HTMLElement; textarea: HTMLTextAreaElement } {
   const container = document.createElement('div');
   container.style.marginBottom = '8px';
 
@@ -125,8 +134,10 @@ const FORM_PANEL_STYLE =
   'margin:8px 0; padding:10px; border-radius:6px; border:1px solid var(--tmx-accent, #4a9eff); background:var(--tmx-bg-secondary);';
 const FORM_BTN_STYLE =
   'padding:4px 12px; border-radius:4px; border:1px solid var(--tmx-border-primary); cursor:pointer; font-size:0.8rem;';
-const REMOVE_BTN_STYLE = 'border:none; background:none; color:var(--tmx-text-danger, red); cursor:pointer; font-size:0.85rem;';
-const LIST_ROW_STYLE = 'display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--tmx-border-primary);';
+const REMOVE_BTN_STYLE =
+  'border:none; background:none; color:var(--tmx-text-danger, red); cursor:pointer; font-size:0.85rem;';
+const LIST_ROW_STYLE =
+  'display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--tmx-border-primary);';
 
 interface FieldDef {
   key: string;
@@ -293,7 +304,11 @@ function createLogisticsEditor(
   });
   section.appendChild(addBtn);
 
-  const { container: notesContainer, textarea: notesArea } = createTextarea('Additional notes (HTML)', existingNotes, 2);
+  const { container: notesContainer, textarea: notesArea } = createTextarea(
+    'Additional notes (HTML)',
+    existingNotes,
+    2,
+  );
   section.appendChild(notesContainer);
 
   return {
@@ -441,14 +456,26 @@ export function openRegistrationProfileEditor(): void {
 
   // --- Ceremony & Social ---
   const ceremonySection = createSection('Ceremonies & Social Events', 'fa-glass-cheers');
-  const { container: drawCeremC, input: drawCeremI } = createField('Draw Ceremony Date', rp.drawCeremonyDate, 'datetime-local');
-  const { container: awardCeremC, input: awardCeremI } = createField('Awards Ceremony Date', rp.awardsCeremonyDate, 'datetime-local');
+  const { container: drawCeremC, input: drawCeremI } = createField(
+    'Draw Ceremony Date',
+    rp.drawCeremonyDate,
+    'datetime-local',
+  );
+  const { container: awardCeremC, input: awardCeremI } = createField(
+    'Awards Ceremony Date',
+    rp.awardsCeremonyDate,
+    'datetime-local',
+  );
   const ceremRow = document.createElement('div');
   ceremRow.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:8px;';
   ceremRow.append(drawCeremC, awardCeremC);
   ceremonySection.appendChild(ceremRow);
 
-  const { container: awardsDescC, textarea: awardsDescT } = createTextarea('Awards Description', rp.awardsDescription, 2);
+  const { container: awardsDescC, textarea: awardsDescT } = createTextarea(
+    'Awards Description',
+    rp.awardsDescription,
+    2,
+  );
   ceremonySection.appendChild(awardsDescC);
 
   const socialEditor = createItemListEditor<SocialEvent>(

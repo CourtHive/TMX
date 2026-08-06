@@ -7,7 +7,11 @@
  * independent of the popover status filter, so it stays a stable dashboard of
  * every status while a status drill-down is active.
  */
-import { classifyTodayBucket, TODAY_BUCKETS, TodayBucket } from 'components/tables/common/filters/matchUpStatusPredicates';
+import {
+  classifyTodayBucket,
+  TODAY_BUCKETS,
+  TodayBucket,
+} from 'components/tables/common/filters/matchUpStatusPredicates';
 import { SegmentDef } from 'courthive-components';
 import { t } from 'i18n';
 

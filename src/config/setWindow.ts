@@ -9,7 +9,7 @@ export function setWindow() {
     (e) => {
       e.preventDefault();
     },
-    false
+    false,
   );
   // @ts-expect-error window
   window.packageEntry = { updateReady };

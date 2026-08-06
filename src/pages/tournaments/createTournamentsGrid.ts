@@ -75,8 +75,8 @@ export function renderTournamentsGrid(anchor: HTMLElement, rows: TournamentRow[]
   for (const row of rows) {
     grid.appendChild(
       buildTournamentCard(row.tournament, undefined, {
-        onClick: (data) => openTournament(data.tournamentId)
-      })
+        onClick: (data) => openTournament(data.tournamentId),
+      }),
     );
   }
   anchor.appendChild(wrap);

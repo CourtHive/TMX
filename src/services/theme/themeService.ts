@@ -15,7 +15,8 @@ type FontOption = {
 export const FONT_OPTIONS: Record<string, FontOption> = {
   system: {
     label: 'System (default)',
-    value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    value:
+      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Helvetica, Arial, sans-serif",
   },
   inter: {
     label: 'Inter',
@@ -32,7 +33,7 @@ export const FONT_OPTIONS: Record<string, FontOption> = {
     value: "'Lato', sans-serif",
     googleFont: 'Lato:wght@400;700',
   },
-  'roboto': {
+  roboto: {
     label: 'Roboto',
     value: "'Roboto', sans-serif",
     googleFont: 'Roboto:wght@400;500;700',
@@ -47,7 +48,7 @@ export const FONT_OPTIONS: Record<string, FontOption> = {
     value: "'Source Sans 3', sans-serif",
     googleFont: 'Source+Sans+3:wght@400;600;700',
   },
-  'nunito': {
+  nunito: {
     label: 'Nunito',
     value: "'Nunito', sans-serif",
     googleFont: 'Nunito:wght@400;600;700',

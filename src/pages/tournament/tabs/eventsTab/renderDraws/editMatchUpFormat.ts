@@ -24,7 +24,8 @@ export function editMatchUpFormat({ structureId, drawId }: { structureId: string
             method: SET_MATCHUP_FORMAT,
           },
         ];
-        const postMutation = (result: any) => result.success && tmxToast({ message: t('pages.events.editFormat.scoringChanged') });
+        const postMutation = (result: any) =>
+          result.success && tmxToast({ message: t('pages.events.editFormat.scoringChanged') });
         mutationRequest({ methods, callback: postMutation });
       }
     }

@@ -10,7 +10,7 @@ const NO_SELECTION = '-';
 
 export function removeApproved({ teams, callback }: { teams: any[]; callback: (params: any) => void }): void {
   const options = ([{ label: t('allteams'), value: NO_SELECTION }] as any[]).concat(
-    teams.map((t) => ({ label: t.name, value: t.id || t.uuid }))
+    teams.map((t) => ({ label: t.name, value: t.id || t.uuid })),
   );
 
   const content = (elem: HTMLElement) =>
@@ -19,8 +19,8 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
         value: NO_SELECTION,
         label: t('modals.removeApproved.selectTeams'),
         field: 'selection',
-        options
-      }
+        options,
+      },
     ]);
 
   const removeSelection = ({ content }: any) => {
@@ -33,8 +33,8 @@ export function removeApproved({ teams, callback }: { teams: any[]; callback: (p
     content,
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
-      { label: t('remove'), intent: 'is-danger', onClick: removeSelection as any, close: true }
+      { label: t('remove'), intent: 'is-danger', onClick: removeSelection as any, close: true },
     ],
-    onClose: () => console.log('update approved')
+    onClose: () => console.log('update approved'),
   });
 }

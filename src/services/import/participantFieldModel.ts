@@ -113,7 +113,10 @@ export const SYNONYM_RULES: SynonymRule[] = [
   // `teamKey` triggers a second-pass `createTeamsFromParticipantAttributes`
   // call that groups individuals by the column's value into TEAM participants.
   { kind: 'teamKey', synonyms: ['team', 'teamname', 'teamkey', 'club', 'school', 'roster'] },
-  { kind: 'jerseyNumber', synonyms: ['jersey', 'jerseynumber', 'jerseyno', '#', 'shirtnumber', 'bibnumber', '*jersey'] },
+  {
+    kind: 'jerseyNumber',
+    synonyms: ['jersey', 'jerseynumber', 'jerseyno', '#', 'shirtnumber', 'bibnumber', '*jersey'],
+  },
 ];
 
 /** Header → rating scale mapping. The auto-mapper turns matches into

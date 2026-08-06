@@ -43,9 +43,7 @@ export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
         { label: 'Sign-In Sheet', value: 'signInSheet' },
       ],
     },
-    ...(eventId
-      ? [{ text: `Event: ${eventName}`, style: 'font-weight: bold; margin-top: 8px;' }]
-      : []),
+    ...(eventId ? [{ text: `Event: ${eventName}`, style: 'font-weight: bold; margin-top: 8px;' }] : []),
     { text: `${filteredParticipants.length} participants`, style: 'color: #666; font-size: 13px;' },
   ];
 

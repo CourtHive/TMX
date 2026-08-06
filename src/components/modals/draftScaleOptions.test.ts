@@ -123,8 +123,14 @@ describe('getParticipantScaleValues', () => {
 
   it('resolves object scale values via accessor', () => {
     const participants = [
-      { participantId: 'p1', ratings: { SINGLES: [{ scaleName: 'DUPR', scaleValue: { duprRating: 4.5, reliabilityScore: 80 } }] } },
-      { participantId: 'p2', ratings: { SINGLES: [{ scaleName: 'DUPR', scaleValue: { duprRating: 3.2, reliabilityScore: 60 } }] } },
+      {
+        participantId: 'p1',
+        ratings: { SINGLES: [{ scaleName: 'DUPR', scaleValue: { duprRating: 4.5, reliabilityScore: 80 } }] },
+      },
+      {
+        participantId: 'p2',
+        ratings: { SINGLES: [{ scaleName: 'DUPR', scaleValue: { duprRating: 3.2, reliabilityScore: 60 } }] },
+      },
       { participantId: 'p3', ratings: { SINGLES: [{ scaleName: 'WTN', scaleValue: { wtnRating: 20 } }] } },
     ];
     const map = getParticipantScaleValues(participants, 'RATING', 'DUPR', 'SINGLES', 'duprRating');
@@ -135,9 +141,7 @@ describe('getParticipantScaleValues', () => {
   });
 
   it('extracts ranking values', () => {
-    const participants = [
-      { participantId: 'p1', rankings: { SINGLES: [{ scaleName: 'U18', scaleValue: 5 }] } },
-    ];
+    const participants = [{ participantId: 'p1', rankings: { SINGLES: [{ scaleName: 'U18', scaleValue: 5 }] } }];
     const map = getParticipantScaleValues(participants, 'RANKING', 'U18', 'SINGLES');
     expect(map.get('p1')).toBe('5');
   });
@@ -166,9 +170,7 @@ describe('getParticipantScaleValues', () => {
   });
 
   it('converts numeric values to strings', () => {
-    const participants = [
-      { participantId: 'p1', ratings: { SINGLES: [{ scaleName: 'ELO', scaleValue: 0 }] } },
-    ];
+    const participants = [{ participantId: 'p1', ratings: { SINGLES: [{ scaleName: 'ELO', scaleValue: 0 }] } }];
     const map = getParticipantScaleValues(participants, 'RATING', 'ELO', 'SINGLES');
     expect(map.get('p1')).toBe('0');
   });

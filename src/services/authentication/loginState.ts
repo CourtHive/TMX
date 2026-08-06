@@ -1,4 +1,11 @@
-import { getToken, removeToken, setToken, getRefreshToken, setRefreshToken, removeRefreshToken } from './tokenManagement';
+import {
+  getToken,
+  removeToken,
+  setToken,
+  getRefreshToken,
+  setRefreshToken,
+  removeRefreshToken,
+} from './tokenManagement';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';

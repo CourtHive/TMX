@@ -124,7 +124,11 @@ export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }
 /**
  * Print court cards scoped to a specific draw/structure round.
  */
-export function printRoundCourtCards({ drawId, structureId, roundNumber }: {
+export function printRoundCourtCards({
+  drawId,
+  structureId,
+  roundNumber,
+}: {
   drawId: string;
   structureId: string;
   roundNumber: number;

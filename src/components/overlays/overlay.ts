@@ -8,7 +8,11 @@ import { NONE, TMX_OVERLAY } from 'constants/tmxConstants';
 
 let scrollTop: number;
 
-export function openOverlay({ title, content, footer }: { title?: string; content?: string | HTMLElement; footer?: string | HTMLElement } = {}): void {
+export function openOverlay({
+  title,
+  content,
+  footer,
+}: { title?: string; content?: string | HTMLElement; footer?: string | HTMLElement } = {}): void {
   if (!content || !footer) return;
 
   const tmxOverlay = document.getElementById(TMX_OVERLAY);

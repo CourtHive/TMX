@@ -69,7 +69,9 @@ function official(personId: string, name = 'Olive Official') {
 
 describe('crowdTrackersModalLogic — resolveSessionScorer', () => {
   it('classifies an official-participant scorer as official and nominatable', () => {
-    const session = makeSession({ crowdScoredBy: { personId: 'person-1', displayName: 'O', audience: 'hiveid', verified: false } });
+    const session = makeSession({
+      crowdScoredBy: { personId: 'person-1', displayName: 'O', audience: 'hiveid', verified: false },
+    });
     const info = resolveSessionScorer(session, [official('person-1')]);
     expect(info.classification).toBe('official');
     expect(info.participantName).toBe('Olive Official');
@@ -84,7 +86,9 @@ describe('crowdTrackersModalLogic — resolveSessionScorer', () => {
   });
 
   it('blocks an unverified crowd scorer from nomination', () => {
-    const session = makeSession({ crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: false } });
+    const session = makeSession({
+      crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: false },
+    });
     const info = resolveSessionScorer(session, [official('person-1')]);
     expect(info.classification).toBe('crowd');
     expect(info.nominatable).toBe(false);
@@ -92,7 +96,9 @@ describe('crowdTrackersModalLogic — resolveSessionScorer', () => {
   });
 
   it('allows a verified crowd scorer to be nominated', () => {
-    const session = makeSession({ crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: true } });
+    const session = makeSession({
+      crowdScoredBy: { personId: 'person-x', displayName: 'X', audience: 'hiveid', verified: true },
+    });
     const info = resolveSessionScorer(session, [official('person-1')]);
     expect(info.classification).toBe('crowd');
     expect(info.verified).toBe(true);

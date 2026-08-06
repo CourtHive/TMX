@@ -31,7 +31,6 @@ type OpenArgs = {
   bookingId: string;
 };
 
-
 export function openManagePracticeRegistrationsModal({ courtId, date, bookingId }: OpenArgs): void {
   const refresh = () => rebuild();
 
@@ -55,12 +54,7 @@ export function openManagePracticeRegistrationsModal({ courtId, date, bookingId 
   });
 }
 
-function renderBody({
-  courtId,
-  date,
-  bookingId,
-  refresh,
-}: OpenArgs & { refresh: () => void }): HTMLElement {
+function renderBody({ courtId, date, bookingId, refresh }: OpenArgs & { refresh: () => void }): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'display: flex; flex-direction: column; gap: 16px; min-width: 420px;';
 
@@ -196,7 +190,8 @@ function buildAddForm({
   refresh: () => void;
 }): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--sp-line, #ddd); padding-top: 12px;';
+  wrap.style.cssText =
+    'display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--sp-line, #ddd); padding-top: 12px;';
 
   const heading = document.createElement('div');
   heading.style.cssText = 'font-weight: 600; font-size: 13px;';

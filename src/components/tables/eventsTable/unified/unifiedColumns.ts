@@ -74,11 +74,7 @@ type UnifiedColumnsParams = {
   sortState: SortState;
 };
 
-export function getUnifiedColumns({
-  entries,
-  hasDrawDefinitions,
-  sortState,
-}: UnifiedColumnsParams): any[] {
+export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: UnifiedColumnsParams): any[] {
   const teams = entries.find((entry) => entry.participant?.teams?.length);
   const ratingColumns = getRatingColumns(entries, 'entry');
   const hasDrawPosition = entries.some((entry) => entry.drawPosition);

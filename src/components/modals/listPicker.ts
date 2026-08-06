@@ -7,12 +7,7 @@ function clearActiveAnchors(anchors: NodeListOf<Element>) {
   anchors.forEach((a: Element) => a.classList.remove('is-active'));
 }
 
-function handleOptionClick(
-  elem: HTMLElement,
-  options: any[],
-  opt: any,
-  selectionRef: { current: any },
-) {
+function handleOptionClick(elem: HTMLElement, options: any[], opt: any, selectionRef: { current: any }) {
   selectionRef.current = { selection: opt };
   const anchors = elem.querySelectorAll('.menu-list a');
   clearActiveAnchors(anchors);

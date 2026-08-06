@@ -145,7 +145,12 @@ const CLASSIFICATION_BG: Record<string, string> = {
   anonymous: 'var(--tmx-text-secondary, #999)',
 };
 
-function renderRow(session: CrowdScoringSession, participants: any[], actions: RowActions, ctx?: RowContext): HTMLElement {
+function renderRow(
+  session: CrowdScoringSession,
+  participants: any[],
+  actions: RowActions,
+  ctx?: RowContext,
+): HTMLElement {
   const row = document.createElement('div');
   row.style.cssText = ROW_STYLE;
   row.dataset.sessionId = session.sessionId;
@@ -232,4 +237,3 @@ function makeButton(
   }
   return btn;
 }
-

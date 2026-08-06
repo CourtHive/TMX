@@ -82,7 +82,10 @@ export function mapSnapshotToEntry(snap: RegistrationSnapshot, tournamentId: str
   };
 }
 
-export async function fetchTournamentRegistrations(provider: string, tournamentId: string): Promise<RegistrationEntry[]> {
+export async function fetchTournamentRegistrations(
+  provider: string,
+  tournamentId: string,
+): Promise<RegistrationEntry[]> {
   if (!provider) throw new Error('Missing provider');
   if (!tournamentId) throw new Error('Missing tournamentId');
   const url = `${getDeclarationsBaseUrl()}/registrations?provider=${encodeURIComponent(provider)}&tournamentId=${encodeURIComponent(tournamentId)}`;

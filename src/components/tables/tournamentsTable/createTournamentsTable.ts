@@ -26,17 +26,14 @@ import { listPicker } from 'components/modals/listPicker';
 import { displayConfig } from 'config/displayConfig';
 import { readLocalCalendarEntries } from 'services/storage/localCalendar';
 import { context } from 'services/context';
-import {
-  filterTournaments,
-  sortTournaments
-} from 'pages/tournaments/tournamentsFilter';
+import { filterTournaments, sortTournaments } from 'pages/tournaments/tournamentsFilter';
 import {
   initialTournamentsViewState,
   persistViewMode,
   TournamentsSortField,
   TournamentsStatusFilter,
   TournamentsViewMode,
-  TournamentsViewState
+  TournamentsViewState,
 } from 'pages/tournaments/tournamentsViewState';
 
 // constants
@@ -86,10 +83,10 @@ function showWelcome(anchor: HTMLElement, onCreated: () => void): void {
           const value = selection?.selection?.value;
           const indices = value === -1 ? undefined : [value];
           mockTournaments(undefined, onCreated, indices);
-        }
+        },
       });
     },
-    onCreate: () => editTournament({ onCreated })
+    onCreate: () => editTournament({ onCreated }),
   });
 }
 
@@ -106,7 +103,7 @@ function decorateCalendarTournament(t: any): any {
   // the shared mapper expects `url` for URL resources.
   if (imageResource?.resourceType === 'URL') {
     inner.onlineResources = inner.onlineResources.map((r: any) =>
-      r === imageResource ? { ...r, url: r.identifier } : r
+      r === imageResource ? { ...r, url: r.identifier } : r,
     );
   }
   // Calendar entries carry tournamentId at the wrapper level. Coalesce it
@@ -133,7 +130,7 @@ function renderTable(anchor: HTMLElement, rows: TournamentRow[]): any {
     headerVisible: true,
     reactiveData: false,
     data: rows,
-    columns: getTournamentColumns()
+    columns: getTournamentColumns(),
   });
   table.on('scrollVertical', destroyTipster);
   return table;
@@ -204,7 +201,7 @@ function createView(anchor: HTMLElement, rows: TournamentRow[]): TournamentsView
     subscribeCount: (cb) => {
       countListeners.push(cb);
       cb(lastCount);
-    }
+    },
   };
 }
 
@@ -226,7 +223,7 @@ function fromLocalDb(anchor: HTMLElement, onCreated: () => void): Promise<Tourna
   // the shared fromCalendarTournaments mapper.
   return readLocalCalendarEntries().then(
     (entries: any[]) => fromCalendarTournaments(anchor, [{ tournaments: entries }], onCreated),
-    () => renderRows(anchor, [], onCreated)
+    () => renderRows(anchor, [], onCreated),
   );
 }
 
@@ -240,7 +237,7 @@ function fromMyCalendars(
   anchor: HTMLElement,
   result: any,
   fallback: () => Promise<TournamentsView>,
-  onCreated: () => void
+  onCreated: () => void,
 ): Promise<TournamentsView> | TournamentsView {
   const calendars = result?.data?.calendars;
   if (!calendars?.length) return fallback();
@@ -253,7 +250,7 @@ function fromPublicCalendar(
   anchor: HTMLElement,
   result: any,
   fallback: () => Promise<TournamentsView>,
-  onCreated: () => void
+  onCreated: () => void,
 ): Promise<TournamentsView> | TournamentsView {
   const calendar = result?.data?.calendar;
   if (!calendar) return fallback();
@@ -282,12 +279,12 @@ export function createTournamentsTable(): { ready: Promise<TournamentsView | und
   if (userContext) {
     ready = getMyCalendars(impersonatedAbbr ? { providerAbbr: impersonatedAbbr } : {}).then(
       (result: any) => Promise.resolve(fromMyCalendars(anchor, result, fallback, onCreated)),
-      () => fallback()
+      () => fallback(),
     );
   } else if (provider?.organisationAbbreviation) {
     ready = getCalendar({ providerAbbr: provider.organisationAbbreviation }).then(
       (result: any) => Promise.resolve(fromPublicCalendar(anchor, result, fallback, onCreated)),
-      () => fallback()
+      () => fallback(),
     );
   } else {
     ready = fallback();

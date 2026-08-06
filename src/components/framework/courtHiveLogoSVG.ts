@@ -39,21 +39,11 @@ export function TMXlogoSVG(options: CourtHiveLogoOptions = {}): SVGSVGElement {
   // so the "net" can be drawn and faded independently.
   // Left hex: upper shared vertex → around the left side → lower shared vertex
   const leftHexPath =
-    `M 0,${-Rh}` +
-    ` L ${-RS3h},${-R}` +
-    ` L ${-RS3},${-Rh}` +
-    ` L ${-RS3},${Rh}` +
-    ` L ${-RS3h},${R}` +
-    ` L 0,${Rh}`;
+    `M 0,${-Rh}` + ` L ${-RS3h},${-R}` + ` L ${-RS3},${-Rh}` + ` L ${-RS3},${Rh}` + ` L ${-RS3h},${R}` + ` L 0,${Rh}`;
 
   // Right hex: upper shared vertex → around the right side → lower shared vertex
   const rightHexPath =
-    `M 0,${-Rh}` +
-    ` L ${RS3h},${-R}` +
-    ` L ${RS3},${-Rh}` +
-    ` L ${RS3},${Rh}` +
-    ` L ${RS3h},${R}` +
-    ` L 0,${Rh}`;
+    `M 0,${-Rh}` + ` L ${RS3h},${-R}` + ` L ${RS3},${-Rh}` + ` L ${RS3},${Rh}` + ` L ${RS3h},${R}` + ` L 0,${Rh}`;
 
   // Service lines: vertical lines offset from hex center toward flat edge
   const sLineOffset = serviceLinePosition * RS3h;
@@ -265,8 +255,7 @@ export function animateLogoFlyThrough(svg: SVGSVGElement, options?: FlyThroughOp
 
     // Transparent click overlay above the SVG so users can click to skip
     overlay = document.createElement('div');
-    overlay.style.cssText =
-      'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; cursor:pointer;';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:10000; cursor:pointer;';
     document.body.appendChild(overlay);
     overlay.addEventListener('click', finish);
 

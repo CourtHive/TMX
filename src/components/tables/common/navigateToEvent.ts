@@ -30,7 +30,16 @@ type NavigateToEventParams = {
   view?: string;
 };
 
-export function navigateToEvent({ eventId, drawId, structureId, renderDraw, renderPoints, participantId, matchUpId, view }: NavigateToEventParams = {}): void {
+export function navigateToEvent({
+  eventId,
+  drawId,
+  structureId,
+  renderDraw,
+  renderPoints,
+  participantId,
+  matchUpId,
+  view,
+}: NavigateToEventParams = {}): void {
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
 
   // No eventId — navigate to events list
@@ -78,7 +87,17 @@ export function navigateToEvent({ eventId, drawId, structureId, renderDraw, rend
     if (structureId) {
       route += `/${STRUCTURE}/${structureId}`;
     }
-    if ([ROUNDS_COLUMNS, ROUNDS_TABLE, ROUNDS_STATS, ROUNDS_BRACKET, ROUNDS_RATINGS, ROUNDS_STANDINGS, ROUNDS_SWISS_CHART].includes(view || '')) {
+    if (
+      [
+        ROUNDS_COLUMNS,
+        ROUNDS_TABLE,
+        ROUNDS_STATS,
+        ROUNDS_BRACKET,
+        ROUNDS_RATINGS,
+        ROUNDS_STANDINGS,
+        ROUNDS_SWISS_CHART,
+      ].includes(view || '')
+    ) {
       route += `/${VIEW}/${view}`;
     }
   } else if (renderDraw && !drawId) {

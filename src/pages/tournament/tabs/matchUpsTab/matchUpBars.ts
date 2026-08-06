@@ -40,14 +40,9 @@ type MountArgs = {
 
 const BAR_FLEX = ';flex:1 1 auto;max-width:600px;';
 
-export function mountMatchUpBars({
-  table,
-  optionsCenter,
-  optionsLeft,
-  filters,
-  updateBadge,
-  data,
-}: MountArgs): { resetToCompetitiveness: () => void } {
+export function mountMatchUpBars({ table, optionsCenter, optionsLeft, filters, updateBadge, data }: MountArgs): {
+  resetToCompetitiveness: () => void;
+} {
   const todayIso = isoToday();
   let mode: 'competitiveness' | 'today' = 'competitiveness';
 

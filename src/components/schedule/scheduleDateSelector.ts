@@ -93,7 +93,11 @@ export function buildScheduleDateSelector(params: ScheduleDateSelectorParams): S
   });
 
   const applyDates = (next: ScheduleDate[]): void => {
-    dateBtn.innerHTML = dateButtonHtml(selectedDate, countForDate(next, selectedDate), isPublishedForDate(next, selectedDate));
+    dateBtn.innerHTML = dateButtonHtml(
+      selectedDate,
+      countForDate(next, selectedDate),
+      isPublishedForDate(next, selectedDate),
+    );
     datePopoverContent = buildPopover(next);
     dateTippy?.setContent(datePopoverContent);
   };

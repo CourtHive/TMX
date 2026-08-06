@@ -429,11 +429,9 @@ describe('drawFormModel — critical transitions', () => {
     expect(newMain.fieldStates[DRAW_NAME]?.visible).toBe(true);
     expect(newMain.fieldStates[STRUCTURE_NAME]?.visible).toBe(false);
 
-    const qualifyingFirst = drawFormModel(
-      { kind: 'NEW_MAIN_WITH_QUALIFYING_FIRST', event },
-      EMPTY_INPUTS,
-      { previousMode: { kind: 'NEW_MAIN', event } },
-    );
+    const qualifyingFirst = drawFormModel({ kind: 'NEW_MAIN_WITH_QUALIFYING_FIRST', event }, EMPTY_INPUTS, {
+      previousMode: { kind: 'NEW_MAIN', event },
+    });
     expect(qualifyingFirst.derivedValues.drawSize).toBe(6); // raw qualifying entry count
     expect(qualifyingFirst.derivedValues.drawEntries).toHaveLength(6);
     expect(qualifyingFirst.fieldStates[DRAW_NAME]?.visible).toBe(false);
@@ -481,10 +479,7 @@ describe('drawFormModel — critical transitions', () => {
   });
 
   it('AD_HOC draw type hides QUALIFIERS_COUNT in NEW_MAIN', () => {
-    const view = drawFormModel(
-      { kind: 'NEW_MAIN', event: makeEvent({ mainCount: 6 }) },
-      { [DRAW_TYPE]: AD_HOC },
-    );
+    const view = drawFormModel({ kind: 'NEW_MAIN', event: makeEvent({ mainCount: 6 }) }, { [DRAW_TYPE]: AD_HOC });
     expect(view.fieldStates[QUALIFIERS_COUNT]?.visible).toBe(false);
   });
 });

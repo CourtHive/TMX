@@ -72,7 +72,7 @@ export function viewToggleItem({ id, mode, onChange, location = CENTER }: ViewTo
       syncActiveState((e?.target as HTMLElement | null)?.closest('.tmx-view-toggle') as HTMLElement | null, next);
       onChange(next);
     },
-    location
+    location,
   };
 }
 

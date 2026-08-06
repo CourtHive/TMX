@@ -51,12 +51,7 @@ export function popoverStatusPredicate(rowData: any, filterValue: string): boole
   if (filterValue === 'toBePlayed') return status === 'TO_BE_PLAYED' || status === 'SUSPENDED';
   if (filterValue === 'suspended') return status === 'SUSPENDED';
   if (filterValue === 'readyToScore') {
-    return (
-      rowData.readyToScore &&
-      !rowData.score &&
-      !rowData.winningSide &&
-      !COMPLETE_STATUSES.has(status ?? '')
-    );
+    return rowData.readyToScore && !rowData.score && !rowData.winningSide && !COMPLETE_STATUSES.has(status ?? '');
   }
   if (filterValue === 'complete') return isComplete(rowData);
   if (filterValue === 'retired') return status === 'RETIRED';

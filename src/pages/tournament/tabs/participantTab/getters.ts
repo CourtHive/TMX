@@ -1,7 +1,8 @@
 import { fixtures } from 'tods-competition-factory';
 
 const getGroup = (participant: any, role: string): string | undefined => {
-  return participant.groups?.find((group: any) => group.participantRoleResponsibilities?.includes(role))?.participantName;
+  return participant.groups?.find((group: any) => group.participantRoleResponsibilities?.includes(role))
+    ?.participantName;
 };
 export const getClub = (participant: any): string | undefined => getGroup(participant, 'CLUB');
 export const getSchool = (participant: any): string | undefined => getGroup(participant, 'SCHOOL');
@@ -14,4 +15,5 @@ export const getEvents = (participant: any, derivedEventInfo: any): any[] => {
 };
 
 export const getCountry = (nationalityCode: string): string =>
-  fixtures.countries.find((country: any) => country.ioc === nationalityCode || country.iso === nationalityCode)?.label || '';
+  fixtures.countries.find((country: any) => country.ioc === nationalityCode || country.iso === nationalityCode)
+    ?.label || '';

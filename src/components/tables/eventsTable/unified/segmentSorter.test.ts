@@ -3,15 +3,8 @@ import { segmentRank, SEGMENT_LABELS } from './segmentSorter';
 import { describe, expect, it } from 'vitest';
 
 const { QUALIFYING, MAIN } = drawDefinitionConstants;
-const {
-  STRUCTURE_SELECTED_STATUSES,
-  DIRECT_ACCEPTANCE,
-  CONFIRMED,
-  ALTERNATE,
-  UNGROUPED,
-  WITHDRAWN,
-  REGISTERED,
-} = entryStatusConstants;
+const { STRUCTURE_SELECTED_STATUSES, DIRECT_ACCEPTANCE, CONFIRMED, ALTERNATE, UNGROUPED, WITHDRAWN, REGISTERED } =
+  entryStatusConstants;
 
 describe('segmentRank', () => {
   it('ranks every STRUCTURE_SELECTED_STATUS as accepted', () => {

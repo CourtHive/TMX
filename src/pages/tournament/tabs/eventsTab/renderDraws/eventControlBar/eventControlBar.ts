@@ -9,7 +9,17 @@ import { context } from 'services/context';
 
 import { EVENT_CONTROL } from 'constants/tmxConstants';
 
-export function eventControlBar({ eventId, drawId, structureId, updateDisplay }: { eventId: string; drawId: string; structureId?: string; updateDisplay?: (args: any) => void }): void {
+export function eventControlBar({
+  eventId,
+  drawId,
+  structureId,
+  updateDisplay,
+}: {
+  eventId: string;
+  drawId: string;
+  structureId?: string;
+  updateDisplay?: (args: any) => void;
+}): void {
   const eventData = tournamentEngine.q.eventData({ eventId });
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structures = drawData?.structures || [];

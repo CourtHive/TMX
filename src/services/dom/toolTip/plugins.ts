@@ -18,6 +18,6 @@ export const enhancedContentFunction = {
       if (typeof instance.props.dynContent === 'function') {
         instance.setContent(instance.props.dynContent(instance.reference));
       }
-    }
-  })
+    },
+  }),
 };

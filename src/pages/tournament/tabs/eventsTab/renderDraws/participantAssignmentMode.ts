@@ -82,7 +82,7 @@ export function exitParticipantAssignmentMode({
  */
 function createTMXStateManager(
   baseManager: DrawStateManager,
-  context: { drawId: string; eventId: string; structureId: string }
+  context: { drawId: string; eventId: string; structureId: string },
 ): DrawStateManager {
   const { drawId, structureId } = context;
 
@@ -321,7 +321,7 @@ function renderAssignmentView({
   if (focusDrawPosition) {
     setTimeout(() => {
       const inputToFocus = drawsView?.querySelector(
-        `.participant-assignment-input[data-draw-position="${focusDrawPosition}"] input`
+        `.participant-assignment-input[data-draw-position="${focusDrawPosition}"] input`,
       ) as HTMLInputElement;
 
       if (inputToFocus) {

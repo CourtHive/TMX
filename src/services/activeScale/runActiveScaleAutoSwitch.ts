@@ -94,14 +94,12 @@ export function runActiveScaleAutoSwitch(): void {
 
   // action === 'prompt'
   const buttons: ModalButton[] = [
-    ...decision.availableScales.map(
-      (scale): ModalButton => ({
-        label: `Use ${scale.toUpperCase()}`,
-        intent: 'is-info',
-        close: true,
-        onClick: () => applyScale(scale),
-      }),
-    ),
+    ...decision.availableScales.map((scale): ModalButton => ({
+      label: `Use ${scale.toUpperCase()}`,
+      intent: 'is-info',
+      close: true,
+      onClick: () => applyScale(scale),
+    })),
     {
       label: `Keep ${decision.fromScale.toUpperCase()}`,
       intent: 'is-light',

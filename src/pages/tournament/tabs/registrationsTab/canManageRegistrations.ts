@@ -51,7 +51,5 @@ export function canManageRegistrations(input: CanManageRegistrationsInput): bool
   if (login.provisionerProviders?.some((p) => p.providerId === providerId)) return true;
 
   // Direct provider-admin association.
-  return !!login.providerAssociations?.some(
-    (a) => a.providerId === providerId && a.providerRole === PROVIDER_ADMIN,
-  );
+  return !!login.providerAssociations?.some((a) => a.providerId === providerId && a.providerRole === PROVIDER_ADMIN);
 }

@@ -13,7 +13,7 @@ import {
   buildVenueCard,
   mapCourtToCardData,
   mapVenueToCardData,
-  resolveCourtSport
+  resolveCourtSport,
 } from 'courthive-components';
 
 import { TOURNAMENT, VENUES_TAB } from 'constants/tmxConstants';
@@ -81,7 +81,7 @@ function buildCourtsSection(courts: any[], sport: any, onCourtClick: (id: string
   grid.className = 'tmx-venue-detail__court-grid';
   for (const court of courts) {
     const card = buildCourtCard(mapCourtToCardData(court, { sport }), undefined, {
-      onClick: (data) => onCourtClick(data.courtId)
+      onClick: (data) => onCourtClick(data.courtId),
     });
     grid.appendChild(card);
   }
@@ -113,7 +113,7 @@ export function renderVenueDetail({ anchor, venueId, refreshHeader }: Params): v
   wrap.className = 'tmx-venue-detail';
 
   const venueCardEl = buildVenueCard(venueData, undefined, {
-    onClick: () => editVenue({ venue, callback: () => renderVenueDetail({ anchor, venueId, refreshHeader }) })
+    onClick: () => editVenue({ venue, callback: () => renderVenueDetail({ anchor, venueId, refreshHeader }) }),
   });
 
   wrap.appendChild(buildHeader(venueCardEl));
@@ -123,7 +123,7 @@ export function renderVenueDetail({ anchor, venueId, refreshHeader }: Params): v
     if (!court) return;
     editCourt({
       court,
-      callback: () => renderVenueDetail({ anchor, venueId, refreshHeader })
+      callback: () => renderVenueDetail({ anchor, venueId, refreshHeader }),
     });
   };
 

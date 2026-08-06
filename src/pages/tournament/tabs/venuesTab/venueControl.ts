@@ -19,12 +19,9 @@ type VenueControlParams = {
   controlAnchor?: HTMLElement;
 };
 
-export function venueControl({
-  table,
-  updateVenueRow,
-  onToggleGrid,
-  controlAnchor,
-}: VenueControlParams = {} as any): { elements: Record<string, HTMLElement> } {
+export function venueControl({ table, updateVenueRow, onToggleGrid, controlAnchor }: VenueControlParams = {} as any): {
+  elements: Record<string, HTMLElement>;
+} {
   if (!controlAnchor) return { elements: {} };
 
   const deleteVenues = () => {

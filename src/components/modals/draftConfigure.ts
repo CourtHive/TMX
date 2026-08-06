@@ -768,11 +768,7 @@ function applyModalGlow() {
   }
 }
 
-function renderTiers(
-  draftState: any,
-  participants: Map<string, string>,
-  scaleValues?: Map<string, string>,
-): string {
+function renderTiers(draftState: any, participants: Map<string, string>, scaleValues?: Map<string, string>): string {
   const tiers = draftState.tiers || [];
   const preferences = draftState.preferences || {};
 
@@ -943,7 +939,13 @@ function refreshTierList({
  * based on whether any preferences have been submitted.
  */
 function updateConfigLockState(hasPreferences: boolean): void {
-  const configSelectIds = ['draft-tier-count', 'draft-tier-method', 'draft-scale-name', 'draft-sort-direction', 'draft-pref-count'];
+  const configSelectIds = [
+    'draft-tier-count',
+    'draft-tier-method',
+    'draft-scale-name',
+    'draft-sort-direction',
+    'draft-pref-count',
+  ];
   for (const id of configSelectIds) {
     const el = document.getElementById(id) as HTMLSelectElement;
     if (el) {

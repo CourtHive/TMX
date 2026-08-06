@@ -143,9 +143,22 @@ export function contactEmailModal(onClose?: () => void): void {
     content,
     onClose,
     buttons: [
-      { label: t('modals.contactEmail.resend'), id: 'contactEmailResend', disabled: true, onClick: onResend, intent: 'none' },
+      {
+        label: t('modals.contactEmail.resend'),
+        id: 'contactEmailResend',
+        disabled: true,
+        onClick: onResend,
+        intent: 'none',
+      },
       { label: t('common.cancel'), intent: 'none', close: true },
-      { label: t('modals.contactEmail.save'), id: 'contactEmailSave', disabled: true, onClick: onSave, close: true, intent: 'is-primary' },
+      {
+        label: t('modals.contactEmail.save'),
+        id: 'contactEmailSave',
+        disabled: true,
+        onClick: onSave,
+        close: true,
+        intent: 'is-primary',
+      },
     ],
   });
 }

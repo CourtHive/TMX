@@ -37,8 +37,20 @@ describe('bulkAcceptRegistrations', () => {
 
 describe('bulkRegistrationAction', () => {
   it('accept → ONE bulk CFS call, not a per-id fan-out', async () => {
-    post.mockResolvedValue({ data: { results: [{ registrationId: 'r-1', ok: true }, { registrationId: 'r-2', ok: true }] } });
-    await bulkRegistrationAction({ tournamentId: 't-1', provider: 'PROV', action: 'accept', registrationIds: ['r-1', 'r-2'] });
+    post.mockResolvedValue({
+      data: {
+        results: [
+          { registrationId: 'r-1', ok: true },
+          { registrationId: 'r-2', ok: true },
+        ],
+      },
+    });
+    await bulkRegistrationAction({
+      tournamentId: 't-1',
+      provider: 'PROV',
+      action: 'accept',
+      registrationIds: ['r-1', 'r-2'],
+    });
     expect(post).toHaveBeenCalledTimes(1);
     expect(post.mock.calls[0][0]).toContain('/accept-bulk');
     expect(decideRegistration).not.toHaveBeenCalled();
@@ -67,6 +79,10 @@ describe('bulkRegistrationAction', () => {
       registrationIds: ['r-1', 'r-2'],
     });
     expect(results.find((r) => r.registrationId === 'r-1')?.ok).toBe(true);
-    expect(results.find((r) => r.registrationId === 'r-2')).toEqual({ registrationId: 'r-2', ok: false, error: 'boom' });
+    expect(results.find((r) => r.registrationId === 'r-2')).toEqual({
+      registrationId: 'r-2',
+      ok: false,
+      error: 'boom',
+    });
   });
 });

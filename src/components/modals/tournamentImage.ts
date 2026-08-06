@@ -27,9 +27,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   let modalHandle: any;
 
   const tournamentRecord = tournamentEngine.q.tournament();
-  const imageResource = tournamentRecord?.onlineResources?.find(
-    ({ name }: any) => name === 'tournamentImage',
-  );
+  const imageResource = tournamentRecord?.onlineResources?.find(({ name }: any) => name === 'tournamentImage');
   const tournamentImageURL = imageResource?.resourceType === 'URL' ? imageResource?.identifier : undefined;
   const currentCourtSport =
     imageResource?.resourceSubType === COURT_SVG_RESOURCE_SUB_TYPE ? imageResource?.identifier : undefined;
@@ -120,7 +118,8 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   content.appendChild(selectorLabel);
 
   const courtSelect = document.createElement('select');
-  courtSelect.style.cssText = 'width:100%; padding:6px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary, #ccc); background-color:var(--chc-input-bg, #fff); color:var(--tmx-text-primary, #333); font-size:0.9rem;';
+  courtSelect.style.cssText =
+    'width:100%; padding:6px 8px; border-radius:4px; border:1px solid var(--tmx-border-primary, #ccc); background-color:var(--chc-input-bg, #fff); color:var(--tmx-text-primary, #333); font-size:0.9rem;';
 
   const emptyOption = document.createElement('option');
   emptyOption.value = '';

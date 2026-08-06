@@ -37,8 +37,7 @@ export function getMatchUpTeamFilter(
   const events = preFetchedEvents ?? tournamentEngine.q.events() ?? [];
   if (!events.some((e: any) => e.eventType === TEAM_EVENT)) return EMPTY_FILTER;
 
-  const teamParticipants =
-    tournamentEngine.q.participants({ participantFilters: { participantTypes: [TEAM] } }) || [];
+  const teamParticipants = tournamentEngine.q.participants({ participantFilters: { participantTypes: [TEAM] } }) || [];
   const teamMap = Object.assign(
     {},
     ...teamParticipants.map((p: any) => ({ [p.participantId]: p.individualParticipantIds })),

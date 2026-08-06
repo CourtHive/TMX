@@ -151,10 +151,7 @@ export function clearActiveCrowdsourcedScores(): void {
 /**
  * Test-only: replace the active map wholesale.
  */
-export function _resetCrowdsourcedScoresForTest(
-  tournamentId?: string,
-  entries: Array<[string, Entry]> = [],
-): void {
+export function _resetCrowdsourcedScoresForTest(tournamentId?: string, entries: Array<[string, Entry]> = []): void {
   activeTournamentId = tournamentId;
   activeMap = new Map(entries);
 }

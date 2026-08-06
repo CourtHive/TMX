@@ -176,7 +176,9 @@ function buildPublishPill(published: boolean, onToggle: () => void): HTMLElement
     ? 'Order of play for this date is published — click to unpublish'
     : 'Order of play for this date is not published — click to publish';
   btn.setAttribute('aria-label', btn.title);
-  const dot = published ? '<i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i>' : '<i class="fa-regular fa-circle" style="font-size: 0.5rem;"></i>';
+  const dot = published
+    ? '<i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i>'
+    : '<i class="fa-regular fa-circle" style="font-size: 0.5rem;"></i>';
   btn.innerHTML = `${dot}<span>${published ? 'Published' : 'Not published'}</span>`;
   btn.addEventListener('click', onToggle);
   return btn;

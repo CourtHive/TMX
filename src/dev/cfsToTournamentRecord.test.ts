@@ -71,7 +71,7 @@ function sidePairs(sides: AnyObj[]): string[] {
 
 interface CfsShapes {
   eventDataResponses: AnyObj[]; // one per event, raw factory `getEventData` output
-  scheduleResponse: AnyObj;     // raw factory `competitionScheduleMatchUps` output
+  scheduleResponse: AnyObj; // raw factory `competitionScheduleMatchUps` output
   participantsResponse: AnyObj; // raw factory `getParticipants` output
 }
 
@@ -101,7 +101,7 @@ function generateRoundRobin(opts: AnyObj = {}) {
 function generateMultiEvent() {
   return mocksEngine.generateTournamentRecord({
     drawProfiles: [
-      { drawSize: 4, drawType: 'ROUND_ROBIN',       eventName: 'Mens',   eventType: 'SINGLES' },
+      { drawSize: 4, drawType: 'ROUND_ROBIN', eventName: 'Mens', eventType: 'SINGLES' },
       { drawSize: 4, drawType: 'SINGLE_ELIMINATION', eventName: 'Womens', eventType: 'SINGLES' },
     ],
     venueProfiles: [{ courtsCount: 2, venueName: 'Center' }],
@@ -151,7 +151,10 @@ function collectMatchUpIds(record: AnyObj): string[] {
   }
 }
 
-function collectPositionAssignments(record: AnyObj, eventId: string): Array<{ drawPosition: number; participantId: string }> {
+function collectPositionAssignments(
+  record: AnyObj,
+  eventId: string,
+): Array<{ drawPosition: number; participantId: string }> {
   const out: Array<{ drawPosition: number; participantId: string }> = [];
   const event = (record.events ?? []).find((e: AnyObj) => e.eventId === eventId);
   for (const dd of event?.drawDefinitions ?? []) walk(dd.structures);
@@ -239,9 +242,9 @@ describe('extractors', () => {
     tournamentEngine.setState(tournamentRecord);
     const raw = tournamentEngine.getEventData({ eventId: tournamentRecord.events[0].eventId });
 
-    const fromBare    = extractEventData(raw);
+    const fromBare = extractEventData(raw);
     const fromWrapped = extractEventData({ tournamentPublicEventData: raw });
-    const fromData    = extractEventData({ data: { tournamentPublicEventData: raw } });
+    const fromData = extractEventData({ data: { tournamentPublicEventData: raw } });
 
     for (const x of [fromBare, fromWrapped, fromData]) {
       expect(x.tournamentInfo?.tournamentId).toBe(tournamentRecord.tournamentId);
@@ -261,7 +264,7 @@ describe('extractors', () => {
     expect(extractMatchUps({ tournamentMatchUps: raw }).length).toBe(dateMatchUps.length);
     expect(extractMatchUps({ data: raw }).length).toBe(dateMatchUps.length);
     expect(extractMatchUps(dateMatchUps).length).toBe(dateMatchUps.length); // bare array passthrough
-    expect(extractMatchUps({}).length).toBe(0);                              // graceful empty
+    expect(extractMatchUps({}).length).toBe(0); // graceful empty
   });
 
   it('extractParticipants returns the participants array from every shape it understands', () => {
@@ -399,7 +402,9 @@ describe('round-trip from mocksEngine', () => {
     for (const dd of draws) {
       expect(Array.isArray(dd.entries)).toBe(true);
       expect(dd.entries.length).toBeGreaterThan(0);
-      const positionIds = new Set(collectPositionAssignments(rebuilt, rebuilt.events![0].eventId).map((p) => p.participantId));
+      const positionIds = new Set(
+        collectPositionAssignments(rebuilt, rebuilt.events![0].eventId).map((p) => p.participantId),
+      );
       for (const entry of dd.entries) {
         expect(typeof entry.participantId).toBe('string');
         expect(entry.entryStage).toBeTruthy();
@@ -424,8 +429,9 @@ describe('round-trip from mocksEngine', () => {
       const after = collectPositionAssignments(rebuilt, e.eventId);
       // CONTAINER + ITEM may both list each assignment; dedupe before comparing
       const norm = (arr: typeof before) =>
-        [...new Map(arr.map((x) => [`${x.drawPosition}|${x.participantId}`, x])).values()]
-          .sort((a, b) => a.drawPosition - b.drawPosition);
+        [...new Map(arr.map((x) => [`${x.drawPosition}|${x.participantId}`, x])).values()].sort(
+          (a, b) => a.drawPosition - b.drawPosition,
+        );
       expect(norm(after)).toEqual(norm(before));
     }
   });
@@ -434,11 +440,7 @@ describe('round-trip from mocksEngine', () => {
     const { tournamentRecord } = generateMultiEvent();
     const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
 
-    const rebuilt = buildFromSources([
-      ...eventDataResponses,
-      scheduleResponse,
-      participantsResponse,
-    ]).record;
+    const rebuilt = buildFromSources([...eventDataResponses, scheduleResponse, participantsResponse]).record;
 
     const originalEvents = (tournamentRecord.events ?? []).map((e: AnyObj) => e.eventId).sort();
     const rebuiltEvents = (rebuilt.events ?? []).map((e: AnyObj) => e.eventId).sort();
@@ -446,7 +448,9 @@ describe('round-trip from mocksEngine', () => {
 
     // Per-event matchUpId set must match
     for (const eventId of originalEvents) {
-      const oIds = collectMatchUpIds({ events: [(tournamentRecord.events ?? []).find((e: AnyObj) => e.eventId === eventId)] });
+      const oIds = collectMatchUpIds({
+        events: [(tournamentRecord.events ?? []).find((e: AnyObj) => e.eventId === eventId)],
+      });
       const rIds = collectMatchUpIds({ events: [(rebuilt.events ?? []).find((e: AnyObj) => e.eventId === eventId)] });
       expect(rIds).toEqual(oIds);
     }
@@ -497,7 +501,9 @@ describe('round-trip from mocksEngine — doubles', () => {
     for (const pair of rebuiltPairs) {
       expect(pair.individualParticipantIds?.length).toBe(2);
       for (const indId of pair.individualParticipantIds) {
-        expect(rebuiltIndividualIds.has(indId), `PAIR ${pair.participantId} links to missing INDIVIDUAL ${indId}`).toBe(true);
+        expect(rebuiltIndividualIds.has(indId), `PAIR ${pair.participantId} links to missing INDIVIDUAL ${indId}`).toBe(
+          true,
+        );
       }
     }
   });
@@ -584,7 +590,16 @@ describe('round-trip from mocksEngine — doubles', () => {
       participantDocs: [extractParticipants(participantsResponse)],
     });
 
-    const polluting = ['entryStatus', 'entryStage', 'individualParticipants', 'groupParticipantIds', 'teamParticipantIds', 'pairParticipantIds', 'groups', 'teams'];
+    const polluting = [
+      'entryStatus',
+      'entryStage',
+      'individualParticipants',
+      'groupParticipantIds',
+      'teamParticipantIds',
+      'pairParticipantIds',
+      'groups',
+      'teams',
+    ];
     for (const p of rebuilt.participants ?? []) {
       for (const k of polluting) {
         expect(p, `${p.participantType} ${p.participantId} retained ${k}`).not.toHaveProperty(k);
@@ -677,11 +692,7 @@ describe('buildFromSources', () => {
     const { tournamentRecord } = generateRoundRobin();
     const { eventDataResponses, scheduleResponse, participantsResponse } = cfsShapes(tournamentRecord);
 
-    const fromSources = buildFromSources([
-      ...eventDataResponses,
-      scheduleResponse,
-      participantsResponse,
-    ]).record;
+    const fromSources = buildFromSources([...eventDataResponses, scheduleResponse, participantsResponse]).record;
 
     const fromLabeled = buildTournamentRecord({
       eventDataDocs: eventDataResponses.map(extractEventData),
@@ -711,10 +722,7 @@ describe('buildFromSources', () => {
     const { tournamentRecord } = generateRoundRobin();
     const { eventDataResponses, scheduleResponse } = cfsShapes(tournamentRecord);
 
-    const result = buildFromSources([
-      { data: eventDataResponses[0] },
-      { data: { data: scheduleResponse } },
-    ]).record;
+    const result = buildFromSources([{ data: eventDataResponses[0] }, { data: { data: scheduleResponse } }]).record;
 
     expect(result.tournamentId).toBe(tournamentRecord.tournamentId);
     expect(collectMatchUpIds(result)).toEqual(collectMatchUpIds(tournamentRecord));
@@ -765,7 +773,17 @@ describe('cleanup invariants', () => {
       participantDocs: [extractParticipants(participantsResponse)],
     });
 
-    const stripped = ['eventId', 'drawId', 'drawName', 'drawType', 'gender', 'tournamentId', 'eventName', 'hasContext', 'readyToScore'];
+    const stripped = [
+      'eventId',
+      'drawId',
+      'drawName',
+      'drawType',
+      'gender',
+      'tournamentId',
+      'eventName',
+      'hasContext',
+      'readyToScore',
+    ];
     const matchUps = listRebuiltMatchUps(rebuilt);
 
     expect(matchUps.length).toBeGreaterThan(0);

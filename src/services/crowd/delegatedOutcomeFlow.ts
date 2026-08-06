@@ -14,7 +14,14 @@
  * path). See Mentat `feedback_cfs_no_crowd_traffic`.
  */
 
-import { buildAcceptMethods, buildConfirmMethods, buildDelegatedOutcome, readDelegatedOutcome, snapshotToSets, type DelegatedOutcomeScorer } from 'services/crowd/delegatedOutcome';
+import {
+  buildAcceptMethods,
+  buildConfirmMethods,
+  buildDelegatedOutcome,
+  readDelegatedOutcome,
+  snapshotToSets,
+  type DelegatedOutcomeScorer,
+} from 'services/crowd/delegatedOutcome';
 import { getSessionsByMatchUpId, promoteSession, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';

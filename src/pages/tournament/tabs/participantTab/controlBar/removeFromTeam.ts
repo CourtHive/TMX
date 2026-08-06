@@ -13,9 +13,9 @@ export function removeFromTeam({ table, team }: { table: any; team: any }): void
       params: {
         groupingParticipantId: team.participantId,
         individualParticipantIds,
-        suppressErrors: true
-      }
-    }
+        suppressErrors: true,
+      },
+    },
   ];
   const postMutation = (result: any) => {
     if (result.success) {

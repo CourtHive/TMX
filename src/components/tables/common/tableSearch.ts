@@ -40,6 +40,6 @@ export const searchField =
       location: location || LEFT,
       class: 'search',
       search: true,
-      placeholder
+      placeholder,
     };
   };

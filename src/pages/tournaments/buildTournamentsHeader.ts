@@ -23,7 +23,7 @@ const STATUS_CHIPS: StatusChip[] = [
   { value: 'all', label: 'All' },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'live', label: 'Live' },
-  { value: 'completed', label: 'Completed' }
+  { value: 'completed', label: 'Completed' },
 ];
 
 interface BuildHeaderParams {
@@ -84,14 +84,14 @@ export function buildTournamentsHeader({ view, initialCount }: BuildHeaderParams
   banner.appendChild(
     buildViewToggleElement({
       mode: view.getState().viewMode,
-      onChange: (m) => view.setViewMode(m)
-    })
+      onChange: (m) => view.setViewMode(m),
+    }),
   );
 
   return {
     element: banner,
     setCount: (count: number) => {
       title.textContent = `Tournaments (${count})`;
-    }
+    },
   };
 }

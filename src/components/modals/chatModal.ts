@@ -96,7 +96,8 @@ export function openChatModal(): void {
       bubble.textContent = msg.message;
 
       const meta = document.createElement('div');
-      meta.style.cssText = 'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-top: 2px; padding: 0 4px;';
+      meta.style.cssText =
+        'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-top: 2px; padding: 0 4px;';
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       // Delivery state on own messages: \u23f1 sending, \u2713 accepted, \u26a0 failed.
       const deliveryMark =
@@ -205,7 +206,8 @@ export function openChatModal(): void {
 
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
-  closeBtn.style.cssText = 'background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--chc-text-secondary, #888); line-height: 1;';
+  closeBtn.style.cssText =
+    'background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--chc-text-secondary, #888); line-height: 1;';
   closeBtn.onclick = closeChatPanel;
 
   header.appendChild(titleGroup);

@@ -12,7 +12,15 @@ const pid = 'player-1';
 // id that is NOT a top-level structure (should be ignored).
 const eventData = {
   eventInfo: { eventId },
-  drawsData: [{ drawId, structures: [{ structureId: MAIN, structureName: 'Main' }, { structureId: CONS, structureName: 'Consolation' }] }],
+  drawsData: [
+    {
+      drawId,
+      structures: [
+        { structureId: MAIN, structureName: 'Main' },
+        { structureId: CONS, structureName: 'Consolation' },
+      ],
+    },
+  ],
 };
 
 const side = (participantId: string) => ({ participantId });
@@ -27,7 +35,14 @@ const matchUps = [
 
 describe('getFollowActions', () => {
   it('offers a follow action to each OTHER structure holding the participant', () => {
-    const actions = getFollowActions({ participantId: pid, currentStructureId: MAIN, drawId, eventId, eventData, matchUps });
+    const actions = getFollowActions({
+      participantId: pid,
+      currentStructureId: MAIN,
+      drawId,
+      eventId,
+      eventData,
+      matchUps,
+    });
     expect(actions).toHaveLength(1);
     expect(actions[0]).toMatchObject({
       type: 'FOLLOW_TO_STRUCTURE',
@@ -37,26 +52,58 @@ describe('getFollowActions', () => {
   });
 
   it('targets the participant furthest (highest round) matchUp in the target structure', () => {
-    const [action] = getFollowActions({ participantId: pid, currentStructureId: MAIN, drawId, eventId, eventData, matchUps });
+    const [action] = getFollowActions({
+      participantId: pid,
+      currentStructureId: MAIN,
+      drawId,
+      eventId,
+      eventData,
+      matchUps,
+    });
     expect(action.payload.matchUpId).toBe('m-cons-r2');
   });
 
   it('is bidirectional — from the consolation it points back to Main', () => {
-    const actions = getFollowActions({ participantId: pid, currentStructureId: CONS, drawId, eventId, eventData, matchUps });
+    const actions = getFollowActions({
+      participantId: pid,
+      currentStructureId: CONS,
+      drawId,
+      eventId,
+      eventData,
+      matchUps,
+    });
     expect(actions).toHaveLength(1);
     expect(actions[0].payload.structureId).toBe(MAIN);
     expect(actions[0].payload.matchUpId).toBe('m-main-r1');
   });
 
   it('ignores non-top-level structure ids (e.g. round-robin sub-groups) and other draws', () => {
-    const actions = getFollowActions({ participantId: pid, currentStructureId: MAIN, drawId, eventId, eventData, matchUps });
+    const actions = getFollowActions({
+      participantId: pid,
+      currentStructureId: MAIN,
+      drawId,
+      eventId,
+      eventData,
+      matchUps,
+    });
     const structureIds = actions.map((a) => a.payload.structureId);
     expect(structureIds).not.toContain('rr-subgroup');
     expect(actions.every((a) => a.payload.matchUpId !== 'm-other-draw')).toBe(true);
   });
 
   it('returns nothing without a participantId or drawId', () => {
-    expect(getFollowActions({ participantId: undefined, currentStructureId: MAIN, drawId, eventId, eventData, matchUps })).toEqual([]);
-    expect(getFollowActions({ participantId: pid, currentStructureId: MAIN, drawId: undefined, eventId, eventData, matchUps })).toEqual([]);
+    expect(
+      getFollowActions({ participantId: undefined, currentStructureId: MAIN, drawId, eventId, eventData, matchUps }),
+    ).toEqual([]);
+    expect(
+      getFollowActions({
+        participantId: pid,
+        currentStructureId: MAIN,
+        drawId: undefined,
+        eventId,
+        eventData,
+        matchUps,
+      }),
+    ).toEqual([]);
   });
 });

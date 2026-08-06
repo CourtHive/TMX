@@ -10,52 +10,54 @@ import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const eventActions = () => (e: MouseEvent, cell: any): void => {
-  const tips = Array.from(document.querySelectorAll('.tippy-content'));
-  if (tips.length) {
-    tips.forEach((n) => n.remove());
-    return;
-  }
-  const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
-  const data = cell.getRow().getData();
-
-  const row = cell.getRow();
-  const eventRow = row?.getData();
-
-  const doneEditing = ({ success, eventUpdates }: any) => {
-    if (success) {
-      Object.assign(eventRow.event, eventUpdates);
-      row.update(eventRow);
+export const eventActions =
+  () =>
+  (e: MouseEvent, cell: any): void => {
+    const tips = Array.from(document.querySelectorAll('.tippy-content'));
+    if (tips.length) {
+      tips.forEach((n) => n.remove());
+      return;
     }
-  };
+    const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
+    const data = cell.getRow().getData();
 
-  const deleteEvent = () => {
-    const eventIds = [data.eventId];
-    const callback = (result: any) => {
-      const table = cell.getTable();
-      result.success && table?.deleteRow(eventIds);
+    const row = cell.getRow();
+    const eventRow = row?.getData();
+
+    const doneEditing = ({ success, eventUpdates }: any) => {
+      if (success) {
+        Object.assign(eventRow.event, eventUpdates);
+        row.update(eventRow);
+      }
     };
-    return deleteEvents({ eventIds, callback });
+
+    const deleteEvent = () => {
+      const eventIds = [data.eventId];
+      const callback = (result: any) => {
+        const table = cell.getTable();
+        result.success && table?.deleteRow(eventIds);
+      };
+      return deleteEvents({ eventIds, callback });
+    };
+
+    const items = [
+      {
+        onClick: () => navigateToEvent({ eventId: data.eventId, renderPoints: true }),
+        text: 'Ranking points',
+      },
+      {
+        onClick: () => editDisplaySettings({ eventId: data.eventId }),
+        text: 'Display settings',
+      },
+      {
+        onClick: deleteEvent,
+        text: 'Delete',
+      },
+      {
+        onClick: () => editEvent({ event: data.event, callback: doneEditing }),
+        text: 'Edit',
+      },
+    ];
+
+    tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
   };
-
-  const items = [
-    {
-      onClick: () => navigateToEvent({ eventId: data.eventId, renderPoints: true }),
-      text: 'Ranking points',
-    },
-    {
-      onClick: () => editDisplaySettings({ eventId: data.eventId }),
-      text: 'Display settings',
-    },
-    {
-      onClick: deleteEvent,
-      text: 'Delete',
-    },
-    {
-      onClick: () => editEvent({ event: data.event, callback: doneEditing }),
-      text: 'Edit',
-    },
-  ];
-
-  tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
-};

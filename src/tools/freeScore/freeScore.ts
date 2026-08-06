@@ -434,11 +434,7 @@ function calculateAggregateTotals(sets: ParsedSet[], count: number): { side1: nu
 /**
  * Validate aggregate scoring with conditional tiebreak
  */
-function validateAggregateScoring(
-  sets: ParsedSet[],
-  timedSetsCount: number,
-  errors: ParseError[],
-): void {
+function validateAggregateScoring(sets: ParsedSet[], timedSetsCount: number, errors: ParseError[]): void {
   const timedSets = sets.filter((s) => s.side1Score !== undefined);
   const hasTBSet = sets.some((s) => s.side1TiebreakScore !== undefined);
 
@@ -1226,9 +1222,7 @@ function finalizeSet(state: ParserState): void {
   const currentSetFormat = getSetFormat(state.parsedFormat, state.setIndex);
   const isTiebreakOnly = isTiebreakOnlySet(currentSetFormat);
 
-  const set = isTiebreakOnly
-    ? createTiebreakOnlySet(state)
-    : createRegularSet(state, currentSetFormat);
+  const set = isTiebreakOnly ? createTiebreakOnlySet(state) : createRegularSet(state, currentSetFormat);
 
   if (set) {
     state.sets.push(set);

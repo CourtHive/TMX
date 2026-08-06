@@ -89,7 +89,11 @@ export async function selectIdiom(): Promise<void> {
   const content = (elem: HTMLElement) => {
     renderForm(elem, [
       {
-        typeAhead: { list: displayList, callback: typeAheadCallback, currentValue: preferencesConfig.get().ioc?.toUpperCase() || 'GBR' },
+        typeAhead: {
+          list: displayList,
+          callback: typeAheadCallback,
+          currentValue: preferencesConfig.get().ioc?.toUpperCase() || 'GBR',
+        },
         placeholder: t('phrases.selectlanguage'),
         label: t('cnt'),
         field: 'ioc',

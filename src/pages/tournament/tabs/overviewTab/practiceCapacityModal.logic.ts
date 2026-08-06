@@ -6,9 +6,7 @@
 
 import { tournamentEngine } from 'services/factory/engine';
 
-export type ParsedCapacity =
-  | { ok: true; value: number | null }
-  | { ok: false; errorKey: string };
+export type ParsedCapacity = { ok: true; value: number | null } | { ok: false; errorKey: string };
 
 const ERR_INVALID = 'modals.practiceCapacity.invalidNumber';
 const ERR_NEGATIVE = 'modals.practiceCapacity.mustBeNonNegative';

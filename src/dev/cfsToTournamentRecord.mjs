@@ -32,11 +32,7 @@ function peelDataEnvelope(raw) {
 
 function isWrappedInData(obj) {
   return (
-    obj !== null &&
-    typeof obj === 'object' &&
-    !Array.isArray(obj) &&
-    'data' in obj &&
-    Object.keys(obj).length === 1
+    obj !== null && typeof obj === 'object' && !Array.isArray(obj) && 'data' in obj && Object.keys(obj).length === 1
   );
 }
 
@@ -90,8 +86,8 @@ export function classifySource(raw) {
 
 function classifyByWrapperKey(obj) {
   if ('tournamentPublicEventData' in obj) return 'event-data';
-  if ('tournamentMatchUps' in obj)        return 'matchups';
-  if ('tournamentParticipants' in obj)    return 'participants';
+  if ('tournamentMatchUps' in obj) return 'matchups';
+  if ('tournamentParticipants' in obj) return 'participants';
   return undefined;
 }
 
@@ -103,10 +99,10 @@ function classifyArrayShape(arr) {
 }
 
 function classifyObjectShape(obj) {
-  if (obj.dateMatchUps)   return 'matchups';
-  if (obj.eventData)      return 'event-data';
+  if (obj.dateMatchUps) return 'matchups';
+  if (obj.eventData) return 'event-data';
   if (obj.tournamentInfo) return 'event-data';
-  if (obj.drawsData)      return 'event-data';
+  if (obj.drawsData) return 'event-data';
   if (looksLikeParticipantsBag(obj)) return 'participants';
   return 'unknown';
 }
@@ -131,14 +127,31 @@ function stripMongo(obj) {
 // MatchUps from CFS carry tons of derived context that does not belong on a
 // stored matchUp; strip it so the record round-trips cleanly through factory.
 const MATCHUP_CONTEXT_KEYS = new Set([
-  'eventDrawsCount', 'eventId', 'eventName', 'tournamentId',
-  'drawId', 'drawName', 'drawType', 'endDate',
-  'gender', 'category',
-  'createdAt', 'updatedAt',
-  'hasContext', 'readyToScore', 'allParticipantsCheckedIn', 'checkedInParticipantIds',
-  'isRoundRobin', 'roundFactor', 'roundOfPlay', 'preFeedRound', 'feedRound',
-  'roundName', 'abbreviatedRoundName',
-  'containerStructureId', 'structureName',
+  'eventDrawsCount',
+  'eventId',
+  'eventName',
+  'tournamentId',
+  'drawId',
+  'drawName',
+  'drawType',
+  'endDate',
+  'gender',
+  'category',
+  'createdAt',
+  'updatedAt',
+  'hasContext',
+  'readyToScore',
+  'allParticipantsCheckedIn',
+  'checkedInParticipantIds',
+  'isRoundRobin',
+  'roundFactor',
+  'roundOfPlay',
+  'preFeedRound',
+  'feedRound',
+  'roundName',
+  'abbreviatedRoundName',
+  'containerStructureId',
+  'structureName',
 ]);
 
 const SCHEDULE_KEYS = ['scheduledDate', 'scheduledTime', 'venueId', 'courtId', 'endTime'];
@@ -154,7 +167,7 @@ function cleanSchedule(sch) {
 function trimSideParticipant(participant) {
   if (participant === null || typeof participant !== 'object') return undefined;
   const trimmed = {};
-  if (participant.entryStage)  trimmed.entryStage  = participant.entryStage;
+  if (participant.entryStage) trimmed.entryStage = participant.entryStage;
   if (participant.entryStatus) trimmed.entryStatus = participant.entryStatus;
   return Object.keys(trimmed).length > 0 ? trimmed : null;
 }
@@ -185,9 +198,14 @@ function cleanMatchUp(m) {
 // getParticipants, getEventData.participants, side fallbacks — converges on
 // the same shape.
 const PARTICIPANT_CONTEXT_KEYS = [
-  'entryStatus', 'entryStage', 'individualParticipants',
-  'groupParticipantIds', 'teamParticipantIds', 'pairParticipantIds',
-  'groups', 'teams',
+  'entryStatus',
+  'entryStage',
+  'individualParticipants',
+  'groupParticipantIds',
+  'teamParticipantIds',
+  'pairParticipantIds',
+  'groups',
+  'teams',
 ];
 
 function cleanParticipant(p) {
@@ -204,7 +222,7 @@ function cleanParticipant(p) {
 }
 
 // ------------------------------------------------------ small shared utils
-const dateOnly = (s) => s ? String(s).split('T')[0] : undefined;
+const dateOnly = (s) => (s ? String(s).split('T')[0] : undefined);
 
 function walkStructures(structures, fn) {
   if (!Array.isArray(structures)) return undefined;
@@ -275,12 +293,14 @@ function buildEventScaffold(info) {
     eventName: info.eventName,
     eventType: info.eventType ?? info.matchUpType,
     gender: info.gender,
-    category: info.category ? stripMongo({
-      ageCategoryCode: info.category.ageCategoryCode,
-      ballType: info.category.ballType,
-      subType: info.category.subType,
-      type: info.category.type,
-    }) : undefined,
+    category: info.category
+      ? stripMongo({
+          ageCategoryCode: info.category.ageCategoryCode,
+          ballType: info.category.ballType,
+          subType: info.category.subType,
+          type: info.category.type,
+        })
+      : undefined,
     matchUpFormat: info.matchUpFormat,
     startDate: dateOnly(info.startDate),
     endDate: dateOnly(info.endDate),
@@ -307,14 +327,16 @@ function buildTournamentMetadata(eventDataDocs, matchUps) {
 function buildVenues(eventDataDocs) {
   const ti = eventDataDocs.find((d) => d.tournamentInfo?.venues?.length)?.tournamentInfo;
   if (!ti) return [];
-  return ti.venues.map((v) => stripMongo({
-    venueId: v.venueId,
-    venueName: v.venueName,
-    venueAbbreviation: v.venueAbbreviation,
-    venueOtherIds: v.venueOtherIds,
-    addresses: v.addresses,
-    courts: (v.courts ?? []).map(toCourtSummary),
-  }));
+  return ti.venues.map((v) =>
+    stripMongo({
+      venueId: v.venueId,
+      venueName: v.venueName,
+      venueAbbreviation: v.venueAbbreviation,
+      venueOtherIds: v.venueOtherIds,
+      addresses: v.addresses,
+      courts: (v.courts ?? []).map(toCourtSummary),
+    }),
+  );
 }
 
 function toCourtSummary(c) {
@@ -374,9 +396,7 @@ function buildGroupStructures(byStructure, matchUpFormat, containerId, container
   for (const [structureId, bucket] of byStructure) {
     collectPositionsFromMatchUps(bucket.matchUps, containerPositions);
     const isSelfReferencingContainer = structureId === containerId;
-    const structureType = isSelfReferencingContainer
-      ? (container?.structureType ?? 'ITEM')
-      : 'ITEM';
+    const structureType = isSelfReferencingContainer ? (container?.structureType ?? 'ITEM') : 'ITEM';
     groupStructures.push(makeGroupStructureNode({ structureId, bucket, matchUpFormat, structureType }));
   }
   return { groupStructures, containerPositions };
@@ -393,7 +413,10 @@ function buildDrawDefinitionFromDrawData(draw) {
   const byStructure = bucketMatchUpsByStructure(allMatchUps);
   const containerId = container?.structureId;
   const { groupStructures, containerPositions } = buildGroupStructures(
-    byStructure, matchUpFormat, containerId, container,
+    byStructure,
+    matchUpFormat,
+    containerId,
+    container,
   );
   const containerPositionAssignments = preferredContainerPositions(container, containerPositions);
 
@@ -479,16 +502,18 @@ function buildDrawDefinitionFromMatchUps(drawId, matchUps) {
   if (containerStructureId && containerStructureId !== sample.structureId) {
     return {
       ...drawShell,
-      structures: [{
-        structureId: containerStructureId,
-        structureName: 'Main',
-        structureType: 'CONTAINER',
-        stage: 'MAIN',
-        stageSequence: 1,
-        matchUpFormat,
-        positionAssignments: positionMapToAssignments(containerPositions),
-        structures: groupStructures,
-      }],
+      structures: [
+        {
+          structureId: containerStructureId,
+          structureName: 'Main',
+          structureType: 'CONTAINER',
+          stage: 'MAIN',
+          stageSequence: 1,
+          matchUpFormat,
+          positionAssignments: positionMapToAssignments(containerPositions),
+          structures: groupStructures,
+        },
+      ],
     };
   }
   return { ...drawShell, structures: groupStructures };
@@ -654,7 +679,7 @@ function recordEntryInfo(entryInfo, side) {
   if (!side.participantId || !side.participant) return;
   if (entryInfo.has(side.participantId)) return;
   entryInfo.set(side.participantId, {
-    entryStage:  side.participant.entryStage  ?? 'MAIN',
+    entryStage: side.participant.entryStage ?? 'MAIN',
     entryStatus: side.participant.entryStatus ?? 'DIRECT_ACCEPTANCE',
   });
 }
@@ -688,13 +713,12 @@ export function buildTournamentRecord({ eventDataDocs = [], matchUpDocs = [], pa
   const record = buildTournamentMetadata(eventDataDocs, matchUpDocs);
   const participants = mergeParticipants({ participantDocs, eventDataDocs, matchUps: matchUpDocs });
   const venues = buildVenues(eventDataDocs);
-  const events = (eventDataDocs.length > 0 || matchUpDocs.length > 0)
-    ? buildEvents({ eventDataDocs, matchUps: matchUpDocs })
-    : [];
+  const events =
+    eventDataDocs.length > 0 || matchUpDocs.length > 0 ? buildEvents({ eventDataDocs, matchUps: matchUpDocs }) : [];
 
   if (participants.length > 0) record.participants = participants;
-  if (venues.length > 0)       record.venues = venues;
-  if (events.length > 0)       record.events = events;
+  if (venues.length > 0) record.venues = venues;
+  if (events.length > 0) record.events = events;
   return dropEmpty(record);
 }
 
@@ -717,10 +741,10 @@ export function buildFromSources(sources) {
   for (let i = 0; i < length; i++) {
     const { kind, value } = classifySource(sources[i]);
     classification.push({ index: i, kind });
-    if (kind === 'event-data')        eventDataDocs.push(extractEventData(value));
-    else if (kind === 'matchups')     matchUpDocs.push(...extractMatchUps(value));
+    if (kind === 'event-data') eventDataDocs.push(extractEventData(value));
+    else if (kind === 'matchups') matchUpDocs.push(...extractMatchUps(value));
     else if (kind === 'participants') participantDocs.push(extractParticipants(value));
-    else                              unknownCount += 1;
+    else unknownCount += 1;
   }
 
   const record = buildTournamentRecord({ eventDataDocs, matchUpDocs, participantDocs });

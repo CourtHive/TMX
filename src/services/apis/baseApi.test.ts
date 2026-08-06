@@ -46,7 +46,11 @@ describe('baseApi.refreshAccessToken', () => {
     // Single-flight: a second concurrent caller must NOT trigger a second
     // rotation (which the server's reuse-detection would treat as theft).
     expect(post).toHaveBeenCalledTimes(1);
-    expect(post).toHaveBeenCalledWith('/auth/refresh', { refreshToken: 'rtok_old' }, expect.objectContaining({ silenceErrors: true }));
+    expect(post).toHaveBeenCalledWith(
+      '/auth/refresh',
+      { refreshToken: 'rtok_old' },
+      expect.objectContaining({ silenceErrors: true }),
+    );
     expect(localStorage.getItem('tmxToken')).toBe('access_new');
     expect(localStorage.getItem('tmxRefreshToken')).toBe('rtok_new');
   });

@@ -16,7 +16,11 @@ import { positionActionConstants, tournamentEngine } from 'tods-competition-fact
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 
-import { ASSIGN_MATCHUP_SCOREKEEPER, MODIFY_PARTICIPANT, REMOVE_MATCHUP_SCOREKEEPER } from 'constants/mutationConstants';
+import {
+  ASSIGN_MATCHUP_SCOREKEEPER,
+  MODIFY_PARTICIPANT,
+  REMOVE_MATCHUP_SCOREKEEPER,
+} from 'constants/mutationConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const SCOREKEEPER_ROLE = 'SCOREKEEPER';

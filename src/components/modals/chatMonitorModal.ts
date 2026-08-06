@@ -78,14 +78,16 @@ export function openChatMonitorModal(): void {
       const key = groupKey(msg);
       if (key !== lastKey) {
         lastKey = key;
-        stream.appendChild(buildGroupPill(msg, () =>
-          setReplyTarget({
-            tournamentId: msg.tournamentId ?? '',
-            providerId: msg.providerId,
-            providerAbbr: msg.providerAbbr,
-            tournamentName: msg.tournamentName,
-          }),
-        ));
+        stream.appendChild(
+          buildGroupPill(msg, () =>
+            setReplyTarget({
+              tournamentId: msg.tournamentId ?? '',
+              providerId: msg.providerId,
+              providerAbbr: msg.providerAbbr,
+              tournamentName: msg.tournamentName,
+            }),
+          ),
+        );
       }
       stream.appendChild(buildMessageRow(msg));
     }

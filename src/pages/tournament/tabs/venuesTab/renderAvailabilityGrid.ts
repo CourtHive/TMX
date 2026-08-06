@@ -42,10 +42,7 @@ export interface RenderAvailabilityGridOptions {
    * the painter from prematurely clearing its dirty state for a save that
    * gets rolled back server-side (e.g. ERR_SCHEDULE_CONFLICT).
    */
-  onMutationMethods?: (
-    methods: { method: string; params: any }[],
-    resetOnSuccess: () => void,
-  ) => void;
+  onMutationMethods?: (methods: { method: string; params: any }[], resetOnSuccess: () => void) => void;
   /**
    * Fires when the painter's internal dirty state changes. The workspace
    * uses this hook to surface "painter has unsaved paint" in its sticky
@@ -167,10 +164,7 @@ function buildCourtAvailabilityMethod(
 
 function saveGridState(
   grid: AvailabilityGrid,
-  onMutationMethods?: (
-    methods: { method: string; params: any }[],
-    resetOnSuccess: () => void,
-  ) => void,
+  onMutationMethods?: (methods: { method: string; params: any }[], resetOnSuccess: () => void) => void,
 ): void {
   const engine = grid.getEngine();
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -184,8 +178,7 @@ function saveGridState(
     // 1. Venue defaults — emit modifyVenue if changed
     const venueAvail = engine.getVenueAvailability(tournamentRecord.tournamentId, venue.venueId);
     if (venueAvail) {
-      const changed =
-        venueAvail.startTime !== venue.defaultStartTime || venueAvail.endTime !== venue.defaultEndTime;
+      const changed = venueAvail.startTime !== venue.defaultStartTime || venueAvail.endTime !== venue.defaultEndTime;
       if (changed) {
         methods.push({
           method: MODIFY_VENUE,

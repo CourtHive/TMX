@@ -8,7 +8,10 @@ const ready = (over: Partial<any> & { matchUpId: string }) => ({
   drawId: 'd',
   participantIds: ['p1', 'p2'],
   ...over,
-  payload: { sides: [{ participantId: 'p1' }, { participantId: 'p2' }], schedule: over.scheduledTime ? { scheduledTime: over.scheduledTime } : {} },
+  payload: {
+    sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+    schedule: over.scheduledTime ? { scheduledTime: over.scheduledTime } : {},
+  },
 });
 
 const column = (courtId: string, cells: any[]): StripColumn => ({ courtId, cells });
@@ -61,7 +64,12 @@ describe('computeAutoCalls', () => {
   it('does not call an unfilled (TBD) match', () => {
     const cols = [
       column('C1', [
-        { matchUpId: 'M1', drawId: 'd', matchUpStatus: 'TO_BE_PLAYED', payload: { sides: [{ participantId: 'p1' }, {}] } },
+        {
+          matchUpId: 'M1',
+          drawId: 'd',
+          matchUpStatus: 'TO_BE_PLAYED',
+          payload: { sides: [{ participantId: 'p1' }, {}] },
+        },
       ]),
     ];
     expect(computeAutoCalls(cols, NOW)).toEqual([]);

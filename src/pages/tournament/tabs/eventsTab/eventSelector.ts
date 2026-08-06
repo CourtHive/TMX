@@ -60,7 +60,8 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
 
   const wrapper = document.createElement('div');
   wrapper.className = 'event-selector';
-  wrapper.style.cssText = 'display: flex; gap: 0.5em; align-items: center; padding: 0.4em 0.5em; overflow-x: auto; width: 100%; box-sizing: border-box;';
+  wrapper.style.cssText =
+    'display: flex; gap: 0.5em; align-items: center; padding: 0.4em 0.5em; overflow-x: auto; width: 100%; box-sizing: border-box;';
 
   if (manyEvents) {
     const selectedIndex = events.findIndex((e: any) => e.eventId === eventId);
@@ -76,7 +77,11 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
       prevBtn.onclick = () => {
         const prev = events[selectedIndex - 1];
         const draws = prev.drawDefinitions || [];
-        navigateToEvent({ eventId: prev.eventId, renderDraw: draws.length > 0, drawId: draws.length === 1 ? draws[0].drawId : undefined });
+        navigateToEvent({
+          eventId: prev.eventId,
+          renderDraw: draws.length > 0,
+          drawId: draws.length === 1 ? draws[0].drawId : undefined,
+        });
       };
     }
     wrapper.appendChild(prevBtn);
@@ -102,7 +107,11 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
       nextBtn.onclick = () => {
         const next = events[selectedIndex + 1];
         const draws = next.drawDefinitions || [];
-        navigateToEvent({ eventId: next.eventId, renderDraw: draws.length > 0, drawId: draws.length === 1 ? draws[0].drawId : undefined });
+        navigateToEvent({
+          eventId: next.eventId,
+          renderDraw: draws.length > 0,
+          drawId: draws.length === 1 ? draws[0].drawId : undefined,
+        });
       };
     }
     wrapper.appendChild(nextBtn);

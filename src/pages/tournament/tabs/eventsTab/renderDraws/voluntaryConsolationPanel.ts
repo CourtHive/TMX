@@ -6,7 +6,13 @@
  * Flow: TD selects participants → OVERLAY sets entry status (Accepted/Alternate/Clear)
  * → chips appear in table → Generate when ≥2 accepted.
  */
-import { drawDefinitionConstants, entryStatusConstants, factoryConstants, fixtures, tools } from 'tods-competition-factory';
+import {
+  drawDefinitionConstants,
+  entryStatusConstants,
+  factoryConstants,
+  fixtures,
+  tools,
+} from 'tods-competition-factory';
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal, controlBar } from 'courthive-components';
@@ -234,7 +240,10 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
 
   const getGroupSizeOptions = () => {
     const accepted = getAcceptedCount();
-    const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: accepted || 4, groupSizeLimit: 8 });
+    const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({
+      drawSize: accepted || 4,
+      groupSizeLimit: 8,
+    });
     return (validGroupSizes || [3, 4, 5, 6, 7, 8]).map((size) => ({
       label: `Groups of ${size}`,
       onClick: () => {

@@ -7,6 +7,6 @@ export function getAttachedAvoidances({ eventId, drawId }: { eventId: string; dr
   return tournamentEngine.getPolicyDefinitions({
     policyTypes: [POLICY_TYPE_AVOIDANCE],
     eventId,
-    drawId
+    drawId,
   })?.policyDefinitions?.[POLICY_TYPE_AVOIDANCE]?.policyAttributes;
 }

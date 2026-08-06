@@ -24,14 +24,7 @@ import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 // constants
-import {
-  CONTROL_BAR,
-  ENTRIES_VIEW,
-  EVENT_CONTROL,
-  LEFT,
-  RIGHT,
-  TMX_TABLE,
-} from 'constants/tmxConstants';
+import { CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
 
 const { MAIN } = drawDefinitionConstants;
 const { UNGROUPED, WITHDRAWN } = entryStatusConstants;
@@ -298,8 +291,7 @@ export function createUnifiedEntriesPanel({
     // Selection is also suspended during manual seeding: clicking a seed cell
     // would otherwise also select the row, and the controlBar swaps to selection
     // overlay actions — hiding the Save/Cancel seeding buttons.
-    selectableRowsCheck: (row: any) =>
-      !!row.getElement() && !row.getData()._isSeparator && !isSeedingEnabled(table),
+    selectableRowsCheck: (row: any) => !!row.getElement() && !row.getData()._isSeparator && !isSeedingEnabled(table),
     columns,
     responsiveLayout: 'collapse',
     index: 'participantId',

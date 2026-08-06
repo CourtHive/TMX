@@ -32,7 +32,7 @@ import {
   SUPER_ADMIN,
   TMX_TOURNAMENTS,
   TOURNAMENTS_CONTROL,
-  TOURNAMENTS_TABLE
+  TOURNAMENTS_TABLE,
 } from 'constants/tmxConstants';
 
 const IS_SUCCESS = 'is-success';
@@ -51,7 +51,7 @@ const SORT_OPTIONS: SortOption[] = [
   { field: 'startDate', dir: 'asc', label: 'Date (oldest first)' },
   { field: 'tournamentName', dir: 'asc', label: 'Name (A → Z)' },
   { field: 'tournamentName', dir: 'desc', label: 'Name (Z → A)' },
-  { field: 'participantCount', dir: 'desc', label: 'Players (most first)' }
+  { field: 'participantCount', dir: 'desc', label: 'Players (most first)' },
 ];
 
 function makeTableShim(reloadAll: () => void, ids: string[]): any {
@@ -60,7 +60,7 @@ function makeTableShim(reloadAll: () => void, ids: string[]): any {
     addData: () => reloadAll(),
     updateOrAddData: () => reloadAll(),
     on: () => undefined,
-    off: () => undefined
+    off: () => undefined,
   };
 }
 
@@ -72,9 +72,9 @@ function buildSortItem(view: TournamentsView): any {
     label: activeLabel,
     options: SORT_OPTIONS.map((opt) => ({
       label: opt.label,
-      onClick: () => view.setSort(opt.field, opt.dir)
+      onClick: () => view.setSort(opt.field, opt.dir),
     })),
-    align: RIGHT
+    align: RIGHT,
   };
 }
 
@@ -91,7 +91,7 @@ function buildSearchItem(view: TournamentsView): any {
     placeholder: 'Search tournaments',
     id: SEARCH_INPUT_ID,
     location: LEFT,
-    search: true
+    search: true,
   };
 }
 
@@ -113,15 +113,25 @@ function showWelcomeRedirect(reloadAll: () => void): void {
         callback: ({ selection }: any) => {
           const value = selection?.selection?.value;
           const indices = value === -1 ? undefined : [value];
-          mockTournaments(undefined, () => {
-            navigate();
-            reloadAll();
-          }, indices);
-        }
+          mockTournaments(
+            undefined,
+            () => {
+              navigate();
+              reloadAll();
+            },
+            indices,
+          );
+        },
       });
     },
-    onCreate: () => editTournament({ onCreated: () => { navigate(); reloadAll(); } }),
-    onBack: navigate
+    onCreate: () =>
+      editTournament({
+        onCreated: () => {
+          navigate();
+          reloadAll();
+        },
+      }),
+    onBack: navigate,
   });
 }
 
@@ -133,7 +143,7 @@ function buildAdminActions(reloadAll: () => void, tableShim: any): any[] {
     admin && { label: 'Import tournament', onClick: () => importTournaments({ table: tableShim }) },
     admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table: tableShim }) },
     admin && { label: 'Chat monitor', onClick: () => openChatMonitorModal() },
-    admin && { label: 'Welcome', onClick: () => showWelcomeRedirect(reloadAll), close: true }
+    admin && { label: 'Welcome', onClick: () => showWelcomeRedirect(reloadAll), close: true },
   ].filter(Boolean);
 }
 
@@ -152,10 +162,10 @@ function buildExamplesItem(reloadAll: () => void, tableShim: any): any {
           const value = selection?.selection?.value;
           const indices = value === -1 ? undefined : [value];
           mockTournaments(tableShim, reloadAll, indices);
-        }
+        },
       });
     },
-    align: RIGHT
+    align: RIGHT,
   };
 }
 
@@ -186,11 +196,11 @@ export function calendarControls(view: TournamentsView, reloadAll: () => void, r
       label: t('tournaments.new'),
       intent: IS_SUCCESS,
       onClick: () => (editTournament as any)({ onCreated: reloadAll }),
-      align: RIGHT
+      align: RIGHT,
     },
     !state && buildExamplesItem(reloadAll, tableShim),
     actions.length && { label: 'Actions', options: actions, align: RIGHT },
-    buildSortItem(view)
+    buildSortItem(view),
   ].filter(Boolean);
 
   const parent = document.getElementById(TOURNAMENTS_CONTROL);

@@ -25,8 +25,8 @@ export function enterLink({ title, existingValue, callback, message }: EnterLink
       {
         value: existingValue,
         label: 'New value',
-        field: 'newValue'
-      }
+        field: 'newValue',
+      },
     ]);
 
   openModal({
@@ -34,7 +34,7 @@ export function enterLink({ title, existingValue, callback, message }: EnterLink
     content,
     buttons: [
       { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Update', intent: 'is-primary', onClick: onClick as any, close: true }
-    ]
+      { label: 'Update', intent: 'is-primary', onClick: onClick as any, close: true },
+    ],
   });
 }

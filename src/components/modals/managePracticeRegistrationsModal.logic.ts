@@ -92,15 +92,7 @@ function findCourtAndBooking({
   return undefined;
 }
 
-function findBookingOnCourt({
-  court,
-  date,
-  bookingId,
-}: {
-  court: any;
-  date: string;
-  bookingId: string;
-}): any {
+function findBookingOnCourt({ court, date, bookingId }: { court: any; date: string; bookingId: string }): any {
   for (const availability of court.dateAvailability ?? []) {
     if (availability.date !== date) continue;
     for (const booking of availability.bookings ?? []) {

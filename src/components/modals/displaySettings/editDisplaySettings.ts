@@ -114,7 +114,11 @@ export async function editDisplaySettings(params) {
 
     selections.composition.genderColor = true;
     selections.composition.compositionName = compositionName;
-    const renderedMatchUp = renderMatchUp({ isLucky: true, composition: selections.composition, matchUp: matchUp as any });
+    const renderedMatchUp = renderMatchUp({
+      isLucky: true,
+      composition: selections.composition,
+      matchUp: matchUp as any,
+    });
     matchUpNode.appendChild(renderedMatchUp);
   };
 

@@ -62,7 +62,10 @@ describe('classifyScorer', () => {
   });
 
   it('returns null participantId/name when the matched participant lacks them', () => {
-    const bare = { participantRole: 'COMPETITOR', person: { personOtherIds: [{ organisationId: CANONICAL, personId: 'person-9' }] } };
+    const bare = {
+      participantRole: 'COMPETITOR',
+      person: { personOtherIds: [{ organisationId: CANONICAL, personId: 'person-9' }] },
+    };
     const result = classifyScorer({ participants: [bare], personId: 'person-9' });
     expect(result.classification).toBe('participant');
     expect(result.participantId).toBeNull();
@@ -125,7 +128,10 @@ describe('classifyScorer', () => {
 
 describe('hiveIdLinkedParticipants', () => {
   it('keeps only participants with a CANONICAL_PERSON personOtherId', () => {
-    const a = { participantId: 'p-1', person: { personOtherIds: [{ organisationId: CANONICAL, personId: 'person-1' }] } };
+    const a = {
+      participantId: 'p-1',
+      person: { personOtherIds: [{ organisationId: CANONICAL, personId: 'person-1' }] },
+    };
     const b = { participantId: 'p-2', person: { personOtherIds: [{ organisationId: 'FED', personId: 'x' }] } };
     const c = { participantId: 'p-3' };
     const d = { participantId: 'p-4', person: { personOtherIds: [{ organisationId: CANONICAL }] } };
@@ -142,7 +148,9 @@ describe('isApprovedScorekeeper', () => {
   it('is true for the SCOREKEEPER role or responsibility', () => {
     expect(isApprovedScorekeeper({ participantRole: 'SCOREKEEPER' })).toBe(true);
     expect(isApprovedScorekeeper({ participantRoleResponsibilities: ['SCOREKEEPER'] })).toBe(true);
-    expect(isApprovedScorekeeper({ participantRole: 'COMPETITOR', participantRoleResponsibilities: ['CAPTAIN'] })).toBe(false);
+    expect(isApprovedScorekeeper({ participantRole: 'COMPETITOR', participantRoleResponsibilities: ['CAPTAIN'] })).toBe(
+      false,
+    );
     expect(isApprovedScorekeeper({})).toBe(false);
   });
 });

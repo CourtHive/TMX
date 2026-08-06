@@ -15,7 +15,13 @@ type ModifyEntriesStatusParams = {
   callback?: (result: any) => void;
 };
 
-export function modifyEntriesStatus({ participantIds, group, eventId, drawId, callback }: ModifyEntriesStatusParams): void {
+export function modifyEntriesStatus({
+  participantIds,
+  group,
+  eventId,
+  drawId,
+  callback,
+}: ModifyEntriesStatusParams): void {
   const entryStatus = (group === ACCEPTED && DIRECT_ACCEPTANCE) || (group === QUALIFYING && DIRECT_ACCEPTANCE) || group;
   const entryStage = group === QUALIFYING ? QUALIFYING : MAIN;
 
@@ -25,7 +31,7 @@ export function modifyEntriesStatus({ participantIds, group, eventId, drawId, ca
     entryStatus,
     entryStage,
     eventId,
-    drawId
+    drawId,
   };
 
   mutationRequest({ methods: [{ method: MODIFY_ENTRIES_STATUS, params }], callback });

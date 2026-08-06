@@ -72,9 +72,7 @@ export function getTournamentCapacity(): TournamentCapacity {
   const courts = flattenCourts(venues);
 
   const hasDates = !!tournamentRecord.startDate;
-  const days: string[] = hasDates && courts.length > 0
-    ? safeGetTournamentDays(tournamentRecord)
-    : [];
+  const days: string[] = hasDates && courts.length > 0 ? safeGetTournamentDays(tournamentRecord) : [];
 
   const effectiveCourtCount = days.length > 0 ? computeEffectiveCourtCount(tournamentRecord, courts, days) : undefined;
 

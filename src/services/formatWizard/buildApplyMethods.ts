@@ -11,9 +11,7 @@ const { MAIN } = drawDefinitionConstants;
 // Maps a wizard StructureKind to the factory drawType + extra
 // generateDrawDefinition params. Returns null when the kind has no
 // straight-through factory mapping (caller surfaces "unsupported").
-export function structureKindToDrawSpec(
-  structure: FlightStructure['structure'],
-): {
+export function structureKindToDrawSpec(structure: FlightStructure['structure']): {
   drawType: string;
   extras: Record<string, unknown>;
 } | null {
@@ -90,7 +88,11 @@ function nextPowerOfTwo(n: number): number {
   return 2 ** Math.ceil(Math.log2(n));
 }
 
-function resolveDrawSize(structureKind: StructureKind, flightSize: number, structure: FlightStructure['structure']): number {
+function resolveDrawSize(
+  structureKind: StructureKind,
+  flightSize: number,
+  structure: FlightStructure['structure'],
+): number {
   if (structureKind === 'ROUND_ROBIN' || structureKind === 'ROUND_ROBIN_WITH_PLAYOFF') {
     return flightSize;
   }
@@ -192,4 +194,3 @@ export function buildApplyMethods({
     participantCount,
   };
 }
-

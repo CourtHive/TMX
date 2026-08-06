@@ -105,11 +105,7 @@ function formatCount(count: number, kind: string): string {
 
 // ---- Section blocks --------------------------------------------------------
 
-function buildSection(
-  heading: string,
-  rows: Member[],
-  isRoster: boolean,
-): { element: HTMLElement; table: any } {
+function buildSection(heading: string, rows: Member[], isRoster: boolean): { element: HTMLElement; table: any } {
   const block = document.createElement('div');
   block.style.cssText = 'display: flex; flex-direction: column; gap: 0.4em;';
 

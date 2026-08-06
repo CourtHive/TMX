@@ -12,7 +12,8 @@ import { openModal } from './baseModal/baseModal';
 import { RESOLVE_DRAFT_POSITIONS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-const TH_STYLE = 'text-align: left; padding: 4px 8px; font-size: 12px; color: var(--tmx-text-secondary, #666); border-bottom: 2px solid var(--tmx-border-secondary, #ddd);';
+const TH_STYLE =
+  'text-align: left; padding: 4px 8px; font-size: 12px; color: var(--tmx-text-secondary, #666); border-bottom: 2px solid var(--tmx-border-secondary, #ddd);';
 const TD_STYLE = 'padding: 4px 8px; font-size: 13px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);';
 interface ResolveDraftParams {
   drawId: string;
@@ -103,7 +104,9 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
         const pos = entry.assignedPosition ?? '—';
         const matchLabel = getMatchLabel(entry.preferenceMatch);
         const matchColor = getMatchColor(entry.preferenceMatch);
-        const prefsDisplay = entry.preferences?.length ? entry.preferences.join(', ') : '<span style="color: var(--tmx-text-muted, #999);">none</span>';
+        const prefsDisplay = entry.preferences?.length
+          ? entry.preferences.join(', ')
+          : '<span style="color: var(--tmx-text-muted, #999);">none</span>';
 
         html += `<tr>`;
         html += `<td style="${TD_STYLE}">${name}</td>`;

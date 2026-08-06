@@ -6,7 +6,15 @@ import { addAdHocRound } from 'components/modals/addAdHocRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
 
-export function generateAdHocRound({ structure, drawId, callback }: { structure: any; drawId: string; callback?: () => void }): void {
+export function generateAdHocRound({
+  structure,
+  drawId,
+  callback,
+}: {
+  structure: any;
+  drawId: string;
+  callback?: () => void;
+}): void {
   const generatePanel = document.createElement('div');
   generatePanel.className = 'flexcol flexcenter';
   generatePanel.style.width = '100%';

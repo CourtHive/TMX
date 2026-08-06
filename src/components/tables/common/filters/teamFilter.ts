@@ -1,7 +1,15 @@
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-export function getTeamFilter({ table, teamParticipants, onChange }: { table: any; teamParticipants: any[]; onChange?: () => void }) {
+export function getTeamFilter({
+  table,
+  teamParticipants,
+  onChange,
+}: {
+  table: any;
+  teamParticipants: any[];
+  onChange?: () => void;
+}) {
   let filterValue: string | undefined = context.participantFilters.teamId;
   const teamFilter = (rowData) => rowData.teams.some((team) => team?.participantId === filterValue);
   const updateTeamFilter = (participantId?) => {

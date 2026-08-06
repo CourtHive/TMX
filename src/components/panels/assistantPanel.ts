@@ -169,7 +169,7 @@ export function openAssistantPanel(): void {
       const response = await fetch(`${assistantUrl}/api/messages/${msg.id}/feedback`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token ?? ''}`,
+          Authorization: `Bearer ${token ?? ''}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ score }),
@@ -216,7 +216,7 @@ export function openAssistantPanel(): void {
       const response = await fetch(`${assistantUrl}/api/ask`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ question: text, tournamentId, conversationId }),
@@ -272,10 +272,7 @@ export function openAssistantPanel(): void {
   };
 
   // Position near whichever assistant icon is currently visible
-  const candidates = [
-    document.getElementById('assistantIndicator'),
-    document.getElementById('assistantIndicatorHome'),
-  ];
+  const candidates = [document.getElementById('assistantIndicator'), document.getElementById('assistantIndicatorHome')];
   const assistantIcon = candidates.find((el) => el && el.offsetParent !== null) ?? candidates[0];
   const iconRect = assistantIcon?.getBoundingClientRect();
   const topPos = iconRect ? `${iconRect.bottom + 8}px` : '60px';
@@ -328,7 +325,8 @@ export function openAssistantPanel(): void {
   const newBtn = document.createElement('button');
   newBtn.title = 'New conversation';
   newBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-  newBtn.style.cssText = 'background: none; border: none; color: #fff; cursor: pointer; font-size: 0.9rem; opacity: 0.8;';
+  newBtn.style.cssText =
+    'background: none; border: none; color: #fff; cursor: pointer; font-size: 0.9rem; opacity: 0.8;';
   newBtn.onclick = (e) => {
     e.stopPropagation();
     conversationId = undefined;
@@ -339,7 +337,8 @@ export function openAssistantPanel(): void {
 
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
-  closeBtn.style.cssText = 'background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #fff; line-height: 1; opacity: 0.8;';
+  closeBtn.style.cssText =
+    'background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #fff; line-height: 1; opacity: 0.8;';
   closeBtn.onclick = closeAssistantPanel;
 
   headerActions.appendChild(newBtn);
@@ -362,7 +361,8 @@ export function openAssistantPanel(): void {
   // Welcome message if empty
   if (messages.length === 0) {
     const welcome = document.createElement('div');
-    welcome.style.cssText = 'text-align: center; padding: 40px 20px; color: var(--chc-text-secondary, #888); font-size: 0.875rem;';
+    welcome.style.cssText =
+      'text-align: center; padding: 40px 20px; color: var(--chc-text-secondary, #888); font-size: 0.875rem;';
     welcome.innerHTML = `
       <i class="fa-solid fa-robot" style="font-size: 2rem; margin-bottom: 12px; display: block; opacity: 0.4;"></i>
       <div style="font-weight: 600; margin-bottom: 4px;">How can I help?</div>
@@ -375,13 +375,15 @@ export function openAssistantPanel(): void {
 
   // Input row
   const inputRow = document.createElement('div');
-  inputRow.style.cssText = 'display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--chc-border-primary, #ddd); align-items: flex-end;';
+  inputRow.style.cssText =
+    'display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--chc-border-primary, #ddd); align-items: flex-end;';
 
   input = document.createElement('textarea');
   input.className = 'input is-small';
   input.placeholder = 'Ask a question...';
   input.rows = 1;
-  input.style.cssText = 'flex: 1; resize: none; min-height: 34px; max-height: 100px; font-family: inherit; padding: 6px 10px;';
+  input.style.cssText =
+    'flex: 1; resize: none; min-height: 34px; max-height: 100px; font-family: inherit; padding: 6px 10px;';
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();

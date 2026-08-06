@@ -19,11 +19,7 @@ describe('crowdActivityIndex', () => {
   });
 
   it('counts sessions per matchUp from a snapshot', () => {
-    setActiveCountsFromSnapshot([
-      { matchUpId: 'mu-A' },
-      { matchUpId: 'mu-A' },
-      { matchUpId: 'mu-B' },
-    ]);
+    setActiveCountsFromSnapshot([{ matchUpId: 'mu-A' }, { matchUpId: 'mu-A' }, { matchUpId: 'mu-B' }]);
     expect(getActiveSessionCount('mu-A')).toBe(2);
     expect(getActiveSessionCount('mu-B')).toBe(1);
     expect(getAllMatchUpsWithActivity().sort()).toEqual(['mu-A', 'mu-B']);

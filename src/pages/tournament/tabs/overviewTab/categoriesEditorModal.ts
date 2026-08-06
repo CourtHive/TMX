@@ -56,8 +56,7 @@ function findReferencingEvents(category: TournamentCategory, events: any[]): str
     if (!cat) continue;
     const eCode = cat.ageCategoryCode;
     const eName = cat.categoryName;
-    const referenced =
-      (!!code && (eCode === code || eName === code)) || (!!name && (eCode === name || eName === name));
+    const referenced = (!!code && (eCode === code || eName === code)) || (!!name && (eCode === name || eName === name));
     if (referenced) matches.push(event.eventName ?? event.eventId ?? '?');
   }
   return matches;

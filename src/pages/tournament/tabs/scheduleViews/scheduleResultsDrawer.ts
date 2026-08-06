@@ -71,7 +71,8 @@ export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): 
   const dates = collectAllDates(result);
 
   const content = document.createElement('div');
-  content.style.cssText = 'display: flex; flex-direction: column; gap: 12px; min-width: 480px; max-height: 60vh; overflow-y: auto; padding: 4px;';
+  content.style.cssText =
+    'display: flex; flex-direction: column; gap: 12px; min-width: 480px; max-height: 60vh; overflow-y: auto; padding: 4px;';
 
   if (!dates.length) {
     content.appendChild(buildEmptyState());
@@ -114,9 +115,7 @@ function buildMatchUpLookup(): MatchUpLookup {
   for (const matchUp of matchUps) {
     const sides = matchUp?.sides ?? [];
     const participantsLabel =
-      sides
-        .map((side: any) => side?.participant?.participantName || side?.participantName || '—')
-        .join(' vs ') || '—';
+      sides.map((side: any) => side?.participant?.participantName || side?.participantName || '—').join(' vs ') || '—';
 
     lookup.set(matchUp.matchUpId, {
       matchUpId: matchUp.matchUpId,
@@ -271,7 +270,9 @@ function buildCategoryBlock(label: string, ids: string[], lookup: MatchUpLookup,
 // overlap the proposed slot are the blockers. Render their names plus
 // a notBefore hint when present (e.g. "not before 13:30").
 function buildRecoveryDeferredBlock(
-  deferred: { [matchUpId: string]: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[] },
+  deferred: {
+    [matchUpId: string]: { scheduleTime: string; blockingParticipantIds?: string[]; notBeforeTime?: string }[];
+  },
   lookups: Lookups,
 ): HTMLElement {
   const ids = Object.keys(deferred);
@@ -347,7 +348,10 @@ function buildCollapsibleSection(label: string, count: number, intent: Intent, l
   header.setAttribute('aria-expanded', 'false');
   header.style.cssText =
     'display: flex; align-items: center; gap: 8px; width: 100%; padding: 4px 6px; margin: 0; background: transparent; border: 0; border-radius: 6px; cursor: pointer; text-align: left; color: inherit; font-family: inherit;';
-  header.addEventListener('mouseenter', () => (header.style.background = 'var(--sp-row-hover, rgba(148,163,184,0.10))'));
+  header.addEventListener(
+    'mouseenter',
+    () => (header.style.background = 'var(--sp-row-hover, rgba(148,163,184,0.10))'),
+  );
   header.addEventListener('mouseleave', () => (header.style.background = 'transparent'));
 
   const chevron = document.createElement('span');
@@ -423,8 +427,7 @@ function buildMatchUpRow(matchUpId: string, lookup: MatchUpLookup, detail?: stri
 
 function buildDetailOnlyRow(text: string): HTMLElement {
   const row = document.createElement('li');
-  row.style.cssText =
-    'padding: 6px 8px; font-size: 0.78rem; color: var(--sp-muted, var(--tmx-text-muted));';
+  row.style.cssText = 'padding: 6px 8px; font-size: 0.78rem; color: var(--sp-muted, var(--tmx-text-muted));';
   row.textContent = text;
   return row;
 }

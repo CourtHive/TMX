@@ -44,8 +44,20 @@ export function getCourtColumns(): any[] {
       width: 65,
     },
     { title: t('tables.courts.courtName'), field: 'courtName', editor: true },
-    { title: t('tables.courts.scheduledTime'), field: 'scheduledMinutes', formatter: durationFormatter, hozAlign: CENTER, headerHozAlign: CENTER },
-    { title: t('tables.courts.unscheduledTime'), field: 'unscheduledMinutes', formatter: durationFormatter, hozAlign: CENTER, headerHozAlign: CENTER },
+    {
+      title: t('tables.courts.scheduledTime'),
+      field: 'scheduledMinutes',
+      formatter: durationFormatter,
+      hozAlign: CENTER,
+      headerHozAlign: CENTER,
+    },
+    {
+      title: t('tables.courts.unscheduledTime'),
+      field: 'unscheduledMinutes',
+      formatter: durationFormatter,
+      hozAlign: CENTER,
+      headerHozAlign: CENTER,
+    },
     { title: t('tables.courts.inOut'), field: 'indoorOutdoor' },
     { title: t('tables.courts.surface'), field: 'surfaceType' },
     {

@@ -13,8 +13,8 @@ export function toggleSignInStatus(_e: any, cell: any): void {
   const methods = [
     {
       params: { signInState, participantIds: [participantId] },
-      method: MODIFY_SIGN_IN_STATUS
-    }
+      method: MODIFY_SIGN_IN_STATUS,
+    },
   ];
   const postMutation = (result: any) => {
     if (result.success) {

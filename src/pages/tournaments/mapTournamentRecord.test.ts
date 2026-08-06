@@ -23,8 +23,7 @@ vi.mock('courthive-components', () => ({
       tournamentName: tournament?.tournamentName ?? '',
       startDate: tournament?.startDate,
       endDate: tournament?.endDate,
-      tournamentImageURL:
-        r?.resourceType === 'URL' ? (r?.url ?? r?.identifier) : undefined,
+      tournamentImageURL: r?.resourceType === 'URL' ? (r?.url ?? r?.identifier) : undefined,
       courtSvgSport: r?.resourceSubType === 'COURT_SVG' ? r?.identifier : undefined,
       offline: tmxTimeItem?.itemValue?.offline,
     };
@@ -54,9 +53,7 @@ describe('mapTournamentRecord', () => {
   it('extracts tournamentImageURL from onlineResources', () => {
     const record = {
       ...baseTournament,
-      onlineResources: [
-        { name: 'tournamentImage', resourceType: 'URL', identifier: 'https://example.com/img.png' },
-      ],
+      onlineResources: [{ name: 'tournamentImage', resourceType: 'URL', identifier: 'https://example.com/img.png' }],
     };
     const result = mapTournamentRecord(record);
     expect(result.tournament.tournamentImageURL).toBe('https://example.com/img.png');

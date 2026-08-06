@@ -37,9 +37,7 @@ function isGroupComplete(structureMatchUps: any[], groupId: string): boolean {
  *  the CONTAINER case (which is exactly the round-robin shape we care about
  *  here, and was producing false-amber bars in the Grid view). */
 function leafStructuresByGroupId(drawDefinition: any): Record<string, any> {
-  const leaves = (drawDefinition?.structures ?? []).flatMap((s: any) =>
-    s?.structures?.length ? s.structures : [s],
-  );
+  const leaves = (drawDefinition?.structures ?? []).flatMap((s: any) => (s?.structures?.length ? s.structures : [s]));
   const byId: Record<string, any> = {};
   for (const g of leaves) {
     if (g?.structureId) byId[g.structureId] = g;
@@ -380,7 +378,8 @@ export async function createBracketTable({
         structureId,
       });
       const table = new Tabulator(tableDiv, {
-        height: groups.length > 1 ? undefined : window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
+        height:
+          groups.length > 1 ? undefined : window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
         placeholder: 'No participants',
         // fitDataTable (instead of fitData) makes the `.tabulator` root
         // display:inline-block, so it shrinks to the column row's width

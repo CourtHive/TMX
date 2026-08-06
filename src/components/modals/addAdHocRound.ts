@@ -2,7 +2,13 @@
  * Add ad-hoc round modal with automated drawMatic or manual generation.
  * Creates new round with optional dynamic ratings and participant selection.
  */
-import { positionActionConstants, entryStatusConstants, drawDefinitionConstants, fixtures, factoryConstants } from 'tods-competition-factory';
+import {
+  positionActionConstants,
+  entryStatusConstants,
+  drawDefinitionConstants,
+  fixtures,
+  factoryConstants,
+} from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -50,9 +56,7 @@ function resolvePositionLinkParticipants(positionLink: any, structure: any, draw
     eventId: drawEvent?.eventId,
   });
   const drawDataForParticipants = evData?.drawsData?.find((d: any) => d.drawId === drawId);
-  const sourceStructure = drawDataForParticipants?.structures?.find(
-    (s: any) => s.structureId === sourceStructureId,
-  );
+  const sourceStructure = drawDataForParticipants?.structures?.find((s: any) => s.structureId === sourceStructureId);
 
   const ids: string[] = [];
   const positionAssignments = sourceStructure?.positionAssignments || [];
@@ -327,7 +331,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
     { label: '5', value: 5 },
   ];
 
-  const helpIcon = '<span class="help-toggle" style="cursor: pointer; margin-left: 0.4em; color: var(--tmx-text-muted, #888)">\u24D8</span>';
+  const helpIcon =
+    '<span class="help-toggle" style="cursor: pointer; margin-left: 0.4em; color: var(--tmx-text-muted, #888)">\u24D8</span>';
 
   const options: any[] = [
     {

@@ -11,7 +11,15 @@ export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';
 export const addRoundAction = 'Add round';
 
-export function getFinalColumn({ structure, drawId, callback }: { structure: any; drawId: string; callback?: () => void }): HTMLDivElement | undefined {
+export function getFinalColumn({
+  structure,
+  drawId,
+  callback,
+}: {
+  structure: any;
+  drawId: string;
+  callback?: () => void;
+}): HTMLDivElement | undefined {
   if (!tournamentEngine.isAdHoc({ structure })) return;
 
   const finalColumn = document.createElement('div');

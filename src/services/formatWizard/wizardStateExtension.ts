@@ -55,15 +55,15 @@ function parsePersistedState(value: unknown): PersistedWizardState | undefined {
     consolationAppetite: isAppetite(c.consolationAppetite) ? c.consolationAppetite : undefined,
     matchUpFormat: typeof c.matchUpFormat === 'string' ? c.matchUpFormat : undefined,
     allowMixedGender: typeof c.allowMixedGender === 'boolean' ? c.allowMixedGender : undefined,
-    allowCollapsedCategories:
-      typeof c.allowCollapsedCategories === 'boolean' ? c.allowCollapsedCategories : undefined,
+    allowCollapsedCategories: typeof c.allowCollapsedCategories === 'boolean' ? c.allowCollapsedCategories : undefined,
   };
 
   const consideration = parseConsideration(v.consideration);
 
   return {
     scaleName: v.scaleName,
-    selectedEventId: typeof v.selectedEventId === 'string' && v.selectedEventId.length > 0 ? v.selectedEventId : undefined,
+    selectedEventId:
+      typeof v.selectedEventId === 'string' && v.selectedEventId.length > 0 ? v.selectedEventId : undefined,
     constraints,
     consideration,
     updatedAt: typeof v.updatedAt === 'string' ? v.updatedAt : undefined,

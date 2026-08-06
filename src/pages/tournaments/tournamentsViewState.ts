@@ -42,7 +42,7 @@ export function initialTournamentsViewState(): TournamentsViewState {
     statusFilter: 'all',
     sortField: 'startDate',
     sortDir: 'desc',
-    searchQuery: ''
+    searchQuery: '',
   };
 }
 

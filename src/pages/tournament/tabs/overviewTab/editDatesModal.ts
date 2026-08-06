@@ -23,7 +23,7 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
   // so the TD can simply hit Save to confirm. The hint span (appended after
   // the form renders) makes it explicit that the value is a suggestion,
   // not an existing setting.
-  const detectedTimeZone = existingTimeZone ? '' : getDetectedTimeZone() ?? '';
+  const detectedTimeZone = existingTimeZone ? '' : (getDetectedTimeZone() ?? '');
   const supportedTimeZones = getSupportedTimeZones();
 
   let inputs: any;
@@ -41,8 +41,10 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
         .split(',')
         .filter(
           (d: string) =>
-            !((newStartDate && new Date(d) < new Date(newStartDate)) ||
-              (newEndDate && new Date(d) > new Date(newEndDate))),
+            !(
+              (newStartDate && new Date(d) < new Date(newStartDate)) ||
+              (newEndDate && new Date(d) > new Date(newEndDate))
+            ),
         )
         .filter(Boolean)
         .join(',');

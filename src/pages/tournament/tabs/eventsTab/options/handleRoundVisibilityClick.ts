@@ -50,9 +50,7 @@ export function handleRoundVisibilityClick(props: any): void {
   if (isAdHoc) {
     const isHidden = currentRoundLimit != null && roundNumber > currentRoundLimit;
     items.push({
-      text: isHidden
-        ? t('publishing.showRound', { roundNumber })
-        : t('publishing.hideRound', { roundNumber }),
+      text: isHidden ? t('publishing.showRound', { roundNumber }) : t('publishing.hideRound', { roundNumber }),
       icon: isHidden ? 'fa-eye' : 'fa-eye-slash',
       onClick: () => {
         const newLimit = isHidden ? Math.max(roundNumber, currentRoundLimit || 0) : roundNumber - 1;

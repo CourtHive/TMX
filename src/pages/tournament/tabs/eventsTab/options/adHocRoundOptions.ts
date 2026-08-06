@@ -13,7 +13,15 @@ export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';
 export const addRoundAction = 'Add round';
 
-export function getAdHocRoundOptions({ structure, drawId, callback }: { structure: any; drawId: string; callback: (params: any) => void }): any {
+export function getAdHocRoundOptions({
+  structure,
+  drawId,
+  callback,
+}: {
+  structure: any;
+  drawId: string;
+  callback: (params: any) => void;
+}): any {
   if (!tournamentEngine.isAdHoc({ structure })) return {};
   const refreshCallback = () => callback({ refresh: true });
 

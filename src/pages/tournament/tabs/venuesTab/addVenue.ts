@@ -21,11 +21,7 @@ import { RIGHT } from 'constants/tmxConstants';
 // Save
 // ---------------------------------------------------------------------------
 
-const saveVenue = (
-  callback?: (result: any) => void,
-  engine?: string,
-  selectedCountryCode?: string,
-) => {
+const saveVenue = (callback?: (result: any) => void, engine?: string, selectedCountryCode?: string) => {
   const values = getVenueFormValues(context.drawer.attributes.content);
   const {
     venueName,
@@ -160,7 +156,8 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
   };
 
   const previewImage = document.createElement('img');
-  previewImage.style.cssText = 'max-width: 100%; max-height: 160px; margin-top: 8px; border-radius: 4px; display: none;';
+  previewImage.style.cssText =
+    'max-width: 100%; max-height: 160px; margin-top: 8px; border-radius: 4px; display: none;';
   previewImage.onerror = () => {
     previewImage.style.display = 'none';
   };

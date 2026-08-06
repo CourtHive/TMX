@@ -115,9 +115,7 @@ describe('queueService — immediate mode', () => {
     executeMethods({ mode: 'grid', methods });
 
     expect(mutationRequestMock).toHaveBeenCalledTimes(1);
-    expect(mutationRequestMock).toHaveBeenCalledWith(
-      expect.objectContaining({ methods, engine: 'competitionEngine' }),
-    );
+    expect(mutationRequestMock).toHaveBeenCalledWith(expect.objectContaining({ methods, engine: 'competitionEngine' }));
     expect(executionQueueMock).not.toHaveBeenCalled();
     expect(getPendingCount()).toBe(0);
     expect(hasUnsavedChanges()).toBe(false);

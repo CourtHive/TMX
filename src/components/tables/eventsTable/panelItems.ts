@@ -11,7 +11,7 @@ export const panelHeader = (heading: string, count: number = 0): any => {
   const text = `${heading} <span class='${ENTRIES_COUNT}'>${count}</span>`;
   return {
     location: HEADER,
-    text
+    text,
   };
 };
 
@@ -42,11 +42,11 @@ export const panelCollapse = (table: any): any => {
     headerClick: onClick,
     text: `<span class='toggle' style='color: var(--tmx-text-inverse)'>${openedFilled}</span>`,
     location: HEADER,
-    onClick
+    onClick,
   };
 };
 
 export const panelItems = ({ heading, count }: { heading: string; count: number }): any[] => [
   panelHeader(heading, count),
-  (table: any) => panelCollapse(table)
+  (table: any) => panelCollapse(table),
 ];

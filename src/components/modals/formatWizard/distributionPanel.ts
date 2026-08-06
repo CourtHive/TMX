@@ -40,10 +40,7 @@ export function buildDistributionPanel(): DistributionPanelHandle {
   summary.style.cssText = SUMMARY_STYLE;
   root.appendChild(summary);
 
-  function setData(
-    stats: RatingDistributionStats,
-    info: { rated: number; total: number; scale: string },
-  ): void {
+  function setData(stats: RatingDistributionStats, info: { rated: number; total: number; scale: string }): void {
     chartHolder.replaceChildren();
     if (stats.count > 0) {
       const chart = buildRatingDistributionChart(stats, {

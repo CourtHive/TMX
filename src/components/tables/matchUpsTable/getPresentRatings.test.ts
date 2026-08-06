@@ -36,9 +36,7 @@ describe('getPresentRatings', () => {
 
   it('skips unknown scaleNames (no parameters in fixtures)', () => {
     getParticipantsMock.mockReturnValue({
-      participants: [
-        { ratings: { SINGLES: [{ scaleName: 'UTR' }, { scaleName: 'NOT_A_REAL_SCALE' }] } },
-      ],
+      participants: [{ ratings: { SINGLES: [{ scaleName: 'UTR' }, { scaleName: 'NOT_A_REAL_SCALE' }] } }],
     });
     const result = getPresentRatings();
     expect(result.has('UTR')).toBe(true);

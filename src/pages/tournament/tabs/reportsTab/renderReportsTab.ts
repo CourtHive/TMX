@@ -195,11 +195,15 @@ async function fetchServerReport(reportId: string): Promise<void> {
       activeReport = { columns: data.columns, rows: data.rows };
       createReportsTable({ columns: data.columns, rows: data.rows });
     } else {
-      if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em; color: var(--tmx-text-secondary);">No audit data available.</div>';
+      if (reportContainer)
+        reportContainer.innerHTML =
+          '<div style="padding: 2em; color: var(--tmx-text-secondary);">No audit data available.</div>';
     }
   } catch (err: any) {
     console.warn('[reports] audit-worker fetch failed:', err.message);
-    if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em; color: var(--tmx-accent-red);">Audit worker unavailable. Ensure the audit worker is running.</div>';
+    if (reportContainer)
+      reportContainer.innerHTML =
+        '<div style="padding: 2em; color: var(--tmx-accent-red);">Audit worker unavailable. Ensure the audit worker is running.</div>';
   }
 }
 

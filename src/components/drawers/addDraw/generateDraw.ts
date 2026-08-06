@@ -32,7 +32,8 @@ export function generateDraw({
   if (restOptions.drawId && !confirmedReplace && drawHasScores(restOptions.drawId)) {
     confirmModal({
       title: 'Regenerate draw?',
-      query: 'This draw has completed matches. Regenerating will discard them. A recoverable snapshot is saved. Continue?',
+      query:
+        'This draw has completed matches. Regenerating will discard them. A recoverable snapshot is saved. Continue?',
       okIntent: 'is-warning',
       okAction: () => generateDraw({ eventId, drawOptions: { ...drawOptions, confirmedReplace: true }, callback }),
     });
@@ -51,7 +52,10 @@ export function generateDraw({
     const drawDefinition = result.drawDefinition;
     const drawId = drawDefinition.drawId;
     const methods: any[] = [
-      { method: ADD_DRAW_DEFINITION, params: { eventId, drawDefinition, allowReplacement: true, force: !!confirmedReplace } },
+      {
+        method: ADD_DRAW_DEFINITION,
+        params: { eventId, drawDefinition, allowReplacement: true, force: !!confirmedReplace },
+      },
     ];
 
     if (swissScaleName) {

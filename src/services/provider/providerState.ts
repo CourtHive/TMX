@@ -200,12 +200,11 @@ export function resolveInitialProvider(): ProviderValue | undefined {
   };
 
   return (
-    lookup(login.lastSelectedProviderId) ??                // 2
-    lookup(login.providerId) ??                            // 3
-    (() => {                                                // 4
-      const first = [...associations].sort((a, b) =>
-        a.organisationName.localeCompare(b.organisationName),
-      )[0];
+    lookup(login.lastSelectedProviderId) ?? // 2
+    lookup(login.providerId) ?? // 3
+    (() => {
+      // 4
+      const first = [...associations].sort((a, b) => a.organisationName.localeCompare(b.organisationName))[0];
       return {
         organisationId: first.providerId,
         organisationName: first.organisationName,

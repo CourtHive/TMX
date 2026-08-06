@@ -18,9 +18,7 @@ const { SINGLES } = factoryConstants.eventConstants;
  * fetched list so a third caller doesn't accidentally add a new call.
  */
 export function getPresentRatings(participants?: any[]): Set<string> {
-  const list =
-    participants ??
-    (tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? []);
+  const list = participants ?? tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? [];
   const presentRatings = new Set<string>();
   for (const p of list) {
     for (const item of p.ratings?.[SINGLES] || []) {

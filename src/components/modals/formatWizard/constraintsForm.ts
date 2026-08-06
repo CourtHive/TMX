@@ -112,7 +112,9 @@ function clampNumber(value: number, min: number, fallback: number): number {
 }
 
 function buildEventSelect(events: EventOption[], selectedId: string | undefined): HTMLSelectElement {
-  const opts: Array<{ value: string; label: string }> = [{ value: '', label: t('formatWizard.summary.allParticipants') }];
+  const opts: Array<{ value: string; label: string }> = [
+    { value: '', label: t('formatWizard.summary.allParticipants') },
+  ];
   for (const ev of events) opts.push({ value: ev.eventId, label: ev.label });
   return buildSelect(opts, selectedId ?? '');
 }
@@ -259,9 +261,7 @@ export function buildConstraintsForm(options: ConstraintsFormOptions = {}): Cons
     if (lastCapacity.hasCapacityInfo && typeof lastCapacity.effectiveCourtCount === 'number') {
       const rounded = Math.round(lastCapacity.effectiveCourtCount * 10) / 10;
       if (Math.abs(lastCapacity.effectiveCourtCount - lastCapacity.courtCount) > 0.05) {
-        lines.push(
-          t('formatWizard.cues.effectiveCourtCount', { effective: rounded, dayCount: lastCapacity.dayCount }),
-        );
+        lines.push(t('formatWizard.cues.effectiveCourtCount', { effective: rounded, dayCount: lastCapacity.dayCount }));
       }
     }
     if (lines.length === 0) {

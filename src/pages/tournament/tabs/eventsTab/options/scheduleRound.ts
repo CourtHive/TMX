@@ -59,7 +59,8 @@ export function scheduleRound(params: ScheduleRoundParams): void {
     elem.appendChild(dateInput);
 
     const activeDatesSet = new Set(activeDates);
-    new Datepicker(dateInput, { // NOSONAR — instance attaches to DOM element
+    new Datepicker(dateInput, {
+      // NOSONAR — instance attaches to DOM element
       format: 'yyyy-mm-dd',
       language: i18next.language,
       autohide: false,

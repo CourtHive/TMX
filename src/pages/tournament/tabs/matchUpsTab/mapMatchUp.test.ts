@@ -48,8 +48,20 @@ const makeMatchUp = (overrides: any = {}) => ({
     endTime: '11:30',
   },
   sides: [
-    { participant: { participantId: 'p1', participantName: 'Smith, John', person: { standardGivenName: 'John', standardFamilyName: 'Smith', sex: 'MALE' } } },
-    { participant: { participantId: 'p2', participantName: 'Doe, Jane', person: { standardGivenName: 'Jane', standardFamilyName: 'Doe', sex: 'FEMALE' } } },
+    {
+      participant: {
+        participantId: 'p1',
+        participantName: 'Smith, John',
+        person: { standardGivenName: 'John', standardFamilyName: 'Smith', sex: 'MALE' },
+      },
+    },
+    {
+      participant: {
+        participantId: 'p2',
+        participantName: 'Doe, Jane',
+        person: { standardGivenName: 'Jane', standardFamilyName: 'Doe', sex: 'FEMALE' },
+      },
+    },
   ],
   ...overrides,
 });
@@ -134,10 +146,7 @@ describe('mapMatchUp', () => {
     let result: any = mapMatchUp(
       makeMatchUp({
         sides: [{}, {}],
-        potentialParticipants: [
-          [{ participantName: 'Potential A' }],
-          [{ participantName: 'Potential B' }],
-        ],
+        potentialParticipants: [[{ participantName: 'Potential A' }], [{ participantName: 'Potential B' }]],
       }),
     );
     expect(result.side1.participantName).toBe('Potential A');

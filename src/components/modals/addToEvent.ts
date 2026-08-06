@@ -11,7 +11,7 @@ import {
   drawDefinitionConstants,
   entryStatusConstants,
   eventConstants,
-  participantConstants
+  participantConstants,
 } from 'tods-competition-factory';
 
 import { NONE } from 'constants/tmxConstants';
@@ -29,7 +29,13 @@ type AddToEventParams = {
   participantIds?: string[];
 };
 
-export function addToEvent({ callback, eventName, eventType, participantType, participantIds }: AddToEventParams = {}): void {
+export function addToEvent({
+  callback,
+  eventName,
+  eventType,
+  participantType,
+  participantIds,
+}: AddToEventParams = {}): void {
   const ungroupedOnly = [TEAM, DOUBLES].includes(eventType as any) && participantType === INDIVIDUAL;
 
   if (!participantIds?.length) {
@@ -39,7 +45,7 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
 
   const entryStages = [
     { label: t('modals.addToEvent.main'), value: MAIN, selected: true },
-    { label: t('modals.addToEvent.qualifying'), value: QUALIFYING }
+    { label: t('modals.addToEvent.qualifying'), value: QUALIFYING },
   ];
   const stageOptions = entryStages.map(({ label, value, selected }) => ({ selected, label, value }));
   const entryStatusOptions = [
@@ -49,7 +55,12 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
     // it should not be manually selectable here — use entryStage: QUALIFYING with DIRECT_ACCEPTANCE instead
     // { hide: ungroupedOnly, label: t('modals.addToEvent.qualifier'), value: QUALIFIER },
     { hide: ungroupedOnly, label: t('modals.addToEvent.wildcard'), value: WILDCARD },
-    { hide: participantType === TEAM, label: t('modals.addToEvent.ungrouped'), value: UNGROUPED, selected: ungroupedOnly }
+    {
+      hide: participantType === TEAM,
+      label: t('modals.addToEvent.ungrouped'),
+      value: UNGROUPED,
+      selected: ungroupedOnly,
+    },
   ];
 
   let inputs: any;
@@ -63,20 +74,20 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
   const content = (elem: HTMLElement) =>
     (inputs = renderForm(elem, [
       {
-        text: `Add ${participantIds.length} participant to ${eventName}`
+        text: `Add ${participantIds.length} participant to ${eventName}`,
       },
       {
         options: stageOptions,
         label: t('modals.addToEvent.eventStage'),
         field: 'entryStage',
-        value: MAIN
+        value: MAIN,
       },
       {
         options: entryStatusOptions,
         value: DIRECT_ACCEPTANCE,
         label: t('modals.addToEvent.entryStatus'),
-        field: 'entryStatus'
-      }
+        field: 'entryStatus',
+      },
     ]));
 
   openModal({
@@ -84,7 +95,7 @@ export function addToEvent({ callback, eventName, eventType, participantType, pa
     content,
     buttons: [
       { label: t('common.cancel'), intent: NONE, close: true },
-      { label: t('add'), intent: 'is-info', close: true, onClick }
-    ]
+      { label: t('add'), intent: 'is-info', close: true, onClick },
+    ],
   });
 }

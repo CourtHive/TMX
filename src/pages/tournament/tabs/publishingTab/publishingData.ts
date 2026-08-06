@@ -199,12 +199,22 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
 
   if (tournamentPubState?.orderOfPlay?.embargo) {
     const embargo = tournamentPubState.orderOfPlay.embargo;
-    embargoes.push({ type: 'orderOfPlay', label: t('publishing.orderOfPlay'), embargo, embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.orderOfPlay) });
+    embargoes.push({
+      type: 'orderOfPlay',
+      label: t('publishing.orderOfPlay'),
+      embargo,
+      embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.orderOfPlay),
+    });
   }
 
   if (tournamentPubState?.participants?.embargo) {
     const embargo = tournamentPubState.participants.embargo;
-    embargoes.push({ type: 'participants', label: t('publishing.participants'), embargo, embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.participants) });
+    embargoes.push({
+      type: 'participants',
+      label: t('publishing.participants'),
+      embargo,
+      embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.participants),
+    });
   }
 
   const events = tournamentEngine.q.events() || [];

@@ -36,27 +36,27 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: false,
       responsive: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       headerMenu: headerMenu({
         scheduledMatchUpsCount: 'Scheduled matches',
         availableTime: 'Time Available',
         courtsCount: 'Number of courts',
-        hasLocation: 'Location'
+        hasLocation: 'Location',
       }),
       formatter: 'rownum',
       headerSort: false,
       headerHozAlign: CENTER,
       hozAlign: CENTER,
-      width: 65
+      width: 65,
     },
     {
       cellClick: toggleOpenClose,
       field: 'venueAbbreviation',
       title: t('tables.venues.abbr'),
       visible: true,
-      width: 120
+      width: 120,
     },
     {
       cellClick: toggleOpenClose,
@@ -64,7 +64,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       title: t('tables.venues.venue'),
       visible: true,
       minWidth: 200,
-      widthGrow: 3
+      widthGrow: 3,
     },
     {
       title: '<i class="fa-solid fa-table-columns" />',
@@ -74,7 +74,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       hozAlign: CENTER,
       headerSort: true,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: t('tables.venues.scheduled'),
@@ -84,7 +84,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: true,
       hozAlign: CENTER,
       visible: true,
-      minWidth: 120
+      minWidth: 120,
     },
     {
       title: t('tables.venues.time'),
@@ -93,7 +93,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: true,
       hozAlign: CENTER,
       visible: true,
-      minWidth: 120
+      minWidth: 120,
     },
     {
       title: `<i class="fa-sharp fa-solid fa-location-dot"></i>`,
@@ -105,7 +105,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: false,
       hozAlign: CENTER,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       title: `<i class="fa-solid fa-globe"></i>`,
@@ -117,7 +117,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: false,
       hozAlign: CENTER,
       visible: true,
-      width: 50
+      width: 50,
     },
     {
       cellClick: toggleOpenClose,
@@ -126,7 +126,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       headerSort: false,
       hozAlign: RIGHT,
       field: 'isOpen',
-      width: 20
+      width: 20,
     },
     {
       cellClick: venueActions(nestedTables),
@@ -134,7 +134,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
       responsive: false,
       headerSort: false,
       hozAlign: RIGHT,
-      width: 50
-    }
+      width: 50,
+    },
   ];
 }

@@ -24,7 +24,7 @@ export function getCollectionColumns({ matchUp }: { matchUp: any }): any[] {
       responsive: false,
       minWidth: 100,
       field: 'side1',
-      widthGrow: 2
+      widthGrow: 2,
     },
     {
       formatter: collectionParticipantFormatter(handleSideClick(matchUp)),
@@ -34,7 +34,7 @@ export function getCollectionColumns({ matchUp }: { matchUp: any }): any[] {
       responsive: false,
       minWidth: 100,
       field: 'side2',
-      widthGrow: 2
+      widthGrow: 2,
     },
     {
       formatter: scoreFormatter,
@@ -42,12 +42,12 @@ export function getCollectionColumns({ matchUp }: { matchUp: any }): any[] {
       responsive: false,
       title: t('tables.collection.score'),
       field: 'score',
-      width: 140
+      width: 140,
     },
     {
       field: 'matchUpStatus',
       title: t('tables.collection.status'),
-      width: 150
-    }
+      width: 150,
+    },
   ];
 }

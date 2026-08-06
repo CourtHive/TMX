@@ -122,21 +122,23 @@ describe('findDelegatedReconciliationIssues', () => {
   });
 
   it('does NOT flag an in-progress matchUp (no official winningSide yet)', () => {
-    const matchUps = [
-      { matchUpId: 'mu-3', delegatedOutcome: { scorer: { personId: PERSON_CROWD } } },
-    ];
+    const matchUps = [{ matchUpId: 'mu-3', delegatedOutcome: { scorer: { personId: PERSON_CROWD } } }];
     expect(findDelegatedReconciliationIssues({ matchUps, participants })).toHaveLength(0);
   });
 
   it('flags an anonymous (no personId) delegated scorekeeper on a completed matchUp', () => {
-    const matchUps = [{ matchUpId: 'mu-4', matchUpStatus: 'COMPLETED', delegatedOutcome: { scorer: { personId: null } } }];
+    const matchUps = [
+      { matchUpId: 'mu-4', matchUpStatus: 'COMPLETED', delegatedOutcome: { scorer: { personId: null } } },
+    ];
     const issues = findDelegatedReconciliationIssues({ matchUps, participants });
     expect(issues).toHaveLength(1);
     expect(issues[0].classification).toBe('anonymous');
   });
 
   it('ignores matchUps without a delegatedOutcome', () => {
-    expect(findDelegatedReconciliationIssues({ matchUps: [{ matchUpId: 'mu-5', winningSide: 1 }], participants })).toHaveLength(0);
+    expect(
+      findDelegatedReconciliationIssues({ matchUps: [{ matchUpId: 'mu-5', winningSide: 1 }], participants }),
+    ).toHaveLength(0);
   });
 
   it('tolerates absent matchUps/participants', () => {
@@ -174,13 +176,23 @@ describe('sessionIsComplete + buildAcceptMethods', () => {
   });
 
   it('returns [] for an in-progress session (Accept only promotes)', () => {
-    expect(buildAcceptMethods({ session: session({ sets: [{ side1Score: 3 }] }), matchUpId: 'm-1', drawId: 'd-1' })).toEqual([]);
+    expect(
+      buildAcceptMethods({ session: session({ sets: [{ side1Score: 3 }] }), matchUpId: 'm-1', drawId: 'd-1' }),
+    ).toEqual([]);
   });
 
   it('builds set-delegated + confirm (setMatchUpStatus + remove) for a complete session', () => {
-    const s = session({ winningSide: 1, matchUpStatus: 'COMPLETED', sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }] });
+    const s = session({
+      winningSide: 1,
+      matchUpStatus: 'COMPLETED',
+      sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, winningSide: 1 }],
+    });
     const methods = buildAcceptMethods({ session: s, matchUpId: 'm-1', drawId: 'd-1' });
-    expect(methods.map((m: any) => m.method)).toEqual([SET_DELEGATED_OUTCOME, SET_MATCHUP_STATUS, REMOVE_DELEGATED_OUTCOME]);
+    expect(methods.map((m: any) => m.method)).toEqual([
+      SET_DELEGATED_OUTCOME,
+      SET_MATCHUP_STATUS,
+      REMOVE_DELEGATED_OUTCOME,
+    ]);
     const outcome = methods[0].params.outcome;
     expect(outcome.winningSide).toBe(1);
     expect(outcome.scorer.personId).toBe('person-1');

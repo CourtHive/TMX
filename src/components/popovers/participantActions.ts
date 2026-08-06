@@ -16,86 +16,89 @@ import { t } from 'i18n';
 
 import { BOTTOM } from 'constants/tmxConstants';
 
-export const participantActions = (replaceTableData: () => void) => (e: MouseEvent, cell: any): void => {
-  const tips = Array.from(document.querySelectorAll('.tippy-content'));
-  if (tips.length) {
-    tips.forEach((n) => n.remove());
-    return;
-  }
-  const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
-  const row = cell.getRow();
-  const data = row.getData();
-  const { participantId, participantType } = data;
+export const participantActions =
+  (replaceTableData: () => void) =>
+  (e: MouseEvent, cell: any): void => {
+    const tips = Array.from(document.querySelectorAll('.tippy-content'));
+    if (tips.length) {
+      tips.forEach((n) => n.remove());
+      return;
+    }
+    const target = (e.target as HTMLElement).getElementsByClassName('fa-ellipsis-vertical')[0] as HTMLElement;
+    const row = cell.getRow();
+    const data = row.getData();
+    const { participantId, participantType } = data;
 
-  const isTeam = participantType === 'TEAM';
-  const isIndividual = participantType === 'INDIVIDUAL';
+    const isTeam = participantType === 'TEAM';
+    const isIndividual = participantType === 'INDIVIDUAL';
 
-  const individualParticipant = isIndividual
-    ? tournamentEngine.getParticipants({ participantFilters: { participantIds: [participantId] } }).participants?.[0]
-    : undefined;
-  const isScorekeeper = individualParticipant ? isApprovedScorekeeper(individualParticipant) : false;
+    const individualParticipant = isIndividual
+      ? tournamentEngine.getParticipants({ participantFilters: { participantIds: [participantId] } }).participants?.[0]
+      : undefined;
+    const isScorekeeper = individualParticipant ? isApprovedScorekeeper(individualParticipant) : false;
 
-  const items = [
-    {
-      hide: !isIndividual,
-      text: "<i class='fas fa-address-card'></i> Participant profile",
-      onClick: () => participantProfileModal({ participantId }),
-    },
-    {
-      hide: !isIndividual,
-      text: "<i class='fas fa-user'></i> Edit Participant",
-      onClick: () => {
-        editPlayer({ participantId, callback: replaceTableData });
+    const items = [
+      {
+        hide: !isIndividual,
+        text: "<i class='fas fa-address-card'></i> Participant profile",
+        onClick: () => participantProfileModal({ participantId }),
       },
-    },
-    {
-      hide: !isTeam,
-      text: "<i class='fas fa-address-card'></i> Team profile",
-      onClick: () => teamProfileModal({ participantId }),
-    },
-    {
-      hide: !isTeam,
-      text: "<i class='fas fa-users'></i> Rename team",
-      onClick: () => {
-        const participant = tournamentEngine.getParticipants({
-          participantFilters: { participantIds: [participantId] },
-        }).participants?.[0];
-        if (participant) {
-          editGroupingParticipant({
-            participant,
-            refresh: replaceTableData,
-            title: 'Rename team',
-          });
-        }
+      {
+        hide: !isIndividual,
+        text: "<i class='fas fa-user'></i> Edit Participant",
+        onClick: () => {
+          editPlayer({ participantId, callback: replaceTableData });
+        },
       },
-    },
-    {
-      hide: !isIndividual,
-      text: isScorekeeper
-        ? `<i class='fas fa-user-check'></i> ${t('crowd.removeScorekeeperApproval')}`
-        : `<i class='fas fa-user-check'></i> ${t('crowd.approveScorekeeper')}`,
-      onClick: () => {
-        if (individualParticipant) toggleParticipantScorekeeper({ participant: individualParticipant, callback: replaceTableData });
+      {
+        hide: !isTeam,
+        text: "<i class='fas fa-address-card'></i> Team profile",
+        onClick: () => teamProfileModal({ participantId }),
       },
-    },
-    {
-      text: "<div style='color: var(--tmx-accent-red)'><i class='fas fa-check-square'></i> Delete participant</div>",
-      onClick: () => {
-        const callback = (result: any) => {
-          if (result.success) {
-            row.delete();
-          } else {
-            tmxToast({
-              message: t('toasts.cannotDeleteParticipant'),
-              intent: 'is-danger',
+      {
+        hide: !isTeam,
+        text: "<i class='fas fa-users'></i> Rename team",
+        onClick: () => {
+          const participant = tournamentEngine.getParticipants({
+            participantFilters: { participantIds: [participantId] },
+          }).participants?.[0];
+          if (participant) {
+            editGroupingParticipant({
+              participant,
+              refresh: replaceTableData,
+              title: 'Rename team',
             });
           }
-        };
-
-        deleteParticipants({ participantId, callback });
+        },
       },
-    },
-  ];
+      {
+        hide: !isIndividual,
+        text: isScorekeeper
+          ? `<i class='fas fa-user-check'></i> ${t('crowd.removeScorekeeperApproval')}`
+          : `<i class='fas fa-user-check'></i> ${t('crowd.approveScorekeeper')}`,
+        onClick: () => {
+          if (individualParticipant)
+            toggleParticipantScorekeeper({ participant: individualParticipant, callback: replaceTableData });
+        },
+      },
+      {
+        text: "<div style='color: var(--tmx-accent-red)'><i class='fas fa-check-square'></i> Delete participant</div>",
+        onClick: () => {
+          const callback = (result: any) => {
+            if (result.success) {
+              row.delete();
+            } else {
+              tmxToast({
+                message: t('toasts.cannotDeleteParticipant'),
+                intent: 'is-danger',
+              });
+            }
+          };
 
-  tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
-};
+          deleteParticipants({ participantId, callback });
+        },
+      },
+    ];
+
+    tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
+  };

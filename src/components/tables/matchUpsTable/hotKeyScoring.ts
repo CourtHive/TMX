@@ -17,7 +17,7 @@ type FocusData = {
 export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
   let focusData: FocusData | undefined;
   let updatedMatchUp: any;
-  
+
   const setFocusData = (params: FocusData) => {
     updatedMatchUp = undefined;
     focusData = params;
@@ -106,7 +106,17 @@ export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
   return { setFocusData };
 }
 
-function submitScore({ outcome, callback, matchUpId, drawId }: { outcome: any; callback: (result: any) => void; matchUpId: string; drawId: string }): void {
+function submitScore({
+  outcome,
+  callback,
+  matchUpId,
+  drawId,
+}: {
+  outcome: any;
+  callback: (result: any) => void;
+  matchUpId: string;
+  drawId: string;
+}): void {
   const { matchUpStatus, winningSide, score } = outcome;
   const methods = [
     {

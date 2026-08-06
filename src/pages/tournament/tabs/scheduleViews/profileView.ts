@@ -49,11 +49,7 @@ export interface ProfileViewOptions {
   onToggleCatalog: (visible: boolean) => void;
 }
 
-export function renderProfileView(
-  target: HTMLElement,
-  scheduledDate?: string,
-  options?: ProfileViewOptions,
-): void {
+export function renderProfileView(target: HTMLElement, scheduledDate?: string, options?: ProfileViewOptions): void {
   target.innerHTML = '';
 
   const setup = buildProfileSetup();
@@ -111,9 +107,7 @@ export function renderProfileView(
       if (action.kind === 'OPEN_AVAILABILITY_GRID' && action.date) {
         const tournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
         if (tournamentId) {
-          context.router?.navigate(
-            `/tournament/${tournamentId}/${SCHEDULING_TAB}/${action.date}/availability`,
-          );
+          context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULING_TAB}/${action.date}/availability`);
         }
       }
     },
@@ -285,9 +279,7 @@ function buildDemandAdapter(roundCatalog: CatalogRoundItem[]): DemandAdapter {
         for (const round of venue.rounds) {
           const catalogEntry = roundCatalog.find(
             (c) =>
-              c.structureId === round.structureId &&
-              c.roundNumber === round.roundNumber &&
-              c.drawId === round.drawId,
+              c.structureId === round.structureId && c.roundNumber === round.roundNumber && c.drawId === round.drawId,
           );
           totalMatches += catalogEntry?.matchCountEstimate ?? round.matchCountEstimate ?? 4;
         }
@@ -304,13 +296,9 @@ function buildDependencyAdapter(tournamentId: string): DependencyAdapter {
   // Build matchUpId → roundKeyString index
   const matchUpToRoundKey = new Map<string, string>();
   for (const mu of matchUps ?? []) {
-    const key = [
-      (mu as any).tournamentId || tournamentId,
-      mu.eventId,
-      mu.drawId,
-      mu.structureId,
-      mu.roundNumber,
-    ].join('|');
+    const key = [(mu as any).tournamentId || tournamentId, mu.eventId, mu.drawId, mu.structureId, mu.roundNumber].join(
+      '|',
+    );
     matchUpToRoundKey.set(mu.matchUpId, key);
   }
 
@@ -350,9 +338,7 @@ function loadExistingProfile(setup: ProfileSetup): SchedulingProfile | undefined
       for (const round of venue.rounds || []) {
         const catalogEntry = setup.roundCatalog.find(
           (c) =>
-            c.structureId === round.structureId &&
-            c.roundNumber === round.roundNumber &&
-            c.drawId === round.drawId,
+            c.structureId === round.structureId && c.roundNumber === round.roundNumber && c.drawId === round.drawId,
         );
         if (catalogEntry) {
           round.eventName = catalogEntry.eventName;
@@ -579,7 +565,8 @@ function buildApplyScopePill(): HTMLElement | null {
 
   const pill = document.createElement('button');
   pill.type = 'button';
-  pill.title = 'Court visibility set in the Grid view restricts where Apply Times / Apply Grid will operate. Click to adjust.';
+  pill.title =
+    'Court visibility set in the Grid view restricts where Apply Times / Apply Grid will operate. Click to adjust.';
   pill.style.cssText = [
     'display: inline-flex',
     'align-items: center',
@@ -614,9 +601,7 @@ function getVisibleCourtIdsOrUndefined(): string[] | undefined {
   if (hiddenCourtIds.size === 0) return undefined;
   const { courts } = competitionEngine.getVenuesAndCourts() || {};
   if (!Array.isArray(courts)) return undefined;
-  return (courts as any[])
-    .filter((c) => !hiddenCourtIds.has(c.courtId))
-    .map((c) => c.courtId);
+  return (courts as any[]).filter((c) => !hiddenCourtIds.has(c.courtId)).map((c) => c.courtId);
 }
 
 function hasAnyPlannedRounds(profile: SchedulingProfile | undefined): boolean {
@@ -901,7 +886,8 @@ function buildCapacityBadge(opts: CapacityBadgeOptions): CapacityBadgeHandle {
     '; gap: 6px; padding: 4px 10px; background: var(--tmx-bg-primary); color: var(--tmx-color-primary); font-weight: 600; white-space: nowrap;';
 
   const dot = document.createElement('span');
-  dot.style.cssText = 'width: 8px; height: 8px; border-radius: 50%; background: var(--tmx-text-muted, #888); flex-shrink: 0;';
+  dot.style.cssText =
+    'width: 8px; height: 8px; border-radius: 50%; background: var(--tmx-text-muted, #888); flex-shrink: 0;';
   const text = document.createElement('span');
   text.textContent = '— / —';
   btn.appendChild(dot);
@@ -942,4 +928,3 @@ function buildCapacityBadge(opts: CapacityBadgeOptions): CapacityBadgeHandle {
 
   return { element: btn, refresh };
 }
-

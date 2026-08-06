@@ -44,10 +44,25 @@ export function getMatchUpProfileFilter(table: any): {
   const profileOptions = [
     allOption,
     { divider: true },
-    { label: t('pages.matchUps.competitive'), close: true, onClick: () => updateFilter('COMPETITIVE'), filterValue: 'COMPETITIVE' },
+    {
+      label: t('pages.matchUps.competitive'),
+      close: true,
+      onClick: () => updateFilter('COMPETITIVE'),
+      filterValue: 'COMPETITIVE',
+    },
     { label: t('pages.matchUps.routine'), close: true, onClick: () => updateFilter('ROUTINE'), filterValue: 'ROUTINE' },
-    { label: t('pages.matchUps.decisive'), close: true, onClick: () => updateFilter('DECISIVE'), filterValue: 'DECISIVE' },
-    { label: t('pages.matchUps.walkover'), close: true, onClick: () => updateFilter('WALKOVER'), filterValue: 'WALKOVER' },
+    {
+      label: t('pages.matchUps.decisive'),
+      close: true,
+      onClick: () => updateFilter('DECISIVE'),
+      filterValue: 'DECISIVE',
+    },
+    {
+      label: t('pages.matchUps.walkover'),
+      close: true,
+      onClick: () => updateFilter('WALKOVER'),
+      filterValue: 'WALKOVER',
+    },
   ];
 
   const selectableOptions = profileOptions.filter((opt: any) => !opt.divider);

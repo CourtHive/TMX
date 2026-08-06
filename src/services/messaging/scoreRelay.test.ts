@@ -166,9 +166,7 @@ describe('TMX scoreRelay client', () => {
 
     triggerScore({ matchUpId: MU_ID, score: { scoreStringSide1: '3-2' } });
 
-    expect(matchCallback).toHaveBeenCalledWith(
-      expect.objectContaining({ matchUpId: MU_ID }),
-    );
+    expect(matchCallback).toHaveBeenCalledWith(expect.objectContaining({ matchUpId: MU_ID }));
   });
 
   it('invokes both tournament handler and matchUp callback for same matchUp', () => {

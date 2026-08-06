@@ -224,7 +224,14 @@ describe('loadSchedulingChoices', () => {
   it('returns only scheduling policies from builtins + user policies, stamped', async () => {
     getBuiltinPoliciesMock.mockReturnValue([
       builtinItem(),
-      { id: 'builtin-scoring', name: 'Scoring', policyType: 'scoring', source: 'builtin', description: '', policyData: {} },
+      {
+        id: 'builtin-scoring',
+        name: 'Scoring',
+        policyType: 'scoring',
+        source: 'builtin',
+        description: '',
+        policyData: {},
+      },
     ]);
     loadUserPoliciesMock.mockResolvedValue([userItem()]);
 

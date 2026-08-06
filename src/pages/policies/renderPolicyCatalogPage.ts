@@ -357,8 +357,7 @@ function buildAwardProfiles(policy: CatalogPolicy): HTMLElement {
   table.className = 'policy-catalog__profile-table';
 
   const thead = document.createElement('thead');
-  thead.innerHTML =
-    '<tr><th>Profile</th><th>Event types</th><th>Draw types</th><th>Levels</th><th>Stages</th></tr>';
+  thead.innerHTML = '<tr><th>Profile</th><th>Event types</th><th>Draw types</th><th>Levels</th><th>Stages</th></tr>';
   table.appendChild(thead);
 
   const tbody = document.createElement('tbody');

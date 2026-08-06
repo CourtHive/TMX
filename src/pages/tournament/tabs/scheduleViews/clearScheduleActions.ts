@@ -93,7 +93,10 @@ function executeClear(matchUps: any[], includeCompleted: boolean, onCleared?: ()
     callback: (result: any) => {
       if (result?.success) {
         scheduleToast({
-          message: t('toasts.scheduleCleared', { count: matchUpIds.length, defaultValue: `Cleared ${matchUpIds.length} matchUps` }),
+          message: t('toasts.scheduleCleared', {
+            count: matchUpIds.length,
+            defaultValue: `Cleared ${matchUpIds.length} matchUps`,
+          }),
           intent: 'is-success',
         });
         onCleared?.();
@@ -124,7 +127,8 @@ function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: (
     ].join('; ');
 
     const msg = document.createElement('div');
-    msg.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px; color: var(--tmx-panel-yellow-border, #f59e0b);"></i>` +
+    msg.innerHTML =
+      `<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px; color: var(--tmx-panel-yellow-border, #f59e0b);"></i>` +
       `<strong>${bucket.hidden.length}</strong> matchUp${bucket.hidden.length === 1 ? '' : 's'} on hidden courts will not be cleared.`;
     warn.appendChild(msg);
 

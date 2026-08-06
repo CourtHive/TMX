@@ -2,7 +2,15 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
-import { drawDefinitionConstants, entryStatusConstants, participantConstants, genderConstants, eventConstants, fixtures, tools } from 'tods-competition-factory';
+import {
+  drawDefinitionConstants,
+  entryStatusConstants,
+  participantConstants,
+  genderConstants,
+  eventConstants,
+  fixtures,
+  tools,
+} from 'tods-competition-factory';
 import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -99,15 +107,13 @@ function buildCategoryOptionsList(
         });
       });
   } else {
-    DEFAULT_AGE_CATEGORIES
-      .filter(({ code }) => isCategoryAllowed(code))
-      .forEach(({ code, label }) => {
-        options.push({
-          selected: selectedCode === code,
-          label,
-          value: code,
-        });
+    DEFAULT_AGE_CATEGORIES.filter(({ code }) => isCategoryAllowed(code)).forEach(({ code, label }) => {
+      options.push({
+        selected: selectedCode === code,
+        label,
+        value: code,
       });
+    });
   }
 
   options.push({
@@ -210,11 +216,7 @@ export function editEvent({
     !allowedCategories.length || allowedCategories.some((c: any) => c.ageCategoryCode === code);
 
   const buildCategoryOptions = () =>
-    buildCategoryOptionsList(
-      tournamentCategories,
-      isCategoryAllowed,
-      values.ageCategoryCode,
-    );
+    buildCategoryOptionsList(tournamentCategories, isCategoryAllowed, values.ageCategoryCode);
 
   const valueChange = () => {
     // Placeholder for future functionality
@@ -381,8 +383,7 @@ export function editEvent({
         const existing = tournamentRecord?.tournamentCategories || [];
         const isDuplicate = existing.some(
           (cat: any) =>
-            cat.ageCategoryCode === categoryResult.ageCategoryCode ||
-            cat.categoryName === categoryResult.categoryName,
+            cat.ageCategoryCode === categoryResult.ageCategoryCode || cat.categoryName === categoryResult.categoryName,
         );
 
         if (isDuplicate) {
@@ -407,9 +408,7 @@ export function editEvent({
             // category selected immediately.
             if (formInputs?.ageCategoryCode) {
               const cleanCode = cleanAgeCode(categoryResult.ageCategoryCode);
-              const label = cleanCode
-                ? `${categoryResult.categoryName} (${cleanCode})`
-                : categoryResult.categoryName;
+              const label = cleanCode ? `${categoryResult.categoryName} (${cleanCode})` : categoryResult.categoryName;
               const value = cleanCode || categoryResult.categoryName;
               const customIndex = formInputs.ageCategoryCode.options.length - 1;
               const newOption = new Option(label, value);
@@ -454,10 +453,10 @@ export function editEvent({
     // Sending the same value unnecessarily would still work, but the diff
     // log gets noisy and the server has to round-trip a deep copy on
     // every event save.
-    const formCompetitionFormatKey = (
-      context.drawer.attributes.content.competitionFormatKey?.value || ''
-    ) as CompetitionFormatKey;
-    const existingCompetitionFormatKey = (event?.competitionFormat?.competitionFormatName ?? '') as CompetitionFormatKey;
+    const formCompetitionFormatKey = (context.drawer.attributes.content.competitionFormatKey?.value ||
+      '') as CompetitionFormatKey;
+    const existingCompetitionFormatKey = (event?.competitionFormat?.competitionFormatName ??
+      '') as CompetitionFormatKey;
     if (formCompetitionFormatKey !== existingCompetitionFormatKey) {
       eventUpdates.competitionFormat = formCompetitionFormatKey
         ? (competitionFormats as any)[formCompetitionFormatKey]

@@ -103,8 +103,7 @@ export function renderIndividuals({ view }: { view: string }): void {
   };
 
   table.on('dataFiltered', (filters: any, rows: any[]) => {
-    table.options.placeholder =
-      rows.length === 0 && filters?.length ? buildFilteredPlaceholder() : 'No participants';
+    table.options.placeholder = rows.length === 0 && filters?.length ? buildFilteredPlaceholder() : 'No participants';
   });
 
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });

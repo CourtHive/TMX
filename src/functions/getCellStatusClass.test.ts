@@ -14,8 +14,7 @@ const constants = {
   CONFLICT_COURT_DOUBLE_BOOKING: 'CONFLICT_COURT_DOUBLE_BOOKING',
 };
 
-const cell = (overrides: any = {}) =>
-  getCellStatusClass({ statusConstants: constants, ...overrides });
+const cell = (overrides: any = {}) => getCellStatusClass({ statusConstants: constants, ...overrides });
 
 describe('getCellStatusClass', () => {
   it('returns matchup-abandoned for ABANDONED', () => {
@@ -47,7 +46,9 @@ describe('getCellStatusClass', () => {
   });
 
   it('returns matchup-double-booking for CONFLICT_COURT_DOUBLE_BOOKING', () => {
-    expect(cell({ scheduleState: 'SCHEDULE_CONFLICT', issueType: 'CONFLICT_COURT_DOUBLE_BOOKING' })).toBe('matchup-double-booking');
+    expect(cell({ scheduleState: 'SCHEDULE_CONFLICT', issueType: 'CONFLICT_COURT_DOUBLE_BOOKING' })).toBe(
+      'matchup-double-booking',
+    );
   });
 
   it('returns matchup-issue for SCHEDULE_ISSUE', () => {

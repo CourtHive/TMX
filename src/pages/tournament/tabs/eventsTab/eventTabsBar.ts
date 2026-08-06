@@ -92,7 +92,8 @@ export function renderEventTabsBar({
 
   // Right-side: Edit Event button + optional extra controls (e.g. Rankings policy selectors)
   const rightWrapper = document.createElement('div');
-  rightWrapper.style.cssText = 'display: flex; align-items: center; gap: 0.5em; margin-right: 0.5em; margin-bottom: 4px;';
+  rightWrapper.style.cssText =
+    'display: flex; align-items: center; gap: 0.5em; margin-right: 0.5em; margin-bottom: 4px;';
 
   if (rightContent) {
     rightWrapper.appendChild(rightContent);

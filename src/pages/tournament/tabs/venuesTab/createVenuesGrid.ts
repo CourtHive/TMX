@@ -37,19 +37,13 @@ export function readVenueCardData(): VenueCardData[] {
   return venues.map((venue: any) => mapVenueToCardData(venue, { sport }));
 }
 
-export function renderVenuesGrid(
-  anchor: HTMLElement,
-  onCardClick: (venueId: string) => void,
-  query?: string
-): number {
+export function renderVenuesGrid(anchor: HTMLElement, onCardClick: (venueId: string) => void, query?: string): number {
   clearAnchor(anchor);
   const rows = readVenueCardData();
   const q = query?.toLowerCase();
   const filtered = q
     ? rows.filter(
-        (r) =>
-          (r.venueName || '').toLowerCase().includes(q) ||
-          (r.addressFormatted || '').toLowerCase().includes(q)
+        (r) => (r.venueName || '').toLowerCase().includes(q) || (r.addressFormatted || '').toLowerCase().includes(q),
       )
     : rows;
 

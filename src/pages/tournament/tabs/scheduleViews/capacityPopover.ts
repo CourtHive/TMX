@@ -104,11 +104,7 @@ export function openCapacityPopover(opts: CapacityPopoverOpts): void {
   tip.show();
 }
 
-function collectCourtRows(
-  tournamentRecord: any,
-  engine: AvailabilityEngine,
-  scheduledDate: string,
-): CourtRow[] {
+function collectCourtRows(tournamentRecord: any, engine: AvailabilityEngine, scheduledDate: string): CourtRow[] {
   const rows: CourtRow[] = [];
   const venues = Array.isArray(tournamentRecord.venues) ? tournamentRecord.venues : [];
   for (const venue of venues) {

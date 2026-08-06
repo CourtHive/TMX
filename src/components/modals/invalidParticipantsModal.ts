@@ -64,20 +64,19 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
 
   // Check if we need to fetch participant names
   const needsNames = invalidParticipants.some((ip: any) => !ip.participantName);
-  
+
   let participantMap: Map<string, any> | undefined;
-  
+
   if (needsNames) {
     // Extract participant IDs that need names
-    const participantIds = invalidParticipants
-      .filter((ip: any) => !ip.participantName)
-      .map((ip) => ip.participantId);
+    const participantIds = invalidParticipants.filter((ip: any) => !ip.participantName).map((ip) => ip.participantId);
 
     // Fetch participant details from tournament engine
-    const { participants } = tournamentEngine.getParticipants({
-      participantFilters: { participantIds },
-      withIndividualParticipants: true,
-    }) ?? {};
+    const { participants } =
+      tournamentEngine.getParticipants({
+        participantFilters: { participantIds },
+        withIndividualParticipants: true,
+      }) ?? {};
 
     if (!participants?.length && participantIds.length) {
       console.error('Could not fetch participant details');

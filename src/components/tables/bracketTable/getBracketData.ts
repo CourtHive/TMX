@@ -99,7 +99,12 @@ function buildGroupRow(
   return row;
 }
 
-export function getBracketData({ structure, participantMap, participantResults, drawId }: GetBracketDataParams): GroupData[] {
+export function getBracketData({
+  structure,
+  participantMap,
+  participantResults,
+  drawId,
+}: GetBracketDataParams): GroupData[] {
   const roundMatchUps = structure?.roundMatchUps ?? {};
   const allMatchUps: any[] = Object.values(roundMatchUps).flat();
 
@@ -159,9 +164,9 @@ export function getBracketData({ structure, participantMap, participantResults, 
     const posMap = positionParticipant[groupId] || {};
 
     // Collect all draw positions in this group (from matchUp sides)
-    const drawPositions = [...new Set(
-      matchUps.flatMap((mu: any) => (mu.sides ?? []).map((s: any) => s.drawPosition).filter(Boolean)),
-    )].sort((a: number, b: number) => a - b);
+    const drawPositions = [
+      ...new Set(matchUps.flatMap((mu: any) => (mu.sides ?? []).map((s: any) => s.drawPosition).filter(Boolean))),
+    ].sort((a: number, b: number) => a - b);
 
     const groupByePositions = byePositions[groupId];
 
@@ -173,7 +178,7 @@ export function getBracketData({ structure, participantMap, participantResults, 
       return {
         drawPosition: dp,
         participantId: pid || `dp_${dp}`,
-        participantName: isBye ? 'BYE' : (p?.participantName || ''),
+        participantName: isBye ? 'BYE' : p?.participantName || '',
       };
     });
 

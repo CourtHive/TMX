@@ -82,7 +82,12 @@ describe('isActiveProviderAdmin', () => {
       login({
         roles: ['client'],
         providerAssociations: [
-          { providerId: BOBOCA, providerRole: 'DIRECTOR', organisationName: 'BOBOCA', organisationAbbreviation: 'BOBOCA' },
+          {
+            providerId: BOBOCA,
+            providerRole: 'DIRECTOR',
+            organisationName: 'BOBOCA',
+            organisationAbbreviation: 'BOBOCA',
+          },
         ],
       }),
     );

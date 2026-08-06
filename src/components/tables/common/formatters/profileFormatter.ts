@@ -1,7 +1,7 @@
 export function profileFormatter(cell): HTMLSpanElement {
   const data = cell.getRow().getData();
   const content = document.createElement('span');
-  
+
   if (!data.competitiveProfile?.competitiveness) return content;
 
   const { competitiveProfile, score } = data;

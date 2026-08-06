@@ -36,7 +36,8 @@ const HEADER_STYLE =
   'font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tmx-text-secondary, #777); margin-bottom: 8px;';
 const CONSIDERATION_SECTION_STYLE =
   'padding: 16px; border-bottom: 1px solid var(--tmx-border-secondary, #eee); background: var(--tmx-bg-primary, #fff);';
-const CONSIDERATION_LANE_STYLE = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;';
+const CONSIDERATION_LANE_STYLE =
+  'display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;';
 const BAND_GROUP_STYLE = 'display: flex; flex-direction: column; gap: 8px;';
 const BAND_HEADER_ROW_STYLE =
   'display: flex; align-items: baseline; gap: 8px; padding-top: 8px; padding-bottom: 4px; border-top: 1px solid var(--tmx-border-secondary, #e5e5e5);';
@@ -136,8 +137,7 @@ function buildBandGroup(args: BuildBandGroupArgs): HTMLDivElement {
     grid.appendChild(
       buildPlanCard(plan, {
         onApply: args.onApply ? (p) => args.onApply!(p) : undefined,
-        onToggleConsider:
-          args.onToggleConsider && fp ? (p) => args.onToggleConsider!(p, fp) : undefined,
+        onToggleConsider: args.onToggleConsider && fp ? (p) => args.onToggleConsider!(p, fp) : undefined,
         selected,
       }),
     );
@@ -166,7 +166,9 @@ export function buildRightPane(): RightPaneHandle {
   const considerationSection = document.createElement('div');
   considerationSection.style.cssText = CONSIDERATION_SECTION_STYLE;
   considerationSection.hidden = true;
-  considerationSection.appendChild(buildHeader(FORMAT_WIZARD_HEADER_CONSIDERATION, 'formatWizard.headers.consideration'));
+  considerationSection.appendChild(
+    buildHeader(FORMAT_WIZARD_HEADER_CONSIDERATION, 'formatWizard.headers.consideration'),
+  );
   const considerationLane = document.createElement('div');
   considerationLane.id = FORMAT_WIZARD_CONSIDERATION;
   considerationLane.style.cssText = CONSIDERATION_LANE_STYLE;
@@ -242,7 +244,9 @@ export function buildRightPane(): RightPaneHandle {
       planList.replaceChildren();
       empty.hidden = false;
       empty.textContent = result.error
-        ? t(`formatWizard.summary.${result.error === 'INSUFFICIENT_RATED_PARTICIPANTS' ? 'noRatedParticipants' : 'constraintsRequired'}`)
+        ? t(
+            `formatWizard.summary.${result.error === 'INSUFFICIENT_RATED_PARTICIPANTS' ? 'noRatedParticipants' : 'constraintsRequired'}`,
+          )
         : t('formatWizard.summary.constraintsRequired');
       renderConsiderationLane({ plans: [], fingerprints: considered, fingerprintFor });
       return;

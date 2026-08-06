@@ -13,7 +13,7 @@ export function parseHereWeGo(link: string): Coordinates {
     return isLatLong.test(coords)
       ? {
           latitude: components[0],
-          longitude: components[1]
+          longitude: components[1],
         }
       : {};
   }

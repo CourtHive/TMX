@@ -12,9 +12,7 @@ import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
  */
 function hasTournamentImage(): boolean {
   const { tournamentRecord } = tournamentEngine.getTournament();
-  return tournamentRecord?.onlineResources?.some(
-    ({ name }: any) => name === 'tournamentImage',
-  );
+  return tournamentRecord?.onlineResources?.some(({ name }: any) => name === 'tournamentImage');
 }
 
 /**

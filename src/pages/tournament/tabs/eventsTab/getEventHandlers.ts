@@ -46,7 +46,8 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
 
   const getSideNumber = (props: any) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-sd', 'sideNumber'));
   const getStructureId = (props: any) => getTargetAttribute(props.pointerEvent.target, 'tmx-str', 'id');
-  const getRoundNumber = (props: any) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-rd', 'roundNumber'));
+  const getRoundNumber = (props: any) =>
+    parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-rd', 'roundNumber'));
 
   const sideClick = (props: any) => {
     const matchUp = getMatchUp(props);
@@ -130,10 +131,11 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
           side2Score: s.side2Score,
           ...(s.side1TiebreakScore != null && { side1TiebreakScore: s.side1TiebreakScore }),
           ...(s.side2TiebreakScore != null && { side2TiebreakScore: s.side2TiebreakScore }),
-          ...(s.side1PointScore != null && s.side2PointScore != null && {
-            side1PointScore: s.side1PointScore,
-            side2PointScore: s.side2PointScore,
-          }),
+          ...(s.side1PointScore != null &&
+            s.side2PointScore != null && {
+              side1PointScore: s.side1PointScore,
+              side2PointScore: s.side2PointScore,
+            }),
           ...(s.winningSide != null && { winningSide: s.winningSide }),
         }));
         const methods = [

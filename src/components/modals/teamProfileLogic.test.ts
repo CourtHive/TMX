@@ -3,10 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 // ── Fixture helpers ──
 
-const individual = (
-  id: string,
-  overrides: { role?: string; teamName?: string } = {},
-): any => ({
+const individual = (id: string, overrides: { role?: string; teamName?: string } = {}): any => ({
   participantId: id,
   participantName: id,
   participantType: 'INDIVIDUAL',
@@ -16,10 +13,7 @@ const individual = (
   },
 });
 
-const team = (
-  name: string,
-  members: any[] = [],
-): any => ({
+const team = (name: string, members: any[] = []): any => ({
   participantId: `t-${name}`,
   participantName: name,
   participantType: 'TEAM',

@@ -100,9 +100,7 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
     }
   };
 
-  const buttons: any[] = [
-    { label: t('common.cancel'), intent: NONE, close: true },
-  ];
+  const buttons: any[] = [{ label: t('common.cancel'), intent: NONE, close: true }];
 
   if (currentEmbargo && onClear) {
     buttons.push({

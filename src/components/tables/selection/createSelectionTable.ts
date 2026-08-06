@@ -15,14 +15,7 @@ type CreateSelectionTableParams = {
 
 export function createSelectionTable(params: CreateSelectionTableParams): { table: any } {
   let { data = [] } = params;
-  const {
-    selectedParticipantIds,
-    selectionLimit = 1,
-    targetAttribute,
-    placeholder,
-    onSelected,
-    anchorId,
-  } = params;
+  const { selectedParticipantIds, selectionLimit = 1, targetAttribute, placeholder, onSelected, anchorId } = params;
 
   const participants = data.some((item) => item.participant);
 

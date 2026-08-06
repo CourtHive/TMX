@@ -18,9 +18,9 @@ const newFlight = (table: any, event: any): void => {
       params: {
         eventId: event.eventId,
         drawName: 'Flight',
-        drawEntries
-      }
-    }
+        drawEntries,
+      },
+    },
   ];
   const postMutation = (result: any) => {
     if (result.success) {
@@ -32,11 +32,13 @@ const newFlight = (table: any, event: any): void => {
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const createFlight = (event: any, drawId?: string) => (table: any): any => {
-  return {
-    onClick: () => newFlight(table, event),
-    label: 'Add flight',
-    location: OVERLAY,
-    hide: drawId
+export const createFlight =
+  (event: any, drawId?: string) =>
+  (table: any): any => {
+    return {
+      onClick: () => newFlight(table, event),
+      label: 'Add flight',
+      location: OVERLAY,
+      hide: drawId,
+    };
   };
-};

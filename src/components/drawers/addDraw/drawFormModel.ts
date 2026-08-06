@@ -635,7 +635,8 @@ function readNumericInput(value: number | string | undefined, fallback: number):
 function readFlightMainEntries(draw: any, event: any): any[] {
   // Pure-function model: read first-class with extension fallback inline (no
   // engine dependency — see file header). Mode-agnostic across LEGACY/NATIVE.
-  const flightProfile = event?.flightProfile ?? event?.extensions?.find((ext: any) => ext?.name === 'flightProfile')?.value;
+  const flightProfile =
+    event?.flightProfile ?? event?.extensions?.find((ext: any) => ext?.name === 'flightProfile')?.value;
   const flight = flightProfile?.flights?.find((f: any) => f?.drawId === draw?.drawId);
   const flightMainEntries = (flight?.drawEntries ?? []).filter((entry: any) => {
     const entryStage = entry?.entryStage;

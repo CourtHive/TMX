@@ -9,27 +9,29 @@ import { tools } from 'tods-competition-factory';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
-export function createTieFormatTable({ tableElement, tieFormat }: { tableElement: HTMLElement; tieFormat: any }): { table: any } {
-  const data = (tieFormat?.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || []).map(
-    (collectionDefinition: any) => {
-      const { collectionValue, matchUpValue, scoreValue, setValue, matchUpType, gender } = collectionDefinition;
-      const awardType =
-        (tools.isConvertableInteger(collectionValue) && COLLECTION_VALUE) ||
-        (tools.isConvertableInteger(scoreValue) && SCORE_VALUE) ||
-        (tools.isConvertableInteger(setValue) && SET_VALUE) ||
-        MATCH_VALUE;
+export function createTieFormatTable({ tableElement, tieFormat }: { tableElement: HTMLElement; tieFormat: any }): {
+  table: any;
+} {
+  const data = (
+    tieFormat?.collectionDefinitions?.sort((a: any, b: any) => a.collectionOrder - b.collectionOrder) || []
+  ).map((collectionDefinition: any) => {
+    const { collectionValue, matchUpValue, scoreValue, setValue, matchUpType, gender } = collectionDefinition;
+    const awardType =
+      (tools.isConvertableInteger(collectionValue) && COLLECTION_VALUE) ||
+      (tools.isConvertableInteger(scoreValue) && SCORE_VALUE) ||
+      (tools.isConvertableInteger(setValue) && SET_VALUE) ||
+      MATCH_VALUE;
 
-      const awardValue = collectionValue ?? scoreValue ?? setValue ?? matchUpValue;
+    const awardValue = collectionValue ?? scoreValue ?? setValue ?? matchUpValue;
 
-      return {
-        ...collectionDefinition,
-        matchUpType: toTitleCase(matchUpType),
-        gender: toTitleCase(gender),
-        awardValue,
-        awardType,
-      };
-    },
-  );
+    return {
+      ...collectionDefinition,
+      matchUpType: toTitleCase(matchUpType),
+      gender: toTitleCase(gender),
+      awardValue,
+      awardType,
+    };
+  });
 
   const columns = getCollectionDefinitionColumns();
 

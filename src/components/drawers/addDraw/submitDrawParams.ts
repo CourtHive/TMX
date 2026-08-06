@@ -418,7 +418,13 @@ function handleQualifyingStructure(params: {
     if (qualifyingParticipantIds.length) {
       methods.push({
         method: ADD_DRAW_ENTRIES,
-        params: { participantIds: qualifyingParticipantIds, entryStage: QUALIFYING, ignoreStageSpace: true, eventId, drawId },
+        params: {
+          participantIds: qualifyingParticipantIds,
+          entryStage: QUALIFYING,
+          ignoreStageSpace: true,
+          eventId,
+          drawId,
+        },
       });
     }
 
@@ -667,11 +673,7 @@ export function submitDrawParams({
   const isDraft = creationValue === DRAFT;
   const isLucky = drawType === LUCKY_DRAW;
   const automated =
-    drawSize < stageEntries.length
-      ? false
-      : isDraft
-        ? { seedsOnly: true }
-        : isLucky || creationValue === AUTOMATED;
+    drawSize < stageEntries.length ? false : isDraft ? { seedsOnly: true } : isLucky || creationValue === AUTOMATED;
 
   const eventId = event.eventId;
   const drawOptions: any = {
@@ -705,8 +707,12 @@ export function submitDrawParams({
   })?.seedsCount;
 
   const qualifiersCount = isQualifyingFirst
-    ? (validators.numericValidator(inputs[QUALIFYING_POSITIONS]?.value) && Number.parseInt(inputs[QUALIFYING_POSITIONS]?.value)) || 4
-    : (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) && Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) || 0;
+    ? (validators.numericValidator(inputs[QUALIFYING_POSITIONS]?.value) &&
+        Number.parseInt(inputs[QUALIFYING_POSITIONS]?.value)) ||
+      4
+    : (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) &&
+        Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) ||
+      0;
 
   if (structureId && drawId) {
     handleQualifyingStructure({

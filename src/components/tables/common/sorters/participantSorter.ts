@@ -1,6 +1,13 @@
 function getSortName(item) {
   const person = item?.person || item?.participant?.person;
-  return person?.standardFamilyName || item?.participantOtherName || item?.participant?.participantOtherName || item?.participantName || item?.participant?.participantName || '';
+  return (
+    person?.standardFamilyName ||
+    item?.participantOtherName ||
+    item?.participant?.participantOtherName ||
+    item?.participantName ||
+    item?.participant?.participantName ||
+    ''
+  );
 }
 
 export function participantSorter(a, b) {

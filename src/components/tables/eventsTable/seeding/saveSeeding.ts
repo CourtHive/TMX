@@ -16,6 +16,6 @@ export const saveSeeding = (event: any) => (table: any) => {
     intent: 'is-info',
     location: RIGHT,
     visible: false,
-    onClick
+    onClick,
   };
 };

@@ -35,8 +35,7 @@ const leafletDefaults: LeafletConfig = {
     maxZoom: 18,
   },
   satellite: {
-    tileLayer:
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    tileLayer: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri',
   },
 };

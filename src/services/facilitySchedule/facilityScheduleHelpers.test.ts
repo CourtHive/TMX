@@ -35,8 +35,22 @@ const grid = {
     },
   },
   conflicts: [
-    { venueId: 'v1', courtId: 'c1', scheduledDate: DATE, reason: 'SAME_SCHEDULED_TIME', scheduledTime: '09:00', matchUpIds: ['m1', 'm2'] },
-    { venueId: 'v1', courtId: 'c9', scheduledDate: '2025-01-02', reason: 'SAME_COURT_ORDER', courtOrder: 1, matchUpIds: ['x', 'y'] },
+    {
+      venueId: 'v1',
+      courtId: 'c1',
+      scheduledDate: DATE,
+      reason: 'SAME_SCHEDULED_TIME',
+      scheduledTime: '09:00',
+      matchUpIds: ['m1', 'm2'],
+    },
+    {
+      venueId: 'v1',
+      courtId: 'c9',
+      scheduledDate: '2025-01-02',
+      reason: 'SAME_COURT_ORDER',
+      courtOrder: 1,
+      matchUpIds: ['x', 'y'],
+    },
   ],
 };
 
@@ -47,7 +61,10 @@ describe('facilityScheduleHelpers', () => {
   });
 
   it('primaryVenueIds returns distinct venue ids', () => {
-    expect(primaryVenueIds({ venues: [{ venueId: 'v1' }, { venueId: 'v2' }, { venueId: 'v1' }] })).toEqual(['v1', 'v2']);
+    expect(primaryVenueIds({ venues: [{ venueId: 'v1' }, { venueId: 'v2' }, { venueId: 'v1' }] })).toEqual([
+      'v1',
+      'v2',
+    ]);
     expect(primaryVenueIds({})).toEqual([]);
   });
 
@@ -71,7 +88,7 @@ describe('facilityScheduleHelpers', () => {
 
   it('cellLabel composes time, round and players with fallbacks', () => {
     expect(cellLabel({ scheduledTime: '09:00', roundName: 'R16', labels: ['A', 'B'] })).toEqual('09:00 R16 A v B');
-    expect(cellLabel({ labels: [] , matchUpId: 'm9' })).toEqual('m9');
+    expect(cellLabel({ labels: [], matchUpId: 'm9' })).toEqual('m9');
   });
 });
 
@@ -101,7 +118,12 @@ describe('mergeReservedCellsIntoRows', () => {
 
   it('replaces an empty placeholder slot (no matchUpId) — the grid pre-populates empty cells', () => {
     const rows: any[] = [{ 'C|0': { matchUpId: '', schedule: {} } }];
-    mergeReservedCellsIntoRows(rows, [{ courtId: 'c0', courtOrder: 1, scheduledTime: '09:00' }], [{ courtId: 'c0' }], 'C|');
+    mergeReservedCellsIntoRows(
+      rows,
+      [{ courtId: 'c0', courtOrder: 1, scheduledTime: '09:00' }],
+      [{ courtId: 'c0' }],
+      'C|',
+    );
     expect(rows[0]['C|0']).toMatchObject({ isReserved: true, reservation: { scheduledTime: '09:00' } });
   });
 
@@ -118,7 +140,9 @@ describe('mergeReservedCellsIntoRows', () => {
   });
 
   it('is a no-op with empty rows or empty cells', () => {
-    expect(() => mergeReservedCellsIntoRows([], [{ courtId: 'c0', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|')).not.toThrow();
+    expect(() =>
+      mergeReservedCellsIntoRows([], [{ courtId: 'c0', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|'),
+    ).not.toThrow();
     const rows: any[] = [{}];
     mergeReservedCellsIntoRows(rows, [], [{ courtId: 'c0' }], 'C|');
     expect(rows[0]).toEqual({});

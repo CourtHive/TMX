@@ -219,16 +219,19 @@ export function editTournament({
     const tierSystem = (inputs.tierSystem?.value ?? '').trim();
     const tierValue = (inputs.tierValue?.value ?? '').trim();
     const tierNumericRankRaw = (inputs.tierNumericRank?.value ?? '').trim();
-    const tierNumericRank = tierNumericRankRaw && !Number.isNaN(Number(tierNumericRankRaw))
-      ? Number(tierNumericRankRaw)
-      : undefined;
+    const tierNumericRank =
+      tierNumericRankRaw && !Number.isNaN(Number(tierNumericRankRaw)) ? Number(tierNumericRankRaw) : undefined;
 
     // Build the next tier object (or null to clear). Both system and value
     // are required by the factory setter — partial input is treated as a
     // "clear" rather than an error, matching the timeZone pattern.
     const nextTier =
       tierSystem && tierValue
-        ? { system: tierSystem, value: tierValue, ...(tierNumericRank === undefined ? {} : { numericRank: tierNumericRank }) }
+        ? {
+            system: tierSystem,
+            value: tierValue,
+            ...(tierNumericRank === undefined ? {} : { numericRank: tierNumericRank }),
+          }
         : null;
     const previousTier = tournamentRecord?.tournamentTier ?? null;
     const tierChanged = !tierEquals(nextTier, previousTier);
@@ -258,7 +261,10 @@ export function editTournament({
       };
       const submit = (force?: boolean) => {
         const methods = [
-          { method: SET_TOURNAMENT_DATES, params: { activeDates, startDate, endDate, ...(force ? { force: true } : {}) } },
+          {
+            method: SET_TOURNAMENT_DATES,
+            params: { activeDates, startDate, endDate, ...(force ? { force: true } : {}) },
+          },
           { method: SET_TOURNAMENT_NAME, params: { tournamentName } },
         ];
         // Only emit the TZ mutation when the value differs from what the

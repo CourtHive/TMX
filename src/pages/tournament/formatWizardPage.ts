@@ -226,9 +226,7 @@ export function renderFormatWizardPage(): void {
     const state = formHandle.getState();
     const key = scopeKey(state);
     const current = considerationMap[key] ?? [];
-    const next = current.includes(fingerprint)
-      ? current.filter((fp) => fp !== fingerprint)
-      : [...current, fingerprint];
+    const next = current.includes(fingerprint) ? current.filter((fp) => fp !== fingerprint) : [...current, fingerprint];
     if (next.length === 0) {
       delete considerationMap[key];
     } else {

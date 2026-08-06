@@ -156,7 +156,9 @@ function outstandingSection(completeness: DrawCompleteness[], drawCount: number)
 // ---- "format changes" (matchUpFormat variance) rendering ----
 
 function formatVarianceDetail(group: FormatVarianceGroup): string {
-  const rounds = group.departingRounds.map((round) => `R${round.roundNumber}: ${round.formats.join(' / ')}`).join(' · ');
+  const rounds = group.departingRounds
+    .map((round) => `R${round.roundNumber}: ${round.formats.join(' / ')}`)
+    .join(' · ');
   const suffix = rounds ? ` — ${rounds}` : '';
   return `baseline ${group.baselineFormat}${suffix}`;
 }
@@ -174,7 +176,8 @@ function formatVarianceRow(group: FormatVarianceGroup): HTMLElement {
     const badge = document.createElement('span');
     badge.style.cssText = `flex: none; font-size: 0.5625rem; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: ${WARN_BADGE}; color: ${WARN_TEXT};`;
     badge.textContent = 'REVERT';
-    badge.title = 'format departed from the structure default then returned — a possible in-tournament (e.g. weather) change';
+    badge.title =
+      'format departed from the structure default then returned — a possible in-tournament (e.g. weather) change';
     row.appendChild(badge);
   }
 

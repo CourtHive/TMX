@@ -12,18 +12,21 @@ The legacy TMX-Suite PDF generators were built for an old JSON structure. The cu
 ### Getting Tournament Data
 
 **Legacy (TMX-Suite-Legacy):**
+
 ```javascript
 const tournament = tournamentEngine.getTournament()?.tournament;
 // Structure: { tournamentName, startDate, endDate, organizers, ... }
 ```
 
 **TODS (Current TMX):**
+
 ```javascript
 const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
 // Structure: { tournamentName, startDate, endDate, ... }
 ```
 
 **Key Differences:**
+
 - Method changed from `getTournament()` to `getTournamentInfo()`
 - Result structure: `tournamentInfo` instead of `tournament`
 - Some fields renamed or restructured
@@ -31,11 +34,13 @@ const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
 ### Getting Event Data
 
 **Both Legacy and TODS (similar):**
+
 ```javascript
 const event = tournamentEngine.getEvent({ eventId })?.event;
 ```
 
 **Event Structure:**
+
 ```typescript
 {
   eventId: string;
@@ -56,9 +61,10 @@ const event = tournamentEngine.getEvent({ eventId })?.event;
 ### Getting Draw Data
 
 **TODS:**
+
 ```javascript
 // From event
-const drawDefinition = event.drawDefinitions.find(dd => dd.drawId === drawId);
+const drawDefinition = event.drawDefinitions.find((dd) => dd.drawId === drawId);
 
 // Or directly
 const drawResult = tournamentEngine.findDrawDefinition({ drawId });
@@ -69,17 +75,18 @@ const drawDefinition = drawResult?.drawDefinition;
 
 ### Tournament/Event Info
 
-| Legacy Field | TODS Field | Notes |
-|-------------|-----------|-------|
-| `tournament.tournamentName` | `tournamentInfo.tournamentName` | Same name |
-| `tournament.startDate` | `tournamentInfo.startDate` | ISO date string |
-| `tournament.endDate` | `tournamentInfo.endDate` | ISO date string |
-| `tournament.organizers` | `tournamentInfo.organizers?` | May not exist |
-| `event.format` | `event.eventType` | 'S' → 'SINGLES', 'D' → 'DOUBLES' |
+| Legacy Field                | TODS Field                      | Notes                            |
+| --------------------------- | ------------------------------- | -------------------------------- |
+| `tournament.tournamentName` | `tournamentInfo.tournamentName` | Same name                        |
+| `tournament.startDate`      | `tournamentInfo.startDate`      | ISO date string                  |
+| `tournament.endDate`        | `tournamentInfo.endDate`        | ISO date string                  |
+| `tournament.organizers`     | `tournamentInfo.organizers?`    | May not exist                    |
+| `event.format`              | `event.eventType`               | 'S' → 'SINGLES', 'D' → 'DOUBLES' |
 
 ### Participant/Player Data
 
 **Legacy Structure:**
+
 ```javascript
 {
   first: 'John',
@@ -91,6 +98,7 @@ const drawDefinition = drawResult?.drawDefinition;
 ```
 
 **TODS Structure:**
+
 ```javascript
 {
   participantId: 'uuid',
@@ -124,18 +132,20 @@ const drawDefinition = drawResult?.drawDefinition;
 ```
 
 **Mapping:**
-| Legacy | TODS | Access Method |
-|--------|------|---------------|
-| `first + ' ' + last` | `participantName` | Direct |
-| `first` | `person.standardGivenName` | Nested |
-| `last` | `person.standardFamilyName` | Nested |
-| `seed` | `seedings[0].seedNumber` | Array |
-| `category_ranking` | `rankings[0].ranking` | Array |
-| `entry` | `entries[0].entryStatus` | Array, enum |
+
+| Legacy               | TODS                        | Access Method |
+| -------------------- | --------------------------- | ------------- |
+| `first + ' ' + last` | `participantName`           | Direct        |
+| `first`              | `person.standardGivenName`  | Nested        |
+| `last`               | `person.standardFamilyName` | Nested        |
+| `seed`               | `seedings[0].seedNumber`    | Array         |
+| `category_ranking`   | `rankings[0].ranking`       | Array         |
+| `entry`              | `entries[0].entryStatus`    | Array, enum   |
 
 ### Draw Structure
 
 **Legacy:**
+
 ```javascript
 {
   draw_positions: number[],
@@ -147,6 +157,7 @@ const drawDefinition = drawResult?.drawDefinition;
 ```
 
 **TODS:**
+
 ```javascript
 {
   drawId: string,
@@ -166,6 +177,7 @@ const drawDefinition = drawResult?.drawDefinition;
 ```
 
 **Key Changes:**
+
 - `opponents` array → Derive from `matchUps` with `sides`
 - `draw_positions` → `drawSize` (single number)
 - `compass` → Multiple `structures` with different `stage`
@@ -174,6 +186,7 @@ const drawDefinition = drawResult?.drawDefinition;
 ### MatchUp Structure
 
 **TODS MatchUp:**
+
 ```javascript
 {
   matchUpId: string,
@@ -218,10 +231,8 @@ const drawDefinition = drawResult?.drawDefinition;
 ```typescript
 function getDrawParticipants(drawDefinition: any): Participant[] {
   // Get all matchUps from all structures
-  const allMatchUps = drawDefinition.structures.flatMap(
-    (structure: any) => structure.matchUps || []
-  );
-  
+  const allMatchUps = drawDefinition.structures.flatMap((structure: any) => structure.matchUps || []);
+
   // Extract unique participants
   const participantMap = new Map();
   allMatchUps.forEach((matchUp: any) => {
@@ -231,7 +242,7 @@ function getDrawParticipants(drawDefinition: any): Participant[] {
       }
     });
   });
-  
+
   return Array.from(participantMap.values());
 }
 ```
@@ -241,9 +252,9 @@ function getDrawParticipants(drawDefinition: any): Participant[] {
 ```typescript
 function getSeededParticipants(drawDefinition: any): Participant[] {
   const participants = getDrawParticipants(drawDefinition);
-  
+
   return participants
-    .filter(p => p.seedings && p.seedings.length > 0)
+    .filter((p) => p.seedings && p.seedings.length > 0)
     .sort((a, b) => {
       const seedA = a.seedings[0]?.seedNumber || 999;
       const seedB = b.seedings[0]?.seedNumber || 999;
@@ -260,19 +271,19 @@ function fullName(participant: any): string {
   if (participant.participantName) {
     return participant.participantName;
   }
-  
+
   // Try person structure
   if (participant.person) {
     const given = participant.person.standardGivenName || '';
     const family = participant.person.standardFamilyName || '';
     return `${given} ${family}`.trim();
   }
-  
+
   // Legacy fallback
   if (participant.first || participant.last) {
     return `${participant.first || ''} ${participant.last || ''}`.trim();
   }
-  
+
   return '';
 }
 ```
@@ -284,18 +295,18 @@ function getEntryStatusCode(participant: any): string {
   if (!participant.entries || participant.entries.length === 0) {
     return '';
   }
-  
+
   const entry = participant.entries[0];
-  
+
   // Map TODS entryStatus to legacy codes
   const statusMap: Record<string, string> = {
-    'WILDCARD': 'WC',
-    'LUCKY_LOSER': 'LL',
-    'ALTERNATE': 'A',
-    'DIRECT_ACCEPTANCE': '', // No special code
-    'QUALIFIER': 'Q',
+    WILDCARD: 'WC',
+    LUCKY_LOSER: 'LL',
+    ALTERNATE: 'A',
+    DIRECT_ACCEPTANCE: '', // No special code
+    QUALIFIER: 'Q',
   };
-  
+
   return statusMap[entry.entryStatus] || '';
 }
 ```
@@ -352,19 +363,21 @@ tournamentEngine.getParticipants({ participantFilters: { participantIds } })
 ## Example: Updated Draw Sheet Header
 
 **Legacy:**
+
 ```javascript
 const header = {
   text: tournament.tournamentName,
-  style: 'header'
+  style: 'header',
 };
 ```
 
 **TODS:**
+
 ```javascript
 const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
 const header = {
   text: tournamentInfo?.tournamentName || event.eventName || 'Tournament',
-  style: 'header'
+  style: 'header',
 };
 ```
 

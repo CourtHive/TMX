@@ -38,10 +38,12 @@ export function mapEntry({
 
   // Use participantDrawsMap (built from drawDefinition entries) if available,
   // otherwise fall back to participant.draws from the factory
-  const flights = participantDrawsMap?.[entry.participantId] ??
+  const flights =
+    participantDrawsMap?.[entry.participantId] ??
     participant?.draws
       ?.filter((flight: any) => flight.eventId === eventId)
-      .map((flight: any) => ({ ...flight, drawName: derivedDrawInfo?.[flight.drawId]?.drawName })) ?? [];
+      .map((flight: any) => ({ ...flight, drawName: derivedDrawInfo?.[flight.drawId]?.drawName })) ??
+    [];
   const address = participant?.person?.addresses?.[0];
   const cityState = address ? `${address.city}, ${address.state}` : undefined;
 

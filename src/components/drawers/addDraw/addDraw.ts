@@ -110,8 +110,7 @@ export function addDraw({
     };
     const syncEditorVisibility = () => {
       const selectedDrawType =
-        drawTypeInput?.options?.[drawTypeInput.selectedIndex]?.getAttribute('value') ||
-        drawTypeInput?.value;
+        drawTypeInput?.options?.[drawTypeInput.selectedIndex]?.getAttribute('value') || drawTypeInput?.value;
       const isLucky = selectedDrawType === LUCKY_DRAW;
       // drawType change triggers a drawSize coercion in getDrawFormRelationships
       // (raw entry count for LUCKY_DRAW vs nextPowerOf2 for elimination types).

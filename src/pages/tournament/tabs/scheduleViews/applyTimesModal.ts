@@ -35,7 +35,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
 
   const attached = getAttachedSchedulingPolicy();
   const matchingChoiceId = resolveAttachedChoiceId(attached, choices);
-  const matchedLabel = matchingChoiceId ? choices.find((c) => c.id === matchingChoiceId)?.label ?? null : null;
+  const matchedLabel = matchingChoiceId ? (choices.find((c) => c.id === matchingChoiceId)?.label ?? null) : null;
   const attachedChoice = attached ? buildAttachedChoice(attached, matchedLabel) : null;
 
   // Everything the operator can pick, in display order: the attached policy

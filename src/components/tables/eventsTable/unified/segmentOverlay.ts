@@ -196,9 +196,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
       return {
         onClick: () => {
           const participantIds = removable.map(({ participantId }: any) => participantId);
-          const methods = [
-            { method: REMOVE_DRAW_ENTRIES, params: { eventId, drawId, participantIds } },
-          ];
+          const methods = [{ method: REMOVE_DRAW_ENTRIES, params: { eventId, drawId, participantIds } }];
           const postMutation = (result: any) => {
             if (result?.success) {
               table.deselectRow();

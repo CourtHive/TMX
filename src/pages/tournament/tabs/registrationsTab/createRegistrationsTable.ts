@@ -45,7 +45,10 @@ function actionsFormatter(cell: any): string {
   `;
 }
 
-export function createRegistrationsTable(params: CreateRegistrationsTableParams): { table: any; setEntries: (rows: RegistrationEntry[]) => void } {
+export function createRegistrationsTable(params: CreateRegistrationsTableParams): {
+  table: any;
+  setEntries: (rows: RegistrationEntry[]) => void;
+} {
   const container = document.getElementById(TOURNAMENT_REGISTRATIONS);
   if (!container) throw new Error(`Missing #${TOURNAMENT_REGISTRATIONS}`);
   container.innerHTML = '';

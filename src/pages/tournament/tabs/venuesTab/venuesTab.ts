@@ -56,13 +56,11 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
   // ─── Detail view (single venue) takes precedence ────────────────────────
   if (venueId && venuesAnchor) {
     const refreshDetailHeader = (courtCount: number) => {
-      const venue = tournamentEngine
-        .getTournament()
-        ?.tournamentRecord?.venues?.find((v: any) => v.venueId === venueId);
+      const venue = tournamentEngine.getTournament()?.tournamentRecord?.venues?.find((v: any) => v.venueId === venueId);
       setTabHeader({
         anchor: venuesAnchor,
         label: venue?.venueName || t('pages.venues.title'),
-        count: courtCount
+        count: courtCount,
       });
     };
     renderVenueDetail({ anchor: venuesAnchor, venueId, refreshHeader: refreshDetailHeader });
@@ -87,7 +85,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
         mode = m;
         writeVenuesViewMode(m);
         renderForMode();
-      }
+      },
     });
   }
 
@@ -97,7 +95,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
       anchor: venuesAnchor,
       label: t('pages.venues.title'),
       count,
-      trailing: availabilityVisible ? undefined : buildToggle()
+      trailing: availabilityVisible ? undefined : buildToggle(),
     });
   }
 

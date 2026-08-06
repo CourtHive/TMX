@@ -168,17 +168,13 @@ describe('buildApplyMethods — output shape', () => {
     expect(result.drawSpecs[1].drawType).toEqual('ROUND_ROBIN');
     expect(result.drawSpecs[1].extras.groupSize).toEqual(4);
     // eventIds in drawSpecs match the eventIds in the ADD_EVENT methods
-    const eventIds = result.eventMethods
-      .filter((m) => m.method === ADD_EVENT)
-      .map((m) => m.params.event.eventId);
+    const eventIds = result.eventMethods.filter((m) => m.method === ADD_EVENT).map((m) => m.params.event.eventId);
     const specIds = result.drawSpecs.map((s) => s.eventId);
     expect(specIds).toEqual(eventIds);
   });
 
   it('rounds non-power-of-two SE flight sizes up to next power of two', () => {
-    const plan = makePlan([
-      makeFlightStructure('Tier 1', ['p0', 'p1', 'p2', 'p3', 'p4'], 'SINGLE_ELIMINATION'),
-    ]);
+    const plan = makePlan([makeFlightStructure('Tier 1', ['p0', 'p1', 'p2', 'p3', 'p4'], 'SINGLE_ELIMINATION')]);
     const result = buildApplyMethods({ plan });
     expect(result.drawSpecs[0].drawSize).toEqual(8);
   });

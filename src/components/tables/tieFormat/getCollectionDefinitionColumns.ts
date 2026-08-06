@@ -13,7 +13,7 @@ import {
   MATCHUP_FORMAT,
   MATCH_VALUE,
   SCORE_VALUE,
-  SET_VALUE
+  SET_VALUE,
 } from 'constants/tmxConstants';
 
 export function getCollectionDefinitionColumns(): any[] {
@@ -36,8 +36,8 @@ export function getCollectionDefinitionColumns(): any[] {
         style: {
           fontSize: '12px',
           border: '3px solid var(--tmx-border-focus)',
-        }
-      }
+        },
+      },
     });
   };
   return [
@@ -48,21 +48,21 @@ export function getCollectionDefinitionColumns(): any[] {
       formatter: 'rowSelection',
       responsive: false,
       hozAlign: LEFT,
-      width: 5
+      width: 5,
     },
     {
       formatter: 'responsiveCollapse',
       responsive: false,
       resizable: false,
       hozAlign: CENTER,
-      width: 50
+      width: 50,
     },
     {
       editorParams: { selectContents: true },
       field: 'collectionName',
       minWidth: 200,
       title: t('tables.tieFormat.name'),
-      editor: true
+      editor: true,
     },
     {
       field: 'matchUpCount',
@@ -76,8 +76,8 @@ export function getCollectionDefinitionColumns(): any[] {
         mask: '99',
         step: 1,
         max: 20,
-        min: 0
-      }
+        min: 0,
+      },
     },
     {
       field: 'matchUpType',
@@ -85,7 +85,7 @@ export function getCollectionDefinitionColumns(): any[] {
       title: t('tables.tieFormat.type'),
       width: 100,
 
-      editorParams: { values: ['Singles', 'Doubles'] }
+      editorParams: { values: ['Singles', 'Doubles'] },
     },
     {
       title: t('tables.tieFormat.gender'),
@@ -93,13 +93,13 @@ export function getCollectionDefinitionColumns(): any[] {
       editor: 'list',
       width: 100,
 
-      editorParams: { values: ['Male', 'Female', 'Any'] }
+      editorParams: { values: ['Male', 'Female', 'Any'] },
     },
     {
       cellClick: editMatchUpFormat,
       title: t('tables.tieFormat.scoreFormat'),
       field: MATCHUP_FORMAT,
-      minWidth: 150
+      minWidth: 150,
     },
     {
       title: t('tables.tieFormat.awardType'),
@@ -107,7 +107,7 @@ export function getCollectionDefinitionColumns(): any[] {
       editor: 'list',
       width: 150,
 
-      editorParams: { values: [COLLECTION_VALUE, MATCH_VALUE, SET_VALUE, SCORE_VALUE] }
+      editorParams: { values: [COLLECTION_VALUE, MATCH_VALUE, SET_VALUE, SCORE_VALUE] },
     },
     {
       field: 'awardValue',
@@ -120,8 +120,8 @@ export function getCollectionDefinitionColumns(): any[] {
         mask: '99',
         step: 1,
         max: 99,
-        min: 0
-      }
-    }
+        min: 0,
+      },
+    },
   ];
 }

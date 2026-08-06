@@ -69,7 +69,9 @@ describe('readWizardState', () => {
   it('returns undefined when courts/days are missing or non-numeric', () => {
     getTournamentMock.mockReturnValue({
       tournamentRecord: {
-        extensions: [{ name: FORMAT_WIZARD_EXTENSION_NAME, value: { scaleName: 'utr', constraints: { courts: 'four' } } }],
+        extensions: [
+          { name: FORMAT_WIZARD_EXTENSION_NAME, value: { scaleName: 'utr', constraints: { courts: 'four' } } },
+        ],
       },
     });
     expect(readWizardState()).toBeUndefined();

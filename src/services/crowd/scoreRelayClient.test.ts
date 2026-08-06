@@ -100,9 +100,7 @@ describe('scoreRelayClient — getSessionsByTournamentId', () => {
   it('combines tournamentId with both filters', async () => {
     mockGet.mockResolvedValue({ data: { sessions: [] } });
     await getSessionsByTournamentId({ tournamentId: 'tour-Z', activeOnly: true, trustedOnly: true });
-    expect(mockGet.mock.calls[0][0]).toBe(
-      '/api/crowd-sessions?tournamentId=tour-Z&activeOnly=true&trustedOnly=true',
-    );
+    expect(mockGet.mock.calls[0][0]).toBe('/api/crowd-sessions?tournamentId=tour-Z&activeOnly=true&trustedOnly=true');
   });
 
   it('passes silenceErrors through the axios config', async () => {

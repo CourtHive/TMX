@@ -3,25 +3,27 @@ import { fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
 
-export const ratingSorter = (rating: string) => (a: any, b: any): number => {
-  const ratingDetails = ratingsParameters[rating];
-  if (!ratingDetails) return 0;
+export const ratingSorter =
+  (rating: string) =>
+  (a: any, b: any): number => {
+    const ratingDetails = ratingsParameters[rating];
+    if (!ratingDetails) return 0;
 
-  const accessor = ratingDetails.accessor || `${rating.toLowerCase()}Rating`;
-  const { ascending } = ratingDetails;
-  const reversed = !ascending;
+    const accessor = ratingDetails.accessor || `${rating.toLowerCase()}Rating`;
+    const { ascending } = ratingDetails;
+    const reversed = !ascending;
 
-  const ac = getConfidenceValue(a);
-  const bc = getConfidenceValue(b);
+    const ac = getConfidenceValue(a);
+    const bc = getConfidenceValue(b);
 
-  if (ac < bc) return 1;
-  if (bc < ac) return -1;
+    if (ac < bc) return 1;
+    if (bc < ac) return -1;
 
-  const ratingA = a?.[accessor] || 0;
-  const ratingB = b?.[accessor] || 0;
+    const ratingA = a?.[accessor] || 0;
+    const ratingB = b?.[accessor] || 0;
 
-  return reversed ? ratingA - ratingB : ratingB - ratingA;
-};
+    return reversed ? ratingA - ratingB : ratingB - ratingA;
+  };
 
 function getConfidenceValue(x: any): number {
   const band = getConfidenceBand(x.confidence ?? 100);

@@ -67,10 +67,7 @@ export function openPracticeCapacityModal({ onSave }: OpenArgs = {}): void {
   });
 }
 
-function buildBody(
-  state: { mode: 'unlimited' | 'capped'; capValue: string },
-  getModalHandle: () => any,
-): HTMLElement {
+function buildBody(state: { mode: 'unlimited' | 'capped'; capValue: string }, getModalHandle: () => any): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display: flex; flex-direction: column; gap: 12px; min-width: 340px;';
 

@@ -38,22 +38,95 @@ export function renderMatchUpTab(): void {
   // three calls per matchUps-tab render where one suffices.
   const events = tournamentEngine.q.events() ?? [];
 
-  const { eventOptions, hasOptions: hasEventOptions, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getMatchUpEventFilter(table, events);
-  const { flightOptions, hasOptions: hasFlightOptions, isFiltered: isFlightFiltered, activeIndex: flightActiveIndex } = getMatchUpFlightFilter(table, events);
-  const { teamOptions, hasOptions: hasTeamOptions, isFiltered: isTeamFiltered, activeIndex: teamActiveIndex } = getMatchUpTeamFilter(table, statsPanel, events);
-  const { statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex, setStatus, getStatus } = getMatchUpStatusFilter(table);
-  const { profileOptions, isFiltered: isProfileFiltered, activeIndex: profileActiveIndex, setProfile, getProfile } = getMatchUpProfileFilter(table);
-  const { typeOptions, hasOptions: hasTypeOptions, isFiltered: isTypeFiltered, activeIndex: typeActiveIndex } = getMatchUpTypeFilter(table, data);
-  const { dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex, setDate, getDate } = getMatchUpDateFilter(table);
+  const {
+    eventOptions,
+    hasOptions: hasEventOptions,
+    isFiltered: isEventFiltered,
+    activeIndex: eventActiveIndex,
+  } = getMatchUpEventFilter(table, events);
+  const {
+    flightOptions,
+    hasOptions: hasFlightOptions,
+    isFiltered: isFlightFiltered,
+    activeIndex: flightActiveIndex,
+  } = getMatchUpFlightFilter(table, events);
+  const {
+    teamOptions,
+    hasOptions: hasTeamOptions,
+    isFiltered: isTeamFiltered,
+    activeIndex: teamActiveIndex,
+  } = getMatchUpTeamFilter(table, statsPanel, events);
+  const {
+    statusOptions,
+    isFiltered: isStatusFiltered,
+    activeIndex: statusActiveIndex,
+    setStatus,
+    getStatus,
+  } = getMatchUpStatusFilter(table);
+  const {
+    profileOptions,
+    isFiltered: isProfileFiltered,
+    activeIndex: profileActiveIndex,
+    setProfile,
+    getProfile,
+  } = getMatchUpProfileFilter(table);
+  const {
+    typeOptions,
+    hasOptions: hasTypeOptions,
+    isFiltered: isTypeFiltered,
+    activeIndex: typeActiveIndex,
+  } = getMatchUpTypeFilter(table, data);
+  const {
+    dateOptions,
+    isFiltered: isDateFiltered,
+    activeIndex: dateActiveIndex,
+    setDate,
+    getDate,
+  } = getMatchUpDateFilter(table);
 
   const filterSections = [
-    { label: t('pages.matchUps.allEvents'), options: hasEventOptions ? eventOptions : [], isFiltered: isEventFiltered, activeIndex: eventActiveIndex },
-    { label: t('pages.matchUps.allFlights'), options: hasFlightOptions ? flightOptions : [], isFiltered: isFlightFiltered, activeIndex: flightActiveIndex },
-    { label: t('pages.matchUps.allTeams'), options: hasTeamOptions ? teamOptions : [], isFiltered: isTeamFiltered, activeIndex: teamActiveIndex },
-    { label: t('pages.matchUps.allStatuses'), options: statusOptions, isFiltered: isStatusFiltered, activeIndex: statusActiveIndex },
-    { label: t('pages.matchUps.allProfiles'), options: profileOptions, isFiltered: isProfileFiltered, activeIndex: profileActiveIndex },
-    { label: t('pages.matchUps.allTypes'), options: hasTypeOptions ? typeOptions : [], isFiltered: isTypeFiltered, activeIndex: typeActiveIndex },
-    { label: t('pages.matchUps.allDates'), options: dateOptions, isFiltered: isDateFiltered, activeIndex: dateActiveIndex },
+    {
+      label: t('pages.matchUps.allEvents'),
+      options: hasEventOptions ? eventOptions : [],
+      isFiltered: isEventFiltered,
+      activeIndex: eventActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allFlights'),
+      options: hasFlightOptions ? flightOptions : [],
+      isFiltered: isFlightFiltered,
+      activeIndex: flightActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allTeams'),
+      options: hasTeamOptions ? teamOptions : [],
+      isFiltered: isTeamFiltered,
+      activeIndex: teamActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allStatuses'),
+      options: statusOptions,
+      isFiltered: isStatusFiltered,
+      activeIndex: statusActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allProfiles'),
+      options: profileOptions,
+      isFiltered: isProfileFiltered,
+      activeIndex: profileActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allTypes'),
+      options: hasTypeOptions ? typeOptions : [],
+      isFiltered: isTypeFiltered,
+      activeIndex: typeActiveIndex,
+    },
+    {
+      label: t('pages.matchUps.allDates'),
+      options: dateOptions,
+      isFiltered: isDateFiltered,
+      activeIndex: dateActiveIndex,
+    },
   ];
   // Assigned once the bars are mounted; "Clear All" reverts the bar to competitiveness.
   let resetBarsToCompetitiveness: () => void = () => {};

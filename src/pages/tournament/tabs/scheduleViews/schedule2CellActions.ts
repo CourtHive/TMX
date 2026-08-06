@@ -891,7 +891,8 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
       title: t('schedule.unscheduleAllTitle'),
       query: t('schedule.unscheduleAllConfirm', {
         count: actionable.length,
-        defaultValue: 'Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched.',
+        defaultValue:
+          'Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched.',
       }),
       okIntent: 'is-warning',
       okAction: () => {
@@ -980,9 +981,14 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
  * unwired, so the field looks inert (clicking does nothing). Kept module-level
  * so its `datesDisabled` closure doesn't deepen the modal builder's nesting.
  */
-function attachRescheduleDatepicker(input: HTMLInputElement, futureDates: string[], onPick: (date: string) => void): void {
+function attachRescheduleDatepicker(
+  input: HTMLInputElement,
+  futureDates: string[],
+  onPick: (date: string) => void,
+): void {
   const activeDatesSet = futureDates.length ? new Set(futureDates) : undefined;
-  new Datepicker(input, { // NOSONAR — instance attaches to DOM element
+  new Datepicker(input, {
+    // NOSONAR — instance attaches to DOM element
     format: 'yyyy-mm-dd',
     language: i18next.language,
     autohide: true,

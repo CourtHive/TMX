@@ -22,9 +22,7 @@ describe('parse', () => {
   it('logs note on failure', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     parse({ note: 'test import', data: 'bad' });
-    expect(logSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ note: 'test import' }),
-    );
+    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ note: 'test import' }));
     vi.restoreAllMocks();
   });
 });

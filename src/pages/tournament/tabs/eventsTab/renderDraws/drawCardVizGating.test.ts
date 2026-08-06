@@ -36,19 +36,16 @@ describe('resolveDisplayMode — burst variants', () => {
     expect(resolveDisplayMode({ requested: 'sunburst', drawCount: SUNBURST_CAP, availability: a }).reason).toBe(
       'sunburst-too-many',
     );
-    expect(
-      resolveDisplayMode({ requested: COMPETITIVE, drawCount: SUNBURST_CAP, availability: a }).reason,
-    ).toBe('sunburst-too-many');
+    expect(resolveDisplayMode({ requested: COMPETITIVE, drawCount: SUNBURST_CAP, availability: a }).reason).toBe(
+      'sunburst-too-many',
+    );
   });
 });
 
 describe('buildDisplayModeOptions — burst variants', () => {
   it('offers both burst options under the cap', () => {
     const opts = buildDisplayModeOptions({ drawCount: 1, availability: avail(true, true) });
-    expect(opts.filter((o) => isSunburstMode(o.value)).map((o) => o.value)).toEqual([
-      'sunburst',
-      COMPETITIVE,
-    ]);
+    expect(opts.filter((o) => isSunburstMode(o.value)).map((o) => o.value)).toEqual(['sunburst', COMPETITIVE]);
   });
 
   it('disables burst (competitive) when there are no completed matches', () => {

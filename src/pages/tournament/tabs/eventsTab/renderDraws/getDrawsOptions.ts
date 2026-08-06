@@ -15,9 +15,8 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const event = tournamentEngine.q.event({ eventId });
   const drawDefs = event?.drawDefinitions || [];
   const flightProfile = tournamentEngine.q.flightProfile({ event });
-  const ungeneratedCount = flightProfile?.flights?.filter(
-    (f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId),
-  )?.length || 0;
+  const ungeneratedCount =
+    flightProfile?.flights?.filter((f: any) => !drawDefs.find((dd: any) => dd.drawId === f.drawId))?.length || 0;
   const totalDrawItems = eventData.drawsData.length + ungeneratedCount;
 
   const allDrawsOption = {

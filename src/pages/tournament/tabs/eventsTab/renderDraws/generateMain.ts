@@ -22,9 +22,7 @@ export function generateMain({ drawData, eventId, drawId }: { drawData: any; eve
     const drawName = drawData.drawName;
     addDraw({
       callback: (result: any) => {
-        const structureId = result.drawDefinition?.structures?.find(
-          ({ stage }: any) => stage === 'MAIN',
-        )?.structureId;
+        const structureId = result.drawDefinition?.structures?.find(({ stage }: any) => stage === 'MAIN')?.structureId;
         navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
       },
       isPopulateMain: true,

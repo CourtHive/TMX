@@ -16,7 +16,13 @@ import { t } from 'i18n';
 
 const { GROUP, TEAM } = participantConstants;
 
-export function getGroupingsColumns({ view, replaceTableData }: { view?: string; replaceTableData: () => void }): any[] {
+export function getGroupingsColumns({
+  view,
+  replaceTableData,
+}: {
+  view?: string;
+  replaceTableData: () => void;
+}): any[] {
   const openCloseToggle = (e: Event, cell: any) => {
     const result = toggleOpenClose(e, cell);
     if (result?.open) {

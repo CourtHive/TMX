@@ -314,8 +314,7 @@ export function renderOverview(): void {
   // check only reads `.length`, so the same call serves both. The plain
   // (non-withScaleValues) call that lived inside shouldShowFormatWizard
   // was a second pass over the same underlying data.
-  const participantsWithScales =
-    tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? [];
+  const participantsWithScales = tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? [];
 
   // Scalings histogram — full-width panel above the publishing card.
   // Gated on participant count to avoid pulling + binning thousands of

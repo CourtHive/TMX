@@ -8,7 +8,11 @@ const snap: RegistrationSnapshot = {
   providerId: 'BOBOCA',
   tournamentId: 't-1',
   status: 'SUBMITTED',
-  payload: { eventIds: ["Men's Singles"], applicant: { givenName: 'Jane', familyName: 'Doe' }, answers: { note: 'hi' } },
+  payload: {
+    eventIds: ["Men's Singles"],
+    applicant: { givenName: 'Jane', familyName: 'Doe' },
+    answers: { note: 'hi' },
+  },
   updatedAt: '2027-01-01T00:00:00.000Z',
 };
 

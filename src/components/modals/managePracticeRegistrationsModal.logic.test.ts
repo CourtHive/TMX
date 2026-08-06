@@ -158,10 +158,7 @@ describe('formatBookingHeader', () => {
 describe('formatRegistrationLabel', () => {
   it('renders name and sub-window', () => {
     const nameById = new Map([['p1', ALICE]]);
-    const label = formatRegistrationLabel(
-      { participantId: 'p1', startTime: '14:00', endTime: '14:30' },
-      nameById,
-    );
+    const label = formatRegistrationLabel({ participantId: 'p1', startTime: '14:00', endTime: '14:30' }, nameById);
     expect(label).toBe('Alice Smith (14:00–14:30)');
   });
 

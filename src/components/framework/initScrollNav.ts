@@ -54,9 +54,13 @@ export function initScrollNav(): void {
 
   const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  window.addEventListener('scroll', () => {
-    if (mediaQuery && !mediaQuery.matches) {
-      throttle(handleNavScroll, 250);
-    }
-  }, { passive: true });
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (mediaQuery && !mediaQuery.matches) {
+        throttle(handleNavScroll, 250);
+      }
+    },
+    { passive: true },
+  );
 }

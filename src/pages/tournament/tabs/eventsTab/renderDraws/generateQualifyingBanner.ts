@@ -47,19 +47,13 @@ export function maybeRenderGenerateQualifyingBanner({
   if (!container || stage !== MAIN) return;
   clearGenerateQualifyingBanner(container);
 
-  const mainStructure = drawDefinition?.structures?.find(
-    (s: any) => s.stage === MAIN && s.stageSequence === 1,
-  );
+  const mainStructure = drawDefinition?.structures?.find((s: any) => s.stage === MAIN && s.stageSequence === 1);
   if (!mainStructure) return;
 
-  const qualifierSlots = (mainStructure.positionAssignments ?? []).filter(
-    (p: any) => p?.qualifier === true,
-  ).length;
+  const qualifierSlots = (mainStructure.positionAssignments ?? []).filter((p: any) => p?.qualifier === true).length;
   if (qualifierSlots <= 0) return;
 
-  const hasQualifyingStructure = (drawDefinition?.structures ?? []).some(
-    (s: any) => s.stage === QUALIFYING,
-  );
+  const hasQualifyingStructure = (drawDefinition?.structures ?? []).some((s: any) => s.stage === QUALIFYING);
   if (hasQualifyingStructure) return;
 
   const banner = document.createElement('div');

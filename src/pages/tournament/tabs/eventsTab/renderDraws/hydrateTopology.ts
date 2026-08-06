@@ -118,9 +118,7 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
   for (const node of nodes) {
     if (node.stage !== 'QUALIFYING') continue;
 
-    const outgoingWinner = edges.find(
-      (e: TopologyEdge) => e.sourceNodeId === node.id && e.linkType === 'WINNER',
-    );
+    const outgoingWinner = edges.find((e: TopologyEdge) => e.sourceNodeId === node.id && e.linkType === 'WINNER');
     if (outgoingWinner?.sourceRoundNumber) {
       node.qualifyingPositions = Math.floor(node.drawSize / Math.pow(2, outgoingWinner.sourceRoundNumber));
     }
@@ -139,9 +137,7 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
 
   // Determine template name: use drawType unless it's SINGLE_ELIMINATION with multiple structures (that's CUSTOM)
   const templateName =
-    ddDrawType === 'SINGLE_ELIMINATION' && structures.length > 1
-      ? 'CUSTOM'
-      : formatDrawType(ddDrawType);
+    ddDrawType === 'SINGLE_ELIMINATION' && structures.length > 1 ? 'CUSTOM' : formatDrawType(ddDrawType);
 
   return {
     drawName: drawDefinition.drawName || 'Existing Draw',

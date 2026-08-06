@@ -21,8 +21,7 @@ import { OVERLAY } from 'constants/tmxConstants';
 const { DIRECT_ACCEPTANCE } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
 
-const isInDraw = (row: any, drawId: string): boolean =>
-  (row.flights || []).some((f: any) => f.drawId === drawId);
+const isInDraw = (row: any, drawId: string): boolean => (row.flights || []).some((f: any) => f.drawId === drawId);
 
 const addTo = (table: any, event: any, drawId: string, entryStage: string): void => {
   const eventId = event.eventId;
@@ -78,29 +77,31 @@ const addTo = (table: any, event: any, drawId: string, entryStage: string): void
   mutationRequest({ methods, callback: postMutation });
 };
 
-export const addToDraw = (event: any, drawId?: string, entryStage: string = MAIN) => (table: any): any => {
-  const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-  const allDraws = (event.drawDefinitions || []).filter(Boolean);
+export const addToDraw =
+  (event: any, drawId?: string, entryStage: string = MAIN) =>
+  (table: any): any => {
+    const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+    const allDraws = (event.drawDefinitions || []).filter(Boolean);
 
-  // A draw is offered when at least one selected participant is not yet
-  // entered in it. With no selection, fall back to all draws so the
-  // dropdown still renders sensibly during initial control bar evaluation.
-  const availableDraws = selected.length
-    ? allDraws.filter((dd: any) => selected.some((p: any) => !isInDraw(p, dd.drawId)))
-    : allDraws;
+    // A draw is offered when at least one selected participant is not yet
+    // entered in it. With no selection, fall back to all draws so the
+    // dropdown still renders sensibly during initial control bar evaluation.
+    const availableDraws = selected.length
+      ? allDraws.filter((dd: any) => selected.some((p: any) => !isInDraw(p, dd.drawId)))
+      : allDraws;
 
-  const options = availableDraws.map(({ drawName, drawId: ddId }: any) => ({
-    onClick: () => addTo(table, event, ddId, entryStage),
-    stateChange: true,
-    label: drawName,
-    value: ddId,
-    close: true,
-  }));
+    const options = availableDraws.map(({ drawName, drawId: ddId }: any) => ({
+      onClick: () => addTo(table, event, ddId, entryStage),
+      stateChange: true,
+      label: drawName,
+      value: ddId,
+      close: true,
+    }));
 
-  return {
-    hide: !options.length || !!drawId,
-    label: 'Add to draw',
-    location: OVERLAY,
-    options,
+    return {
+      hide: !options.length || !!drawId,
+      label: 'Add to draw',
+      location: OVERLAY,
+      options,
+    };
   };
-};

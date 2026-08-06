@@ -53,6 +53,6 @@ export function mapTournamentRecord(tournamentRecord: any): TournamentRow {
     id: data.tournamentId,
     searchText,
     tournament: data,
-    tier
+    tier,
   };
 }

@@ -14,7 +14,7 @@ const modifyStatus = (table: any, group: string, eventId: string, drawId?: strin
     entryStatus,
     entryStage,
     eventId,
-    drawId
+    drawId,
   };
 
   const callback = (result: any) => {
@@ -37,16 +37,18 @@ const modifyStatus = (table: any, group: string, eventId: string, drawId?: strin
   mutationRequest({ methods: [{ method: MODIFY_ENTRIES_STATUS, params }], callback });
 };
 
-export const changeEntryStatus = (groups: string[], eventId: string, drawId?: string) => (table: any): any => {
-  const options = groups.map((group) => ({
-    onClick: () => modifyStatus(table, group, eventId, drawId),
-    label: group,
-    value: group,
-    close: true
-  }));
-  return {
-    location: OVERLAY,
-    label: 'Change status',
-    options
+export const changeEntryStatus =
+  (groups: string[], eventId: string, drawId?: string) =>
+  (table: any): any => {
+    const options = groups.map((group) => ({
+      onClick: () => modifyStatus(table, group, eventId, drawId),
+      label: group,
+      value: group,
+      close: true,
+    }));
+    return {
+      location: OVERLAY,
+      label: 'Change status',
+      options,
+    };
   };
-};

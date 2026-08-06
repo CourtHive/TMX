@@ -22,8 +22,7 @@ import { ratingConstants } from 'tods-competition-factory';
 const KNOWN_SCALES: string[] = Object.values(ratingConstants);
 
 // Pre-compute prefix matchers — longest scale name first so "UTR_P" wins over "UTR".
-const PREFIX_MATCHERS: Array<{ scaleName: string; pattern: RegExp }> = KNOWN_SCALES
-  .slice()
+const PREFIX_MATCHERS: Array<{ scaleName: string; pattern: RegExp }> = KNOWN_SCALES.slice()
   .sort((a, b) => b.length - a.length)
   .map((scaleName) => ({
     scaleName,

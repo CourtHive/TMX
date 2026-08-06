@@ -2,7 +2,10 @@ import { context } from 'services/context';
 
 export const createSearchFilter = (
   target: any,
-  { persistKey, filterContext = 'matchUpFilters' }: { persistKey?: string; filterContext?: 'matchUpFilters' | 'participantFilters' } = {},
+  {
+    persistKey,
+    filterContext = 'matchUpFilters',
+  }: { persistKey?: string; filterContext?: 'matchUpFilters' | 'participantFilters' } = {},
 ): any => {
   let searchFilter;
   const tables = Array.isArray(target) ? target : [target];

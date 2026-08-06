@@ -11,11 +11,7 @@
  *   providerConfig.isAllowed('canCreateCompetitors')        // boolean
  */
 
-import type {
-  ProviderBranding,
-  ProviderConfigData,
-  ProviderPermissions,
-} from '@courthive/provider-config';
+import type { ProviderBranding, ProviderConfigData, ProviderPermissions } from '@courthive/provider-config';
 import { context } from 'services/context';
 
 export type { ProviderBranding, ProviderConfigData, ProviderPermissions };

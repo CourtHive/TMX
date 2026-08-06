@@ -110,10 +110,7 @@ export async function loadSchedulingChoices(): Promise<PolicyChoice[]> {
 
 /** Resolve which catalog choice (if any) equals the attached policy. Identity
  *  (`policyName`) match first; structural normalized compare as fallback. */
-export function resolveAttachedChoiceId(
-  attached: Record<string, any> | null,
-  choices: PolicyChoice[],
-): string | null {
+export function resolveAttachedChoiceId(attached: Record<string, any> | null, choices: PolicyChoice[]): string | null {
   if (!attached) return null;
 
   const attachedName = typeof attached.policyName === 'string' ? attached.policyName : '';
@@ -133,7 +130,8 @@ export function resolveAttachedChoiceId(
  *  known choice, else null (shown as its `policyName` or "Custom policy"). */
 export function buildAttachedChoice(attached: Record<string, any>, matchedLabel: string | null): PolicyChoice {
   const name =
-    matchedLabel ?? (typeof attached.policyName === 'string' && attached.policyName ? attached.policyName : 'Custom policy');
+    matchedLabel ??
+    (typeof attached.policyName === 'string' && attached.policyName ? attached.policyName : 'Custom policy');
   return {
     id: ATTACHED_POLICY_ID,
     label: `Attached — ${name}`,

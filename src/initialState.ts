@@ -176,9 +176,7 @@ function tmxReady(): void {
   // find custom compositions on the first draw render. Fire-and-forget;
   // early renders fall through to builtin compositions until the load
   // completes.
-  void loadUserCompositions().catch((err) =>
-    console.warn('Failed to load user compositions:', err),
-  );
+  void loadUserCompositions().catch((err) => console.warn('Failed to load user compositions:', err));
   routeTMX();
   tmxNavigation();
 }

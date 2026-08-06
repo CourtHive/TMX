@@ -76,7 +76,14 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteDraw', disabled: !devMode, intent: 'is-danger', close: true, onClick: deleteAction },
+      {
+        label: 'Delete',
+        id: 'deleteDraw',
+        disabled: !devMode,
+        intent: 'is-danger',
+        close: true,
+        onClick: deleteAction,
+      },
     ],
   });
 }

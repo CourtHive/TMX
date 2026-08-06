@@ -13,8 +13,8 @@ export function signInParticipants(table: any): void {
   const methods = [
     {
       params: { signInState: SIGNED_IN, participantIds },
-      method: MODIFY_SIGN_IN_STATUS
-    }
+      method: MODIFY_SIGN_IN_STATUS,
+    },
   ];
   const postMutation = (result: any) => {
     if (result.success) {

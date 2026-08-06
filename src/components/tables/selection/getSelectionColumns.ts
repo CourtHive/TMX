@@ -12,7 +12,7 @@ export function getSelectionColumns(data: any[]): any[] {
       headerSort: false,
       responsive: false,
       editor: false,
-      maxWidth: 100
+      maxWidth: 100,
     },
     {
       formatter: genderedText,
@@ -20,7 +20,7 @@ export function getSelectionColumns(data: any[]): any[] {
       title: t('tables.selection.participant'),
       responsive: false,
       minWidth: 200,
-      widthGrow: 2
-    }
+      widthGrow: 2,
+    },
   ];
 }

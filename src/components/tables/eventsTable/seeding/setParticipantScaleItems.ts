@@ -13,7 +13,12 @@ type SetParticipantScaleItemsParams = {
   callback?: () => void;
 };
 
-export function setParticipantScaleItems({ scaleItemsWithParticipantIds, scaleBasis, eventId, callback }: SetParticipantScaleItemsParams): void {
+export function setParticipantScaleItems({
+  scaleItemsWithParticipantIds,
+  scaleBasis,
+  eventId,
+  callback,
+}: SetParticipantScaleItemsParams): void {
   const methods = [
     {
       method: SET_PARTICIPANT_SCALE_ITEMS,

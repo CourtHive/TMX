@@ -157,7 +157,12 @@ export function openImportParticipantsView(args: ImportParticipantsViewArgs): vo
     content,
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
-      { label: t('modals.importParticipants.reAutoDetect'), intent: 'is-info', onClick: handleReautoDetect, close: false },
+      {
+        label: t('modals.importParticipants.reAutoDetect'),
+        intent: 'is-info',
+        onClick: handleReautoDetect,
+        close: false,
+      },
       { label: t('modals.importParticipants.import'), intent: 'is-primary', onClick: handleImport, close: true },
     ],
   });
@@ -461,11 +466,7 @@ function buildSplitPieceRow(
   return row;
 }
 
-function buildFieldForKind(
-  kind: TargetFieldKind,
-  previous: TargetField | undefined,
-  sample: string,
-): TargetField {
+function buildFieldForKind(kind: TargetFieldKind, previous: TargetField | undefined, sample: string): TargetField {
   if (kind === 'rating') {
     return { kind: 'rating', ratingScaleName: previous?.kind === 'rating' ? previous.ratingScaleName : undefined };
   }
@@ -516,9 +517,7 @@ function detectSplitFromHeader(header: string, sample: string): TargetField | nu
         kind: 'split',
         split: {
           delimiter,
-          pieces: cityFirst
-            ? [{ kind: 'city' }, { kind: 'state' }]
-            : [{ kind: 'state' }, { kind: 'city' }],
+          pieces: cityFirst ? [{ kind: 'city' }, { kind: 'state' }] : [{ kind: 'state' }, { kind: 'city' }],
         },
       };
     }
@@ -726,9 +725,7 @@ function buildPreviewParticipants(state: State): any[] {
   for (let r = 0; r < finalRows.length; r++) {
     const built = previewBuildParticipant(state, finalRows[r]);
     if (!built) continue;
-    const key = state.mergeDuplicates
-      ? readDraftDedupeValue(built, state.dedupeKey, r)
-      : `__no_merge_${r}__`;
+    const key = state.mergeDuplicates ? readDraftDedupeValue(built, state.dedupeKey, r) : `__no_merge_${r}__`;
     drafts.push({ key, draft: built });
   }
 
@@ -838,11 +835,7 @@ function collectPreviewRow(mapping: ColumnMapping, row: string[]): CollectedPrev
   return { collected, ratings };
 }
 
-function applyPreviewSplit(
-  collected: Partial<Record<TargetFieldKind, string>>,
-  field: TargetField,
-  raw: string,
-): void {
+function applyPreviewSplit(collected: Partial<Record<TargetFieldKind, string>>, field: TargetField, raw: string): void {
   if (!field.split) return;
   const pieces = raw.split(field.split.delimiter);
   field.split.pieces.forEach((pieceField, i) => {
@@ -895,14 +888,18 @@ function buildEntryDefaults(state: State, refresh: () => void): HTMLElement {
   const row = document.createElement('div');
   row.className = 'ipv-entry-defaults-row';
 
-  row.appendChild(buildEntryDefaultSelect('entryStatus', state.entryStatus, ENTRY_STATUS_OPTIONS, (value) => {
-    state.entryStatus = value;
-    refresh();
-  }));
-  row.appendChild(buildEntryDefaultSelect('entryStage', state.entryStage, ENTRY_STAGE_OPTIONS, (value) => {
-    state.entryStage = value;
-    refresh();
-  }));
+  row.appendChild(
+    buildEntryDefaultSelect('entryStatus', state.entryStatus, ENTRY_STATUS_OPTIONS, (value) => {
+      state.entryStatus = value;
+      refresh();
+    }),
+  );
+  row.appendChild(
+    buildEntryDefaultSelect('entryStage', state.entryStage, ENTRY_STAGE_OPTIONS, (value) => {
+      state.entryStage = value;
+      refresh();
+    }),
+  );
 
   wrap.appendChild(row);
   return wrap;
@@ -1082,4 +1079,3 @@ function applyRatingOverrides(state: State): string[][] {
   }
   return cloned;
 }
-

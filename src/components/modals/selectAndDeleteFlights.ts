@@ -13,13 +13,15 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
     label: drawName,
     checkbox: true,
     field: drawId,
-    id: drawId
+    id: drawId,
   }));
 
   let inputs: any;
   let modalHandle: any;
   const onClick = () => {
-    const drawIds = eventData.drawsData.filter(({ drawId }: any) => inputs[drawId]?.checked).map(({ drawId }: any) => drawId);
+    const drawIds = eventData.drawsData
+      .filter(({ drawId }: any) => inputs[drawId]?.checked)
+      .map(({ drawId }: any) => drawId);
     setTimeout(() => deleteFlights({ eventData, drawIds }), 200);
   };
 
@@ -30,7 +32,7 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
 
   const relationships = eventData.drawsData.map(({ drawId }: any) => ({
     onChange: checkChecked,
-    control: drawId
+    control: drawId,
   }));
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
@@ -39,7 +41,7 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
     content,
     buttons: [
       { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteSelected', intent: 'is-danger', disabled: true, close: true, onClick }
-    ]
+      { label: 'Delete', id: 'deleteSelected', intent: 'is-danger', disabled: true, close: true, onClick },
+    ],
   });
 }

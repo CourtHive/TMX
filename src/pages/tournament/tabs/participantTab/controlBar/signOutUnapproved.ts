@@ -20,8 +20,8 @@ export function signOutUnapproved(replaceTableData: () => void): void {
   const methods = [
     {
       params: { signInState: SIGNED_OUT, participantIds },
-      method: MODIFY_SIGN_IN_STATUS
-    }
+      method: MODIFY_SIGN_IN_STATUS,
+    },
   ];
   const postMutation = (result: any) => {
     if (result.success) {

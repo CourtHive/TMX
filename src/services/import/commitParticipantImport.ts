@@ -118,9 +118,7 @@ export function commitParticipantImport({
 }: CommitImportArgs): void {
   void headers; // headers are reserved for future preview / debug surfaces
 
-  const validNationalityCodes = new Set<string>(
-    fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean),
-  );
+  const validNationalityCodes = new Set<string>(fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean));
 
   const existingParticipants = tournamentEngine.q.participants() ?? [];
   const existingIds = new Set<string>(existingParticipants.map(({ participantId }: any) => participantId));
@@ -273,11 +271,7 @@ function buildEventEntryDispatch(
   return Array.from(grouped.entries()).map(([eventId, participantIds]) => ({ eventId, participantIds }));
 }
 
-function buildSuccessMessage(
-  addedCount: number,
-  updatedCount: number,
-  eventEntries: EventEntryDispatch[],
-): string {
+function buildSuccessMessage(addedCount: number, updatedCount: number, eventEntries: EventEntryDispatch[]): string {
   const parts: string[] = [];
   if (addedCount > 0) parts.push(t('toasts.addedParticipants', { count: addedCount }));
   if (updatedCount > 0) parts.push(t('toasts.updatedParticipants', { count: updatedCount }));
@@ -521,7 +515,7 @@ function applyNames(participant: any, collected: Partial<Record<TargetFieldKind,
   if (firstName) participant.person.standardGivenName = firstName;
   if (lastName) participant.person.standardFamilyName = lastName;
   if (otherName) participant.participantOtherName = otherName;
-  participant.participantName = hasFullName ? `${firstName} ${lastName}` : (fullName || otherName);
+  participant.participantName = hasFullName ? `${firstName} ${lastName}` : fullName || otherName;
   return true;
 }
 

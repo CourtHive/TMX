@@ -61,7 +61,13 @@ function removeEmbargo(entry: ReturnType<typeof getActiveEmbargoes>[0]): void {
       ],
       callback: () => renderPublishingTab(),
     });
-  } else if (entry.type === 'scheduledRound' && entry.eventId && entry.drawId && entry.structureId && entry.roundNumber) {
+  } else if (
+    entry.type === 'scheduledRound' &&
+    entry.eventId &&
+    entry.drawId &&
+    entry.structureId &&
+    entry.roundNumber
+  ) {
     const { event } = tournamentEngine.getEvent({ drawId: entry.drawId });
     if (!event) return;
 

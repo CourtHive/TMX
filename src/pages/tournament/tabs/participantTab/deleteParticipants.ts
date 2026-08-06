@@ -10,7 +10,11 @@ type DeleteParticipantsParams = {
   callback?: (result: any) => void;
 };
 
-export async function deleteParticipants({ participantIds, participantId, callback }: DeleteParticipantsParams): Promise<void> {
+export async function deleteParticipants({
+  participantIds,
+  participantId,
+  callback,
+}: DeleteParticipantsParams): Promise<void> {
   if (participantId || participantIds) {
     const methods = [
       {

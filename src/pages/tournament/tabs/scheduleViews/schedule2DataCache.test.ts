@@ -195,11 +195,11 @@ describe('schedule2DataCache', () => {
 
       // refresh()
       getCachedScheduleMatchUps(date, layoutParams); // grid render
-      getCachedAllMatchUps();                         // buildCatalog
-      getCachedAllMatchUps();                         // buildScheduleDates
-      getCachedCompetitionDateRange();                // buildScheduleDates
-      getCachedTournamentInfo();                      // buildScheduleDates
-      getCachedAllMatchUps();                         // buildIssues
+      getCachedAllMatchUps(); // buildCatalog
+      getCachedAllMatchUps(); // buildScheduleDates
+      getCachedCompetitionDateRange(); // buildScheduleDates
+      getCachedTournamentInfo(); // buildScheduleDates
+      getCachedAllMatchUps(); // buildIssues
       getCachedScheduleMatchUps(date, layoutParams); // active strip (was a 2nd factory call pre-cache)
 
       // store-subscription cascade (3 setX writes from refresh)

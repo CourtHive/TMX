@@ -86,10 +86,7 @@ describe('extractDeletedDrawIds', () => {
   });
 
   it('ignores non-deletion methods', () => {
-    const methods = [
-      { method: 'addMatchUpScheduleItems', params: { drawId: 'd1' } },
-      { method: 'publishOrderOfPlay' },
-    ];
+    const methods = [{ method: 'addMatchUpScheduleItems', params: { drawId: 'd1' } }, { method: 'publishOrderOfPlay' }];
     expect(extractDeletedDrawIds(methods)).toEqual([]);
   });
 

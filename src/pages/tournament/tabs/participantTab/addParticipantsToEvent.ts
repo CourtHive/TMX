@@ -122,7 +122,10 @@ export function addParticipantsToEvent({
         } else if (result.misMatchedGender) {
           tmxToast({ intent: 'is-danger', message: t('pages.participants.addToEvent.invalidGender') });
         } else {
-          tmxToast({ intent: 'is-danger', message: result.error?.message || t('pages.participants.addToEvent.errorAdding') });
+          tmxToast({
+            intent: 'is-danger',
+            message: result.error?.message || t('pages.participants.addToEvent.errorAdding'),
+          });
         }
       }
     };

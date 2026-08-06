@@ -87,12 +87,7 @@ export function buildToggleIconButton(params: ToggleIconButtonParams): HTMLButto
   return btn;
 }
 
-export function applyToggleState(
-  btn: HTMLButtonElement,
-  pressed: boolean,
-  titleOn: string,
-  titleOff: string,
-): void {
+export function applyToggleState(btn: HTMLButtonElement, pressed: boolean, titleOn: string, titleOff: string): void {
   btn.setAttribute(ARIA_PRESSED, pressed ? 'true' : 'false');
   btn.style.background = pressed ? TOGGLE_BG_PRESSED : TOGGLE_BG_UNPRESSED;
   btn.style.opacity = pressed ? '1' : '0.45';

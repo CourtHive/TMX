@@ -21,9 +21,7 @@ describe('filterEntriesByValue', () => {
   });
 
   it('returns only matching status for a specific status value', () => {
-    expect(filterEntriesByValue(ENTRIES, 'rejected')).toEqual([
-      { registrationId: 'r-4', status: 'rejected' },
-    ]);
+    expect(filterEntriesByValue(ENTRIES, 'rejected')).toEqual([{ registrationId: 'r-4', status: 'rejected' }]);
     expect(filterEntriesByValue(ENTRIES, 'accepted').map((e) => e.registrationId)).toEqual(['r-2']);
   });
 

@@ -59,12 +59,14 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
     }
   }
 
-  const sortedBy = (isFunction(scaleSort) &&
-    ([] as any[]).concat(
-      [...bandedParticipants.high].sort(scaleSort),
-      [...bandedParticipants.medium].sort(scaleSort),
-      [...bandedParticipants.low].sort(scaleSort),
-    )) || [];
+  const sortedBy =
+    (isFunction(scaleSort) &&
+      ([] as any[]).concat(
+        [...bandedParticipants.high].sort(scaleSort),
+        [...bandedParticipants.medium].sort(scaleSort),
+        [...bandedParticipants.low].sort(scaleSort),
+      )) ||
+    [];
 
   const scaledEntries = sortedBy.slice(0, Math.min(ratedParticipants, seedsCount ?? 0));
 
@@ -100,7 +102,12 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
     }
   };
 
-  setParticipantScaleItems({ scaleItemsWithParticipantIds: scaleItemsWithParticipantIds ?? [], scaleBasis: RATING, eventId, callback });
+  setParticipantScaleItems({
+    scaleItemsWithParticipantIds: scaleItemsWithParticipantIds ?? [],
+    scaleBasis: RATING,
+    eventId,
+    callback,
+  });
 }
 
 export function generateSeedingScaleItems(): any {

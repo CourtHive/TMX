@@ -49,7 +49,13 @@ const defaults: Partial<ToastOptions> = {
   opacity: 1,
 };
 
-const generateStyle = (position: string, offsetTop: number, offsetBottom: number, offsetLeft: number, offsetRight: number): string => {
+const generateStyle = (
+  position: string,
+  offsetTop: number,
+  offsetBottom: number,
+  offsetLeft: number,
+  offsetRight: number,
+): string => {
   const parts = position.split('-');
   // CSS lengths require a unit unless the value is 0. Without `px` the
   // declaration is rejected by the browser and the offset silently falls
@@ -73,7 +79,13 @@ function getContainer(options: ToastOptions): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText =
     'position: fixed; display: flex; flex-direction: column; width:100%; z-index: 9999; pointer-events: none;padding:15px;' +
-    generateStyle(options.position!, options.offsetTop!, options.offsetBottom!, options.offsetLeft!, options.offsetRight!);
+    generateStyle(
+      options.position!,
+      options.offsetTop!,
+      options.offsetBottom!,
+      options.offsetLeft!,
+      options.offsetRight!,
+    );
   (options.appendTo || document.body).appendChild(container);
   containers.position = container;
   return container;

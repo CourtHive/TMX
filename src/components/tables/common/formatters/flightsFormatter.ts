@@ -9,25 +9,35 @@ const STAGE_LABELS: Record<string, string> = {
   [VOLUNTARY_CONSOLATION]: 'VC',
 };
 
-export const flightsFormatter = (onClick: (params: any) => void) => (cell: any): HTMLDivElement => {
-  const def = cell.getColumn().getDefinition();
-  const content = document.createElement('div');
-  content.className = 'tags';
+export const flightsFormatter =
+  (onClick: (params: any) => void) =>
+  (cell: any): HTMLDivElement => {
+    const def = cell.getColumn().getDefinition();
+    const content = document.createElement('div');
+    content.className = 'tags';
 
-  const flightClick = (params: any) => onClick({ ...params, renderDraw: true });
+    const flightClick = (params: any) => onClick({ ...params, renderDraw: true });
 
-  const flights = cell.getValue();
-  const rowData = cell.getRow().getData();
-  const { participantId } = rowData;
-  flights?.forEach((flight: any) => {
-    const pill = createPill({ def, participantId, flight, flightClick });
-    content.appendChild(pill);
-  });
+    const flights = cell.getValue();
+    const rowData = cell.getRow().getData();
+    const { participantId } = rowData;
+    flights?.forEach((flight: any) => {
+      const pill = createPill({ def, participantId, flight, flightClick });
+      content.appendChild(pill);
+    });
 
-  return content;
-};
+    return content;
+  };
 
-function createPill({ flight, flightClick }: { flight: any; flightClick: (params: any) => void; def?: any; participantId?: string }): HTMLSpanElement {
+function createPill({
+  flight,
+  flightClick,
+}: {
+  flight: any;
+  flightClick: (params: any) => void;
+  def?: any;
+  participantId?: string;
+}): HTMLSpanElement {
   const pill = document.createElement('span');
   if (isFunction(flightClick) && flightClick) {
     pill.onclick = () => flightClick(flight);

@@ -18,7 +18,7 @@ const STATUS_LABEL: Record<TournamentStatusKind, string> = {
   live: 'Live',
   'closing-soon': 'Closing Soon',
   'registration-opens': 'Registration',
-  'registration-open': 'Registration Open'
+  'registration-open': 'Registration Open',
 };
 
 function openTournament(_: any, cell: any): void {
@@ -134,7 +134,7 @@ export function getTournamentColumns(): any[] {
       cellClick: openTournament,
       headerSort: false,
       width: 56,
-      visible: !isMobile
+      visible: !isMobile,
     },
     {
       title: 'Tournament',
@@ -142,14 +142,14 @@ export function getTournamentColumns(): any[] {
       cellClick: openTournament,
       sorter: sortByName,
       minWidth: 220,
-      widthGrow: 3
+      widthGrow: 3,
     },
     {
       title: 'Status',
       formatter: statusFormatter,
       headerSort: false,
       width: 130,
-      hozAlign: 'center'
+      hozAlign: 'center',
     },
     {
       title: 'Location',
@@ -157,14 +157,14 @@ export function getTournamentColumns(): any[] {
       headerSort: false,
       minWidth: 140,
       widthGrow: 2,
-      visible: !isMobile
+      visible: !isMobile,
     },
     {
       title: 'Dates',
       formatter: datesFormatter,
       sorter: sortByStartDate,
       minWidth: 160,
-      widthGrow: 1
+      widthGrow: 1,
     },
     {
       title: 'Tier',
@@ -179,7 +179,7 @@ export function getTournamentColumns(): any[] {
       // operators with tier-using tournaments toggle it on; once on, the
       // global field-keyed visibility map (tmx_columns) keeps it on across
       // tables — see memory `project_tmx_column_visibility_global_map`.
-      visible: false
+      visible: false,
     },
     {
       title: 'Players',
@@ -187,14 +187,14 @@ export function getTournamentColumns(): any[] {
       sorter: sortByPlayerCount,
       hozAlign: 'right',
       width: 90,
-      visible: !isMobile
+      visible: !isMobile,
     },
     {
       title: 'Fee',
       formatter: feeFormatter,
       headerSort: false,
       width: 130,
-      visible: !isMobile
+      visible: !isMobile,
     },
     {
       title: t('tables.tournaments.open'),
@@ -203,7 +203,7 @@ export function getTournamentColumns(): any[] {
       vertAlign: 'middle',
       headerSort: false,
       visible: !isMobile,
-      width: 80
-    }
+      width: 80,
+    },
   ];
 }

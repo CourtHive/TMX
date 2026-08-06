@@ -67,14 +67,14 @@ describe('auditTournament', () => {
 
   it('surfaces within-structure matchUpFormat variance with the revert pattern', () => {
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({
-      drawProfiles: [{ drawId: 'auditFmt', drawSize: 16, drawType: 'SINGLE_ELIMINATION', matchUpFormat: 'SET3-S:6/TB7' }],
+      drawProfiles: [
+        { drawId: 'auditFmt', drawSize: 16, drawType: 'SINGLE_ELIMINATION', matchUpFormat: 'SET3-S:6/TB7' },
+      ],
       completeAllMatchUps: true,
     });
     // a storm shortened round 2 only; rounds 1/3/4 stay on the baseline → depart-then-return
     const structure = tournamentRecord.events[0].drawDefinitions[0].structures[0];
-    structure.matchUps
-      .filter((m: any) => m.roundNumber === 2)
-      .forEach((m: any) => (m.matchUpFormat = 'SET1-S:6/TB7'));
+    structure.matchUps.filter((m: any) => m.roundNumber === 2).forEach((m: any) => (m.matchUpFormat = 'SET1-S:6/TB7'));
     tournamentEngine.setState(tournamentRecord);
 
     const { formatVariance } = auditTournament();

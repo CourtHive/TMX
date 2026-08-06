@@ -266,9 +266,7 @@ function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
     }),
   );
 
-  oopRow.appendChild(
-    createEmbargoButton(data.oopEmbargo, PUBLISH_ORDER_OF_PLAY, () => renderPublishingTab()),
-  );
+  oopRow.appendChild(createEmbargoButton(data.oopEmbargo, PUBLISH_ORDER_OF_PLAY, () => renderPublishingTab()));
 
   if (data.tournamentDateRange.length > 0) {
     oopRow.appendChild(buildOopDateChips(data));
@@ -337,12 +335,10 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   partRow.className = 'pub-toggle-row';
   partRow.style.flexWrap = 'wrap';
 
-  const partState = data.participantsPublished
-    ? data.participantsEmbargoActive
-      ? 'embargoed'
-      : 'live'
-    : 'off';
-  partRow.appendChild(createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined));
+  const partState = data.participantsPublished ? (data.participantsEmbargoActive ? 'embargoed' : 'live') : 'off';
+  partRow.appendChild(
+    createStateBadge(partState as 'live' | 'embargoed' | 'off', partState === 'live' ? publicUrl : undefined),
+  );
 
   let columnInputs: any;
 
@@ -350,7 +346,10 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
     if (checked) {
       const selectedValues: string[] = columnInputs?.columns?.selectedValues || [];
       const columns = extractColumnsFromSelection(selectedValues);
-      mutationRequest({ methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }], callback: () => renderPublishingTab() });
+      mutationRequest({
+        methods: [{ method: PUBLISH_PARTICIPANTS, params: { columns } }],
+        callback: () => renderPublishingTab(),
+      });
     } else {
       mutationRequest({ methods: [{ method: UNPUBLISH_PARTICIPANTS }], callback: () => renderPublishingTab() });
     }
@@ -375,8 +374,7 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
 }
 
 function buildColumnSelector(data: any): { columnFormContainer: HTMLElement; inputs: any } {
-  const { participants: allParticipants = [] } =
-    tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
   const discoveredRatings = new Set<string>();
   let hasRanking = false;
   for (const p of allParticipants as any[]) {
@@ -420,9 +418,7 @@ function buildColumnSelector(data: any): { columnFormContainer: HTMLElement; inp
     });
   }
   if (hasRanking) {
-    const rankingSelected = currentColumns?.rankings
-      ? currentColumns.rankings.includes('SINGLES')
-      : false;
+    const rankingSelected = currentColumns?.rankings ? currentColumns.rankings.includes('SINGLES') : false;
     columnOptions.push({
       label: `Rank (SINGLES)`,
       value: 'ranking:SINGLES',

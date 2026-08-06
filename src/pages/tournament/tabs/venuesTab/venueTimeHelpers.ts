@@ -46,7 +46,7 @@ export function minutesToDisplayTime(minutes: number): string {
 export function setTimeFieldError(input: HTMLInputElement, hasError: boolean): void {
   const helpEl = input.parentElement?.querySelector('.help');
   if (helpEl) {
-    helpEl.innerHTML = hasError ? (input.dataset.errorText || '') : '';
+    helpEl.innerHTML = hasError ? input.dataset.errorText || '' : '';
     helpEl.classList.toggle('is-danger', hasError);
   }
   input.classList.toggle('is-danger', hasError);

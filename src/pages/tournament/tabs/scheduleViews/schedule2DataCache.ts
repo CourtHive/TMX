@@ -48,10 +48,7 @@ export function getCachedAllMatchUps(): any {
   return allMatchUpsCache;
 }
 
-export function getCachedScheduleMatchUps(
-  scheduledDate: string,
-  params: ScheduleMatchUpsParams = {},
-): any {
+export function getCachedScheduleMatchUps(scheduledDate: string, params: ScheduleMatchUpsParams = {}): any {
   const minRows = params.minCourtGridRows ?? 0;
   const key = `${scheduledDate}|${minRows}`;
   let entry = scheduleMatchUpsByKey.get(key);
