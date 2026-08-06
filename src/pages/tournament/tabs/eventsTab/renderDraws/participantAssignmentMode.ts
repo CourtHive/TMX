@@ -9,6 +9,11 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
+import {
+  ASSIGN_DRAW_POSITION,
+  ASSIGN_DRAW_POSITION_BYE,
+  REMOVE_DRAW_POSITION_ASSIGNMENT,
+} from 'constants/mutationConstants';
 import { DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';
 
 let assignmentMode = false;
@@ -92,7 +97,7 @@ function createTMXStateManager(
     // Direct assignment - factory handles replacement automatically
     const methods = [
       {
-        method: 'assignDrawPosition',
+        method: ASSIGN_DRAW_POSITION,
         params: {
           drawId,
           structureId,
@@ -122,7 +127,7 @@ function createTMXStateManager(
     // Direct assignment - factory handles replacement automatically
     const methods = [
       {
-        method: 'assignDrawPositionBye',
+        method: ASSIGN_DRAW_POSITION_BYE,
         params: {
           drawId,
           structureId,
@@ -151,7 +156,7 @@ function createTMXStateManager(
     // Assign qualifier placeholder using factory
     const methods = [
       {
-        method: 'assignDrawPosition',
+        method: ASSIGN_DRAW_POSITION,
         params: {
           drawId,
           structureId,
@@ -180,7 +185,7 @@ function createTMXStateManager(
   baseManager.removeAssignment = ({ drawPosition }) => {
     const methods = [
       {
-        method: 'removeDrawPositionAssignment',
+        method: REMOVE_DRAW_POSITION_ASSIGNMENT,
         params: {
           drawId,
           structureId,
