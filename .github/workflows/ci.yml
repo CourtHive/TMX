@@ -41,6 +41,16 @@ jobs:
       - run: pnpm install
       - run: pnpm lint
 
+      # Formatting gate. Nothing enforced prettier before this: the pre-commit
+      # hook has `pnpm lint:staged` commented out on purpose (0ef81807), so 269
+      # files had drifted by the time it was measured. The baseline was applied
+      # in one formatting-only commit; this keeps it from drifting again, and
+      # catches commits made with --no-verify too.
+      #
+      # `pnpm format` fixes anything this flags.
+      - name: format:check
+        run: pnpm format:check
+
       # Deterministic AST attribute-typo / schema-divergence gate. Fails only on
       # a PROP-class attribute name not in the triaged allow-list — i.e. a NEW
       # silent typo (matchUp.rondPosition, etc.). Baseline triaged 2026-07-05.
