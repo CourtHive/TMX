@@ -46,6 +46,20 @@ function collectRebuiltMatchUps(rebuilt: AnyObj): Map<string, AnyObj> {
   return byId;
 }
 
+// Flat list of every matchUp in a rebuilt record, in traversal order. Distinct from
+// collectRebuiltMatchUps above, which keys by matchUpId and therefore dedupes.
+function listRebuiltMatchUps(rebuilt: AnyObj): AnyObj[] {
+  const matchUps: AnyObj[] = [];
+  const walk = (structs: AnyObj[] | undefined) => {
+    for (const s of structs ?? []) {
+      matchUps.push(...(s.matchUps ?? []));
+      walk(s.structures);
+    }
+  };
+  for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+  return matchUps;
+}
+
 // Normalize a matchUp's `sides` to a sorted ["drawPosition:participantId", …]
 // list so two matchUps can be compared regardless of side ordering.
 function sidePairs(sides: AnyObj[]): string[] {
@@ -499,11 +513,7 @@ describe('round-trip from mocksEngine — doubles', () => {
     });
 
     expect(rebuilt.events?.[0]?.eventType).toBe('DOUBLES');
-    const matchUps: AnyObj[] = [];
-    const walk = (structs: AnyObj[] | undefined) => {
-      for (const s of structs ?? []) { matchUps.push(...(s.matchUps ?? [])); walk(s.structures); }
-    };
-    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+    const matchUps = listRebuiltMatchUps(rebuilt);
     expect(matchUps.length).toBeGreaterThan(0);
     for (const m of matchUps) expect(m.matchUpType).toBe('DOUBLES');
   });
@@ -756,14 +766,7 @@ describe('cleanup invariants', () => {
     });
 
     const stripped = ['eventId', 'drawId', 'drawName', 'drawType', 'gender', 'tournamentId', 'eventName', 'hasContext', 'readyToScore'];
-    const matchUps: AnyObj[] = [];
-    const walk = (structs: AnyObj[] | undefined) => {
-      for (const s of structs ?? []) {
-        matchUps.push(...(s.matchUps ?? []));
-        walk(s.structures);
-      }
-    };
-    for (const e of rebuilt.events ?? []) for (const dd of e.drawDefinitions ?? []) walk(dd.structures);
+    const matchUps = listRebuiltMatchUps(rebuilt);
 
     expect(matchUps.length).toBeGreaterThan(0);
     for (const m of matchUps) {
