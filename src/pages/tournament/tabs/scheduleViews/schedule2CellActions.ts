@@ -5,8 +5,8 @@
  * in the schedule2 CSS grid. Uses tippy.js directly with custom DOM for a modern
  * pill/icon layout rather than the legacy flat menu list.
  */
+import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
-import { matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
@@ -512,7 +512,7 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     });
   };
 
-  const blockCourt = (rowCount: number, bookingType: string = 'BLOCKED') => {
+  const blockCourt = (rowCount: number, bookingType: string = BookingTypeEnum.BLOCKED) => {
     mutationRequest({
       methods: [
         { method: 'addCourtGridBooking', params: { courtId, scheduledDate, courtOrder, rowCount, bookingType } },
@@ -546,21 +546,21 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const blockRow = document.createElement('div');
   blockRow.style.cssText = PILL_ROW_CSS;
   blockRow.appendChild(
-    makePill('1 row', () => blockCourt(1, 'BLOCKED'), {
+    makePill('1 row', () => blockCourt(1, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
       color: '#f43f5e',
     }),
   );
   blockRow.appendChild(
-    makePill('2 rows', () => blockCourt(2, 'BLOCKED'), {
+    makePill('2 rows', () => blockCourt(2, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
       color: '#f43f5e',
     }),
   );
   blockRow.appendChild(
-    makePill('3 rows', () => blockCourt(3, 'BLOCKED'), {
+    makePill('3 rows', () => blockCourt(3, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
       color: '#f43f5e',
@@ -573,17 +573,27 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const otherRow = document.createElement('div');
   otherRow.style.cssText = PILL_ROW_CSS;
   otherRow.appendChild(
-    makePill(t('schedule.practice'), () => blockCourt(1, 'PRACTICE'), {
+    makePill(t('schedule.practice'), () => blockCourt(1, BookingTypeEnum.PRACTICE), {
       icon: 'fa-dumbbell',
       tint: 'rgba(59, 130, 246, 0.15)',
       color: '#3b82f6',
     }),
   );
   otherRow.appendChild(
-    makePill(t('schedule.maintenance'), () => blockCourt(1, 'MAINTENANCE'), {
+    makePill(t('schedule.maintenance'), () => blockCourt(1, BookingTypeEnum.MAINTENANCE), {
       icon: 'fa-wrench',
       tint: 'rgba(245, 158, 11, 0.15)',
       color: '#f59e0b',
+    }),
+  );
+  // Teal, deliberately not the maintenance amber: drying is reactive weather loss,
+  // maintenance is planned. The colour matches the DRYING cell stripe in
+  // courthive-components (schedule-grid-cell.css).
+  otherRow.appendChild(
+    makePill(t('schedule.drying'), () => blockCourt(1, BookingTypeEnum.DRYING), {
+      icon: 'fa-droplet',
+      tint: 'rgba(20, 184, 166, 0.15)',
+      color: '#14b8a6',
     }),
   );
   pop.appendChild(otherRow);
