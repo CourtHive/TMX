@@ -11,7 +11,7 @@ import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
-import { participantRoles, tools } from 'tods-competition-factory';
+import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
 import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
@@ -25,7 +25,10 @@ import { t } from 'i18n';
 import { ADD_MATCHUP_OFFICIAL, DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
-const { OFFICIAL } = participantRoles;
+// ParticipantRoleEnum, not the participantRoles object: the object's members
+// widen to `string` by object-literal inference and cannot satisfy factory's own
+// ParticipantRoleUnion. Enum members keep their literal type.
+const OFFICIAL = ParticipantRoleEnum.OFFICIAL;
 
 let officialTip: Instance | undefined;
 

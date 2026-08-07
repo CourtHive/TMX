@@ -3,7 +3,7 @@
  * Displays individual participant details, ratings, and event assignments.
  * Rating columns and averages are determined dynamically from participant data.
  */
-import { participantConstants, participantRoles, tools, fixtures } from 'tods-competition-factory';
+import { ParticipantRoleEnum, participantConstants, tools, fixtures } from 'tods-competition-factory';
 import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -24,7 +24,8 @@ import { TOURNAMENT_PARTICIPANTS, STAFF } from 'constants/tmxConstants';
 const { ratingsParameters } = fixtures;
 
 const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
-const { OFFICIAL, COMPETITOR } = participantRoles;
+// See matchUpActions.ts — the participantRoles object widens to `string`.
+const { OFFICIAL, COMPETITOR } = ParticipantRoleEnum;
 
 // Every factory `participantRole` that is neither COMPETITOR nor OFFICIAL
 // rolls up into the Staff view. Hard-coding the list (vs. dynamically
@@ -32,22 +33,22 @@ const { OFFICIAL, COMPETITOR } = participantRoles;
 // && r !== OFFICIAL)`) keeps it visible at the call site and stable across
 // minor factory bumps that introduce new role enums we may want to triage
 // explicitly before surfacing.
-const STAFF_ROLES: string[] = [
-  participantRoles.ADMINISTRATION,
-  participantRoles.CAPTAIN,
-  participantRoles.COACH,
-  participantRoles.DIRECTOR,
-  participantRoles.HOSPITALITY,
-  participantRoles.MEDIA,
-  participantRoles.MEDICAL,
-  participantRoles.OTHER,
-  participantRoles.PHYSIO,
-  participantRoles.SECURITY,
-  participantRoles.STRINGER,
-  participantRoles.SUPERVISOR,
-  participantRoles.TRAINER,
-  participantRoles.TRANSPORT,
-  participantRoles.VOLUNTEER,
+const STAFF_ROLES: ParticipantRoleEnum[] = [
+  ParticipantRoleEnum.ADMINISTRATION,
+  ParticipantRoleEnum.CAPTAIN,
+  ParticipantRoleEnum.COACH,
+  ParticipantRoleEnum.DIRECTOR,
+  ParticipantRoleEnum.HOSPITALITY,
+  ParticipantRoleEnum.MEDIA,
+  ParticipantRoleEnum.MEDICAL,
+  ParticipantRoleEnum.OTHER,
+  ParticipantRoleEnum.PHYSIO,
+  ParticipantRoleEnum.SECURITY,
+  ParticipantRoleEnum.STRINGER,
+  ParticipantRoleEnum.SUPERVISOR,
+  ParticipantRoleEnum.TRAINER,
+  ParticipantRoleEnum.TRANSPORT,
+  ParticipantRoleEnum.VOLUNTEER,
 ];
 
 export function createParticipantsTable({ view }: { view?: string } = {}): {

@@ -1,11 +1,12 @@
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { openModal } from 'components/modals/baseModal/baseModal';
-import { participantRoles } from 'tods-competition-factory';
+import { ParticipantRoleEnum } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 
-const { OFFICIAL } = participantRoles;
+// See matchUpActions.ts — the participantRoles object widens to `string`.
+const OFFICIAL = ParticipantRoleEnum.OFFICIAL;
 
 interface RequiredRole {
   label: string;
