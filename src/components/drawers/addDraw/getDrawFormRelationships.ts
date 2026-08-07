@@ -215,7 +215,7 @@ export function getDrawFormRelationships({
     fields[PLAYOFF_DRAW_TYPE].style.display = isRRPlayoff ? '' : NONE;
     const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
     fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
-    fields[GROUP_SIZE].style.display = [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType) ? '' : NONE;
+    fields[GROUP_SIZE].style.display = ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType) ? '' : NONE;
 
     const isSwiss = drawType === SWISS;
     fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;

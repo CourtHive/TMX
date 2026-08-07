@@ -53,7 +53,9 @@ export const entryActions =
 
     // When a participant has a draw position, moving to alternates or withdrawing
     // would fail because the participant is already placed in the draw
-    const blockedByDrawPosition = hasDrawPosition ? [ALTERNATE, WITHDRAWN] : [];
+    // `as string[]`: factory 6.19.0 made these constants `as const`, narrowing the array's
+    // element type; `.includes()` on a plain string then fails to type-check.
+    const blockedByDrawPosition: string[] = hasDrawPosition ? [ALTERNATE, WITHDRAWN] : [];
 
     const options = [
       {

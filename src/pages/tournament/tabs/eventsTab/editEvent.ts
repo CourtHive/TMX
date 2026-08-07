@@ -70,7 +70,7 @@ const DEFAULT_AGE_CATEGORIES = [
 ];
 
 function resolveEnteredGenderOptions(event: any, enteredParticipantGenders: any[]): string[] {
-  const options = [ANY];
+  const options: string[] = [ANY];
   if (event.gender && event.gender !== ANY) options.push(event.gender);
   if (event.eventType === DOUBLES && !options.includes(MIXED)) options.push(MIXED);
   const uniqueEnteredGenders = tools.unique(enteredParticipantGenders.flat());

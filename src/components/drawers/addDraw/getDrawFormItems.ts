@@ -224,20 +224,20 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       field: DRAW_SIZE,
     },
     {
-      visible: [ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      visible: ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType),
       options: roundRobinOptions,
       label: t('drawers.addDraw.groupSize'),
       field: GROUP_SIZE,
       value: 4,
     },
     {
-      visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      visible: ([ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType),
       options: playoffOptions,
       label: t('drawers.addDraw.playoffType'),
       field: PLAYOFF_TYPE,
     },
     {
-      visible: [ROUND_ROBIN_WITH_PLAYOFF].includes(drawType),
+      visible: ([ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType),
       options: getDrawTypeOptions({ isPlayoff: true }),
       label: t('drawers.addDraw.playoffDrawType'),
       field: PLAYOFF_DRAW_TYPE,

@@ -6,6 +6,7 @@
  * Flow: TD selects participants → OVERLAY sets entry status (Accepted/Alternate/Clear)
  * → chips appear in table → Generate when ≥2 accepted.
  */
+import type { DrawTypeUnion } from 'tods-competition-factory';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -156,7 +157,11 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
 
   // ── State ──
   let matchUpFormat = tournamentEngine.q.drawDefinition({ drawId })?.matchUpFormat || '';
-  let drawType = SINGLE_ELIMINATION;
+  // Annotated rather than inferred: factory 6.19.0 made the drawType constants `as const`, so a
+  // bare `= SINGLE_ELIMINATION` now infers the literal type and every later comparison against
+  // ROUND_ROBIN / AD_HOC / LUCKY_DRAW becomes a "no overlap" error. The variable genuinely holds
+  // any draw type, so the union is the correct annotation.
+  let drawType: DrawTypeUnion = SINGLE_ELIMINATION;
   let selectedRating = availableRatings[0] || '';
   let groupSize = 4;
   let automated = true;

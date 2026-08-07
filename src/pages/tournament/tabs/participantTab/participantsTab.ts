@@ -12,7 +12,7 @@ const { INDIVIDUAL, TEAM, GROUP } = participantConstants;
 
 export function formatParticipantTab({ participantView = INDIVIDUAL }: { participantView?: string } = {}): void {
   const view = participantView.toUpperCase();
-  const teams = [TEAM, GROUP].includes(view);
+  const teams = ([TEAM, GROUP] as string[]).includes(view);
 
   const p = document.getElementById('individuals');
   const g = document.getElementById('participantGroupings');
