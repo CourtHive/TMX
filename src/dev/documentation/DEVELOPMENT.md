@@ -205,7 +205,8 @@ pnpm start          # Vite dev server at localhost:5173
 
 ```bash
 pnpm run build      # TypeScript compilation + Vite bundle
-pnpm lint           # ESLint with auto-fix
+pnpm lint           # ESLint — non-mutating, fails on any warning
+pnpm lint:fix       # ESLint with auto-fix (rewrites source)
 pnpm format         # Prettier formatting
 pnpm test           # Vitest test runner
 ```
