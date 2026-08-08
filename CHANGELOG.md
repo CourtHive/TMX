@@ -1,5 +1,30 @@
 # Changelog
 
+## [8.17.0](https://github.com/CourtHive/TMX/compare/v8.16.0...v8.17.0) (2026-08-08)
+
+
+### Features
+
+* **schedule:** add DRYING court booking pill ([bd4b224](https://github.com/CourtHive/TMX/commit/bd4b224d02f81a02181a553308fc1cea1e7efb31))
+* **schedule:** add DRYING court booking pill ([12c28a1](https://github.com/CourtHive/TMX/commit/12c28a1c2fd533e8c4f2ccfa0984ed559dd980c9))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 3.12.0 ([d7e08f0](https://github.com/CourtHive/TMX/commit/d7e08f02626b0e717ffc61a4b59fc61f9d739cd5))
+* **deps:** update courthive-components to 3.12.1 ([f4e2b1c](https://github.com/CourtHive/TMX/commit/f4e2b1c301a1f178cdc765142465492a0657d37c))
+* **deps:** update dependency axios to v1.19.0 ([8fdc235](https://github.com/CourtHive/TMX/commit/8fdc2351e3149e63100c84aa4ded2842142a3a63))
+* **deps:** update pdf-factory to 0.8.12 ([a039bbf](https://github.com/CourtHive/TMX/commit/a039bbf857dff0caedf73ac9e79d22f96d3348ee))
+* **deps:** update tods-competition-factory to 6.14.0 ([f0a3060](https://github.com/CourtHive/TMX/commit/f0a3060463a0980ed611dcd5066f9d4fdddda3b2))
+* **deps:** update tods-competition-factory to 6.14.1 ([7aa9489](https://github.com/CourtHive/TMX/commit/7aa9489f92c8477a05f50c010887782cb8bbadd4))
+* **deps:** update tods-competition-factory to 6.15.0 ([77bd839](https://github.com/CourtHive/TMX/commit/77bd8394368665b5a51d56f0a5e43ebc7ee53729))
+* **deps:** update tods-competition-factory to 6.16.0 ([d892264](https://github.com/CourtHive/TMX/commit/d8922644a43f8178d9d31204f1e2c5ef25faa547))
+* **deps:** update tods-competition-factory to 6.17.0 ([4426666](https://github.com/CourtHive/TMX/commit/44266660798b83ba0e1e7b2b2c1a3ae7dfa43a3e))
+* **deps:** update tods-competition-factory to 6.18.0 ([f749617](https://github.com/CourtHive/TMX/commit/f749617395a114cdb8728acaed04cbb3d11c8d8e))
+* **deps:** update tods-competition-factory to 6.19.0 ([f5719c5](https://github.com/CourtHive/TMX/commit/f5719c5f1d9d184387938c02a20b1ee52241c20e))
+* **types:** annotate call sites narrowed by the factory 6.19.0 as-const sweep ([0d89cfb](https://github.com/CourtHive/TMX/commit/0d89cfb889d6577d2c91062cf1495a11d20103e2))
+* **types:** use ParticipantRoleEnum so TMX builds again ([f9a356f](https://github.com/CourtHive/TMX/commit/f9a356fc4d255bd08a73370fde157df6f12db956))
+
 ## [8.16.0](https://github.com/CourtHive/TMX/compare/v8.15.0...v8.16.0) (2026-07-29)
 
 
