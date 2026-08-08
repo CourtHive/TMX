@@ -107,7 +107,7 @@
     "yargs": "18.1.0"
   },
   "dependencies": {
-    "@courthive/provider-config": "0.11.1",
+    "@courthive/provider-config": "0.12.0",
     "@courthive/scoring-visualizations": "^0.2.9",
     "@eslint/js": "^10.0.1",
     "animate.css": "4.1.1",
@@ -129,7 +129,7 @@
     "morphdom": "2.7.8",
     "navigo": "8.11.1",
     "normalize-text": "2.6.0",
-    "pdf-factory": "0.8.12",
+    "pdf-factory": "0.8.13",
     "pikaday": "1.8.2",
     "qrious": "4.0.2",
     "socket.io-client": "4.8.3",
