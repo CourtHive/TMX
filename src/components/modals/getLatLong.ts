@@ -113,15 +113,27 @@ export function getLatLong({ coords, callback }: { coords?: Coords; callback?: (
     if (evt.key === 'Enter') processLink();
   };
 
-  openModal({ title: t('modals.getLatLong.title'), content: html, buttons });
+  // Assigned just below, after the modal DOM exists; the modal may close before or after.
+  let disposeMap: (() => void) | undefined;
+
+  openModal({
+    title: t('modals.getLatLong.title'),
+    content: html,
+    buttons,
+    onClose: () => {
+      disposeMap?.();
+      disposeMap = undefined;
+    },
+  });
 
   const container = idObj(ids);
-  let { map, marker } = locationMap({
+  let { map, marker, dispose } = locationMap({
     successElement: container.map.element,
     mapElementId: container.map.id,
     coords,
     zoom,
   });
+  disposeMap = dispose;
   if (container.link.element) {
     (container.link.element as HTMLInputElement).value = '';
     container.link.element.focus();
@@ -173,7 +185,7 @@ function locationMap({
   mapElementId: string;
   coords: Coords;
   zoom: number;
-}): { map: any; marker: any } {
+}): { map: any; marker: any; dispose: () => void } {
   const nav = getNavigator();
   if (!nav?.onLine) return {} as any;
 
@@ -195,9 +207,18 @@ function locationMap({
     marker = L.marker([+coords.latitude, +coords.longitude]).addTo(map);
   }
 
-  setTimeout(function () {
+  // The map is created inside a modal that has just opened, so its container has no size yet.
+  // Cancel this on dispose: invalidateSize() on a removed map throws.
+  const sizeTimer = setTimeout(function () {
     map.invalidateSize();
   }, 300);
 
-  return { map, marker };
+  // Leaflet keeps window/document listeners and in-flight tile requests until remove() is called.
+  // Without this every open of the picker leaked a whole map.
+  const dispose = () => {
+    clearTimeout(sizeTimer);
+    map.remove();
+  };
+
+  return { map, marker, dispose };
 }
