@@ -16,7 +16,6 @@ declare global {
   // to make the runtime injection point obvious). `var` is required
   // here — `let`/`const` inside `declare global` doesn't attach to
   // the globalThis index signature.
-  // eslint-disable-next-line no-var
   var dev: any;
 }
 

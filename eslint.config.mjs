@@ -28,7 +28,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['tsconfig.json', 'electron/tsconfig.json'],
+        project: ['tsconfig.json', 'electron/tsconfig.json', 'e2e/tsconfig.json'],
       },
       globals: {
         ...globals.browser,
@@ -36,6 +36,9 @@ export default [
         ...globals.es2021,
         ...globals.jest,
         NodeJS: 'readonly',
+        // Injected by TMX at runtime and declared in e2e/global.d.ts; ESLint's no-undef
+        // cannot see ambient TypeScript declarations.
+        dev: 'readonly',
       },
     },
     plugins: {
@@ -86,6 +89,16 @@ export default [
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
       'import/no-unresolved': 'off',
+    },
+  },
+  {
+    // Playwright journeys and their page objects. Test files carry the ecosystem's
+    // standard test overrides: repeated selector/label literals are the clearest way
+    // to write an assertion, and empty functions are common as no-op callbacks.
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'sonarjs/no-duplicate-string': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
     },
   },
 ];

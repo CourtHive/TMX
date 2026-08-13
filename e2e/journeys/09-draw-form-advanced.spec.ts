@@ -32,9 +32,7 @@ const PROFILE_12_MAIN_8_QUAL: MockProfile = {
     {
       eventName: 'Singles',
       drawSize: 16,
-      qualifyingProfiles: [
-        { structureProfiles: [{ qualifyingPositions: 4, drawSize: 8 }] },
-      ],
+      qualifyingProfiles: [{ structureProfiles: [{ qualifyingPositions: 4, drawSize: 8 }] }],
       generate: false,
     },
   ],
@@ -50,10 +48,7 @@ const PROFILE_8_ENTRIES: MockProfile = {
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 
-async function seedAndOpenDrawForm(
-  page: any,
-  profile: MockProfile = PROFILE_16_ENTRIES,
-): Promise<DrawFormDrawer> {
+async function seedAndOpenDrawForm(page: any, profile: MockProfile = PROFILE_16_ENTRIES): Promise<DrawFormDrawer> {
   const tournamentId = await seedTournament(page, profile);
   const tournamentPage = new TournamentPage(page);
   await tournamentPage.goto(tournamentId);
@@ -183,14 +178,11 @@ test.describe('Journey 9 — Draw form advanced scenarios', () => {
         const label = field?.querySelector('.label');
         const text = label?.textContent || '';
         if (text === 'Qualifiers') {
-          const setter = Object.getOwnPropertyDescriptor(
-            HTMLInputElement.prototype, 'value',
-          )?.set;
+          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
           setter?.call(inp, '8');
           inp.dispatchEvent(new Event('input', { bubbles: true }));
 
           // Read back: check if Automated is now disabled
-          const creationField = wrapper.querySelector('.field:has(.label)');
           const allSelects = wrapper.querySelectorAll('select');
           for (const sel of allSelects) {
             for (const opt of sel.options) {
@@ -199,7 +191,12 @@ test.describe('Journey 9 — Draw form advanced scenarios', () => {
               }
             }
           }
-          return { found: true, automatedDisabled: false, value: (inp as HTMLInputElement).value, note: 'no Automated option found' };
+          return {
+            found: true,
+            automatedDisabled: false,
+            value: (inp as HTMLInputElement).value,
+            note: 'no Automated option found',
+          };
         }
       }
       return { found: false, reason: 'qualifiers input not found' };
@@ -266,9 +263,10 @@ test.describe('Journey 9 — Draw form advanced scenarios', () => {
     await drawer.toggleCheckbox('qualifyingFirst');
 
     // Verify RR_WITH_PLAYOFF is NOT available in qualifying mode
-    const values = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
-      (opts: HTMLOptionElement[]) => opts.map((o) => o.value).filter((v) => v && !v.startsWith('─')),
-    );
+    const values = await drawer
+      .fieldSelect('Draw Type')
+      .locator('option')
+      .evaluateAll((opts: HTMLOptionElement[]) => opts.map((o) => o.value).filter((v) => v && !v.startsWith('─')));
     expect(values).not.toContain('ROUND_ROBIN_WITH_PLAYOFF');
     expect(values).toContain('SINGLE_ELIMINATION');
     expect(values).toContain('ROUND_ROBIN');

@@ -54,12 +54,15 @@ test.describe('Journey 16 — Topology templates', () => {
     const { drawer, collector } = await seedAndOpenDrawForm(page);
 
     // Get all draw type option labels
-    const options = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
-      (opts: HTMLOptionElement[]) => opts.map((o) => ({
-        label: o.textContent?.trim() || '',
-        value: o.value,
-      })),
-    );
+    const options = await drawer
+      .fieldSelect('Draw Type')
+      .locator('option')
+      .evaluateAll((opts: HTMLOptionElement[]) =>
+        opts.map((o) => ({
+          label: o.textContent?.trim() || '',
+          value: o.value,
+        })),
+      );
 
     // Filter for topology template options (value starts with TOPOLOGY_TEMPLATE:)
     const templateOptions = options.filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:'));
@@ -100,11 +103,6 @@ test.describe('Journey 16 — Topology templates', () => {
       const event = tournament.events?.[0];
       if (!event) return false;
 
-      // Import the built-in templates from courthive-components
-      const templates = dev.factory.topologyToDrawOptions
-        ? true // topologyToDrawOptions exists
-        : false;
-
       // Create a minimal valid topology: single SE node
       const template = {
         name: 'E2E Test Template',
@@ -143,12 +141,14 @@ test.describe('Journey 16 — Topology templates', () => {
     await drawer.waitForOpen();
 
     // Get template options
-    const templateOptions = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
-      (opts: HTMLOptionElement[]) =>
+    const templateOptions = await drawer
+      .fieldSelect('Draw Type')
+      .locator('option')
+      .evaluateAll((opts: HTMLOptionElement[]) =>
         opts
           .filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:'))
           .map((o) => ({ label: o.textContent?.trim() || '', value: o.value })),
-    );
+      );
 
     console.log(`Templates after seeding: ${templateOptions.length}`);
     for (const t of templateOptions) {
@@ -181,7 +181,8 @@ test.describe('Journey 16 — Topology templates', () => {
 
     // The drawer should close (template bypasses form submission)
     // Wait for either the drawer to close or a mutation to appear
-    const mutationReceived = await collector.waitForMethod('addDrawDefinition', 15_000)
+    const mutationReceived = await collector
+      .waitForMethod('addDrawDefinition', 15_000)
       .then(() => true)
       .catch(() => false);
 
@@ -215,14 +216,16 @@ test.describe('Journey 16 — Topology templates', () => {
       dev.factory.tournamentEngine.addTournamentExtension({
         extension: {
           name: 'topologyTemplates',
-          value: [{
-            name: 'E2E Structure Test',
-            state: {
-              drawName: 'Structure Test',
-              nodes: [{ id: 'main', stage: 'MAIN', structureType: 'SINGLE_ELIMINATION', drawSize: 16 }],
-              edges: [],
+          value: [
+            {
+              name: 'E2E Structure Test',
+              state: {
+                drawName: 'Structure Test',
+                nodes: [{ id: 'main', stage: 'MAIN', structureType: 'SINGLE_ELIMINATION', drawSize: 16 }],
+                edges: [],
+              },
             },
-          }],
+          ],
         },
       });
     });
@@ -242,11 +245,13 @@ test.describe('Journey 16 — Topology templates', () => {
     // Verify the generated structure
     const structures = await page.evaluate(() => {
       const draw = dev.getTournament().events?.[0]?.drawDefinitions?.[0];
-      return draw?.structures?.map((s: any) => ({
-        stage: s.stage,
-        name: s.structureName,
-        positions: s.positionAssignments?.length || 0,
-      })) || [];
+      return (
+        draw?.structures?.map((s: any) => ({
+          stage: s.stage,
+          name: s.structureName,
+          positions: s.positionAssignments?.length || 0,
+        })) || []
+      );
     });
 
     console.log('Generated structures:', JSON.stringify(structures));
@@ -261,19 +266,19 @@ test.describe('Journey 16 — Topology templates', () => {
     const { drawer, collector } = await seedAndOpenDrawForm(page);
 
     // Get template count in main mode
-    const mainTemplates = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
-      (opts: HTMLOptionElement[]) =>
-        opts.filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:')).length,
-    );
+    const mainTemplates = await drawer
+      .fieldSelect('Draw Type')
+      .locator('option')
+      .evaluateAll((opts: HTMLOptionElement[]) => opts.filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:')).length);
 
     // Toggle to qualifying-first mode
     await drawer.toggleCheckbox('qualifyingFirst');
 
     // Get template count in qualifying mode
-    const qualTemplates = await drawer.fieldSelect('Draw Type').locator('option').evaluateAll(
-      (opts: HTMLOptionElement[]) =>
-        opts.filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:')).length,
-    );
+    const qualTemplates = await drawer
+      .fieldSelect('Draw Type')
+      .locator('option')
+      .evaluateAll((opts: HTMLOptionElement[]) => opts.filter((o) => o.value.startsWith('TOPOLOGY_TEMPLATE:')).length);
 
     console.log(`Templates: main=${mainTemplates}, qualifying=${qualTemplates}`);
 

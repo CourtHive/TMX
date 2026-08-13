@@ -29,18 +29,9 @@ const PROFILE_EVENT_NO_DRAW: MockProfile = {
   drawProfiles: [{ eventName: 'Singles', drawSize: 16, generate: false }],
 };
 
-/** Same but with qualifying entries to test qualifiers-count inference. */
-const PROFILE_WITH_QUALIFYING: MockProfile = {
-  tournamentName: 'E2E Draw Form Qualifying',
-  tournamentAttributes: { tournamentId: 'e2e-draw-form-qual' },
-  participantsProfile: { scaledParticipantsCount: 32 },
-  eventProfiles: [
-    {
-      eventName: 'Singles',
-      drawProfiles: [{ drawSize: 16, qualifyingProfiles: [{ drawSize: 8 }] }],
-    },
-  ],
-};
+/* Qualifiers-count inference used to be seeded from a local
+ * PROFILE_WITH_QUALIFYING here; that coverage now lives in
+ * 12-draw-form-qualifiers-inference.spec.ts, which owns its own fixture. */
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 

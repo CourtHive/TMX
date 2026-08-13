@@ -23,7 +23,7 @@ let seeded = false;
 async function seedTournamentWithReg(page: Page, withRegistration: boolean): Promise<string> {
   return page.evaluate(async (withReg) => {
     await dev.tmx2db.initDB();
-    const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+    dev.factory.mocksEngine.generateTournamentRecord({
       nonRandom: 1,
       setState: true,
       tournamentName: 'E2E Registrations',

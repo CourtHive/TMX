@@ -42,9 +42,6 @@ async function probeStructure(page: import('@playwright/test').Page): Promise<St
     const positionAssignments: any[] = main?.positionAssignments ?? [];
     const seedAssignments: any[] = main?.seedAssignments ?? [];
 
-    const posByDrawPosition = new Map<number, any>();
-    for (const pa of positionAssignments) posByDrawPosition.set(pa.drawPosition, pa);
-
     const seedParticipant = (seedNumber: number): string | undefined =>
       seedAssignments.find((s: any) => s.seedNumber === seedNumber)?.participantId;
 
@@ -66,7 +63,9 @@ async function probeStructure(page: import('@playwright/test').Page): Promise<St
     ).length;
 
     const seed1MatchUp = round1Main.find((m: any) =>
-      (m.sides ?? []).some((side: any) => side?.participantId === seed1Id || side?.participant?.participantId === seed1Id),
+      (m.sides ?? []).some(
+        (side: any) => side?.participantId === seed1Id || side?.participant?.participantId === seed1Id,
+      ),
     );
 
     return {
@@ -99,7 +98,13 @@ test.describe('Journey 67 — seeded-draw structure', () => {
       // participantsCount < drawSize forces BYEs (the whole point of this test);
       // scaledParticipantsCount only sizes the pool, not the draw entries.
       drawProfiles: [
-        { eventName: 'Singles', drawSize: DRAW_SIZE, participantsCount: PLAYER_COUNT, seedsCount: SEEDS, drawType: 'SINGLE_ELIMINATION' },
+        {
+          eventName: 'Singles',
+          drawSize: DRAW_SIZE,
+          participantsCount: PLAYER_COUNT,
+          seedsCount: SEEDS,
+          drawType: 'SINGLE_ELIMINATION',
+        },
       ],
     });
 

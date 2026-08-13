@@ -12,7 +12,6 @@
  */
 import { test, expect } from '@playwright/test';
 import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
@@ -31,9 +30,7 @@ const PROFILE_QUALIFYING_FIRST: MockProfile = {
     {
       eventName: 'Singles',
       drawSize: 16,
-      qualifyingProfiles: [
-        { structureProfiles: [{ qualifyingPositions: 4, drawSize: 8 }] },
-      ],
+      qualifyingProfiles: [{ structureProfiles: [{ qualifyingPositions: 4, drawSize: 8 }] }],
     },
   ],
 };
@@ -124,12 +121,15 @@ test.describe('Journey 7 — POPULATE_MAIN and GENERATE_QUALIFYING flows', () =>
     // Check the entire page for "Qualifying" text — it appears in the
     // structure dropdown as the currently selected structure.
     const qualText = page.getByText('Qualifying', { exact: true });
-    const hasQualifying = await qualText.first().isVisible().catch(() => false);
+    const hasQualifying = await qualText
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasQualifying).toBe(true);
   });
 
   test('qualifying-first seed has both Main and Qualifying structures', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_QUALIFYING_FIRST);
+    await seedTournament(page, PROFILE_QUALIFYING_FIRST);
 
     // Verify directly via the factory engine
     const structures = await page.evaluate(() => {
