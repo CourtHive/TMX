@@ -2,6 +2,27 @@ import { Locator, Page, expect } from '@playwright/test';
 import { S } from '../helpers/selectors';
 
 /**
+ * Browser-side: click a checkbox and resolve once its change handler has run and
+ * one animation frame has passed, so the handler's synchronous DOM mutations are
+ * flushed before the caller continues.
+ *
+ * Declared at module scope, not inline in `page.evaluate`, so its nested callbacks
+ * stay within the ecosystem's function-nesting limit (sonarjs/no-nested-functions,
+ * threshold 4). Playwright serialises it, so it must not close over anything.
+ */
+function clickAndAwaitChange(checkboxId: string): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const input = document.getElementById(checkboxId) as HTMLInputElement;
+    if (!input) {
+      resolve();
+      return;
+    }
+    input.addEventListener('change', () => requestAnimationFrame(() => resolve()), { once: true });
+    input.click();
+  });
+}
+
+/**
  * Page object for the draw configuration drawer (addDraw).
  *
  * The drawer is rendered inside #tmxDrawer by courthive-components' renderForm.
@@ -116,35 +137,10 @@ export class DrawFormDrawer {
    *
    *  For qualifyingFirst, the change handler (qualifyingFirstChange)
    *  re-renders draw type options, toggles field visibility, and
-   *  re-derives draw size. We wait for the draw type select's options
-   *  to change as a signal that the handler completed. */
+   *  re-derives draw size. We wait for the change event to fire and one
+   *  animation frame to pass as the signal that the handler completed. */
   async toggleCheckbox(id: string): Promise<void> {
-    // Capture the draw type option count before toggle
-    const optionCountBefore = await this.fieldSelect('Draw Type')
-      .locator('option')
-      .count()
-      .catch(() => 0);
-
-    // Click the checkbox and wait for the change event handler to
-    // complete its DOM mutations. We use a Promise that resolves
-    // when the handler finishes by watching for a known DOM change.
-    await this.page.evaluate((checkboxId) => {
-      return new Promise<void>((resolve) => {
-        const input = document.getElementById(checkboxId) as HTMLInputElement;
-        if (!input) { resolve(); return; }
-
-        // Listen for the NEXT change event on the input — when the
-        // handler is done, the DOM has been mutated.
-        const handler = () => {
-          input.removeEventListener('change', handler);
-          // Use requestAnimationFrame to let any synchronous DOM
-          // mutations from the handler flush before resolving
-          requestAnimationFrame(() => resolve());
-        };
-        input.addEventListener('change', handler);
-        input.click();
-      });
-    }, id);
+    await this.page.evaluate(clickAndAwaitChange, id);
   }
 
   /** Click the Generate button. It lives in the drawer footer which

@@ -22,7 +22,7 @@
     "docs:publish": "pnpm build && git checkout docs && rm -rf docs/* && cp -r dist/* docs && git add docs && git commit -m 'docs: update' && git push && git checkout main",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
-    "lint": "eslint src --cache --max-warnings 0",
+    "lint": "eslint src e2e --cache --max-warnings 0",
     "lint:fix": "eslint src --fix --cache",
     "lint:staged": "TZ=UTC lint-staged",
     "pre-commit": "lint-staged",

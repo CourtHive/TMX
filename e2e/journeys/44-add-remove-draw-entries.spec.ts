@@ -118,7 +118,6 @@ test.describe('Journey 44 — Add to draw / Remove from draw on selection', () =
     // Pick a participant that is on the draw but NOT placed.
     const removable = await page.evaluate(
       ({ eventId, drawId }: { eventId: string; drawId: string }) => {
-        const engine = (dev as any).factory.tournamentEngine;
         const tr = (dev as any).getTournament();
         const event = tr.events.find((e: any) => e.eventId === eventId);
         const dd = event.drawDefinitions.find((d: any) => d.drawId === drawId);

@@ -9,7 +9,6 @@
  */
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
@@ -39,7 +38,10 @@ async function navigateToEntries(page: any, profile: MockProfile): Promise<strin
   await tournamentPage.navigateToEvents();
   await tournamentPage.eventsTable.locator('.tabulator-row').first().click();
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
-  const entriesVisible = await page.locator(S.ENTRIES_VIEW).isVisible().catch(() => false);
+  const entriesVisible = await page
+    .locator(S.ENTRIES_VIEW)
+    .isVisible()
+    .catch(() => false);
   if (!entriesVisible) {
     await page.locator('#eventTabsBar').getByText('Entries').click();
   }

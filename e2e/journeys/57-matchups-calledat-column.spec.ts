@@ -1,7 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { TournamentPage } from '../pages/TournamentPage';
-import { S } from '../helpers/selectors';
 
 /**
  * Journey 57 — MatchUps page "Called" (calledAt) column, hidden by default
