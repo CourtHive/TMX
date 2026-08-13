@@ -5,6 +5,7 @@
 import { participantConstants, participantRoles, fixtures, tools } from 'tods-competition-factory';
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
@@ -105,7 +106,11 @@ export function editIndividualParticipant({
           label: t('pages.participants.editParticipant.sex'),
           field: 'sex',
           options: [
-            { label: t('pages.participants.gender.unknown'), value: undefined, selected: !values.sex },
+            // Explicit empty string, never `undefined`: `renderOptions` only writes a
+            // value attribute when one is supplied, and a valueless <option> makes
+            // `select.value` fall back to the option *text* — which is how the
+            // localized "Unknown" label was being persisted as `person.sex`.
+            { label: t('pages.participants.gender.unknown'), value: '', selected: !values.sex },
             { label: t('pages.participants.gender.male'), value: 'MALE', selected: values.sex === 'MALE' },
             { label: t('pages.participants.gender.female'), value: 'FEMALE', selected: values.sex === 'FEMALE' },
           ],
@@ -119,9 +124,11 @@ export function editIndividualParticipant({
           language: i18next.language,
         },
         {
-          typeAhead: { list, callback: nationalityCodeValue },
+          // `currentValue` — not `value` — is what resolves the stored IOC code to its
+          // flag+name label. Passing `value` put the bare code ('FRA') in the field,
+          // which reads as unpopulated next to a picker that lists country names.
+          typeAhead: { list, callback: nationalityCodeValue, currentValue: values.nationalityCode },
           placeholder: t('pages.participants.editParticipant.countryPlaceholder'),
-          value: values.nationalityCode || '',
           field: 'nationalityCode',
           label: t('pages.participants.editParticipant.country'),
         },
@@ -162,11 +169,15 @@ export function editIndividualParticipant({
   function saveParticipant(): void {
     if (participant?.participantId) {
       const person = {
-        nationalityCode: inputs.nationalityCode.value,
+        // `values.nationalityCode` is the IOC code the type-ahead callback records.
+        // The input's own value is the human-readable label after a selection, and
+        // `modifyParticipant` silently skips a nationalityCode that fails
+        // `validNationalityCode()` — so reading the input discarded every country edit.
+        nationalityCode: values.nationalityCode,
         standardFamilyName: inputs.lastName.value,
         standardGivenName: inputs.firstName.value,
         birthDate: inputs.birthday.value,
-        sex: inputs.sex.value,
+        sex: inputs.sex.value || undefined,
       };
       const participantOtherName = inputs.nickname?.value || undefined;
       const methods = [
@@ -177,23 +188,26 @@ export function editIndividualParticipant({
           method: MODIFY_PARTICIPANT,
         },
       ];
-      const postMutation = (result: any) => {
-        if (result.success) {
-          if (isFunction(callback)) callback();
-        } else {
-          console.log(result);
-        }
-      };
       mutationRequest({ methods, callback: postMutation });
     } else {
       addParticipant();
     }
   }
 
+  // A rejected mutation used to go to console.log, so a failed save was
+  // indistinguishable from a successful one at the UI.
+  function postMutation(result: any): void {
+    if (result.success) {
+      if (isFunction(callback)) callback();
+    } else {
+      tmxToast({ message: t('toasts.cannotModifyParticipant'), intent: 'is-danger' });
+    }
+  }
+
   function addParticipant(): void {
     const firstName = inputs.firstName.value;
     const lastName = inputs.lastName.value;
-    const sex = inputs.sex.value;
+    const sex = inputs.sex.value || undefined;
     const newParticipant = {
       participantRole: view === OFFICIAL ? OFFICIAL : COMPETITOR,
       participantType: INDIVIDUAL,
@@ -204,11 +218,6 @@ export function editIndividualParticipant({
         standardFamilyName: lastName,
         sex,
       },
-    };
-
-    const postMutation = (result: any) => {
-      if (result.success && isFunction(callback)) callback();
-      if (!result.success) console.log(result);
     };
 
     const methods = [
