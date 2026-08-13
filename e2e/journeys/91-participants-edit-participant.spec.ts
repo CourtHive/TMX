@@ -234,6 +234,37 @@ test.describe('Journey 91 — Edit Participant drawer', () => {
     collector.detach();
   });
 
+  test('emptying the country dispatches an explicit clear, without pressing Enter', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_EMPTY_TOURNAMENT);
+    await seedRichParticipant(page);
+    await gotoParticipants(page, tournamentId);
+    const collector = createMutationCollector(page);
+
+    const drawer = await openEditDrawer(page, 0);
+    const country = drawer.getByPlaceholder('Country of origin');
+    await expect(country).toHaveValue(/France/);
+    // Clear and go straight to Save. The type-ahead's callback only fires on a
+    // selection (or Enter in an empty field), so this is the path that used to
+    // submit the stale code.
+    await country.fill('');
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    const entry = await collector.waitForMethod('modifyParticipant', 10_000);
+    const params: any = entry.methods.find((m) => m.method === 'modifyParticipant')?.params;
+
+    // Asserted on what TMX DISPATCHES, deliberately — not on the stored record.
+    // '' is the engine's explicit clear, and honouring it landed in factory #4599,
+    // which is merged but unpublished. TMX resolves factory through link:../factory
+    // locally and the published pin in CI, so a persisted-record assertion would pass
+    // here and fail there. factory covers its own half in clearPersonFields.test.ts.
+    expect(params?.participant?.person?.nationalityCode).toBe('');
+    // The rest of the person must still ride along untouched.
+    expect(params?.participant?.person?.standardGivenName).toBe('Virginia');
+    expect(params?.participant?.person?.birthDate).toBe('1994-03-17');
+
+    collector.detach();
+  });
+
   test('a new participant left at Sex "Unknown" stores no sex, not the label', async ({ page }) => {
     const tournamentId = await seedTournament(page, PROFILE_EMPTY_TOURNAMENT);
     await gotoParticipants(page, tournamentId);

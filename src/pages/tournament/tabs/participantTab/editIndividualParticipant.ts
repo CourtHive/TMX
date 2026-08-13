@@ -43,6 +43,20 @@ export function editIndividualParticipant({
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
+  // `values.nationalityCode` is only written by the type-ahead's selection callback, so an
+  // emptied field would otherwise still submit the previously stored code — clearing the
+  // country by deleting the text and pressing Save silently did nothing, while deleting it
+  // and pressing Enter worked (the type-ahead reports '' for an empty field on Enter).
+  // Reading the input back at save time makes both paths agree.
+  //
+  // '' is the engine's explicit "remove this value"; a participant being created has nothing
+  // to clear, so the add path sends undefined instead of an empty string.
+  const submittedNationalityCode = (): string | undefined => {
+    const displayed = inputs.nationalityCode?.value?.trim();
+    if (displayed) return values.nationalityCode;
+    return participant?.participantId ? '' : undefined;
+  };
+
   const validValues = ({ firstName, lastName, nickname }: any) => {
     const hasFullName = validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
     const hasNickname = nickname && nickname.trim().length >= 2;
@@ -169,11 +183,10 @@ export function editIndividualParticipant({
   function saveParticipant(): void {
     if (participant?.participantId) {
       const person = {
-        // `values.nationalityCode` is the IOC code the type-ahead callback records.
-        // The input's own value is the human-readable label after a selection, and
-        // `modifyParticipant` silently skips a nationalityCode that fails
-        // `validNationalityCode()` — so reading the input discarded every country edit.
-        nationalityCode: values.nationalityCode,
+        // Never `inputs.nationalityCode.value` — after a selection that holds the
+        // human-readable label, and `modifyParticipant` silently skips a nationalityCode
+        // that fails `validNationalityCode()`, which discarded every country edit.
+        nationalityCode: submittedNationalityCode(),
         standardFamilyName: inputs.lastName.value,
         standardGivenName: inputs.firstName.value,
         birthDate: inputs.birthday.value,
@@ -213,7 +226,7 @@ export function editIndividualParticipant({
       participantType: INDIVIDUAL,
       participantId: tools.UUID(),
       person: {
-        nationalityCode: values.nationalityCode,
+        nationalityCode: submittedNationalityCode(),
         standardGivenName: firstName,
         standardFamilyName: lastName,
         sex,
