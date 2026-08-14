@@ -49,3 +49,12 @@ storybook-static
 .*.un~
 .*un~
 .idea
+
+# Per-session Claude Code state: `settings.local.json` is personal, and
+# `.claude/worktrees/` holds git worktrees — architectural standard A8 makes a
+# worktree under here the standard way to isolate a building session, so this
+# directory is tooling, never source. Untracked it showed as a permanent pending
+# change in every `git status`, and left one `git add -A` away from committing an
+# entire nested worktree. (A9 is the sibling fix: keeping that same directory out
+# of test discovery.)
+.claude
