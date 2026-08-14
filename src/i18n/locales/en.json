@@ -2282,5 +2282,20 @@
       "errorEvents": "Could not create events from the plan",
       "errorEmpty": "Nothing to apply — every flight was unsupported or empty"
     }
+  },
+  "fingerprint": {
+    "title": "Competitive fingerprint",
+    "competitiveRatio": "Competitive ratio {{pct}}% of {{count}} completed",
+    "coverage": "{{rated}} rated on {{scale}}",
+    "coveragePartial": "{{rated}} rated on {{scale}} · {{unrated}} unrated",
+    "noRatedOpponents": "No opponent rated on {{scale}}",
+    "noRating": "No rating available for exposure",
+    "bands": {
+      "STRETCH": "Stretch",
+      "UP": "Up",
+      "EVEN": "Even",
+      "DOWN": "Down",
+      "ANCHOR": "Anchor"
+    }
   }
 }

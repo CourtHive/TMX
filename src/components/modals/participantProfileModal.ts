@@ -5,6 +5,7 @@
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { fixtures, factoryConstants, unwrapOr } from 'tods-competition-factory';
+import { buildParticipantFingerprint } from './participantFingerprint';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
@@ -331,6 +332,11 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   // Ratings & rankings chips
   const ratingsSection = buildRatingsSection(participant);
   if (ratingsSection) content.appendChild(ratingsSection);
+
+  // Competitive fingerprint — sits under the ratings it is computed from.
+  // Returns undefined when there is nothing honest to show.
+  const fingerprint = buildParticipantFingerprint({ participantId, participant });
+  if (fingerprint) content.appendChild(fingerprint);
 
   // Team affiliation + jersey number chips (only for individuals carrying
   // a teamAttributes[0] entry — set by the import wizard).
