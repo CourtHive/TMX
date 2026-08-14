@@ -1,0 +1,121 @@
+/* Inline competitive fingerprint (participant profile modal).
+ *
+ * The five band colours are a DIVERGING ramp — cool pole = played down, neutral
+ * grey = even, warm pole = played up — deliberately not good/bad hues, because
+ * the axis's whole claim is that a healthy diet contains up, even AND down.
+ *
+ * Derived with the dataviz palette validator rather than by eye. Both modes are
+ * SELECTED (each stepped for its own surface), not an automatic flip:
+ *
+ *   light (surface #fcfcfb)  worst adjacent CVD ΔE 18.4, normal-vision 18.4
+ *                            contrast: all ≥ 3:1 except --tmx-fp-down at 2.91,
+ *                            which is relieved by the count label rendered
+ *                            inside every segment plus the legend below it.
+ *   dark  (surface #1a1a19)  worst adjacent CVD ΔE 18.3, normal-vision 19.2
+ *                            contrast: all five ≥ 3:1.
+ *
+ * Two validator FAILs are by design and must not be "fixed": the chroma floor
+ * flags the neutral grey midpoint (a diverging ramp requires a hueless middle),
+ * and the lightness band flags steps that deliberately span light↔dark so the
+ * arms stay distinguishable.
+ */
+
+.tmx-fp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0.25rem;
+
+  --tmx-fp-anchor: #184f95;
+  --tmx-fp-down: #5598e7;
+  --tmx-fp-even: #4b5563;
+  --tmx-fp-up: #eb6834;
+  --tmx-fp-stretch: #a92e1c;
+  --tmx-fp-other: var(--chc-text-muted, #6b7280);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme='light'])) .tmx-fp {
+    --tmx-fp-anchor: #256abf;
+    --tmx-fp-down: #6da7ec;
+    --tmx-fp-even: #6b7280;
+    --tmx-fp-up: #eda100;
+    --tmx-fp-stretch: #c2410c;
+  }
+}
+
+:root[data-theme='dark'] .tmx-fp {
+  --tmx-fp-anchor: #256abf;
+  --tmx-fp-down: #6da7ec;
+  --tmx-fp-even: #6b7280;
+  --tmx-fp-up: #eda100;
+  --tmx-fp-stretch: #c2410c;
+}
+
+.tmx-fp__heading {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--chc-text-muted, #6b7280);
+}
+
+.tmx-fp__realized {
+  font-size: 0.85rem;
+  color: var(--chc-text-primary, #1f2937);
+}
+
+/* 2px surface gap between stacked fills, per the mark spec — the segments must
+ * not touch, or two adjacent bands read as one. */
+.tmx-fp__bar {
+  gap: 2px;
+  border-radius: 4px;
+  min-height: 1.25rem;
+}
+
+/* The segmented bar prints its count in white on every fill, which fails on the
+ * two light steps. Measured against #ffffff vs #1f2937:
+ *
+ *            light            dark
+ *   DOWN     2.99 / 4.92      2.50 / 5.86
+ *   UP       3.20 / 4.59      2.17 / 6.78
+ *
+ * so those two carry dark ink and the rest keep white (all ≥ 4.83 on white).
+ * Found by rendering the bar and reading it, not by the palette validator —
+ * label-on-fill contrast is a separate question from fill-on-surface. */
+.tmx-fp__bar .chc-sb__seg[data-key='DOWN'],
+.tmx-fp__bar .chc-sb__seg[data-key='UP'] {
+  color: #1f2937;
+}
+
+.tmx-fp__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.7rem;
+  color: var(--chc-text-secondary, #52514e);
+}
+
+.tmx-fp__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* A band with no matches stays listed — its absence is information (43.9% of
+ * ITA players have zero stretch matches) — but recedes. */
+.tmx-fp__legend-item.is-empty {
+  opacity: 0.45;
+}
+
+.tmx-fp__swatch {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.tmx-fp__coverage {
+  font-size: 0.7rem;
+  color: var(--chc-text-muted, #6b7280);
+}
