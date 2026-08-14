@@ -14,6 +14,8 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
+import { addVenueFromRegistry } from './addVenueFromRegistry';
+import { getLoginState } from 'services/authentication/loginState';
 import { ADD_COURTS, ADD_ONLINE_RESOURCE, ADD_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
 
@@ -117,20 +119,32 @@ const saveVenue = (callback?: (result: any) => void, engine?: string, selectedCo
 // External lookup
 // ---------------------------------------------------------------------------
 
-function hasFacilityService(): boolean {
-  const provider = context.provider;
-  return !!(provider?.facilityService && provider?.facilityLookup);
+/**
+ * The registry lookup is offered to any signed-in user rather than behind the old
+ * `provider.facilityService && provider.facilityLookup` gate.
+ *
+ * Those two provider fields gated a third-party lookup that was never built — the handler was a
+ * `console.log` and a TODO — so there is no existing behaviour to preserve, and keeping a gate for
+ * a capability that never shipped would only hide the one that now has. The registry itself is the
+ * authority on access: AMS authenticates the request, and courthive-facilities holds the service
+ * token. Signed out, there is no token to search with, so the button would only 401.
+ */
+function canSearchRegistry(): boolean {
+  return !!getLoginState();
 }
 
-function createExternalLookupButton(): HTMLButtonElement {
+function createExternalLookupButton(callback?: (result: any) => void): HTMLButtonElement {
   const button = document.createElement('button');
   button.className = 'button is-fullwidth is-outlined is-info';
   button.style.marginBottom = '1em';
+  button.id = 'facilityRegistryLookup';
+  button.type = 'button';
   button.textContent = t('pages.venues.addVenue.externalLookup');
   button.addEventListener('click', () => {
-    // TODO: hand over to facility lookup modal populated by 3rd party service
-    const { facilityLookup } = context.provider || {};
-    console.log('External facility lookup triggered', facilityLookup);
+    // Close the hand-entry drawer first: the picker is an alternative to filling this form in, and
+    // leaving a half-typed venue behind it invites adding the same club twice.
+    context.drawer?.close();
+    addVenueFromRegistry({ callback });
   });
   return button;
 }
@@ -202,8 +216,8 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
   ];
 
   const content = (elem: HTMLElement) => {
-    if (hasFacilityService()) {
-      elem.appendChild(createExternalLookupButton());
+    if (canSearchRegistry()) {
+      elem.appendChild(createExternalLookupButton(callback));
     }
     const inputs = renderForm(
       elem,

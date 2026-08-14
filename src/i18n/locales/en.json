@@ -2006,6 +2006,24 @@
         "postalCodeLabel": "Postal code",
         "countryCodeLabel": "Country",
         "countryCodePlaceholder": "Start typing a country name"
+      },
+      "registry": {
+        "title": "Add venue from registry",
+        "searchPlaceholder": "Search facilities by name",
+        "keepTyping": "Type at least 2 characters to search",
+        "candidateCount": "{{count}} matching facility",
+        "candidateCount_other": "{{count}} matching facilities",
+        "noMatches": "No matching facilities",
+        "searchFailed": "Facility search is unavailable",
+        "venueFailed": "Could not load that facility",
+        "venueMissing": "That facility has no venue record",
+        "courtCount": "{{count}} court",
+        "courtCount_other": "{{count}} courts",
+        "matchedOn": "matched {{field}}",
+        "selectFirst": "Choose a facility first",
+        "addVenue": "Add to tournament",
+        "added": "Venue added from the registry",
+        "searching": "Searching…"
       }
     },
     "events": {
