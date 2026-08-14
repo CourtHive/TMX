@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady, seedFeatureFlagInitScript } from '../helpers/dev-bridge';
 import { seedTournament } from '../helpers/seed';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -19,7 +20,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * local-only (no provider seeded).
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const PROFILE_PLAN = {
   tournamentName: 'E2E Plan Mode',

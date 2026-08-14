@@ -99,6 +99,19 @@ export default [
     rules: {
       'sonarjs/no-duplicate-string': 'off',
       '@typescript-eslint/no-empty-function': 'off',
+      // `toISOString().slice(0, 10)` is the UTC calendar day; TMX's scheduling surfaces render
+      // and filter by the LOCAL one. A spec seeding the UTC day silently targets a day the grid
+      // is not showing whenever the two differ, and the resulting timeout looks like a broken
+      // drag-and-drop rather than a calendar bug. 21 specs had this before it was caught.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='slice'][callee.object.callee.property.name='toISOString']",
+          message:
+            'Seed calendar days with todayLocal() from e2e/helpers/dates — toISOString() is UTC, but TMX renders the local day. See Mentat/planning/E2E_SCHEDULE2_UTC_LOCAL_DAY_MISMATCH.md',
+        },
+      ],
     },
   },
 ];

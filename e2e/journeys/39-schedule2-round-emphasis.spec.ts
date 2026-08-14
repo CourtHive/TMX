@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -25,7 +26,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * courthive-components catalog widget itself.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 const TITLE_SELECTOR = '.spl-matchup-card .sp-card-title, .spl-matchup-card [class^="spl-card-title"]';
 const UNSCHEDULED_TAB = 'button[data-sidebar-tab="unscheduled"]';
 const CURRENT_TITLE = '.spl-card-title--round-current';

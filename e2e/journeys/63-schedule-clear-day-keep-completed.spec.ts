@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -14,7 +15,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * matchUpIds carried by the dispatched mutation + the resulting schedule state.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const STRIP = '.spl-active-strip';
 const CLEAR_BTN = 'button:has(i.fa-eraser)';
 

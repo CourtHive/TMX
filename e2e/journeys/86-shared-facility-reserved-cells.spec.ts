@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady, seedSuperAdminTokenInitScript } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -15,7 +16,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * the stubbed peer occupies court-order 2 — which must show as a reserved, non-draggable cell.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const ID = 'e2e-reserved-primary';
 const PEER = 'e2e-reserved-peer';
 
@@ -41,7 +42,13 @@ async function seedPrimary(page: Page): Promise<{ courtId: string; venueId: stri
       dev.factory.tournamentEngine.addMatchUpScheduleItems({
         matchUpId: mu.matchUpId,
         drawId: mu.drawId,
-        schedule: { scheduledDate: date, scheduledTime: '10:00', venueId: court.venueId, courtId: court.courtId, courtOrder: 1 },
+        schedule: {
+          scheduledDate: date,
+          scheduledTime: '10:00',
+          venueId: court.venueId,
+          courtId: court.courtId,
+          courtOrder: 1,
+        },
       });
       const rec = dev.factory.tournamentEngine.getTournament().tournamentRecord;
       rec.linkedTournamentIds = [id, peer]; // links drive which peers the projection is requested for
@@ -128,7 +135,15 @@ test.describe('Journey 86 — shared-facility reserved cells', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           scheduleCells: [
-            { tournamentId: PEER, access: 'view', courtId, venueId, courtOrder: peerOrder, scheduledDate: DATE, scheduledTime: peerTime },
+            {
+              tournamentId: PEER,
+              access: 'view',
+              courtId,
+              venueId,
+              courtOrder: peerOrder,
+              scheduledDate: DATE,
+              scheduledTime: peerTime,
+            },
           ],
         }),
       });

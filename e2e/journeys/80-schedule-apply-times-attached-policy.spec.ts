@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -19,7 +20,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * DOM test layer.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const PROFILE_MODE = 'button[title="Profile"]';
 const APPLY_TIMES_BTN = 'button[title^="Apply Times —"]';

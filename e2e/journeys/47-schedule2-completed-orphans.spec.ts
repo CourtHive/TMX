@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -29,7 +30,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  *     already excluded BYEs; the date selector now matches.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const SCHEDULED_PANEL = '[data-sidebar-panel="scheduled"]';
 const SCHEDULED_TAB = 'button[data-sidebar-tab="scheduled"]';
@@ -56,9 +57,7 @@ interface OrphanSeed {
  * resulting state is the exact shape Battle-of-Boca was in after the
  * upstream sync wiped court coordinates while preserving date/time.
  */
-async function seedOrphansWithCompletedMix(
-  page: import('@playwright/test').Page,
-): Promise<OrphanSeed> {
+async function seedOrphansWithCompletedMix(page: import('@playwright/test').Page): Promise<OrphanSeed> {
   return page.evaluate(
     async ({ date }) => {
       try {
@@ -148,9 +147,7 @@ async function seedNoOrphans(page: import('@playwright/test').Page): Promise<{ t
             endDate: date,
           },
           participantsProfile: { scaledParticipantsCount: 16 },
-          drawProfiles: [
-            { eventName: 'Singles', drawSize: 8, seedsCount: 2, drawType: 'SINGLE_ELIMINATION' },
-          ],
+          drawProfiles: [{ eventName: 'Singles', drawSize: 8, seedsCount: 2, drawType: 'SINGLE_ELIMINATION' }],
           venueProfiles: [{ courtsCount: 2, venueName: 'Empty Venue' }],
         });
         await dev.tmx2db.addTournament(tournamentRecord);
