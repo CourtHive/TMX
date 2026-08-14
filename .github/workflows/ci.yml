@@ -36,9 +36,20 @@ jobs:
             if (after !== before) fs.writeFileSync('pnpm-workspace.yaml', after);
           }
           "
-          rm -f pnpm-lock.yaml
 
-      - run: pnpm install
+      # The lockfile is KEPT and the install is --no-frozen-lockfile, rather than
+      # `rm -f pnpm-lock.yaml`. Stripping the overrides makes the lockfile stale and
+      # CI defaults to frozen, so something has to give — but deleting it re-resolves
+      # EVERY dependency, which collides with `minimumReleaseAge: 1440` above the
+      # moment any transitive dep published within the last 24h. That fails an
+      # unrelated PR with ERR_PNPM_NO_MATURE_MATCHING_VERSION and nothing the author
+      # can act on. It is not theoretical: it fired in competition-factory-server on
+      # @storybook/csf-plugin@10.5.8, published 98 seconds inside the window.
+      #
+      # Keeping the lockfile re-resolves only the five stripped overrides — which are
+      # exactly the packages minimumReleaseAgeExclude already exempts — and installs
+      # everything else at its locked version, so CI is deterministic too.
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm lint
 
       # Formatting gate. Nothing enforced prettier before this: the pre-commit
