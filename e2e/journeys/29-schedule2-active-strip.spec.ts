@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament } from '../helpers/seed';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -23,7 +24,7 @@ const CELL_SELECTOR = '.spl-active-strip-cell';
 const SPACER_LABEL_SELECTOR = '.spl-active-strip-spacer-label';
 const STATE_PILL_SELECTOR = '.spl-active-strip-state-pill';
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const PROFILE_STRIP = {
   tournamentName: 'E2E Active Strip',
@@ -255,18 +256,21 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     // Going through the engine surface (rather than a Playwright drag-drop)
     // keeps this test focused on the data contract: a deliberate drop must
     // stamp `calledAt`, and a generic court assignment (no strip) must not.
-    await page.evaluate(({ matchUpId, drawId, courtId, venueId }) => {
-      dev.factory.tournamentEngine.addMatchUpScheduleItems({
-        matchUpId,
-        drawId,
-        schedule: { scheduledDate: new Date().toISOString().slice(0, 10), courtId, courtOrder: 1, venueId },
-      });
-      dev.factory.tournamentEngine.setMatchUpCalledAt({
-        matchUpId,
-        drawId,
-        calledAt: new Date().toISOString(),
-      });
-    }, setup);
+    await page.evaluate(
+      ({ matchUpId, drawId, courtId, venueId, scheduledDate }) => {
+        dev.factory.tournamentEngine.addMatchUpScheduleItems({
+          matchUpId,
+          drawId,
+          schedule: { scheduledDate, courtId, courtOrder: 1, venueId },
+        });
+        dev.factory.tournamentEngine.setMatchUpCalledAt({
+          matchUpId,
+          drawId,
+          calledAt: new Date().toISOString(),
+        });
+      },
+      { ...setup, scheduledDate: SCHEDULE_DATE },
+    );
 
     // Assert: matchUp.schedule.calledAt is an ISO string >= beforeIso.
     const calledAt = await page.evaluate(({ matchUpId }) => {

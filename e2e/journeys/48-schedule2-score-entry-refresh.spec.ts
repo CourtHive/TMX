@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -23,7 +24,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * entered score — failing if the cache is served stale.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 const SCORE_STRING = '6-2 6-3';
 
 interface ScoreSeed {
@@ -53,9 +54,7 @@ async function seedCourtScheduledMatchUp(page: import('@playwright/test').Page):
             startDate: date,
             endDate: date,
           },
-          drawProfiles: [
-            { eventName: 'Singles', drawSize: 4, drawType: 'SINGLE_ELIMINATION' },
-          ],
+          drawProfiles: [{ eventName: 'Singles', drawSize: 4, drawType: 'SINGLE_ELIMINATION' }],
           venueProfiles: [{ courtsCount: 2, venueName: 'Score Venue' }],
         });
 
@@ -173,8 +172,8 @@ test.describe('Journey 48 — Schedule2 score entry refreshes the grid cell', ()
 
     // The grid cell must now show the entered score. Before the cache fix
     // this stayed empty because refreshGridView read the stale matchUp cache.
-    await expect(page.locator(`[data-matchup-id="${seed.matchUpId}"]`).first().locator('.spl-grid-cell__score')).toHaveText(
-      SCORE_STRING,
-    );
+    await expect(
+      page.locator(`[data-matchup-id="${seed.matchUpId}"]`).first().locator('.spl-grid-cell__score'),
+    ).toHaveText(SCORE_STRING);
   });
 });

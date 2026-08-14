@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -18,7 +19,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * The pure detector has dedicated unit coverage in courtTimeOrderIssues.test.ts.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const STRIP_SELECTOR = '.spl-active-strip';
 const ISSUES_BUTTON = 'button:has(i.fa-triangle-exclamation)';
 

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -23,7 +24,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * asserting the chip goes 1 → 2 → 1.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 interface BadgeSeed {
   tournamentId: string;
@@ -107,23 +108,20 @@ async function scheduleThroughMutationRequest(
   page: import('@playwright/test').Page,
   params: { matchUpId: string; drawId: string; schedule: Record<string, any> },
 ): Promise<void> {
-  await page.evaluate(
-    async ({ matchUpId, drawId, schedule }) => {
-      await new Promise<void>((resolve) => {
-        dev.mutationRequest({
-          methods: [
-            { method: 'addMatchUpScheduleItems', params: { matchUpId, drawId, schedule, removePriorValues: true } },
-          ],
-          callback: () => {
-            // Mirror the drop callback: refresh the active surface (wired to refreshGridView).
-            dev.tournamentContext.refreshActiveTable?.();
-            resolve();
-          },
-        });
+  await page.evaluate(async ({ matchUpId, drawId, schedule }) => {
+    await new Promise<void>((resolve) => {
+      dev.mutationRequest({
+        methods: [
+          { method: 'addMatchUpScheduleItems', params: { matchUpId, drawId, schedule, removePriorValues: true } },
+        ],
+        callback: () => {
+          // Mirror the drop callback: refresh the active surface (wired to refreshGridView).
+          dev.tournamentContext.refreshActiveTable?.();
+          resolve();
+        },
       });
-    },
-    params,
-  );
+    });
+  }, params);
 }
 
 test.describe('Journey 59 — Schedule2 date badge recomputes on schedule / unschedule', () => {

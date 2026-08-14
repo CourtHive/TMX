@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -19,7 +20,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * it exercises the no-teardown path the observer specifically covers.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const BADGE = 'button:has(i.fa-calendar-days) span';
 
 /** Seed a tournament with a 2-court venue and `scheduledCount` R1 matchUps placed on today. */

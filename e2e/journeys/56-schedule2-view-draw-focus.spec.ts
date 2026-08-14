@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
@@ -17,7 +18,7 @@ import { S } from '../helpers/selectors';
  * (added by highlightMatchUp, removed after 4s).
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const STRIP_SELECTOR = '.spl-active-strip';
 
 /** Seed a tournament and place its first playable matchUp on court0/order1 in a

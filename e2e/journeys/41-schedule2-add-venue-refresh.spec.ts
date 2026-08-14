@@ -1,5 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, MockProfile } from '../helpers/seed';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect } from '@playwright/test';
 
@@ -19,7 +20,7 @@ import { test, expect } from '@playwright/test';
  * and asserts the grid grew a "Court 1" header after submit.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const PROFILE_NO_VENUES: MockProfile = {
   tournamentName: 'E2E Add Venue Refresh',

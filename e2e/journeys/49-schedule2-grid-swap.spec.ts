@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -21,7 +22,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * journey covers the live DOM → handler → engine path.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const STRIP_SELECTOR = '.spl-active-strip';
 const STRIP_CELL = '.spl-active-strip-cell';
 

@@ -13,6 +13,7 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
@@ -24,11 +25,12 @@ import { S } from '../helpers/selectors';
  * rating columns should appear once entries are added.
  */
 async function seedTournamentWithRatedParticipants(page: any): Promise<string> {
-  return page.evaluate(() => {
+  // `todayLocal()` is computed HERE, in node, and passed in — it is a spec helper and does not
+  // exist inside the browser context page.evaluate runs in.
+  return page.evaluate((startDate: string) => {
     const { mocksEngine, tournamentEngine } = dev.factory;
 
     // Create a bare tournament
-    const startDate = new Date().toISOString().slice(0, 10);
     tournamentEngine.newTournamentRecord({
       tournamentName: 'E2E Ratings Refresh',
       tournamentId: 'e2e-ratings-refresh',
@@ -55,7 +57,7 @@ async function seedTournamentWithRatedParticipants(page: any): Promise<string> {
     const tournament = tournamentEngine.getTournament().tournamentRecord;
     dev.load(tournament);
     return tournament.tournamentId as string;
-  });
+  }, todayLocal());
 }
 
 async function navigateToEntries(page: any, tournamentId: string): Promise<void> {
@@ -68,7 +70,10 @@ async function navigateToEntries(page: any, tournamentId: string): Promise<void>
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
 
   // Ensure we're on the Entries tab
-  const entriesVisible = await page.locator(S.ENTRIES_VIEW).isVisible().catch(() => false);
+  const entriesVisible = await page
+    .locator(S.ENTRIES_VIEW)
+    .isVisible()
+    .catch(() => false);
   if (!entriesVisible) {
     await page.locator('#eventTabsBar').getByText('Entries').click();
   }
@@ -222,7 +227,9 @@ test.describe('Journey 24 — Ratings columns, grouping chips, and entry removal
   });
 
   test('24.4 — "Remove from event" button appears for selected entries without draw positions', async ({ page }) => {
-    page.on('console', (msg) => { if (msg.text().includes('CONTROLBAR')) console.log('  [browser]', msg.text()); });
+    page.on('console', (msg) => {
+      if (msg.text().includes('CONTROLBAR')) console.log('  [browser]', msg.text());
+    });
     const tournamentId = await seedTournamentWithRatedParticipants(page);
     await navigateToEntries(page, tournamentId);
 

@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -18,7 +19,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * stay stable across the grid's post-drop re-render.
  */
 
-const DATE = new Date().toISOString().slice(0, 10);
+const DATE = todayLocal();
 const STRIP = '.spl-active-strip';
 const SAVE = '.sp-btn--success';
 const DISCARD = '.sp-btn--danger';

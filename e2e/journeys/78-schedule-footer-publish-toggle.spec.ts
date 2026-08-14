@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -29,7 +30,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * introduced — Playwright is this ecosystem's single DOM test layer.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const PUBLISH_PILL = 'button.spl-publish-pill';
 const PUBLISH_PILL_ON = 'button.spl-publish-pill.spl-publish-pill--on';

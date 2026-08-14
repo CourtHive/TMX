@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 
 /**
@@ -27,7 +28,7 @@ import { TournamentPage } from '../pages/TournamentPage';
  * `[data-sidebar-panel="scheduled"]`.
  */
 
-const SCHEDULE_DATE = new Date().toISOString().slice(0, 10);
+const SCHEDULE_DATE = todayLocal();
 
 const SCHEDULED_PANEL = '[data-sidebar-panel="scheduled"]';
 const SCHEDULED_TAB = 'button[data-sidebar-tab="scheduled"]';
@@ -53,10 +54,7 @@ interface ScheduledSeed {
  * seed helper's fire-and-forget `dev.load` (same gotcha Journey 29's
  * `seedAndScheduleFirstMatchUp` documents).
  */
-async function seedScheduledMatchUps(
-  page: import('@playwright/test').Page,
-  count: number,
-): Promise<ScheduledSeed> {
+async function seedScheduledMatchUps(page: import('@playwright/test').Page, count: number): Promise<ScheduledSeed> {
   return page.evaluate(
     async ({ date, count }) => {
       try {
