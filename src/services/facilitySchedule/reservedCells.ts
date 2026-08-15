@@ -4,16 +4,27 @@ import { fetchScheduleProjection } from 'services/apis/servicesApi';
 /**
  * Shared-facility reserved cells.
  *
- * A court slot taken by ANOTHER facility-sharing tournament the viewer can't author is shown in the
- * grid as a read-only "reserved" cell (see courthive-components `isReserved`). The data is a slim
- * `ScheduleCell[]` from the schedule projection — NOT loaded tournamentRecords. This module fetches
- * and caches those cells for the loaded tournament; `gridView` reads them per-date and injects them
- * into empty grid slots.
+ * A court slot taken by another facility-sharing tournament is shown in the grid as a read-only
+ * "reserved" cell (see courthive-components `isReserved`). The data is a slim `ScheduleCell[]` from
+ * the schedule projection — NOT loaded tournamentRecords. This module fetches and caches those cells
+ * for the loaded tournament; `gridView` reads them per-date and injects them into empty grid slots.
  *
  * The request is the coordination view: it sends the loaded (authored) tournament as the context, and
  * the server returns projections of its server-verified linked peers tagged `access:'author'|'view'`.
- * Only `view` peers (a different director/provider sharing the facility) are reserved cells — an
- * `author` peer is the viewer's own linked tournament and renders normally, not as a reserved slot.
+ * **Both** become reserved cells, for different reasons:
+ *
+ * - `view` — a different director/provider sharing the facility. Opaque: the cell shows that a court
+ *   is taken, never by whom (the server strips detail via `opaqueReservedCell`).
+ * - `author` — one of the viewer's OWN linked tournaments. Carries `tournamentName` so the director
+ *   can see which of their tournaments holds the court.
+ *
+ * `author` peers were previously filtered out here, on the assumption that they "render normally".
+ * They do not. Nothing loads peer tournamentRecords into the engine on the scheduling tab
+ * (`competitionEngine`/`tournamentEngine` are the same factory singletons over one state store, and
+ * TMX seeds a single record), so an author peer's matchUps were neither drawn nor reserved and the
+ * slot rendered EMPTY — a court shown free while the director's own linked tournament played on it.
+ * Until same-provider peers are loaded into the engine for a fully interactive integrated grid,
+ * reserved-and-named is the truthful representation.
  */
 
 let cache: { tournamentId: string; cells: any[] } | null = null;
@@ -39,8 +50,10 @@ export async function loadReservedCells(primaryRecord: any): Promise<number> {
       venueIds: primaryVenueIds(primaryRecord),
       silent: true,
     });
-    // Only `view` peers are reserved slots; `author` peers are the viewer's own and render normally.
-    const cells = (result?.data?.scheduleCells ?? []).filter((cell: any) => cell?.access === 'view');
+    // Both `view` and `author` peers occupy courts the viewer must not double-book. Cells with no
+    // access tag are treated as reserved too — a projection shape we don't recognise must not
+    // silently become an empty court.
+    const cells = result?.data?.scheduleCells ?? [];
     cache = { tournamentId: primaryId, cells };
     return cells.length;
   } catch {

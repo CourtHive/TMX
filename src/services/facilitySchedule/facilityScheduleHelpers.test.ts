@@ -110,6 +110,24 @@ describe('mergeReservedCellsIntoRows', () => {
     });
   });
 
+  it('labels an author cell with its tournamentName and leaves a view cell unnamed', () => {
+    // `author` = one of the viewer's own linked tournaments (server is willing to name it).
+    // `view` = another director's — must stay opaque: a court is taken, never by whom.
+    const rows: any[] = [{ rowId: 'r0' }, { rowId: 'r1' }];
+    mergeReservedCellsIntoRows(
+      rows,
+      [
+        { courtId: 'c0', courtOrder: 1, access: 'author', tournamentName: 'My Other Tournament' },
+        { courtId: 'c1', courtOrder: 2, access: 'view' },
+      ],
+      courtsData,
+      'C|',
+    );
+    expect(rows[0]['C|0'].reservation.tournamentName).toEqual('My Other Tournament');
+    expect(rows[1]['C|1'].reservation.tournamentName).toBeUndefined();
+    expect(rows[1]['C|1'].isReserved).toBe(true);
+  });
+
   it('never overwrites an owned matchUp (SAME_COURT_ORDER clash keeps the owned cell)', () => {
     const rows: any[] = [{ 'C|0': { matchUpId: 'own' } }];
     mergeReservedCellsIntoRows(rows, [{ courtId: 'c0', courtOrder: 1 }], [{ courtId: 'c0' }], 'C|');
