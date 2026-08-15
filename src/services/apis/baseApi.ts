@@ -1,11 +1,29 @@
 import { getJwtTokenStorageKey, getRefreshTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { platform } from 'platform';
 import axios from 'axios';
 import { t } from 'i18n';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
 const REFRESH_TOKEN_STORAGE_NAME = getRefreshTokenStorageKey();
-const baseURL = process.env.SERVER || globalThis.location?.origin || '';
+
+// In a packaged desktop app the renderer is loaded from `file://`, so
+// `location.origin` is `"file://"` and EVERY REST call resolves to
+// `file:///auth/...` and fails with ERR_FILE_NOT_FOUND. Desktop therefore
+// resolves its API host from the persisted preference — the same value
+// Socket.IO already uses via `serverConfig.socketPath`, which is why the socket
+// connected while REST silently did not.
+//
+// The desktop branch is guarded by `isDesktop()` rather than calling
+// `getDefaultServerUrl()` unconditionally: the WEB adapter's implementation
+// touches `window.location`, which is undefined under vitest's default `node`
+// environment. On web the fallback below is byte-identical to what the web
+// adapter would have returned anyway.
+const baseURL =
+  process.env.SERVER ||
+  (platform.isDesktop() ? platform.getDefaultServerUrl() : '') ||
+  globalThis.location?.origin ||
+  '';
 console.log('[baseApi] server URL:', baseURL);
 const axiosInstance = axios.create({ baseURL });
 

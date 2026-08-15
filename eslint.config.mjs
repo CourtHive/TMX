@@ -13,6 +13,7 @@ export default [
       '**/*.mjs',
       'vite.config.ts',
       'electron.vite.config.ts',
+      'vite.shared.ts',
       '**/*.cy.ts',
       'cypress/**',
       'cypress.config.ts',

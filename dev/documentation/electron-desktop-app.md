@@ -12,6 +12,10 @@ pnpm electron:dev        # Dev server + Electron window (hot-reload)
 pnpm electron:build      # Build main/preload/renderer for production
 pnpm electron:preview    # Preview production build in Electron
 pnpm electron:package    # Package distributable (DMG/NSIS/AppImage)
+
+pnpm test:electron       # Build + Playwright smoke suite against the desktop target
+pnpm test:electron:ui    # Same, in Playwright's interactive UI
+pnpm check-types:electron # Type-check electron/ only
 ```
 
 Web scripts (`pnpm start`, `pnpm build`, etc.) are completely unchanged.
@@ -264,6 +268,31 @@ rm -f "$HOME/Library/Application Support/tmx/IndexedDB/http_localhost_*.indexedd
 The port is printed in the console output. The main process reads `ELECTRON_RENDERER_URL` which
 electron-vite sets automatically.
 
+### `pnpm electron:package` fails with `mimeType "undefined" is not valid`
+
+electron-builder parses Electron's `Info.plist` through `plist@3`, which calls
+`parseFromString(xml)` with no mimeType — mandatory as of `@xmldom/xmldom@0.9`.
+TMX overrides `@xmldom/xmldom` to `^0.9.0` for security, which also captured
+`plist`. Resolved by the scoped override in `pnpm-workspace.yaml`:
+
+```yaml
+'plist>@xmldom/xmldom': ^0.8.11
+```
+
+`plist` is build-time only (never in the app bundle, never fed untrusted input),
+so the 0.8 line is not an exposure. Everything else stays on 0.9.
+
+### `window.electronAPI` is undefined in the packaged app
+
+The preload was emitted under a name `electron/main.ts` does not load. Electron
+accepts an ESM preload **only** when the file is named `.mjs`, and electron-vite
+v5 defaults `entryFileNames` to `[name].js`; `electron.vite.config.ts` pins
+`output: { format: 'es', entryFileNames: 'preload.mjs' }` for this reason.
+
+Nothing errors when this breaks — `src/platform/index.ts` simply falls back to
+the **web** adapter, so native dialogs become browser downloads and the
+Connection panel vanishes. `preload-bridge.spec.ts` exists to catch it.
+
 ### `process.env.SERVER` undefined
 
 The renderer config in `electron.vite.config.ts` must include `vite-plugin-environment` with
@@ -277,6 +306,50 @@ Without this, `process.env.SERVER` won't be replaced at compile time and will th
 
 ---
 
+## Verification
+
+Until 2026-08-15 the desktop target had **no gate of any kind**, and the build was
+broken on `main` for five months without a single red signal. The cause was
+scoping, not neglect:
+
+| Gate | Scope before | Covers `electron/` now |
+|---|---|---|
+| `pnpm lint` | `eslint src e2e` | yes — `eslint src e2e electron` |
+| `pnpm check-types` | `tsconfig.json` (`include: ["src"]`) | yes — third leg runs `electron/tsconfig.json` |
+| `pnpm test` | vitest, `src/**` | no (by design — see below) |
+| CI | no desktop job | yes — `.github/workflows/electron.yml` |
+
+Unit tests deliberately do **not** cover the Electron entry points: main and
+preload only do meaningful work inside a running Electron process, so a mocked
+`ipcMain` would assert the mock. The desktop target is covered by Playwright
+instead — the ecosystem's only DOM/E2E layer.
+
+### Smoke suite (`e2e/electron/`)
+
+Run with `pnpm test:electron`. Config: `e2e/playwright.electron.config.ts`
+(separate from the web journeys — no `webServer`, no browser project, no retries).
+
+| Spec | Guards |
+|---|---|
+| `build-contract.spec.ts` | Static assertions on build OUTPUT — `package.json#main` resolves, the preload filename `main.ts` loads is actually emitted, preload is `.mjs`, `index.html` asset paths stay relative, `version.json` is emitted |
+| `app-launch.spec.ts` | Launches `dist-electron/main/main.js`: window opens, assets resolve under `file://`, TMX itself boots (`globalThis.dev`), no uncaught errors, and **no request fails against the `file://` origin** |
+| `preload-bridge.spec.ts` | `window.electronAPI` is injected, exposes every method `PlatformAdapter` needs, and both IPC directions round-trip |
+| `packaged-app.spec.ts` | The real `.app`/`.exe`/AppImage from electron-builder — boots from inside the asar, ships the preload, loads every bundled asset. Auto-skips unless `release/` exists |
+
+Two habits keep this suite honest:
+
+- **Cold profile per launch.** Every spec passes `--user-data-dir=<temp>`
+  (`e2e/electron/helpers/userDataDir.ts`). Electron persists `userData` across
+  runs, and a cached i18n manifest from a previous run silently disarmed the
+  failed-request guard — the suite stayed green while a reverted fix was
+  reintroduced. See architectural-standard A6.
+- **Falsify the detector.** Every guard here was verified to report *dirty*, not
+  just clean: reverting the preload fix fires 7 failures, reverting
+  `staticAssetUrl` fires on `file:///fonts/catalog.json`, and reverting the
+  `baseApi` fix fires on `file:///i18n/manifest`.
+
+---
+
 ## Implementation Status
 
 | Phase | Status | Description |
@@ -285,7 +358,23 @@ Without this, `process.env.SERVER` won't be replaced at compile time and will th
 | 2. Platform Adapter | DONE | PlatformAdapter interface, web + electron implementations |
 | 3. Config Migration | DONE | 10 typed modules, env shim, 36 files migrated |
 | 4. Native Features | DONE | File dialogs, app menu, standalone UI, OS notifications, admin DevTools |
-| 5. Distribution | TODO | Code signing, CI pipeline, auto-update |
+| 5. Distribution | PARTIAL | Build + package + CI + smoke suite done; **code signing, app icon, and auto-update still outstanding** |
+
+### Phase 5 — what remains
+
+`pnpm electron:package` produces a working, verified DMG today, but
+electron-builder still warns about three things, all cosmetic-but-shipping:
+
+- **No application icon** — the DMG ships the default Electron icon
+  (`default Electron icon is used`). Needs an `.icns`/`.ico` in
+  `electron-builder.json5`.
+- **No `description` / `author` in `package.json`** — these become the macOS
+  bundle metadata.
+- **No code signing** — `0 valid identities found`, so macOS Gatekeeper will
+  warn on first launch. Needs Apple Developer Program ($99/yr) + a Windows cert.
+
+Auto-update is untouched: `platform.canAutoUpdate()` returns `true` in the
+Electron adapter, but nothing consumes it.
 
 ---
 
@@ -293,6 +382,7 @@ Without this, `process.env.SERVER` won't be replaced at compile time and will th
 
 1. **Auto-update infrastructure** — GitHub Releases (free, simple) vs S3/custom server?
 2. **Offline → online sync** — replay mutation log or upload full tournament record?
+   (Now under active design — see `Mentat/planning/DISCONNECTED_SYNC_RECONCILIATION.md`.)
 3. **Deep linking** — should `courthive://tournament/123` open the desktop app?
 4. **Multi-window** — should users be able to open multiple tournaments in separate windows?
 5. **Code signing** — Apple Developer Program ($99/yr) + Windows cert needed for unsigned warnings
