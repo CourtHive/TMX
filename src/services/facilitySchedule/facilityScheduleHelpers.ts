@@ -97,7 +97,10 @@ export function mergeReservedCellsIntoRows(
     if (rows[ri][key]?.matchUpId) continue;
     rows[ri][key] = {
       isReserved: true,
-      reservation: { scheduledTime: cell?.scheduledTime },
+      // `tournamentName` is present only on `author` cells — the viewer's own linked tournaments,
+      // which the server is willing to name. `view` peers arrive opaque and stay unnamed, so the
+      // rendered cell says a court is taken without saying by whom.
+      reservation: { scheduledTime: cell?.scheduledTime, tournamentName: cell?.tournamentName },
       schedule: { courtId: cell.courtId, courtOrder: cell.courtOrder, venueId: cell?.venueId },
     };
   }

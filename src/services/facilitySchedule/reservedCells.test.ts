@@ -1,8 +1,9 @@
 /**
  * reservedCells — coordination-view fetch + cache of other facility-sharing tournaments' court
  * occupancy. The request sends the loaded (authored) tournament as the context; the server returns
- * its linked peers' projections tagged access:'author'|'view'. Only `view` peers are reserved slots
- * (a different director/provider); `author` peers render normally. No tournamentRecords are loaded.
+ * its linked peers' projections tagged access:'author'|'view'. BOTH are reserved slots: `view` peers
+ * (another director/provider) stay opaque, `author` peers (the viewer's own linked tournaments) are
+ * named. No tournamentRecords are loaded.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -56,18 +57,42 @@ describe('loadReservedCells', () => {
     expect(hasReservedCells(PRIMARY)).toBe(true);
   });
 
-  it('keeps only view-access cells — author peers render normally, not as reserved', async () => {
+  it('keeps BOTH author and view cells — an author peer occupies a real court', async () => {
+    // Regression: `author` cells used to be filtered out here on the assumption that they "render
+    // normally". Nothing loads peer records into the engine on the scheduling tab, so filtering them
+    // left the court rendering EMPTY while the director's own linked tournament played on it.
     fetchScheduleProjectionMock.mockResolvedValue(
       proj([
-        { tournamentId: 'own-linked', access: 'author', courtId: 'c1', courtOrder: 1, scheduledDate: DATE },
+        {
+          tournamentId: 'own-linked',
+          access: 'author',
+          tournamentName: 'My Other Tournament',
+          courtId: 'c1',
+          courtOrder: 1,
+          scheduledDate: DATE,
+        },
         viewCell({ courtOrder: 2, scheduledDate: DATE }),
       ]),
     );
 
     const count = await loadReservedCells(primaryRecord(['peer', 'own-linked']));
 
+    expect(count).toBe(2);
+    const cells = getReservedCellsForDate(DATE, PRIMARY);
+    expect(cells.map((c) => c.access).sort()).toEqual(['author', 'view']);
+    // the author cell is named; the view cell is not
+    expect(cells.find((c) => c.access === 'author')?.tournamentName).toEqual('My Other Tournament');
+    expect(cells.find((c) => c.access === 'view')?.tournamentName).toBeUndefined();
+  });
+
+  it('treats an untagged cell as reserved rather than dropping it', async () => {
+    // An unrecognised projection shape must not silently become an empty court.
+    fetchScheduleProjectionMock.mockResolvedValue(
+      proj([{ tournamentId: 'peer', courtId: 'c1', courtOrder: 1, scheduledDate: DATE }]),
+    );
+    const count = await loadReservedCells(primaryRecord(['peer']));
     expect(count).toBe(1);
-    expect(getReservedCellsForDate(DATE, PRIMARY).map((c) => c.access)).toEqual(['view']);
+    expect(getReservedCellsForDate(DATE, PRIMARY)).toHaveLength(1);
   });
 
   it('does not fetch and caches an empty set when there are no linked peers', async () => {
