@@ -1,5 +1,30 @@
 # Changelog
 
+## [8.18.0](https://github.com/CourtHive/TMX/compare/v8.17.1...v8.18.0) (2026-08-15)
+
+
+### Features
+
+* **participants:** inline competitive fingerprint on the participant card ([#1266](https://github.com/CourtHive/TMX/issues/1266)) ([83a737d](https://github.com/CourtHive/TMX/commit/83a737dd91a30938f35ac5e98c52b183f71150c1))
+* **venues:** add a tournament venue from the canonical facility registry ([#1263](https://github.com/CourtHive/TMX/issues/1263)) ([52d7f6d](https://github.com/CourtHive/TMX/commit/52d7f6d057609d691db5226f3ecc8e5bad31009d))
+
+
+### Bug Fixes
+
+* **deps:** courthive-components 3.13.1 + pdf-factory 0.8.16 ([#1257](https://github.com/CourtHive/TMX/issues/1257)) ([0fa6f84](https://github.com/CourtHive/TMX/commit/0fa6f84c650bca312bace28d228f58d56fcdf412))
+* **deps:** update courthive-components to 3.12.3 ([52137cf](https://github.com/CourtHive/TMX/commit/52137cf4610248985c542288ddafcb586df7cf3d))
+* **deps:** update courthive-components to 3.13.0 ([b882a3a](https://github.com/CourtHive/TMX/commit/b882a3af61fb7740070af3c56f4964510dba475b))
+* **deps:** update pdf-factory to 0.8.14 ([eafaac3](https://github.com/CourtHive/TMX/commit/eafaac33b2a7c92c1420e7b79310ab8e0a77c991))
+* **deps:** update tods-competition-factory to 6.21.0 ([9e43508](https://github.com/CourtHive/TMX/commit/9e43508c740c9739ea4b082433c4bfc3d8aef86a))
+* **deps:** update tods-competition-factory to 6.22.0 ([#1256](https://github.com/CourtHive/TMX/issues/1256)) ([6db52be](https://github.com/CourtHive/TMX/commit/6db52be79d0178ac98398a5dc8781f31ac29a159))
+* **deps:** update tods-competition-factory to 6.24.0 ([#1269](https://github.com/CourtHive/TMX/issues/1269)) ([33b008f](https://github.com/CourtHive/TMX/commit/33b008f3989137de009076737d6276c6da39e4a5))
+* **deps:** update tods-competition-factory to 6.25.0 ([#1271](https://github.com/CourtHive/TMX/issues/1271)) ([7e01525](https://github.com/CourtHive/TMX/commit/7e015254f8ceb2e1452007a1e1d8317e56e224a7))
+* **e2e:** seed the local calendar day, not the UTC one ([#1264](https://github.com/CourtHive/TMX/issues/1264)) ([0e3550a](https://github.com/CourtHive/TMX/commit/0e3550afa4de1bad40ea3181bcc4ba1e6342b4e8))
+* **modals:** dispose the Leaflet map when the location picker closes ([#1255](https://github.com/CourtHive/TMX/issues/1255)) ([fcdfc39](https://github.com/CourtHive/TMX/commit/fcdfc39931ed42d5397aed4fb28bbfae17d659ff))
+* **participants:** clear the country when the field is emptied and saved ([#1262](https://github.com/CourtHive/TMX/issues/1262)) ([47480b4](https://github.com/CourtHive/TMX/commit/47480b4c1c7e224995d8627985001de39d095e00))
+* **participants:** populate and persist country in the Edit Participant drawer ([#1259](https://github.com/CourtHive/TMX/issues/1259)) ([e9a88a6](https://github.com/CourtHive/TMX/commit/e9a88a62a26ec39d41c943687e1b7408f9b92e09))
+* **scheduling:** show own linked tournaments as reserved instead of empty courts ([#1270](https://github.com/CourtHive/TMX/issues/1270)) ([3816372](https://github.com/CourtHive/TMX/commit/38163726512ca471a5f355827858245580b22300))
+
 ## [8.17.1](https://github.com/CourtHive/TMX/compare/v8.17.0...v8.17.1) (2026-08-09)
 
 
