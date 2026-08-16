@@ -18,6 +18,7 @@ export const REMOVE_MATCHUP_TIMEKEEPER = 'removeMatchUpTimekeeper';
 export const ADD_MATCHUP_SCHEDULE_ITEMS = 'addMatchUpScheduleItems';
 export const ADD_ONLINE_RESOURCE = 'addOnlineResource';
 export const ADD_PARTICIPANTS = 'addParticipants';
+export const CREATE_GROUP_PARTICIPANT = 'createGroupParticipant';
 export const ADD_PARTICIPANT_TIME_ITEM = 'addParticipantTimeItem';
 
 export const ATTACH_CONSOLATION_STRUCTURES = 'attachConsolationStructures';

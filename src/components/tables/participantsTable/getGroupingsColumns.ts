@@ -6,7 +6,7 @@ import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
 import { teamProfileModal } from '../../modals/teamProfileModal';
-import { participantConstants } from 'tods-competition-factory';
+import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -15,6 +15,7 @@ import { CENTER, IS_OPEN, LEFT, RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const { GROUP, TEAM } = participantConstants;
+const { OTHER } = participantRoles;
 
 export function getGroupingsColumns({
   view,
@@ -79,6 +80,23 @@ export function getGroupingsColumns({
       title: t('tables.groupings.name'),
       minWidth: 200,
       widthGrow: 1,
+    },
+    {
+      // GROUP only. A group's role is what escalates a SHARED_GROUPING conflict from WARN to BLOCK, so a
+      // TD needs to see at a glance which groups carry a blocking relationship. OTHER is the neutral
+      // default and is left blank rather than rendered as a badge, so only meaningful roles draw the eye.
+      formatter: (cell: any) => {
+        const role = cell.getValue();
+        return role && role !== OTHER ? `<span class="tmx-role-badge">${role}</span>` : '';
+      },
+      title: t('pages.participants.groupRole'),
+      visible: view === GROUP,
+      field: 'participantRole',
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      headerSort: true,
+      minWidth: 110,
+      editor: false,
     },
     {
       sorter: (a: any, b: any) => a?.[0]?.eventName?.localeCompare(b?.[0]?.eventName, undefined, { numeric: true }),

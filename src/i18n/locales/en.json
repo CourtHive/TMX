@@ -2146,7 +2146,8 @@
         "male": "Male",
         "female": "Female",
         "unknown": "Unknown"
-      }
+      },
+      "groupRole": "Group role"
     }
   },
   "overlays": {
@@ -2300,5 +2301,12 @@
   },
   "officiating": {
     "conflictWarning": "This official has a potential conflict of interest with a participant in this match. Assign anyway?"
+  },
+  "participantRoles": {
+    "OTHER": "Other",
+    "COACH": "Coach",
+    "MEDICAL": "Medical",
+    "PHYSIO": "Physio",
+    "TRAINER": "Trainer"
   }
 }
