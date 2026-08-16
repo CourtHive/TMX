@@ -8,11 +8,27 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
-import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { ADD_PARTICIPANTS, CREATE_GROUP_PARTICIPANT, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { RIGHT, SUCCESS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
-const { COMPETITOR, OTHER } = participantRoles;
-const { TEAM } = participantConstants;
+const { COACH, COMPETITOR, MEDICAL, OTHER, PHYSIO, TRAINER } = participantRoles;
+const { GROUP, TEAM } = participantConstants;
+
+/**
+ * Roles a GROUP can carry. A GROUP expresses a relationship between its members, and that relationship is
+ * what `SHARED_GROUPING` conflict-of-interest checks escalate on: the factory's bundled policies map
+ * COACH / MEDICAL / PHYSIO / TRAINER to BLOCK via `ConflictRule.roleSeverity`, while anything else — OTHER
+ * included — falls through to the rule's base severity (WARN).
+ *
+ * OTHER stays the default so an ordinary grouping behaves exactly as it did before this select existed.
+ * CAPTAIN is deliberately absent from the blocking roles in factory policy (CA, 2026-08-15); it is offered
+ * here only if it is added there, to avoid implying an escalation that would not happen.
+ *
+ * TEAM is NOT offered a role select: it is pinned to COMPETITOR because `teamProfileModal` filters rosters
+ * on `participantRole === COMPETITOR`, and `createTeamsFromAttributes` builds TEAMs the same way.
+ */
+const GROUP_ROLE_OPTIONS = [OTHER, COACH, MEDICAL, PHYSIO, TRAINER];
 
 export function editGroupingParticipant({
   individualParticipantIds,
@@ -30,10 +46,12 @@ export function editGroupingParticipant({
   table?: any;
 }): any {
   const PARTICIPANT_NAME = 'participantName';
+  const isGroup = participantType === GROUP;
   const values = {
     [PARTICIPANT_NAME]: participant?.[PARTICIPANT_NAME],
     nickname: participant?.participantOtherName || '',
     useOtherName: participant?.useOtherName ?? false,
+    participantRole: participant?.participantRole || OTHER,
   };
   let inputs: any;
 
@@ -60,6 +78,22 @@ export function editGroupingParticipant({
         label: 'Prefer nickname in draws',
         checkbox: true,
       },
+      // GROUP only — see GROUP_ROLE_OPTIONS. Hidden entirely for TEAM rather than disabled, so there is
+      // no impression that a TEAM's role is configurable.
+      ...(isGroup
+        ? [
+            {
+              options: GROUP_ROLE_OPTIONS.map((role) => ({
+                label: t(`participantRoles.${role}`, { defaultValue: role }),
+                selected: role === values.participantRole,
+                value: role,
+              })),
+              value: values.participantRole,
+              label: t('pages.participants.groupRole'),
+              field: 'participantRole',
+            },
+          ]
+        : []),
     ]);
   };
 
@@ -106,6 +140,10 @@ export function editGroupingParticipant({
     const participantOtherName = inputs.nickname?.value || undefined;
     const useOtherName = inputs.useOtherName?.checked ?? false;
 
+    // A TD discovers a relationship at least as often AFTER creating the group as before, so the role
+    // must be editable, not create-only.
+    const roleUpdate = isGroup ? { participantRole: inputs.participantRole?.value || values.participantRole } : {};
+
     const methods = [
       {
         method: MODIFY_PARTICIPANT,
@@ -115,6 +153,7 @@ export function editGroupingParticipant({
             participantOtherName,
             participantName,
             useOtherName,
+            ...roleUpdate,
           },
         },
       },
@@ -123,20 +162,40 @@ export function editGroupingParticipant({
   }
 
   function addParticipant(): void {
-    const participantRole = participantType === TEAM ? COMPETITOR : OTHER;
-    const newParticipant = {
-      individualParticipantIds: individualParticipantIds || participant?.individualParticipantIds || [],
-      participantName: inputs[PARTICIPANT_NAME]?.value,
-      participantRole,
-      participantType,
-    };
+    // TEAM is pinned to COMPETITOR; a GROUP takes the selected role, defaulting to OTHER.
+    const participantRole = participantType === TEAM ? COMPETITOR : inputs.participantRole?.value || OTHER;
+    const memberIds = individualParticipantIds || participant?.individualParticipantIds || [];
+    const participantName = inputs[PARTICIPANT_NAME]?.value;
 
-    const methods = [
-      {
-        params: { participants: [newParticipant] },
-        method: ADD_PARTICIPANTS,
-      },
-    ];
+    // GROUPs go through the factory's purpose-built creator, which validates that every member is an
+    // INDIVIDUAL in the tournament (INVALID_PARTICIPANT_TYPE otherwise). The hand-built ADD_PARTICIPANTS
+    // path skips that check, so it is kept only for TEAM where the existing behaviour is relied upon.
+    const methods = isGroup
+      ? [
+          {
+            method: CREATE_GROUP_PARTICIPANT,
+            params: {
+              individualParticipantIds: memberIds,
+              groupName: participantName,
+              participantRole,
+            },
+          },
+        ]
+      : [
+          {
+            params: {
+              participants: [
+                {
+                  individualParticipantIds: memberIds,
+                  participantName,
+                  participantRole,
+                  participantType,
+                },
+              ],
+            },
+            method: ADD_PARTICIPANTS,
+          },
+        ];
     mutationRequest({ methods, callback: postMutation });
   }
 
