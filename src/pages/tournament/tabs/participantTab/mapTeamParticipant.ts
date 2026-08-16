@@ -6,6 +6,7 @@ export function mapTeamParticipant(participant: any, derivedEventInfo: any): any
     individualParticipants,
     participantName,
     participantType,
+    participantRole,
     participantId,
     representing,
   } = participant;
@@ -20,6 +21,9 @@ export function mapTeamParticipant(participant: any, derivedEventInfo: any): any
     individualParticipants,
     participantName,
     participantType,
+    // The groupings table's role column reads `field: 'participantRole'`. Without it here the cell
+    // resolves to undefined and the badge silently never renders, whatever the record actually says.
+    participantRole,
     participantId,
     membersCount,
   };

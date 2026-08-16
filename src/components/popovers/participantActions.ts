@@ -30,6 +30,7 @@ export const participantActions =
     const { participantId, participantType } = data;
 
     const isTeam = participantType === 'TEAM';
+    const isGroup = participantType === 'GROUP';
     const isIndividual = participantType === 'INDIVIDUAL';
 
     const individualParticipant = isIndividual
@@ -67,6 +68,29 @@ export const participantActions =
               participant,
               refresh: replaceTableData,
               title: 'Rename team',
+            });
+          }
+        },
+      },
+      {
+        // GROUPs had no edit affordance at all — the row's only action was Delete. That left
+        // `editGroupingParticipant`'s role select reachable solely at creation time, and its
+        // `updateParticipant` role branch unreachable entirely, contradicting its own premise that a
+        // TD discovers a relationship at least as often after creating the group as before.
+        // `participantType: GROUP` is required: it is what makes the role select render (the TEAM
+        // default suppresses it, since a TEAM is pinned to COMPETITOR).
+        hide: !isGroup,
+        text: "<i class='fas fa-users'></i> Edit group",
+        onClick: () => {
+          const participant = tournamentEngine.getParticipants({
+            participantFilters: { participantIds: [participantId] },
+          }).participants?.[0];
+          if (participant) {
+            editGroupingParticipant({
+              participantType: 'GROUP',
+              refresh: replaceTableData,
+              title: 'Edit group',
+              participant,
             });
           }
         },
