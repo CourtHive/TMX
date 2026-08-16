@@ -116,6 +116,62 @@ export function looksLikeProse(raw) {
   return /^[A-Z][a-z]/.test(value);
 }
 
+// ------------------------------------------------- unresolved-key resolution
+//
+// The mirror image of the hardcoded-string check. A hardcoded string is visibly
+// English; a MISTYPED KEY is worse, because i18next returns the key itself on a
+// miss — so `t('pages.participants.actions.editGroup')` renders that dotted path
+// on screen as if it were copy. Nothing else catches it: it is valid TypeScript,
+// lint-clean, and no test exercises most of these paths.
+//
+// Two exemptions, both load-bearing (without them this check is pure noise):
+//
+//   1. `defaultValue` — `t('x.y', { defaultValue: 'Dismiss' })` renders the
+//      default on a miss, by design. 11 of 14 initial hits were this. Flagging
+//      them would push people to add keys duplicating the inline defaults.
+//   2. Plural suffixes — `t('x.count', { count })` resolves through
+//      `x.count_one` / `x.count_other`, and the bare key often does not exist.
+//
+// Dynamic keys (`t(\`participantRoles.${role}\`)`, `t(someVar)`) are skipped:
+// not statically knowable. That is a real blind spot, not a solved problem.
+
+const PLURAL_SUFFIXES = ['', '_one', '_other', '_zero', '_two', '_few', '_many'];
+
+let enBundle;
+function loadEn() {
+  enBundle ??= JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'i18n', 'locales', 'en.json'), 'utf8'));
+  return enBundle;
+}
+
+function lookup(dotted) {
+  let node = loadEn();
+  for (const part of dotted.split('.')) {
+    if (!node || typeof node !== 'object' || !(part in node)) return undefined;
+    node = node[part];
+  }
+  return node;
+}
+
+/** Does this key resolve to a string, allowing for i18next plural suffixes? */
+export function keyResolves(key) {
+  return PLURAL_SUFFIXES.some((suffix) => typeof lookup(key + suffix) === 'string');
+}
+
+/** `t(key, { defaultValue: … })` — renders the default rather than the key. */
+function hasDefaultValue(call) {
+  const options = call.arguments[1];
+  if (!options || !ts.isObjectLiteralExpression(options)) return false;
+  return options.properties.some((p) => p.name && ts.isIdentifier(p.name) && p.name.text === 'defaultValue');
+}
+
+/** A call to `t(...)` or `something.t(...)`. */
+function isTranslateCall(call) {
+  const callee = call.expression;
+  if (ts.isIdentifier(callee)) return callee.text === 't';
+  if (ts.isPropertyAccessExpression(callee)) return callee.name.text === 't';
+  return false;
+}
+
 // ---------------------------------------------------------------- AST walk
 
 function stringValueOf(node) {
@@ -125,7 +181,7 @@ function stringValueOf(node) {
   return undefined; // calls (t(...)), identifiers, templates with substitution, …
 }
 
-function collectFromFile(file, findings) {
+function collectFromFile(file, findings, unresolved) {
   const source = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
   const rel = path.relative(ROOT, file);
 
@@ -135,6 +191,15 @@ function collectFromFile(file, findings) {
   };
 
   const visit = (node) => {
+    // 0. t('some.key') that resolves to nothing — renders the key on screen.
+    if (ts.isCallExpression(node) && isTranslateCall(node) && node.arguments.length) {
+      const key = stringValueOf(node.arguments[0]);
+      if (key !== undefined && !hasDefaultValue(node) && !keyResolves(key)) {
+        const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
+        unresolved.push({ file: rel, line: line + 1, key });
+      }
+    }
+
     // 1. { label: 'Cancel' }
     if (ts.isPropertyAssignment(node)) {
       const name = ts.isIdentifier(node.name) || ts.isStringLiteral(node.name) ? node.name.text : undefined;
@@ -219,11 +284,13 @@ function main() {
   }
 
   const findings = [];
-  for (const file of walk(SRC, [])) collectFromFile(file, findings);
+  const unresolved = [];
+  for (const file of walk(SRC, [])) collectFromFile(file, findings, unresolved);
   findings.sort((a, b) => a.file.localeCompare(b.file, 'en') || a.line - b.line);
+  unresolved.sort((a, b) => a.file.localeCompare(b.file, 'en') || a.line - b.line);
 
   if (jsonAt !== -1 && argv[jsonAt + 1]) {
-    fs.writeFileSync(argv[jsonAt + 1], `${JSON.stringify(findings, null, 2)}\n`, 'utf8');
+    fs.writeFileSync(argv[jsonAt + 1], `${JSON.stringify({ findings, unresolved }, null, 2)}\n`, 'utf8');
   }
 
   if (update) {
@@ -250,8 +317,27 @@ function main() {
     // Without --ci this exits 0 even with new findings, which is easy to read as
     // a pass. Say so, rather than relying on the reader noticing the count.
     if (!ci && fresh.length) {
-      console.log(`\ni18n-audit: exiting 0 — this mode only reports. Use --ci to fail on the ${fresh.length} new string(s).`);
+      console.log(
+        `\ni18n-audit: exiting 0 — this mode only reports. Use --ci to fail on the ${fresh.length} new string(s).`,
+      );
     }
+  }
+
+  // Unresolved keys are NOT baselined. Unlike hardcoded strings there is no
+  // legacy backlog to ratchet down — the tree starts clean, so any hit is a new
+  // defect that renders a dotted key path on screen.
+  if (!quiet && unresolved.length) {
+    console.log(`\ni18n-audit: ${unresolved.length} t() key(s) resolve to NOTHING — these render the key itself:`);
+    for (const u of unresolved) console.log(`  ${u.file}:${u.line}  t('${u.key}')`);
+  }
+
+  if (ci && unresolved.length) {
+    console.error(
+      `\ni18n-audit: ${unresolved.length} unresolved t() key(s). i18next returns the key on a miss, so each of ` +
+        `these renders its own dotted path to the user. Add the key to src/i18n/locales/en.json, fix the typo, ` +
+        `or pass an explicit { defaultValue }.`,
+    );
+    return 1;
   }
 
   if (ci && fresh.length) {
