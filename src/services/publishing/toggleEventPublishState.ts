@@ -32,5 +32,7 @@ export const toggleEventPublishState = (nestedTables) => (_, cell) => {
       logMutationError('toggleEventPublishState', result);
     }
   };
-  mutationRequest({ methods, callback: postMutation });
+  // Warm only on PUBLISH: releasing a draw is the moment a public reader is imminent, so seeding
+  // the event payload saves them the cache miss. Unpublishing has no reader to serve.
+  mutationRequest({ methods, callback: postMutation, warmCache: method === PUBLISH_EVENT });
 };
