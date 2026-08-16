@@ -2147,7 +2147,19 @@
         "female": "Female",
         "unknown": "Unknown"
       },
-      "groupRole": "Group role"
+      "groupRole": "Group role",
+      "rowActions": {
+        "participantProfile": "Participant profile",
+        "renameTeam": "Rename team",
+        "editGroup": "Edit group",
+        "deleteParticipant": "Delete participant"
+      },
+      "grouping": {
+        "namePlaceholder": "Participant name",
+        "nicknamePlaceholder": "Nickname / abbreviation",
+        "preferNickname": "Prefer nickname in draws",
+        "nameTooShort": "Please enter a name of at least 3 characters"
+      }
     }
   },
   "overlays": {
@@ -2300,7 +2312,9 @@
     }
   },
   "officiating": {
-    "conflictWarning": "This official has a potential conflict of interest with a participant in this match. Assign anyway?"
+    "conflictWarning": "This official has a potential conflict of interest with a participant in this match. Assign anyway?",
+    "selectOfficial": "Select official",
+    "noOfficialsFound": "No officials found"
   },
   "participantRoles": {
     "OTHER": "Other",

@@ -198,7 +198,7 @@ export function matchUpActions({
       const noOfficialsEl = document.createElement('div');
       noOfficialsEl.style.cssText =
         'padding:12px; min-width:160px; text-align:center; color:var(--chc-text-secondary, #888);';
-      noOfficialsEl.textContent = 'No officials found';
+      noOfficialsEl.textContent = t('officiating.noOfficialsFound');
 
       const anchorEl = (target || pointerEvent.target) as HTMLElement;
       destroyOfficialTip();
@@ -374,7 +374,7 @@ export function matchUpActions({
     },
     {
       onClick: selectOfficial,
-      text: 'Select official',
+      text: t('officiating.selectOfficial'),
     },
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
