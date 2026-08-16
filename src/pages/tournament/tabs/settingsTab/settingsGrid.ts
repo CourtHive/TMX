@@ -11,6 +11,7 @@ import { removeTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { setActiveScale } from 'settings/setActiveScale';
+import { setBaseURL } from 'services/apis/baseApi';
 import { featureFlags } from 'config/featureFlags';
 import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
@@ -512,6 +513,12 @@ export async function renderSettingsGrid(
       const url = serverUrlInput.value.trim();
       serverConfig.set({ socketPath: url });
       platform.setServerUrl?.(url);
+      // Re-point the REST layer too. `serverConfig.socketPath` only steers
+      // Socket.IO; without this the axios instance keeps the base URL it
+      // captured at module load, so changing the server here moved the socket
+      // to the new host while every REST call kept going to the old one (in a
+      // packaged app, to `file://`) until the app was restarted.
+      setBaseURL(url);
       persistConfigToStorage({});
     });
 

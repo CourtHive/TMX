@@ -43,6 +43,17 @@ overrides:
   '@courthive/provider-config': link:../provider-config
   '@courthive/scoring-visualizations': link:../scoringVisualizations
   '@xmldom/xmldom': ^0.9.0
+  # SCOPED EXCEPTION to the line above. The blanket ^0.9.0 override (a security
+  # bump) also captures `plist`, which declares ^0.8.8 and calls
+  # `new DOMParser().parseFromString(xml)` with NO mimeType — mandatory as of
+  # xmldom 0.9. That makes `pnpm electron:package` die with
+  # "the provided mimeType undefined is not valid" while parsing Electron's
+  # Info.plist, i.e. the desktop app cannot be packaged at all.
+  # plist reaches us ONLY through electron-builder: it is a build-time tool that
+  # parses plists we generate ourselves, never shipped in the app bundle and
+  # never fed untrusted input, so the 0.8 line is not an exposure here. Every
+  # other consumer of xmldom stays on 0.9.
+  'plist>@xmldom/xmldom': ^0.8.11
   'brace-expansion@1': ^5.0.0
   'brace-expansion@2': ^5.0.0
   'brace-expansion@>=4 <5.0.5': ^5.0.5

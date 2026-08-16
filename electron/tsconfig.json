@@ -1,11 +1,21 @@
 {
+  // Type-check-only config for the Electron main + preload sources. Bundling is
+  // done by electron-vite (rolldown), which reads `electron.vite.config.ts` and
+  // ignores `module`/`outDir` here — so these settings exist to make `tsc
+  // --noEmit` and ESLint's type-aware rules see the directory. Until 2026-08-15
+  // nothing invoked this file at all, which is how it drifted to a deprecated
+  // `moduleResolution` and how the whole directory stayed unchecked.
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    // The package declares `"type": "module"` and electron-vite emits ESM for
+    // both main and preload, so the checker must agree — a CommonJS setting here
+    // would validate `require`-shaped code that the build cannot produce.
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
     "esModuleInterop": true,
     "strict": true,
-    "outDir": "../dist-electron",
+    "noEmit": true,
     "rootDir": ".",
     "declaration": false,
     "sourceMap": true,

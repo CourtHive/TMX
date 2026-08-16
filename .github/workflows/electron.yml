@@ -1,0 +1,83 @@
+name: electron
+
+# The desktop target had no CI at all. Between 2026-03 and 2026-08 the Electron
+# build was broken on `main` and every gate stayed green, because `pnpm lint`
+# scoped to `src e2e`, `tsconfig.json` included only `src`, and vitest never
+# loads the Electron entry points. Five months of silent breakage is the reason
+# this workflow exists.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: build + smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Identical to the `lint` job in ci.yml — see the long note there. The
+      # runner has no sibling clones at ../factory, so a `link:` override would
+      # leave a dangling symlink. Unlike lint, THIS job actually builds, so a
+      # dangling factory would fail hard rather than being tolerated.
+      - name: 'Strip link: overrides for CI'
+        run: |
+          node -e "
+          const fs = require('fs');
+          if (fs.existsSync('pnpm-workspace.yaml')) {
+            const before = fs.readFileSync('pnpm-workspace.yaml', 'utf8');
+            const after = before.split('\n').filter(line => !/:\s*link:\S+\s*\$/.test(line)).join('\n');
+            if (after !== before) fs.writeFileSync('pnpm-workspace.yaml', after);
+          }
+          "
+
+      - run: pnpm install --no-frozen-lockfile
+
+      # Type-check the Electron sources specifically. The root `check-types` now
+      # includes this leg too, but running it standalone here keeps the failure
+      # attributable to the desktop target.
+      - name: check-types (electron)
+        run: pnpm check-types:electron
+
+      # Kept as its own step so a config-resolution failure (the 2026-03 defect)
+      # is distinguishable from a test failure in the logs.
+      - name: Build main, preload and renderer
+        run: pnpm electron:build
+
+      # Electron bundles its own Chromium, so no browser download is needed —
+      # but the shared system libraries it links against are not on a bare
+      # runner. `install-deps` provides exactly those.
+      - name: Install Chromium system dependencies
+        run: pnpm exec playwright install-deps chromium
+
+      # Electron always opens a real window; there is no headless mode for the
+      # app shell, so Linux CI needs a virtual framebuffer.
+      - name: Smoke-test the desktop build
+        run: xvfb-run --auto-servernum pnpm exec playwright test --config e2e/playwright.electron.config.ts
+
+      # Packaging sanity WITHOUT producing installers: `--dir` runs the whole
+      # electron-builder pipeline (file globs, app metadata, native rebuilds) and
+      # stops before the AppImage/DMG/NSIS step, which would need extra tooling
+      # and signing material. Catches a broken `files` glob — the classic
+      # "works locally, ships an app with no renderer" packaging bug.
+      - name: Packaging sanity (unpacked)
+        run: pnpm exec electron-builder --config electron-builder.json5 --dir
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-traces
+          path: e2e/test-results-electron/
+          retention-days: 7
+          if-no-files-found: ignore

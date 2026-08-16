@@ -31,11 +31,29 @@ const FONTS_TABLE = 'pdfFonts';
 
 // `/fonts/` is a static bundle served by NGINX from the web origin, deliberately
 // NOT through CFS (the mutation server must not carry asset traffic). Resolve
-// against `location.origin` — never `baseApi`, whose base URL points at the API
-// host (CFS) and which would also attach the Authorization header to a static GET.
+// against the DOCUMENT's own base URL — never `baseApi`, whose base URL points at
+// the API host (CFS) and which would also attach the Authorization header to a
+// static GET.
+//
+// Resolution is base-RELATIVE rather than origin-absolute for two reasons:
+//   * In a packaged Electron app the document is loaded over `file://`, where
+//     `location.origin` is `"file://"` and an absolute `/fonts/...` resolves to
+//     the FILESYSTEM ROOT (`file:///fonts/catalog.json`) rather than the app
+//     bundle. PDF fonts were silently unavailable on the desktop build.
+//   * On the web, a deployment under a sub-path (`BASE_URL=tmx` → `/tmx/`) has
+//     the same bug in reverse: the assets ship to `/tmx/fonts/` while the
+//     absolute path asks for `/fonts/`.
+// `document.baseURI` excludes the fragment, so TMX's hash routes do not affect it.
 function staticAssetUrl(path: string): string {
-  const origin = globalThis.location?.origin ?? '';
-  return new URL(path, origin || undefined).toString();
+  // Absolute URLs (a provider-hosted font in the catalog) pass through untouched.
+  if (/^[a-z][a-z\d+\-.]*:/i.test(path)) return path;
+
+  const base = globalThis.document?.baseURI || globalThis.location?.href || '';
+  if (!base) return path;
+
+  // Strip the leading slash so the path resolves against the base rather than
+  // resetting to the origin root.
+  return new URL(path.replace(/^\/+/, ''), base).toString();
 }
 
 export interface FontStyleUrls {
