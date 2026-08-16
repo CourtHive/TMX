@@ -4,6 +4,7 @@
  */
 import {
   scheduleDateFormatter,
+  scheduleLockFormatter,
   scheduleTimeFormatter,
   calledAtFormatter,
 } from '../common/formatters/scheduleStatusFormatter';
@@ -265,6 +266,15 @@ export function getMatchUpColumns({
       title: t('tables.matchUps.calledAt'),
       visible: false,
       width: 92,
+    },
+    {
+      formatter: scheduleLockFormatter,
+      field: 'scheduleLocked',
+      title: t('tables.matchUps.scheduleLocked'),
+      headerTooltip: t('schedule.lockedTip'),
+      hozAlign: CENTER,
+      visible: false,
+      width: 70,
     },
     {
       formatter: matchUpParticipantFormatter,

@@ -71,6 +71,10 @@ export function classifyTodayBucket(rowData: any): TodayBucket {
 /** Predicate for the popover status options (not a partition). */
 export function popoverStatusPredicate(rowData: any, filterValue: string): boolean {
   const status = statusOf(rowData);
+  // Not a status at all — a director's schedule pin. It shares the popover
+  // because that is the one filter surface the matchUps table has, and
+  // `scheduleLocked` is already decided by the factory predicate at map time.
+  if (filterValue === 'scheduleLocked') return !!rowData.scheduleLocked;
   if (filterValue === 'toBePlayed') return status === 'TO_BE_PLAYED' || status === 'SUSPENDED';
   if (filterValue === 'suspended') return status === 'SUSPENDED';
   if (filterValue === 'readyToScore') {

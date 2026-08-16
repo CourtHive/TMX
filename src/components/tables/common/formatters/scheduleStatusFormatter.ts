@@ -1,3 +1,5 @@
+import { t } from 'i18n';
+
 function todayYmd(): string {
   const d = new Date();
   const y = d.getFullYear();
@@ -52,6 +54,20 @@ export function scheduleTimeFormatter(cell: any): HTMLSpanElement | string {
   const el = document.createElement('span');
   el.style.cssText = styleForStatus(dateTimeStatus(data?.scheduledDate, value));
   el.textContent = value;
+  return el;
+}
+
+// A pinned placement. The cell value is the boolean the factory predicate
+// returned, so an inert lock (completed matchUp, or nothing placed) renders
+// empty rather than claiming a lock the engine would ignore. `lockReason` is
+// the director's own note and rides in the tooltip when present.
+export function scheduleLockFormatter(cell: any): HTMLSpanElement | string {
+  if (!cell.getValue()) return '';
+  const reason = cell.getRow().getData()?.lockReason;
+  const el = document.createElement('span');
+  el.className = 'fa-solid fa-lock';
+  el.style.cssText = 'color: var(--tmx-accent-orange, #d97706); font-size: 0.75rem;';
+  el.title = reason ? t('schedule.lockedWithReason', { reason }) : t('schedule.lockedTip');
   return el;
 }
 

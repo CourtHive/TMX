@@ -1,4 +1,10 @@
-import { buildScheduleLockMethod, hasScheduleLockRecord, isScheduleLocked, lockedInDrop } from './scheduleLocks';
+import {
+  buildScheduleLockMethod,
+  canToggleScheduleLock,
+  hasScheduleLockRecord,
+  isScheduleLocked,
+  lockedInDrop,
+} from './scheduleLocks';
 import { describe, expect, it } from 'vitest';
 
 import { SET_MATCHUP_SCHEDULE_LOCK } from 'constants/mutationConstants';
@@ -97,5 +103,45 @@ describe('lockedInDrop', () => {
   it('is empty when nothing is locked, so the drop needs no confirmation', () => {
     expect(lockedInDrop({ dragged: placed(), occupant: placed({ matchUpId: 'm2' }) })).toEqual([]);
     expect(lockedInDrop({})).toEqual([]);
+  });
+});
+
+describe('canToggleScheduleLock — what the three-dot menu and cell menu gate on', () => {
+  const withDraw = (over: any = {}) => placed({ drawId: 'd1', ...over });
+
+  it('offers the toggle for a placed, live matchUp', () => {
+    expect(canToggleScheduleLock(withDraw())).toBe(true);
+  });
+
+  it('offers it whether or not the matchUp is already locked', () => {
+    expect(canToggleScheduleLock(withDraw({ schedule: { lock: { reason: 'featured' } } }))).toBe(true);
+  });
+
+  it('withholds it once the matchUp is completed', () => {
+    expect(canToggleScheduleLock(withDraw({ matchUpStatus: 'COMPLETED' }))).toBe(false);
+    expect(canToggleScheduleLock(withDraw({ matchUpStatus: 'RETIRED' }))).toBe(false);
+    expect(canToggleScheduleLock(withDraw({ winningSide: 1 }))).toBe(false);
+  });
+
+  it('withholds it when there is no placement to guard', () => {
+    const unplaced = { matchUpId: 'm1', drawId: 'd1', matchUpStatus: 'TO_BE_PLAYED', schedule: {} };
+    expect(canToggleScheduleLock(unplaced)).toBe(false);
+  });
+
+  it('counts a court order or an allocation as placement, which the local hasSchedule test missed', () => {
+    const ordered = { matchUpId: 'm1', drawId: 'd1', matchUpStatus: 'TO_BE_PLAYED', schedule: { courtOrder: 3 } };
+    const allocated = {
+      matchUpId: 'm2',
+      drawId: 'd1',
+      matchUpStatus: 'TO_BE_PLAYED',
+      schedule: { allocatedCourts: [{ courtId: 'c1' }] },
+    };
+    expect(canToggleScheduleLock(ordered)).toBe(true);
+    expect(canToggleScheduleLock(allocated)).toBe(true);
+  });
+
+  it('withholds it without a drawId — the mutation needs one', () => {
+    const noDraw = { matchUpId: 'm1', matchUpStatus: 'TO_BE_PLAYED', schedule: { courtId: 'c1' } };
+    expect(canToggleScheduleLock(noDraw)).toBe(false);
   });
 });

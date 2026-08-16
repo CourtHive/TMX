@@ -125,3 +125,17 @@ describe('isWalkoverProfile', () => {
     expect(isWalkoverProfile(row({ matchUpStatus: 'COMPLETED' }))).toBe(false);
   });
 });
+
+describe('popoverStatusPredicate — schedule lock', () => {
+  it('matches rows the factory predicate marked locked at map time', () => {
+    expect(popoverStatusPredicate(row({ scheduleLocked: true }), 'scheduleLocked')).toBe(true);
+    expect(popoverStatusPredicate(row({ scheduleLocked: false }), 'scheduleLocked')).toBe(false);
+    expect(popoverStatusPredicate(row(), 'scheduleLocked')).toBe(false);
+  });
+
+  it('does not disturb the status options it sits beside', () => {
+    const lockedAndComplete = row({ scheduleLocked: true, matchUpStatus: 'COMPLETED', winningSide: 'side1' });
+    expect(popoverStatusPredicate(lockedAndComplete, 'complete')).toBe(true);
+    expect(popoverStatusPredicate(row({ scheduleLocked: true }), 'toBePlayed')).toBe(true);
+  });
+});
