@@ -18,6 +18,12 @@ const row = (over: any = {}) => ({
   ...over,
 });
 
+// A call stamped at 14:00 LOCAL on the given day, expressed as the ISO instant
+// the factory stores — keeps the expectations timezone-independent.
+const calledAtOn = (isoDate: string) => new Date(`${isoDate}T14:00:00`).toISOString();
+const DAY = '2026-08-16';
+const PRIOR_DAY = '2026-08-15';
+
 describe('classifyTodayBucket', () => {
   it('buckets a completed matchUp as complete', () => {
     expect(classifyTodayBucket(row({ matchUpStatus: 'COMPLETED', winningSide: 'side1', complete: true }))).toBe(
@@ -45,11 +51,41 @@ describe('classifyTodayBucket', () => {
     expect(classifyTodayBucket(row({ matchUpStatus: 'TO_BE_PLAYED', readyToScore: true }))).toBe('readyToScore');
   });
 
-  it('buckets an unready TO_BE_PLAYED as notReady', () => {
-    expect(classifyTodayBucket(row({ matchUpStatus: 'TO_BE_PLAYED' }))).toBe('notReady');
+  it('buckets a ready matchUp called on its scheduled day as called', () => {
+    const data = row({ calledAt: calledAtOn(DAY), scheduledDate: DAY, readyToScore: true });
+    expect(classifyTodayBucket(data)).toBe('called');
   });
 
-  it('always returns one of the five known buckets', () => {
+  it('ignores a calledAt stamp left over from an earlier day', () => {
+    const data = row({ calledAt: calledAtOn(PRIOR_DAY), scheduledDate: DAY, readyToScore: true });
+    expect(classifyTodayBucket(data)).toBe('readyToScore');
+  });
+
+  it('ignores an unparseable calledAt', () => {
+    const data = row({ scheduledDate: DAY, readyToScore: true, calledAt: 'not-a-date' });
+    expect(classifyTodayBucket(data)).toBe('readyToScore');
+  });
+
+  it('treats a call with no scheduledDate as called', () => {
+    const data = row({ calledAt: calledAtOn(DAY), readyToScore: true });
+    expect(classifyTodayBucket(data)).toBe('called');
+  });
+
+  it('keeps a called matchUp that has started in live, not called', () => {
+    const data = row({
+      matchUpStatus: 'IN_PROGRESS',
+      calledAt: calledAtOn(DAY),
+      scheduledDate: DAY,
+      readyToScore: true,
+    });
+    expect(classifyTodayBucket(data)).toBe('live');
+  });
+
+  it('buckets an unready matchUp as notReady even when called', () => {
+    expect(classifyTodayBucket(row({ calledAt: calledAtOn(DAY), scheduledDate: DAY }))).toBe('notReady');
+  });
+
+  it('always returns one of the known buckets', () => {
     const bucket = classifyTodayBucket(row({ matchUpStatus: 'RETIRED', complete: true }));
     expect(TODAY_BUCKETS).toContain(bucket);
   });

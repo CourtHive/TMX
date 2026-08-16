@@ -1,7 +1,7 @@
 /**
  * Today-view aggregation for the matchUps-page segmented bar.
  *
- * Buckets a set of matchUp rows scheduled for a given ISO day into the five
+ * Buckets a set of matchUp rows scheduled for a given ISO day into the
  * day-of-play segments, using the shared classifier so the counts match what
  * clicking a segment filters to. The bar is scoped to `todayIso` and is
  * independent of the popover status filter, so it stays a stable dashboard of
@@ -23,18 +23,20 @@ export function getTodaySegments(): SegmentDef[] {
     { key: 'complete', label: t('pages.matchUps.complete'), color: 'var(--chc-status-success, #16a34a)' },
     { key: 'live', label: t('pages.matchUps.live'), color: 'var(--chc-status-info, #3b82f6)' },
     { key: 'suspended', label: t('pages.matchUps.suspended'), color: 'var(--chc-status-warning, #d97706)' },
+    // Called sits between suspended and ready: already sent on court, not yet started.
+    { key: 'called', label: t('pages.matchUps.called'), color: 'var(--chc-status-violet, #7c3aed)' },
     { key: 'readyToScore', label: t('pages.matchUps.readyToScore'), color: 'var(--chc-status-teal, #0d9488)' },
     { key: 'notReady', label: t('pages.matchUps.notReady'), color: 'var(--chc-text-muted, #6b7280)' },
   ];
 }
 
 function emptyCounts(): TodayCounts {
-  return { complete: 0, live: 0, suspended: 0, readyToScore: 0, notReady: 0 };
+  return { complete: 0, live: 0, suspended: 0, called: 0, readyToScore: 0, notReady: 0 };
 }
 
 /**
  * Aggregate rows (Tabulator row objects or plain data) scheduled for `todayIso`
- * into the five Today buckets.
+ * into the Today buckets.
  */
 export function aggregateToday(items: any[], todayIso: string): TodayCounts {
   const counts = emptyCounts();
