@@ -31,6 +31,13 @@ interface MutationParams {
   methods: MutationMethod[];
   engine?: string;
   callback?: (result: ExecutionResult) => void;
+  /**
+   * Ask the server to re-seed the per-event payloads this mutation evicts, so the first public
+   * reader does not pay a cache miss. Set it when a reader is imminent — releasing a draw — and
+   * leave it off otherwise, because building the payload is the cost the default path avoids.
+   * Server-side only; the factory never sees it.
+   */
+  warmCache?: boolean;
 }
 
 // ── Pure helpers (testable without DOM) ──
@@ -76,7 +83,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   }
   resetActivityTimer();
 
-  const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback } = params;
+  const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback, warmCache } = params;
   const state = getLoginState();
 
   const completion = (result?: any): void => {
@@ -118,7 +125,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   });
 
   const mutate = (saveLocal?: boolean) =>
-    makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal });
+    makeMutation({ offline, methods, factoryEngine, tournamentIds, completion, saveLocal, warmCache });
   if (!inDateRange) {
     queryDateRange({ state, providerIds, mutate });
     return;
@@ -233,6 +240,7 @@ async function makeMutation({
   factoryEngine,
   tournamentIds,
   saveLocal,
+  warmCache,
 }: {
   offline: any;
   methods: any[];
@@ -240,6 +248,7 @@ async function makeMutation({
   factoryEngine: any;
   tournamentIds: string[];
   saveLocal?: boolean;
+  warmCache?: boolean;
 }): Promise<void> {
   const hasProvider = !!factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
   const resolvedMethods = applyDevOverrides(methods, window['dev']?.params);
@@ -283,7 +292,10 @@ async function makeMutation({
     };
     if (debugConfig.get().log?.verbose) console.log('%c invoking remote', 'color: lightblue');
     emitTmx({
-      data: { type: 'executionQueue', payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true } },
+      data: {
+        type: 'executionQueue',
+        payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true, warmCache },
+      },
       ackCallback,
     });
     if (strategy === LOCAL_FIRST) {
@@ -301,7 +313,7 @@ async function makeMutation({
         if (!isSessionValid()) {
           reportSessionLost({
             source: 'mutation-timeout',
-            retry: () => replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal }),
+            retry: () => replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal, warmCache }),
           });
           return completion({ error: { message: 'Session expired', code: 'SESSION_EXPIRED' } });
         }
@@ -329,11 +341,13 @@ export function replayServerMutation({
   factoryEngine,
   tournamentIds,
   saveLocal,
+  warmCache,
 }: {
   methods: any[];
   factoryEngine: any;
   tournamentIds: string[];
   saveLocal?: boolean;
+  warmCache?: boolean;
 }): void {
   const ackCallback = (ack: any) => {
     const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
@@ -345,7 +359,7 @@ export function replayServerMutation({
     void localSave(saveLocal || missingTournament);
   };
   emitTmx({
-    data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true } },
+    data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true, warmCache } },
     ackCallback,
   });
 }

@@ -37,5 +37,8 @@ export const toggleDrawPublishState = (eventRow) => (_, cell) => {
       logMutationError('toggleDrawPublishState', result);
     }
   };
-  mutationRequest({ methods, callback: postMutation });
+  // Both directions use PUBLISH_EVENT here (drawIdsToAdd vs drawIdsToRemove), so the publish
+  // signal is which list is populated — warm only when a draw is being ADDED, since that is the
+  // moment a public reader is imminent.
+  mutationRequest({ methods, callback: postMutation, warmCache: !!drawIdsToAdd });
 };
