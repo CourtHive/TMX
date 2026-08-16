@@ -5,6 +5,11 @@
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
 import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
+import {
+  buildScheduleLockMethod,
+  canToggleScheduleLock,
+  isScheduleLocked,
+} from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
@@ -141,6 +146,16 @@ export function matchUpActions({
       matchUpId: matchUp.matchUpId,
       schedule,
       callback: () => updateRow({ ...schedule, courtName: '', venueName: '' }),
+    });
+  };
+
+  const toggleScheduleLock = () => {
+    const drawId = matchUp?.drawId;
+    if (!drawId) return;
+    const locked = isScheduleLocked(matchUp);
+    mutationRequest({
+      methods: [buildScheduleLockMethod({ matchUpId: matchUp.matchUpId, drawId, locked: !locked })],
+      callback: () => updateRow({ scheduleLocked: !locked }),
     });
   };
 
@@ -348,11 +363,23 @@ export function matchUpActions({
   const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
   const hasDelegatedOutcome = !!readDelegatedOutcome(matchUp);
 
+  // Offered only where a lock would mean something — not completed, and actually
+  // placed. `canToggleScheduleLock` asks the factory rather than reusing the
+  // local `hasSchedule` above, which is looser: it omits courtOrder and
+  // allocatedCourts, so a TEAM matchUp with courts allocated but no date would
+  // be offered a lock the engine treats as inert.
+  const hideScheduleLock = !canToggleScheduleLock(matchUp);
+
   const items = [
     {
       onClick: clearSchedule,
       text: 'Clear schedule',
       hide: !hasSchedule,
+    },
+    {
+      onClick: toggleScheduleLock,
+      text: isScheduleLocked(matchUp) ? t('schedule.unlockSchedule') : t('schedule.lockSchedule'),
+      hide: hideScheduleLock,
     },
     {
       onClick: setScheduleDate,

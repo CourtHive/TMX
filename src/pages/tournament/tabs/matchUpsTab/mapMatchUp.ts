@@ -2,6 +2,7 @@
  * Map matchUp data for table display.
  * Transforms matchUp objects into table-ready format with participant details.
  */
+import { isScheduleLocked } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { eventConstants, factoryConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { normalizeDiacritics } from 'normalize-text';
@@ -91,14 +92,22 @@ export const mapMatchUp = (matchUp: any): any => {
 
   const scoreDetail = { score, matchUpStatus: matchUp.matchUpStatus, readyToScore, complete, winningSide };
 
+  // Schedule lock, decided by the factory predicate rather than by reading
+  // `schedule.lock` here — a lock is inert once the matchUp completes or while
+  // it has no placement, and the column must not claim otherwise.
+  const scheduleLocked = isScheduleLocked(matchUp);
+  const lockReason = schedule?.lock?.reason;
+
   return {
     matchUpStatus: matchUp.matchUpStatus,
     individualParticipantIds,
     flight: matchUp.drawName,
     competitiveProfile,
+    scheduleLocked,
     scheduledDate,
     readyToScore,
     scheduledTime,
+    lockReason,
     matchUpType,
     scoreDetail,
     winningSide,

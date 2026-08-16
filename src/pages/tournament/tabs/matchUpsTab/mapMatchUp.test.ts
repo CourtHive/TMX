@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('tods-competition-factory', () => ({
+// `scheduleGovernor` is taken from the REAL factory rather than stubbed: it
+// decides `scheduleLocked` for every mapped row, and a hand-written stub would
+// be free to drift from the engine's actual lock rules — exactly the mock
+// divergence the ecosystem's architectural standards call out.
+vi.mock('tods-competition-factory', async (importOriginal) => ({
+  scheduleGovernor: ((await importOriginal()) as any).scheduleGovernor,
   eventConstants: { TEAM: 'TEAM' },
   factoryConstants: {
     completedMatchUpStatuses: [
@@ -151,5 +156,34 @@ describe('mapMatchUp', () => {
     );
     expect(result.side1.participantName).toBe('Potential A');
     expect(result.side2.participantName).toBe('Potential B');
+  });
+});
+
+describe('mapMatchUp — schedule lock', () => {
+  it('surfaces scheduleLocked and the reason for a placed, locked matchUp', () => {
+    let result: any = mapMatchUp(
+      makeMatchUp({ schedule: { scheduledDate: '2026-06-22', courtId: 'c1', lock: { reason: 'featured' } } }),
+    );
+    expect(result.scheduleLocked).toEqual(true);
+    expect(result.lockReason).toEqual('featured');
+  });
+
+  it('reports an inert lock as unlocked — the column must not claim what the engine ignores', () => {
+    let completed: any = mapMatchUp(
+      makeMatchUp({
+        matchUpStatus: 'COMPLETED',
+        winningSide: 1,
+        schedule: { scheduledDate: '2026-06-22', courtId: 'c1', lock: {} },
+      }),
+    );
+    expect(completed.scheduleLocked).toEqual(false);
+
+    let unplaced: any = mapMatchUp(makeMatchUp({ schedule: { lock: {} } }));
+    expect(unplaced.scheduleLocked).toEqual(false);
+  });
+
+  it('is false when nothing is locked', () => {
+    let result: any = mapMatchUp(makeMatchUp({ schedule: { courtId: 'c1' } }));
+    expect(result.scheduleLocked).toEqual(false);
   });
 });

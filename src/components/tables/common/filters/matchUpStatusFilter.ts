@@ -90,6 +90,13 @@ export function getMatchUpStatusFilter(table: any): {
       onClick: () => updateFilter('cancelled'),
       filterValue: 'cancelled',
     },
+    { divider: true },
+    {
+      label: t('pages.matchUps.scheduleLocked'),
+      close: true,
+      onClick: () => updateFilter('scheduleLocked'),
+      filterValue: 'scheduleLocked',
+    },
   ];
 
   const selectableOptions = statusOptions.filter((opt: any) => !opt.divider);
