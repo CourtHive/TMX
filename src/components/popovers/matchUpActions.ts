@@ -2,16 +2,18 @@
  * MatchUp actions popover menu.
  * Provides options for start/end time, official selection, and schedule clearing.
  */
-import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
+import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
+import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
-import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
+import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
+import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
-import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
 import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
@@ -215,6 +217,21 @@ export function matchUpActions({
 
     const currentOfficialId = matchUp?.schedule?.official;
 
+    // Conflict state per candidate, computed locally — no fetch. Evaluated up front so a TD is never
+    // offered a choice that will be refused.
+    const conflictPolicy = resolveConflictPolicy();
+    const conflictByOfficial = new Map<string, CandidateConflicts>(
+      officials.map((official: any) => [
+        official.participantId,
+        evaluateCandidate({
+          officialParticipantId: official.participantId,
+          policyDefinitions: conflictPolicy,
+          matchUpId: matchUp.matchUpId,
+          drawId: matchUp.drawId,
+        }),
+      ]),
+    );
+
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:relative; padding:8px; padding-top:20px; min-width:160px;';
 
@@ -238,7 +255,27 @@ export function matchUpActions({
         li.style.backgroundColor = 'var(--tmx-accent-blue, #3273dc)';
         li.style.color = '#fff';
       }
+      const conflict = conflictByOfficial.get(official.participantId) ?? { level: 'none', reasons: [] };
+      const isBlocked = conflict.level === 'blocked';
+
       li.textContent = official.participantName ?? null;
+      if (conflict.level !== 'none') {
+        // Reasons come from the factory already human-readable, e.g. "Official shares a COACH grouping
+        // (Team Alpha) with this participant" — the UI lists them rather than composing a sentence.
+        li.title = conflict.reasons.join('\n');
+        const dot = document.createElement('span');
+        dot.textContent = '\u25cf';
+        dot.setAttribute('aria-hidden', 'true');
+        dot.style.cssText = `margin-left:6px; color:${isBlocked ? 'var(--tmx-danger, #d64545)' : 'var(--tmx-warning, #d99e00)'};`;
+        li.appendChild(dot);
+        li.setAttribute('data-conflict', conflict.level);
+      }
+      if (isBlocked) {
+        li.style.cursor = 'not-allowed';
+        li.style.opacity = '0.55';
+        li.setAttribute('aria-disabled', 'true');
+      }
+
       li.onmouseenter = () => {
         if (official.participantId !== currentOfficialId) li.style.backgroundColor = 'var(--chc-hover-bg, #f0f0f0)';
       };
@@ -247,6 +284,14 @@ export function matchUpActions({
       };
       li.onclick = (e) => {
         e.stopPropagation();
+        // A blocking conflict is not selectable. The factory refuses it too — this only avoids
+        // dispatching a mutation that is certain to be rejected.
+        if (isBlocked) return;
+        if (
+          conflict.level === 'warn' &&
+          !window.confirm(`${t('officiating.conflictWarning')}\n\n${conflict.reasons.join('\n')}`)
+        )
+          return;
         destroyOfficialTip();
         const methods = [
           {
@@ -255,6 +300,8 @@ export function matchUpActions({
               matchUpId: matchUp.matchUpId,
               drawId: matchUp.drawId,
               participantId: official.participantId,
+              // The factory gate is the enforcement point; the UI annotation is an affordance.
+              policyDefinitions: conflictPolicy,
             },
           },
         ];

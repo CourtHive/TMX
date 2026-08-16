@@ -2297,5 +2297,8 @@
       "DOWN": "Down",
       "ANCHOR": "Anchor"
     }
+  },
+  "officiating": {
+    "conflictWarning": "This official has a potential conflict of interest with a participant in this match. Assign anyway?"
   }
 }
