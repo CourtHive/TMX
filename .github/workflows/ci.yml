@@ -67,3 +67,11 @@ jobs:
       # silent typo (matchUp.rondPosition, etc.). Baseline triaged 2026-07-05.
       - name: attr-audit
         run: pnpm attr-audit --ci
+      # Hardcoded user-facing strings never become t() calls, so they reach no
+      # locale file and no key-parity gate or completeness metric will ever
+      # mention them — they are simply English forever. Ratchets against a
+      # baseline of the ~620 that already exist: fails only on a NEW one.
+      # Shrink the baseline by converting strings; never grow it to silence a
+      # finding.
+      - name: i18n-audit
+        run: pnpm i18n-audit --ci

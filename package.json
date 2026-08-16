@@ -43,6 +43,7 @@
     "electron:preview": "electron-vite preview",
     "electron:package": "electron-builder --config electron-builder.json5",
     "attr-audit": "node scripts/attr-audit.mjs",
+    "i18n-audit": "node scripts/i18n-audit.mjs",
     "check-types:electron": "tsc --noEmit --project electron/tsconfig.json",
     "test:electron": "pnpm electron:build && playwright test --config e2e/playwright.electron.config.ts",
     "test:electron:ui": "playwright test --config e2e/playwright.electron.config.ts --ui"
