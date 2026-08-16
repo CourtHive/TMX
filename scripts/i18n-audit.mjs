@@ -246,6 +246,12 @@ function main() {
     const shown = Math.min(40, fresh.length || findings.length);
     const total = fresh.length || findings.length;
     if (total > shown) console.log(`  … and ${total - shown} more`);
+
+    // Without --ci this exits 0 even with new findings, which is easy to read as
+    // a pass. Say so, rather than relying on the reader noticing the count.
+    if (!ci && fresh.length) {
+      console.log(`\ni18n-audit: exiting 0 — this mode only reports. Use --ci to fail on the ${fresh.length} new string(s).`);
+    }
   }
 
   if (ci && fresh.length) {

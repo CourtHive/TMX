@@ -58,24 +58,24 @@ export function editGroupingParticipant({
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
       {
-        error: 'Please enter a name of at least 3 characters',
-        placeholder: 'Participant name',
+        error: t('pages.participants.grouping.nameTooShort'),
+        placeholder: t('pages.participants.grouping.namePlaceholder'),
         value: values[PARTICIPANT_NAME] || '',
         validator: validators.nameValidator(3),
         field: PARTICIPANT_NAME,
-        label: 'Name',
+        label: t('teams.name'),
       },
       {
-        placeholder: 'Nickname / abbreviation',
+        placeholder: t('pages.participants.grouping.nicknamePlaceholder'),
         value: values.nickname,
         field: 'nickname',
-        label: 'Nickname',
+        label: t('pages.participants.editParticipant.nickname'),
       },
       {
         checked: values.useOtherName,
         id: 'useOtherName',
         field: 'useOtherName',
-        label: 'Prefer nickname in draws',
+        label: t('pages.participants.grouping.preferNickname'),
         checkbox: true,
       },
       // GROUP only — see GROUP_ROLE_OPTIONS. Hidden entirely for TEAM rather than disabled, so there is
@@ -101,8 +101,8 @@ export function editGroupingParticipant({
     renderButtons(
       elem,
       [
-        { label: 'Cancel', onClick: () => table?.deselectRow(), close: true },
-        { label: 'Save', onClick: saveParticipant, close: true, intent: 'is-info' },
+        { label: t('common.cancel'), onClick: () => table?.deselectRow(), close: true },
+        { label: t('common.save'), onClick: saveParticipant, close: true, intent: 'is-info' },
       ],
       close,
     );

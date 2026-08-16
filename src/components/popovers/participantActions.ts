@@ -41,7 +41,7 @@ export const participantActions =
     const items = [
       {
         hide: !isIndividual,
-        text: "<i class='fas fa-address-card'></i> Participant profile",
+        text: `<i class='fas fa-address-card'></i> ${t('pages.participants.rowActions.participantProfile')}`,
         onClick: () => participantProfileModal({ participantId }),
       },
       {
@@ -53,12 +53,12 @@ export const participantActions =
       },
       {
         hide: !isTeam,
-        text: "<i class='fas fa-address-card'></i> Team profile",
+        text: `<i class='fas fa-address-card'></i> ${t('modals.teamProfile.title')}`,
         onClick: () => teamProfileModal({ participantId }),
       },
       {
         hide: !isTeam,
-        text: "<i class='fas fa-users'></i> Rename team",
+        text: `<i class='fas fa-users'></i> ${t('pages.participants.rowActions.renameTeam')}`,
         onClick: () => {
           const participant = tournamentEngine.getParticipants({
             participantFilters: { participantIds: [participantId] },
@@ -80,7 +80,7 @@ export const participantActions =
         // `participantType: GROUP` is required: it is what makes the role select render (the TEAM
         // default suppresses it, since a TEAM is pinned to COMPETITOR).
         hide: !isGroup,
-        text: "<i class='fas fa-users'></i> Edit group",
+        text: `<i class='fas fa-users'></i> ${t('pages.participants.rowActions.editGroup')}`,
         onClick: () => {
           const participant = tournamentEngine.getParticipants({
             participantFilters: { participantIds: [participantId] },
@@ -106,7 +106,7 @@ export const participantActions =
         },
       },
       {
-        text: "<div style='color: var(--tmx-accent-red)'><i class='fas fa-check-square'></i> Delete participant</div>",
+        text: `<div style='color: var(--tmx-accent-red)'><i class='fas fa-check-square'></i> ${t('pages.participants.rowActions.deleteParticipant')}</div>`,
         onClick: () => {
           const callback = (result: any) => {
             if (result.success) {
