@@ -345,7 +345,8 @@
     "confirmRemoveUser": "Remove User",
     "removeUserConfirm": "Are you sure you want to remove",
     "searchProviders": "Search providers...",
-    "lastAccess": "Last Access"
+    "lastAccess": "Last Access",
+    "inviteFailed": "Could not send the invitation. Please try again."
   },
   "round_names": {
     "F": "Final",

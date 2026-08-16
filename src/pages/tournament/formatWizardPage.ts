@@ -134,7 +134,7 @@ function buildPageHeader(): HTMLElement {
   back.id = FORMAT_WIZARD_BACK;
   back.type = 'button';
   back.style.cssText = BACK_BUTTON_STYLE;
-  back.innerHTML = `<i class="fa fa-chevron-left"></i> ${t('back')}`;
+  back.innerHTML = `<i class="fa fa-chevron-left"></i> ${t('common.back')}`;
   back.addEventListener('click', () => navigateToOverview());
   header.appendChild(back);
 
