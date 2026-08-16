@@ -2,9 +2,25 @@
   "src": ["src"],
   "exclude": ["/scratch/"],
   "ignore": [
-    "onchange", "oninput", "setHours", "getHours", "setDate", "getDate",
-    "setColumns", "getColumns", "getItems", "getItem", "_events", "bound",
-    "minute", "weekday", "hour", "second", "month", "year", "day"
+    "onchange",
+    "oninput",
+    "setHours",
+    "getHours",
+    "setDate",
+    "getDate",
+    "setColumns",
+    "getColumns",
+    "getItems",
+    "getItem",
+    "_events",
+    "bound",
+    "minute",
+    "weekday",
+    "hour",
+    "second",
+    "month",
+    "year",
+    "day"
   ],
   "minCommon": 8,
   "ratio": 5,
@@ -38,6 +54,7 @@
     "languages",
     "attribute",
     "WITHDRAW",
-    "registrationIds"
+    "registrationIds",
+    "baseURI"
   ]
 }
