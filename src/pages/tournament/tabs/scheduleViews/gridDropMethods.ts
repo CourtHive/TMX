@@ -58,11 +58,23 @@ export interface BuildGridDropMethodsParams {
   /** The matchUp currently in the target cell, or null when the cell is empty. */
   occupant: GridDropOccupant | null;
   scheduledDate: string;
+  /**
+   * Carry the operator's confirmation that a schedule-locked placement may be
+   * moved. The factory refuses these writes otherwise (SCHEDULE_LOCKED); the
+   * lock itself survives the move.
+   */
+  overrideScheduleLock?: boolean;
 }
 
 interface ScheduleMethod {
   method: string;
-  params: { matchUpId: string; drawId: string; schedule: any; removePriorValues: boolean };
+  params: {
+    matchUpId: string;
+    drawId: string;
+    schedule: any;
+    removePriorValues: boolean;
+    overrideScheduleLock?: boolean;
+  };
 }
 
 // `removePriorValues` clears whatever schedule fields aren't supplied, so an
@@ -88,11 +100,18 @@ function assignSchedule(matchUpId: string, drawId: string, schedule: any): Sched
  * when the drop is a no-op (a matchUp dropped onto the cell it already holds).
  */
 export function buildGridDropMethods(params: BuildGridDropMethodsParams): ScheduleMethod[] {
-  const { payload, target, occupant, scheduledDate } = params;
+  const { payload, target, occupant, scheduledDate, overrideScheduleLock } = params;
   const matchUp = payload.matchUp;
 
   // Dropped onto its own cell — nothing to do.
   if (occupant && occupant.matchUpId === matchUp.matchUpId) return [];
+
+  // Stamped onto EVERY method the drop produces: a swap moves two matchUps, and
+  // a confirmation that covers only one of them would half-apply the swap.
+  const withOverride = (methods: ScheduleMethod[]): ScheduleMethod[] =>
+    overrideScheduleLock
+      ? methods.map((m) => ({ ...m, params: { ...m.params, overrideScheduleLock: true } }))
+      : methods;
 
   const source = payload.type === 'GRID_MATCHUP' ? payload.source : null;
   const canSwap = !!(occupant && source && source.courtId && source.courtOrder != null);
@@ -102,7 +121,7 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
     // scheduledTime (time travels with the matchUp). Clear both first so
     // neither assignment transiently collides on a shared court/order, then
     // place each into the other's slot carrying its own time.
-    return [
+    return withOverride([
       clearSchedule(occupant.matchUpId, occupant.drawId ?? ''),
       clearSchedule(matchUp.matchUpId, matchUp.drawId ?? ''),
       // Dragged matchUp → target slot, keeping its own time (from its origin).
@@ -122,7 +141,7 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
         scheduledDate: source.scheduledDate || scheduledDate,
         scheduledTime: target.scheduledTime ?? '',
       }),
-    ];
+    ]);
   }
 
   // No swap possible (catalog drag, or no source origin): unschedule any
@@ -141,7 +160,7 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
   // scheduledTime to the new cell. Catalog items have no time to carry.
   if (payload.type === 'GRID_MATCHUP') placed.scheduledTime = source?.scheduledTime ?? '';
   methods.push(assignSchedule(matchUp.matchUpId, matchUp.drawId ?? '', placed));
-  return methods;
+  return withOverride(methods);
 }
 
 export interface StripDropRejectionParams {
