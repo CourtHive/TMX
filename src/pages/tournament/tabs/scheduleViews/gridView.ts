@@ -21,6 +21,7 @@
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -196,9 +197,14 @@ function ensurePlanModeStyles(): void {
     'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
     'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}' +
     // Completed matchUps can't be re-planned (a commit skips them) — render them
-    // visibly locked in Plan mode.
+    // visibly pinned in Plan mode. The PIN glyph, not a padlock: 🔒 means a
+    // director's schedule lock (below), and one glyph cannot mean both.
     '.tmx-plan-locked-cell{opacity:0.6;filter:grayscale(0.4);position:relative;}' +
-    ".tmx-plan-locked-cell::after{content:'🔒';position:absolute;top:2px;right:3px;font-size:0.6rem;opacity:0.75;}" +
+    ".tmx-plan-locked-cell::after{content:'📌';position:absolute;top:2px;right:3px;font-size:0.6rem;opacity:0.75;}" +
+    // A director's schedule lock — this placement survives Clear and re-scheduling.
+    '.tmx-schedule-locked-cell{position:relative;box-shadow:inset 0 0 0 2px var(--tmx-accent-orange,#d97706);}' +
+    ".tmx-schedule-locked-cell::before{content:'🔒';position:absolute;top:2px;left:3px;font-size:0.6rem;" +
+    'opacity:0.9;z-index:2;}' +
     // Plan introduces a court double-booking — warn.
     '.tmx-plan-conflict-cell{box-shadow:inset 0 0 0 2px var(--tmx-status-danger,#dc2626) !important;' +
     'background:color-mix(in srgb, var(--tmx-status-danger,#dc2626) 10%, transparent) !important;}';
@@ -411,19 +417,46 @@ export function renderGridView(
       const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
       const existingDrawId = target?.getAttribute(DATA_DRAW_ID);
 
-      const methods = buildGridDropMethods({
-        payload: payload as unknown as GridDropPayload,
-        target: {
-          courtId,
-          venueId,
-          courtOrder: Number.parseInt(courtOrder, 10),
-          scheduledTime: target?.getAttribute(DATA_SCHEDULED_TIME) ?? undefined,
-        },
-        occupant: existingMatchUpId ? { matchUpId: existingMatchUpId, drawId: existingDrawId ?? undefined } : null,
-        scheduledDate: currentDate,
+      const applyDrop = (overrideScheduleLock?: boolean) => {
+        const methods = buildGridDropMethods({
+          payload: payload as unknown as GridDropPayload,
+          target: {
+            courtId,
+            venueId,
+            courtOrder: Number.parseInt(courtOrder, 10),
+            scheduledTime: target?.getAttribute(DATA_SCHEDULED_TIME) ?? undefined,
+          },
+          occupant: existingMatchUpId ? { matchUpId: existingMatchUpId, drawId: existingDrawId ?? undefined } : null,
+          scheduledDate: currentDate,
+          overrideScheduleLock,
+        });
+
+        if (methods.length) executeMethods(methods, refresh);
+      };
+
+      // A drop can move TWO matchUps — the dragged one and the occupant it
+      // displaces or swaps with — so both are checked before asking. Warn, then
+      // allow: the factory refuses the write without the override, and the lock
+      // survives the move either way.
+      const { matchUps: liveMatchUps } = getCachedAllMatchUps();
+      const byId = (id?: string | null) => (liveMatchUps || []).find((m: any) => m.matchUpId === id);
+      const lockedIds = lockedInDrop({
+        dragged: byId((payload as unknown as GridDropPayload)?.matchUp?.matchUpId),
+        occupant: byId(existingMatchUpId),
       });
 
-      if (methods.length) executeMethods(methods, refresh);
+      if (lockedIds.length) {
+        confirmModal({
+          title: t('schedule.lockedMoveTitle'),
+          query: t('schedule.lockedMoveConfirm'),
+          okIntent: INTENT_WARNING,
+          okAction: () => applyDrop(true),
+          cancelAction: undefined,
+        });
+        return;
+      }
+
+      applyDrop();
     },
 
     onMatchUpRemove: (matchUpId) => {
@@ -1615,6 +1648,17 @@ interface GridCallbacks {
   executeMethods: (methods: any[], onRefresh: () => void) => void;
 }
 
+/**
+ * Mark a grid cell whose placement a director has pinned. Extracted from the
+ * cell builder to keep that function under the cognitive-complexity ceiling.
+ */
+function applyScheduleLockDecoration(cellContent: HTMLElement, cellData: any): void {
+  if (!isScheduleLocked(cellData)) return;
+  cellContent.classList.add('tmx-schedule-locked-cell');
+  const reason = scheduleLockReason(cellData);
+  cellContent.title = reason ? t('schedule.lockedWithReason', { reason }) : t('schedule.lockedTip');
+}
+
 function buildRowCourtCells(params: {
   grid: HTMLElement;
   row: any;
@@ -1672,6 +1716,8 @@ function buildRowCourtCells(params: {
       cellContent.classList.add('tmx-plan-conflict-cell');
       cellContent.title = t('schedule.plan.conflictTip');
     }
+    // A director's schedule lock — survives Clear and re-scheduling.
+    if (matchUpId) applyScheduleLockDecoration(cellContent, cellData);
     if (matchUpId) cell.setAttribute(DATA_MATCHUP_ID, matchUpId);
     if (drawId) cell.setAttribute(DATA_DRAW_ID, drawId);
     // The occupant's own scheduledTime — read by the swap path so the two

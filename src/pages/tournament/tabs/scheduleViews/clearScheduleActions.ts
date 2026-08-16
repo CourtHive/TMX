@@ -16,6 +16,7 @@
  */
 import { confirmModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { isScheduleLocked } from './scheduleLocks';
 import { competitionEngine } from 'services/factory/engine';
 import { isCompletedStatus } from 'courthive-components';
 import { tipster } from 'components/popovers/tipster';
@@ -38,6 +39,8 @@ type OpenClearMenuParams = {
 type Bucket = {
   visible: any[];
   hidden: any[];
+  /** In scope and on a visible court, but pinned — the engine will skip these. */
+  locked: any[];
 };
 
 /**
@@ -61,8 +64,12 @@ function buildBuckets(scheduledDate: string): Record<Scope, Bucket> {
 
   const split = (filter: (m: any) => boolean): Bucket => {
     const inScope = scheduled.filter(filter);
+    const onVisibleCourt = inScope.filter((m) => !onHiddenCourt(m));
     return {
-      visible: inScope.filter((m) => !onHiddenCourt(m)),
+      // Locked matchUps are excluded from `visible` because the engine skips
+      // them: counting them would promise "will clear 12" and then clear 9.
+      visible: onVisibleCourt.filter((m) => !isScheduleLocked(m)),
+      locked: onVisibleCourt.filter(isScheduleLocked),
       hidden: inScope.filter(onHiddenCourt),
     };
   };
@@ -112,6 +119,22 @@ function buildConfirmContent(bucket: Bucket, summary: string, onShowAllCourts: (
   const summaryLine = document.createElement('div');
   summaryLine.textContent = summary;
   wrap.appendChild(summaryLine);
+
+  if (bucket.locked.length > 0) {
+    const note = document.createElement('div');
+    note.style.cssText = [
+      'display: flex',
+      'align-items: center',
+      'gap: 6px',
+      'padding: 8px 12px',
+      'border: 1px solid var(--tmx-accent-orange, #d97706)',
+      'background: color-mix(in srgb, var(--tmx-accent-orange, #d97706) 10%, transparent)',
+      'border-radius: 6px',
+      'font-size: 0.8125rem',
+    ].join('; ');
+    note.textContent = t('schedule.lockedPreserved', { count: bucket.locked.length });
+    wrap.appendChild(note);
+  }
 
   if (bucket.hidden.length > 0) {
     const warn = document.createElement('div');

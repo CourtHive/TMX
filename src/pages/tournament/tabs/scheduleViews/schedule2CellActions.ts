@@ -8,6 +8,7 @@
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
@@ -385,6 +386,16 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     );
   };
 
+  // Schedule lock — pins this placement so a Clear or a re-schedule cannot move
+  // it. The factory enforces it; this only flips the flag and re-renders.
+  const lockSource = matchUp ?? cellData;
+  const isLocked = isScheduleLocked(lockSource);
+  const toggleScheduleLock = () => {
+    const drawId = matchUp?.drawId || cellData.drawId;
+    if (!drawId) return;
+    executeMethods([buildScheduleLockMethod({ matchUpId, drawId, locked: !isLocked })], onRefresh);
+  };
+
   const hasCourtId = matchUp?.schedule?.courtId || cellData?.schedule?.courtId;
 
   // ── Build popover DOM ──
@@ -454,6 +465,18 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
       }),
     );
   const isFinished = !!matchUp?.winningSide || isTerminal;
+  // A lock guards a placement, so the toggle is only meaningful once there is
+  // one — and pointless on a matchUp whose result is already in (where the
+  // factory treats any lock as inert anyway).
+  if (hasCourtId && !isFinished)
+    actionsRow.appendChild(
+      makeIconBtn(
+        isLocked ? t('schedule.unlockSchedule') : t('schedule.lockSchedule'),
+        isLocked ? 'fa-lock' : 'fa-lock-open',
+        toggleScheduleLock,
+        { color: isLocked ? COLOR_ACCENT_ORANGE : undefined },
+      ),
+    );
   if (bothSidesAssigned && !isFinished && !isInProgress) {
     const printBtn = makeIconBtn('Print court card', 'fa-print', printCard);
     printBtn.style.marginLeft = 'auto';

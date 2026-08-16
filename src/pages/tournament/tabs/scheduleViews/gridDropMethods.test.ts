@@ -202,3 +202,41 @@ describe('shouldRejectStripDrop', () => {
     ).toBe(false);
   });
 });
+
+describe('buildGridDropMethods — schedule lock override', () => {
+  it('omits the override by default, so the factory refuses a locked move', () => {
+    const methods = buildGridDropMethods({
+      payload: gridPayload(),
+      target,
+      occupant: null,
+      scheduledDate: DATE,
+    });
+    expect(methods.every((m) => m.params.overrideScheduleLock === undefined)).toBe(true);
+  });
+
+  it('stamps the override onto EVERY method of a swap, not just the dragged one', () => {
+    // A swap moves two matchUps; an override covering only one would half-apply
+    // it — the dragged matchUp moves and the displaced one is refused.
+    const methods = buildGridDropMethods({
+      payload: gridPayload(),
+      target,
+      occupant: { matchUpId: 'occupant', drawId: 'drawO' },
+      scheduledDate: DATE,
+      overrideScheduleLock: true,
+    });
+    expect(methods).toHaveLength(4);
+    expect(methods.every((m) => m.params.overrideScheduleLock === true)).toBe(true);
+  });
+
+  it('stamps the override on a displacing catalog drop', () => {
+    const methods = buildGridDropMethods({
+      payload: catalogPayload(),
+      target,
+      occupant: { matchUpId: 'occupant', drawId: 'drawO' },
+      scheduledDate: DATE,
+      overrideScheduleLock: true,
+    });
+    expect(methods.length).toBeGreaterThan(1);
+    expect(methods.every((m) => m.params.overrideScheduleLock === true)).toBe(true);
+  });
+});
