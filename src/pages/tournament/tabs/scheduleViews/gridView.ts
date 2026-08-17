@@ -22,6 +22,7 @@
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
+import { openScheduleLockMenu } from './scheduleLockActions';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -524,6 +525,10 @@ export function renderGridView(
     },
     onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
     onClearSchedule: options?.onClearSchedule,
+    // Bulk pin/unpin for the viewed date. Refreshes rather than mutating cells
+    // in place: a lock changes the affordance on every affected cell.
+    onScheduleLock: (target: HTMLElement) =>
+      openScheduleLockMenu({ target, scheduledDate: currentDate, onLocksChanged: refresh }),
     timingAvailable: hasCallTimingData(),
     onOpenTimingReport: openTimingVarianceReport,
     datePublished: isOrderOfPlayDatePublished(currentDate, getOrderOfPlayPublishState()),

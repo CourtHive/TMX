@@ -11,6 +11,7 @@
  */
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
+import { t } from 'i18n';
 import { ScheduleIssue } from 'courthive-components';
 import { buildStepper } from './stepperControl';
 import {
@@ -35,6 +36,8 @@ export interface GridActionBarParams {
   onMinCourtWidthChange: (width: number) => void;
   onBulkModeChange: (enabled: boolean) => void;
   onClearSchedule?: (target: HTMLElement) => void;
+  /** Open the bulk Lock / Unlock menu for the viewed date. Omitted ⇒ no button. */
+  onScheduleLock?: (target: HTMLElement) => void;
   /** Whether any matchUp has been called to court (Call Timing Variance has data). */
   timingAvailable?: boolean;
   /** Open the Call Timing Variance report. When omitted, the shortcut never renders. */
@@ -67,7 +70,7 @@ export interface GridActionBar {
 
 export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
-  const { timingAvailable, onOpenTimingReport, datePublished, onTogglePublish } = params;
+  const { timingAvailable, onOpenTimingReport, datePublished, onTogglePublish, onScheduleLock } = params;
 
   const bar = document.createElement('div');
   bar.style.cssText =
@@ -123,6 +126,9 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   // Right cluster
   if (providerConfig.isAllowed('canUseBulkScheduling')) {
     bar.appendChild(buildBulkModeToggle(bulkMode, onBulkModeChange));
+  }
+  if (onScheduleLock) {
+    bar.appendChild(buildScheduleLockButton(bulkMode, onScheduleLock));
   }
   if (onClearSchedule) {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
@@ -406,6 +412,39 @@ function buildBulkModeToggle(bulkMode: boolean, onChange: (enabled: boolean) => 
   label.appendChild(toggle);
   label.appendChild(document.createTextNode('Bulk mode'));
   return label;
+}
+
+// ── Bulk Lock / Unlock menu trigger ──
+
+function buildScheduleLockButton(bulkMode: boolean, onScheduleLock: (target: HTMLElement) => void): HTMLElement {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.style.cssText = [
+    'font-size: 0.8125rem',
+    'padding: 5px 10px',
+    BORDER_RADIUS_6,
+    BORDER_PRIMARY,
+    BG_PRIMARY,
+    // Disabled in bulk mode for the same reason Clear is: these write directly
+    // rather than joining the pending queue, so mixing them would apply half a
+    // batch the operator has not saved.
+    bulkMode
+      ? 'color: var(--tmx-text-muted); cursor: not-allowed; opacity: 0.55;'
+      : `${COLOR_PRIMARY}; cursor: pointer;`,
+    DISPLAY_INLINE_FLEX,
+    ALIGN_ITEMS_CENTER,
+    'gap: 6px',
+  ].join('; ');
+  btn.disabled = bulkMode;
+  btn.title = bulkMode ? t('schedule.exitBulkForLock') : t('schedule.lockActions');
+  btn.innerHTML =
+    '<i class="fa-solid fa-lock" style="font-size: 0.75rem;"></i>' +
+    `${t('schedule.lockLabel')} <i class="fa-solid fa-chevron-down" style="font-size: 0.5625rem; opacity: 0.6;"></i>`;
+  btn.addEventListener('click', () => {
+    if (bulkMode) return;
+    onScheduleLock(btn);
+  });
+  return btn;
 }
 
 // ── Clear menu trigger ──
