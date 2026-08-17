@@ -75,3 +75,21 @@ jobs:
       # finding.
       - name: i18n-audit
         run: pnpm i18n-audit --ci
+
+      # Type-checks src/ against the PUBLISHED factory, because the link:
+      # overrides are stripped above. This is the only gate that can catch a
+      # call into sibling work that exists locally but has not been published —
+      # previously nothing did: `build + smoke` type-checks electron only, and
+      # `pnpm build` (tsc + vite) runs solely in deploy-pages.yml, after merge.
+      #
+      # A TMX change that needs unreleased factory work will fail here, and that
+      # is the point: it fails at the PR instead of at runtime in a deployed
+      # client. The remedy is to publish the dependency, not to skip this.
+      - name: check-types
+        run: pnpm check-types
+
+      # Local `pnpm test --run` used to be the only test evidence a reviewer
+      # ever saw. The suite is a few seconds; there is no reason for CI not to
+      # be the one running it.
+      - name: test
+        run: pnpm test --run
