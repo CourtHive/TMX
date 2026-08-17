@@ -20,6 +20,11 @@ export function getMatchUpStatusFilter(table: any): {
 } {
   let filterValue: string | undefined = context.matchUpFilters.status;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let statusFilterApplied = false;
+
   const statusFilter = (rowData: any): boolean => {
     if (!filterValue) return true;
     if (filterValue.startsWith(TODAY_STATUS_PREFIX)) {
@@ -29,13 +34,22 @@ export function getMatchUpStatusFilter(table: any): {
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(statusFilter);
+  if (filterValue) {
+    table.addFilter(statusFilter);
+    statusFilterApplied = true;
+  }
 
   const updateFilter = (status?: string) => {
-    table.removeFilter(statusFilter);
+    if (statusFilterApplied) {
+      table.removeFilter(statusFilter);
+      statusFilterApplied = false;
+    }
     filterValue = status;
     context.matchUpFilters.status = status;
-    if (status) table.addFilter(statusFilter);
+    if (status) {
+      table.addFilter(statusFilter);
+      statusFilterApplied = true;
+    }
   };
 
   const allLabel = t('pages.matchUps.allStatuses');

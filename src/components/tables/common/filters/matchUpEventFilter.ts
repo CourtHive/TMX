@@ -17,16 +17,30 @@ export function getMatchUpEventFilter(
 } {
   let filterValue: string | undefined = context.matchUpFilters.eventId;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let eventFilterApplied = false;
+
   const eventFilter = (rowData: any): boolean => rowData.eventId === filterValue;
   const updateFilter = (eventId?: string) => {
-    table.removeFilter(eventFilter);
+    if (eventFilterApplied) {
+      table.removeFilter(eventFilter);
+      eventFilterApplied = false;
+    }
     filterValue = eventId;
     context.matchUpFilters.eventId = eventId;
-    if (eventId) table.addFilter(eventFilter);
+    if (eventId) {
+      table.addFilter(eventFilter);
+      eventFilterApplied = true;
+    }
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(eventFilter);
+  if (filterValue) {
+    table.addFilter(eventFilter);
+    eventFilterApplied = true;
+  }
 
   // Caller can hand in a pre-fetched events list to share one q.events()
   // call across the event/flight/team filters on the matchUps tab.

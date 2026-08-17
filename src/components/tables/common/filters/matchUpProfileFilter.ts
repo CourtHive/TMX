@@ -19,6 +19,11 @@ export function getMatchUpProfileFilter(table: any): {
 } {
   let filterValue: string | undefined = context.matchUpFilters.profile;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let profileFilterApplied = false;
+
   const profileFilter = (rowData: any): boolean => {
     if (!filterValue) return true;
     if (filterValue === 'WALKOVER') return isWalkoverProfile(rowData);
@@ -26,13 +31,22 @@ export function getMatchUpProfileFilter(table: any): {
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(profileFilter);
+  if (filterValue) {
+    table.addFilter(profileFilter);
+    profileFilterApplied = true;
+  }
 
   const updateFilter = (profile?: string) => {
-    table.removeFilter(profileFilter);
+    if (profileFilterApplied) {
+      table.removeFilter(profileFilter);
+      profileFilterApplied = false;
+    }
     filterValue = profile;
     context.matchUpFilters.profile = profile;
-    if (profile) table.addFilter(profileFilter);
+    if (profile) {
+      table.addFilter(profileFilter);
+      profileFilterApplied = true;
+    }
   };
 
   const allLabel = t('pages.matchUps.allProfiles');

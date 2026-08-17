@@ -14,16 +14,30 @@ export function getMatchUpTypeFilter(
 ): { typeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined = context.matchUpFilters.type;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let typeFilterApplied = false;
+
   const typeFilter = (rowData: any): boolean => rowData.matchUpType === filterValue;
 
   // Restore saved filter
-  if (filterValue) table.addFilter(typeFilter);
+  if (filterValue) {
+    table.addFilter(typeFilter);
+    typeFilterApplied = true;
+  }
 
   const updateFilter = (type?: string) => {
-    table.removeFilter(typeFilter);
+    if (typeFilterApplied) {
+      table.removeFilter(typeFilter);
+      typeFilterApplied = false;
+    }
     filterValue = type;
     context.matchUpFilters.type = type;
-    if (type) table.addFilter(typeFilter);
+    if (type) {
+      table.addFilter(typeFilter);
+      typeFilterApplied = true;
+    }
   };
 
   const matchUpTypes = data.reduce((types: string[], matchUp: any) => {

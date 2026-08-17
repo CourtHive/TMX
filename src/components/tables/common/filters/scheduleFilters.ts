@@ -22,11 +22,21 @@ type ScheduleFilterConfig = {
 function createScheduleFilter(table: any, config: ScheduleFilterConfig, onChange?: () => void): FilterResult {
   let filterValue: string | undefined;
 
+  // See the sibling filters: removeFilter on a never-added filter makes
+  // Tabulator warn "Filter Error - No matching filter type found".
+  let filterFnApplied = false;
+
   const filterFn = (rowData: any): boolean => rowData[config.field] === filterValue;
   const updateFilter = (value?: string) => {
-    table.removeFilter(filterFn);
+    if (filterFnApplied) {
+      table.removeFilter(filterFn);
+      filterFnApplied = false;
+    }
     filterValue = value;
-    if (value) table.addFilter(filterFn);
+    if (value) {
+      table.addFilter(filterFn);
+      filterFnApplied = true;
+    }
     if (onChange) onChange();
   };
 
