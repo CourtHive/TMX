@@ -10,6 +10,7 @@ import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { factoryConstants, globalState } from 'tods-competition-factory';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { loadUserCompositions } from 'pages/templates/compositionBridge';
+import { startConnectionLifecycle } from 'services/messaging/connectionLifecycle';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initSessionGuard } from 'services/session/sessionGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
@@ -172,6 +173,10 @@ function tmxReady(): void {
   initStalenessGuard();
   initSessionGuard();
   initTmxVersionCheck();
+  // Recover the /tmx + relay sockets on bfcache restore / tab return / network
+  // return. Must be paired with initStalenessGuard: that one re-fetches data on
+  // return, this one restores the live connection that keeps it fresh afterwards.
+  startConnectionLifecycle();
   // Populate the user-composition cache so resolveCompositionByName() can
   // find custom compositions on the first draw render. Fire-and-forget;
   // early renders fall through to builtin compositions until the load

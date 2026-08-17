@@ -139,7 +139,10 @@ export function connectSocket(callback?: () => void): void {
     transportOptions: { polling: { extraHeaders: getAuthorization() } },
     'force new connection': true,
     reconnectionDelay: 1000,
-    reconnectionAttempts: 'Infinity',
+    // A NUMBER, not the string 'Infinity'. socket.io compares
+    // `attempts >= reconnectionAttempts`; against a string that comparison is
+    // always false, so the old value never gave up only by accident.
+    reconnectionAttempts: Infinity,
     timeout: 20000,
   };
   if (oi.socket) {
@@ -189,13 +192,53 @@ export function connectSocket(callback?: () => void): void {
     oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
     oi.socket.on('connect_error', (data: any) => {
       slog('[socket] connect_error:', data?.message ?? data);
-      tmxToast({ message: t('toasts.connectionError'), intent: 'is-danger' });
-      disconnectSocket();
+      // DO NOT tear the socket down here.
+      //
+      // This handler used to call `disconnectSocket()`. In socket.io-client an
+      // explicit `disconnect()` CANCELS automatic reconnection — the manager
+      // will not retry after it — and `disconnectSocket` then deletes the
+      // socket object outright. So a single transient `connect_error`
+      // permanently disarmed reconnection, which is exactly what happens on a
+      // back-forward-cache restore: the browser kills the transport while the
+      // page is frozen, the first reconnect attempt errors, and the client then
+      // sat dead for as long as the operator stayed on the page.
+      //
+      // A connect_error is transient by definition — socket.io is already
+      // scheduling the next attempt. Auth rejections do NOT arrive here; the
+      // server's SocketGuard emits `exception`, handled above.
+      notifyConnectionTrouble();
     });
   }
 }
 
+/**
+ * A `connect_error` fires once per retry attempt, and socket.io retries every
+ * second — so toasting per event produced a wall of identical danger toasts.
+ * One toast per trouble window, re-armed by the next successful connect.
+ */
+let connectionTroubleNotified = false;
+
+function notifyConnectionTrouble(): void {
+  if (connectionTroubleNotified) return;
+  connectionTroubleNotified = true;
+  tmxToast({ message: t('toasts.connectionError'), intent: 'is-danger' });
+}
+
+/**
+ * True only when there is a LIVE connection.
+ *
+ * Previously `!!oi.socket`, which is truthy for a socket object that exists and
+ * is disconnected — so the main menu offered "Disconnect" on a dead socket, the
+ * settings panel displayed "Connected", and `requestTournamentRecord` emitted
+ * into the void instead of telling the operator they are offline. All four
+ * callers want live connectivity.
+ */
 export function connected(): boolean {
+  return !!oi.socket?.connected;
+}
+
+/** True when a socket object exists at all, connected or not (internal lifecycle checks). */
+export function socketExists(): boolean {
   return !!oi.socket;
 }
 
@@ -222,14 +265,29 @@ export function reconnectSocket(): void {
 }
 
 /**
- * Reconnect the socket if the user is logged in but the socket is gone.
+ * Reconnect the socket if the user is logged in but the connection is down.
  * Returns true if a reconnect was initiated.
+ *
+ * ⚠️ Must reconnect the EXISTING socket when there is one. This used to call
+ * `connectSocket()` unconditionally — but `connectSocket` early-returns when
+ * `oi.socket` is truthy, so with a disconnected-but-not-deleted socket the whole
+ * call was a silent no-op. That made the one caller (the router) unreliable too:
+ * whether navigation recovered the connection depended on whether the socket
+ * object happened to have been deleted yet.
  */
 export function ensureConnected(): boolean {
   if (oi.socket?.connected) return false;
   const state = getLoginState();
   if (!state) return false;
-  slog('[socket] ensureConnected — reconnecting (was disconnected)');
+
+  if (oi.socket) {
+    slog('[socket] ensureConnected — re-opening existing socket (disconnected)');
+    // Re-arms a manager that an explicit disconnect had stopped.
+    oi.socket.connect();
+    return true;
+  }
+
+  slog('[socket] ensureConnected — no socket, connecting fresh');
   connectSocket();
   return true;
 }
@@ -290,6 +348,8 @@ function socketEmit(msg: string, data: any): void {
 
 function connectionEvent(callback?: () => void): void {
   slog('[socket] connected — id:', oi.socket?.id);
+  // Re-arm the trouble toast so the NEXT outage is announced once more.
+  connectionTroubleNotified = false;
   // Capture before anything clears the flag: true only when this `connect` is a
   // reconnect after a prior drop (the first connect leaves the flag false).
   const reconnected = disconnectedSinceLastNav;

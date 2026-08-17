@@ -121,3 +121,34 @@ export function unsubscribeFromMatchUp(matchUpId: string): void {
 export function relayConnected(): boolean {
   return !!relaySocket?.connected;
 }
+
+/**
+ * Reconnect the relay if a tournament subscription is active but the connection
+ * is down. Returns true if a reconnect was initiated.
+ *
+ * Mirrors `ensureConnected()` for the `/tmx` socket, and exists for the same
+ * reason: after a back-forward-cache restore the transport is dead, and nothing
+ * in the app was asking the relay to come back. `connect()` re-arms the existing
+ * manager, and the `connect` handler re-issues the tournament subscription plus
+ * every active matchUp subscription.
+ *
+ * ⚠️ Deliberately does NOT fall back to `connectRelay()` when the socket is
+ * missing. `connectRelay` begins with `disconnectRelay()`, which clears
+ * `matchUpCallbacks` — so rebuilding that way would silently drop the scoring
+ * dialog's per-matchUp subscription. That state is also unreachable in practice:
+ * `relaySocket` and `currentTournamentId` are set together in `connectRelay` and
+ * cleared together in `disconnectRelay`, so no socket means no active
+ * subscription and the guard above has already returned.
+ */
+export function ensureRelayConnected(): boolean {
+  if (!currentTournamentId) return false;
+  if (!relaySocket) {
+    slog('[relay] ensureRelayConnected — tournamentId set with no socket (unexpected); leaving alone');
+    return false;
+  }
+  if (relaySocket.connected) return false;
+
+  slog('[relay] ensureRelayConnected — re-opening existing socket');
+  relaySocket.connect();
+  return true;
+}

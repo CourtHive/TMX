@@ -16,6 +16,14 @@ const mockSocket = {
     handlers.set(event, handler);
   }),
   emit: vi.fn(),
+  // Re-opens a manager that a disconnect stopped — what `ensureRelayConnected`
+  // calls to recover a transport the browser killed while the page was frozen.
+  // Fires `connect` like a real socket would: without that, a test could invoke
+  // the connect handler by hand and pass even with recovery removed.
+  connect: vi.fn(() => {
+    mockSocket.connected = true;
+    handlers.get('connect')?.();
+  }),
   disconnect: vi.fn(() => {
     mockSocket.connected = false;
   }),
@@ -53,6 +61,9 @@ vi.mock('config/debugConfig', () => ({
 
 const DEV_SOCKET_PATH = 'http://localhost:8383';
 
+// Relay-specific wire event; no factory constant exists for it.
+const SUBSCRIBE_TOURNAMENT = 'subscribe:tournament';
+
 // Import after mocks are set up
 import {
   connectRelay,
@@ -60,6 +71,7 @@ import {
   onTournamentScore,
   subscribeToMatchUp,
   unsubscribeFromMatchUp,
+  ensureRelayConnected,
 } from './scoreRelay';
 
 /** Simulate the relay server emitting 'connect' to our socket. */
@@ -136,7 +148,7 @@ describe('TMX scoreRelay client', () => {
     connectRelay('tid-002');
     triggerConnect();
 
-    expect(mockSocket.emit).toHaveBeenCalledWith('subscribe:tournament', 'tid-002');
+    expect(mockSocket.emit).toHaveBeenCalledWith(SUBSCRIBE_TOURNAMENT, 'tid-002');
   });
 
   it('dispatches tournament-level score handler on score event', () => {
@@ -234,8 +246,72 @@ describe('TMX scoreRelay client', () => {
     triggerConnect();
 
     // On reconnect, tournament subscription is re-emitted
-    expect(mockSocket.emit).toHaveBeenCalledWith('subscribe:tournament', 'tid-008');
+    expect(mockSocket.emit).toHaveBeenCalledWith(SUBSCRIBE_TOURNAMENT, 'tid-008');
     // Active matchUp subscriptions are also re-emitted
     expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'mu-persist');
+  });
+
+  describe('ensureRelayConnected — recovery after a frozen/dropped transport', () => {
+    it('re-opens the existing socket when the transport died', () => {
+      connectRelay('tid-recover');
+      triggerConnect();
+
+      // What a back-forward-cache freeze leaves behind: the socket object is
+      // still there, its transport is not.
+      mockSocket.connected = false;
+      vi.clearAllMocks();
+
+      expect(ensureRelayConnected()).toBe(true);
+      expect(mockSocket.connect).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-issues the tournament AND matchUp subscriptions once the reconnect lands', () => {
+      connectRelay('tid-resub');
+      triggerConnect();
+      subscribeToMatchUp('mu-resub', vi.fn());
+
+      mockSocket.connected = false;
+      vi.clearAllMocks();
+      // No manual triggerConnect here — the mock's connect() fires `connect`, so
+      // these assertions fail if recovery does not actually reconnect.
+      ensureRelayConnected();
+
+      expect(mockSocket.emit).toHaveBeenCalledWith(SUBSCRIBE_TOURNAMENT, 'tid-resub');
+      expect(mockSocket.emit).toHaveBeenCalledWith('subscribe', 'mu-resub');
+    });
+
+    it('is a no-op while the relay is connected', () => {
+      connectRelay('tid-live');
+      triggerConnect();
+      mockSocket.connected = true;
+      vi.clearAllMocks();
+
+      expect(ensureRelayConnected()).toBe(false);
+      expect(mockSocket.connect).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op when no tournament subscription is active', () => {
+      disconnectRelay();
+      vi.clearAllMocks();
+
+      expect(ensureRelayConnected()).toBe(false);
+      expect(mockSocket.connect).not.toHaveBeenCalled();
+    });
+
+    it('does NOT route through connectRelay — that would clear matchUpCallbacks', () => {
+      connectRelay('tid-nowipe');
+      triggerConnect();
+      const callback = vi.fn();
+      subscribeToMatchUp('mu-nowipe', callback);
+
+      mockSocket.connected = false;
+      ensureRelayConnected();
+
+      // If recovery had gone through connectRelay (which begins with
+      // disconnectRelay, clearing matchUpCallbacks), this score would reach
+      // nobody and the scoring dialog would silently stop updating.
+      triggerScore({ matchUpId: 'mu-nowipe', score: '6-4' });
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
   });
 });
