@@ -58,7 +58,9 @@ function createScheduleFilter(table: any, config: ScheduleFilterConfig, onChange
   const activeIndex = () => {
     if (!filterValue) return 0;
     const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
-    return idx >= 0 ? idx : 0;
+    // `findIndex` yields -1 or a valid index, so clamping at 0 is exactly
+    // the old ternary. SonarJS prefers Math.max here.
+    return Math.max(idx, 0);
   };
 
   return { options, hasOptions: config.values.length > 1, isFiltered: () => !!filterValue, activeIndex };
