@@ -45,7 +45,12 @@ export function getTeamFilter({
   // TODO: teamOptions => use element.options.replaceWith to update to only those teams with results
   const teamOptions = [allTeams, { divider: true }].concat(
     teamParticipants
-      .sort((a, b) => a?.participantName?.localeCompare(b?.participantName))
+      // `toSorted`, not `sort`: `teamParticipants` is a caller-supplied
+      // parameter, so sorting in place silently reordered the caller's array.
+      // The comparator is also made total — the old `a?.participantName?.…`
+      // returned `undefined` whenever a name was missing, which is not a valid
+      // comparator result and left ordering unspecified for those entries.
+      .toSorted((a, b) => (a?.participantName ?? '').localeCompare(b?.participantName ?? ''))
       .map((team) => ({
         onClick: () => updateTeamFilter(team.participantId),
         label: team.participantName,
@@ -60,7 +65,9 @@ export function getTeamFilter({
   const activeIndex = () => {
     if (!filterValue) return 0;
     const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
-    return idx >= 0 ? idx : 0;
+    // `findIndex` yields -1 or a valid index, so clamping at 0 is exactly
+    // the old ternary. SonarJS prefers Math.max here.
+    return Math.max(idx, 0);
   };
 
   return { teamOptions, isFiltered, activeIndex };

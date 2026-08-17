@@ -71,7 +71,9 @@ export function getEventFilter(
     if (!filterValue) return 0;
     const matchValue = filterValue === NONE ? '__NONE__' : filterValue;
     const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === matchValue);
-    return idx >= 0 ? idx : 0;
+    // `findIndex` yields -1 or a valid index, so clamping at 0 is exactly
+    // the old ternary. SonarJS prefers Math.max here.
+    return Math.max(idx, 0);
   };
 
   return { eventOptions, events, isFiltered, activeIndex };

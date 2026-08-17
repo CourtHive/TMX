@@ -11,6 +11,7 @@ const { matchUpFilters, participantFilters } = vi.hoisted(() => ({
 vi.mock('services/context', () => ({ context: { matchUpFilters, participantFilters } }));
 
 import { getMatchUpStatusFilter } from './matchUpStatusFilter';
+import { getTeamFilter } from './teamFilter';
 import { getSexFilter } from './sexFilter';
 
 /**
@@ -134,6 +135,62 @@ describe('filter modules do not remove a filter they never added', () => {
       pick();
       clear();
       expect(table.removeFilter).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('activeIndex clamps a missing option to 0', () => {
+    // Was `idx >= 0 ? idx : 0`, now `Math.max(idx, 0)` — identical for every
+    // value `findIndex` can return (-1 or a valid index). Pinned so the clamp
+    // survives, since an unclamped -1 would index the popover out of bounds.
+    it('returns 0 when no filter is set', () => {
+      const table = fakeTable();
+      const { activeIndex } = getMatchUpStatusFilter(table as any);
+      expect(activeIndex()).toBe(0);
+    });
+
+    it('returns 0 when the saved filter matches no option', () => {
+      matchUpFilters.status = 'a-status-that-no-longer-exists';
+      const table = fakeTable();
+      const { activeIndex } = getMatchUpStatusFilter(table as any);
+      expect(activeIndex()).toBe(0);
+    });
+
+    it('returns the option index when the filter does match', () => {
+      const table = fakeTable();
+      const { statusOptions, setStatus, activeIndex } = getMatchUpStatusFilter(table as any);
+      const selectable = statusOptions.filter((o: any) => !o.divider);
+      // Pick a real option's own value so the lookup can succeed.
+      const target = selectable.find((o: any) => o.filterValue);
+      setStatus(target.filterValue);
+      expect(activeIndex()).toBe(selectable.indexOf(target));
+      expect(activeIndex()).toBeGreaterThan(0);
+    });
+  });
+
+  describe('teamFilter does not reorder the caller array', () => {
+    it('sorts for display without mutating the supplied teamParticipants', () => {
+      const table = fakeTable();
+      const teamParticipants = [
+        { participantId: 't2', participantName: 'Zebras' },
+        { participantId: 't1', participantName: 'Antelopes' },
+      ];
+      const original = teamParticipants.map((t) => t.participantId);
+
+      const { teamOptions } = getTeamFilter({ table: table as any, teamParticipants }) as any;
+
+      // `teamParticipants` is a caller-supplied parameter; `sort` used to
+      // reorder it in place, which is invisible here but corrupts whatever the
+      // caller does with the array next.
+      expect(teamParticipants.map((t) => t.participantId)).toEqual(original);
+      // ...while the rendered options ARE sorted.
+      const labels = teamOptions.filter((o: any) => !o.divider && o.filterValue).map((o: any) => o.filterValue);
+      expect(labels[0]).toBe('t1');
+    });
+
+    it('tolerates a participant with no name — the comparator must stay total', () => {
+      const table = fakeTable();
+      const teamParticipants = [{ participantId: 't1', participantName: 'Antelopes' }, { participantId: 't2' }];
+      expect(() => getTeamFilter({ table: table as any, teamParticipants })).not.toThrow();
     });
   });
 });
