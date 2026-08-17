@@ -528,7 +528,7 @@ export function renderGridView(
     // Bulk pin/unpin for the viewed date. Refreshes rather than mutating cells
     // in place: a lock changes the affordance on every affected cell.
     onScheduleLock: (target: HTMLElement) =>
-      openScheduleLockMenu({ target, scheduledDate: currentDate, onChanged: refresh }),
+      openScheduleLockMenu({ target, scheduledDate: currentDate, onLocksChanged: refresh }),
     timingAvailable: hasCallTimingData(),
     onOpenTimingReport: openTimingVarianceReport,
     datePublished: isOrderOfPlayDatePublished(currentDate, getOrderOfPlayPublishState()),

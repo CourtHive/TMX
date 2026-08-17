@@ -33,7 +33,7 @@ import { t } from 'i18n';
 type OpenLockMenuParams = {
   target: HTMLElement;
   scheduledDate: string;
-  onChanged?: () => void;
+  onLocksChanged?: () => void;
 };
 
 /** MatchUps on the active date and on a visible court, split by lock state. */
@@ -52,7 +52,7 @@ export function buildLockBuckets(scheduledDate: string): { lockable: any[]; unlo
   };
 }
 
-function applyLockChange(matchUps: any[], locked: boolean, onChanged?: () => void): void {
+function applyLockChange(matchUps: any[], locked: boolean, onLocksChanged?: () => void): void {
   const methods = matchUps
     .filter((m) => m.matchUpId && m.drawId)
     .map((m) => buildScheduleLockMethod({ matchUpId: m.matchUpId, drawId: m.drawId, locked }));
@@ -68,7 +68,7 @@ function applyLockChange(matchUps: any[], locked: boolean, onChanged?: () => voi
           : t('schedule.unlockedCount', { count: methods.length }),
         intent: 'is-success',
       });
-      onChanged?.();
+      onLocksChanged?.();
     },
   });
 }
@@ -80,7 +80,7 @@ function confirmLockChange(matchUps: any[], locked: boolean, params: OpenLockMen
       ? t('schedule.lockDayConfirm', { count: matchUps.length, date: params.scheduledDate })
       : t('schedule.unlockDayConfirm', { count: matchUps.length, date: params.scheduledDate }),
     okIntent: 'is-warning',
-    okAction: () => applyLockChange(matchUps, locked, params.onChanged),
+    okAction: () => applyLockChange(matchUps, locked, params.onLocksChanged),
     cancelAction: undefined,
   });
 }
