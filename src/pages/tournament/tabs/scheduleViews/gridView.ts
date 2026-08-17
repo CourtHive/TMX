@@ -28,9 +28,13 @@ import {
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
-import { handleActiveStripNowClick, handleSchedule2CellClick, handleSchedule2RowClick } from './schedule2CellActions';
-import { openShiftCourtsModal } from './schedule2CellActions';
-import type { Schedule2NowContext } from './schedule2CellActions';
+import {
+  handleActiveStripNowClick,
+  handleSchedule2CellClick,
+  handleSchedule2RowClick,
+  openShiftCourtsModal,
+  Schedule2NowContext,
+} from './schedule2CellActions';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -968,40 +972,13 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // when the selected date already has scheduled-but-unplaced matchUps.
   let activeTab: SidebarTab = readSidebarTab();
 
-  // Single source of truth for "scheduled but not placed" — used by both the
-  // panel renderer and the tab badge so they cannot drift. Sorted by
-  // scheduledTime ascending (no-time entries fall to the bottom) so that
-  // the list reflects the play order produced by the scheduler, with a
-  // stable tie-break on matchUpId.
-  // Orphans = scheduled-for-this-date, no court assigned, not BYE. Completion
-  // status is NOT filtered here — callers decide based on the operator's
-  // "Show completed" toggle. Splitting the call this way lets `updateBadge`
-  // compute both the visible count (respects toggle) and the absolute count
-  // (drives funnel visibility) from one factory call.
-  function listScheduledOrphans(): any[] {
-    const { matchUps } = getCachedAllMatchUps();
-    const filtered = (matchUps || []).filter((m: any) => {
-      if (m.matchUpStatus === BYE) return false;
-      if (m.schedule?.scheduledDate !== currentDate) return false;
-      if (m.schedule?.courtId) return false; // already on a court — don't show
-      return true; // date match is sufficient — time is optional
-    });
-    filtered.sort((a: any, b: any) => {
-      const am = scheduledTimeToMinutes(a.schedule?.scheduledTime);
-      const bm = scheduledTimeToMinutes(b.schedule?.scheduledTime);
-      if (am !== bm) return am - bm;
-      return String(a.matchUpId).localeCompare(String(b.matchUpId));
-    });
-    return filtered;
-  }
-
   function getScheduledNotPlacedOnCourt(): any[] {
     // Honors the shared "Show completed" store flag so a completed matchUp
     // whose court was cleared (manual unschedule or upstream sync wiping
     // courtId while preserving scheduledDate/scheduledTime) has a surface
     // to be re-assigned from — without the toggle, it had nowhere to live.
     const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
-    const all = listScheduledOrphans();
+    const all = listScheduledOrphans(currentDate);
     return showCompleted ? all : all.filter((m: any) => !isCompletedStatus(m.matchUpStatus));
   }
 
@@ -1010,7 +987,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // and absolute-count (gates funnel visibility). The funnel is hidden
     // when there's nothing for the popover to act on even with the toggle
     // on — otherwise opening it surfaces an empty Clear All / × husk.
-    const orphans = listScheduledOrphans();
+    const orphans = listScheduledOrphans(currentDate);
     const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
     const visibleCount = showCompleted
       ? orphans.length
@@ -3106,6 +3083,40 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
     averageMinutes,
     availableMinutes: Math.max(availableMinutes, 0),
   };
+}
+
+/**
+ * Single source of truth for "scheduled but not placed" — used by both the
+ * Scheduled-panel renderer and the tab badge so they cannot drift. Sorted by
+ * scheduledTime ascending (no-time entries fall to the bottom) so that the list
+ * reflects the play order produced by the scheduler, with a stable tie-break on
+ * matchUpId.
+ *
+ * Orphans = scheduled-for-this-date, no court assigned, not BYE. Completion
+ * status is NOT filtered here — callers decide based on the operator's
+ * "Show completed" toggle. Splitting the call this way lets `updateBadge`
+ * compute both the visible count (respects the toggle) and the absolute count
+ * (drives funnel visibility) from one factory call.
+ *
+ * Takes `scheduledDate` explicitly rather than reading the module-level
+ * `currentDate` it used to close over: pure given its input, so it is
+ * independently testable and is not re-created on every render pass.
+ */
+function listScheduledOrphans(scheduledDate: string): any[] {
+  const { matchUps } = getCachedAllMatchUps();
+  const filtered = (matchUps || []).filter((m: any) => {
+    if (m.matchUpStatus === BYE) return false;
+    if (m.schedule?.scheduledDate !== scheduledDate) return false;
+    if (m.schedule?.courtId) return false; // already on a court — don't show
+    return true; // date match is sufficient — time is optional
+  });
+  filtered.sort((a: any, b: any) => {
+    const am = scheduledTimeToMinutes(a.schedule?.scheduledTime);
+    const bm = scheduledTimeToMinutes(b.schedule?.scheduledTime);
+    if (am !== bm) return am - bm;
+    return String(a.matchUpId).localeCompare(String(b.matchUpId));
+  });
+  return filtered;
 }
 
 /**
