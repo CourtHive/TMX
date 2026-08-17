@@ -123,7 +123,7 @@
     "dayjs": "1.11.21",
     "dexie": "4.4.4",
     "focus-trap": "8.2.2",
-    "hotkeys-js": "4.0.4",
+    "hotkeys-js": "4.0.5",
     "html2canvas": "^1.4.1",
     "https-browserify": "1.0.0",
     "i18next": "^26.0.0",
