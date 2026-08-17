@@ -11,17 +11,30 @@ export function getTeamFilter({
   onChange?: () => void;
 }) {
   let filterValue: string | undefined = context.participantFilters.teamId;
+  // See the sibling filters: removeFilter on a never-added filter makes
+  // Tabulator warn "Filter Error - No matching filter type found".
+  let teamFilterApplied = false;
+
   const teamFilter = (rowData) => rowData.teams.some((team) => team?.participantId === filterValue);
   const updateTeamFilter = (participantId?) => {
-    table.removeFilter(teamFilter);
+    if (teamFilterApplied) {
+      table.removeFilter(teamFilter);
+      teamFilterApplied = false;
+    }
     filterValue = participantId;
     context.participantFilters.teamId = participantId;
-    if (participantId) table.addFilter(teamFilter);
+    if (participantId) {
+      table.addFilter(teamFilter);
+      teamFilterApplied = true;
+    }
     if (onChange) onChange();
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(teamFilter);
+  if (filterValue) {
+    table.addFilter(teamFilter);
+    teamFilterApplied = true;
+  }
   const anyTeamLabel = t('pages.participants.anyTeam');
   const allTeams = {
     label: `<span style='font-weight: bold'>${anyTeamLabel}</span>`,

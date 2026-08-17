@@ -10,17 +10,30 @@ export function getSexFilter(
 ): { sexOptions: any[]; genders: Record<string, string>; isFiltered: () => boolean; activeIndex: () => number } {
   let filterValue: string | undefined = context.participantFilters.sex;
 
+  // See the sibling filters: removeFilter on a never-added filter makes
+  // Tabulator warn "Filter Error - No matching filter type found".
+  let sexFilterApplied = false;
+
   const sexFilter = (rowData: any): boolean => rowData.participant?.person?.sex === filterValue;
   const updateSexFilter = (sex?: string) => {
-    table.removeFilter(sexFilter);
+    if (sexFilterApplied) {
+      table.removeFilter(sexFilter);
+      sexFilterApplied = false;
+    }
     filterValue = sex;
     context.participantFilters.sex = sex;
-    if (sex) table.addFilter(sexFilter);
+    if (sex) {
+      table.addFilter(sexFilter);
+      sexFilterApplied = true;
+    }
     if (onChange) onChange();
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(sexFilter);
+  if (filterValue) {
+    table.addFilter(sexFilter);
+    sexFilterApplied = true;
+  }
   const sexes = [MALE, FEMALE];
   const genders: Record<string, string> = {
     [MALE]: t('pages.participants.gender.male'),

@@ -16,18 +16,32 @@ export function getEventFilter(
 } {
   let filterValue: string | undefined = context.participantFilters.eventId;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let eventFilterApplied = false;
+
   const eventFilter = (rowData) =>
     filterValue === NONE ? !rowData?.eventIds?.length : rowData?.eventIds?.includes(filterValue);
   const updateEventFilter = (eventId?) => {
-    table.removeFilter(eventFilter);
+    if (eventFilterApplied) {
+      table.removeFilter(eventFilter);
+      eventFilterApplied = false;
+    }
     filterValue = eventId;
     context.participantFilters.eventId = eventId;
-    if (eventId) table.addFilter(eventFilter);
+    if (eventId) {
+      table.addFilter(eventFilter);
+      eventFilterApplied = true;
+    }
     if (onChange) onChange();
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(eventFilter);
+  if (filterValue) {
+    table.addFilter(eventFilter);
+    eventFilterApplied = true;
+  }
   const events = tournamentEngine.q.events() || [];
   const allEventsLabel = t('pages.participants.allEvents');
   const noEventsLabel = t('pages.participants.noEvents');

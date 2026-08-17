@@ -51,6 +51,11 @@ export function getMatchUpDateFilter(table: any): {
 } {
   let filterValue: string | undefined = context.matchUpFilters.scheduledDate;
 
+  // Tabulator warns "Filter Error - No matching filter type found" when
+  // removeFilter is handed a filter it never added — which is every first
+  // call here, since the filter is only added when a value is set.
+  let dateFilterApplied = false;
+
   const dateFilter = (rowData: any): boolean => {
     if (!filterValue) return true;
     if (filterValue === NO_DATE_TOKEN) return !rowData.scheduledDate;
@@ -59,14 +64,23 @@ export function getMatchUpDateFilter(table: any): {
   };
 
   const updateFilter = (value?: string) => {
-    table.removeFilter(dateFilter);
+    if (dateFilterApplied) {
+      table.removeFilter(dateFilter);
+      dateFilterApplied = false;
+    }
     filterValue = value;
     context.matchUpFilters.scheduledDate = value;
-    if (value) table.addFilter(dateFilter);
+    if (value) {
+      table.addFilter(dateFilter);
+      dateFilterApplied = true;
+    }
   };
 
   // Restore saved filter
-  if (filterValue) table.addFilter(dateFilter);
+  if (filterValue) {
+    table.addFilter(dateFilter);
+    dateFilterApplied = true;
+  }
 
   // Resolve active dates: prefer tournamentInfo.activeDates, fall back to date range.
   const { tournamentInfo } = competitionEngine.getTournamentInfo() ?? {};
