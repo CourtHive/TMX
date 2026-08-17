@@ -55,6 +55,7 @@
     "attribute",
     "WITHDRAW",
     "registrationIds",
-    "baseURI"
+    "baseURI",
+    "participantNames"
   ]
 }

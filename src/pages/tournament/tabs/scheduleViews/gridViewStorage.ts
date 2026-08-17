@@ -1,13 +1,16 @@
 /**
- * `gridView.ts` persists four pieces of view state across page reloads via
+ * `gridView.ts` persists five pieces of view state across page reloads via
  * `localStorage`:
  *
  *   - which sidebar tab the operator was last on (Unscheduled / Scheduled)
  *   - the Scheduled-panel search query
  *   - the Scheduled-panel group-by axis (event / draw / round / structure)
  *   - the Scheduled-panel filter selections (a `CatalogFilters` shape)
+ *   - whether the Inspector panel is shown (global to the matchUp catalog —
+ *     one flag for BOTH the Unscheduled and Scheduled views, because it is a
+ *     property of the catalog surface rather than of either tab)
  *
- * All four read / write pairs share a common contract: writes wrap
+ * All five read / write pairs share a common contract: writes wrap
  * `localStorage` in a `try { … } catch {}` so a sandboxed iframe (or
  * Storage-blocked browser) silently no-ops; reads return a sane default on
  * the same exception path so the UI always boots into a valid state.
@@ -26,6 +29,7 @@ const SIDEBAR_TAB_KEY = 'schedule2:sidebar-tab';
 const SCHEDULED_SEARCH_KEY = 'schedule2:scheduled-search';
 const SCHEDULED_GROUPBY_KEY = 'schedule2:scheduled-groupby';
 const SCHEDULED_FILTERS_KEY = 'schedule2:scheduled-filters';
+const INSPECTOR_VISIBLE_KEY = 'schedule2:inspector-visible';
 
 const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure', 'time'];
 
@@ -103,6 +107,32 @@ export function writeScheduledFilters(value: CatalogFilters): void {
     const isEmpty = !value.eventType && !value.eventName && !value.drawName && !value.gender && !value.roundName;
     if (isEmpty) localStorage.removeItem(SCHEDULED_FILTERS_KEY);
     else localStorage.setItem(SCHEDULED_FILTERS_KEY, JSON.stringify(value));
+  } catch {
+    // storage unavailable
+  }
+}
+
+// ── Inspector visibility ──
+
+/**
+ * Defaults to VISIBLE: the Inspector is the surface that explains a placement,
+ * so an operator who has never touched the toggle should see it. Only an
+ * explicit `'false'` hides it — any other value (absent, malformed, storage
+ * throwing) falls back to visible rather than silently removing a panel the
+ * operator never asked to lose.
+ */
+export function readInspectorVisible(): boolean {
+  try {
+    return localStorage.getItem(INSPECTOR_VISIBLE_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+export function writeInspectorVisible(visible: boolean): void {
+  try {
+    if (visible) localStorage.removeItem(INSPECTOR_VISIBLE_KEY);
+    else localStorage.setItem(INSPECTOR_VISIBLE_KEY, 'false');
   } catch {
     // storage unavailable
   }
