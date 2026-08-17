@@ -253,3 +253,77 @@
   background-color: var(--tmx-panel-red-bg);
   border-color: var(--tmx-accent-red) !important;
 }
+
+/* ── Schedule2 Inspector: readiness section ──
+   Rendered into the courthive-components Inspector body (`.sp-inspector`) via
+   its `renderInspectorExtra` hook. Colours come from theme tokens so the block
+   reads correctly in both light and dark; severity is carried on the row class
+   rather than inline, so a re-theme needs no JS change. */
+
+.tmx-readiness {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tmx-readiness-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-readiness-ok {
+  font-size: 0.75rem;
+  color: var(--tmx-accent-green);
+}
+
+.tmx-readiness-skip {
+  font-size: 0.75rem;
+  color: var(--tmx-text-secondary);
+  font-style: italic;
+}
+
+.tmx-readiness-finding {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  padding-left: 8px;
+  border-left: 3px solid var(--tmx-accent-orange);
+  color: var(--tmx-text-primary);
+}
+
+.tmx-readiness-finding.is-warn {
+  border-left-color: var(--tmx-accent-red);
+}
+
+.tmx-readiness-finding.is-info {
+  border-left-color: var(--tmx-accent-blue);
+  color: var(--tmx-text-secondary);
+}
+
+/* Inspector show/hide toggle in the sidebar control bar. */
+.tmx-inspector-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tmx-inspector-toggle:hover {
+  border-color: var(--tmx-border-primary);
+}
+
+.tmx-inspector-toggle[aria-pressed='true'] {
+  background: var(--tmx-fill-accent, #2563eb);
+  color: #fff;
+}

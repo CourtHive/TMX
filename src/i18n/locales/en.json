@@ -952,7 +952,29 @@
     "startOnDropTitle": "Start match on drop?",
     "startOnDropPrompt": "You dropped a match onto the Now strip. Start matches automatically whenever they are dropped onto Now from now on? You can change this any time with the start-on-drop toggle in the schedule header.",
     "unscheduleAllTitle": "Unschedule all?",
-    "unscheduleAllConfirm": "Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched."
+    "unscheduleAllConfirm": "Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched.",
+    "inspector": {
+      "show": "Show inspector",
+      "hide": "Hide inspector",
+      "readiness": {
+        "heading": "Readiness",
+        "ready": "No readiness issues for this time.",
+        "overlap": "{{names}} is due on court in {{labels}} at this time",
+        "recovery": "{{names}} needs recovery time",
+        "recoveryNotBefore": "{{names}} needs recovery time — not before {{time}}",
+        "dependencyNotBefore": "Waiting on {{labels}} — not before {{time}}",
+        "dependencyUnscheduled": "Waiting on {{labels}}, which is not scheduled",
+        "undetermined": "Participants not yet determined — waiting on {{labels}}",
+        "skip": {
+          "generic": "Readiness cannot be evaluated for this matchUp.",
+          "bye": "A BYE has no readiness to check.",
+          "completed": "Already complete — nothing left to be ready for.",
+          "notScheduled": "Not scheduled yet, so there is no time to check against.",
+          "noTime": "No scheduled time, so readiness cannot be projected.",
+          "unknownMatchUp": "This matchUp is no longer in the tournament."
+        }
+      }
+    }
   },
   "penalties": {
     "fail2signout": "Failed to Sign Out",

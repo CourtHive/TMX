@@ -104,7 +104,13 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
   const matchUp = payload.matchUp;
 
   // Dropped onto its own cell — nothing to do.
-  if (occupant && occupant.matchUpId === matchUp.matchUpId) return [];
+  //
+  // The leading `matchUp.matchUpId &&` is load-bearing, not redundant: with no
+  // occupant, `occupant?.matchUpId` is undefined, so a bare optional-chain
+  // comparison would return true for a payload whose own matchUpId is missing
+  // and silently swallow the drop. The call site casts through
+  // `as unknown as GridDropPayload`, so the type does not rule that out.
+  if (matchUp.matchUpId && occupant?.matchUpId === matchUp.matchUpId) return [];
 
   // Stamped onto EVERY method the drop produces: a swap moves two matchUps, and
   // a confirmation that covers only one of them would half-apply the swap.
@@ -114,7 +120,10 @@ export function buildGridDropMethods(params: BuildGridDropMethodsParams): Schedu
       : methods;
 
   const source = payload.type === 'GRID_MATCHUP' ? payload.source : null;
-  const canSwap = !!(occupant && source && source.courtId && source.courtOrder != null);
+  // `source?.courtOrder != null` is false when `source` is absent (loose `!=`
+  // treats undefined as null), so the optional chain covers the null-source case
+  // without a separate `source &&`.
+  const canSwap = !!(occupant && source?.courtId && source.courtOrder != null);
 
   if (canSwap && occupant && source) {
     // Swap: the two matchUps trade court + courtOrder, but each KEEPS ITS OWN

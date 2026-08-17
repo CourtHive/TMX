@@ -271,8 +271,11 @@ import {
   writeScheduledGroupBy,
   readScheduledFilters,
   writeScheduledFilters,
+  readInspectorVisible,
+  writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
+import { renderReadinessSection } from './inspectorReadiness';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
  *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
@@ -398,6 +401,14 @@ export function renderGridView(
     // dispatches a real state change (default-true store + false-localStorage
     // otherwise causes a no-op on first toggle).
     activeStripVisible: options?.activeStripVisible ?? true,
+    // Same reason as activeStripVisible: seed from localStorage so the first
+    // click on the toggle dispatches a real change rather than a no-op against
+    // the store's default-true.
+    inspectorVisible: readInspectorVisible(),
+    // Consumer-supplied Inspector detail: readiness for the selected matchUp.
+    // A render hook rather than an external append — the Inspector rebuilds its
+    // body on every store tick and would wipe anything appended from outside.
+    renderInspectorExtra: (matchUp) => renderReadinessSection(matchUp.matchUpId),
     // Restore catalog filter state captured from a previous mount within
     // this tournament session. Cleared on tournament load (see loadTournament).
     initialCatalogState: context.scheduleCatalogState,
@@ -494,9 +505,9 @@ export function renderGridView(
     },
 
     onMatchUpSelected: () => {
-      // Selection is a UI-only concern in the schedule page right now —
-      // no global state update needed. Keep the hook so the catalog can
-      // surface selection later (e.g. via an inspector panel).
+      // Selection is store-local: the Inspector reads `state.selectedMatchUp`
+      // and re-renders itself. Nothing global to update — the hook stays so a
+      // future consumer (deep link, cross-panel highlight) has a seam.
     },
   };
 
@@ -653,10 +664,38 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   const sidebar = layout.firstElementChild as HTMLElement;
   if (!sidebar) return;
 
-  // Build control bar (tab switcher: Unscheduled / Scheduled)
+  // Build control bar (inspector toggle + tab switcher: Unscheduled / Scheduled)
   const controlBar = document.createElement('div');
   controlBar.style.cssText =
     'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
+
+  // Inspector show/hide, left of the tabs. Global to the catalog: one flag for
+  // BOTH views, because the Inspector describes the selected matchUp rather than
+  // either tab's contents. Persisted, and NOT auto-revealed on selection — a
+  // deliberate operator choice is not overridden (see the workstream plan).
+  const inspectorToggle = document.createElement('button');
+  inspectorToggle.className = 'tmx-inspector-toggle';
+  inspectorToggle.dataset.inspectorToggle = 'true';
+  inspectorToggle.innerHTML =
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>';
+
+  const syncInspectorToggle = (visible: boolean) => {
+    inspectorToggle.setAttribute('aria-pressed', String(visible));
+    inspectorToggle.title = visible ? t('schedule.inspector.hide') : t('schedule.inspector.show');
+    inspectorToggle.setAttribute('aria-label', inspectorToggle.title);
+  };
+  syncInspectorToggle(activeControl?.getStore().getState().inspectorVisible ?? readInspectorVisible());
+
+  inspectorToggle.addEventListener('click', () => {
+    const store = activeControl?.getStore();
+    if (!store) return;
+    const next = !store.getState().inspectorVisible;
+    store.setInspectorVisible(next);
+    writeInspectorVisible(next);
+    syncInspectorToggle(next);
+  });
+
+  controlBar.appendChild(inspectorToggle);
 
   const unschedTab = document.createElement('button');
   unschedTab.dataset.sidebarTab = 'unscheduled';
@@ -961,7 +1000,13 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   });
 
   // The component's existing catalog content (everything after the control bar)
-  const catalogContent = Array.from(sidebar.children);
+  // The component's existing catalog content, EXCLUDING the Inspector panel.
+  // The Inspector is a sibling of the catalog in the layout's sidebar, so a naive
+  // `Array.from(sidebar.children)` sweeps it into "catalog content" and hides it
+  // whenever the Scheduled tab is shown — which is precisely why the Scheduled
+  // view had no Inspector. It is identified by the `data-panel` hook rather than
+  // by sibling order (both panels carry the same `sp-panel` class).
+  const catalogContent = Array.from(sidebar.children).filter((el) => (el as HTMLElement).dataset.panel !== 'inspector');
 
   // Insert control bar at top
   sidebar.insertBefore(controlBar, sidebar.firstChild);
@@ -1092,8 +1137,18 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         // visual priority stays stable while the operator searches.
         const base = baseRoundByEvent.get(item.eventId);
         const roundOffset = base === undefined ? undefined : Math.max(0, item.roundNumber - base);
-        const card = buildMatchUpCard(item, {}, { prominentTime: true, roundOffset });
+        const card = buildMatchUpCard(
+          item,
+          { onClick: (m) => selectFromScheduledPanel(m.matchUpId) },
+          {
+            prominentTime: true,
+            roundOffset,
+          },
+        );
         if (!item.scheduledTime) card.classList.add('no-time');
+        if (activeControl?.getStore().getState().selectedMatchUp?.matchUpId === item.matchUpId) {
+          card.classList.add('selected');
+        }
         gb.appendChild(card);
       }
 
@@ -1101,6 +1156,28 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       groupEl.appendChild(gb);
       scheduledCardsContainer.appendChild(groupEl);
     }
+  }
+
+  /**
+   * Select a Scheduled-panel card into the Inspector.
+   *
+   * ⚠️ Resolves the item out of `state.matchUpCatalog` rather than passing the
+   * card's own item. `scheduledMatchUpToCatalogItem` forces `isScheduled: false`
+   * so `buildMatchUpCard` attaches its dragstart listener; handing that object to
+   * the store would make the Inspector report "Scheduled: No" for a matchUp that
+   * plainly is. `buildCatalog(currentDate)` includes scheduled-on-this-date
+   * matchUps, so the lookup hits — and because the id IS in the catalog, the
+   * store's "clear selection when it leaves the catalog" guard cannot wrongly
+   * clear it either. The card's item is only a fallback.
+   */
+  function selectFromScheduledPanel(matchUpId: string): void {
+    const store = activeControl?.getStore();
+    if (!store) return;
+    const fromCatalog = store.getState().matchUpCatalog.find((m) => m.matchUpId === matchUpId);
+    const fallback = buildCatalog(currentDate).find((m) => m.matchUpId === matchUpId);
+    const resolved = fromCatalog ?? fallback;
+    if (resolved) store.selectMatchUp(resolved);
+    updateScheduledPanel();
   }
 
   // The default tab reflects the selected date's schedule state; the operator's
@@ -2298,7 +2375,9 @@ function extractParticipantIds(matchUp: any): string[] {
       continue;
     }
     if (participant.individualParticipantIds?.length) {
-      for (const id of participant.individualParticipantIds) ids.push(id);
+      // Single variadic push rather than one per id — SonarJS flags repeated
+      // `Array#push()` at the same scope.
+      ids.push(...participant.individualParticipantIds);
     } else if (participant.participantId) {
       ids.push(participant.participantId);
     }
@@ -2665,11 +2744,13 @@ function makeSpacerInteractive(stripEl: HTMLElement): void {
 function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh: () => void): void {
   if (!latestStripSnapshot) return;
 
-  const courtId = cellRoot.getAttribute('data-court-id') ?? '';
+  const courtId = cellRoot.dataset.courtId ?? '';
   if (!courtId) return;
 
-  const rowAttr = cellRoot.getAttribute('data-row-index');
-  const rowIndex = rowAttr === null ? 0 : Number(rowAttr);
+  // `dataset` yields undefined where getAttribute yielded null — the absent case
+  // still means row 0, and an empty string still coerces to 0 as before.
+  const rowAttr = cellRoot.dataset.rowIndex;
+  const rowIndex = rowAttr === undefined ? 0 : Number(rowAttr);
 
   const courtIndex = latestStripSnapshot.courtsData.findIndex((c) => c.courtId === courtId);
   if (courtIndex < 0) return;
@@ -3063,7 +3144,9 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   }
 
   // Otherwise: does an upcoming block start before this matchUp could complete?
-  let nextBlock: any | undefined;
+  // `any` already admits undefined; `any | undefined` collapses to `any` and
+  // SonarJS flags the redundant member.
+  let nextBlock: any;
   for (const block of blocks) {
     if (block?.type === 'SCHEDULED') continue;
     if (!block.start || block.court?.courtId !== courtId) continue;
@@ -3284,8 +3367,15 @@ function applyHeaderRowIssueIndicators(
     if (issue === SCHEDULE_WARNING) return 1;
     return 0;
   };
+  // Seeded with the first issue so the accumulator is a plain severity string.
+  // Both callers already guard `!issues?.length`, but a seedless reduce THROWS on
+  // an empty array — the seed makes this correct on its own terms rather than
+  // dependent on those guards staying in place. Equivalent for non-empty input.
   const topSeverity = (issues: any[]): string =>
-    issues.reduce((top, cur) => (severityRank(cur.issue) > severityRank(top.issue) ? cur : top)).issue;
+    issues.reduce(
+      (top, cur) => (severityRank(cur.issue) > severityRank(top) ? cur.issue : top),
+      issues[0]?.issue ?? '',
+    );
 
   const severityColor = (issue: string): string => {
     if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'var(--sp-err, #f43f5e)';

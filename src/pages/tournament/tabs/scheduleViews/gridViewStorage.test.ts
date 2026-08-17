@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  readInspectorVisible,
   readScheduledFilters,
   readScheduledGroupBy,
   readScheduledSearch,
   readSidebarTab,
+  writeInspectorVisible,
   writeScheduledFilters,
   writeScheduledGroupBy,
   writeScheduledSearch,
@@ -147,5 +149,51 @@ describe('scheduled filters', () => {
   it('returns an empty object when stored JSON is malformed', () => {
     localStorage.setItem(FILTERS_KEY, 'not-json');
     expect(readScheduledFilters()).toEqual({});
+  });
+});
+
+const INSPECTOR_KEY = 'schedule2:inspector-visible';
+
+describe('inspector visibility', () => {
+  beforeEach(installMemoryStorage);
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('defaults to visible when nothing is stored', () => {
+    expect(readInspectorVisible()).toBe(true);
+  });
+
+  it('round-trips hidden', () => {
+    writeInspectorVisible(false);
+    expect(readInspectorVisible()).toBe(false);
+  });
+
+  it('round-trips back to visible', () => {
+    writeInspectorVisible(false);
+    writeInspectorVisible(true);
+    expect(readInspectorVisible()).toBe(true);
+  });
+
+  it('stores nothing for the default — visible removes the key rather than writing "true"', () => {
+    writeInspectorVisible(false);
+    expect(localStorage.getItem(INSPECTOR_KEY)).toBe('false');
+    writeInspectorVisible(true);
+    expect(localStorage.getItem(INSPECTOR_KEY)).toBeNull();
+  });
+
+  it('treats any value other than "false" as visible, so malformed storage cannot hide the panel', () => {
+    localStorage.setItem(INSPECTOR_KEY, 'nonsense');
+    expect(readInspectorVisible()).toBe(true);
+    localStorage.setItem(INSPECTOR_KEY, 'FALSE');
+    expect(readInspectorVisible()).toBe(true);
+  });
+
+  it('falls back to visible when storage throws on read', () => {
+    installThrowingStorage();
+    expect(readInspectorVisible()).toBe(true);
+  });
+
+  it('does not throw when storage throws on write', () => {
+    installThrowingStorage();
+    expect(() => writeInspectorVisible(false)).not.toThrow();
   });
 });
