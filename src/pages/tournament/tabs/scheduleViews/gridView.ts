@@ -2375,7 +2375,9 @@ function extractParticipantIds(matchUp: any): string[] {
       continue;
     }
     if (participant.individualParticipantIds?.length) {
-      for (const id of participant.individualParticipantIds) ids.push(id);
+      // Single variadic push rather than one per id — SonarJS flags repeated
+      // `Array#push()` at the same scope.
+      ids.push(...participant.individualParticipantIds);
     } else if (participant.participantId) {
       ids.push(participant.participantId);
     }
@@ -2742,11 +2744,13 @@ function makeSpacerInteractive(stripEl: HTMLElement): void {
 function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh: () => void): void {
   if (!latestStripSnapshot) return;
 
-  const courtId = cellRoot.getAttribute('data-court-id') ?? '';
+  const courtId = cellRoot.dataset.courtId ?? '';
   if (!courtId) return;
 
-  const rowAttr = cellRoot.getAttribute('data-row-index');
-  const rowIndex = rowAttr === null ? 0 : Number(rowAttr);
+  // `dataset` yields undefined where getAttribute yielded null — the absent case
+  // still means row 0, and an empty string still coerces to 0 as before.
+  const rowAttr = cellRoot.dataset.rowIndex;
+  const rowIndex = rowAttr === undefined ? 0 : Number(rowAttr);
 
   const courtIndex = latestStripSnapshot.courtsData.findIndex((c) => c.courtId === courtId);
   if (courtIndex < 0) return;
@@ -3140,7 +3144,9 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   }
 
   // Otherwise: does an upcoming block start before this matchUp could complete?
-  let nextBlock: any | undefined;
+  // `any` already admits undefined; `any | undefined` collapses to `any` and
+  // SonarJS flags the redundant member.
+  let nextBlock: any;
   for (const block of blocks) {
     if (block?.type === 'SCHEDULED') continue;
     if (!block.start || block.court?.courtId !== courtId) continue;
@@ -3361,8 +3367,15 @@ function applyHeaderRowIssueIndicators(
     if (issue === SCHEDULE_WARNING) return 1;
     return 0;
   };
+  // Seeded with the first issue so the accumulator is a plain severity string.
+  // Both callers already guard `!issues?.length`, but a seedless reduce THROWS on
+  // an empty array — the seed makes this correct on its own terms rather than
+  // dependent on those guards staying in place. Equivalent for non-empty input.
   const topSeverity = (issues: any[]): string =>
-    issues.reduce((top, cur) => (severityRank(cur.issue) > severityRank(top.issue) ? cur : top)).issue;
+    issues.reduce(
+      (top, cur) => (severityRank(cur.issue) > severityRank(top) ? cur.issue : top),
+      issues[0]?.issue ?? '',
+    );
 
   const severityColor = (issue: string): string => {
     if (issue === SCHEDULE_ERROR || issue === SCHEDULE_CONFLICT) return 'var(--sp-err, #f43f5e)';
