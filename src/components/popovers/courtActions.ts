@@ -2,7 +2,7 @@
  * Court actions popover with edit option.
  * Shows tipster menu for court management actions from table rows.
  */
-import { editCourt } from 'pages/tournament/tabs/venuesTab/editCourt';
+import { editCourt, type CourtEditResult } from 'pages/tournament/tabs/venuesTab/editCourt';
 import { competitionEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -20,7 +20,7 @@ export const courtActions =
     const row = cell.getRow();
     const courtRow = row?.getData();
 
-    const doneEditing = ({ success }: any) => {
+    const doneEditing = ({ success }: CourtEditResult) => {
       if (success) {
         // Fetch updated court from venues to ensure we have correct values
         const { venues = [] } = competitionEngine.getVenuesAndCourts();

@@ -2,7 +2,7 @@
  * Venue actions popover with edit option.
  * Shows tipster menu for venue management actions from table rows.
  */
-import { editVenue } from 'pages/tournament/tabs/venuesTab/editVenue';
+import { editVenue, type VenueEditResult } from 'pages/tournament/tabs/venuesTab/editVenue';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -22,7 +22,7 @@ export const venueActions =
     const row = cell.getRow();
     const venueRow = row?.getData();
 
-    const doneEditing = ({ success, venueUpdates, courtsUpdated }: any) => {
+    const doneEditing = ({ success, venueUpdates, courtsUpdated }: VenueEditResult) => {
       if (success) {
         Object.assign(venueRow, venueUpdates);
         row.update(venueRow);

@@ -16,7 +16,20 @@ import { RIGHT } from 'constants/tmxConstants';
 const { surfaceConstants } = factoryConstants;
 const EMPTY_OPTION = '------------';
 
-export function editCourt({ court, callback }: { court?: any; callback?: (result: any) => void } = {}): void {
+/**
+ * What `editCourt` hands back to its callback. `courtUpdates` is always present — see the single
+ * call site in `postMutation` — so a consumer may read it without first proving `success`.
+ */
+export type CourtEditResult = {
+  courtUpdates: Record<string, any>;
+  success?: boolean;
+  error?: any;
+};
+
+export function editCourt({
+  court,
+  callback,
+}: { court?: any; callback?: (result: CourtEditResult) => void } = {}): void {
   const values: any = {
     courtName: court?.courtName || '',
     indoorOutdoor: court?.indoorOutdoor || '',
@@ -118,13 +131,14 @@ export function editCourt({ court, callback }: { court?: any; callback?: (result
       courtUpdates.surfaceType = undefined;
     }
 
+    // ONE payload, ONE call site — see the note in `editVenue.ts`. The error branch used to hand
+    // back a bare `result` without `courtUpdates`, the same latent divergence.
     const postMutation = (result: any) => {
-      if (result.success) {
-        if (isFunction(callback)) callback({ ...result, courtUpdates });
-      } else if (result.error) {
+      if (result?.error) {
         tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
-        if (isFunction(callback)) callback(result);
       }
+      if (!result?.success && !result?.error) return;
+      if (isFunction(callback) && callback) callback({ ...result, courtUpdates });
     };
 
     const courtId = court.courtId;
