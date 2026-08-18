@@ -18,6 +18,12 @@ jobs:
   desktop:
     name: build + smoke
     runs-on: ubuntu-latest
+    # Without this the job inherits GitHub's 360-minute default. On 2026-08-18
+    # the apt step below hung and the job sat "in progress" for 49 minutes with
+    # nearly six hours still to run, holding a PR's only outstanding check. A
+    # healthy run finishes in ~6 minutes, so 20 is generous headroom and still
+    # fails fast enough to be actionable rather than mistaken for a slow build.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -57,8 +63,56 @@ jobs:
       # Electron bundles its own Chromium, so no browser download is needed —
       # but the shared system libraries it links against are not on a bare
       # runner. `install-deps` provides exactly those.
+      #
+      # It shells out to `apt-get`, which on hosted runners intermittently
+      # blocks. On 2026-08-18 it hung here on TWO branches at once, including
+      # `main`, while other runs minutes apart sailed through.
+      #
+      # Measured on run 32168607973 rather than guessed, and the numbers decide
+      # the design:
+      #
+      #   * 26 of the shared libraries are ALREADY on the ubuntu-24.04 image
+      #     ("already the newest version"). The only NEW packages are nine FONT
+      #     packages — 21.1 MB — and Electron links against none of them.
+      #   * The stall is in that font download, not in dependency resolution.
+      #
+      # So this step is advisory, not a gate. Failing the build because a font
+      # mirror stalled blocks every PR for something the desktop app does not
+      # need. The smoke test below is the real assertion: if a library Electron
+      # actually links against ever goes missing from the image, it fails there
+      # with a loud loader error, and these warnings sit directly above it.
+      #
+      # Two things make the retry work at all:
+      #   * a per-attempt `timeout` — a step-level `timeout-minutes` would kill
+      #     the retry loop along with the hung attempt, which is no better than
+      #     hanging;
+      #   * reclaiming the dpkg lock between attempts. `timeout` kills the
+      #     playwright process, but the apt-get it launched under sudo survives
+      #     as an orphan still holding /var/lib/dpkg/lock-frontend. Measured:
+      #     attempt 1 timed out mid-download and attempts 2-3 then died in
+      #     ~1s each on "held by process 2962 (apt-get)". Without this, the
+      #     retries are guaranteed to fail and the loop is decoration.
       - name: Install Chromium system dependencies
-        run: pnpm exec playwright install-deps chromium
+        run: |
+          reclaim_dpkg_lock() {
+            sudo pkill -TERM -x apt-get 2>/dev/null || true
+            sleep 3
+            sudo pkill -KILL -x apt-get 2>/dev/null || true
+            sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock
+            sudo dpkg --configure -a || true
+          }
+          for attempt in 1 2 3; do
+            if timeout 4m pnpm exec playwright install-deps chromium; then
+              echo "install-deps succeeded on attempt ${attempt}"
+              exit 0
+            fi
+            echo "::warning::install-deps attempt ${attempt} failed or timed out after 4m; reclaiming dpkg lock"
+            reclaim_dpkg_lock
+          done
+          echo "::warning::install-deps did not complete after 3 attempts — continuing anyway."
+          echo "::warning::Only font packages are missing from this image; the shared libraries"
+          echo "::warning::Electron links against are preinstalled. If one were genuinely absent,"
+          echo "::warning::the smoke test below fails with a loader error — that is the real gate."
 
       # Electron always opens a real window; there is no headless mode for the
       # app shell, so Linux CI needs a virtual framebuffer.

@@ -12,6 +12,11 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
+    # Same guard as electron.yml, for the same reason: no TMX workflow had a
+    # timeout, so any hung step got GitHub's 360-minute default before anyone
+    # found out. This job is the required check, so a hang here blocks merging
+    # outright. A healthy run is ~2 minutes.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
