@@ -23,8 +23,8 @@
  * mode this guards is a future consumer, not a current render.
  */
 
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 const DRAWERS = [
   { name: 'editVenue', path: new URL('./editVenue.ts', import.meta.url) },
