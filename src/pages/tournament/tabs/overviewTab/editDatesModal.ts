@@ -103,13 +103,17 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
     // drawer. Empty value === "clear" so TDs can unset back to the
     // host-local fallback.
     {
+      // `value` — not the typeAhead's `currentValue` — is what pre-fills this
+      // field. `currentValue` resolves a stored code to its display label by
+      // looking for `{ value, label }` entries in the list; the zone list is
+      // plain strings, so that lookup always misses and the input renders
+      // empty. `renderField` assigns `item.value` after the typeAhead is
+      // attached, so the pre-fill survives.
+      value: existingTimeZone || detectedTimeZone,
       label: t('drawers.editTournament.timeZoneLabel'),
       placeholder: t('drawers.editTournament.timeZonePlaceholder'),
       field: 'localTimeZone',
-      typeAhead: {
-        list: supportedTimeZones,
-        currentValue: existingTimeZone || detectedTimeZone,
-      },
+      typeAhead: { list: supportedTimeZones },
     },
   ];
 

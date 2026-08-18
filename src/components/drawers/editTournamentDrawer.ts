@@ -96,13 +96,14 @@ export function editTournament({
       language: i18next.language,
     },
     {
+      // See the note in `editDatesModal` — the zone list is plain strings, so
+      // the typeAhead's `currentValue` label lookup never matches. `value` is
+      // what actually pre-fills the input.
+      value: values.localTimeZone,
       label: t('drawers.editTournament.timeZoneLabel'),
       placeholder: t('drawers.editTournament.timeZonePlaceholder'),
       field: 'localTimeZone',
-      typeAhead: {
-        list: supportedTimeZones,
-        currentValue: values.localTimeZone,
-      },
+      typeAhead: { list: supportedTimeZones },
     },
     // Tournament tier — the federation-specific competitive prestige
     // classification. When the provider config declares
