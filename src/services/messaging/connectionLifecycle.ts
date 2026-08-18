@@ -59,7 +59,16 @@ export function recoverConnections(reason: string): { socket: boolean; relay: bo
   const socket = ensureConnected();
   const relay = ensureRelayConnected();
   if (socket || relay) {
-    slog('[lifecycle] recovery after %s — socket=%s relay=%s', reason, socket, relay);
+    // DELIBERATELY NOT behind `socketLog`. This fires only when a reconnect was actually initiated —
+    // a rare, meaningful event, not a trace — and it is the only way to tell from a deployed build
+    // that recovery ran at all.
+    //
+    // That distinction was not academic: the bfcache messages Chrome logs on freeze
+    // ("Page entered Back-Forward Cache") look identical whether or not recovery works, so the fix
+    // was reported as broken on 8.19.0 when it was in fact working. `socketLog` could not settle it
+    // because it is the one debug flag with no setter in env.ts — every slog() call is unreachable
+    // in a deployed build. Answering "did recovery run?" must not depend on a flag nobody can set.
+    console.log('[lifecycle] recovery after %s — socket=%s relay=%s', reason, socket, relay);
   }
   return { socket, relay };
 }
