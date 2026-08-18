@@ -1,5 +1,35 @@
 # Changelog
 
+## [8.19.0](https://github.com/CourtHive/TMX/compare/v8.18.0...v8.19.0) (2026-08-18)
+
+
+### Features
+
+* **i18n:** audit hardcoded user-facing strings, with a baseline ratchet ([#1281](https://github.com/CourtHive/TMX/issues/1281)) ([e3e10d2](https://github.com/CourtHive/TMX/commit/e3e10d20c1fdeb4726a22bd9fe0287342f1ca00c))
+* **i18n:** convert participant + officiating strings to t() ([#1282](https://github.com/CourtHive/TMX/issues/1282)) ([722ae04](https://github.com/CourtHive/TMX/commit/722ae043a0f3ff8cdad77398001cf6172982aa45))
+* **i18n:** fail CI on t() keys that resolve to nothing ([#1283](https://github.com/CourtHive/TMX/issues/1283)) ([5d0a2fd](https://github.com/CourtHive/TMX/commit/5d0a2fdd1e38fbb306d639853ade290aa401799e))
+* **matchUps:** schedule lock column, filter and row-menu toggle ([#1286](https://github.com/CourtHive/TMX/issues/1286)) ([e7c6f57](https://github.com/CourtHive/TMX/commit/e7c6f575bf25140db74d924b87eb19e1bb376f79))
+* **matchUps:** split called out of readyToScore in the Today bar ([#1284](https://github.com/CourtHive/TMX/issues/1284)) ([deb47e2](https://github.com/CourtHive/TMX/commit/deb47e2ae849f7f1ce5560c340391c903faf9f28))
+* **officiating:** surface official conflicts in the matchUp official picker ([#1273](https://github.com/CourtHive/TMX/issues/1273)) ([cfd9164](https://github.com/CourtHive/TMX/commit/cfd9164ae9a09a211f17153047ae8c7d404a0a1d))
+* **participants:** let a GROUP carry a participantRole ([#1279](https://github.com/CourtHive/TMX/issues/1279)) ([8e2b9e5](https://github.com/CourtHive/TMX/commit/8e2b9e5b7f6051e3702f16fe9535992b1722a3e2))
+* **publishing:** request cache warming when a draw is released ([#1278](https://github.com/CourtHive/TMX/issues/1278)) ([83adede](https://github.com/CourtHive/TMX/commit/83adede48163616ae665a04e5583b5d50b310f58))
+* **schedule:** bulk lock and unlock a day's placements ([#1287](https://github.com/CourtHive/TMX/issues/1287)) ([c93eedf](https://github.com/CourtHive/TMX/commit/c93eedf91ccc79350724d2e9fbfe080d61387838))
+* **schedule:** lock a matchUp placement from the grid ([#1285](https://github.com/CourtHive/TMX/issues/1285)) ([f8c522a](https://github.com/CourtHive/TMX/commit/f8c522ac1a49ba56346dc80ad7c6acd5096e4c6c))
+* **schedule:** matchUp Inspector on both catalog views, toggleable, with readiness ([#1295](https://github.com/CourtHive/TMX/issues/1295)) ([e33ac26](https://github.com/CourtHive/TMX/commit/e33ac26498a55ec01507d70c9497d8dbc9791c4b))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 3.14.0 ([#1294](https://github.com/CourtHive/TMX/issues/1294)) ([5a70482](https://github.com/CourtHive/TMX/commit/5a704828dd0c5e581be6d4a5df4711cb35d1a63b))
+* **deps:** update courthive-components to 3.14.1 and pdf-factory to 0.8.18 ([#1302](https://github.com/CourtHive/TMX/issues/1302)) ([56f8a2d](https://github.com/CourtHive/TMX/commit/56f8a2ddb71f984fb98e14007f5e1f3413cd93da))
+* **deps:** update dependency dexie to v4.4.5 ([#1298](https://github.com/CourtHive/TMX/issues/1298)) ([ddd9b4c](https://github.com/CourtHive/TMX/commit/ddd9b4cb1721df77ceb6f6c2641e7e09c69b2dac))
+* **deps:** update dependency hotkeys-js to v4.0.5 ([#1299](https://github.com/CourtHive/TMX/issues/1299)) ([65cf13e](https://github.com/CourtHive/TMX/commit/65cf13e004615d36cc43f1cb479139e2d23c1f12))
+* **deps:** update tods-competition-factory to 6.28.1 ([#1301](https://github.com/CourtHive/TMX/issues/1301)) ([0e26b5e](https://github.com/CourtHive/TMX/commit/0e26b5e59561549a93f427b9883d015730b68bcb))
+* **electron:** repair the broken desktop build and gate it with a smoke suite ([#1274](https://github.com/CourtHive/TMX/issues/1274)) ([adf90b1](https://github.com/CourtHive/TMX/commit/adf90b1d3e71e897a3408e997eca506f689d5a9e))
+* **participants:** render the GROUP role badge and make the role editable ([#1280](https://github.com/CourtHive/TMX/issues/1280)) ([0c485e6](https://github.com/CourtHive/TMX/commit/0c485e606a43deb8561ba87bec9af546e47eb807))
+* **socket:** reconnect after a back-forward-cache freeze, not just on navigation ([#1296](https://github.com/CourtHive/TMX/issues/1296)) ([aadd30e](https://github.com/CourtHive/TMX/commit/aadd30eb880643a17a9368e7a58ac292b753cdd4))
+* **tables:** stop asking Tabulator to remove a filter it never added ([#1297](https://github.com/CourtHive/TMX/issues/1297)) ([592db9c](https://github.com/CourtHive/TMX/commit/592db9c8b721409db84ef39993054391abd65a4f))
+
 ## [8.18.0](https://github.com/CourtHive/TMX/compare/v8.17.1...v8.18.0) (2026-08-15)
 
 
