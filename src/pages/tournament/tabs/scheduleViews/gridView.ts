@@ -744,7 +744,10 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // sibling surfaces rather than two different designs.
   const scheduledPanel = document.createElement('div');
   scheduledPanel.dataset.sidebarPanel = 'scheduled';
-  scheduledPanel.style.cssText = 'display: none; flex: 1; min-height: 0; flex-direction: column;';
+  // `flex: 3` matches the unscheduled catalog panel's flex in the component's
+  // sidebar layout, so the Inspector below it gets the identical share of the
+  // sidebar on both tabs.
+  scheduledPanel.style.cssText = 'display: none; flex: 3; min-height: 0; flex-direction: column;';
 
   let scheduledSearchQuery = readScheduledSearch();
   let scheduledGroupBy: MatchUpCatalogGroupBy = readScheduledGroupBy();
@@ -1010,7 +1013,14 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
 
   // Insert control bar at top
   sidebar.insertBefore(controlBar, sidebar.firstChild);
-  sidebar.appendChild(scheduledPanel);
+  // The Scheduled panel stands in for the catalog, so it takes the catalog's
+  // slot — ABOVE the Inspector. Appending it to the sidebar instead leaves it
+  // after the Inspector, which puts the Inspector at the TOP on the Scheduled
+  // tab and at the BOTTOM on the Unscheduled tab: the panel jumps as soon as
+  // you switch views. `insertBefore(_, null)` degrades to append if the
+  // Inspector is ever absent.
+  const inspectorEl = sidebar.querySelector(':scope > [data-panel="inspector"]');
+  sidebar.insertBefore(scheduledPanel, inspectorEl);
 
   // Default sidebar tab is resolved after the scheduled-orphan helpers are
   // declared (see `resolveInitialTab` below), so we can land on "Scheduled"

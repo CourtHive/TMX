@@ -200,6 +200,31 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(page.locator(INSPECTOR)).toBeVisible();
   });
 
+  test('the Inspector occupies the SAME slot on both tabs', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+
+    const topOf = async (selector: string) => {
+      const box = await page.locator(selector).boundingBox();
+      if (!box) throw new Error(`no bounding box for ${selector}`);
+      return box.y;
+    };
+
+    await openUnscheduledTab(page);
+    const unscheduledTop = await topOf(INSPECTOR);
+    expect(unscheduledTop).toBeGreaterThan(await topOf(CATALOG_PANEL));
+
+    await openScheduledTab(page);
+    const scheduledTop = await topOf(INSPECTOR);
+    // The Scheduled panel is inserted BEFORE the Inspector rather than appended
+    // to the sidebar; appending put the Inspector at the top of the Scheduled
+    // tab and the bottom of the Unscheduled one.
+    expect(scheduledTop).toBeGreaterThan(await topOf(SCHEDULED_PANEL));
+    // Below-the-list is not enough — it must land at the same height, which is
+    // what the Scheduled panel's `flex: 3` (matching the catalog) buys.
+    expect(Math.abs(scheduledTop - unscheduledTop)).toBeLessThan(2);
+  });
+
   test('selecting a Scheduled card populates the Inspector and reports Scheduled: Yes', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);
