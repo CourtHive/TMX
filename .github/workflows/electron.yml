@@ -18,6 +18,12 @@ jobs:
   desktop:
     name: build + smoke
     runs-on: ubuntu-latest
+    # Without this the job inherits GitHub's 360-minute default. On 2026-08-18
+    # the apt step below hung and the job sat "in progress" for 49 minutes with
+    # nearly six hours still to run, holding a PR's only outstanding check. A
+    # healthy run finishes in ~6 minutes, so 20 is generous headroom and still
+    # fails fast enough to be actionable rather than mistaken for a slow build.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -57,8 +63,30 @@ jobs:
       # Electron bundles its own Chromium, so no browser download is needed —
       # but the shared system libraries it links against are not on a bare
       # runner. `install-deps` provides exactly those.
+      #
+      # It shells out to `apt-get`, which on hosted runners intermittently
+      # blocks — typically on the dpkg / unattended-upgrades lock, sometimes on
+      # a slow mirror. On 2026-08-18 it hung here on TWO branches at once,
+      # including `main`, while other runs minutes apart sailed through, so the
+      # stall is environmental rather than anything in the diff under test.
+      #
+      # The per-attempt `timeout` is the load-bearing part: a step-level
+      # `timeout-minutes` would kill the retry loop along with the hung attempt,
+      # which is exactly no better than hanging. Bounding each attempt instead
+      # turns an unbounded stall into a bounded retry, and a genuinely missing
+      # dependency still fails the step rather than being swallowed — the smoke
+      # test that follows would otherwise fail with a far more confusing error.
       - name: Install Chromium system dependencies
-        run: pnpm exec playwright install-deps chromium
+        run: |
+          for attempt in 1 2 3; do
+            if timeout 4m pnpm exec playwright install-deps chromium; then
+              exit 0
+            fi
+            echo "::warning::install-deps attempt ${attempt} failed or timed out after 4m; retrying"
+            sleep 15
+          done
+          echo "::error::playwright install-deps chromium failed after 3 attempts"
+          exit 1
 
       # Electron always opens a real window; there is no headless mode for the
       # app shell, so Linux CI needs a virtual framebuffer.
