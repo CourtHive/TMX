@@ -14,7 +14,7 @@ import {
   onAdminChatUpdate,
   getAdminChatMessages,
   sendAdminReply,
-  type AdminChatMessage,
+  AdminChatMessage,
 } from 'services/chat/adminChatService';
 
 const PANEL_ID = 'chatMonitorPanel';

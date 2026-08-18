@@ -1,4 +1,4 @@
-import type { AvailabilityEngine } from 'tods-competition-factory';
+import { AvailabilityEngine } from 'tods-competition-factory';
 
 function findResourceIdentifier(resources: any[] | undefined, name: string): string | undefined {
   if (!Array.isArray(resources)) return undefined;

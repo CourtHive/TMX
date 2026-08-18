@@ -3,7 +3,7 @@
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
-import type { RoundProfileEditorController } from './roundProfileEditor';
+import { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';

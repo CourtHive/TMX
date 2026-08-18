@@ -48,6 +48,28 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+
+      // ── CourtHive coding standards, machine-enforced ────────────────────
+      // Prose in Mentat/standards/coding-standards.md drifts because lint,
+      // types AND prettier all pass while the code violates it. Three PRs on
+      // 2026-08-18 shipped such deviations; one merged before review caught it.
+      //
+      // Never `import type` — plain `import` covers types and values. tsconfig
+      // sets isolatedModules WITHOUT verbatimModuleSyntax, so types still
+      // elide. `disallowTypeAnnotations: false` keeps inline `import('...')`
+      // annotations available as cycle-breakers.
+      '@typescript-eslint/consistent-type-imports': [
+        'warn',
+        { prefer: 'no-type-imports', disallowTypeAnnotations: false },
+      ],
+      // DOM data attributes are read via `.dataset`, never `.getAttribute`.
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
+          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
+        },
+      ],
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
       'preserve-caught-error': 'off',

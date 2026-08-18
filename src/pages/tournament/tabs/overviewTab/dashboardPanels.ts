@@ -16,7 +16,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openNotesEditor } from './notesEditorModal';
-import type { StructureInfo } from './dashboardData';
+import { StructureInfo } from './dashboardData';
 import { success } from 'components/notices/success';
 import { failure } from 'components/notices/failure';
 import { featureFlags } from 'config/featureFlags';

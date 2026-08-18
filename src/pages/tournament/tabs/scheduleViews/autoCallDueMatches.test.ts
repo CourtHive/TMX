@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeAutoCalls, type StripColumn } from './autoCallDueMatches';
+import { computeAutoCalls, StripColumn } from './autoCallDueMatches';
 
 // A ready matchUp has two sides with participants; the raw factory cell rides on
 // `payload` (schedule.scheduledTime, sides).

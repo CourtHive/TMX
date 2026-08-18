@@ -23,14 +23,14 @@ import { scheduleToast } from './scheduleToast';
 import { context } from 'services/context';
 import {
   createSchedulingProfile,
-  type SchedulingProfileConfig,
-  type SchedulingProfileControl,
-  type CatalogRoundItem,
-  type VenueInfo,
-  type SchedulingProfile,
-  type AvailabilityAdapter,
-  type DemandAdapter,
-  type DependencyAdapter,
+  SchedulingProfileConfig,
+  SchedulingProfileControl,
+  CatalogRoundItem,
+  VenueInfo,
+  SchedulingProfile,
+  AvailabilityAdapter,
+  DemandAdapter,
+  DependencyAdapter,
 } from 'courthive-components';
 
 import { COMPETITION_ENGINE, SCHEDULING_TAB } from 'constants/tmxConstants';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { buildGridDropMethods, shouldRejectStripDrop, GridDropPayload } from './gridDropMethods';
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
 
 const DATE = '2026-06-21';

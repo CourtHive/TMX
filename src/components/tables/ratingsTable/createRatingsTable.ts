@@ -13,7 +13,7 @@ import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
 import { scalesMap } from 'config/scalesConfig';
-import tippy, { type Instance } from 'tippy.js';
+import tippy, { Instance } from 'tippy.js';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
 

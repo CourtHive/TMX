@@ -4,7 +4,7 @@
  * Default implementation — no native capabilities.
  * Server URL resolves from Vite env or window.location.origin.
  */
-import type { PlatformAdapter } from './types';
+import { PlatformAdapter } from './types';
 
 export function createWebPlatform(): PlatformAdapter {
   return {

@@ -1,4 +1,4 @@
-import type { RegistrationEntry } from 'services/apis/registrationsApi';
+import { RegistrationEntry } from 'services/apis/registrationsApi';
 
 /**
  * Collapse doubles registrations into display rows (decision #3): a COMPLETE pair —

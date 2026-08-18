@@ -14,10 +14,10 @@ import { readDrawsViewMode, writeDrawsViewMode } from './renderDraws/drawsViewMo
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { openDisplayOptionsPopover } from './renderDraws/displayOptionsPopover';
 import { renderEventTabsBar, renderNoDrawsPlaceholder } from './eventTabsBar';
-import type { DrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
+import { DrawCardDisplayMode } from './renderDraws/drawCardDisplayMode';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
+import { VizDataAvailability } from './renderDraws/drawCardVizGating';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { addFlights } from 'components/modals/addFlights/addFlights';

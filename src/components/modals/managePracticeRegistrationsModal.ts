@@ -18,7 +18,7 @@ import {
   formatBookingHeader,
   formatRegistrationLabel,
   filterParticipantsForRegistration,
-  type BookingResolution,
+  BookingResolution,
 } from './managePracticeRegistrationsModal.logic';
 
 import { ADD_PRACTICE_REGISTRATION, REMOVE_PRACTICE_REGISTRATION } from 'constants/mutationConstants';

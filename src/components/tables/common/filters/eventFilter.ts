@@ -1,5 +1,5 @@
 import { tournamentEngine } from 'services/factory/engine';
-import type { Event } from 'tods-competition-factory';
+import { Event } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

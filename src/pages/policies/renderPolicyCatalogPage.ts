@@ -13,7 +13,7 @@
  * Routed at `/policies/catalog`. Linked from /policies via a pill at
  * the top of the authoring page.
  */
-import type { PolicyCatalogItem } from 'courthive-components';
+import { PolicyCatalogItem } from 'courthive-components';
 import { showTMXpolicies } from 'services/transitions/screenSlaver';
 import './policyCatalog.css';
 import { removeAllChildNodes } from 'services/dom/transformers';

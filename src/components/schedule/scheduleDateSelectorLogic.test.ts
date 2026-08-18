@@ -12,7 +12,7 @@ import {
   isPublishedForDate,
   publishedDotHtml,
 } from './scheduleDateSelectorLogic';
-import type { ScheduleDate } from 'courthive-components';
+import { ScheduleDate } from 'courthive-components';
 import { describe, expect, it } from 'vitest';
 
 // 2026-07-15 is a Wednesday.

@@ -8,7 +8,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { isActiveProviderAdmin } from './isProviderAdmin';
 import { context } from 'services/context';
 
-import type { LoginState } from 'types/tmx';
+import { LoginState } from 'types/tmx';
 
 const mockedGetLoginState = vi.mocked(getLoginState);
 const BOBOCA = 'boboca-id';

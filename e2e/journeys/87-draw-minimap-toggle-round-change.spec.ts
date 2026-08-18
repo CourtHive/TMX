@@ -21,7 +21,7 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { S } from '../helpers/selectors';
 
 // drawSize 32 = 5 rounds (R32, R16, QF, SF, F) — the minimap eligibility floor

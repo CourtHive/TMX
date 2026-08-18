@@ -3,7 +3,7 @@
  * dropdown value chosen by the director. Extracted so it can be unit
  * tested without standing up the DOM.
  */
-import type { RegistrationStatus } from 'services/apis/registrationsApi';
+import { RegistrationStatus } from 'services/apis/registrationsApi';
 
 export type FilterValue = 'all' | 'open' | RegistrationStatus;
 

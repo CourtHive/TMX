@@ -17,7 +17,7 @@ import {
 
 const { ratingsParameters } = fixtures;
 
-import type { DrawCardDisplayMode } from './drawCardDisplayMode';
+import { DrawCardDisplayMode } from './drawCardDisplayMode';
 
 const HISTOGRAM_HEIGHT = 80;
 const SUNBURST_SIZE = 240;

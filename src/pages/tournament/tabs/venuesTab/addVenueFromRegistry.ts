@@ -16,8 +16,8 @@ import {
   MIN_FACILITY_QUERY,
   fetchRegistryVenue,
   searchFacilities,
-  type FacilityCandidate,
-  type RegistryVenue,
+  FacilityCandidate,
+  RegistryVenue,
 } from 'services/apis/facilitiesApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';

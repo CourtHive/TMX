@@ -4,7 +4,7 @@
  * Communicates with the main process via the preload-injected `window.electronAPI`.
  * Falls back gracefully if preload bridge is unavailable.
  */
-import type { PlatformAdapter, SaveDialogOptions, OpenDialogOptions } from './types';
+import { PlatformAdapter, SaveDialogOptions, OpenDialogOptions } from './types';
 
 /** Shape of the API exposed by the Electron preload script */
 interface ElectronBridge {

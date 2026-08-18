@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { analyzeMatchUpReadiness, individualIds, minutesToClock } from './matchUpReadiness';
 
 // constants and types
-import type { ReadinessMatchUp, ReadinessTiming } from './matchUpReadiness';
+import { ReadinessMatchUp, ReadinessTiming } from './matchUpReadiness';
 
 /**
  * Every finding kind is asserted as a PAIR: once where it fires, and once where

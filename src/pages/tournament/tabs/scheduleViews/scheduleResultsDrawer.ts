@@ -17,9 +17,9 @@ import {
   describeOverLimitAttempts,
   describeRecoveryDeferred,
   describeDependencyDeferred,
-  type MatchUpLookup,
-  type ParticipantLookup,
-  type OverLimitAttempt,
+  MatchUpLookup,
+  ParticipantLookup,
+  OverLimitAttempt,
 } from './scheduleResultsDescribe';
 
 const BLOCK_STYLE = 'margin-top: 10px;';

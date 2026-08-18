@@ -14,7 +14,7 @@
  * the existing `editGroupingParticipant` rename form and the per-person
  * `editPlayer` page; both remain reachable via the popover.
  */
-import { jerseySorter, splitMembership, type Member, type SplitMembership } from './teamProfileLogic';
+import { jerseySorter, splitMembership, Member, SplitMembership } from './teamProfileLogic';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { buildTeamCard, cModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';

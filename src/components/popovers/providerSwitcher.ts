@@ -27,7 +27,7 @@ import {
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
-import type { ProviderValue } from 'types/tmx';
+import { ProviderValue } from 'types/tmx';
 
 type OpenProviderSwitcherParams = {
   target: HTMLElement;

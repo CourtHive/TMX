@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
 import {
   SERVER,

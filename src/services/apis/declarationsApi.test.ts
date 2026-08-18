@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { mapSnapshotToEntry, type RegistrationSnapshot } from './declarationsApi';
+import { mapSnapshotToEntry, RegistrationSnapshot } from './declarationsApi';
 
 const snap: RegistrationSnapshot = {
   declarationId: 'd-1',

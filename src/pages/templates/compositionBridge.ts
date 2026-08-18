@@ -2,7 +2,7 @@ import { clearUserCompositionRuntimeCache } from 'services/compositions/resolveC
 import { compositions } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
 
-import type { SavedComposition } from 'courthive-components';
+import { SavedComposition } from 'courthive-components';
 
 export interface CompositionCatalogItem {
   id: string;

@@ -5,7 +5,7 @@
  * `platform` and uses it without caring which environment is active.
  */
 import { createElectronPlatform } from './electron';
-import type { PlatformAdapter } from './types';
+import { PlatformAdapter } from './types';
 import { createWebPlatform } from './web';
 
 export type { PlatformAdapter, PlatformType, SaveDialogOptions, OpenDialogOptions } from './types';

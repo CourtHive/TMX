@@ -19,7 +19,7 @@ import dayjs from 'dayjs';
 import { t } from 'i18n';
 
 // types
-import type { MutationMethod, ExecutionResult } from 'types/services';
+import { MutationMethod, ExecutionResult } from 'types/services';
 
 // constants
 import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';

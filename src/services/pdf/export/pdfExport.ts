@@ -4,7 +4,7 @@
  * Provides functions to open, save, or get PDF data from jsPDF documents.
  */
 
-import type jsPDF from 'jspdf';
+import jsPDF from 'jspdf';
 
 /**
  * Open PDF in new browser tab/window

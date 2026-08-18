@@ -20,7 +20,7 @@
  *  - On Discard: factory state reloaded from IndexedDB
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
-import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { buildGridDropMethods, shouldRejectStripDrop, GridDropPayload } from './gridDropMethods';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { openScheduleLockMenu } from './scheduleLockActions';
 import {
@@ -38,7 +38,7 @@ import {
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
-import { buildGridActionBar, type GridActionBar } from './gridActionBar';
+import { buildGridActionBar, GridActionBar } from './gridActionBar';
 import {
   getOrderOfPlayPublishState,
   isOrderOfPlayDatePublished,
@@ -55,10 +55,10 @@ import { scheduleConfig } from 'config/scheduleConfig';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import { scheduleToast } from './scheduleToast';
-import tippy, { type Instance } from 'tippy.js';
+import tippy, { Instance } from 'tippy.js';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import type {
+import {
   SchedulePageConfig,
   SchedulePageControl,
   CatalogMatchUpItem,
@@ -273,7 +273,7 @@ import {
   writeScheduledFilters,
   readInspectorVisible,
   writeInspectorVisible,
-  type SidebarTab,
+  SidebarTab,
 } from './gridViewStorage';
 import { renderReadinessSection } from './inspectorReadiness';
 

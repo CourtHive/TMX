@@ -10,7 +10,7 @@
  * once we have real-world telemetry. Until then a single cap is enough.
  */
 
-import type { DrawCardDisplayMode } from './drawCardDisplayMode';
+import { DrawCardDisplayMode } from './drawCardDisplayMode';
 
 export const HARD_CAP = 15;
 export const SUNBURST_CAP = 6;

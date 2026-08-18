@@ -10,7 +10,7 @@
  * UX is what we're demoing, not the persistence.
  */
 import { mocksEngine, drawDefinitionConstants } from 'tods-competition-factory';
-import type { Meta, StoryObj } from '@storybook/html-vite';
+import { Meta, StoryObj } from '@storybook/html-vite';
 
 import { mountRoundProfileEditor } from '../drawers/addDraw/roundProfileEditor';
 import { luckyLoserSelection } from './luckyLoserSelection';

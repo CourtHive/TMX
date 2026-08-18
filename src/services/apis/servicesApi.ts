@@ -1,6 +1,6 @@
 import { baseApi } from './baseApi';
 
-import type { ProvidersResponse, UsersResponse } from 'types/tmx';
+import { ProvidersResponse, UsersResponse } from 'types/tmx';
 
 export async function requestTournament({ tournamentId, silent }: { tournamentId: string; silent?: boolean }) {
   return await baseApi.post('/factory/fetch', { tournamentId }, silent ? { silenceErrors: true } : undefined);

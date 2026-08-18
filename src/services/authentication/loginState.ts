@@ -33,7 +33,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // types
-import type { LoginState } from 'types/tmx';
+import { LoginState } from 'types/tmx';
 
 // constants
 import { SUPER_ADMIN, TMX_TOURNAMENTS, NONE } from 'constants/tmxConstants';

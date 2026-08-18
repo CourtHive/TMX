@@ -3,7 +3,7 @@
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
 import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
-import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
+import { startCrowdPoller, CrowdPoller } from 'services/crowd/crowdPoller';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';

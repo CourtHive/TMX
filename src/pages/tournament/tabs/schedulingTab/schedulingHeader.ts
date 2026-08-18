@@ -12,7 +12,7 @@ import { buildScheduleDateSelector } from 'components/schedule/scheduleDateSelec
 import { ScheduleDate } from 'courthive-components';
 import { featureFlags } from 'config/featureFlags';
 
-import type { SchedulingMode } from './schedulingTab';
+import { SchedulingMode } from './schedulingTab';
 
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const BG_PRIMARY = 'background: var(--tmx-bg-primary)';

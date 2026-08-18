@@ -8,7 +8,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 
-import type { TopologyState, TopologyTemplate } from 'courthive-components';
+import { TopologyState, TopologyTemplate } from 'courthive-components';
 
 const TopologyTemplates = 'topologyTemplates';
 

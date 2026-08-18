@@ -1,7 +1,7 @@
 import { standardTemplates } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
 
-import type { TopologyTemplate } from 'courthive-components';
+import { TopologyTemplate } from 'courthive-components';
 
 export interface TopologyCatalogItem {
   id: string;

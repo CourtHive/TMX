@@ -16,7 +16,7 @@ import { navigateToEvent } from '../../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { headerMenu } from '../../common/headerMenu';
-import type { SortState } from './segmentSorter';
+import { SortState } from './segmentSorter';
 import { context } from 'services/context';
 import { t } from 'i18n';
 

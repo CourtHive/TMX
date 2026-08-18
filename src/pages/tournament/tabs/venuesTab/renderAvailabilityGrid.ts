@@ -3,7 +3,7 @@
  * Creates a AvailabilityGrid from the tournament record and provides save logic
  * that maps engine state back to dateAvailability per court.
  */
-import { createAvailabilityGrid, AvailabilityGrid, type AvailabilityGridLabels } from 'courthive-components';
+import { createAvailabilityGrid, AvailabilityGrid, AvailabilityGridLabels } from 'courthive-components';
 import { openManagePracticeRegistrationsModal } from 'components/modals/managePracticeRegistrationsModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';

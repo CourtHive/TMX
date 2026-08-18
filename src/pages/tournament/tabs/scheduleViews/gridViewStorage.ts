@@ -21,7 +21,7 @@
  * paths without dragging in the rest of the schedule grid.
  */
 
-import type { CatalogFilters, MatchUpCatalogGroupBy } from 'courthive-components';
+import { CatalogFilters, MatchUpCatalogGroupBy } from 'courthive-components';
 
 export type SidebarTab = 'unscheduled' | 'scheduled';
 

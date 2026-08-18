@@ -18,7 +18,7 @@ import { providerConfig } from 'config/providerConfig';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
-import type { AllowedTierSystem } from '@courthive/provider-config';
+import { AllowedTierSystem } from '@courthive/provider-config';
 
 import { RIGHT } from 'constants/tmxConstants';
 import {

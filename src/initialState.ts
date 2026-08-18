@@ -77,7 +77,7 @@ import 'styles/fa.min.css';
 import 'styles/icons.css';
 import 'styles/tmx.css';
 
-import type { TMXSettings } from 'services/settings/settingsStorage';
+import { TMXSettings } from 'services/settings/settingsStorage';
 import { providerConfig } from 'config/providerConfig';
 
 /**

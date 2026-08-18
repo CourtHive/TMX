@@ -4,8 +4,8 @@
  * courthive-components, which touches `document` at module load).
  */
 
-import { classifyScorer, type ScorerClassification } from 'services/crowd/classifyScorer';
-import type { CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { classifyScorer, ScorerClassification } from 'services/crowd/classifyScorer';
+import { CrowdScoringSession } from 'services/crowd/scoreRelayClient';
 import { t } from 'i18n';
 
 export interface SessionScorerInfo {

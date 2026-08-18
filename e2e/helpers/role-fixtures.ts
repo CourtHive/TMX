@@ -1,4 +1,4 @@
-import type { APIRequestContext } from '@playwright/test';
+import { APIRequestContext } from '@playwright/test';
 
 /**
  * Server-side fixtures for the role-gating journey (real login, not token

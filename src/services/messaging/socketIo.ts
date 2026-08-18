@@ -33,7 +33,7 @@ import {
 } from 'services/chat/adminChatService';
 
 // types
-import type { ServerAck } from 'types/services';
+import { ServerAck } from 'types/services';
 
 // constants
 import {

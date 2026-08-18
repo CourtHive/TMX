@@ -19,7 +19,7 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
 import { getUnifiedColumns } from './unifiedColumns';
 import { pairFromUnified } from './pairFromUnified';
-import type { SortState } from './segmentSorter';
+import { SortState } from './segmentSorter';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 

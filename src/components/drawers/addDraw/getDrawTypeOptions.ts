@@ -12,7 +12,7 @@ import { t } from 'i18n';
 
 // constants and types
 import { DRAW_MATIC, TOPOLOGY_TEMPLATE_PREFIX } from 'constants/tmxConstants';
-import type { TopologyTemplate } from 'courthive-components';
+import { TopologyTemplate } from 'courthive-components';
 
 const {
   ADAPTIVE,

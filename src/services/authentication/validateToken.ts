@@ -3,7 +3,7 @@ import { attemptSilentRefresh, logOut } from './loginState';
 import { setDev } from 'services/setDev';
 import { jwtDecode } from 'jwt-decode';
 
-import type { LoginState } from 'types/tmx';
+import { LoginState } from 'types/tmx';
 
 export function validateToken(token: string | null | undefined): LoginState | undefined {
   if (!token || token === 'undefined') {

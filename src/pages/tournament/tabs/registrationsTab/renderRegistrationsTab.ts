@@ -11,13 +11,13 @@
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar } from 'courthive-components';
 
-import { filterEntriesByValue, type FilterValue } from './buildRegistrationStatusFilter';
+import { filterEntriesByValue, FilterValue } from './buildRegistrationStatusFilter';
 import { createRegistrationsTable } from './createRegistrationsTable';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import {
-  type RegistrationEntry,
-  type RegistrationStatus,
+  RegistrationEntry,
+  RegistrationStatus,
   acceptRegistration,
   bulkRegistrationAction,
   getTournamentRegistrations,

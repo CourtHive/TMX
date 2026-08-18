@@ -17,7 +17,7 @@ import {
   demoteSession as apiDemoteSession,
   getSessionsByMatchUpId,
   promoteSession as apiPromoteSession,
-  type CrowdScoringSession,
+  CrowdScoringSession,
 } from 'services/crowd/scoreRelayClient';
 import {
   buildSecondaryLine,

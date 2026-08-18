@@ -7,7 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
-import type { SiblingTournament } from './linkedTournamentsHelpers';
+import { SiblingTournament } from './linkedTournamentsHelpers';
 
 // ─── data access ────────────────────────────────────────────────────────────
 

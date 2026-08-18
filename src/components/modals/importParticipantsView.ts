@@ -32,7 +32,7 @@ import { t } from 'i18n';
 import 'styles/importParticipants.css';
 
 // constants and types
-import type { ColumnMapping } from 'services/import/autoMapColumns';
+import { ColumnMapping } from 'services/import/autoMapColumns';
 import {
   RATING_SYNONYMS,
   TARGET_FIELD_GROUPS,

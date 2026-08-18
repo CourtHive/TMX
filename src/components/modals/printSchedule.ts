@@ -6,7 +6,7 @@
  * resolved from provider defaults + tournament overrides + modal-runtime
  * tweaks. See Mentat/planning/PRINT_DISPATCHER_SCHEDULE_BRANCH.md.
  */
-import type { PrintCompositionConfig as PrintComposition } from 'courthive-components';
+import { PrintCompositionConfig as PrintComposition } from 'courthive-components';
 import { executePrint, resolveCompositionConfig } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
 import { competitionEngine } from 'services/factory/engine';

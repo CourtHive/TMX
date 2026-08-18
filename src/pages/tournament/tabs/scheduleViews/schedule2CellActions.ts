@@ -19,7 +19,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
 import { Datepicker } from 'vanillajs-datepicker';
-import tippy, { type Instance } from 'tippy.js';
+import tippy, { Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
 
 // constants

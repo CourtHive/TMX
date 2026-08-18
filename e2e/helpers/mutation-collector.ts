@@ -1,4 +1,4 @@
-import type { Page, ConsoleMessage } from '@playwright/test';
+import { Page, ConsoleMessage } from '@playwright/test';
 
 export interface MutationEntry {
   methods: Array<{ method: string; params: Record<string, unknown> }>;

@@ -15,7 +15,7 @@
 import {
   tournamentEngine as untypedTournamentEngine,
   competitionEngine as untypedCompetitionEngine,
-  type FactoryEngineTyped,
+  FactoryEngineTyped,
 } from 'tods-competition-factory';
 
 export const tournamentEngine = untypedTournamentEngine as FactoryEngineTyped;

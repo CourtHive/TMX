@@ -20,7 +20,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult, ReadinessTiming } from './matchUpReadiness';
+import { ReadinessFinding, ReadinessMatchUp, ReadinessResult, ReadinessTiming } from './matchUpReadiness';
 
 const FALLBACK_TIMING: ReadinessTiming = { averageMinutes: 90, recoveryMinutes: 0 };
 

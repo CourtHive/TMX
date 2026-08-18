@@ -11,7 +11,7 @@ import {
   isScheduleLocked,
 } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
-import type { CandidateConflicts } from 'services/officiating/officialConflicts';
+import { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';

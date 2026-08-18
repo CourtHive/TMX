@@ -11,7 +11,7 @@
  */
 import { getJwtTokenStorageKey } from 'config/localStorage';
 
-import type { RegistrationEntry, RegistrationStatus } from './registrationsApi';
+import { RegistrationEntry, RegistrationStatus } from './registrationsApi';
 
 // courthive-declarations REGISTRATION statuses → TMX RegistrationEntry statuses.
 const STATUS_MAP: Record<string, RegistrationStatus> = {

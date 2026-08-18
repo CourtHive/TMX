@@ -6,7 +6,7 @@
  * - Provider/User records: what the server APIs return
  * - API response wrappers: typed axios response shapes
  */
-import type { Organisation } from 'tods-competition-factory';
+import { Organisation } from 'tods-competition-factory';
 
 // ---------------------------------------------------------------------------
 // Authentication / JWT

@@ -5,7 +5,7 @@
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 
-import type { ExecutionResult } from 'types/services';
+import { ExecutionResult } from 'types/services';
 
 export function logMutationError(
   context: string,

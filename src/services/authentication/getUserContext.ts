@@ -17,7 +17,7 @@
  */
 import { baseApi } from 'services/apis/baseApi';
 
-import type { UserContext } from 'types/tmx';
+import { UserContext } from 'types/tmx';
 
 let cached: UserContext | undefined;
 

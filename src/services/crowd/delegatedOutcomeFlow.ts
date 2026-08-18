@@ -20,9 +20,9 @@ import {
   buildDelegatedOutcome,
   readDelegatedOutcome,
   snapshotToSets,
-  type DelegatedOutcomeScorer,
+  DelegatedOutcomeScorer,
 } from 'services/crowd/delegatedOutcome';
-import { getSessionsByMatchUpId, promoteSession, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { getSessionsByMatchUpId, promoteSession, CrowdScoringSession } from 'services/crowd/scoreRelayClient';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'tods-competition-factory';
 import { scoringModal } from 'components/modals/scoringV2';

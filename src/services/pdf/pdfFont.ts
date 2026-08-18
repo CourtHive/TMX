@@ -16,7 +16,7 @@
  * may front `/fonts/`; the bundled copies remain the self-contained fallback.
  */
 
-import type { FontDefinition } from 'pdf-factory';
+import { FontDefinition } from 'pdf-factory';
 import { setDefaultFont } from 'pdf-factory';
 
 import { loadSettings } from 'services/settings/settingsStorage';

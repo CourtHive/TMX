@@ -24,7 +24,7 @@ import { t } from 'i18n';
 
 // constants and types
 import { SYNC_INDICATOR, TOURNAMENT_ENGINE, DRAWS_VIEW } from 'constants/tmxConstants';
-import type { RemoteMutationPayload } from 'types/services';
+import { RemoteMutationPayload } from 'types/services';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 

@@ -7,7 +7,7 @@
  */
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
-import type { RegistrationEntry } from 'services/apis/registrationsApi';
+import { RegistrationEntry } from 'services/apis/registrationsApi';
 import { collapseRegistrationPairs } from './collapseRegistrationPairs';
 import { TOURNAMENT_REGISTRATIONS } from 'constants/tmxConstants';
 

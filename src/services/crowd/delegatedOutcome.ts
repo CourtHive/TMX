@@ -14,7 +14,7 @@
  * score strings internally — no caller-side string round-tripping.
  */
 
-import { classifyScorer, type ScorerClassification } from './classifyScorer';
+import { classifyScorer, ScorerClassification } from './classifyScorer';
 
 import { REMOVE_DELEGATED_OUTCOME, SET_DELEGATED_OUTCOME, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 

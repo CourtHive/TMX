@@ -17,7 +17,7 @@ import { providerConfig } from 'config/providerConfig';
 import { baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
 
-import type { LoginState, ProviderValue } from 'types/tmx';
+import { LoginState, ProviderValue } from 'types/tmx';
 
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 

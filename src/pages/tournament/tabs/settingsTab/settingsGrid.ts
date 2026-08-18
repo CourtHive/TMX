@@ -3,7 +3,7 @@ import { persistConfigToStorage, loadSettings, saveSettings } from 'services/set
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
+import { preferencesConfig, PreferencesConfig } from 'config/preferencesConfig';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';

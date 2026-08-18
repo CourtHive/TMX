@@ -21,7 +21,7 @@ import {
   buildOrderOfPlayDateToggleMethods,
   getOrderOfPlayPublishState,
   isOrderOfPlayDatePublished,
-  type OrderOfPlayPublishState,
+  OrderOfPlayPublishState,
 } from './orderOfPlayPublish';
 
 const D1 = '2026-07-01';

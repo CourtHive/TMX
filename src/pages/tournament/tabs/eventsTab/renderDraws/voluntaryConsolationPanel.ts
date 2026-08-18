@@ -6,7 +6,7 @@
  * Flow: TD selects participants → OVERLAY sets entry status (Accepted/Alternate/Clear)
  * → chips appear in table → Generate when ≥2 accepted.
  */
-import type { DrawTypeUnion } from 'tods-competition-factory';
+import { DrawTypeUnion } from 'tods-competition-factory';
 import {
   drawDefinitionConstants,
   entryStatusConstants,

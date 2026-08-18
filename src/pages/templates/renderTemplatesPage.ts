@@ -17,10 +17,10 @@ import {
 } from './compositionBridge';
 
 // types
-import type { TopologyState, SavedComposition } from 'courthive-components';
-import type { CompositionCatalogItem } from './compositionBridge';
-import type { TieFormatCatalogItem } from './tieFormatBridge';
-import type { TopologyCatalogItem } from './topologyBridge';
+import { TopologyState, SavedComposition } from 'courthive-components';
+import { CompositionCatalogItem } from './compositionBridge';
+import { TieFormatCatalogItem } from './tieFormatBridge';
+import { TopologyCatalogItem } from './topologyBridge';
 
 // constants
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';

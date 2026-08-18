@@ -2,7 +2,7 @@
  * Hydrate Topology — Converts existing drawDefinition (structures + links) back to TopologyState.
  * Used for editing existing draws in the topology builder.
  */
-import type { TopologyState, TopologyNode, TopologyEdge } from 'courthive-components';
+import { TopologyState, TopologyNode, TopologyEdge } from 'courthive-components';
 
 const STAGE_MAP: Record<string, TopologyNode['stage']> = {
   MAIN: 'MAIN',

@@ -52,7 +52,7 @@ import {
   resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../scheduleViews/gridView';
-import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
+import { renderAvailabilityGrid, AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import {
   readScheduleDisplayConfig,

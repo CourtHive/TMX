@@ -4,7 +4,7 @@
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
 import { tournamentEngine } from 'services/factory/engine';
 import { generateMatchCardPDF } from 'pdf-factory';
-import type { MatchCardData } from 'pdf-factory';
+import { MatchCardData } from 'pdf-factory';
 
 interface PrintMatchCardsParams {
   matchUpIds: string[];

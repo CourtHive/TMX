@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, PROFILE_EMPTY_TOURNAMENT } from '../helpers/seed';
 import { createMutationCollector } from '../helpers/mutation-collector';

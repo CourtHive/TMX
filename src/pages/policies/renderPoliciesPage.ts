@@ -4,7 +4,7 @@ import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
 import { TMX_POLICIES, POLICIES } from 'constants/tmxConstants';
 import { createPolicyCatalog } from 'courthive-components';
-import type { PolicyCatalogControl } from 'courthive-components';
+import { PolicyCatalogControl } from 'courthive-components';
 import { getBuiltinPolicies, loadUserPolicies, saveUserPolicy } from './policyBridge';
 import './policyCatalog.css';
 

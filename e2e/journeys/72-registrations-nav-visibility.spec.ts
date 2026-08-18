@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { initDevBridge } from '../helpers/dev-bridge';
 import { SERVER, signInSuperAdmin, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } from '../helpers/role-fixtures';
 import { TournamentPage } from '../pages/TournamentPage';

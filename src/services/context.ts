@@ -1,6 +1,6 @@
-import type { SchedulePageCatalogState } from 'courthive-components';
+import { SchedulePageCatalogState } from 'courthive-components';
 
-import type { ProviderValue } from 'types/tmx';
+import { ProviderValue } from 'types/tmx';
 
 export const context: {
   matchUpsToBroadcast: any[];

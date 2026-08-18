@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { detectCourtTimeOrderIssues, parseClockMinutes, type TimedMatchUp } from './courtTimeOrderIssues';
+import { detectCourtTimeOrderIssues, parseClockMinutes, TimedMatchUp } from './courtTimeOrderIssues';
 
 const mu = (matchUpId: string, courtId: string, courtOrder: number | string, scheduledTime?: string): TimedMatchUp => ({
   matchUpId,
