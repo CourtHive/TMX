@@ -218,3 +218,58 @@ describe('connectionLifecycle', () => {
     });
   });
 });
+
+/**
+ * Observability of the recovery itself.
+ *
+ * Chrome logs "Page entered Back-Forward Cache" whenever it freezes a page, whether or not recovery
+ * later works — so the console looks identical in both cases. That ambiguity caused #1296 to be
+ * reported as broken on 8.19.0 when it was in fact working.
+ *
+ * `socketLog` could not settle it: it is the only debug flag with no setter in `env.ts`, so every
+ * `slog()` call is unreachable in a deployed build. Whether recovery ran must therefore be observable
+ * WITHOUT a flag — note this suite mocks `socketLog: false`, which is also the production value.
+ */
+const RECOVERY_LINE = '[lifecycle] recovery after';
+
+describe('recovery is observable without a debug flag', () => {
+  it('logs when a reconnect was actually initiated, with socketLog false', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    ensureConnected.mockReturnValueOnce(true);
+    ensureRelayConnected.mockReturnValueOnce(false);
+
+    recoverConnections('pageshow(persisted)');
+
+    const lines = logSpy.mock.calls.map((call) => String(call[0]));
+    expect(lines.some((line) => line.includes(RECOVERY_LINE))).toEqual(true);
+    logSpy.mockRestore();
+  });
+
+  it('stays silent when nothing needed reconnecting — a signal, not a trace', () => {
+    // The line must mean "recovery happened", not "an event fired". A tab switch on a healthy
+    // connection must not print anything, or the signal becomes noise and gets ignored.
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    ensureConnected.mockReturnValueOnce(false);
+    ensureRelayConnected.mockReturnValueOnce(false);
+
+    recoverConnections('visibilitychange(visible)');
+
+    const lines = logSpy.mock.calls.map((call) => String(call[0]));
+    expect(lines.some((line) => line.includes(RECOVERY_LINE))).toEqual(false);
+    logSpy.mockRestore();
+  });
+
+  it('reports WHICH transport recovered, so a dead relay is not masked by a live socket', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    ensureConnected.mockReturnValueOnce(false);
+    ensureRelayConnected.mockReturnValueOnce(true);
+
+    recoverConnections('online');
+
+    const call = logSpy.mock.calls.find((entry) => String(entry[0]).includes(RECOVERY_LINE));
+    expect(call).toBeDefined();
+    // format args: reason, socket, relay
+    expect(call?.slice(1)).toEqual(['online', false, true]);
+    logSpy.mockRestore();
+  });
+});
