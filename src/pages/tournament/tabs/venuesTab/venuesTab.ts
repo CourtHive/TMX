@@ -74,6 +74,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
   // ─── List view (cards or table) ─────────────────────────────────────────
   let mode: VenuesViewMode = readVenuesViewMode();
   let table: any;
+  let replaceTableData: (() => void) | undefined;
   let gridInstance: AvailabilityGridInstance | undefined;
   let availabilityVisible = venueView === AVAILABILITY;
 
@@ -105,10 +106,22 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${VENUE}/${vId}`);
   };
 
+  /**
+   * Re-read the venue list from the engine after a mutation applied elsewhere.
+   *
+   * Takes no arguments **by design**. The two add paths pass different shapes to this callback —
+   * `addVenue.ts` sends `{ ...result, venue }`, `addVenueFromRegistry.ts` sends a bare `result` —
+   * so anything read off the argument would work on one route and silently no-op on the other.
+   * Deriving from the engine makes both paths behave identically by construction.
+   */
   const updateVenueRow = () => {
     if (mode === 'table' && table) {
-      // Table mode self-updates via dataChanged; orchestrator refreshes header.
-      refreshHeader(table.getDataCount?.() ?? table.getData?.().length ?? 0);
+      // Tabulator's `dataChanged` fires only for data changed THROUGH the table (inline edit,
+      // addRow, deleteRow); a factory mutation elsewhere never reaches it, so the table has to be
+      // told to re-read. The count comes from the engine rather than `getDataCount()` because
+      // `replaceData` resolves asynchronously — reading the table here still returns the old one.
+      replaceTableData?.();
+      refreshHeader(readVenueCardData().length);
     } else if (mode === 'grid' && venuesAnchor) {
       const count = renderVenuesGrid(venuesAnchor, onCardClick);
       refreshHeader(count);
@@ -119,6 +132,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     if (!venuesAnchor) return;
     destroyTable({ anchorId: TOURNAMENT_VENUES });
     table = undefined;
+    replaceTableData = undefined;
     const count = renderVenuesGrid(venuesAnchor, onCardClick);
     refreshHeader(count);
   }
@@ -126,6 +140,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
   function renderTable(): void {
     const result = createVenuesTable();
     table = result.table;
+    replaceTableData = result.replaceTableData;
     const initialCount = table?.getDataCount?.() ?? table?.getData?.().length ?? 0;
     refreshHeader(initialCount);
     table?.on?.('dataChanged', (rows: any[]) => refreshHeader(rows.length));
