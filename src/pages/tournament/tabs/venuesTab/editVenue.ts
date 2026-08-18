@@ -24,7 +24,24 @@ function findResource(resources: any[] | undefined, name: string): any {
   return resources.find((r) => r?.name === name);
 }
 
-export function editVenue({ venue, callback }: { venue?: any; callback?: (result: any) => void } = {}): void {
+/**
+ * What `editVenue` hands back to its callback.
+ *
+ * Typed so a new consumer sees the contract rather than discovering it by destructuring. The
+ * details are always present — see the single call site in `postMutation` — so a consumer may read
+ * them without first proving `success`.
+ */
+export type VenueEditResult = {
+  venueUpdates: Record<string, any>;
+  courtsUpdated: boolean;
+  success?: boolean;
+  error?: any;
+};
+
+export function editVenue({
+  venue,
+  callback,
+}: { venue?: any; callback?: (result: VenueEditResult) => void } = {}): void {
   // Get current venue details including courts and times
   const { venue: venueDetails } = tournamentEngine.findVenue({ venueId: venue.venueId });
   const courts = venueDetails?.courts || [];
@@ -330,18 +347,25 @@ export function editVenue({ venue, callback }: { venue?: any; callback?: (result
     resourceMutation(VENUE_WEBSITE_RESOURCE_NAME, 'WEBSITE', websiteURL, existingWebsiteResource);
     resourceMutation(VENUE_IMAGE_RESOURCE_NAME, 'IMAGE', imageURL, existingImageResource);
 
+    // ONE payload, ONE call site. The success and error branches used to build the result
+    // separately — success carried `venueUpdates`/`courtsUpdated`, error handed back a bare
+    // `result` — so a consumer that destructured the details got `undefined` for them whenever the
+    // mutation failed. Nothing reads them on the error path today, which is what made it a trap
+    // rather than a bug: the next consumer to read them unguarded finds out in production. Same
+    // defect class as the venues-table refresh (#1306), where two add paths passed different
+    // shapes to one callback. Keeping the construction in one place makes divergence impossible
+    // rather than merely absent; `editDrawerCallbackShape.test.ts` pins it.
     const postMutation = (result: any) => {
-      if (result.success) {
-        if (isFunction(callback)) {
-          callback({
-            ...result,
-            venueUpdates: { ...venueUpdates, venueWebsiteURL: websiteURL, venueImageURL: imageURL },
-            courtsUpdated,
-          });
-        }
-      } else if (result.error) {
+      if (result?.error) {
         tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
-        if (isFunction(callback)) callback(result);
+      }
+      if (!result?.success && !result?.error) return;
+      if (isFunction(callback) && callback) {
+        callback({
+          ...result,
+          venueUpdates: { ...venueUpdates, venueWebsiteURL: websiteURL, venueImageURL: imageURL },
+          courtsUpdated,
+        });
       }
     };
 
