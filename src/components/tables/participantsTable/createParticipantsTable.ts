@@ -7,6 +7,7 @@ import { ParticipantRoleEnum, participantConstants, tools, fixtures } from 'tods
 import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { getGroupingParticipants } from './getGroupingParticipants';
 import { getParticipantColumns } from './getParticipantColumns';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -20,36 +21,13 @@ import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT_PARTICIPANTS, STAFF } from 'constants/tmxConstants';
+import { STAFF_ROLES } from 'constants/staffRoles';
 
 const { ratingsParameters } = fixtures;
 
-const { INDIVIDUAL, GROUP, TEAM } = participantConstants;
+const { INDIVIDUAL } = participantConstants;
 // See matchUpActions.ts — the participantRoles object widens to `string`.
 const { OFFICIAL, COMPETITOR } = ParticipantRoleEnum;
-
-// Every factory `participantRole` that is neither COMPETITOR nor OFFICIAL
-// rolls up into the Staff view. Hard-coding the list (vs. dynamically
-// computing `Object.values(participantRoles).filter(r => r !== COMPETITOR
-// && r !== OFFICIAL)`) keeps it visible at the call site and stable across
-// minor factory bumps that introduce new role enums we may want to triage
-// explicitly before surfacing.
-const STAFF_ROLES: ParticipantRoleEnum[] = [
-  ParticipantRoleEnum.ADMINISTRATION,
-  ParticipantRoleEnum.CAPTAIN,
-  ParticipantRoleEnum.COACH,
-  ParticipantRoleEnum.DIRECTOR,
-  ParticipantRoleEnum.HOSPITALITY,
-  ParticipantRoleEnum.MEDIA,
-  ParticipantRoleEnum.MEDICAL,
-  ParticipantRoleEnum.OTHER,
-  ParticipantRoleEnum.PHYSIO,
-  ParticipantRoleEnum.SECURITY,
-  ParticipantRoleEnum.STRINGER,
-  ParticipantRoleEnum.SUPERVISOR,
-  ParticipantRoleEnum.TRAINER,
-  ParticipantRoleEnum.TRANSPORT,
-  ParticipantRoleEnum.VOLUNTEER,
-];
 
 export function createParticipantsTable({ view }: { view?: string } = {}): {
   table: any;
@@ -64,8 +42,17 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   let teamParticipants: any[] = [];
   let ready: boolean;
 
+  // `as any` is load-bearing and should be removed, not preserved. `ParticipantFilters.participantRoles`
+  // is typed `ParticipantRoleUnion[]`, and that union is built from `ParticipantRoleEnum` — which carries
+  // 17 of the 19 roles in the `participantRoles` const module. SCOREKEEPER and TIMEKEEPER exist at runtime
+  // (validators key off the const module, and the filter matches them) but cannot be *expressed* by a
+  // type-safe client. So the compiler rejects the very list that fixes the omission.
+  //
+  // Drop the cast once the factory adds both members to `ParticipantRoleEnum` and removes it from the
+  // `ENUM_ONLY` conformance exemption — that exemption claims the enum has no const-module twin, which is
+  // false. Tracked in Mentat/planning/TMX_PARTICIPANTS_PERSONNEL_AND_GROUPS.md, "Factory changes required".
   const participantFilters = (() => {
-    if (view === STAFF) return { participantRoles: STAFF_ROLES };
+    if (view === STAFF) return { participantRoles: STAFF_ROLES as any };
     return { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
   })();
 
@@ -80,8 +67,10 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     ({ participants = [], derivedEventInfo } = result);
 
     const individualParticipants = participants.filter(({ participantType }: any) => participantType === INDIVIDUAL);
-    groupParticipants = participants.filter(({ participantType }: any) => participantType === GROUP);
-    teamParticipants = participants.filter(({ participantType }: any) => participantType === TEAM);
+
+    // Groupings come from their own type-filtered query — see getGroupingParticipants for why deriving
+    // them from the role-filtered result above emptied the "Add to team" / "Add to group" menus.
+    ({ groupParticipants, teamParticipants } = getGroupingParticipants());
 
     return individualParticipants?.map((p: any) => mapParticipant(p, derivedEventInfo)) || [];
   };

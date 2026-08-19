@@ -1183,3 +1183,35 @@ img {
   min-width: 2em;
   line-height: 1;
 }
+/* ── Participant role badge ─────────────────────────────────────────── */
+/*
+ * `.tmx-role-badge` was emitted by getGroupingsColumns' role formatter but defined in no stylesheet
+ * anywhere in TMX or courthive-components, so the GROUP role badge rendered as bare unstyled text.
+ * The e2e journey covering it asserts text content and count only, so it passed throughout.
+ *
+ * Two inline copies of this treatment previously lived in getParticipantColumns and teamProfileModal.
+ * Both built their background as `var(--tmx-accent-blue, #3273dc)22` — appending alpha digits directly
+ * onto a var() substitution, which does not reliably compose into an 8-digit hex — and both hardcoded
+ * a `#eee` text fallback that is legible only against a dark ground. Tokens + rgba() instead.
+ */
+:root {
+  --tmx-role-badge-fg: #1f5fa8;
+  --tmx-role-badge-bg: rgba(50, 115, 220, .10);
+  --tmx-role-badge-border: rgba(50, 115, 220, .35);
+}
+[data-theme='dark'] {
+  --tmx-role-badge-fg: #9ec5ff;
+  --tmx-role-badge-bg: rgba(158, 197, 255, .14);
+  --tmx-role-badge-border: rgba(158, 197, 255, .38);
+}
+.tmx-role-badge {
+  display: inline-block;
+  padding: 0.15em 0.55em;
+  border-radius: 3px;
+  font-size: 0.8em;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--tmx-role-badge-fg);
+  background: var(--tmx-role-badge-bg);
+  border: 1px solid var(--tmx-role-badge-border);
+}

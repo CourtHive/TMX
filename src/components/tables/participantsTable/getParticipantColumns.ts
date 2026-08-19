@@ -38,13 +38,12 @@ function jerseySorter(a: any, b: any): number {
   return ax - bx;
 }
 
-/** Inline role badge — matches the visual treatment used by
- *  `teamProfileModal.ts`'s Staff section so the same role rendering carries
- *  across the modal and this table. */
+/** Role badge — `.tmx-role-badge` in tmx.css, shared with the groupings table and
+ *  `teamProfileModal.ts`'s Staff section so one rule governs all three. */
 function roleBadgeFormatter(cell: any): string {
   const role = cell.getValue();
   if (!role) return '';
-  return `<span style="display:inline-block; padding:0.15em 0.55em; border-radius:3px; font-size:0.8em; background:var(--tmx-accent-blue, #3273dc)22; border:1px solid var(--tmx-accent-blue, #3273dc)55; color:var(--tmx-text-primary, #eee);">${role}</span>`;
+  return `<span class="tmx-role-badge">${role}</span>`;
 }
 
 export function getParticipantColumns({

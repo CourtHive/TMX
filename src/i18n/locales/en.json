@@ -2134,6 +2134,7 @@
       "individuals": "Individuals",
       "officials": "Officials",
       "staff": "Staff",
+      "staffRole": "Role",
       "groups": "Groups",
       "teams": "Teams",
       "allEvents": "All events",
@@ -2367,10 +2368,22 @@
     "noOfficialsFound": "No officials found"
   },
   "participantRoles": {
-    "OTHER": "Other",
+    "ADMINISTRATION": "Administration",
+    "CAPTAIN": "Captain",
     "COACH": "Coach",
+    "DIRECTOR": "Tournament Director",
+    "HOSPITALITY": "Hospitality",
+    "MEDIA": "Media",
     "MEDICAL": "Medical",
+    "OTHER": "Other",
     "PHYSIO": "Physio",
-    "TRAINER": "Trainer"
+    "SCOREKEEPER": "Scorekeeper",
+    "SECURITY": "Security",
+    "STRINGER": "Stringer",
+    "SUPERVISOR": "Supervisor",
+    "TIMEKEEPER": "Timekeeper",
+    "TRAINER": "Trainer",
+    "TRANSPORT": "Transport",
+    "VOLUNTEER": "Volunteer"
   }
 }

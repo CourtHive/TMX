@@ -3,10 +3,13 @@
  */
 import { generatePlayerListPDF, generateSignInSheetPDF } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
+import { participantRoles } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
+
+const { COMPETITOR } = participantRoles;
 
 interface PrintPlayerListParams {
   eventId?: string;
@@ -15,8 +18,10 @@ interface PrintPlayerListParams {
 export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
   const tournamentInfoResult = tournamentEngine.getTournamentInfo();
   const tournament = tournamentInfoResult?.tournamentInfo;
+  // A *player* list. Without the role filter this swept officials, coaches, physios and volunteers onto
+  // the printed player list and the sign-in sheet alongside the competitors.
   const { participants } = tournamentEngine.getParticipants({
-    participantFilters: { participantTypes: ['INDIVIDUAL'] },
+    participantFilters: { participantTypes: ['INDIVIDUAL'], participantRoles: [COMPETITOR as any] },
   });
 
   // If eventId provided, filter to participants in that event
