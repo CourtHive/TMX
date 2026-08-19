@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.19.1](https://github.com/CourtHive/TMX/compare/v8.19.0...v8.19.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.29.0 ([#1314](https://github.com/CourtHive/TMX/issues/1314)) ([8308e25](https://github.com/CourtHive/TMX/commit/8308e2558670aae632294a7a69dfd9e06da61048))
+* **schedule:** keep the Inspector in the same slot on both catalog tabs ([#1303](https://github.com/CourtHive/TMX/issues/1303)) ([22a0356](https://github.com/CourtHive/TMX/commit/22a03568d6c5352cd6688f207349fb796a604898))
+* **socket:** make lifecycle recovery observable without a debug flag ([#1312](https://github.com/CourtHive/TMX/issues/1312)) ([1e71c77](https://github.com/CourtHive/TMX/commit/1e71c772194d4b88a7adebb0d11e56f22cf08390))
+* **venues:** hand back one callback shape from the venue edit drawers ([#1307](https://github.com/CourtHive/TMX/issues/1307)) ([f0ad515](https://github.com/CourtHive/TMX/commit/f0ad51587d85dac4310975e88fb3b8998412568e))
+* **venues:** pre-fill the Time zone field from the saved zone ([#1305](https://github.com/CourtHive/TMX/issues/1305)) ([6af9c3b](https://github.com/CourtHive/TMX/commit/6af9c3b9d100fd7dd250b26268e13fe5bd563e78))
+* **venues:** re-read the venues table from the engine when a venue is added ([#1306](https://github.com/CourtHive/TMX/issues/1306)) ([ec13403](https://github.com/CourtHive/TMX/commit/ec13403cef93ced69efa66ff5a7d3c51ee41ac92))
+
 ## [8.19.0](https://github.com/CourtHive/TMX/compare/v8.18.0...v8.19.0) (2026-08-18)
 
 
