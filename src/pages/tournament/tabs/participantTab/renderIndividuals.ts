@@ -26,7 +26,6 @@ import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
-import { openPersonnelWizard } from './personnelWizard';
 import { providerConfig } from 'config/providerConfig';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
@@ -122,12 +121,6 @@ export function renderIndividuals({ view }: { view: string }): void {
   const isLoggedIn = !!state;
 
   const actionOptions: any[] = [
-    {
-      onClick: () => openPersonnelWizard({ callback: replaceTableData }),
-      label: '<i class="fa fa-user-tie"></i> Add Personnel',
-      hide: view !== OFFICIAL,
-      close: true,
-    },
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: t('pages.participants.signOutUnapproved'),
