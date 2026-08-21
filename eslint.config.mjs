@@ -48,6 +48,20 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+
+      // ── CourtHive coding standards, machine-enforced ────────────────────
+      // Prose in Mentat/standards/coding-standards.md drifts because lint,
+      // types AND prettier all pass while the code violates it. This rule is
+      // the one from that document a linter can hold without judgement.
+      //
+      // DOM data attributes are read via `.dataset`, never `.getAttribute`.
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
+          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
+        },
+      ],
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
       'preserve-caught-error': 'off',
