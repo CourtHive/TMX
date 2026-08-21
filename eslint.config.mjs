@@ -90,6 +90,21 @@ export default [
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
       'import/no-unresolved': 'off',
+      // Ban `JSON.parse(JSON.stringify(x))` as a deep-copy idiom — it silently drops `undefined`,
+      // functions, `Date`/`Map`/`Set` and throws on cycles. Ecosystem-wide as of 2026-08-21; mirrors the
+      // rule in factory, competition-factory-server and courthive-components. Keep them in step.
+      //
+      // ⚠️ Flat config REPLACES a rule's options rather than merging them, so the `e2e/**` block below
+      // re-declares this selector alongside its own. Adding a selector here means adding it there too.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+          message:
+            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
+        },
+      ],
     },
   },
   {
@@ -110,6 +125,14 @@ export default [
           selector: "CallExpression[callee.property.name='slice'][callee.object.callee.property.name='toISOString']",
           message:
             'Seed calendar days with todayLocal() from e2e/helpers/dates — toISOString() is UTC, but TMX renders the local day. See Mentat/planning/E2E_SCHEDULE2_UTC_LOCAL_DAY_MISMATCH.md',
+        },
+        // Re-declared from the main block: flat config replaces rule options, it does not merge them,
+        // so omitting this would silently exempt every e2e file from the deep-copy ban.
+        {
+          selector:
+            "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
+          message:
+            'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
         },
       ],
     },

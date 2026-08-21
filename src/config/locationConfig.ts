@@ -41,7 +41,7 @@ const leafletDefaults: LeafletConfig = {
 };
 
 let currentLocation: LocationConfig = { ...locationDefaults };
-let currentLeaflet: LeafletConfig = JSON.parse(JSON.stringify(leafletDefaults));
+let currentLeaflet: LeafletConfig = structuredClone(leafletDefaults);
 
 export const locationConfig = {
   get: (): LocationConfig => currentLocation,
