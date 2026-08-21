@@ -5,7 +5,7 @@ vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: 
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 vi.mock('services/messaging/socketIo', () => ({ emitTmx: vi.fn() }));
 vi.mock('tods-competition-factory', () => ({
-  tools: { unique: (a: any[]) => [...new Set(a)], makeDeepCopy: (a: any) => JSON.parse(JSON.stringify(a)) },
+  tools: { unique: (a: any[]) => [...new Set(a)], makeDeepCopy: (a: any) => structuredClone(a) },
   // `services/factory/engine` wrapper imports both engines from the factory;
   // stub them so the wrapper resolves at module-load even though this test
   // never calls into them.

@@ -66,7 +66,7 @@ const defaults: ScoreboardConfig = {
   },
 };
 
-let current: ScoreboardConfig = JSON.parse(JSON.stringify(defaults));
+let current: ScoreboardConfig = structuredClone(defaults);
 
 export const scoringBoardConfig = {
   get: (): Readonly<ScoreboardConfig> => current,
@@ -74,6 +74,6 @@ export const scoringBoardConfig = {
     current = { ...current, ...partial };
   },
   reset: () => {
-    current = JSON.parse(JSON.stringify(defaults));
+    current = structuredClone(defaults);
   },
 } as const;

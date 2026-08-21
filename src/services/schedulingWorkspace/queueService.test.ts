@@ -65,7 +65,7 @@ vi.mock('services/notifications/tmxToast', () => ({
 }));
 
 vi.mock('tods-competition-factory', () => ({
-  tools: { makeDeepCopy: (v: any) => JSON.parse(JSON.stringify(v)) },
+  tools: { makeDeepCopy: (v: any) => structuredClone(v) },
 }));
 
 vi.mock('constants/tmxConstants', () => ({
