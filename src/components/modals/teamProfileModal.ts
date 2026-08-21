@@ -15,6 +15,7 @@
  * `editPlayer` page; both remain reachable via the popover.
  */
 import { jerseySorter, splitMembership, type Member, type SplitMembership } from './teamProfileLogic';
+import { roleBadge } from 'components/tables/common/formatters/roleBadge';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { buildTeamCard, cModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
@@ -183,7 +184,7 @@ function staffColumns(): any[] {
       field: 'role',
       width: 130,
       headerSort: true,
-      formatter: (cell: any) => formatRoleBadge(cell.getValue()),
+      formatter: (cell: any) => roleBadge(cell.getValue()),
     },
     { title: t('modals.teamProfile.columns.name'), field: 'participantName', headerSort: true, minWidth: 180 },
     { title: t('modals.teamProfile.columns.contact'), field: 'contact', headerSort: false, minWidth: 200 },
@@ -196,9 +197,4 @@ function formatSexBadge(sex?: string): string {
   const color = upper === 'FEMALE' ? '#c14070' : upper === 'MALE' ? '#3273dc' : '#888';
   const label = upper === 'FEMALE' ? 'F' : upper === 'MALE' ? 'M' : sex;
   return `<span style="display:inline-block; padding:0.1em 0.5em; border-radius:3px; font-size:0.85em; background:${color}22; border:1px solid ${color}66; color:var(--tmx-text-primary, #eee);">${label}</span>`;
-}
-
-function formatRoleBadge(role?: string): string {
-  if (!role) return '';
-  return `<span class="tmx-role-badge">${role}</span>`;
 }

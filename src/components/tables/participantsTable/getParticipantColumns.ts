@@ -9,6 +9,7 @@ import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { roleBadgeFormatter } from '../common/formatters/roleBadge';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
@@ -36,14 +37,6 @@ function jerseySorter(a: any, b: any): number {
   const bx = Number.isFinite(nb) ? nb : Number.POSITIVE_INFINITY;
   if (ax === bx) return 0;
   return ax - bx;
-}
-
-/** Role badge — `.tmx-role-badge` in tmx.css, shared with the groupings table and
- *  `teamProfileModal.ts`'s Staff section so one rule governs all three. */
-function roleBadgeFormatter(cell: any): string {
-  const role = cell.getValue();
-  if (!role) return '';
-  return `<span class="tmx-role-badge">${role}</span>`;
 }
 
 export function getParticipantColumns({

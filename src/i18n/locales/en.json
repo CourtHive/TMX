@@ -1580,6 +1580,23 @@
       "cancel": "Cancel",
       "apply": "Apply",
       "venueWarning": "Venue hours are ${startTime}–${endTime}. The venue will be widened to accommodate this change."
+    },
+    "groupProfile": {
+      "title": "Group profile",
+      "empty": "No members in this group yet.",
+      "addMembers": "Add members",
+      "removeSelected": "Remove selected",
+      "selectToAdd": "Select participants to add",
+      "blockingRole": "Members of a {{role}} group block an official from being assigned to their matchUps.",
+      "columns": {
+        "role": "Role",
+        "name": "Name",
+        "contact": "Contact"
+      },
+      "counts": {
+        "members_one": "{{count}} member",
+        "members_other": "{{count}} members"
+      }
     }
   },
   "dashboard": {
@@ -2203,7 +2220,8 @@
         "participantProfile": "Participant profile",
         "renameTeam": "Rename team",
         "editGroup": "Edit group",
-        "deleteParticipant": "Delete participant"
+        "deleteParticipant": "Delete participant",
+        "manageMembers": "Manage members"
       },
       "grouping": {
         "namePlaceholder": "Participant name",

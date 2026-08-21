@@ -52,6 +52,42 @@ async function clickAction(page: Page, label: string | RegExp) {
   await item.click({ force: true });
 }
 
+/** A GROUP whose members include a COACH — the relationship shape the profile exists to show. */
+async function seedGroupWithMembers(page: Page): Promise<string> {
+  return page.evaluate(async ({ groupName }) => {
+    await dev.tmx2db.initDB();
+    const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+      nonRandom: 1,
+      setState: true,
+      tournamentName: 'E2E Group Profile',
+      tournamentAttributes: { tournamentId: 'e2e-group-profile' },
+      participantsProfile: { scaledParticipantsCount: 6 },
+    });
+    dev.factory.tournamentEngine.addParticipants({
+      participants: [
+        {
+          participantId: 'coach-ramirez',
+          participantName: 'Rosa Delgado',
+          participantType: 'INDIVIDUAL',
+          participantRole: dev.factory.participantRoles.COACH,
+          person: { standardGivenName: 'Rosa', standardFamilyName: 'Delgado', nationalityCode: 'ESP' },
+        },
+      ],
+    });
+    const { participants } = dev.factory.tournamentEngine.getParticipants({
+      participantFilters: { participantRoles: [dev.factory.participantRoles.COMPETITOR] },
+    });
+    const created: any = dev.factory.tournamentEngine.createGroupParticipant({
+      individualParticipantIds: [participants[0].participantId, 'coach-ramirez'],
+      participantRole: dev.factory.participantRoles.COACH,
+      groupName,
+    });
+    if (!created?.success) throw new Error('createGroupParticipant failed');
+    await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+    return tournamentRecord.tournamentId as string;
+  }, { groupName: GROUP_NAME });
+}
+
 test.describe('Journey 101 — staff creation + grouping lookups', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -144,6 +180,35 @@ test.describe('Journey 101 — staff creation + grouping lookups', () => {
     // Control: "Create new group" was present even when the list was empty, so asserting only that the
     // menu has content would have passed against the bug.
     await expect(page.getByText('Create new group').first()).toBeVisible();
+  });
+
+  test('a GROUP name-click opens a profile with its members and a way to add more', async ({ page }) => {
+    // Groups were second-class in the UI: a TEAM name-click opened a rich profile, a GROUP name-click
+    // toggled a collapse, and membership was reachable only via an unlabelled chevron at the row edge.
+    const tournamentId = await seedGroupWithMembers(page);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToParticipants();
+    await page.locator('.participant-chip i.fa-users').first().click({ force: true });
+
+    const groupRow = page.locator(`${S.TOURNAMENT_TEAMS} .tabulator-row`).filter({ hasText: GROUP_NAME }).first();
+    await expect(groupRow).toBeVisible({ timeout: 10_000 });
+    await groupRow.locator('.tabulator-cell[tabulator-field="participantName"]').click({ force: true });
+
+    // Assert the CONTENT, not a modal container. `cModal` leaves earlier `#cmdl-*` sections in the DOM,
+    // so a `[class*="modal"]` locator resolves to a stale hidden one and reports "hidden" for a modal
+    // that is on screen — a false failure that says nothing about the feature.
+    //
+    // The member roster is the assertion that matters: an empty modal would pass a container check.
+    // Scoped to the open dialog, and using a member name that shares no substring with the GROUP name —
+    // an earlier version matched the group's own name in a hidden "Add to group" dropdown and reported
+    // "hidden" for a modal that was on screen.
+    await expect(page.locator('[role="dialog"]').getByText('Rosa Delgado').first()).toBeVisible({ timeout: 5_000 });
+
+    // The membership actions the chevron used to hide.
+    await expect(page.getByRole('button', { name: /Add members/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Remove selected/i }).first()).toBeVisible();
   });
 
   /**
