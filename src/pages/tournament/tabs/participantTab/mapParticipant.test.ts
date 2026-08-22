@@ -83,4 +83,55 @@ describe('mapParticipant', () => {
     let result: any = mapParticipant(participant, {});
     expect(result.ratings).toEqual({});
   });
+
+  /**
+   * The public-contact indicator distinguishes THREE states, and the third is the reason it is not a
+   * plain tick/cross: consented, has a contact but has not consented, and has no contact at all.
+   * Collapsing the last two would make "nobody has opted in" look identical to "nobody has a phone
+   * number" — different problems for a director.
+   */
+  const MOBILE = '+1 555 0100';
+
+  describe('contact indicator fields', () => {
+    const withContacts = (contacts: any) => {
+      const participant = makeParticipant({});
+      participant.person = { ...participant.person, contacts };
+      return mapParticipant(participant, {});
+    };
+
+    it('reports a consenting contact', () => {
+      const result: any = withContacts([{ mobileTelephone: MOBILE, isPublic: true }]);
+      expect(result.hasContact).toEqual(true);
+      expect(result.contactPublic).toEqual(true);
+    });
+
+    it('reports a contact that has NOT consented', () => {
+      const result: any = withContacts([{ mobileTelephone: MOBILE, isPublic: false }]);
+      expect(result.hasContact).toEqual(true);
+      expect(result.contactPublic).toEqual(false);
+    });
+
+    it('treats an absent isPublic as not consenting', () => {
+      // Nothing writes the flag on imported records, so a truthy check would read every imported
+      // contact as consenting to publication.
+      const result: any = withContacts([{ mobileTelephone: MOBILE }]);
+      expect(result.hasContact).toEqual(true);
+      expect(result.contactPublic).toEqual(false);
+    });
+
+    it('reports no contact when the entry carries no reachable detail', () => {
+      // A contact with only a `name` is not something a director can ring.
+      const result: any = withContacts([{ name: 'desk' }]);
+      expect(result.hasContact).toEqual(false);
+    });
+
+    it('reports no contact when there are none at all', () => {
+      expect((withContacts(undefined) as any).hasContact).toEqual(false);
+      expect((withContacts([]) as any).hasContact).toEqual(false);
+    });
+
+    it('counts email alone as reachable', () => {
+      expect((withContacts([{ emailAddress: 'a@example.org' }]) as any).hasContact).toEqual(true);
+    });
+  });
 });

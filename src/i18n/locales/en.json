@@ -1596,7 +1596,9 @@
       "counts": {
         "members_one": "{{count}} member",
         "members_other": "{{count}} members"
-      }
+      },
+      "contactPerson": "Contact person",
+      "contactPersonNone": "None"
     }
   },
   "dashboard": {
@@ -1877,7 +1879,10 @@
       "role": "Role",
       "teamAffiliation": "Team affiliation",
       "cityState": "City/State",
-      "nickname": "Nickname"
+      "nickname": "Nickname",
+      "contactPublic": "Public contact",
+      "contactPublicYes": "Contact may be shared publicly",
+      "contactPublicNo": "Contact is not shared publicly"
     },
     "bracket": {
       "participant": "Participant",
@@ -2195,7 +2200,12 @@
         "country": "Country",
         "countryPlaceholder": "Country of origin",
         "nickname": "Nickname",
-        "nicknamePlaceholder": "Display name"
+        "nicknamePlaceholder": "Display name",
+        "mobile": "Mobile",
+        "mobilePlaceholder": "Mobile number",
+        "email": "Email",
+        "emailPlaceholder": "Email address",
+        "contactIsPublic": "Contact may be shared publicly"
       },
       "newTeam": "New team",
       "newGroup": "New group",

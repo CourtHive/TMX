@@ -1215,3 +1215,18 @@ img {
   background: var(--tmx-role-badge-bg);
   border: 1px solid var(--tmx-role-badge-border);
 }
+
+/* ── Public-contact indicator ────────────────────────────────────────── */
+/*
+ * Three states are distinguished deliberately: consented (a tick), has a contact but has not consented
+ * (a dash), and no contact at all (blank). Collapsing the last two would make "nobody has opted in" look
+ * identical to "nobody has a phone number", which are different problems for a tournament director.
+ */
+.tmx-contact-public {
+  color: var(--tmx-accent-green);
+  font-weight: 600;
+}
+.tmx-contact-private {
+  color: var(--tmx-text-secondary);
+  opacity: 0.7;
+}

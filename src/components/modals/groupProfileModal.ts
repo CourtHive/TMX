@@ -19,6 +19,7 @@
  */
 import { participantConstants, participantRoles, positionActionConstants, tools } from 'tods-competition-factory';
 import { removeFromTeam } from 'pages/tournament/tabs/participantTab/controlBar/removeFromTeam';
+import { CONTACT_PERSON_EXTENSION, designatedContactPersonId } from './groupContactPerson';
 import { roleBadge } from 'components/tables/common/formatters/roleBadge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -27,7 +28,11 @@ import { selectParticipant } from './selectParticipant';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
-import { ADD_INDIVIDUAL_PARTICIPANT_IDS } from 'constants/mutationConstants';
+import {
+  ADD_INDIVIDUAL_PARTICIPANT_IDS,
+  ADD_PARTICIPANT_EXTENSION,
+  REMOVE_PARTICIPANT_EXTENSION,
+} from 'constants/mutationConstants';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const { INDIVIDUAL } = participantConstants;
@@ -46,7 +51,7 @@ export function groupProfileModal({ participantId, callback }: { participantId: 
 
     const content = document.createElement('div');
     content.style.cssText = 'display: flex; flex-direction: column; gap: 1em;';
-    content.appendChild(buildHeader(group));
+    content.appendChild(buildHeader(group, () => callback?.()));
 
     const tableEl = document.createElement('div');
     content.appendChild(tableEl);
@@ -103,7 +108,84 @@ function fetchGroup(participantId: string): any | undefined {
   return result?.participants?.[0];
 }
 
-function buildHeader(group: any): HTMLElement {
+function buildContactPersonRow(group: any, onChanged: () => void): HTMLElement {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; align-items:center; gap:0.5em; font-size:0.9em; flex-wrap:wrap;';
+
+  const label = document.createElement('span');
+  label.style.cssText = 'color:var(--tmx-text-secondary);';
+  label.textContent = t('modals.groupProfile.contactPerson');
+  row.appendChild(label);
+
+  const members = group.individualParticipants ?? [];
+  const currentId = designatedContactPersonId(group);
+
+  const select = document.createElement('select');
+  // Explicit theme vars, matching the house pattern for a bare <select> (see participantScalings).
+  // TMX defines no `.select` class, so a class name here would style nothing and leave the control on
+  // browser defaults — which is how a control ends up unreadable in one of the two themes.
+  select.style.cssText =
+    'font-size: 0.85rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary);';
+  const none = document.createElement('option');
+  none.value = '';
+  none.textContent = t('modals.groupProfile.contactPersonNone');
+  none.selected = !currentId;
+  select.appendChild(none);
+
+  for (const member of members) {
+    const option = document.createElement('option');
+    option.value = member.participantId;
+    option.textContent = member.participantName;
+    option.selected = member.participantId === currentId;
+    select.appendChild(option);
+  }
+
+  row.appendChild(select);
+
+  // Resolve the pointer to live details rather than storing them — the whole reason this is a pointer.
+  const detail = document.createElement('span');
+  detail.style.cssText = 'color:var(--tmx-text-secondary);';
+  row.appendChild(detail);
+
+  const showReachFor = (memberId?: string) => {
+    const designated = members.find((m: any) => m.participantId === memberId);
+    const contact = Array.isArray(designated?.person?.contacts) ? designated.person.contacts[0] : undefined;
+    detail.textContent = contact?.mobileTelephone || contact?.telephone || contact?.emailAddress || '';
+  };
+  showReachFor(currentId);
+
+  select.addEventListener('change', () => {
+    const participantId = group.participantId;
+    const value = select.value;
+    const methods = value
+      ? [
+          {
+            method: ADD_PARTICIPANT_EXTENSION,
+            params: { participantId, extension: { name: CONTACT_PERSON_EXTENSION, value } },
+          },
+        ]
+      : [
+          {
+            method: REMOVE_PARTICIPANT_EXTENSION,
+            params: { participantId, extensionName: CONTACT_PERSON_EXTENSION },
+          },
+        ];
+    // Updates its own detail rather than re-rendering the modal: the select already shows the new
+    // choice, and rebuilding the table underneath would drop any row selection the TD had made.
+    mutationRequest({
+      methods,
+      callback: (result: any) => {
+        if (!result?.success) return;
+        showReachFor(value || undefined);
+        onChanged();
+      },
+    });
+  });
+
+  return row;
+}
+
+function buildHeader(group: any, onChanged: () => void): HTMLElement {
   const header = document.createElement('div');
   header.style.cssText =
     'display:flex; flex-direction:column; gap:0.4em; padding:0.75em 1em; border-radius:6px;' +
@@ -132,6 +214,8 @@ function buildHeader(group: any): HTMLElement {
     note.textContent = t('modals.groupProfile.blockingRole', { role });
     header.appendChild(note);
   }
+
+  header.appendChild(buildContactPersonRow(group, onChanged));
 
   return header;
 }

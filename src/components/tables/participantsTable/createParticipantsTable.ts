@@ -80,7 +80,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
 
     if (hasNewRatings) {
       // Rebuild columns to include new rating types
-      table?.setColumns(getParticipantColumns({ data, replaceTableData }));
+      table?.setColumns(getParticipantColumns({ data, view, replaceTableData }));
     } else {
       // Just show existing rating columns
       for (const col of neededColumns) {
@@ -93,7 +93,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   };
 
   const data = getTableData();
-  const columns = getParticipantColumns({ data, replaceTableData });
+  const columns = getParticipantColumns({ data, view, replaceTableData });
 
   const simpleAddition = (a: any, b: any) => {
     return ((tools.isNumeric(a) && a) || 0) + ((tools.isNumeric(b) && b) || 0);
