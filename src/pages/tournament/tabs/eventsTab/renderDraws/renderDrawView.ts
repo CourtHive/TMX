@@ -179,7 +179,7 @@ function applyMorphdomUpdate(
       getNodeKey(node: any) {
         if (isParticipantEl(node)) return undefined;
 
-        const matchUpId = node.getAttribute?.('data-matchup-id');
+        const matchUpId = (node as HTMLElement).dataset?.matchupId;
         if (matchUpId) return matchUpId;
 
         const id = node.getAttribute?.('id');
