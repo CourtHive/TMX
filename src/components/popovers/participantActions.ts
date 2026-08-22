@@ -8,6 +8,7 @@ import { editGroupingParticipant } from 'pages/tournament/tabs/participantTab/ed
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
+import { groupProfileModal } from 'components/modals/groupProfileModal';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
@@ -71,6 +72,15 @@ export const participantActions =
             });
           }
         },
+      },
+      {
+        // Membership was the one thing a GROUP row could not reach. Renaming and role-editing arrived
+        // with the item below; adding or removing members still required discovering the unlabelled
+        // chevron at the row's right edge. Same modal the name-click opens — two routes to one surface,
+        // because a TD looking for "manage members" looks in the row menu.
+        hide: !isGroup,
+        text: `<i class='fas fa-user-plus'></i> ${t('pages.participants.rowActions.manageMembers')}`,
+        onClick: () => groupProfileModal({ participantId, callback: replaceTableData }),
       },
       {
         // GROUPs had no edit affordance at all — the row's only action was Delete. That left

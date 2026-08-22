@@ -12,10 +12,22 @@ import { t, i18next } from 'i18n';
 
 // constants
 import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
-import { RIGHT, SUCCESS } from 'constants/tmxConstants';
+import { RIGHT, STAFF, SUCCESS } from 'constants/tmxConstants';
+import { STAFF_ROLES } from 'constants/staffRoles';
 
 const { COMPETITOR, OFFICIAL } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
+
+/**
+ * The role a new participant takes when the form carries no explicit choice. The Staff view is the only
+ * one that asks, because it is the only one that rolls up more than a single role.
+ *
+ * Previously this was `view === OFFICIAL ? OFFICIAL : COMPETITOR` at the point of creation, with no
+ * Staff branch at all — so "New participant" from the Staff view created a COMPETITOR, which the Staff
+ * filter then excluded. The row was created, vanished from the view that created it, and joined the
+ * draw-eligible pool. A TD who typed the name twice got two phantom competitors.
+ */
+const defaultRoleForView = (view?: string) => (view === OFFICIAL ? OFFICIAL : COMPETITOR);
 
 export function editIndividualParticipant({
   participant,
@@ -31,7 +43,12 @@ export function editIndividualParticipant({
     value: country.ioc,
   }));
 
+  // The Staff view rolls up 17 distinct roles, so it is the one view where the participant's role cannot
+  // be inferred from the view alone and has to be asked for.
+  const isStaffView = view === STAFF;
+
   const values = {
+    participantRole: participant?.participantRole || defaultRoleForView(view),
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
@@ -40,6 +57,16 @@ export function editIndividualParticipant({
     sex: participant?.person?.sex,
   };
   let inputs: any;
+
+  // Staff roles are sorted for display but the option VALUES stay the factory constants — the label is
+  // localized, the value is never derived from it.
+  const staffRoleOptions = [...STAFF_ROLES]
+    .map((role) => ({ label: t(`participantRoles.${role}`, { defaultValue: role }), value: role }))
+    .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
+    .map((option) => ({ ...option, selected: option.value === values.participantRole }));
+
+  const submittedParticipantRole = (): string =>
+    (isStaffView && inputs.participantRole?.value) || values.participantRole;
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
@@ -115,6 +142,19 @@ export function editIndividualParticipant({
           label: t('pages.participants.editParticipant.nickname'),
           field: 'nickname',
         },
+        // Staff only. INDIVIDUAL and OFFICIAL views each map to exactly one role, so offering a select
+        // there would invite a participant into a view it would then disappear from — the same class of
+        // bug this select exists to close.
+        ...(isStaffView
+          ? [
+              {
+                options: staffRoleOptions,
+                value: values.participantRole,
+                label: t('pages.participants.staffRole'),
+                field: 'participantRole',
+              },
+            ]
+          : []),
         {
           value: undefined,
           label: t('pages.participants.editParticipant.sex'),
@@ -193,10 +233,14 @@ export function editIndividualParticipant({
         sex: inputs.sex.value || undefined,
       };
       const participantOtherName = inputs.nickname?.value || undefined;
+      // A TD learns a person's actual role at least as often after entering them as before — a
+      // "volunteer" turns out to be the stringer. Sent only from the Staff view, so no other view can
+      // move a participant into a role its own filter would then hide it behind.
+      const roleUpdate = isStaffView ? { participantRole: submittedParticipantRole() } : {};
       const methods = [
         {
           params: {
-            participant: { participantId: participant.participantId, participantOtherName, person },
+            participant: { participantId: participant.participantId, participantOtherName, person, ...roleUpdate },
           },
           method: MODIFY_PARTICIPANT,
         },
@@ -222,7 +266,7 @@ export function editIndividualParticipant({
     const lastName = inputs.lastName.value;
     const sex = inputs.sex.value || undefined;
     const newParticipant = {
-      participantRole: view === OFFICIAL ? OFFICIAL : COMPETITOR,
+      participantRole: submittedParticipantRole(),
       participantType: INDIVIDUAL,
       participantId: tools.UUID(),
       person: {

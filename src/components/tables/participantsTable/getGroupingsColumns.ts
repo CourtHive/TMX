@@ -5,9 +5,11 @@
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
 import { participantActions } from '../../popovers/participantActions';
+import { groupProfileModal } from '../../modals/groupProfileModal';
 import { teamProfileModal } from '../../modals/teamProfileModal';
 import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { navigateToEvent } from '../common/navigateToEvent';
+import { roleBadge } from '../common/formatters/roleBadge';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
 
@@ -63,14 +65,18 @@ export function getGroupingsColumns({
     },
     {
       cellClick: (e: Event, cell: any) => {
-        // In the TEAM view, clicking the team name opens the read-only profile
-        // modal (roster + coaches + staff). Rename is reached via the row's
-        // popover actions. GROUP rows keep the existing collapse-toggle
-        // behaviour since groups have no profile surface today.
-        if (view === TEAM) {
-          const { participantId } = cell.getRow().getData();
-          if (participantId) {
+        // Both grouping types now open a profile on name-click. A TEAM gets the read-only roster /
+        // coaches / staff split; a GROUP gets its membership plus the relationship role and what that
+        // role does. Previously only TEAM had a profile and a GROUP name-click toggled the collapse,
+        // which left membership reachable only through the unlabelled chevron at the row's right edge.
+        const { participantId } = cell.getRow().getData();
+        if (participantId) {
+          if (view === TEAM) {
             teamProfileModal({ participantId });
+            return;
+          }
+          if (view === GROUP) {
+            groupProfileModal({ participantId, callback: replaceTableData });
             return;
           }
         }
@@ -87,7 +93,7 @@ export function getGroupingsColumns({
       // default and is left blank rather than rendered as a badge, so only meaningful roles draw the eye.
       formatter: (cell: any) => {
         const role = cell.getValue();
-        return role && role !== OTHER ? `<span class="tmx-role-badge">${role}</span>` : '';
+        return role === OTHER ? '' : roleBadge(role);
       },
       title: t('pages.participants.groupRole'),
       visible: view === GROUP,

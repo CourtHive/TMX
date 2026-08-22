@@ -9,6 +9,7 @@ import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { roleBadgeFormatter } from '../common/formatters/roleBadge';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
@@ -36,15 +37,6 @@ function jerseySorter(a: any, b: any): number {
   const bx = Number.isFinite(nb) ? nb : Number.POSITIVE_INFINITY;
   if (ax === bx) return 0;
   return ax - bx;
-}
-
-/** Inline role badge — matches the visual treatment used by
- *  `teamProfileModal.ts`'s Staff section so the same role rendering carries
- *  across the modal and this table. */
-function roleBadgeFormatter(cell: any): string {
-  const role = cell.getValue();
-  if (!role) return '';
-  return `<span style="display:inline-block; padding:0.15em 0.55em; border-radius:3px; font-size:0.8em; background:var(--tmx-accent-blue, #3273dc)22; border:1px solid var(--tmx-accent-blue, #3273dc)55; color:var(--tmx-text-primary, #eee);">${role}</span>`;
 }
 
 export function getParticipantColumns({
