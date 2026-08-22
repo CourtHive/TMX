@@ -1,7 +1,25 @@
-import { participantRoles } from 'tods-competition-factory';
+import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 
 const { COMPETITOR } = participantRoles;
+const { INDIVIDUAL } = participantConstants;
+
+/**
+ * Personnel worth showing on the overview contact card.
+ *
+ * BOTH tests are load-bearing. The role test alone — "has a role and it is not COMPETITOR" — let
+ * **GROUPs** through: `getParticipants` is called with no `participantFilters`, and every GROUP the UI
+ * creates carries a role (the group select offers OTHER / COACH / MEDICAL / PHYSIO / TRAINER). A GROUP
+ * has no `person`, so the name fell through to `participantName` and the card rendered a row that read
+ * as a person named e.g. "Transport Van A", with a role and no way to reach them.
+ *
+ * The exact inverse of the entry-gate bug in factory #4684, which tested type and forgot role. Type
+ * says WHAT a participant is; role says WHAT THEY DO. Personnel needs both.
+ */
+export function isContactCardPersonnel(participant: any): boolean {
+  if (participant?.participantType !== INDIVIDUAL) return false;
+  return !!participant.participantRole && participant.participantRole !== COMPETITOR;
+}
 
 const ROLE_LABELS: Record<string, string> = {
   DIRECTOR: 'Tournament Director',
@@ -35,7 +53,7 @@ function extractContacts(): ContactInfo[] {
   if (!participants?.length) return [];
 
   return participants
-    .filter((p: any) => p.participantRole && p.participantRole !== COMPETITOR)
+    .filter(isContactCardPersonnel)
     .map((p: any) => {
       const person = p.person || {};
       const name =
