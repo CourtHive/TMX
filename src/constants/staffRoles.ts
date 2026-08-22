@@ -1,4 +1,6 @@
-import { ParticipantRoleEnum, participantRoles } from 'tods-competition-factory';
+import { ParticipantRoleEnum } from 'tods-competition-factory';
+
+import type { ParticipantRoleUnion } from 'tods-competition-factory';
 
 const { OFFICIAL, COMPETITOR } = ParticipantRoleEnum;
 
@@ -14,12 +16,12 @@ const { OFFICIAL, COMPETITOR } = ParticipantRoleEnum;
  * indicate a role had been withheld. Triage by omission is indistinguishable from a bug, so it is derived
  * — a role the factory adds now shows up rather than disappearing.
  *
- * Derived from the `participantRoles` const module (19 values) rather than `ParticipantRoleEnum`, which
- * carries only 17: the enum is missing those same two roles and is exempted from the factory's
- * enum/const conformance guard on the false premise that it has no const-module twin. Typed `string[]`
- * for the same reason — a union that cannot express two live roles must not be allowed to narrow this
- * list back down. See Mentat/planning/TMX_PARTICIPANTS_PERSONNEL_AND_GROUPS.md, "Factory changes required".
+ * Derived from `ParticipantRoleEnum`, which expresses all 19 roles as of factory 6.29.1. It previously
+ * derived from the `participantRoles` const module and was typed `string[]`, because the enum carried only
+ * 17 — it omitted SCOREKEEPER and TIMEKEEPER while being exempted from the factory's enum/const
+ * conformance guard on the false premise that it had no const-module twin. Factory #4674 added both
+ * members, so the enum and the const module now agree and the union can type this list honestly.
  */
-export const STAFF_ROLES: string[] = Object.values(participantRoles).filter(
+export const STAFF_ROLES: ParticipantRoleUnion[] = Object.values(ParticipantRoleEnum).filter(
   (role) => role !== COMPETITOR && role !== OFFICIAL,
 );
