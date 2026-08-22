@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.20.0](https://github.com/CourtHive/TMX/compare/v8.19.1...v8.20.0) (2026-08-22)
+
+
+### Features
+
+* **participants:** edit contact details for every participant ([#1324](https://github.com/CourtHive/TMX/issues/1324)) ([6b24ecf](https://github.com/CourtHive/TMX/commit/6b24ecf8a1e30baf64c751958f7565e10b6337cd))
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 6.29.1 ([#1320](https://github.com/CourtHive/TMX/issues/1320)) ([536f5d7](https://github.com/CourtHive/TMX/commit/536f5d7c50622fc381013a921abbc96f8418d0e2))
+* **participants:** create staff with the correct role; repair grouping lookups ([#1317](https://github.com/CourtHive/TMX/issues/1317)) ([f35235a](https://github.com/CourtHive/TMX/commit/f35235a929f10e198ed91a59369cbdcee0e76465))
+* **participants:** drop the ParticipantRoleEnum drift cast ([#1323](https://github.com/CourtHive/TMX/issues/1323)) ([93b50ef](https://github.com/CourtHive/TMX/commit/93b50efd6317994e50fcafff0851e78d3bfba2d2))
+
 ## [8.19.1](https://github.com/CourtHive/TMX/compare/v8.19.0...v8.19.1) (2026-08-19)
 
 
