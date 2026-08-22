@@ -2195,7 +2195,12 @@
         "country": "Country",
         "countryPlaceholder": "Country of origin",
         "nickname": "Nickname",
-        "nicknamePlaceholder": "Display name"
+        "nicknamePlaceholder": "Display name",
+        "mobile": "Mobile",
+        "mobilePlaceholder": "Mobile number",
+        "email": "Email",
+        "emailPlaceholder": "Email address",
+        "contactIsPublic": "Contact may be shared publicly"
       },
       "newTeam": "New team",
       "newGroup": "New group",

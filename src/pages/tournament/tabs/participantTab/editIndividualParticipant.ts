@@ -47,12 +47,26 @@ export function editIndividualParticipant({
   // be inferred from the view alone and has to be asked for.
   const isStaffView = view === STAFF;
 
+  /**
+   * The contact this drawer edits — the participant's FIRST, treated as their primary.
+   *
+   * The rest of the array is preserved untouched on save. `modifyParticipant` replaces
+   * `person.contacts` rather than merging (deliberately, so a contact can be removed), which means a
+   * drawer that edited one contact and dispatched `[thatContact]` would silently DELETE every other
+   * contact on an imported record that carries several. See `submittedContacts`.
+   */
+  const existingContacts: any[] = Array.isArray(participant?.person?.contacts) ? participant.person.contacts : [];
+  const primaryContact = existingContacts[0] ?? {};
+
   const values = {
     participantRole: participant?.participantRole || defaultRoleForView(view),
     nationalityCode: participant?.person?.nationalityCode,
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
+    mobileTelephone: primaryContact.mobileTelephone,
+    emailAddress: primaryContact.emailAddress,
     nickname: participant?.participantOtherName,
+    contactIsPublic: primaryContact.isPublic === true,
     birthDate: participant?.person?.birthDate,
     sex: participant?.person?.sex,
   };
@@ -67,6 +81,32 @@ export function editIndividualParticipant({
 
   const submittedParticipantRole = (): string =>
     (isStaffView && inputs.participantRole?.value) || values.participantRole;
+
+  /**
+   * The full `person.contacts` array to persist, or `undefined` to leave it untouched.
+   *
+   * `undefined` matters: the factory treats an omitted `contacts` as "leave alone" and an empty array as
+   * "clear". Returning `[]` for a participant who simply has no contact details would wipe an imported
+   * list the moment someone edited their name.
+   */
+  const submittedContacts = (): any[] | undefined => {
+    const mobileTelephone = inputs.mobileTelephone?.value?.trim() || undefined;
+    const emailAddress = inputs.emailAddress?.value?.trim() || undefined;
+    const isPublic = !!inputs.contactIsPublic?.checked;
+
+    // Nothing entered and nothing stored — send no `contacts` key at all.
+    if (!mobileTelephone && !emailAddress && !existingContacts.length) return undefined;
+
+    // Both fields cleared on a participant whose primary contact carried only those two: drop that
+    // entry rather than persisting an empty shell, but keep any other contacts they have.
+    const primaryIsEmpty = !mobileTelephone && !emailAddress;
+    const rest = existingContacts.slice(1);
+    if (primaryIsEmpty) return rest;
+
+    // Spread the existing entry first so fields this drawer does not edit — `name`, `telephone`, `fax`,
+    // `notes`, extensions — survive.
+    return [{ ...primaryContact, mobileTelephone, emailAddress, isPublic }, ...rest];
+  };
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
 
@@ -186,6 +226,35 @@ export function editIndividualParticipant({
           field: 'nationalityCode',
           label: t('pages.participants.editParticipant.country'),
         },
+        // Contact details, for EVERY participant rather than staff alone. A director needs to reach a
+        // competitor at least as urgently as an official — an ALTERNATE who might get into the draw is
+        // the case that makes it obvious. Before this, TMX could display `person.contacts` in one place
+        // and could not enter them anywhere; they arrived only via CSV/Sheets import.
+        {
+          placeholder: t('pages.participants.editParticipant.mobilePlaceholder'),
+          label: t('pages.participants.editParticipant.mobile'),
+          value: values.mobileTelephone || '',
+          field: 'mobileTelephone',
+        },
+        {
+          placeholder: t('pages.participants.editParticipant.emailPlaceholder'),
+          label: t('pages.participants.editParticipant.email'),
+          value: values.emailAddress || '',
+          field: 'emailAddress',
+        },
+        {
+          // Records the person's consent to have THIS CONTACT shared publicly. It is not a promise that
+          // the contact appears anywhere: `tournamentContacts` publishes public contacts only for the
+          // staff roles the factory lists, so ticking it for a competitor stores consent that no current
+          // surface acts on. Keeping the label about the contact rather than about a destination is what
+          // keeps it honest — and it spares TMX from duplicating the factory's role list, which is how
+          // SCOREKEEPER and TIMEKEEPER went missing from the Staff view for months.
+          label: t('pages.participants.editParticipant.contactIsPublic'),
+          checked: values.contactIsPublic,
+          field: 'contactIsPublic',
+          id: 'contactIsPublic',
+          checkbox: true,
+        },
       ],
       relationships,
     );
@@ -231,6 +300,9 @@ export function editIndividualParticipant({
         standardGivenName: inputs.firstName.value,
         birthDate: inputs.birthday.value,
         sex: inputs.sex.value || undefined,
+        // `undefined` means "leave the stored list alone" — the factory only replaces `contacts` when
+        // the key is present, so a name-only edit must not carry one.
+        contacts: submittedContacts(),
       };
       const participantOtherName = inputs.nickname?.value || undefined;
       // A TD learns a person's actual role at least as often after entering them as before — a
@@ -273,6 +345,9 @@ export function editIndividualParticipant({
         nationalityCode: submittedNationalityCode(),
         standardGivenName: firstName,
         standardFamilyName: lastName,
+        // Omitted entirely when nothing was entered, rather than sent as `[]` — a new participant with
+        // no contact details should carry no `contacts` key at all.
+        ...(submittedContacts() ? { contacts: submittedContacts() } : {}),
         sex,
       },
     };

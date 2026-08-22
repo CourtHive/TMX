@@ -161,3 +161,117 @@ describe('STAFF_ROLES is derived, not hand-copied', () => {
     expect(unreachable).toEqual([]);
   });
 });
+
+/**
+ * Contact details.
+ *
+ * TMX had no contact-entry UI at all — contacts arrived only via CSV/Sheets import — and
+ * `person.contacts` had no factory write path until competition-factory#4680. Extended to EVERY
+ * participant rather than staff alone (CA): a director needs to reach a competitor at least as urgently
+ * as an official, an ALTERNATE who might get into the draw being the obvious case.
+ *
+ * The array handling is the dangerous part and gets the most coverage. `modifyParticipant` REPLACES
+ * `person.contacts` rather than merging, so a drawer that edited the primary contact and dispatched only
+ * that one would silently delete every other contact on an imported record.
+ */
+const NEW_MOBILE = '+1 555 0100';
+const STORED_MOBILE = '+1 555 0000';
+const OTHER_MOBILE = '+1 555 9999';
+const EMERGENCY = 'emergency';
+
+const CONTACT_INPUTS = {
+  ...NAME_INPUTS,
+  mobileTelephone: { value: NEW_MOBILE },
+  emailAddress: { value: 'ana@example.org' },
+  contactIsPublic: { checked: true },
+};
+
+const contactsFrom = (methods: any[]) => methods[0]?.params?.participant?.person?.contacts;
+const createdContactsFrom = (methods: any[]) => methods[0]?.params?.participants?.[0]?.person?.contacts;
+
+describe('contact details', () => {
+  it('offers mobile, email and a public checkbox in every view', () => {
+    for (const view of ['INDIVIDUAL', OFFICIAL, STAFF]) {
+      const fields = openForm({ view }, CONTACT_INPUTS);
+      expect(fields?.map((f: any) => f.field)).toEqual(
+        expect.arrayContaining(['mobileTelephone', 'emailAddress', 'contactIsPublic']),
+      );
+    }
+  });
+
+  it('persists entered details on a new participant', () => {
+    const contacts = createdContactsFrom(save({ view: 'INDIVIDUAL' }, CONTACT_INPUTS));
+    expect(contacts).toHaveLength(1);
+    expect(contacts[0].mobileTelephone).toEqual(NEW_MOBILE);
+    expect(contacts[0].emailAddress).toEqual('ana@example.org');
+    expect(contacts[0].isPublic).toEqual(true);
+  });
+
+  it('sends NO contacts key when nothing was entered and none stored', () => {
+    // `[]` would mean "clear" to the factory; a participant who simply has no phone number must not
+    // carry an instruction to wipe a list.
+    expect(createdContactsFrom(save({ view: 'INDIVIDUAL' }, NAME_INPUTS))).toBeUndefined();
+  });
+
+  it('PRESERVES other contacts when editing the primary — the data-loss case', () => {
+    const participant = {
+      participantId: 'p1',
+      person: {
+        contacts: [
+          { name: 'primary', mobileTelephone: STORED_MOBILE, emailAddress: 'old@example.org' },
+          { name: EMERGENCY, mobileTelephone: OTHER_MOBILE },
+        ],
+      },
+    };
+    const contacts = contactsFrom(save({ view: 'INDIVIDUAL', participant }, CONTACT_INPUTS));
+    expect(contacts).toHaveLength(2);
+    expect(contacts[0].mobileTelephone).toEqual(NEW_MOBILE);
+    expect(contacts[1]).toEqual({ name: EMERGENCY, mobileTelephone: OTHER_MOBILE });
+  });
+
+  it('keeps fields the drawer does not edit', () => {
+    // `name`, `telephone`, `notes` are not on this form; a save must not erase them.
+    const participant = {
+      participantId: 'p1',
+      person: { contacts: [{ name: 'desk', telephone: '+1 555 1111', notes: 'ring twice' }] },
+    };
+    const primary = contactsFrom(save({ view: 'INDIVIDUAL', participant }, CONTACT_INPUTS))[0];
+    expect(primary.name).toEqual('desk');
+    expect(primary.telephone).toEqual('+1 555 1111');
+    expect(primary.notes).toEqual('ring twice');
+  });
+
+  it('drops the primary entry when both fields are cleared, keeping the rest', () => {
+    const participant = {
+      participantId: 'p1',
+      person: {
+        contacts: [
+          { name: 'primary', mobileTelephone: STORED_MOBILE },
+          { name: EMERGENCY, mobileTelephone: OTHER_MOBILE },
+        ],
+      },
+    };
+    const cleared = {
+      ...NAME_INPUTS,
+      mobileTelephone: { value: '' },
+      emailAddress: { value: '' },
+      contactIsPublic: { checked: false },
+    };
+    const contacts = contactsFrom(save({ view: 'INDIVIDUAL', participant }, cleared));
+    expect(contacts).toHaveLength(1);
+    expect(contacts[0].name).toEqual(EMERGENCY);
+  });
+
+  it('preselects the stored public flag, and treats absent as not public', () => {
+    const withFlag = {
+      participantId: 'p1',
+      person: { contacts: [{ mobileTelephone: STORED_MOBILE, isPublic: true }] },
+    };
+    const fields = openForm({ view: STAFF, participant: withFlag }, CONTACT_INPUTS);
+    expect(fields.find((f: any) => f.field === 'contactIsPublic').checked).toEqual(true);
+
+    const noFlag = { participantId: 'p2', person: { contacts: [{ mobileTelephone: STORED_MOBILE }] } };
+    const fields2 = openForm({ view: STAFF, participant: noFlag }, CONTACT_INPUTS);
+    expect(fields2.find((f: any) => f.field === 'contactIsPublic').checked).toEqual(false);
+  });
+});
