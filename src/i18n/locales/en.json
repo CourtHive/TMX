@@ -974,7 +974,11 @@
           "unknownMatchUp": "This matchUp is no longer in the tournament."
         }
       }
-    }
+    },
+    "byeScheduledTitle": "Match is scheduled",
+    "byeScheduledBody": "This match already has scheduling information. Assigning a BYE will leave the court slot occupied unless you remove it.",
+    "byeKeepScheduling": "Keep scheduling",
+    "byeRemoveScheduling": "Remove scheduling"
   },
   "penalties": {
     "fail2signout": "Failed to Sign Out",
