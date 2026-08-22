@@ -8,6 +8,7 @@
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { collectStartAllRestWarning, type StartAllRestWarning } from './startAllRestGuard';
 import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
@@ -17,6 +18,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
+import { evaluateRest, formatDuration } from './inspectorRest';
 import { timePicker } from 'components/modals/timePicker';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
@@ -777,6 +779,8 @@ export interface Schedule2NowContext {
    * Absent → reschedule falls back to a plain bulk set (court/row preserved).
    */
   buildDateGrid?: (date: string) => any;
+  /** The strip's date, `YYYY-MM-DD`. Scopes the rest guard to the day being viewed. */
+  scheduledDate?: string;
 }
 
 function nowCellLabel(cell: NowStripCell): string {
@@ -850,6 +854,28 @@ function buildRescheduleMethods(
   });
 }
 
+/** "Start all matches (4)", or "Start all matches (4) — 1 needs rest" when the guard has something to say. */
+export function startAllLabel(count: number, warning?: StartAllRestWarning): string {
+  const base = `${t('schedule.startAll')} (${count})`;
+  if (!warning) return base;
+  return `${base} \u2014 ${t('schedule.startAllRest.pill', { count: warning.affectedMatchUpIds.length })}`;
+}
+
+/** The confirm body: one line per player who is not ready, named, with the court they'd start on. */
+export function describeStartAllRestWarning(warning: StartAllRestWarning): string {
+  const lines = warning.blockers.map((blocker) => {
+    const where = blocker.courtName ? ` (${blocker.courtName})` : '';
+    if (blocker.onCourt) return t('schedule.startAllRest.onCourt', { name: blocker.participantName, where });
+    return t('schedule.startAllRest.resting', {
+      name: blocker.participantName,
+      rested: formatDuration(blocker.restMinutes ?? 0),
+      required: formatDuration(blocker.requiredMinutes),
+      where,
+    });
+  });
+  return [t('schedule.startAllRest.intro', { count: warning.affectedMatchUpIds.length }), ...lines].join('\n');
+}
+
 export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContext): void {
   const { cells, onRefresh, executeMethods, buildDateGrid } = ctx;
 
@@ -861,6 +887,10 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
 
   const startable = actionable.filter(
     (c) => c.matchUpStatus !== IN_PROGRESS && c.matchUpStatus !== SUSPENDED && c.participantIds.length >= 2,
+  );
+  const startAllWarning = collectStartAllRestWarning(
+    startable.map((c) => ({ matchUpId: c.matchUpId, courtName: c.courtName })),
+    (matchUpId) => evaluateRest(matchUpId, ctx.scheduledDate ?? null),
   );
   const suspendable = actionable.filter((c) => c.matchUpStatus !== SUSPENDED);
   const resumable = actionable.filter((c) => c.matchUpStatus === SUSPENDED);
@@ -876,8 +906,7 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
     );
   };
 
-  const startAll = () => {
-    if (!startable.length) return;
+  const commitStartAll = () => {
     const startTime = currentClockTime();
     executeMethods(
       [
@@ -892,6 +921,24 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
       ],
       onRefresh,
     );
+  };
+
+  // Rest guard: this is the one action that starts several matches at once with
+  // no card selected, so neither the Inspector nor the catalog badge has had a
+  // chance to warn. Ask — never block; a director overrides recovery
+  // deliberately often enough that a refusal would be worse than a prompt.
+  const startAll = () => {
+    if (!startable.length) return;
+    if (!startAllWarning) {
+      commitStartAll();
+      return;
+    }
+    confirmModal({
+      title: t('schedule.startAllRest.title'),
+      query: describeStartAllRestWarning(startAllWarning),
+      okIntent: 'is-warning',
+      okAction: commitStartAll,
+    });
   };
 
   const suspendAll = () => setStatusFor(suspendable, SUSPENDED);
@@ -953,9 +1000,9 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
   statusRow.style.cssText = PILL_ROW_CSS;
   if (startable.length) {
     statusRow.appendChild(
-      makePill(`${t('schedule.startAll')} (${startable.length})`, startAll, {
+      makePill(startAllLabel(startable.length, startAllWarning), startAll, {
         icon: 'fa-play',
-        color: COLOR_ACCENT_BLUE,
+        color: startAllWarning ? COLOR_ACCENT_ORANGE : COLOR_ACCENT_BLUE,
       }),
     );
   }

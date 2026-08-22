@@ -276,6 +276,7 @@ import {
   type SidebarTab,
 } from './gridViewStorage';
 import { renderInspectorSections } from './inspectorReadiness';
+import { renderRestBadge } from './restBadge';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
  *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
@@ -409,6 +410,10 @@ export function renderGridView(
     // matchUp. A render hook rather than an external append — the Inspector rebuilds its
     // body on every store tick and would wipe anything appended from outside.
     renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp.matchUpId, state.selectedDate),
+    // The rest headline goes on the card itself: the "which do I call next"
+    // decision is made while scanning the catalog, before any card is selected
+    // and before the drag starts, so the Inspector is one interaction too late.
+    renderCardExtra: (matchUp) => renderRestBadge(matchUp.matchUpId, currentDate),
     // Restore catalog filter state captured from a previous mount within
     // this tournament session. Cleared on tournament load (see loadTournament).
     initialCatalogState: context.scheduleCatalogState,
@@ -1153,6 +1158,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
           {
             prominentTime: true,
             roundOffset,
+            // Same hook as the catalog. The Scheduled panel builds its cards
+            // directly rather than through the component's catalog, so the
+            // badge has to be passed here too or it would appear on only half
+            // the cards an operator looks at.
+            renderExtra: (m) => renderRestBadge(m.matchUpId, currentDate),
           },
         );
         if (!item.scheduledTime) card.classList.add('no-time');
@@ -2604,7 +2614,7 @@ function buildNowRowContext(refresh: () => void): Schedule2NowContext {
       };
     });
 
-  return { cells, onRefresh: refresh, executeMethods, buildDateGrid };
+  return { cells, onRefresh: refresh, executeMethods, buildDateGrid, scheduledDate: currentDate };
 }
 
 /**

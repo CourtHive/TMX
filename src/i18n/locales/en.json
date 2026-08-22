@@ -949,10 +949,27 @@
     "shiftCourtsTitle": "Shift courts down",
     "shiftRows": "Rows to shift down",
     "noActiveMatches": "No matches in progress",
+    "startAllRest": {
+      "title": "Start matches with players still resting?",
+      "pill": "{{count}} needs rest",
+      "intro": "{{count}} of these matches has a player who has not had their recovery time:",
+      "resting": "{{name}}{{where}} — {{rested}} rested of {{required}} required",
+      "onCourt": "{{name}}{{where}} — still on court in an earlier match"
+    },
     "startOnDropTitle": "Start match on drop?",
     "startOnDropPrompt": "You dropped a match onto the Now strip. Start matches automatically whenever they are dropped onto Now from now on? You can change this any time with the start-on-drop toggle in the schedule header.",
     "unscheduleAllTitle": "Unschedule all?",
     "unscheduleAllConfirm": "Remove the date, time and court for {{count}} match(es)? They return to the unscheduled catalog; their results are untouched.",
+    "card": {
+      "rest": {
+        "onCourt": "on court",
+        "none": "no prior match",
+        "limit": "#{{ordinal}}",
+        "tooltipRest": "{{name}} — {{rested}} rested of {{required}} required",
+        "tooltipOnCourt": "{{name}} — still on court",
+        "tooltipNone": "{{name}} — no prior match today"
+      }
+    },
     "inspector": {
       "show": "Show inspector",
       "hide": "Hide inspector",

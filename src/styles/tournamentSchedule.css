@@ -385,6 +385,58 @@
   color: var(--tmx-accent-red);
 }
 
+/* ── Schedule2 catalog card: rest badge ──
+   The one-line headline rendered through courthive-components'
+   `renderCardExtra`. Status drives the colour so a scan of the catalog reads
+   without any text being parsed; the per-player detail lives in the badge's
+   `title` and, properly, in the Inspector. Tokens only — both themes. */
+
+.tmx-rest-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--tmx-text-primary);
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+}
+
+.tmx-rest-badge.is-oncourt {
+  border-color: var(--tmx-accent-red);
+  color: var(--tmx-accent-red);
+  background: transparent;
+}
+
+.tmx-rest-badge.is-resting {
+  border-color: var(--tmx-accent-orange);
+  color: var(--tmx-accent-orange);
+  background: transparent;
+}
+
+.tmx-rest-badge.is-rested {
+  border-color: var(--tmx-accent-green);
+  color: var(--tmx-accent-green);
+  background: transparent;
+}
+
+/* Daily-limit marker rides the badge rather than waiting for the Inspector —
+   "already played their allowance" is the one thing not to miss while scanning. */
+.tmx-rest-badge-limit {
+  font-weight: 700;
+  padding-left: 4px;
+  border-left: 1px solid currentColor;
+  opacity: 0.85;
+}
+
+.tmx-rest-badge[data-at-limit] {
+  border-color: var(--tmx-accent-red);
+  color: var(--tmx-accent-red);
+}
+
 /* Inspector show/hide toggle in the sidebar control bar. */
 .tmx-inspector-toggle {
   display: inline-flex;
