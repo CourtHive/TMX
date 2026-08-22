@@ -19,7 +19,7 @@
  */
 import { participantConstants, participantRoles, positionActionConstants, tools } from 'tods-competition-factory';
 import { removeFromTeam } from 'pages/tournament/tabs/participantTab/controlBar/removeFromTeam';
-import { CONTACT_PERSON_EXTENSION, designatedContactPersonId } from './groupContactPerson';
+import { CONTACT_PERSON_EXTENSION, designatedContactPersonId, hasContactPersonExtension } from './groupContactPerson';
 import { roleBadge } from 'components/tables/common/formatters/roleBadge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -30,7 +30,7 @@ import { t } from 'i18n';
 
 import {
   ADD_INDIVIDUAL_PARTICIPANT_IDS,
-  ADD_PARTICIPANT_EXTENSION,
+  MODIFY_PARTICIPANT,
   REMOVE_PARTICIPANT_EXTENSION,
 } from 'constants/mutationConstants';
 
@@ -157,19 +157,27 @@ function buildContactPersonRow(group: any, onChanged: () => void): HTMLElement {
   select.addEventListener('change', () => {
     const participantId = group.participantId;
     const value = select.value;
-    const methods = value
-      ? [
-          {
-            method: ADD_PARTICIPANT_EXTENSION,
-            params: { participantId, extension: { name: CONTACT_PERSON_EXTENSION, value } },
-          },
-        ]
-      : [
-          {
-            method: REMOVE_PARTICIPANT_EXTENSION,
-            params: { participantId, extensionName: CONTACT_PERSON_EXTENSION },
-          },
-        ];
+
+    // Write the first-class field (factory #4683), which the engine validates against membership.
+    // A one-element array: the field is plural, this select is single, and storing one element beats
+    // adding a second source of truth for "which of these is the primary".
+    const methods: any[] = [
+      {
+        method: MODIFY_PARTICIPANT,
+        params: { participant: { participantId, contactParticipantIds: value ? [value] : [] } },
+      },
+    ];
+
+    // Collapse the two sources on first edit, and — the part that is not merely tidiness — REMOVE the
+    // extension whenever this group still carries one. `designatedContactPersonId` falls back to the
+    // extension when the first-class field resolves to nothing, so clearing the contact on a
+    // pre-migration group would otherwise RESURRECT the old pointer on the next read.
+    if (hasContactPersonExtension(group)) {
+      methods.push({
+        method: REMOVE_PARTICIPANT_EXTENSION,
+        params: { participantId, extensionName: CONTACT_PERSON_EXTENSION },
+      });
+    }
     // Updates its own detail rather than re-rendering the modal: the select already shows the new
     // choice, and rebuilding the table underneath would drop any row selection the TD had made.
     mutationRequest({
