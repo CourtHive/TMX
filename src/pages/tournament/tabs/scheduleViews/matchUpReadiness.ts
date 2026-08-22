@@ -76,7 +76,16 @@ export interface ReadinessSchedule {
   scheduledDate?: string;
   scheduledTime?: string;
   courtId?: string;
+  /** Bare `HH:MM`, venue-local. Written only by an explicit operator action. */
   endTime?: string;
+  /** Sparse: the calendar day the END_TIME fell on when the match crossed midnight. */
+  endDate?: string;
+  /** Bare `HH:MM`, venue-local. Written by start-on-drop and the manual start action. */
+  startTime?: string;
+  /** Full ISO instant, UTC. Stamped when the matchUp is called to court. */
+  calledAt?: string;
+  /** Full ISO instant, UTC. Auto-captured by the factory on first meaningful score. */
+  scoredTime?: string;
 }
 
 export interface ReadinessTiming {
@@ -283,7 +292,7 @@ type ParticipantClash = {
 };
 
 /** Name for a participantId, taken from whichever matchUp side carries it. */
-function nameFor(participantId: string, matchUps: ReadinessMatchUp[]): string {
+export function nameFor(participantId: string, matchUps: ReadinessMatchUp[]): string {
   for (const matchUp of matchUps) {
     for (const side of matchUp.sides ?? []) {
       if ((side.participantId ?? side.participant?.participantId) === participantId) return sideLabel(side);

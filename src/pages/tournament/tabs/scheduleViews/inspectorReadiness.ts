@@ -1,61 +1,33 @@
 /**
- * Schedule2 — Inspector readiness section.
+ * Schedule2 — Inspector readiness section, and the composition of everything
+ * TMX contributes to the courthive-components Inspector.
  *
  * The impure half of the readiness feature: gathers factory data, resolves
- * timing through the engine, and renders the result into the courthive-components
- * Inspector via its `renderInspectorExtra` hook. All rules live in the pure
- * `matchUpReadiness.ts`; this file decides nothing.
+ * timing through the engine, and renders the result into the Inspector via its
+ * `renderInspectorExtra` hook. All rules live in the pure `matchUpReadiness.ts`;
+ * this file decides nothing.
  *
- * Timing comes from `tournamentEngine.getMatchUpFormatTiming`, which is what the
+ * Timing comes from the shared `scheduleTimingResolver`, which is what the
  * auto-scheduler itself resolves against (including its scheduling-policy
  * fallback, so unpoliced tournaments still get per-format averages rather than a
- * flat 90/0). Resolution is memoised per `matchUpFormat|matchUpType` for the life
- * of one render pass — a tournament has a handful of distinct pairs, not one per
- * matchUp.
+ * flat 90/0). Sharing the resolver with the rest section is what keeps the two
+ * from disagreeing about what a format costs.
+ *
+ * Readiness and rest answer *different* questions and are both rendered:
+ * readiness asks "can this placement happen at the time it is scheduled for"
+ * (and skips when there is no time), rest asks "how long have these players
+ * actually had off, as of now" (and answers for an unscheduled matchUp, which is
+ * the moment the director is deciding whether to call it).
  */
 
-import { getCachedAllMatchUps } from './schedule2DataCache';
+import { makeTimingResolver } from './scheduleTimingResolver';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
-import { tournamentEngine } from 'services/factory/engine';
+import { getCachedAllMatchUps } from './schedule2DataCache';
+import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult, ReadinessTiming } from './matchUpReadiness';
-
-const FALLBACK_TIMING: ReadinessTiming = { averageMinutes: 90, recoveryMinutes: 0 };
-
-/** Engine-backed timing lookup, memoised per format + type. */
-function makeTimingResolver(): (matchUp: ReadinessMatchUp) => ReadinessTiming {
-  const cache = new Map<string, ReadinessTiming>();
-  return (matchUp: ReadinessMatchUp) => {
-    const matchUpFormat = matchUp.matchUpFormat ?? '';
-    const key = `${matchUpFormat}|${matchUp.matchUpType ?? ''}`;
-    const cached = cache.get(key);
-    if (cached) return cached;
-
-    // A missing format cannot be resolved; the flat fallback keeps the
-    // arithmetic running rather than dropping every finding silently.
-    let timing = FALLBACK_TIMING;
-    if (matchUpFormat) {
-      // `matchUpType` is a plain string on the hydrated matchUp but an
-      // `EventTypeUnion` on the engine signature; the engine validates it and
-      // falls back to SINGLES, so widen at the boundary rather than duplicating
-      // the union here.
-      const result: any = tournamentEngine.getMatchUpFormatTiming({
-        eventType: matchUp.matchUpType as any,
-        matchUpFormat,
-      });
-      if (!result?.error) {
-        timing = {
-          averageMinutes: result?.averageMinutes ?? FALLBACK_TIMING.averageMinutes,
-          recoveryMinutes: result?.recoveryMinutes ?? FALLBACK_TIMING.recoveryMinutes,
-        };
-      }
-    }
-    cache.set(key, timing);
-    return timing;
-  };
-}
+import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
 
 /** Readiness for one matchUp, resolved against current factory state. */
 export function evaluateReadiness(matchUpId: string): ReadinessResult {
@@ -137,4 +109,24 @@ export function renderReadinessSection(matchUpId: string): HTMLElement | null {
     section.appendChild(row);
   }
   return section;
+}
+
+/**
+ * Everything TMX adds to the Inspector, for one selected matchUp. Wired as the
+ * schedule page's `renderInspectorExtra`; returns a fresh element per call
+ * because the Inspector rebuilds its body on every state change.
+ */
+export function renderInspectorSections(matchUpId: string, viewedDate: string | null): HTMLElement | null {
+  if (!matchUpId) return null;
+
+  const container = document.createElement('div');
+  container.className = 'tmx-inspector-extra';
+
+  const rest = renderRestSection(matchUpId, viewedDate);
+  if (rest) container.appendChild(rest);
+
+  const readiness = renderReadinessSection(matchUpId);
+  if (readiness) container.appendChild(readiness);
+
+  return container;
 }

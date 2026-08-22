@@ -305,6 +305,86 @@
   color: var(--tmx-text-secondary);
 }
 
+/* ── Schedule2 Inspector: rest section ──
+   One row per individual in the selected matchUp, worst-first. Status drives the
+   left border so the block scans vertically without reading any text; the
+   `data-estimated` hook (set for every ladder rung below a recorded end time)
+   dims the provenance line so an inferred figure never reads as a measured one.
+   Both themes share the tokens — no literal colours here. */
+
+.tmx-rest {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tmx-rest-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-skip {
+  font-size: 0.75rem;
+  color: var(--tmx-text-secondary);
+  font-style: italic;
+}
+
+.tmx-rest-row {
+  padding-left: 8px;
+  border-left: 3px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tmx-rest-row.is-oncourt {
+  border-left-color: var(--tmx-accent-red);
+}
+
+.tmx-rest-row.is-resting {
+  border-left-color: var(--tmx-accent-orange);
+}
+
+.tmx-rest-row.is-rested {
+  border-left-color: var(--tmx-accent-green);
+}
+
+.tmx-rest-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-rest-figure {
+  font-size: 0.75rem;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-rest-row.is-none .tmx-rest-figure {
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-detail {
+  font-size: 0.6875rem;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-row[data-estimated='true'] .tmx-rest-detail {
+  font-style: italic;
+}
+
+.tmx-rest-limit {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--tmx-accent-red);
+}
+
 /* Inspector show/hide toggle in the sidebar control bar. */
 .tmx-inspector-toggle {
   display: inline-flex;

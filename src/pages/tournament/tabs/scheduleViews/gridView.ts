@@ -275,7 +275,7 @@ import {
   writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
-import { renderReadinessSection } from './inspectorReadiness';
+import { renderInspectorSections } from './inspectorReadiness';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
  *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
@@ -405,10 +405,10 @@ export function renderGridView(
     // click on the toggle dispatches a real change rather than a no-op against
     // the store's default-true.
     inspectorVisible: readInspectorVisible(),
-    // Consumer-supplied Inspector detail: readiness for the selected matchUp.
-    // A render hook rather than an external append — the Inspector rebuilds its
+    // Consumer-supplied Inspector detail: rest + readiness for the selected
+    // matchUp. A render hook rather than an external append — the Inspector rebuilds its
     // body on every store tick and would wipe anything appended from outside.
-    renderInspectorExtra: (matchUp) => renderReadinessSection(matchUp.matchUpId),
+    renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp.matchUpId, state.selectedDate),
     // Restore catalog filter state captured from a previous mount within
     // this tournament session. Cleared on tournament load (see loadTournament).
     initialCatalogState: context.scheduleCatalogState,

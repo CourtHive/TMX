@@ -973,6 +973,34 @@
           "noTime": "No scheduled time, so readiness cannot be projected.",
           "unknownMatchUp": "This matchUp is no longer in the tournament."
         }
+      },
+      "rest": {
+        "heading": "Rest",
+        "hoursMinutes": "{{hours}}h {{minutes}}m",
+        "minutesOnly": "{{minutes}}m",
+        "rested": "{{rested}} rested — {{required}} required",
+        "resting": "{{rested}} of {{required}} — ready {{time}}",
+        "onCourt": "On court now",
+        "onCourtUntil": "On court now — ready {{time}}",
+        "noPriorMatch": "No prior match today",
+        "typeChange": "type change",
+        "ordinal": "match #{{ordinal}} today",
+        "ordinalLimit": "match #{{ordinal}} today, limit {{limit}}",
+        "atLimit": "At the daily match limit",
+        "source": {
+          "endTime": "from recorded end time",
+          "scoredTime": "from score entry (est.)",
+          "startTime": "projected from start time (est.)",
+          "calledAt": "projected from call to court (est.)",
+          "scheduledTime": "projected from scheduled time (est.)"
+        },
+        "skip": {
+          "generic": "Rest cannot be evaluated for this matchUp.",
+          "bye": "A BYE needs no rest.",
+          "completed": "Already complete — rest no longer applies.",
+          "noParticipants": "Participants not yet determined, so there is no one to rest.",
+          "unknownMatchUp": "This matchUp is no longer in the tournament."
+        }
       }
     }
   },
