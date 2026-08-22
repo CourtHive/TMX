@@ -1223,7 +1223,7 @@ img {
  * identical to "nobody has a phone number", which are different problems for a tournament director.
  */
 .tmx-contact-public {
-  color: var(--tmx-accent-green, #1f9d55);
+  color: var(--tmx-accent-green);
   font-weight: 600;
 }
 .tmx-contact-private {

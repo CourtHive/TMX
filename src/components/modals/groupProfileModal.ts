@@ -121,7 +121,11 @@ function buildContactPersonRow(group: any, onChanged: () => void): HTMLElement {
   const currentId = designatedContactPersonId(group);
 
   const select = document.createElement('select');
-  select.className = 'select';
+  // Explicit theme vars, matching the house pattern for a bare <select> (see participantScalings).
+  // TMX defines no `.select` class, so a class name here would style nothing and leave the control on
+  // browser defaults — which is how a control ends up unreadable in one of the two themes.
+  select.style.cssText =
+    'font-size: 0.85rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--tmx-border-primary); background: var(--tmx-bg-primary); color: var(--tmx-color-primary);';
   const none = document.createElement('option');
   none.value = '';
   none.textContent = t('modals.groupProfile.contactPersonNone');
