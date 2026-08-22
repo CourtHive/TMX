@@ -1596,7 +1596,9 @@
       "counts": {
         "members_one": "{{count}} member",
         "members_other": "{{count}} members"
-      }
+      },
+      "contactPerson": "Contact person",
+      "contactPersonNone": "None"
     }
   },
   "dashboard": {
