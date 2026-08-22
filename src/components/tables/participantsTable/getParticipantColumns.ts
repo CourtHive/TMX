@@ -5,17 +5,17 @@
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { genderConstants, participantRoles } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
-import { roleBadgeFormatter } from '../common/formatters/roleBadge';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
+import { roleBadgeFormatter } from '../common/formatters/roleBadge';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
-import { genderConstants } from 'tods-competition-factory';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { idEditor } from '../common/editors/idEditor';
@@ -23,10 +23,11 @@ import { headerMenu } from '../common/headerMenu';
 import { t } from 'i18n';
 
 // constants
-import { CENTER, LEFT, PARTICIPANTS, RIGHT } from 'constants/tmxConstants';
+import { CENTER, LEFT, PARTICIPANTS, RIGHT, STAFF } from 'constants/tmxConstants';
 import { context } from 'services/context';
 
 const { FEMALE, MALE } = genderConstants;
+const { OFFICIAL } = participantRoles;
 
 /** Numeric-aware sort for the Jersey # column. Empty / non-numeric strings
  *  sink to the bottom so the column reads top-to-bottom by jersey number. */
@@ -41,11 +42,19 @@ function jerseySorter(a: any, b: any): number {
 
 export function getParticipantColumns({
   data,
+  view,
   replaceTableData,
 }: {
   data: any[];
+  view?: string;
   replaceTableData: () => void;
 }): any[] {
+  // Shown by default for personnel, hidden by default for competitors (CA). A competitor's contact is
+  // TD-scope information — the privacy policy strips it from every public surface — so the column would
+  // be a row of empty cells on the view that has the most rows. Personnel are the population whose
+  // contacts can actually be published, so it earns its place there. Either way it stays in the header
+  // menu, so a TD can turn it on for competitors when chasing alternates.
+  const isPersonnelView = view === OFFICIAL || view === STAFF;
   const cityState = data.some((p) => p.cityState);
   const tennisId = data.some((p) => p.tennisId);
   const jerseyNumberPresent = data.some((p) => p.jerseyNumber);
@@ -66,6 +75,7 @@ export function getParticipantColumns({
     {
       headerMenu: headerMenu({
         signedIn: 'Sign In Status',
+        contactPublic: 'Public contact',
         sex: 'Gender',
       }),
       formatter: 'rownum',
@@ -219,6 +229,32 @@ export function getParticipantColumns({
       resizable: false,
       field: 'signedIn',
       hozAlign: LEFT,
+      tooltip: false,
+      width: 40,
+    },
+    {
+      // Whether this person's primary contact carries consent to be shared publicly.
+      //
+      // Read-only. The toggle lives in the participant drawer, where it sits next to the number it
+      // governs — a bare tick in a table row would not say WHICH contact it applied to, and a person can
+      // hold several. Three states are distinguished on purpose: consented, has a contact but has not
+      // consented, and has no contact at all. Collapsing the last two would make "nobody has opted in"
+      // look identical to "nobody has a phone number", which are different problems for a TD.
+      title: `<div class='fa-solid fa-share-nodes' style='color: var(--tmx-text-secondary)' />`,
+      headerTooltip: t('tables.participants.contactPublic'),
+      formatter: (cell: any) => {
+        const row = cell.getRow().getData();
+        if (!row.hasContact) return '';
+        return cell.getValue()
+          ? `<span class="tmx-contact-public" title="${t('tables.participants.contactPublicYes')}">✓</span>`
+          : `<span class="tmx-contact-private" title="${t('tables.participants.contactPublicNo')}">—</span>`;
+      },
+      visible: isPersonnelView,
+      field: 'contactPublic',
+      headerHozAlign: CENTER,
+      hozAlign: CENTER,
+      resizable: false,
+      headerSort: true,
       tooltip: false,
       width: 40,
     },

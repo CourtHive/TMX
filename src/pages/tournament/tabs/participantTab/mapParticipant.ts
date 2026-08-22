@@ -39,11 +39,20 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
     }
   }
 
+  // The primary contact drives two columns: whether the person is reachable at all, and whether that
+  // contact carries consent to be published. `isPublic === true` deliberately — absent means not public,
+  // and nothing writes the flag on imported records, so a truthy check would read them all as consenting.
+  const primaryContact = person?.contacts?.[0];
+  const contactPublic = primaryContact?.isPublic === true;
+  const hasContact = !!(primaryContact?.mobileTelephone || primaryContact?.telephone || primaryContact?.emailAddress);
+
   return {
     searchText: [participantName, standardGivenName, standardFamilyName, participant.participantOtherName]
       .filter(Boolean)
       .join(' ')
       .toLowerCase(),
+    contactPublic,
+    hasContact,
     nickname: participant.participantOtherName,
     sex: camelcase(participant.person.sex || '', { pascalCase: true }),
     eventIds: participant.events.map(({ eventId }: any) => eventId),
