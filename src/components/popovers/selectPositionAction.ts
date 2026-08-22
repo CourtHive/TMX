@@ -3,7 +3,9 @@
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { promptByeScheduling } from 'components/popovers/byeSchedulingPrompt';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { isSchedulingAmbiguity } from 'functions/isSchedulingAmbiguity';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
@@ -57,9 +59,25 @@ export function selectPositionAction({
 }
 
 function noChoiceAction({ action, callback }: { action: any; callback: () => void }) {
-  const postMutation = (result: any) => (result.success ? callback() : console.log({ result }));
-  const methods = [{ method: action.method, params: action.payload }];
-  mutationRequest({ methods, callback: postMutation });
+  const dispatch = (params: any) => {
+    const methods = [{ method: action.method, params }];
+    mutationRequest({ methods, callback: postMutation });
+  };
+
+  // Assigning a BYE to an already-scheduled matchUp is the one "no choice" action
+  // that does have a choice in it: keep the court slot (the director is mid-swap) or
+  // give it back. The engine refuses to guess and returns ERR_MATCHUP_HAS_SCHEDULING;
+  // we ask and re-dispatch with the answer. Cancelling assigns no BYE.
+  const postMutation = (result: any) => {
+    if (result.success) return callback();
+    if (isSchedulingAmbiguity(result)) {
+      promptByeScheduling({ onChoice: (preserveScheduling) => dispatch({ ...action.payload, preserveScheduling }) });
+      return undefined;
+    }
+    return console.log({ result });
+  };
+
+  dispatch(action.payload);
 }
 
 function seedCascadeAction({ action, callback }: { action: any; callback: () => void }) {

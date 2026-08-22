@@ -108,6 +108,12 @@ export const MINIMUM_SCHEDULE_COLUMNS = 10;
 export const CONFLICT_PARTICIPANTS = 'participantConflict';
 export const CONFLICT_MATCHUP_ORDER = 'matchUpConflict';
 export const CONFLICT_COURT_DOUBLE_BOOKING = 'courtDoubleBooking';
+// Mirrors the factory error code, in the same spelling-by-hand style as the conflict
+// types above, so TMX does not depend on an unpublished factory export. (The sibling
+// `CONFLICT_BYE_SCHEDULED` issueType needs no mirror here: `getCellStatusClass` styles
+// it generically from its SCHEDULE_WARNING severity, and the issues panel renders the
+// issueType string the engine supplies.)
+export const ERR_MATCHUP_HAS_SCHEDULING = 'ERR_MATCHUP_HAS_SCHEDULING';
 export const SCHEDULE_ISSUE_IDS = 'ISSUE_IDS';
 export const SCHEDULE_ISSUE = 'ISSUE';
 
