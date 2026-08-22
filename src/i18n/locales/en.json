@@ -1877,7 +1877,10 @@
       "role": "Role",
       "teamAffiliation": "Team affiliation",
       "cityState": "City/State",
-      "nickname": "Nickname"
+      "nickname": "Nickname",
+      "contactPublic": "Public contact",
+      "contactPublicYes": "Contact may be shared publicly",
+      "contactPublicNo": "Contact is not shared publicly"
     },
     "bracket": {
       "participant": "Participant",
