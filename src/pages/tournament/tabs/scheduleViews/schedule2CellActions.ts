@@ -37,7 +37,7 @@ const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } =
 const { IN_PROGRESS, SUSPENDED } = matchUpStatusConstants;
 
 const COLOR_ACCENT_BLUE = 'var(--tmx-accent-blue, #3b82f6)';
-const COLOR_ACCENT_ORANGE = 'var(--tmx-accent-orange, #ef4444)';
+const COLOR_ACCENT_ORANGE = 'var(--tmx-accent-orange, #f59e0b)';
 const ICON_BAN = 'fa-ban';
 const TINT_DANGER = 'rgba(244, 63, 94, 0.15)';
 
