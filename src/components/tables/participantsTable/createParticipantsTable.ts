@@ -42,17 +42,8 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   let teamParticipants: any[] = [];
   let ready: boolean;
 
-  // `as any` is load-bearing and should be removed, not preserved. `ParticipantFilters.participantRoles`
-  // is typed `ParticipantRoleUnion[]`, and that union is built from `ParticipantRoleEnum` — which carries
-  // 17 of the 19 roles in the `participantRoles` const module. SCOREKEEPER and TIMEKEEPER exist at runtime
-  // (validators key off the const module, and the filter matches them) but cannot be *expressed* by a
-  // type-safe client. So the compiler rejects the very list that fixes the omission.
-  //
-  // Drop the cast once the factory adds both members to `ParticipantRoleEnum` and removes it from the
-  // `ENUM_ONLY` conformance exemption — that exemption claims the enum has no const-module twin, which is
-  // false. Tracked in Mentat/planning/TMX_PARTICIPANTS_PERSONNEL_AND_GROUPS.md, "Factory changes required".
   const participantFilters = (() => {
-    if (view === STAFF) return { participantRoles: STAFF_ROLES as any };
+    if (view === STAFF) return { participantRoles: STAFF_ROLES };
     return { participantRoles: [view === OFFICIAL ? OFFICIAL : COMPETITOR] };
   })();
 
