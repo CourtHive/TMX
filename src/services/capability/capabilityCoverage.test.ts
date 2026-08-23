@@ -4,6 +4,8 @@ import { join, resolve } from 'node:path';
 
 import { UI_ENFORCED, MUTATION_ENFORCED, coverageFor, unenforcedPermissionKeys } from './capabilityCoverage';
 import { BOOLEAN_PERMISSION_KEYS } from '@courthive/provider-config';
+import { permissionForAction } from './can';
+import type { CapabilityAction } from './can';
 
 const SRC = resolve(__dirname, '../..');
 
@@ -16,16 +18,32 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-/** Every key passed to a literal `providerConfig.isAllowed('<key>')` in src/. */
+/**
+ * Every permission key gated by a UI affordance in `src/`, in either call form:
+ *
+ *   providerConfig.isAllowed('<key>')   — the original, still used at unmigrated sites
+ *   can('<action>') / cannot('<action>') — the resolver, which maps action → key
+ *
+ * Both must be scanned or the pin breaks as sites migrate: moving a gate onto
+ * the resolver would look like the gate was deleted.
+ */
 function scanUiGatedKeys(files: string[]): Set<string> {
   const found = new Set<string>();
+  const addAction = (action: string) => {
+    const key = permissionForAction(action as CapabilityAction);
+    if (key) found.add(key);
+  };
   for (const file of files) {
     const text = readFileSync(file, 'utf8');
     for (const match of text.matchAll(/isAllowed\(\s*'([a-zA-Z]+)'/g)) found.add(match[1]);
-    // The ternary form: isAllowed(cond ? 'a' : 'b')
     for (const match of text.matchAll(/isAllowed\([^)]*\?\s*'([a-zA-Z]+)'\s*:\s*'([a-zA-Z]+)'/g)) {
       found.add(match[1]);
       found.add(match[2]);
+    }
+    for (const match of text.matchAll(/\b(?:can|cannot|denialReason)\(\s*'([a-zA-Z]+)'/g)) addAction(match[1]);
+    for (const match of text.matchAll(/\b(?:can|cannot)\([^)]*\?\s*'([a-zA-Z]+)'\s*:\s*'([a-zA-Z]+)'/g)) {
+      addAction(match[1]);
+      addAction(match[2]);
     }
   }
   return found;
@@ -34,7 +52,13 @@ function scanUiGatedKeys(files: string[]): Set<string> {
 describe('capability coverage', () => {
   const files = sourceFiles(SRC);
   // Exclude the doc-comment example in providerConfig.ts, which is prose, not a gate.
-  const scanned = scanUiGatedKeys(files.filter((f) => !f.endsWith('config/providerConfig.ts')));
+  const scanned = scanUiGatedKeys(
+    files.filter(
+      (f) =>
+        !f.endsWith('config/providerConfig.ts') && // doc-comment example, prose not a gate
+        !f.includes('services/capability/'), // the resolver defines the mapping; it is not a call site
+    ),
+  );
 
   // ── Controls: a broken scanner must not be able to agree by vacuous truth ──
 
@@ -46,11 +70,15 @@ describe('capability coverage', () => {
     expect(scanned.size).toBeGreaterThanOrEqual(12);
   });
 
-  it('the scanner detects a gate it is shown (falsification control)', () => {
-    const planted = `if (providerConfig.isAllowed('canPublish')) doThing();`;
+  it('the scanner detects a gate it is shown, in both call forms (falsification control)', () => {
+    const planted = `if (providerConfig.isAllowed('canPublish')) a(); if (cannot('createDraw')) b();`;
     const hits = new Set<string>();
     for (const m of planted.matchAll(/isAllowed\(\s*'([a-zA-Z]+)'/g)) hits.add(m[1]);
+    for (const m of planted.matchAll(/\b(?:can|cannot|denialReason)\(\s*'([a-zA-Z]+)'/g)) {
+      hits.add(permissionForAction(m[1] as CapabilityAction));
+    }
     expect(hits.has('canPublish')).toBe(true);
+    expect(hits.has('canCreateDraws')).toBe(true);
   });
 
   // ── The pin itself ──
