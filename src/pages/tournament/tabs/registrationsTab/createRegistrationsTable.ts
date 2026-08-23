@@ -54,11 +54,17 @@ export function createRegistrationsTable(params: CreateRegistrationsTableParams)
   container.innerHTML = '';
 
   const table = new Tabulator(container, {
-    data: params.entries,
+    // Decorated, not raw: every column below reads a derived field
+    // (`applicantName`, `eventCount`, …), so raw entries paint an empty grid
+    // until the first setData lands.
+    data: decorateRows(params.entries),
     layout: 'fitColumns',
     selectableRows: true,
     selectableRowsCheck: (row: any) => !!row.getElement(),
-    height: 'calc(100vh - 280px)',
+    // 100% of the flex-sized host rather than a guess at the chrome above it —
+    // `calc(100vh - 280px)` subtracted 280px for ~112px of nav and control bar,
+    // leaving the table 168px short of the fold.
+    height: '100%',
     rowFormatter: (row: any) => {
       // Listen for action button clicks once per row.
       row.getElement().addEventListener('click', (e: any) => {
@@ -85,11 +91,33 @@ export function createRegistrationsTable(params: CreateRegistrationsTableParams)
     params.onSelectionChange(data.map((d: any) => d.registrationId));
   });
 
-  function setEntries(rows: RegistrationEntry[]): void {
-    table.setData(decorateRows(rows));
-  }
+  // `setData` before Tabulator has finished building throws inside the library:
+  // `_wipeElements` calls `adjustTableSize`, which reads
+  // `rowManager.renderer.verticalFillMode` while `renderer` is still null. It
+  // throws from inside setData's own promise, and nothing awaits that promise,
+  // so it surfaced as an unhandled rejection on every visit to this tab.
+  //
+  // The tab builds the table with `entries: []` and calls `setEntries` as soon
+  // as the fetch resolves, so a fast response really can land inside the build
+  // window — deferring to `tableBuilt` is the fix, not just ordering luck.
+  let built = false;
+  table.on('tableBuilt', () => {
+    built = true;
+  });
 
-  table.setData(decorateRows(params.entries));
+  function setEntries(rows: RegistrationEntry[]): void {
+    const decorated = decorateRows(rows);
+    if (built) {
+      table.setData(decorated);
+      return;
+    }
+    // Registered after the flag-setter above, so `built` is already true by the
+    // time this runs; a second pre-build call simply overwrites with the later
+    // data, which is the same order the caller asked for.
+    table.on('tableBuilt', () => {
+      table.setData(decorated);
+    });
+  }
 
   return { table, setEntries };
 }

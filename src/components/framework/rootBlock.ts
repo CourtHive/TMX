@@ -36,6 +36,11 @@ export function rootBlock(): HTMLElement {
   const root = document.getElementById('root')!;
   root.appendChild(newBlock());
 
+  // `main` is read before the splash is built because the splash mounts INSIDE
+  // it: `.app_shell` grows to fill the viewport, so a splash appended to #root
+  // as a sibling would be pushed a full viewport below the fold.
+  const main = document.getElementById('navMain')!;
+
   const branding = providerConfig.get().branding;
   let logo: SVGSVGElement | HTMLImageElement;
   if (branding?.splashLogoUrl) {
@@ -51,7 +56,7 @@ export function rootBlock(): HTMLElement {
   splash.className = 'flexrow flexcenter';
   splash.id = SPLASH;
   splash.appendChild(logo);
-  root.appendChild(splash);
+  main.appendChild(splash);
 
   const isRootUrl = !globalThis.location.hash || globalThis.location.hash === '#/' || globalThis.location.hash === '#';
   if (isRootUrl) {
@@ -123,8 +128,6 @@ export function rootBlock(): HTMLElement {
   `;
 
   root.appendChild(drawer);
-
-  const main = document.getElementById('navMain')!;
 
   const content = document.createElement('div');
   content.id = TMX_CONTENT;
@@ -209,6 +212,8 @@ export function rootBlock(): HTMLElement {
 
 function newBlock(): HTMLDivElement {
   const block = document.createElement('div');
+  // Carries the flex column that reaches from #root down to the active tab.
+  block.className = 'app_shell';
   block.innerHTML = `<div id='dnav'>
     <div class="navbar-item" style="display: flex; flex-wrap: nowrap">
       <div id="provider" style="display: flex; flex-direction: column">

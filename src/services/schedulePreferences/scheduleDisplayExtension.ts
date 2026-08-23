@@ -47,7 +47,17 @@ export function readScheduleDisplayConfig(): ScheduleDisplayConfig {
   return result;
 }
 
-export function writeScheduleDisplayConfig(partial: ScheduleDisplayConfig): void {
+/**
+ * @param callback invoked once the mutation has actually been applied. Callers
+ * that re-render from this config MUST use it rather than re-rendering on the
+ * next line: the write is asynchronous on every path that matters. Under
+ * `serverFirst` the engine only executes inside the socket ack callback, and
+ * when the tournament is outside its date range `mutationRequest` defers the
+ * whole mutation behind a "Not in date range — Modify?" toast, so the write can
+ * land seconds later or never. A caller that refreshes immediately reads the
+ * pre-mutation value and then never hears about the real one.
+ */
+export function writeScheduleDisplayConfig(partial: ScheduleDisplayConfig, callback?: (result?: any) => void): void {
   // Merge against the raw value so unknown keys (e.g. future display flags
   // added by other features) round-trip rather than being silently dropped.
   const existing = readRawExtensionValue() ?? {};
@@ -59,5 +69,6 @@ export function writeScheduleDisplayConfig(partial: ScheduleDisplayConfig): void
         params: { extension: { name: SCHEDULE_DISPLAY_EXTENSION_NAME, value } },
       },
     ],
+    callback,
   });
 }

@@ -32,7 +32,7 @@ import {
 
 export function eventBlock(): HTMLDivElement {
   const div = document.createElement('div');
-  div.className = 'is-marginless';
+  div.className = 'is-marginless tab_container';
   div.style.width = 'inherit';
   div.id = 'e-tab';
 

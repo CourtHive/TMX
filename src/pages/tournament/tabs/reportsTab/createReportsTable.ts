@@ -122,7 +122,10 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
     layout: 'fitColumns',
     columns: tabulatorColumns,
     data: rows,
-    maxHeight: 'calc(100vh - 200px)',
+    // 100% of the flex-sized host rather than a guess at the chrome above it —
+    // `calc(100vh - 200px)` subtracted 200px for ~112px of nav and control bar.
+    // Still a cap, not a height: a short report stays short.
+    maxHeight: '100%',
     rowFormatter: (row: any) => {
       if (navigable(row.getData())) row.getElement().style.cursor = 'pointer';
     },
