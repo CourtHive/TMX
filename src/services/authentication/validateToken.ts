@@ -35,7 +35,10 @@ export function validateToken(token: string | null | undefined): LoginState | un
     return undefined;
   }
 
-  if (decodedToken.permissions?.includes('devMode') || decodedToken.roles?.includes('develope')) setDev();
+  // 'developer' is the canonical global role string (CFS src/common/constants/roles.ts).
+  // This previously tested the truncated 'develope', so granting DEVELOPER never enabled dev
+  // mode and only the devMode permission worked.
+  if (decodedToken.permissions?.includes('devMode') || decodedToken.roles?.includes('developer')) setDev();
 
   return decodedToken;
 }
