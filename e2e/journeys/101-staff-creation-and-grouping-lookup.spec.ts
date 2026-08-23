@@ -201,10 +201,17 @@ test.describe('Journey 101 — staff creation + grouping lookups', () => {
     // that is on screen — a false failure that says nothing about the feature.
     //
     // The member roster is the assertion that matters: an empty modal would pass a container check.
-    // Scoped to the open dialog, and using a member name that shares no substring with the GROUP name —
-    // an earlier version matched the group's own name in a hidden "Add to group" dropdown and reported
-    // "hidden" for a modal that was on screen.
-    await expect(page.locator('[role="dialog"]').getByText('Rosa Delgado').first()).toBeVisible({ timeout: 5_000 });
+    //
+    // Scoped to a ROSTER ROW, not to any text in the dialog. The roster is a Tabulator table, so
+    // `.tabulator-row` is the thing that means "she is listed as a member". A bare `getByText` keeps
+    // colliding with member names rendered into `<option>`s: first the group's own name in a hidden
+    // "Add to group" dropdown, and since TMX #1327 the contact-person picker, which lists every member
+    // by name (`groupProfileModal.ts:135-138`). Options are hidden, so each collision reports "hidden"
+    // for a modal that is on screen — a false failure saying nothing about the feature. Asserting on
+    // the row is immune to the next dropdown that happens to contain the same name.
+    await expect(
+      page.locator('[role="dialog"] .tabulator-row').filter({ hasText: 'Rosa Delgado' }).first(),
+    ).toBeVisible({ timeout: 5_000 });
 
     // The membership actions the chevron used to hide.
     await expect(page.getByRole('button', { name: /Add members/i }).first()).toBeVisible();
