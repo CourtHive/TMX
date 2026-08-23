@@ -56,6 +56,12 @@ export function getCachedScheduleMatchUps(scheduledDate: string, params: Schedul
     entry = competitionEngine.competitionScheduleMatchUps({
       matchUpFilters: { scheduledDate },
       courtCompletedMatchUps: true,
+      // A BYE that HOLDS A COURT gets a cell. Assigning a BYE deliberately preserves
+      // scheduling — a director may be mid-swap — so the slot really is taken, and
+      // hiding it is what produced the phantom `courtDoubleBooking` reported on
+      // 2026-08-22: an invisible occupant the operator then placed a match over.
+      // Court-holders only; a date/time-only BYE occupies no cell.
+      courtByeMatchUps: true,
       withCourtGridRows: true,
       minCourtGridRows: params.minCourtGridRows,
     });
