@@ -81,11 +81,21 @@ export function tournamentContent(): void {
         </div>
         `;
 
+  // The workspace claims whatever the header above it leaves, rather than
+  // subtracting a hard-coded 140px for chrome that actually measures ~95px and
+  // parking its action bar 45px above the fold.
+  //
+  // `height: 0` is the load-bearing part, and the counter-intuitive one: a flex
+  // item propagates its CONTENT height into its ancestors' intrinsic sizing even
+  // with `flex-basis: 0`, so the grid's natural height pushed the whole shell
+  // 536px past the fold. A definite height contributes itself instead, and
+  // flex-grow then hands the item the leftover space. The grid inside scrolls
+  // on its own, which is what `min-height: 0` allows.
   const schedulingTab = `
         <div class='tab_section scheduling_tab'>
-            <div class='section block' style='min-height: auto;'>
+            <div class='section block'>
               <div id='${SCHEDULING_CONTROL}' class='controlBar flexcol flexcenter'></div>
-              <div id='${SCHEDULING_CONTAINER}' style='width: 100%; height: calc(100vh - 140px);'></div>
+              <div id='${SCHEDULING_CONTAINER}' style='width: 100%; height: 0; flex: 1 1 auto; min-height: 0;'></div>
             </div>
         </div>
         `;
@@ -114,7 +124,7 @@ export function tournamentContent(): void {
 
   const settingsTab = `
         <div class='tab_section settings_tab'>
-            <div class='section' style='min-height: auto;'>
+            <div class='section'>
               <div id='${SETTINGS_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_SETTINGS}'></div>
             </div>
@@ -123,7 +133,7 @@ export function tournamentContent(): void {
 
   const publishingTab = `
         <div class='tab_section publishing_tab'>
-            <div class='section' style='min-height: auto;'>
+            <div class='section'>
               <div id='${PUBLISHING_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_PUBLISHING}'></div>
             </div>
@@ -132,7 +142,7 @@ export function tournamentContent(): void {
 
   const reportsTab = `
         <div class='tab_section reports_tab'>
-            <div class='section' style='min-height: auto;'>
+            <div class='section'>
               <div id='${REPORTS_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_REPORTS}' class='tableClass flexcol flexcenter'></div>
             </div>
@@ -141,7 +151,7 @@ export function tournamentContent(): void {
 
   const registrationsTab = `
         <div class='tab_section registrations_tab'>
-            <div class='section' style='min-height: auto;'>
+            <div class='section'>
               <div id='${REGISTRATIONS_CONTROL}' class='controlBar'></div>
               <div id='${TOURNAMENT_REGISTRATIONS}' class='tableClass flexcol flexcenter'></div>
             </div>
@@ -163,7 +173,7 @@ export function tournamentContent(): void {
 
   Object.keys(tabs).forEach((id) => {
     const elem = document.createElement('div');
-    elem.className = 'is-marginless';
+    elem.className = 'is-marginless tab_container';
     elem.style.cssText = 'width: inherit';
     elem.id = id;
     elem.innerHTML = tabs[id];

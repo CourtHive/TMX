@@ -2,7 +2,7 @@ import { TOURNAMENT_OVERVIEW } from 'constants/tmxConstants';
 
 export function tournamentInfoBlock(): HTMLElement {
   const div = document.createElement('div');
-  div.className = 'is-marginless';
+  div.className = 'is-marginless tab_container';
   div.style.width = 'inherit';
   div.id = 'o-tab';
 

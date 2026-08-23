@@ -14,11 +14,79 @@ body {
   font-size: 1.4rem;
   color: var(--tmx-text-primary);
   background-color: var(--tmx-bg-primary);
-  height: 100vh;
+  /* min-height, not height: a page taller than the window must grow the box it
+     scrolls in. `height: 100vh` pinned body to the viewport and let content
+     overflow it, which is half of why the shell never lined up with the fold. */
+  min-height: 100vh;
+}
+
+/* ── App shell ────────────────────────────────────────────────────────────
+   #root is a direct child of body and used to have no height rule anywhere on
+   the chain down to a tab, so every page shorter than the window ended in a
+   strip of bare body background. Three separate places compensated by guessing
+   at the chrome above them — `calc(100vh - 140px)` on the scheduling
+   workspace, `calc(100vh - 200px)` on the reports table, `min-height: 1000px`
+   on `.section` — and each guess was wrong by a different amount.
+
+   The chain below replaces all three guesses with measurement: every link
+   grows to the space its parent actually has, ending at the viewport. Only the
+   SHARED links unlock `min-height` (see below) — each tab container keeps the
+   default, so a tab taller than the window still overflows and scrolls the
+   document, exactly as it did before. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app_shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+#navMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
 }
 
 .springboard {
   width: 100%;
+}
+
+/* #tmxContent and #tcContainer both carry `.flexcenter`, which is declared
+   further down this file and so wins every same-specificity contest. These two
+   links are therefore addressed by id, not by class:
+   - #tmxContent is a flex ROW, so `align-items: center` sizes the tournament
+     container to its content on the cross axis — it must stretch instead.
+   - #tcContainer is a flex COLUMN, so `justify-content: center` would float
+     every tab in the middle of the window once the column actually has height.
+   Both were inert while nothing had a height. Growing the chain is what makes
+   them bite. */
+#tmxContent {
+  flex: 1 1 auto;
+  align-items: stretch;
+}
+
+#tcContainer {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
+/* A flex item refuses to shrink below its content by default (`min-height:
+   auto`), which is right for a tab that is genuinely taller than the window —
+   it overflows and the document scrolls, as it always did. It is wrong for the
+   SHARED links, because a tab that manages its own viewport (the scheduling
+   workspace, which scrolls internally) would push the whole shell past the
+   fold: measured at 536px past it. Unlocking the shared links costs nothing —
+   they have no content of their own — while each tab container keeps the
+   default and so keeps its scrolling behaviour. */
+.app_shell,
+#navMain,
+#tmxContent,
+#tcContainer {
+  min-height: 0;
 }
 
 #drawsView {
@@ -65,12 +133,57 @@ body {
   display: none;  /* Safari and Chrome */
 }
 
-/* minimum height prevents jumpy rendering */
-.section {
+/* ── Tab fill chain ───────────────────────────────────────────────────────
+   .tournament_container > .tab_container > .tab_section > .section — the last
+   three links of the chain that starts at #root. `.section` used to carry
+   `min-height: 1000px` ("minimum height prevents jumpy rendering"): a magic
+   number that both overshot short viewports and undershot tall ones, and was
+   overridden inline by five tabs that wanted their own height. Filling the
+   real available space is what that number was approximating. */
+.tab_container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.tab_container > .tab_section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.tab_section > .section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   padding: 0em;
-  /* padding-right: .7rem !important; */
-  min-height: 1000px;
-  /* margin-left: 1rem;*/
+}
+
+/* The scheduling workspace is the one tab that owns a viewport rather than a
+   document: the grid scrolls inside it, so every link between the tab and the
+   workspace must be free to shrink to the space offered. */
+#sw-tab,
+#sw-tab .tab_section,
+#sw-tab .section {
+  min-height: 0;
+}
+
+/* The two Tabulator hosts that take what the control bar above them leaves and
+   let the table scroll inside itself. Reports asks for `maxHeight: '100%'` (a
+   cap — a short report stays short); registrations asks for `height: '100%'` (it
+   always filled). Between them they replace a `calc(100vh - 200px)` that was
+   88px out and a `calc(100vh - 280px)` that was 168px out.
+
+   `flex-basis: 0` rather than `auto`, deliberately: a percentage height resolves
+   to `none`/auto against an auto-height parent, and `auto` would make each host
+   size itself from the very table whose height it is providing.
+   `justify-content` because `.flexcenter` centers on the main axis — vertical
+   here — which would float the table mid-panel once the host grows. */
+.reports_tab #tournamentReports,
+.registrations_tab #tournamentRegistrations {
+  flex: 1 1 0;
+  min-height: 0;
+  justify-content: flex-start;
 }
 
 .tmxLogo {
