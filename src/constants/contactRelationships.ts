@@ -1,3 +1,5 @@
+import { ContactRelationshipEnum } from 'tods-competition-factory';
+
 /**
  * Whose number a contact is — `Contact.relationship`, added to CODES by factory #4683.
  *
@@ -5,23 +7,24 @@
  * previously carry only a `name`. `SELF` earns its place because without it "the competitor's own
  * mobile" and "an unlabelled number" are the same state.
  *
- * ## Why this is a local list and not `ContactRelationshipEnum` from the factory
+ * Derived from the factory enum, never hand-copied. This file briefly held a literal list because CI
+ * strips the `link:../factory` override and installs the PUBLISHED pin, which was 6.29.1 and had no
+ * such symbol — importing it would have passed locally against the rebuilt dist and failed CI. With
+ * the pin now at 6.30.0 the duplication has served its purpose and is gone. Verified in the published
+ * 6.30.0 tarball, not merely through the local symlink.
  *
- * TMX CI strips the `link:../factory` override and installs the PUBLISHED pin (`ci.yml` — "Strip link:
- * overrides for CI"), currently 6.29.1. `ContactRelationshipEnum` does not exist there, so importing it
- * would fail the type-check gate and throw at runtime in CI while passing locally against the rebuilt
- * dist — the exact class of divergence that `link:` overrides hide.
- *
- * This is therefore a DELIBERATE, TEMPORARY duplication with a defined end: once the factory publishes
- * and TMX's pin is bumped, replace the array below with
- *
- *     const { ContactRelationshipEnum } = require('tods-competition-factory');
- *
- * and delete this comment. Tracked in `Mentat/TASKS.md` under "TMX: adopt the CODES contact model".
- * A hand-copied vocabulary that outlives its reason is how SCOREKEEPER and TIMEKEEPER stayed missing
- * from the Staff view for months — this one is scheduled to die.
+ * Ordered deliberately rather than alphabetically: SELF first because it is the common case, then the
+ * people who answer for someone else, then the catch-alls. The enum's own member order is alphabetical
+ * and would put CHAPERONE at the top of a director's dropdown.
  */
-export const CONTACT_RELATIONSHIPS = ['SELF', 'PARENT', 'GUARDIAN', 'CHAPERONE', 'EMERGENCY', 'OTHER'] as const;
+export const CONTACT_RELATIONSHIPS = [
+  ContactRelationshipEnum.SELF,
+  ContactRelationshipEnum.PARENT,
+  ContactRelationshipEnum.GUARDIAN,
+  ContactRelationshipEnum.CHAPERONE,
+  ContactRelationshipEnum.EMERGENCY,
+  ContactRelationshipEnum.OTHER,
+] as const;
 
 export type ContactRelationship = (typeof CONTACT_RELATIONSHIPS)[number];
 
