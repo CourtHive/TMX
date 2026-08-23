@@ -2498,7 +2498,8 @@
   "officiating": {
     "conflictWarning": "This official has a potential conflict of interest with a participant in this match. Assign anyway?",
     "selectOfficial": "Select official",
-    "noOfficialsFound": "No officials found"
+    "noOfficialsFound": "No officials found",
+    "notChecked": "Conflicts could not be checked for this official"
   },
   "participantRoles": {
     "ADMINISTRATION": "Administration",

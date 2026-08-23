@@ -17,8 +17,15 @@ const { POLICY_OFFICIATING_CONFLICT_OF_INTEREST } = fixtures.policies;
 
 const { POLICY_TYPE_OFFICIATING_CONFLICT } = policyConstants;
 
-/** Severity of the worst conflict found for a candidate. `none` means evaluated and clean. */
-export type ConflictLevel = 'none' | 'warn' | 'blocked';
+/**
+ * Outcome of evaluating a candidate.
+ *
+ * `none` means **evaluated and clean**; `unknown` means **the check could not run**. Those are
+ * different facts and the picker has to say which — a check that could not run must not look like a
+ * check that found nothing. Before this, an errored evaluation returned `none`, so a candidate the
+ * engine had never assessed rendered identically to one it had cleared.
+ */
+export type ConflictLevel = 'none' | 'warn' | 'blocked' | 'unknown';
 
 export type CandidateConflicts = {
   level: ConflictLevel;
@@ -56,9 +63,14 @@ export function summarizeConflicts(result: any): CandidateConflicts {
 /**
  * Evaluate one candidate official against one matchUp.
  *
- * Fails OPEN by design: if the evaluation errors, the candidate is reported `none` rather than blocked.
- * A UI that cannot evaluate must not invent a refusal — and it is not the enforcement point anyway, the
- * factory gate on the mutation is. That gate re-runs the same check server-side with the same policy.
+ * Fails OPEN by design: an errored evaluation does not block the candidate. A UI that cannot evaluate
+ * must not invent a refusal — and it is not the enforcement point anyway; the factory gate on the
+ * mutation is, and it re-runs the same check server-side with the same policy.
+ *
+ * But failing open is not the same as reporting clean. The error case now returns `unknown`, so the
+ * picker can show that the candidate was *not assessed* while still allowing the selection. Returning
+ * `none` here — as this did — made "we checked and found nothing" and "we could not check" the same
+ * pixel, which is the failure mode the fail-soft rule exists to prevent.
  */
 export function evaluateCandidate({
   officialParticipantId,
@@ -78,6 +90,6 @@ export function evaluateCandidate({
     drawId,
   });
 
-  if (result?.error) return { level: 'none', reasons: [] };
+  if (result?.error) return { level: 'unknown', reasons: [String(result.error?.message ?? result.error)] };
   return summarizeConflicts(result);
 }
