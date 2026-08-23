@@ -2543,5 +2543,42 @@
       "unpublish": "This provider does not allow unpublishing.",
       "useChat": "Chat is disabled for this provider."
     }
+  },
+  "demoMode": {
+    "title": "Demo mode",
+    "menuItem": "Demo mode…",
+    "clientOnly": "Client-side simulation only. The server still enforces the real provider configuration.",
+    "posture": "POSTURE",
+    "capabilities": "CAPABILITIES",
+    "exit": "Exit demo mode",
+    "badgeLabel": "DEMO",
+    "bannerText": "Demo mode — {{preset}} · {{count}} capabilities disabled · client-side only",
+    "legend": "UI+MUT = control hidden and mutation refused · UI = control hidden only · MUT = mutation refused only · — = no gate implemented, toggling changes nothing",
+    "presets": {
+      "providerDefaults": "Provider defaults (no simulation)",
+      "recorder": "Scoring only (Recorder)",
+      "scheduler": "Schedule + score",
+      "registrar": "Registration desk",
+      "director": "Tournament director",
+      "readOnly": "Read only",
+      "custom": "Custom"
+    },
+    "groups": {
+      "participants": "Participants",
+      "events": "Events",
+      "draws": "Draws",
+      "scheduling": "Scheduling",
+      "venues": "Venues",
+      "scoring": "Scoring",
+      "publishing": "Publishing",
+      "settings": "Settings",
+      "communication": "Communication"
+    },
+    "badge": {
+      "both": "Enforced by a hidden control and by the mutation gate.",
+      "ui": "Hides the control, but the mutation itself is ungated.",
+      "mutation": "The mutation is refused, but the control is still offered.",
+      "none": "No gate implemented — toggling this changes nothing."
+    }
   }
 }

@@ -1,6 +1,10 @@
 {
-  "src": ["src"],
-  "exclude": ["/scratch/"],
+  "src": [
+    "src"
+  ],
+  "exclude": [
+    "/scratch/"
+  ],
   "ignore": [
     "onchange",
     "oninput",
@@ -56,6 +60,7 @@
     "WITHDRAW",
     "registrationIds",
     "baseURI",
-    "participantNames"
+    "participantNames",
+    "scheduler"
   ]
 }

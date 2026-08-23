@@ -1449,3 +1449,107 @@ img {
   font-style: italic;
   padding-top: 0.2em;
 }
+
+/* ── Demo mode ──────────────────────────────────────────────────────────────
+   Every colour resolves through --tmx-* tokens, all of which carry a dark
+   definition in theme.css, so the panel and its affordances render correctly in
+   both themes without a per-theme override here. --tmx-fill-warning is
+   deliberately the same value in light and dark (AA against white either way),
+   which is why the badge needs no theme branch. */
+
+.tmx-demo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-demo-warning {
+  background: var(--tmx-panel-yellow-bg);
+  border: 1px solid var(--tmx-panel-yellow-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.tmx-demo-heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.tmx-demo-group {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin: 0.5rem 0 0.15rem;
+}
+
+.tmx-demo-preset,
+.tmx-demo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tmx-demo-row:hover,
+.tmx-demo-preset:hover {
+  background: var(--tmx-bg-secondary);
+}
+
+.tmx-demo-label {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.tmx-demo-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  opacity: 0.75;
+}
+
+/* A key that gates nothing must not look like a working control. */
+.tmx-demo-badge-none {
+  color: var(--tmx-fill-warning);
+  opacity: 1;
+}
+
+.tmx-demo-legend {
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  line-height: 1.35;
+}
+
+.tmx-demo-navbar-badge {
+  background: var(--tmx-fill-warning);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-left: 0.4rem;
+}
+
+/* Deliberately not dismissible — a demo posture that can be hidden defeats it. */
+.tmx-demo-banner {
+  background: var(--tmx-fill-warning);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.3rem 0.5rem;
+}

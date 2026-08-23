@@ -10,6 +10,8 @@ export interface FeatureFlags {
   formatWizard: boolean;
   schedulePlan: boolean;
   usePublishState: boolean;
+  /** Demo-mode lockdown simulator (avatar menu). Off by default. */
+  demoMode: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -17,6 +19,7 @@ const defaults: FeatureFlags = {
   formatWizard: false,
   schedulePlan: false,
   usePublishState: false,
+  demoMode: false,
 };
 
 let current: FeatureFlags = { ...defaults };
