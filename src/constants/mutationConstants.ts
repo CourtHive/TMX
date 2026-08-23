@@ -88,6 +88,9 @@ export const RESET_DRAW_DEFINITION = 'resetDrawDefinition';
 export const RESET_MATCHUP_LINEUPS = 'resetMatchUpLinesUps';
 export const RESET_SCORECARD = 'resetScorecard';
 export const SET_MATCHUP_CALLED_AT = 'setMatchUpCalledAt';
+// Per-matchUp check-in — a participant presenting at the desk for THIS match. Distinct from
+// MODIFY_SIGN_IN_STATUS, which records first arrival at the tournament and is tournament-wide.
+export const TOGGLE_PARTICIPANT_CHECK_IN_STATE = 'toggleParticipantCheckInState';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_SCHEDULE_LOCK = 'setMatchUpScheduleLock';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';

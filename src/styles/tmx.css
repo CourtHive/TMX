@@ -1553,3 +1553,54 @@ img {
   text-align: center;
   padding: 0.3rem 0.5rem;
 }
+
+/* ── Per-matchUp check-in ────────────────────────────────────────────── */
+/*
+ * The desk panel. Distinct from the participants page's sign-in tick, deliberately: signing in is
+ * ARRIVAL at the tournament and is tournament-wide, checking in is per-match (D4a). They never share a
+ * control, so they should not share a visual language either.
+ *
+ * Partial state is carried by the `n/m` summary rather than by colour alone — "one of two partners is
+ * standing here" has to survive a monochrome print and a colour-blind operator.
+ */
+:root {
+  --tmx-checkin-mark-fg: #7a8290;
+  --tmx-checkin-done-fg: #1c7a4a;
+  --tmx-checkin-done-bg: rgba(28, 122, 74, 0.10);
+}
+[data-theme='dark'] {
+  --tmx-checkin-mark-fg: #9aa4b2;
+  --tmx-checkin-done-fg: #6fd39b;
+  --tmx-checkin-done-bg: rgba(111, 211, 155, 0.14);
+}
+
+.tmx-checkin-heading {
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--tmx-text-secondary);
+  padding: 0 0.5em 0.35em;
+}
+.tmx-checkin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.3em 0.5em;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--tmx-text-primary);
+}
+.tmx-checkin-row:hover {
+  background: var(--chc-hover-bg, rgba(127, 127, 127, 0.12));
+}
+.tmx-checkin-row.is-checked-in {
+  background: var(--tmx-checkin-done-bg);
+  color: var(--tmx-checkin-done-fg);
+}
+.tmx-checkin-mark {
+  width: 1em;
+  text-align: center;
+  color: var(--tmx-checkin-mark-fg);
+}
+.tmx-checkin-row.is-checked-in .tmx-checkin-mark {
+  color: var(--tmx-checkin-done-fg);
+}
