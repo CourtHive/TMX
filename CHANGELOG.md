@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.20.0](https://github.com/CourtHive/TMX/compare/v8.19.1...v8.20.0) (2026-08-23)
+
+
+### Features
+
+* **participants:** adopt the CODES contact model ([#1327](https://github.com/CourtHive/TMX/issues/1327)) ([7f07ff3](https://github.com/CourtHive/TMX/commit/7f07ff3367aff9645a07674ea8f28f8aca5d4c8e))
+* **participants:** edit contact details for every participant ([#1324](https://github.com/CourtHive/TMX/issues/1324)) ([6b24ecf](https://github.com/CourtHive/TMX/commit/6b24ecf8a1e30baf64c751958f7565e10b6337cd))
+* **schedule:** ask before a BYE gives up its court, and show byes that hold one ([#1325](https://github.com/CourtHive/TMX/issues/1325)) ([774acce](https://github.com/CourtHive/TMX/commit/774acceaa8ce98859a7942df63f01a331af803c8))
+* **schedule:** participant rest — Inspector section, catalog badge, and a Start-all guard ([#1326](https://github.com/CourtHive/TMX/issues/1326)) ([1e3fb96](https://github.com/CourtHive/TMX/commit/1e3fb968b9f936c26e5a8d3c72c5e55ec35ea0bd))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 3.15.0 ([#1330](https://github.com/CourtHive/TMX/issues/1330)) ([422e87c](https://github.com/CourtHive/TMX/commit/422e87c1e2abe1550fdd5668814a12603320d582))
+* **deps:** update pdf-factory to 0.8.20 ([#1331](https://github.com/CourtHive/TMX/issues/1331)) ([6d4a4eb](https://github.com/CourtHive/TMX/commit/6d4a4eb66c130a08561b06fb7c3dc06a747e6444))
+* **deps:** update tods-competition-factory to 6.29.1 ([#1320](https://github.com/CourtHive/TMX/issues/1320)) ([536f5d7](https://github.com/CourtHive/TMX/commit/536f5d7c50622fc381013a921abbc96f8418d0e2))
+* **deps:** update tods-competition-factory to 6.30.0 ([#1329](https://github.com/CourtHive/TMX/issues/1329)) ([910d2e9](https://github.com/CourtHive/TMX/commit/910d2e99c71700c5e2b5be744f8e92cd5db05f38))
+* **layout:** fill the viewport from #root down to the active tab ([#1333](https://github.com/CourtHive/TMX/issues/1333)) ([ff3b3d7](https://github.com/CourtHive/TMX/commit/ff3b3d79032af78c8e39bf43b658a78f14826f84))
+* **overview:** keep groups off the contact card ([#1328](https://github.com/CourtHive/TMX/issues/1328)) ([983670f](https://github.com/CourtHive/TMX/commit/983670fb2b9a0a878b908653f8bd2358d3ff3403))
+* **participants:** create staff with the correct role; repair grouping lookups ([#1317](https://github.com/CourtHive/TMX/issues/1317)) ([f35235a](https://github.com/CourtHive/TMX/commit/f35235a929f10e198ed91a59369cbdcee0e76465))
+* **participants:** drop the ParticipantRoleEnum drift cast ([#1323](https://github.com/CourtHive/TMX/issues/1323)) ([93b50ef](https://github.com/CourtHive/TMX/commit/93b50efd6317994e50fcafff0851e78d3bfba2d2))
+
 ## [8.19.1](https://github.com/CourtHive/TMX/compare/v8.19.0...v8.19.1) (2026-08-19)
 
 
