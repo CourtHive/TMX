@@ -1019,7 +1019,11 @@
           "unknownMatchUp": "This matchUp is no longer in the tournament."
         }
       }
-    }
+    },
+    "byeScheduledTitle": "Match is scheduled",
+    "byeScheduledBody": "This match already has scheduling information. Assigning a BYE will leave the court slot occupied unless you remove it.",
+    "byeKeepScheduling": "Keep scheduling",
+    "byeRemoveScheduling": "Remove scheduling"
   },
   "penalties": {
     "fail2signout": "Failed to Sign Out",
@@ -2250,7 +2254,10 @@
         "mobilePlaceholder": "Mobile number",
         "email": "Email",
         "emailPlaceholder": "Email address",
-        "contactIsPublic": "Contact may be shared publicly"
+        "contactIsPublic": "Contact may be shared publicly",
+        "contactRelationship": "Contact is",
+        "contactName": "Contact name",
+        "contactNamePlaceholder": "Name of the contact, if not the participant"
       },
       "newTeam": "New team",
       "newGroup": "New group",
@@ -2269,6 +2276,15 @@
         "male": "Male",
         "female": "Female",
         "unknown": "Unknown"
+      },
+      "contactRelationship": {
+        "unspecified": "Unspecified",
+        "self": "The participant",
+        "parent": "Parent",
+        "guardian": "Guardian",
+        "chaperone": "Chaperone",
+        "emergency": "Emergency contact",
+        "other": "Other"
       },
       "groupRole": "Group role",
       "rowActions": {

@@ -25,7 +25,6 @@ export const ATTACH_CONSOLATION_STRUCTURES = 'attachConsolationStructures';
 export const ATTACH_PLAYOFF_STRUCTURES = 'attachPlayoffStructures';
 export const ADD_TOURNAMENT_EXTENSION = 'addTournamentExtension';
 export const REMOVE_PARTICIPANT_EXTENSION = 'removeParticipantExtension';
-export const ADD_PARTICIPANT_EXTENSION = 'addParticipantExtension';
 export const ADD_TOURNAMENT_TIMEITEM = 'addTournamentTimeItem';
 export const ADD_VENUE = 'addVenue';
 export const ABANDON_TOURNAMENT_MATCHUPS = 'abandonTournamentMatchUps';
