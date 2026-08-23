@@ -61,6 +61,7 @@
     "registrationIds",
     "baseURI",
     "participantNames",
-    "scheduler"
+    "scheduler",
+    "scope"
   ]
 }
