@@ -1,12 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  clearCallerGrants,
-  isPermittedOnResource,
-  isResourceInScope,
-  isScopeUnrestricted,
-  setCallerGrants,
-} from './scopeState';
+import { clearCallerGrants, isPermittedOnResource, isScopeUnrestricted, setCallerGrants } from './scopeState';
+import { isTargetInScope } from '@courthive/provider-config';
 import { canForResource, cannotForResource, can } from './can';
 import { providerConfig } from 'config/providerConfig';
 
@@ -24,29 +19,29 @@ describe('scope state', () => {
     expect(isPermittedOnResource('canEnterScores', { courtId: 'centre' })).toBe(true);
   });
 
-  describe('isResourceInScope mirrors the server predicate', () => {
+  describe('isTargetInScope — now the shared predicate, no longer mirrored', () => {
     it('treats an empty scope as tournament-wide', () => {
-      expect(isResourceInScope({}, { courtId: 'centre' })).toBe(true);
-      expect(isResourceInScope(undefined, {})).toBe(true);
+      expect(isTargetInScope({}, { courtId: 'centre' })).toBe(true);
+      expect(isTargetInScope(undefined, {})).toBe(true);
     });
 
     it('matches a declared dimension', () => {
-      expect(isResourceInScope({ courtIds: ['c1'] }, { courtId: 'c1' })).toBe(true);
-      expect(isResourceInScope({ courtIds: ['c1'] }, { courtId: 'c2' })).toBe(false);
+      expect(isTargetInScope({ courtIds: ['c1'] }, { courtId: 'c1' })).toBe(true);
+      expect(isTargetInScope({ courtIds: ['c1'] }, { courtId: 'c2' })).toBe(false);
     });
 
     it('denies a resource that cannot answer the dimension', () => {
-      expect(isResourceInScope({ courtIds: ['c1'] }, {})).toBe(false);
+      expect(isTargetInScope({ courtIds: ['c1'] }, {})).toBe(false);
     });
 
     it('requires every declared dimension', () => {
       const scope = { courtIds: ['c1'], scheduledDates: ['2026-08-24'] };
-      expect(isResourceInScope(scope, { courtId: 'c1', scheduledDate: '2026-08-24' })).toBe(true);
-      expect(isResourceInScope(scope, { courtId: 'c1', scheduledDate: '2026-08-25' })).toBe(false);
+      expect(isTargetInScope(scope, { courtId: 'c1', scheduledDate: '2026-08-24' })).toBe(true);
+      expect(isTargetInScope(scope, { courtId: 'c1', scheduledDate: '2026-08-25' })).toBe(false);
     });
 
     it('refuses a scope with an unrecognized key rather than ignoring it', () => {
-      expect(isResourceInScope({ somethingNew: ['x'] } as any, { courtId: 'c1' })).toBe(false);
+      expect(isTargetInScope({ somethingNew: ['x'] } as any, { courtId: 'c1' })).toBe(false);
     });
   });
 
