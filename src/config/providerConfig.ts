@@ -12,6 +12,8 @@
  */
 
 import type { ProviderBranding, ProviderConfigData, ProviderPermissions } from '@courthive/provider-config';
+import { demoVersion, getDemoOverlay } from 'services/demoMode/demoState';
+import { intersectPermissions } from 'services/demoMode/intersect';
 import { context } from 'services/context';
 
 export type { ProviderBranding, ProviderConfigData, ProviderPermissions };
@@ -58,19 +60,44 @@ const DEFAULT_PERMISSIONS: Required<ProviderPermissions> = {
 };
 
 let current: ProviderConfigData = {};
+let configVersion = 0;
+
+// Memoized composition of `current` with the demo overlay. `get()` returned a
+// stable reference before the overlay existed and there are ~a dozen per-render
+// readers, so rebuilding on every call would churn. Keyed on (config, demo).
+let composed: ProviderConfigData = current;
+let composedKey = '';
+
+function resolved(): Readonly<ProviderConfigData> {
+  const overlay = getDemoOverlay();
+  const key = `${configVersion}:${demoVersion()}`;
+  if (key === composedKey) return composed;
+  composedKey = key;
+  composed = overlay
+    ? { ...current, permissions: intersectPermissions(current.permissions, overlay.permissions) }
+    : current;
+  return composed;
+}
 
 export const providerConfig = {
-  get: (): Readonly<ProviderConfigData> => current,
+  get: (): Readonly<ProviderConfigData> => resolved(),
   set: (config: ProviderConfigData) => {
     current = { ...current, ...config };
+    configVersion += 1;
     applyBranding(current.branding);
   },
+  // NOTE: reset() deliberately does NOT clear the demo overlay. The overlay is a
+  // separate layer with its own lifecycle (cleared on login/logout), and reset()
+  // runs on every provider switch — clearing here would silently drop the demo
+  // posture mid-demonstration, the same shape as the documented "switch to
+  // BOBOCA still shows INTENNSE" branding bug.
   reset: () => {
     current = {};
+    configVersion += 1;
     applyBranding(undefined);
   },
   isAllowed: (key: keyof ProviderPermissions): boolean => {
-    const val = current.permissions?.[key] ?? DEFAULT_PERMISSIONS[key];
+    const val = resolved().permissions?.[key] ?? DEFAULT_PERMISSIONS[key];
     if (typeof val === 'boolean') return val;
     return true;
   },
@@ -83,10 +110,11 @@ export const providerConfig = {
       | 'allowedCategories'
       | 'allowedTierSystems',
   ): any[] => {
-    if (key === 'allowedMatchUpFormats') return current.policies?.allowedMatchUpFormats ?? [];
-    if (key === 'allowedCategories') return current.policies?.allowedCategories ?? [];
-    if (key === 'allowedTierSystems') return current.policies?.allowedTierSystems ?? [];
-    return (current.permissions?.[key as keyof ProviderPermissions] as any[]) ?? [];
+    const active = resolved();
+    if (key === 'allowedMatchUpFormats') return active.policies?.allowedMatchUpFormats ?? [];
+    if (key === 'allowedCategories') return active.policies?.allowedCategories ?? [];
+    if (key === 'allowedTierSystems') return active.policies?.allowedTierSystems ?? [];
+    return (active.permissions?.[key as keyof ProviderPermissions] as any[]) ?? [];
   },
 } as const;
 

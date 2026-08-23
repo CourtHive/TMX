@@ -29,6 +29,7 @@ import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
 import { revokeRefreshToken } from './authApi';
 import { isFunction } from 'functions/typeOf';
+import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -84,6 +85,8 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
+  // A demo posture must never outlive an identity change.
+  clearDemoOverlay();
   // Best-effort server-side revocation of the refresh token so a leaked copy
   // can't be replayed after logout. Fire-and-forget; never blocks local logout.
   const refreshToken = getRefreshToken();
@@ -122,6 +125,8 @@ export function logIn({
   data: { token: string; refreshToken?: string };
   callback?: () => void;
 }): void {
+  // A demo posture must never outlive an identity change.
+  clearDemoOverlay();
   const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.q.tournament()?.tournamentId;
   if (valid) {
@@ -281,6 +286,11 @@ export function initLoginToggle(id: string): void {
           text: t('loginMenu.admin'),
           hide: !isActiveProviderAdmin(),
           onClick: () => context.router?.navigate('/admin'),
+        },
+        {
+          text: t('demoMode.menuItem'),
+          hide: !isDemoEligible(),
+          onClick: () => void import('components/drawers/demoModeDrawer').then((m) => m.demoModeDrawer()),
         },
         {
           text: t('loginMenu.logOut'),
