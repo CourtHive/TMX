@@ -305,6 +305,138 @@
   color: var(--tmx-text-secondary);
 }
 
+/* ── Schedule2 Inspector: rest section ──
+   One row per individual in the selected matchUp, worst-first. Status drives the
+   left border so the block scans vertically without reading any text; the
+   `data-estimated` hook (set for every ladder rung below a recorded end time)
+   dims the provenance line so an inferred figure never reads as a measured one.
+   Both themes share the tokens — no literal colours here. */
+
+.tmx-rest {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tmx-rest-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-skip {
+  font-size: 0.75rem;
+  color: var(--tmx-text-secondary);
+  font-style: italic;
+}
+
+.tmx-rest-row {
+  padding-left: 8px;
+  border-left: 3px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tmx-rest-row.is-oncourt {
+  border-left-color: var(--tmx-accent-red);
+}
+
+.tmx-rest-row.is-resting {
+  border-left-color: var(--tmx-accent-orange);
+}
+
+.tmx-rest-row.is-rested {
+  border-left-color: var(--tmx-accent-green);
+}
+
+.tmx-rest-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-rest-figure {
+  font-size: 0.75rem;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-rest-row.is-none .tmx-rest-figure {
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-detail {
+  font-size: 0.6875rem;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-rest-row[data-estimated='true'] .tmx-rest-detail {
+  font-style: italic;
+}
+
+.tmx-rest-limit {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--tmx-accent-red);
+}
+
+/* ── Schedule2 catalog card: rest badge ──
+   The one-line headline rendered through courthive-components'
+   `renderCardExtra`. Status drives the colour so a scan of the catalog reads
+   without any text being parsed; the per-player detail lives in the badge's
+   `title` and, properly, in the Inspector. Tokens only — both themes. */
+
+.tmx-rest-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--tmx-text-primary);
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+}
+
+.tmx-rest-badge.is-oncourt {
+  border-color: var(--tmx-accent-red);
+  color: var(--tmx-accent-red);
+  background: transparent;
+}
+
+.tmx-rest-badge.is-resting {
+  border-color: var(--tmx-accent-orange);
+  color: var(--tmx-accent-orange);
+  background: transparent;
+}
+
+.tmx-rest-badge.is-rested {
+  border-color: var(--tmx-accent-green);
+  color: var(--tmx-accent-green);
+  background: transparent;
+}
+
+/* Daily-limit marker rides the badge rather than waiting for the Inspector —
+   "already played their allowance" is the one thing not to miss while scanning. */
+.tmx-rest-badge-limit {
+  font-weight: 700;
+  padding-left: 4px;
+  border-left: 1px solid currentColor;
+  opacity: 0.85;
+}
+
+.tmx-rest-badge[data-at-limit] {
+  border-color: var(--tmx-accent-red);
+  color: var(--tmx-accent-red);
+}
+
 /* Inspector show/hide toggle in the sidebar control bar. */
 .tmx-inspector-toggle {
   display: inline-flex;
