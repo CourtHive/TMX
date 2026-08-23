@@ -22,6 +22,7 @@
 
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
+import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
@@ -121,6 +122,12 @@ export function renderInspectorSections(matchUpId: string, viewedDate: string | 
 
   const container = document.createElement('div');
   container.className = 'tmx-inspector-extra';
+
+  // Deliberately a SIBLING of the rest section rather than a child of it: the
+  // rest section replaces its own children every 30 seconds to keep the figures
+  // counting up, which would destroy an open popover mid-interaction.
+  const actions = renderInspectorActions(matchUpId);
+  if (actions) container.appendChild(actions);
 
   const rest = renderRestSection(matchUpId, viewedDate);
   if (rest) container.appendChild(rest);

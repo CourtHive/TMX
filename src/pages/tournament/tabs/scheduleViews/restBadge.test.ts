@@ -105,3 +105,21 @@ describe('badgeText / badgeTooltip', () => {
     expect(tooltip.split('\n')).toHaveLength(2);
   });
 });
+
+// ── Regressions: the two states the analysis gained on 2026-08-23 ────────────
+
+describe('badge honesty for states that carry no measurable interval', () => {
+  it('says the rest is unknown rather than showing the arithmetic zero', () => {
+    expect(badgeText(row({ status: 'resting', restMinutes: 0, anchorUnreliable: true }))).not.toMatch(/0/);
+  });
+
+  it('still shows a duration for an ordinary resting row', () => {
+    expect(badgeText(row({ status: 'resting', restMinutes: 22 }))).toMatch(/22/);
+  });
+
+  it('distinguishes an overrunning match from one inside its expected duration', () => {
+    const overrun = badgeTooltip([row({ status: 'onCourt', overrun: true })]);
+    const normal = badgeTooltip([row({ status: 'onCourt' })]);
+    expect(overrun).not.toEqual(normal);
+  });
+});

@@ -143,10 +143,14 @@ export function describeSource(row: RestRow): string {
 export function describeRest(row: RestRow): string {
   if (row.status === 'none') return t('schedule.inspector.rest.noPriorMatch');
   if (row.status === 'onCourt') {
+    if (row.overrun) return t('schedule.inspector.rest.onCourtOverrun');
     return row.readyAt
       ? t('schedule.inspector.rest.onCourtUntil', { time: row.readyAt })
       : t('schedule.inspector.rest.onCourt');
   }
+  // No interval can be measured from an anchor in the future, so say that rather
+  // than printing the zero the arithmetic produced.
+  if (row.anchorUnreliable) return t('schedule.inspector.rest.anchorUnreliable');
   const rested = formatDuration(row.restMinutes ?? 0);
   const required = formatDuration(row.requiredMinutes);
   if (row.status === 'rested') return t('schedule.inspector.rest.rested', { rested, required });
@@ -190,6 +194,8 @@ function buildRow(row: RestRow): HTMLElement {
   // A row whose anchor was inferred rather than recorded must say so structurally,
   // not only in prose, so the distinction survives styling and screen readers.
   if (row.source && row.source !== 'endTime') element.dataset.estimated = 'true';
+  if (row.anchorUnreliable) element.dataset.anchorUnreliable = 'true';
+  if (row.overrun) element.dataset.overrun = 'true';
   if (row.fromMatchUpLabel) element.title = row.fromMatchUpLabel;
   return element;
 }

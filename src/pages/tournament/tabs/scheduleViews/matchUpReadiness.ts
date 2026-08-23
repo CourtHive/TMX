@@ -60,6 +60,12 @@ export interface ReadinessMatchUp {
   loserMatchUpId?: string;
   sides?: ReadinessSide[];
   schedule?: ReadinessSchedule | null;
+  /**
+   * Present once any score has been entered. Rest reads only whether it is
+   * populated: a DEFAULTED matchUp carrying sets was played and then defaulted,
+   * while a DEFAULTED matchUp with no score is a no-show who never took court.
+   */
+  score?: { sets?: unknown[]; scoreStringSide1?: string } | null;
 }
 
 export interface ReadinessSide {
@@ -69,6 +75,13 @@ export interface ReadinessSide {
     participantId?: string;
     participantName?: string;
     individualParticipantIds?: string[];
+    /**
+     * Hydrated members of a pair or team, present on `inContext` matchUps.
+     * `individualParticipantIds` carries the same identities without names, so
+     * anything that must *show* a person reads this and anything that only needs
+     * to compare identities reads the ids.
+     */
+    individualParticipants?: { participantId?: string; participantName?: string }[];
   };
 }
 

@@ -1,8 +1,9 @@
-import { normalizeTimes, toDayMinutesFromClock, toDayMinutesFromInstant } from './inspectorRest';
+import { describeRest, normalizeTimes, toDayMinutesFromClock, toDayMinutesFromInstant } from './inspectorRest';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
 import type { ReadinessMatchUp } from './matchUpReadiness';
+import type { RestRow } from './participantRest';
 
 const DATE = '2026-08-22';
 
@@ -122,5 +123,34 @@ describe('normalizeTimes', () => {
   it('yields nothing usable for a matchUp with no schedule at all', () => {
     const result = normalizeTimes({ matchUpId: 'm1', schedule: null }, DATE);
     expect(Object.values(result).every((value) => value === undefined)).toBe(true);
+  });
+});
+
+// ── Regressions: rendering for the states added on 2026-08-23 ────────────────
+
+describe('describeRest — states that carry no measurable interval', () => {
+  const base = {
+    participantId: 'p1',
+    participantName: 'Alice',
+    requiredMinutes: 60,
+    typeChange: false,
+    load: { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] },
+  };
+
+  it('never emits a dangling "ready" with no time when the anchor is unreliable', () => {
+    const text = describeRest({ ...base, status: 'resting', restMinutes: 0, anchorUnreliable: true } as RestRow);
+    expect(text).not.toMatch(/ready\s*$/);
+    expect(text).not.toMatch(/\b0m\b/);
+  });
+
+  it('reports an overrunning match as past its expected finish, not as a time already gone by', () => {
+    const text = describeRest({ ...base, status: 'onCourt', overrun: true } as RestRow);
+    expect(text).not.toMatch(/\d{2}:\d{2}/);
+    expect(text).toMatch(/expected/i);
+  });
+
+  it('still names the projected finish while the match is inside its expected duration', () => {
+    const text = describeRest({ ...base, status: 'onCourt', readyAt: '16:00' } as RestRow);
+    expect(text).toMatch(/16:00/);
   });
 });
