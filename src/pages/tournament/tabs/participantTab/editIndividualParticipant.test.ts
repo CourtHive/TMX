@@ -189,6 +189,81 @@ const CONTACT_INPUTS = {
 const contactsFrom = (methods: any[]) => methods[0]?.params?.participant?.person?.contacts;
 const createdContactsFrom = (methods: any[]) => methods[0]?.params?.participants?.[0]?.person?.contacts;
 
+describe('contact relationship (factory #4683)', () => {
+  const RELATIONSHIP_INPUTS = {
+    ...CONTACT_INPUTS,
+    contactRelationship: { value: 'GUARDIAN' },
+    contactName: { value: 'Ana Rivas' },
+  };
+
+  it('offers a relationship select and a contact name in every view', () => {
+    for (const view of ['INDIVIDUAL', OFFICIAL, STAFF]) {
+      const fields = openForm({ view }, RELATIONSHIP_INPUTS);
+      expect(fields?.map((f: any) => f.field)).toEqual(expect.arrayContaining(['contactRelationship', 'contactName']));
+    }
+  });
+
+  it('offers the whole vocabulary plus an explicit unspecified option', () => {
+    const fields = openForm({ view: 'INDIVIDUAL' }, RELATIONSHIP_INPUTS);
+    const select = fields?.find((f: any) => f.field === 'contactRelationship');
+    expect(select.options.map((o: any) => o.value)).toEqual([
+      '',
+      'SELF',
+      'PARENT',
+      'GUARDIAN',
+      'CHAPERONE',
+      'EMERGENCY',
+      'OTHER',
+    ]);
+  });
+
+  it('defaults to UNSPECIFIED, never to SELF', () => {
+    // Defaulting to SELF would assert that a number belongs to the participant when nobody said so —
+    // on the field that decides who a director may ring at 9pm about a minor.
+    const fields = openForm({ view: 'INDIVIDUAL' }, RELATIONSHIP_INPUTS);
+    const select = fields?.find((f: any) => f.field === 'contactRelationship');
+    expect(select.options.find((o: any) => o.selected).value).toEqual('');
+  });
+
+  it('persists the relationship and the contact name', () => {
+    const contacts = createdContactsFrom(save({ view: 'INDIVIDUAL' }, RELATIONSHIP_INPUTS));
+    expect(contacts[0].relationship).toEqual('GUARDIAN');
+    expect(contacts[0].name).toEqual('Ana Rivas');
+  });
+
+  it('preselects a stored relationship when editing', () => {
+    const participant = {
+      participantId: 'p1',
+      person: { contacts: [{ mobileTelephone: STORED_MOBILE, relationship: 'PARENT', name: 'Dad' }] },
+    };
+    const fields = openForm({ view: 'INDIVIDUAL', participant }, RELATIONSHIP_INPUTS);
+    const select = fields?.find((f: any) => f.field === 'contactRelationship');
+    expect(select.options.find((o: any) => o.selected).value).toEqual('PARENT');
+    expect(fields?.find((f: any) => f.field === 'contactName').value).toEqual('Dad');
+  });
+
+  it('clears a stored relationship when the select is emptied', () => {
+    const participant = {
+      participantId: 'p1',
+      person: { contacts: [{ mobileTelephone: STORED_MOBILE, relationship: 'PARENT' }] },
+    };
+    const emptied = { ...CONTACT_INPUTS, contactRelationship: { value: '' }, contactName: { value: '' } };
+    expect(contactsFrom(save({ view: 'INDIVIDUAL', participant }, emptied))[0].relationship).toBeUndefined();
+  });
+
+  it('leaves a stored name ALONE when the drawer renders no name input', () => {
+    // Absent input and emptied input are different instructions. A reduced form must not speak for a
+    // field it never offered — spreading `name: undefined` unconditionally would erase it.
+    const participant = {
+      participantId: 'p1',
+      person: { contacts: [{ mobileTelephone: STORED_MOBILE, name: 'desk', relationship: 'SELF' }] },
+    };
+    const primary = contactsFrom(save({ view: 'INDIVIDUAL', participant }, CONTACT_INPUTS))[0];
+    expect(primary.name).toEqual('desk');
+    expect(primary.relationship).toEqual('SELF');
+  });
+});
+
 describe('contact details', () => {
   it('offers mobile, email and a public checkbox in every view', () => {
     for (const view of ['INDIVIDUAL', OFFICIAL, STAFF]) {

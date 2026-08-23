@@ -12,6 +12,7 @@ import { t, i18next } from 'i18n';
 
 // constants
 import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { CONTACT_RELATIONSHIPS, relationshipKey } from 'constants/contactRelationships';
 import { RIGHT, STAFF, SUCCESS } from 'constants/tmxConstants';
 import { STAFF_ROLES } from 'constants/staffRoles';
 
@@ -64,7 +65,9 @@ export function editIndividualParticipant({
     firstName: participant?.person?.standardGivenName,
     lastName: participant?.person?.standardFamilyName,
     mobileTelephone: primaryContact.mobileTelephone,
+    contactRelationship: primaryContact.relationship,
     emailAddress: primaryContact.emailAddress,
+    contactName: primaryContact.name,
     nickname: participant?.participantOtherName,
     contactIsPublic: primaryContact.isPublic === true,
     birthDate: participant?.person?.birthDate,
@@ -92,20 +95,33 @@ export function editIndividualParticipant({
   const submittedContacts = (): any[] | undefined => {
     const mobileTelephone = inputs.mobileTelephone?.value?.trim() || undefined;
     const emailAddress = inputs.emailAddress?.value?.trim() || undefined;
+    const relationship = inputs.contactRelationship?.value || undefined;
+    const name = inputs.contactName?.value?.trim() || undefined;
     const isPublic = !!inputs.contactIsPublic?.checked;
 
     // Nothing entered and nothing stored — send no `contacts` key at all.
     if (!mobileTelephone && !emailAddress && !existingContacts.length) return undefined;
 
-    // Both fields cleared on a participant whose primary contact carried only those two: drop that
-    // entry rather than persisting an empty shell, but keep any other contacts they have.
+    // Emptiness is still decided by the REACHABLE fields alone. A relationship or a name with no number
+    // and no address is not a contact — keeping the entry alive for them would persist a shell that
+    // renders as a blank row, and would make "clear this contact" impossible without also clearing
+    // fields the user never touched.
     const primaryIsEmpty = !mobileTelephone && !emailAddress;
     const rest = existingContacts.slice(1);
     if (primaryIsEmpty) return rest;
 
-    // Spread the existing entry first so fields this drawer does not edit — `name`, `telephone`, `fax`,
+    // Spread the existing entry first so fields this drawer does not edit — `telephone`, `fax`,
     // `notes`, extensions — survive.
-    return [{ ...primaryContact, mobileTelephone, emailAddress, isPublic }, ...rest];
+    //
+    // `relationship` and `name` are applied only when their inputs are actually PRESENT. An absent
+    // input and an emptied one are different instructions: emptied means clear, absent means the
+    // drawer never offered the field and must not speak for it. Spreading `name: undefined`
+    // unconditionally would erase a stored contact name for any caller rendering a reduced form.
+    const edits: any = { mobileTelephone, emailAddress, isPublic };
+    if (inputs.contactRelationship) edits.relationship = relationship;
+    if (inputs.contactName) edits.name = name;
+
+    return [{ ...primaryContact, ...edits }, ...rest];
   };
 
   const nationalityCodeValue = (value: string) => (values.nationalityCode = value);
@@ -241,6 +257,36 @@ export function editIndividualParticipant({
           label: t('pages.participants.editParticipant.email'),
           value: values.emailAddress || '',
           field: 'emailAddress',
+        },
+        {
+          // Whose number this is. Defaults to UNSET rather than to SELF: defaulting would assert
+          // something nobody entered, on a field that decides who a director may ring at 9pm about a
+          // minor. An unlabelled contact stays unlabelled until someone says otherwise.
+          label: t('pages.participants.editParticipant.contactRelationship'),
+          field: 'contactRelationship',
+          options: [
+            // Explicit empty string, never `undefined` — a valueless <option> makes `select.value`
+            // fall back to the option TEXT, which is how a localized label once got persisted as
+            // `person.sex`. Same trap, same fix.
+            {
+              label: t('pages.participants.contactRelationship.unspecified'),
+              value: '',
+              selected: !values.contactRelationship,
+            },
+            ...CONTACT_RELATIONSHIPS.map((relationship) => ({
+              label: t(relationshipKey(relationship)),
+              value: relationship,
+              selected: values.contactRelationship === relationship,
+            })),
+          ],
+        },
+        {
+          // The contact's own name — "Ana Rivas", not the competitor's. Only meaningful once a
+          // relationship says the number belongs to someone else, which is why it arrives with it.
+          placeholder: t('pages.participants.editParticipant.contactNamePlaceholder'),
+          label: t('pages.participants.editParticipant.contactName'),
+          value: values.contactName || '',
+          field: 'contactName',
         },
         {
           // Records the person's consent to have THIS CONTACT shared publicly. It is not a promise that
