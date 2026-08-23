@@ -99,8 +99,24 @@ describe('evaluateCandidate', () => {
   });
 
   it('fails OPEN when the engine errors — a UI that cannot evaluate must not invent a refusal', () => {
-    // The factory gate on the mutation is the enforcement point; this is only an affordance.
+    // The factory gate on the mutation is the enforcement point; this is only an affordance. The
+    // property this test is named for is UNCHANGED: an errored evaluation still does not block.
+    //
+    // What changed is that it no longer reports `none`. `none` means "assessed and clean", and
+    // returning it for an evaluation that never ran made those two indistinguishable in the picker —
+    // the failure the fail-soft rule exists to prevent. The level is now `unknown`, which the picker
+    // renders as not-assessed while still allowing the selection.
     getMatchUpOfficialConflictsMock.mockReturnValue({ error: { code: 'ERR_MISSING_CONFLICT_SOURCE' } });
+    const result = evaluateCandidate(args);
+    expect(result.level).toEqual('unknown');
+    // The fail-open property, asserted directly rather than implied by the label.
+    expect(result.level).not.toEqual('blocked');
+  });
+
+  it('reports a clean evaluation as `none`, distinct from an unrunnable one', () => {
+    // The control for the case above. Without this, `unknown` could have been made the return for
+    // everything and the suite would not notice.
+    getMatchUpOfficialConflictsMock.mockReturnValue({ conflicts: [] });
     expect(evaluateCandidate(args)).toEqual({ level: 'none', reasons: [] });
   });
 });

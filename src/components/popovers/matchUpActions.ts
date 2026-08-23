@@ -44,6 +44,7 @@ let checkInTip: Instance | undefined;
 
 /** Shared tippy theme for the popover panels this module opens. */
 const TIP_THEME = 'light-border';
+const ARIA_HIDDEN = 'aria-hidden';
 
 function destroyCheckInTip() {
   if (checkInTip) {
@@ -285,15 +286,27 @@ export function matchUpActions({
       }
       const conflict = conflictByOfficial.get(official.participantId) ?? { level: 'none', reasons: [] };
       const isBlocked = conflict.level === 'blocked';
+      // `unknown` = the check could not run. Rendered distinctly and still SELECTABLE: failing open is
+      // the deliberate behaviour, and the factory gate re-runs the check on the mutation anyway. What
+      // must not happen is it looking like `none`, which is "assessed and clean".
+      const notChecked = conflict.level === 'unknown';
 
       li.textContent = official.participantName ?? null;
-      if (conflict.level !== 'none') {
+      if (notChecked) {
+        li.title = `${t('officiating.notChecked')}\n${conflict.reasons.join('\n')}`;
+        const mark = document.createElement('span');
+        mark.textContent = '?';
+        mark.setAttribute(ARIA_HIDDEN, 'true');
+        mark.style.cssText = 'margin-left:6px; font-weight:700; color: var(--chc-text-secondary, #888);';
+        li.appendChild(mark);
+        li.setAttribute('data-conflict', 'unknown');
+      } else if (conflict.level !== 'none') {
         // Reasons come from the factory already human-readable, e.g. "Official shares a COACH grouping
         // (Team Alpha) with this participant" — the UI lists them rather than composing a sentence.
         li.title = conflict.reasons.join('\n');
         const dot = document.createElement('span');
         dot.textContent = '\u25cf';
-        dot.setAttribute('aria-hidden', 'true');
+        dot.setAttribute(ARIA_HIDDEN, 'true');
         dot.style.cssText = `margin-left:6px; color:${isBlocked ? 'var(--tmx-danger, #d64545)' : 'var(--tmx-warning, #d99e00)'};`;
         li.appendChild(dot);
         li.setAttribute('data-conflict', conflict.level);
@@ -424,7 +437,7 @@ export function matchUpActions({
 
         const mark = document.createElement('span');
         mark.className = 'tmx-checkin-mark';
-        mark.setAttribute('aria-hidden', 'true');
+        mark.setAttribute(ARIA_HIDDEN, 'true');
         mark.textContent = participant.checkedIn ? '\u2713' : '\u25cb';
         li.appendChild(mark);
 
