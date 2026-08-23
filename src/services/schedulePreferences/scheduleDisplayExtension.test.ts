@@ -135,6 +135,26 @@ describe('writeScheduleDisplayConfig', () => {
     expect(call.methods[0].params.extension.value.minCourtGridRows).toEqual(24);
   });
 
+  it('forwards the completion callback so callers can refresh AFTER the write lands', () => {
+    // The grid reads its row count from this extension. Under `serverFirst` the
+    // engine executes inside the socket ack, and a tournament past its end date
+    // parks the mutation behind the "Not in date range — Modify?" toast — so a
+    // caller that re-renders on the next line reads the pre-mutation value and
+    // never hears about the real one. Losing this hand-off is invisible in a
+    // local-only session (where the write happens to apply synchronously),
+    // which is exactly why it needs a test.
+    getTournamentMock.mockReturnValue({ tournamentRecord: {} });
+    const callback = vi.fn();
+    writeScheduleDisplayConfig({ minCourtGridRows: 11 }, callback);
+    expect(mutationRequestMock.mock.calls[0][0].callback).toBe(callback);
+  });
+
+  it('omits the callback when the caller does not need one', () => {
+    getTournamentMock.mockReturnValue({ tournamentRecord: {} });
+    writeScheduleDisplayConfig({ startOnDrop: true });
+    expect(mutationRequestMock.mock.calls[0][0].callback).toBeUndefined();
+  });
+
   it('preserves existing keys on partial update', () => {
     // Today the config only has one key, but the merge semantics mean future
     // additions (e.g. defaultStartTime, courtIdentifiers) will round-trip

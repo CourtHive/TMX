@@ -366,8 +366,14 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
       writeScheduleDisplayConfig({ startOnDrop: enabled, startOnDropPrompted: true });
     },
     onMinRowsChange: (rows: number) => {
-      writeScheduleDisplayConfig({ minCourtGridRows: rows });
-      refreshGridView();
+      // Refresh ON COMPLETION, not on the next line. The grid reads the row
+      // count from the tournament extension, and the write is asynchronous on
+      // every path that matters: under `serverFirst` the engine executes inside
+      // the socket ack, and a tournament past its end date parks the whole
+      // mutation behind the "Not in date range — Modify?" toast. Refreshing
+      // immediately read the pre-mutation value and nothing re-rendered
+      // afterwards, so added rows only appeared after navigating away and back.
+      writeScheduleDisplayConfig({ minCourtGridRows: rows }, refreshGridView);
     },
     onSearch: (text: string) => searchGridCells(text),
     onShiftCourts: shiftCourtsDown,
