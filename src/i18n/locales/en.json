@@ -964,10 +964,13 @@
       "rest": {
         "onCourt": "on court",
         "none": "no prior match",
+        "unknown": "rest unknown",
         "limit": "#{{ordinal}}",
         "tooltipRest": "{{name}} — {{rested}} rested of {{required}} required",
         "tooltipOnCourt": "{{name}} — still on court",
-        "tooltipNone": "{{name}} — no prior match today"
+        "tooltipOnCourtOverrun": "{{name}} — still on court, past the expected finish",
+        "tooltipNone": "{{name}} — no prior match today",
+        "tooltipUnknown": "{{name}} — prior match has no recorded finish"
       }
     },
     "inspector": {
@@ -991,6 +994,11 @@
           "unknownMatchUp": "This matchUp is no longer in the tournament."
         }
       },
+      "actions": {
+        "trigger": "MatchUp actions",
+        "viewDraw": "View draw",
+        "participants": "Participants"
+      },
       "rest": {
         "heading": "Rest",
         "hoursMinutes": "{{hours}}h {{minutes}}m",
@@ -999,6 +1007,8 @@
         "resting": "{{rested}} of {{required}} — ready {{time}}",
         "onCourt": "On court now",
         "onCourtUntil": "On court now — ready {{time}}",
+        "onCourtOverrun": "On court now — past the expected finish",
+        "anchorUnreliable": "Prior match has no recorded finish — rest cannot be measured",
         "noPriorMatch": "No prior match today",
         "typeChange": "type change",
         "ordinal": "match #{{ordinal}} today",

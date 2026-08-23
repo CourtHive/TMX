@@ -136,6 +136,18 @@ export interface RestRow {
   typeChange: boolean;
   /** Clock time the requirement is met, `HH:MM`. Absent when already met or unprojectable. */
   readyAt?: string;
+  /**
+   * True when the participant is still on court past the point their format was
+   * expected to finish. The projected finish is now in the past, so `readyAt` is
+   * withheld rather than naming a time that has already gone by.
+   */
+  overrun?: boolean;
+  /**
+   * True when every anchor available for this participant projects into the
+   * future — the match is recorded as finished but nothing says when. Rest is
+   * reported as zero rather than guessed.
+   */
+  anchorUnreliable?: boolean;
   /** Which rung produced the anchor. Absent for `none`. */
   source?: RestSourceKind;
   /** The matchUp the rest is measured from. Absent for `none`. */
@@ -153,6 +165,47 @@ export type RestResult =
 const BYE = 'BYE';
 const DOUBLES = 'DOUBLES';
 const SINGLES = 'SINGLES';
+const MINUTES_PER_DAY = 1440;
+
+/**
+ * Statuses that advance a participant without their playing. A walkover costs no
+ * energy, so charging recovery for one holds a fresh player back — and counting
+ * it toward a daily match limit can block a player who has not played all day.
+ *
+ * `DEFAULTED` / `DOUBLE_DEFAULT` are deliberately absent: a default can be a
+ * no-show *or* a mid-match disqualification. The score tells them apart, so they
+ * are decided by `wasPlayed` rather than by status alone. `RETIRED` and
+ * `ABANDONED` are likewise absent — both mean time was spent on court.
+ */
+const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER']);
+const DEFAULT_STATUSES = new Set(['DEFAULTED', 'DOUBLE_DEFAULT']);
+
+/** True when this matchUp actually put the participants on court. */
+export function wasPlayed(matchUp: ReadinessMatchUp): boolean {
+  const status = matchUp.matchUpStatus;
+  if (status && UNPLAYED_STATUSES.has(status)) return false;
+  // A default with a score was played up to the point of the default; a default
+  // with no score is a no-show. Nothing else about the record distinguishes them.
+  if (status && DEFAULT_STATUSES.has(status)) return !!matchUp.score?.sets?.length;
+  return true;
+}
+
+/**
+ * Whether a matchUp belongs to the day being viewed.
+ *
+ * `scheduledDate` answers it outright when present. When it is absent — which is
+ * what a score entered from the draw view leaves behind — `scoredTime` still
+ * dates the match, because it arrives as a full instant already normalized to
+ * minutes from the viewed day's midnight: a stamp from another day lands outside
+ * `0..1439`. A matchUp with neither is genuinely undatable and is excluded, since
+ * counting it would be a guess about which day's rest it belongs to.
+ */
+export function occursOnViewedDay(matchUp: ReadinessMatchUp, times: NormalizedTimes, viewedDate: string): boolean {
+  const scheduledDate = matchUp.schedule?.scheduledDate;
+  if (scheduledDate) return scheduledDate === viewedDate;
+  const scored = times.scoredMinutes;
+  return scored !== undefined && scored >= 0 && scored < MINUTES_PER_DAY;
+}
 
 /** The ladder, strongest first. Order is the contract; the renderer reports which rung won. */
 const LADDER: { source: RestSourceKind; read: (times: NormalizedTimes) => number | undefined; projected: boolean }[] = [
@@ -182,12 +235,21 @@ export function resolveAnchor(times: NormalizedTimes, timing: RestTiming): Ancho
   return undefined;
 }
 
-/** True when the matchUp is under way at `asOfMinutes` — started (or due) and not yet finished. */
-function isUnderWay(matchUp: ReadinessMatchUp, times: NormalizedTimes, timing: RestTiming, asOfMinutes: number) {
+/**
+ * True when the matchUp is under way at `asOfMinutes` — started (or due) and not
+ * yet finished.
+ *
+ * Deliberately **unbounded above**. An earlier version closed the window at
+ * `start + averageMinutes`, which meant a match that ran long stopped counting as
+ * under way while remaining unfinished, so it was dropped from the analysis
+ * entirely and the player read as having no match today — while standing on
+ * court. `averageMinutes` is an estimate of a typical match; a match is over when
+ * a result says so, not when the estimate expires.
+ */
+function isUnderWay(matchUp: ReadinessMatchUp, times: NormalizedTimes, asOfMinutes: number) {
   if (isFinished(matchUp)) return false;
   const start = times.startMinutes ?? times.calledMinutes ?? times.scheduledMinutes;
-  if (start === undefined || start > asOfMinutes) return false;
-  return asOfMinutes < start + Math.max(timing.averageMinutes, 1);
+  return start !== undefined && start <= asOfMinutes;
 }
 
 /** Recovery owed after `prior`, accounting for a singles ↔ doubles change into `target`. */
@@ -227,11 +289,17 @@ function collectPriorMatchUps(target: ReadinessMatchUp, input: RestInput): Prior
   for (const matchUp of input.matchUps) {
     if (matchUp.matchUpId === target.matchUpId) continue;
     if (matchUp.matchUpStatus === BYE) continue;
-    if (matchUp.schedule?.scheduledDate !== input.scheduledDate) continue;
+    // A walkover is not load the director has spent — it neither tires a player
+    // nor consumes a slot against the daily limit.
+    if (!wasPlayed(matchUp)) continue;
 
+    // Times are resolved before the day test because an undated matchUp is dated
+    // by its `scoredTime`, which only exists in normalized form.
     const times = input.timesFor(matchUp);
+    if (!occursOnViewedDay(matchUp, times, input.scheduledDate)) continue;
+
     const timing = input.timingFor(matchUp);
-    const underWay = isUnderWay(matchUp, times, timing, input.asOfMinutes);
+    const underWay = isUnderWay(matchUp, times, input.asOfMinutes);
     if (!isFinished(matchUp) && !underWay) continue;
     results.push({ matchUp, times, timing, underWay, individuals: new Set(individualIds(matchUp)) });
   }
@@ -264,17 +332,46 @@ function loadFor(prior: PriorMatchUp[], target: ReadinessMatchUp, limits: RestDa
   return { singles, doubles, total, ordinal, atLimit, limit };
 }
 
-/** The most recent anchor across a participant's prior matchUps — "the last one that finished". */
+interface AnchoredPrior {
+  anchor: Anchor;
+  matchUp: ReadinessMatchUp;
+  timing: RestTiming;
+}
+
+/**
+ * The most recent anchor across a participant's prior matchUps — "the last one
+ * that finished".
+ *
+ * Anchors at or before `asOfMinutes` win outright, and only the latest of those
+ * is used. An anchor *after* now is not a finish that has happened: it comes from
+ * a projected rung (`scheduledTime + averageMinutes`) on a matchUp recorded as
+ * complete ahead of its slot. Treating one as a finish produced `0m of 60m` for a
+ * player who had not played, because the negative interval was clamped to zero.
+ *
+ * When every anchor is in the future the match still happened, so reporting "no
+ * prior match" would fail open. The caller is handed the earliest future anchor
+ * and told, via `unreliable`, that it cannot carry a rest figure.
+ */
 function latestAnchor(
   prior: PriorMatchUp[],
-): { anchor: Anchor; matchUp: ReadinessMatchUp; timing: RestTiming } | undefined {
-  let best: { anchor: Anchor; matchUp: ReadinessMatchUp; timing: RestTiming } | undefined;
+  asOfMinutes: number,
+): (AnchoredPrior & { unreliable: boolean }) | undefined {
+  let past: AnchoredPrior | undefined;
+  let future: AnchoredPrior | undefined;
+
   for (const entry of prior) {
     const anchor = resolveAnchor(entry.times, entry.timing);
     if (!anchor) continue;
-    if (!best || anchor.minutes > best.anchor.minutes) best = { anchor, matchUp: entry.matchUp, timing: entry.timing };
+    const candidate = { anchor, matchUp: entry.matchUp, timing: entry.timing };
+    if (anchor.minutes <= asOfMinutes) {
+      if (!past || anchor.minutes > past.anchor.minutes) past = candidate;
+    } else if (!future || anchor.minutes < future.anchor.minutes) {
+      future = candidate;
+    }
   }
-  return best;
+
+  if (past) return { ...past, unreliable: false };
+  return future && { ...future, unreliable: true };
 }
 
 function restRowFor(
@@ -293,27 +390,41 @@ function restRowFor(
   if (live) {
     const { requiredMinutes, typeChange } = requirementFor(live.matchUp, target, live.timing);
     const anchor = resolveAnchor(live.times, live.timing);
+    // The anchor for a live matchUp is a *projected* finish. Once that projection
+    // has passed, the match has overrun its format's average and the projection
+    // has expired with it — naming a readyAt in the past would read as though the
+    // player were already free, which is exactly backwards.
+    const overrun = !!anchor && anchor.minutes <= input.asOfMinutes;
+    const readyAt = anchor && !overrun ? minutesToClock(anchor.minutes + requiredMinutes) : undefined;
     return {
       participantId,
       participantName,
       status: 'onCourt',
       requiredMinutes,
       typeChange,
-      ...(anchor && { readyAt: minutesToClock(anchor.minutes + requiredMinutes), source: anchor.source }),
+      ...(readyAt && { readyAt }),
+      ...(overrun && { overrun: true }),
+      ...(anchor && { source: anchor.source }),
       fromMatchUpId: live.matchUp.matchUpId,
       fromMatchUpLabel: matchUpLabel(live.matchUp),
       load,
     };
   }
 
-  const latest = latestAnchor(prior);
+  const latest = latestAnchor(prior, input.asOfMinutes);
   if (!latest) {
     return { participantId, participantName, status: 'none', requiredMinutes: 0, typeChange: false, load };
   }
 
   const { requiredMinutes, typeChange } = requirementFor(latest.matchUp, target, latest.timing);
-  const restMinutes = Math.max(0, input.asOfMinutes - latest.anchor.minutes);
-  const rested = restMinutes >= requiredMinutes;
+  // An unreliable anchor sits in the future, so no interval can be measured from
+  // it. Zero rest against a real requirement is the conservative reading — it
+  // holds the player back — and `anchorUnreliable` keeps that from reading as a
+  // measured figure. No `readyAt` either: the clock time would be as fictional
+  // as the interval.
+  const restMinutes = latest.unreliable ? 0 : input.asOfMinutes - latest.anchor.minutes;
+  const rested = !latest.unreliable && restMinutes >= requiredMinutes;
+  const showReadyAt = !rested && !latest.unreliable;
 
   return {
     participantId,
@@ -322,12 +433,25 @@ function restRowFor(
     restMinutes,
     requiredMinutes,
     typeChange,
-    ...(!rested && { readyAt: minutesToClock(latest.anchor.minutes + requiredMinutes) }),
+    ...(showReadyAt && { readyAt: minutesToClock(latest.anchor.minutes + requiredMinutes) }),
+    ...(latest.unreliable && { anchorUnreliable: true }),
     source: latest.anchor.source,
     fromMatchUpId: latest.matchUp.matchUpId,
     fromMatchUpLabel: matchUpLabel(latest.matchUp),
     load,
   };
+}
+
+/**
+ * How far short of ready a row is, in minutes. The within-band tiebreak: sorting
+ * by status alone left `individualIds` side order to decide which player the
+ * badge spoke for, so a doubles pair resting at 10m and 40m badged whichever
+ * happened to be listed first. `onCourt` and `none` carry no measurable deficit,
+ * so they return 0 and keep their original order.
+ */
+function deficitMinutes(row: RestRow): number {
+  if (row.status === 'onCourt' || row.status === 'none') return 0;
+  return row.requiredMinutes - (row.restMinutes ?? 0);
 }
 
 /**
@@ -348,7 +472,7 @@ export function analyzeParticipantRest(input: RestInput): RestResult {
   const order: RestStatus[] = ['onCourt', 'resting', 'rested', 'none'];
   const rows = participantIds
     .map((participantId) => restRowFor(participantId, target, input, dayMatchUps))
-    .toSorted((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
+    .toSorted((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || deficitMinutes(b) - deficitMinutes(a));
 
   return { evaluated: true, asOfMinutes: input.asOfMinutes, rows };
 }

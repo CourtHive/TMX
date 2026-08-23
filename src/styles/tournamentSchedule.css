@@ -459,3 +459,95 @@
   background: var(--tmx-fill-accent, #2563eb);
   color: #fff;
 }
+
+/* ── Schedule2 Inspector: actions block and popover ──
+   A sibling of the rest section, never a child — the rest section replaces its
+   own children every 30 seconds and would take an open popover with it. Tokens
+   only, so both themes are covered without a second rule set. */
+
+.tmx-inspector-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tmx-inspector-actions-trigger {
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+  border: 1px solid transparent;
+  color: inherit;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: opacity 0.15s;
+}
+
+.tmx-inspector-actions-trigger:hover {
+  opacity: 0.75;
+}
+
+.tmx-inspector-actions-trigger:focus-visible {
+  outline: 2px solid var(--tmx-accent-blue, currentColor);
+  outline-offset: 1px;
+}
+
+/* The matchUp label sits beside the trigger so the popover's target is legible
+   without opening it. Truncated rather than wrapped: the Inspector is narrow and
+   a two-line label pushes the rest figures below the fold. */
+.tmx-inspector-actions-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tmx-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tmx-inspector-actions-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 200px;
+}
+
+.tmx-inspector-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tmx-text-primary);
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tmx-inspector-action-row:hover {
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+}
+
+.tmx-inspector-action-row i {
+  width: 14px;
+  color: var(--tmx-text-secondary);
+  flex: 0 0 auto;
+}
+
+.tmx-inspector-action-heading {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tmx-text-secondary);
+  padding: 6px 8px 2px;
+  margin-top: 2px;
+  border-top: 1px solid var(--tmx-border-primary);
+}

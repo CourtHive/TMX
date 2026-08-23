@@ -368,3 +368,353 @@ describe('analyzeParticipantRest — daily load', () => {
     expect(result.rows.find((row) => row.participantId === ALICE)?.load).toMatchObject({ total: 0, ordinal: 1 });
   });
 });
+
+// ── Regressions: five defects found by source read 2026-08-23 ────────────────
+// Every one of these fails open — it reports a player as freer than they are —
+// which is the direction that gets a tired player called to court.
+
+describe('a match that overruns its average duration still occupies the player', () => {
+  /**
+   * The original `isUnderWay` bounded "under way" at `start + averageMinutes`,
+   * so a 90-minute-average match still unscored at three hours was neither
+   * finished nor under way and was dropped from the analysis entirely. The
+   * player read "No prior match today" while standing on court.
+   */
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+  const running = singles({ id: 'm-running', ids: [ALICE, CHEN], scheduledTime: '10:00' });
+
+  it('reports onCourt three hours into a 90-minute-average match', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, running],
+          times: { 'm-running': { startMinutes: 600 } },
+          asOfMinutes: 780, // 13:00 — 180 minutes in, twice the 90-minute average
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice?.status).toBe('onCourt');
+    expect(alice?.fromMatchUpId).toBe('m-running');
+  });
+
+  it('withholds readyAt once the projected finish has already passed, rather than naming a time in the past', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, running],
+          times: { 'm-running': { startMinutes: 600 } },
+          asOfMinutes: 780,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice?.readyAt).toBeUndefined();
+    expect(alice?.overrun).toBe(true);
+  });
+
+  it('still projects readyAt while the match is inside its expected duration', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, running],
+          times: { 'm-running': { startMinutes: 600 } },
+          asOfMinutes: 660, // 11:00 — one hour in, still under the 90-minute average
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'onCourt', readyAt: '12:30' });
+    expect(alice?.overrun).toBeUndefined();
+  });
+});
+
+describe('a completed matchUp with no scheduledDate is dated by its scoredTime', () => {
+  /**
+   * Scores entered from the draw view leave no `schedule.scheduledDate`, so the
+   * day filter discarded them and the player read as unplayed. `scoredTime` is a
+   * full instant and already normalizes to minutes-from-viewed-midnight, so a
+   * stamp from another day lands outside `0..1439` and dates the match for free.
+   */
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+
+  function undated(id: string, ids: string[]): ReadinessMatchUp {
+    return { ...singles({ id, ids, status: 'COMPLETED', winningSide: 1 }), schedule: {} };
+  }
+
+  it('counts an undated completed match whose scoredTime falls on the viewed day', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, undated('m-undated', [ALICE, CHEN])],
+          times: { 'm-undated': { scoredMinutes: 700 } },
+          asOfMinutes: 800,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'rested', restMinutes: 100, source: 'scoredTime' });
+  });
+
+  it('does NOT count an undated match whose scoredTime belongs to another day', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, undated('m-yesterday', [ALICE, CHEN])],
+          times: { 'm-yesterday': { scoredMinutes: -220 } }, // 20:20 the previous evening
+          asOfMinutes: 800,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.status).toBe('none');
+  });
+
+  it('does NOT count an undated match that cannot be dated at all', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, undated('m-nodate', [ALICE, CHEN])],
+          times: { 'm-nodate': { startMinutes: 600 } },
+          asOfMinutes: 800,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.status).toBe('none');
+  });
+});
+
+describe('a walkover is not a match played', () => {
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+
+  function priorWith(status: string, score?: Record<string, unknown>): ReadinessMatchUp {
+    return { ...singles({ id: 'm-prior', ids: [ALICE, CHEN], status, winningSide: 1 }), score };
+  }
+
+  it.each(['WALKOVER', 'DOUBLE_WALKOVER'])('charges no recovery for a %s', (status) => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, priorWith(status)],
+          times: { 'm-prior': { endMinutes: 700 } },
+          asOfMinutes: 720,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice?.status).toBe('none');
+    expect(alice?.load.ordinal).toBe(1);
+  });
+
+  it('charges no recovery for a DEFAULTED with no score — a no-show never took the court', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, priorWith('DEFAULTED')],
+          times: { 'm-prior': { endMinutes: 700 } },
+          asOfMinutes: 720,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.status).toBe('none');
+  });
+
+  it('DOES charge recovery for a DEFAULTED that carries a score — they played before being defaulted', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, priorWith('DEFAULTED', { sets: [{ side1Score: 6, side2Score: 4 }] })],
+          times: { 'm-prior': { endMinutes: 700 } },
+          asOfMinutes: 720,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 20 });
+  });
+
+  it('DOES charge recovery for a RETIRED — a retirement means they played', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, priorWith('RETIRED', { sets: [{ side1Score: 6, side2Score: 1 }] })],
+          times: { 'm-prior': { endMinutes: 700 } },
+          asOfMinutes: 720,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.status).toBe('resting');
+  });
+});
+
+describe('an anchor projected into the future is never read as rest already taken', () => {
+  /**
+   * A finished match with no recorded finish falls to `scheduledTime + average`,
+   * which can land after "now". `Math.max(0, …)` then produced `0m of 60m —
+   * ready 16:20` for a player who was not tired at all. Prefer an anchor that is
+   * actually in the past; when none exists, report zero rest rather than a
+   * fictional figure, and say the anchor is unreliable.
+   */
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+
+  it('prefers the latest anchor at or before now over a later one in the future', () => {
+    const early = singles({ id: 'm-early', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+    const future = singles({ id: 'm-future', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, early, future],
+          times: { 'm-early': { endMinutes: 600 }, 'm-future': { scheduledMinutes: 900 } },
+          asOfMinutes: 780, // 13:00; m-future projects to 16:30
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'rested', restMinutes: 180, fromMatchUpId: 'm-early' });
+  });
+
+  it('reports zero rest and flags the anchor when every anchor is in the future', () => {
+    const future = singles({ id: 'm-future', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, future],
+          times: { 'm-future': { scheduledMinutes: 900 } },
+          asOfMinutes: 780,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 0, anchorUnreliable: true });
+    expect(alice?.readyAt).toBeUndefined();
+  });
+});
+
+describe('rows are ordered by how far short of ready they are, not by side order', () => {
+  /**
+   * The badge takes the head of the worst band. Sorting by band alone left the
+   * within-band order as `individualIds` side order, so a doubles pair resting
+   * at 10m and 40m badged whichever happened to be listed first.
+   */
+  function doubles(id: string, pairs: string[][], overrides: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp {
+    return {
+      matchUpId: id,
+      matchUpType: 'DOUBLES',
+      sides: pairs.map((individualParticipantIds, i) => ({
+        participantId: `pair-${id}-${i}`,
+        participant: { participantId: `pair-${id}-${i}`, individualParticipantIds },
+      })),
+      schedule: { scheduledDate: DATE },
+      ...overrides,
+    };
+  }
+
+  it('puts the participant furthest from ready first within the resting band', () => {
+    const target = doubles('m-next', [
+      [ALICE, BOB],
+      [CHEN, 'p-dana'],
+    ]);
+    const alicePrior = doubles(
+      'm-a',
+      [
+        [ALICE, 'p-x'],
+        ['p-y', 'p-z'],
+      ],
+      { matchUpStatus: 'COMPLETED', winningSide: 1 },
+    );
+    const bobPrior = doubles(
+      'm-b',
+      [
+        [BOB, 'p-x'],
+        ['p-y', 'p-z'],
+      ],
+      { matchUpStatus: 'COMPLETED', winningSide: 1 },
+    );
+
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, alicePrior, bobPrior],
+          // Alice finished at 12:00 (40m ago), Bob at 12:30 (10m ago) — Bob is worse off.
+          times: { 'm-a': { endMinutes: 720 }, 'm-b': { endMinutes: 750 } },
+          asOfMinutes: 760,
+        }),
+      ),
+    );
+    const resting = result.rows.filter((row) => row.status === 'resting');
+    expect(resting.map((row) => row.participantId)).toEqual([BOB, ALICE]);
+  });
+});
+
+describe('the DOUBLES daily limit, whose SINGLES twin was already covered', () => {
+  /** A doubles matchUp counted against `DOUBLES` rather than `SINGLES`, in its own right. */
+  function pair(id: string, individuals: string[], overrides: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp {
+    return {
+      matchUpId: id,
+      matchUpType: 'DOUBLES',
+      sides: [
+        {
+          participantId: `pair-${id}`,
+          participant: { participantId: `pair-${id}`, individualParticipantIds: individuals },
+        },
+        {
+          participantId: `opp-${id}`,
+          participant: { participantId: `opp-${id}`, individualParticipantIds: ['p-x', 'p-y'] },
+        },
+      ],
+      schedule: { scheduledDate: DATE },
+      ...overrides,
+    };
+  }
+
+  it('flags a participant who would meet the DOUBLES limit', () => {
+    const target = pair('m-next', [ALICE, BOB]);
+    const played = pair('m-done', [ALICE, CHEN], { matchUpStatus: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, played],
+          times: { 'm-done': { endMinutes: 600 } },
+          asOfMinutes: 800,
+          dailyLimits: { DOUBLES: 2 },
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.load).toMatchObject({
+      doubles: 1,
+      ordinal: 2,
+      atLimit: ['doubles'],
+      limit: 2,
+    });
+  });
+
+  it('does NOT flag a participant still below the DOUBLES limit', () => {
+    const target = pair('m-next', [ALICE, BOB]);
+    const played = pair('m-done', [ALICE, CHEN], { matchUpStatus: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, played],
+          times: { 'm-done': { endMinutes: 600 } },
+          asOfMinutes: 800,
+          dailyLimits: { DOUBLES: 3 },
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.load.atLimit).toEqual([]);
+  });
+});
