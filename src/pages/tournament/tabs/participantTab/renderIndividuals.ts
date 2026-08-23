@@ -20,6 +20,7 @@ import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { signInParticipants } from './controlBar/signInParticipants';
 import { printPlayerList } from 'components/modals/printPlayerList';
+import { callSheet } from 'components/modals/callSheet';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
@@ -33,7 +34,7 @@ import { controlBar } from 'courthive-components';
 import { t } from 'i18n';
 
 // Constants
-import { PARTICIPANT_CONTROL, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
+import { PARTICIPANT_CONTROL, OVERLAY, STAFF, RIGHT, LEFT } from 'constants/tmxConstants';
 import { context } from 'services/context';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
@@ -42,7 +43,7 @@ const { OFFICIAL } = participantRoles;
 const isPrimary = 'is-primary';
 
 export function renderIndividuals({ view }: { view: string }): void {
-  const { table, replaceTableData, teamParticipants, groupParticipants } = createParticipantsTable({ view });
+  const { table, replaceTableData, teamParticipants, groupParticipants, data } = createParticipantsTable({ view });
   context.refreshActiveTable = replaceTableData;
 
   const setSearchFilter = createSearchFilter(table, { persistKey: 'search', filterContext: 'participantFilters' });
@@ -107,6 +108,30 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const editRegistrationLink = () => sheetsLink({ callback: replaceTableData });
 
+  const viewLabel =
+    view === OFFICIAL
+      ? t('pages.participants.officials')
+      : view === STAFF
+        ? t('pages.participants.staff')
+        : t('pages.participants.title');
+
+  /**
+   * Open the call sheet.
+   *
+   * Selection wins when there is one — "text these six" means the six the director just ticked. With
+   * nothing selected the sheet covers every row the current filters leave visible, which is what the
+   * Actions-menu entry means. `getRows('active')` rather than `getData()` deliberately: `getData()`
+   * returns the unfiltered set, so a director who filtered to the medical team and pressed Print
+   * would get the whole tournament.
+   */
+  const openCallSheet = () => {
+    const selected = table?.getSelectedData?.() ?? [];
+    const visible = (table?.getRows('active') ?? []).map((row: any) => row.getData());
+    const rows = selected.length ? selected : visible;
+    const subtitle = selected.length ? `${viewLabel} (${t('pages.participants.selected')})` : viewLabel;
+    callSheet({ rows, subtitle });
+  };
+
   const synchronizePlayers = () => {
     (updateRegisteredPlayers as any)({
       callback: () => {
@@ -117,7 +142,10 @@ export function renderIndividuals({ view }: { view: string }): void {
     });
   };
 
-  const hasParticipants = table?.getDataCount() > 0;
+  // From the seeded data array, NOT `table.getDataCount()` — Tabulator answers 0 until `tableBuilt`
+  // fires, which is after `createParticipantsTable` returns. Reading the table here hid three Actions
+  // items on every first render of a table that was visibly showing rows.
+  const hasParticipants = data.length > 0;
   const isLoggedIn = !!state;
 
   const actionOptions: any[] = [
@@ -143,6 +171,14 @@ export function renderIndividuals({ view }: { view: string }): void {
     {
       onClick: () => printPlayerList({}),
       label: '<i class="fa-solid fa-print"></i> Print Player List',
+      close: true,
+    },
+    {
+      // Available from every view, not personnel alone. The population is whatever the table is
+      // showing, so on the Competitors view this is the alternates list a director works from.
+      onClick: openCallSheet,
+      label: `<i class="fa-solid fa-address-book"></i> ${t('modals.callSheet.title')}`,
+      hide: !hasParticipants,
       close: true,
     },
     { divider: true } as any,
@@ -240,6 +276,15 @@ export function renderIndividuals({ view }: { view: string }): void {
       intent: isPrimary,
       location: OVERLAY,
       label: t('pages.participants.signIn'),
+    },
+    {
+      // "Text these six." The selection overlay is where a director already stands after ticking
+      // rows, so the reach-them action belongs beside Sign In rather than three clicks away in the
+      // Actions menu.
+      onClick: openCallSheet,
+      label: t('modals.callSheet.contactSelected'),
+      location: OVERLAY,
+      intent: 'none',
     },
     {
       onClick: () => deleteSelectedParticipants(table),

@@ -1648,6 +1648,38 @@
       },
       "contactPerson": "Contact person",
       "contactPersonNone": "None"
+    },
+    "callSheet": {
+      "title": "Call sheet",
+      "contactSelected": "Contact selected",
+      "reachable_one": "{{count}} reachable",
+      "reachable_other": "{{count}} reachable",
+      "withoutContact_one": "{{count}} without contact details",
+      "withoutContact_other": "{{count}} without contact details",
+      "noContact": "No contact details recorded",
+      "textAll_one": "Text {{count}}",
+      "textAll_other": "Text {{count}}",
+      "emailAll_one": "Email {{count}}",
+      "emailAll_other": "Email {{count}}",
+      "copyNumbers": "Copy numbers",
+      "print": "Print",
+      "notReached_one": "{{count}} person will not receive this",
+      "notReached_other": "{{count}} people will not receive this",
+      "noMobiles": "Nobody on this sheet has a mobile number",
+      "noEmails": "Nobody on this sheet has an email address",
+      "noNumbers": "No numbers to copy",
+      "numbersCopied_one": "{{count}} number copied",
+      "numbersCopied_other": "{{count}} numbers copied",
+      "copyFailed": "Could not copy to the clipboard",
+      "columns": {
+        "name": "Name",
+        "role": "Role",
+        "contact": "Contact",
+        "mobile": "Mobile",
+        "telephone": "Telephone",
+        "email": "Email",
+        "public": "Public"
+      }
     }
   },
   "dashboard": {
@@ -1931,7 +1963,13 @@
       "nickname": "Nickname",
       "contactPublic": "Public contact",
       "contactPublicYes": "Contact may be shared publicly",
-      "contactPublicNo": "Contact is not shared publicly"
+      "contactPublicNo": "Contact is not shared publicly",
+      "contactActions": "Contact",
+      "contactCall": "Call",
+      "contactText": "Send a text message",
+      "contactEmail": "Send an email",
+      "contactPrivateMark": "Not shared publicly",
+      "contactMore": "More contacts on the call sheet"
     },
     "bracket": {
       "participant": "Participant",
@@ -2257,7 +2295,12 @@
         "contactIsPublic": "Contact may be shared publicly",
         "contactRelationship": "Contact is",
         "contactName": "Contact name",
-        "contactNamePlaceholder": "Name of the contact, if not the participant"
+        "contactNamePlaceholder": "Name of the contact, if not the participant",
+        "primaryContact": "Primary contact",
+        "additionalContact": "Contact",
+        "telephone": "Telephone",
+        "telephonePlaceholder": "Landline or desk number",
+        "whichPrimary": "Which contact is primary?"
       },
       "newTeam": "New team",
       "newGroup": "New group",
@@ -2299,7 +2342,8 @@
         "nicknamePlaceholder": "Nickname / abbreviation",
         "preferNickname": "Prefer nickname in draws",
         "nameTooShort": "Please enter a name of at least 3 characters"
-      }
+      },
+      "selected": "selected"
     }
   },
   "overlays": {

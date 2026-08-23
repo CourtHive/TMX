@@ -4,6 +4,7 @@
  * Dynamically collects all ratings present in participant data.
  */
 import { getClub, getCountry, getEvents } from 'pages/tournament/tabs/participantTab/getters';
+import { isPublicContact, reachableContacts } from 'services/contact/contactLinks';
 import { factoryConstants, fixtures } from 'tods-competition-factory';
 import camelcase from 'camelcase';
 
@@ -39,14 +40,22 @@ export const mapParticipant = (participant: any, derivedEventInfo: any): any => 
     }
   }
 
-  // The primary contact drives two columns: whether the person is reachable at all, and whether that
-  // contact carries consent to be published. `isPublic === true` deliberately — absent means not public,
-  // and nothing writes the flag on imported records, so a truthy check would read them all as consenting.
-  const primaryContact = person?.contacts?.[0];
-  const contactPublic = primaryContact?.isPublic === true;
-  const hasContact = !!(primaryContact?.mobileTelephone || primaryContact?.telephone || primaryContact?.emailAddress);
+  // Contacts drive three columns: the tappable affordances, whether the person is reachable at all,
+  // and whether anything about them carries consent to be published.
+  //
+  // Both summaries read the WHOLE list rather than `contacts[0]`. The factory publishes every contact
+  // marked `isPublic` — not just the primary — so "the primary consented" was a less accurate answer
+  // to "what will appear publicly" than "some contact consented", and it under-reported reachability
+  // for an imported record whose first entry is a name with no number.
+  //
+  // `isPublic === true` deliberately: absent means not public. Nothing wrote the flag before factory
+  // #4680, so a truthy check would read every imported contact as consenting.
+  const contacts = reachableContacts(person?.contacts);
+  const contactPublic = contacts.some(isPublicContact);
+  const hasContact = contacts.length > 0;
 
   return {
+    contacts,
     searchText: [participantName, standardGivenName, standardFamilyName, participant.participantOtherName]
       .filter(Boolean)
       .join(' ')

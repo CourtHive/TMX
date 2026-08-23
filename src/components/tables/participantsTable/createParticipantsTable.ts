@@ -34,6 +34,17 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
   replaceTableData: () => void;
   teamParticipants: any[];
   groupParticipants: any[];
+  /**
+   * The rows the table was seeded with.
+   *
+   * Returned because `table.getDataCount()` answers **0** until Tabulator fires `tableBuilt`, which
+   * is after this function returns. Callers gating a control on "are there any participants?" were
+   * therefore reading zero on every first render: the Actions menu hid *Sign out unapproved*,
+   * *Edit ratings* and *Call sheet* on a table that was visibly showing rows, and only revealed them
+   * after some later re-render happened to rebuild the control bar. Found by journey 100, whose page
+   * snapshot showed the header reading "Staff (2)" beside a menu missing all three.
+   */
+  data: any[];
 } {
   let table: any;
   let groupParticipants: any[] = [];
@@ -202,7 +213,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
 
   render(data);
 
-  return { table, replaceTableData, teamParticipants, groupParticipants };
+  return { table, replaceTableData, teamParticipants, groupParticipants, data };
 }
 
 interface ScalingsHeaderHandle {
