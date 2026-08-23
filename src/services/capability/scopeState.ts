@@ -29,50 +29,17 @@
  * authoritative; the worst a divergence causes is a control offered and then
  * refused, never one wrongly permitted.
  */
-import type { ProviderPermissions } from '@courthive/provider-config';
+import { grantCoversCapability, isTargetInScope } from '@courthive/provider-config';
 
-/** Scope dimensions — must match SCOPE_KEYS in the server's grantScope.ts. */
-export const SCOPE_KEYS = [
-  'eventIds',
-  'drawIds',
-  'structureIds',
-  'venueIds',
-  'courtIds',
-  'scheduledDates',
-  'matchUpIds',
-] as const;
+import type { GrantScope, ProviderPermissions, ScopeTarget } from '@courthive/provider-config';
 
-export type ScopeKey = (typeof SCOPE_KEYS)[number];
-export type GrantScope = Partial<Record<ScopeKey, string[]>>;
+export type { GrantScope, ScopeKey, ScopeTarget } from '@courthive/provider-config';
 
 export type CallerGrant = {
   /** A ProviderPermissions key, or '*' for a full grant narrowed only by scope. */
   capability: string;
   scope: GrantScope;
 };
-
-/** The resource a UI control would act on. */
-export type ScopedResource = {
-  matchUpId?: string;
-  courtId?: string;
-  scheduledDate?: string;
-  eventId?: string;
-  drawId?: string;
-  structureId?: string;
-  venueId?: string;
-};
-
-const RESOURCE_TO_SCOPE: Record<keyof ScopedResource, ScopeKey> = {
-  matchUpId: 'matchUpIds',
-  courtId: 'courtIds',
-  scheduledDate: 'scheduledDates',
-  eventId: 'eventIds',
-  drawId: 'drawIds',
-  structureId: 'structureIds',
-  venueId: 'venueIds',
-};
-
-const SCOPE_KEY_SET: ReadonlySet<string> = new Set(SCOPE_KEYS);
 
 let grants: CallerGrant[] = [];
 let version = 0;
@@ -99,34 +66,6 @@ export function clearCallerGrants(): void {
   setCallerGrants([]);
 }
 
-/** Does a grant's capability cover this permission key? */
-export function grantCoversCapability(capability: string, key: keyof ProviderPermissions): boolean {
-  return capability === '*' || capability === key;
-}
-
-/**
- * Does `resource` fall inside `scope`?
- *
- * Every declared dimension must match. A dimension the resource cannot answer is
- * a **deny** — an unscheduled matchUp is not on Court 7 — and a scope carrying
- * an unrecognized key is refused rather than ignored. Both mirror the server.
- */
-export function isResourceInScope(scope: GrantScope | undefined, resource: ScopedResource): boolean {
-  if (!scope || !Object.keys(scope).length) return true; // tournament-wide
-  if (!Object.keys(scope).every((key) => SCOPE_KEY_SET.has(key))) return false;
-
-  for (const [key, allowed] of Object.entries(scope) as [ScopeKey, string[]][]) {
-    if (!Array.isArray(allowed) || !allowed.length) continue;
-    const field = (Object.keys(RESOURCE_TO_SCOPE) as (keyof ScopedResource)[]).find(
-      (name) => RESOURCE_TO_SCOPE[name] === key,
-    );
-    const value = field ? resource[field] : undefined;
-    if (!value) return false;
-    if (!allowed.includes(value)) return false;
-  }
-  return true;
-}
-
 /**
  * May the caller exercise `key` on `resource`?
  *
@@ -134,9 +73,7 @@ export function isResourceInScope(scope: GrantScope | undefined, resource: Scope
  * both the capability and the resource — holding a Court-7 scoring grant is a
  * statement about where you may score, so anywhere else is refused.
  */
-export function isPermittedOnResource(key: keyof ProviderPermissions, resource: ScopedResource): boolean {
+export function isPermittedOnResource(key: keyof ProviderPermissions, resource: ScopeTarget): boolean {
   if (isScopeUnrestricted()) return true;
-  return grants.some(
-    (grant) => grantCoversCapability(grant.capability, key) && isResourceInScope(grant.scope, resource),
-  );
+  return grants.some((grant) => grantCoversCapability(grant.capability, key) && isTargetInScope(grant.scope, resource));
 }

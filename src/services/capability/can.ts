@@ -37,7 +37,7 @@ import { isPermittedOnResource } from 'services/capability/scopeState';
 import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 
-import type { ScopedResource } from 'services/capability/scopeState';
+import type { ScopeTarget } from 'services/capability/scopeState';
 import type { ProviderPermissions } from '@courthive/provider-config';
 
 /** Which layer refused. Ordered most-specific-first, as the resolver evaluates. */
@@ -150,7 +150,7 @@ export function denialReason(action: CapabilityAction): string | undefined {
  * A subject holding no grants is unrestricted here, which makes this safe to
  * call everywhere — it is a no-op until someone is actually scoped.
  */
-export function canForResource(action: CapabilityAction, resource: ScopedResource): Capability {
+export function canForResource(action: CapabilityAction, resource: ScopeTarget): Capability {
   const unscoped = can(action);
   if (!unscoped.allowed) return unscoped;
 
@@ -164,6 +164,6 @@ export function canForResource(action: CapabilityAction, resource: ScopedResourc
 }
 
 /** Convenience for `hide:` / `disabled:` call sites that act on a resource. */
-export function cannotForResource(action: CapabilityAction, resource: ScopedResource): boolean {
+export function cannotForResource(action: CapabilityAction, resource: ScopeTarget): boolean {
   return !canForResource(action, resource).allowed;
 }
