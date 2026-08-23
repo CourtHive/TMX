@@ -12,6 +12,7 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { canViewTab, firstPermittedTab, tabDenialReason } from 'services/capability/navCapability';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import Navigo from 'navigo';
@@ -63,8 +64,18 @@ export function routeTMX() {
   });
 
   const displayRoute = ({ selectedTab, renderDraw, renderPoints, data }: any) => {
+    // Route-level capability guard. Hiding a nav icon is not enough on its own:
+    // a bookmark, a shared link, browser history or a typed hash all reach the
+    // route directly. Guarding here rather than at each `router.on` puts it in
+    // the one function every tab-selecting route already calls (standard A10).
+    let tab = selectedTab;
+    if (tab && !canViewTab(tab)) {
+      const reason = tabDenialReason(tab);
+      if (reason) tmxToast({ intent: 'is-warning', message: reason });
+      tab = firstPermittedTab();
+    }
     destroyTables();
-    displayTournament({ config: { selectedTab, renderDraw, renderPoints, ...data } }); // ...data must come last
+    displayTournament({ config: { selectedTab: tab, renderDraw, renderPoints, ...data } }); // ...data must come last
   };
 
   // Topology routes — standalone page, reuses tournament loading
