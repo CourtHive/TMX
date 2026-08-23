@@ -2542,7 +2542,8 @@
       "publish": "This provider does not allow publishing.",
       "unpublish": "This provider does not allow unpublishing.",
       "useChat": "Chat is disabled for this provider."
-    }
+    },
+    "outOfScope": "Outside the courts, days or events you have been assigned."
   },
   "demoMode": {
     "title": "Demo mode",

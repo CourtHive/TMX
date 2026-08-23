@@ -33,13 +33,15 @@
  * layers share). `can()` decides what to render. Do not let its existence imply
  * otherwise.
  */
+import { isPermittedOnResource } from 'services/capability/scopeState';
 import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 
+import type { ScopedResource } from 'services/capability/scopeState';
 import type { ProviderPermissions } from '@courthive/provider-config';
 
 /** Which layer refused. Ordered most-specific-first, as the resolver evaluates. */
-export type CapabilityLayer = 'tournamentState' | 'role' | 'provider';
+export type CapabilityLayer = 'tournamentState' | 'scope' | 'role' | 'provider';
 
 export type Capability = { allowed: true } | { allowed: false; reason: string; because: CapabilityLayer };
 
@@ -131,4 +133,37 @@ export function cannot(action: CapabilityAction): boolean {
 export function denialReason(action: CapabilityAction): string | undefined {
   const result = can(action);
   return result.allowed ? undefined : result.reason;
+}
+
+/**
+ * May the current user perform `action` **on this particular resource**?
+ *
+ * The scoped answer. `can()` asks whether the capability exists at all; this
+ * additionally asks whether the user's grants reach this matchUp, court, day or
+ * draw — the distinction a global boolean cannot make between scoring on
+ * Court 7 and scoring the final on Centre.
+ *
+ * Scope is evaluated only after the unscoped layers pass, so the reason a user
+ * sees is the most specific true one: "your provider does not allow scoring"
+ * outranks "not on your court" when both hold.
+ *
+ * A subject holding no grants is unrestricted here, which makes this safe to
+ * call everywhere — it is a no-op until someone is actually scoped.
+ */
+export function canForResource(action: CapabilityAction, resource: ScopedResource): Capability {
+  const unscoped = can(action);
+  if (!unscoped.allowed) return unscoped;
+
+  if (isPermittedOnResource(ACTION_PERMISSION[action], resource)) return ALLOWED;
+
+  return {
+    allowed: false,
+    because: 'scope',
+    reason: t('capability.outOfScope', { defaultValue: t('capability.denied.provider') }),
+  };
+}
+
+/** Convenience for `hide:` / `disabled:` call sites that act on a resource. */
+export function cannotForResource(action: CapabilityAction, resource: ScopedResource): boolean {
+  return !canForResource(action, resource).allowed;
 }
