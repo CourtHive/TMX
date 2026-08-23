@@ -14,6 +14,7 @@ import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
+import { canViewTab, ownsTabVisibility } from 'services/capability/navCapability';
 import { t } from 'i18n';
 
 // constants
@@ -85,6 +86,23 @@ const i18nKeys: Record<string, string> = {
 // authority over the tournament's provider. See Phase 2-B.1.
 const CONDITIONAL_ROUTE_IDS = new Set(['rg-route']);
 
+/**
+ * Hide sections the user has no use for.
+ *
+ * Derived from the capability action set rather than a second hand-maintained
+ * list, so a tab cannot drift from what the user can actually do. Re-evaluated
+ * on every tab render alongside the registrations gate, because a demo posture
+ * or a provider switch can change the answer between renders.
+ */
+export function applyTabCapabilityVisibility(): void {
+  for (const [id, tab] of Object.entries(routeMap)) {
+    if (CONDITIONAL_ROUTE_IDS.has(id)) continue; // owned by its own richer gate
+    if (!ownsTabVisibility(tab)) continue;
+    const el = document.getElementById(id);
+    if (el) el.style.display = canViewTab(tab) ? '' : 'none';
+  }
+}
+
 function navigateToRoute(id: string): void {
   clearSyncIndicator();
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
@@ -111,10 +129,14 @@ function setupMobileNav(selectedTab: string | undefined): void {
   // (e.g. `rg-route` for Registrations) only appear in the dropdown
   // when their desktop counterpart is currently visible.
   menu.innerHTML = '';
+  // Mirrors whatever the desktop rail is currently showing — including tabs
+  // hidden by capability, not just the conditional routes this originally
+  // covered. A missing element keeps the prior tolerance so a mobile render
+  // that beats the icons into the DOM does not drop every non-conditional item.
   const ids = Object.keys(routeMap).filter((id) => {
-    if (!CONDITIONAL_ROUTE_IDS.has(id)) return true;
     const el = document.getElementById(id);
-    return !!el && el.style.display !== 'none';
+    if (!el) return !CONDITIONAL_ROUTE_IDS.has(id);
+    return el.style.display !== 'none';
   });
   ids.forEach((id) => {
     const item = document.createElement('button');
@@ -239,6 +261,12 @@ export function tmxNavigation(): void {
     };
   });
 
+  // Apply capability visibility BEFORE the mobile dropdown is built — it mirrors
+  // whichever desktop icons are currently shown, so building it first would list
+  // tabs that are about to be hidden.
+  applyRegistrationsTabVisibility();
+  applyTabCapabilityVisibility();
+
   // Initialize mobile dropdown
   setupMobileNav(selectedTab);
 
@@ -338,6 +366,7 @@ export function highlightTab(selectedTab: string): void {
   // registrationProfile changes over its lifecycle (publish → close)
   // and a director's role at a provider can change between renders.
   applyRegistrationsTabVisibility();
+  applyTabCapabilityVisibility();
 
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
 
