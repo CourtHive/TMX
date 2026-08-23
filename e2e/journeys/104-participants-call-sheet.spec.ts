@@ -5,7 +5,7 @@ import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
 /**
- * Journey 100 — the call sheet, and the multi-contact drawer behind it.
+ * Journey 104 — the call sheet, and the multi-contact drawer behind it.
  *
  * This journey carries more weight than most, because TMX has **no jsdom**: the unit suite runs in
  * the vitest `node` environment, so the pure logic (`collectContacts`, `buildCallSheet`,
@@ -75,7 +75,7 @@ async function gotoStaff(page: Page, tournamentId: string): Promise<void> {
   await page.waitForSelector(ROWS, { timeout: 15_000 });
 }
 
-test.describe('Journey 100 — participants call sheet', () => {
+test.describe('Journey 104 — participants call sheet', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);
