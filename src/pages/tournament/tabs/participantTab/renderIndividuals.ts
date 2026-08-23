@@ -27,7 +27,7 @@ import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
-import { providerConfig } from 'config/providerConfig';
+import { cannot } from 'services/capability/can';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
 import { controlBar } from 'courthive-components';
@@ -183,13 +183,13 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     { divider: true } as any,
     {
-      hide: !providerConfig.isAllowed('canImportParticipants'),
+      hide: cannot('importParticipants'),
       label: t('pages.participants.importGoogleSheet'),
       onClick: editRegistrationLink,
       close: true,
     },
     {
-      hide: !providerConfig.isAllowed('canImportParticipants'),
+      hide: cannot('importParticipants'),
       label: t('pages.participants.importFromCsv'),
       onClick: () => importPlayersCsv({ callback: replaceTableData }),
       close: true,
@@ -199,7 +199,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       label: t('pages.participants.newParticipant'),
       // Different cap depending on whether the user is creating a COMPETITOR
       // or an OFFICIAL — both are PARTICIPANTS but are gated separately.
-      hide: !providerConfig.isAllowed(view === OFFICIAL ? 'canCreateOfficials' : 'canCreateCompetitors'),
+      hide: cannot(view === OFFICIAL ? 'createOfficial' : 'createCompetitor'),
       close: true,
     },
   ];
@@ -291,7 +291,7 @@ export function renderIndividuals({ view }: { view: string }): void {
       label: t('pages.participants.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
-      hide: !providerConfig.isAllowed('canDeleteParticipants'),
+      hide: cannot('deleteParticipants'),
       location: OVERLAY,
     },
     {

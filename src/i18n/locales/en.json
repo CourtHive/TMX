@@ -2518,5 +2518,30 @@
     "TRAINER": "Trainer",
     "TRANSPORT": "Transport",
     "VOLUNTEER": "Volunteer"
+  },
+  "capability": {
+    "denied": {
+      "provider": "Not available under this provider’s configuration.",
+      "createCompetitor": "This provider does not allow competitors to be added here.",
+      "createOfficial": "This provider does not allow officials to be added here.",
+      "importParticipants": "This provider does not allow importing participants.",
+      "deleteParticipants": "This provider does not allow deleting participants.",
+      "editParticipantDetails": "This provider does not allow editing participant details.",
+      "modifyEntries": "This provider does not allow changing event entries.",
+      "createEvent": "This provider does not allow events to be created in TMX.",
+      "deleteEvent": "This provider does not allow deleting events.",
+      "createDraw": "This provider does not allow draws to be created here.",
+      "deleteDraw": "This provider does not allow deleting draws.",
+      "assignPositions": "This provider does not allow draw positions to be assigned here.",
+      "modifyStructures": "This provider does not allow draw structures to be changed.",
+      "createVenue": "This provider does not allow venues to be created here.",
+      "deleteVenue": "This provider does not allow deleting venues.",
+      "modifySchedule": "This provider does not allow the schedule to be changed here.",
+      "useBulkScheduling": "This provider does not allow bulk scheduling.",
+      "enterScores": "This provider does not allow scores to be entered here.",
+      "publish": "This provider does not allow publishing.",
+      "unpublish": "This provider does not allow unpublishing.",
+      "useChat": "Chat is disabled for this provider."
+    }
   }
 }
