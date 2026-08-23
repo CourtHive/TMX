@@ -10,7 +10,9 @@ import {
   canToggleScheduleLock,
   isScheduleLocked,
 } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
+import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
@@ -38,6 +40,17 @@ import { BOTTOM } from 'constants/tmxConstants';
 const OFFICIAL = ParticipantRoleEnum.OFFICIAL;
 
 let officialTip: Instance | undefined;
+let checkInTip: Instance | undefined;
+
+/** Shared tippy theme for the popover panels this module opens. */
+const TIP_THEME = 'light-border';
+
+function destroyCheckInTip() {
+  if (checkInTip) {
+    checkInTip.destroy();
+    checkInTip = undefined;
+  }
+}
 
 function destroyOfficialTip() {
   if (officialTip) {
@@ -219,7 +232,7 @@ export function matchUpActions({
       destroyOfficialTip();
       officialTip = tippy(anchorEl, {
         content: noOfficialsEl,
-        theme: 'light-border',
+        theme: TIP_THEME,
         trigger: 'manual',
         interactive: true,
         placement: BOTTOM as any,
@@ -336,7 +349,7 @@ export function matchUpActions({
     destroyOfficialTip();
     officialTip = tippy(anchorEl, {
       content: wrapper,
-      theme: 'light-border',
+      theme: TIP_THEME,
       trigger: 'manual',
       interactive: true,
       maxWidth: 'none',
@@ -344,6 +357,105 @@ export function matchUpActions({
       appendTo: document.body,
     });
     officialTip.show();
+  };
+
+  /**
+   * The desk panel: one row per INDIVIDUAL, click to toggle.
+   *
+   * Rows are individuals even for doubles — four names, not two pairs — because the state a desk is
+   * managing is "one of the partners is standing here" (D4c). The panel re-derives from the engine
+   * after each toggle rather than mutating the row locally, so two operators working the same match
+   * converge instead of drifting.
+   */
+  const openCheckInPanel = () => {
+    // A sibling of `render`, not nested inside its row loop: the mutation callback would otherwise be
+    // a fifth level of nested function and trip `sonarjs/no-nested-functions` (threshold 4).
+    const handleToggle = (participantId: string) =>
+      toggleCheckIn({
+        participantId,
+        matchUpId: matchUp.matchUpId,
+        drawId: matchUp.drawId,
+        callback: (result: any) => onToggled(result),
+      });
+
+    const onToggled = (result: any) => {
+      if (!result?.success) {
+        logMutationError('checkIn', result, { message: t('checkIn.toggleFailed') });
+        return;
+      }
+      // Re-render the panel from the engine, and refresh the row behind it so the summary the menu
+      // shows agrees with what the panel is showing.
+      render();
+      updateRow({});
+    };
+
+    const render = () => {
+      // Re-read from the engine so the panel reflects what was actually stored, including a toggle
+      // made from another surface. `findMatchUp` returns it hydrated, which is what carries
+      // `checkedInParticipantIds` (attached by `addMatchUpContext`).
+      const stored = tournamentEngine.findMatchUp({ drawId: matchUp.drawId, matchUpId: matchUp.matchUpId })?.matchUp;
+      const state = getMatchUpCheckInState(stored ?? matchUp);
+
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:relative; padding:8px; padding-top:22px; min-width:200px;';
+
+      const closeBtn = document.createElement('span');
+      closeBtn.textContent = '\u00d7';
+      closeBtn.style.cssText =
+        'position:absolute; top:2px; right:6px; cursor:pointer; font-size:16px; line-height:1; color:var(--chc-text-secondary, #888); z-index:1;';
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        destroyCheckInTip();
+      };
+      wrapper.appendChild(closeBtn);
+
+      const heading = document.createElement('div');
+      heading.className = 'tmx-checkin-heading';
+      heading.textContent = `${t('checkIn.title')} ${checkInSummary(state)}`;
+      wrapper.appendChild(heading);
+
+      const list = document.createElement('ul');
+      list.style.cssText = 'list-style:none; margin:0; padding:0;';
+
+      for (const participant of state.participants) {
+        const li = document.createElement('li');
+        li.className = participant.checkedIn ? 'tmx-checkin-row is-checked-in' : 'tmx-checkin-row';
+        li.title = participant.checkedIn ? t('checkIn.clickToCheckOut') : t('checkIn.clickToCheckIn');
+
+        const mark = document.createElement('span');
+        mark.className = 'tmx-checkin-mark';
+        mark.setAttribute('aria-hidden', 'true');
+        mark.textContent = participant.checkedIn ? '\u2713' : '\u25cb';
+        li.appendChild(mark);
+
+        const name = document.createElement('span');
+        name.textContent = participant.participantName;
+        li.appendChild(name);
+
+        li.onclick = (e) => {
+          e.stopPropagation();
+          handleToggle(participant.participantId);
+        };
+        list.appendChild(li);
+      }
+
+      wrapper.appendChild(list);
+
+      const anchorEl = (target || pointerEvent.target) as HTMLElement;
+      destroyCheckInTip();
+      checkInTip = tippy(anchorEl, {
+        content: wrapper,
+        theme: TIP_THEME,
+        trigger: 'manual',
+        interactive: true,
+        maxWidth: 'none',
+        placement: BOTTOM as any,
+        appendTo: document.body,
+      });
+      checkInTip.show();
+    };
+
+    render();
   };
 
   const matchUpStatus = matchUp?.matchUpStatus;
@@ -398,6 +510,13 @@ export function matchUpActions({
       onClick: () => setTimeField('endTime'),
       text: 'End time',
       hide: hideTimeOptions,
+    },
+    {
+      // Per-matchUp check-in — the desk action. Deliberately worded "Check in", never "Sign in":
+      // signing in is arrival at the tournament and is tournament-wide (D4a).
+      onClick: openCheckInPanel,
+      text: `${t('checkIn.action')} (${checkInSummary(getMatchUpCheckInState(matchUp))})`,
+      hide: noParticipants || isTerminal,
     },
     {
       onClick: selectOfficial,

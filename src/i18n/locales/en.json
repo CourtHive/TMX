@@ -2580,5 +2580,16 @@
       "mutation": "The mutation is refused, but the control is still offered.",
       "none": "No gate implemented — toggling this changes nothing."
     }
+  },
+  "checkIn": {
+    "action": "Check in",
+    "title": "Checked in",
+    "clickToCheckIn": "Click to check in",
+    "clickToCheckOut": "Click to check out",
+    "toggleFailed": "Could not change the check-in state",
+    "callBeforeCheckIn_one": "{{count}} participant has not checked in. Call to court anyway?",
+    "callBeforeCheckIn_other": "{{count}} participants have not checked in. Call to court anyway?",
+    "columnHeader": "Checked in",
+    "columnTooltip": "Participants who have presented at the desk for this match"
   }
 }
