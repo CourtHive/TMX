@@ -7,6 +7,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { genderConstants, participantRoles } from 'tods-competition-factory';
 import { arrayLengthFormatter } from '../common/formatters/arrayLength';
+import { contactFormatter } from '../common/formatters/contactFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
@@ -75,6 +76,7 @@ export function getParticipantColumns({
     {
       headerMenu: headerMenu({
         signedIn: 'Sign In Status',
+        contacts: 'Contact',
         contactPublic: 'Public contact',
         sex: 'Gender',
       }),
@@ -231,6 +233,25 @@ export function getParticipantColumns({
       hozAlign: LEFT,
       tooltip: false,
       width: 40,
+    },
+    {
+      // The call sheet, one row at a time — `tel:` / `sms:` / `mailto:` on the participant's primary
+      // contact. Same default as the public-contact column beside it: shown for personnel, in the
+      // header menu everywhere, because a director chasing an alternate wants it on competitors too.
+      //
+      // Not sortable. Sorting people by the shape of their phone number answers no question, and a
+      // header sort arrow that produces an arbitrary order reads as a broken column.
+      title: `<div class='fa-solid fa-address-book' style='color: var(--tmx-text-secondary)' />`,
+      headerTooltip: t('tables.participants.contactActions'),
+      formatter: contactFormatter,
+      visible: isPersonnelView,
+      headerHozAlign: CENTER,
+      field: 'contacts',
+      hozAlign: CENTER,
+      headerSort: false,
+      resizable: false,
+      tooltip: false,
+      width: 92,
     },
     {
       // Whether this person's primary contact carries consent to be shared publicly.

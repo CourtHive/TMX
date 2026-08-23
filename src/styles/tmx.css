@@ -1343,3 +1343,109 @@ img {
   color: var(--tmx-text-secondary);
   opacity: 0.7;
 }
+
+/* ── Call sheet: contact affordances ─────────────────────────────────── */
+/*
+ * The tappable half of the participants table and the call sheet modal.
+ *
+ * D3 (CA, 2026-08-23): the TD surface shows every contact and MARKS the private ones rather than
+ * hiding them. `.tmx-contact-private-mark` is that marker, and it is deliberately quiet — it is a
+ * statement about consent, not a warning. `isPublic` still gates the public surfaces; nothing here
+ * changes what `getTournamentInfo` publishes.
+ *
+ * Tokens for both themes, per the light+dark rule. The link colour needs its own token rather than
+ * borrowing `--tmx-accent-blue`, because the icons sit on the table's row-hover ground where the
+ * shared accent loses contrast in dark mode.
+ */
+:root {
+  --tmx-contact-link-fg: #1f5fa8;
+  --tmx-contact-link-hover-fg: #14406f;
+  --tmx-contact-mark-fg: #8a6d1f;
+  --tmx-contact-more-fg: #5b6470;
+  --tmx-contact-more-bg: rgba(91, 100, 112, 0.12);
+  --tmx-call-sheet-divider: #e0e0e0;
+}
+[data-theme='dark'] {
+  --tmx-contact-link-fg: #9ec5ff;
+  --tmx-contact-link-hover-fg: #d3e5ff;
+  --tmx-contact-mark-fg: #e3c46a;
+  --tmx-contact-more-fg: #b3bcc7;
+  --tmx-contact-more-bg: rgba(179, 188, 199, 0.16);
+  --tmx-call-sheet-divider: #3a3a3a;
+}
+
+.tmx-contact-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+.tmx-contact-link {
+  color: var(--tmx-contact-link-fg);
+  text-decoration: none;
+}
+.tmx-contact-link:hover,
+.tmx-contact-link:focus-visible {
+  color: var(--tmx-contact-link-hover-fg);
+  text-decoration: none;
+}
+.tmx-contact-private-mark {
+  color: var(--tmx-contact-mark-fg);
+  font-size: 0.75em;
+}
+.tmx-contact-more {
+  color: var(--tmx-contact-more-fg);
+  background: var(--tmx-contact-more-bg);
+  border-radius: 3px;
+  padding: 0 0.35em;
+  font-size: 0.75em;
+  line-height: 1.5;
+}
+
+/* ── Call sheet modal ────────────────────────────────────────────────── */
+.tmx-call-sheet {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0.25em 0.5em;
+}
+.tmx-call-sheet-summary {
+  color: var(--tmx-text-secondary);
+  font-size: 0.85em;
+  padding-bottom: 0.5em;
+}
+.tmx-call-sheet-entry {
+  border-top: 1px solid var(--tmx-call-sheet-divider);
+  padding: 0.5em 0;
+}
+/* People with no contact details still appear — a sheet that omits them claims the roster is
+   complete — but they read as an outstanding task rather than as a row to act on. */
+.tmx-call-sheet-entry.is-muted {
+  opacity: 0.65;
+}
+.tmx-call-sheet-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 600;
+  color: var(--tmx-text-primary);
+}
+.tmx-call-sheet-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding-top: 0.2em;
+  font-size: 0.9em;
+}
+.tmx-call-sheet-whose {
+  color: var(--tmx-text-secondary);
+  min-width: 6em;
+  font-size: 0.85em;
+}
+.tmx-call-sheet-value {
+  color: var(--tmx-text-primary);
+}
+.tmx-call-sheet-none {
+  color: var(--tmx-text-secondary);
+  font-size: 0.85em;
+  font-style: italic;
+  padding-top: 0.2em;
+}
