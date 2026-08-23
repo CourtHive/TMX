@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, PROFILE_EMPTY_TOURNAMENT } from '../helpers/seed';
 import { createMutationCollector } from '../helpers/mutation-collector';
@@ -54,6 +54,14 @@ async function openEditDrawer(page: Page, index: number) {
   const drawer = page.locator(S.TMX_DRAWER);
   await expect(drawer.getByPlaceholder('Given name')).toBeVisible({ timeout: 5_000 });
   return drawer;
+}
+
+/**
+ * The drawer's sex control, identified by the options it contains rather than by being the drawer's
+ * only `<select>` — which it stopped being at TMX #1327 (the contact-relationship picker).
+ */
+function sexSelect(drawer: Locator): Locator {
+  return drawer.locator('select').filter({ has: drawer.page().locator('option[value="FEMALE"]') });
 }
 
 /** The participant the new-participant test creates, or null until it lands. */
@@ -119,7 +127,13 @@ test.describe('Journey 91 — Edit Participant drawer', () => {
     await expect(drawer.getByPlaceholder('Family name')).toHaveValue('Sale');
     await expect(drawer.getByPlaceholder('Display name')).toHaveValue('Ginny');
     await expect(drawer.getByPlaceholder('Birthday')).toHaveValue('1994-03-17');
-    await expect(drawer.locator('select')).toHaveValue('FEMALE');
+    // Identify the sex control by the options it CONTAINS, not by being the only select in the drawer.
+    // It stopped being the only one at TMX #1327, which added the contact-relationship picker ("whose
+    // number this is") — a deliberate field, so the drawer legitimately carries several selects and a
+    // bare `locator('select')` is a strict-mode violation rather than a regression signal. The form
+    // helper only emits an `id` when the caller passes one and this drawer does not, so there is no
+    // id/label anchor to use; the MALE/FEMALE options are the stable identity.
+    await expect(sexSelect(drawer)).toHaveValue('FEMALE');
 
     // The regression: the country must arrive as the picker's own label — the
     // country *name* — not the stored IOC code. Matched loosely on the name and
