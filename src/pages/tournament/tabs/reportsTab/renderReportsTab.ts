@@ -125,6 +125,29 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
   selectReport(initialReport);
 }
 
+/**
+ * Parameters every factory report is generated with.
+ *
+ * Both frames are sent. `timeZone` is the IANA identifier the runtime resolves
+ * to, and the factory prefers it: it yields the offset **per instant**, so a
+ * tournament spanning a DST change converts correctly on both sides. A bare
+ * `utcOffsetMinutes` is the offset *now* and would be an hour wrong on the far
+ * side of the change — silently, in reports measured in minutes.
+ *
+ * `utcOffsetMinutes` is still sent as the fallback for wrappers that predate the
+ * zone parameter, and for the case where the runtime cannot name its zone.
+ *
+ * Until this existed `generateReport` was called with no parameters at all, so
+ * the offset path the factory wrappers already exposed was dead and each report
+ * had to localize its own timestamps client-side.
+ */
+function reportParameters(): Record<string, any> {
+  return {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    utcOffsetMinutes: -new Date().getTimezoneOffset(),
+  };
+}
+
 async function selectReport(report: any): Promise<void> {
   const { reportId, name, source } = report;
   activeReportName = name;
@@ -134,7 +157,7 @@ async function selectReport(report: any): Promise<void> {
   if (source === 'server') {
     await fetchServerReport(reportId);
   } else {
-    const result: any = tournamentEngine.generateReport({ reportId });
+    const result: any = tournamentEngine.generateReport({ reportId, parameters: reportParameters() });
     if (result.error) return;
     localizeReportTimes(result.rows);
     activeReport = { columns: result.columns, rows: result.rows };

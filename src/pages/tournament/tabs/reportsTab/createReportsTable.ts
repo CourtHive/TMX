@@ -1,5 +1,8 @@
+import { collectReportParticipantIds, PARTICIPANT_ID_KEYS, resolveReportParticipantId } from './reportParticipants';
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { formatSideParticipant } from './sideParticipantFormatter';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
@@ -37,27 +40,64 @@ function estimateColumnWidth(title: string, field: string, rows: Record<string, 
 }
 
 // Row fields that carry IDs for CSV/JSON export but should not display in the table
-const HIDDEN_FIELDS = ['participantId', 'eventId', 'drawId', 'structureId'];
+const HIDDEN_FIELDS = [
+  'participantId',
+  'side1ParticipantId',
+  'side2ParticipantId',
+  'winningParticipantId',
+  'eventId',
+  'drawId',
+  'structureId',
+];
+
+// Side columns whose plain name string is upgraded to a clickable participant
+// when the report carries the matching id.
+const SIDE_COLUMNS: Record<string, string> = { side1: 'side1Participant', side2: 'side2Participant' };
 
 export function createReportsTable({ columns, rows }: { columns: ReportColumn[]; rows: Record<string, any>[] }): {
   table: any;
 } {
   destroyTable({ anchorId: TOURNAMENT_REPORTS });
 
-  // If rows contain participantId, resolve full participant objects for renderParticipant
-  const hasParticipantId = rows.length > 0 && 'participantId' in rows[0];
-  if (hasParticipantId) {
-    const result: any = tournamentEngine.getParticipants({});
+  // If rows contain participantId, resolve full participant objects for renderParticipant.
+  // `withIndividualParticipants` is what makes a PAIR row render its two members
+  // as separately clickable names instead of one unclickable pair name.
+  //
+  // It is REQUIRED by the `sideBySide` layout below, not merely complementary:
+  // `renderPairParticipant` iterates `individualParticipants`, so without the
+  // hydration a PAIR cell renders EMPTY rather than falling back to the pair
+  // name. Measured — journey 107's doubles case finds 0 rendered names when this
+  // flag is dropped. Change the two together or not at all.
+  const firstRow = rows[0] ?? {};
+  const presentIdKeys = PARTICIPANT_ID_KEYS.filter(({ idKey }) => idKey in firstRow);
+  const hasParticipantId = presentIdKeys.some(({ idKey }) => idKey === 'participantId');
+  if (presentIdKeys.length) {
+    const result: any = tournamentEngine.getParticipants({ withIndividualParticipants: true });
     const pMap: Record<string, any> = {};
     for (const p of result?.participants ?? []) {
       pMap[p.participantId] = p;
     }
     for (const row of rows) {
-      if (row.participantId && pMap[row.participantId]) {
-        row.participant = pMap[row.participantId];
+      for (const { idKey, hydratedKey } of presentIdKeys) {
+        const participant = pMap[row[idKey]];
+        if (participant) row[hydratedKey] = participant;
       }
     }
   }
+
+  // Prev/next inside the card walks the whole table, not just the clicked row.
+  const participantIds = collectReportParticipantIds(rows);
+
+  // `renderIndividual` already calls `pointerEvent.stopPropagation()` before it
+  // invokes this (courthive-components `renderIndividual.ts:90`), so a click on a
+  // name in a draw-navigable report opens the card WITHOUT also firing the
+  // `rowClick` handler below. Do not add a second stopPropagation here — verify
+  // that one is still there instead.
+  const onParticipantClick = (params: any) => {
+    const participantId = resolveReportParticipantId(params);
+    if (!participantId) return;
+    participantProfileModal({ participantId, participantIds });
+  };
 
   const numberCellFormatter = (cell: any) => {
     const value = cell.getValue();
@@ -71,7 +111,25 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
         return {
           title: col.title,
           field: col.key,
-          formatter: formatParticipant(undefined),
+          // `sideBySide` renders a PAIR as its two individuals, each with its own
+          // click target, so a doubles row resolves unambiguously. Reached by
+          // Seeding Performance, whose rows are PAIRs for a doubles event.
+          //
+          // It must be passed as the formatter's third argument explicitly:
+          // Tabulator's own third argument is `onRendered`, not a layout, which is
+          // why `formatParticipant(...)` handed straight to `formatter` can never
+          // take this branch. Requires the hydration above.
+          formatter: (cell: any) => (formatParticipant(onParticipantClick) as any)(cell, undefined, 'sideBySide'),
+          headerSort: true,
+          minWidth: 180,
+        };
+      }
+      const sideKey = SIDE_COLUMNS[col.key];
+      if (sideKey && sideKey in firstRow) {
+        return {
+          title: col.title,
+          field: col.key,
+          formatter: formatSideParticipant(onParticipantClick, sideKey),
           headerSort: true,
           minWidth: 180,
         };
