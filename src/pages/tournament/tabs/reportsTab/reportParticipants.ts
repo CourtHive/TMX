@@ -35,9 +35,26 @@ export interface ReportParticipant {
 
 /** A report row, as the factory report wrappers emit it plus the table's hydration. */
 export interface ReportRow {
+  side1Participant?: ReportParticipant;
+  side2Participant?: ReportParticipant;
   participant?: ReportParticipant;
+  side1ParticipantId?: string;
+  side2ParticipantId?: string;
   participantId?: string;
 }
+
+/**
+ * Row keys carrying a participant id, and the hydrated key each resolves into.
+ *
+ * `participantId` is the participant-grain reports (one row per participant);
+ * the side keys are the matchUp-grain ones, where a row names two opponents and
+ * neither is "the" participant of the row.
+ */
+export const PARTICIPANT_ID_KEYS = [
+  { idKey: 'participantId', hydratedKey: 'participant' },
+  { idKey: 'side1ParticipantId', hydratedKey: 'side1Participant' },
+  { idKey: 'side2ParticipantId', hydratedKey: 'side2Participant' },
+] as const;
 
 /**
  * The one individual a candidate names, or undefined.
@@ -85,14 +102,19 @@ export function collectReportParticipantIds(rows: ReportRow[]): string[] {
     ids.push(participantId);
   };
 
-  for (const row of rows ?? []) {
-    const participant = row?.participant;
-    if (!participant) continue;
+  const addParticipant = (participant?: ReportParticipant) => {
+    if (!participant) return;
     if (participant.participantType === INDIVIDUAL) {
       add(participant.participantId);
-      continue;
+      return;
     }
     for (const individual of participant.individualParticipants ?? []) add(individual?.participantId);
+  };
+
+  for (const row of rows ?? []) {
+    // Both sides of a matchUp-grain row contribute, side 1 first, so prev/next
+    // walks the table in the order it reads.
+    for (const { hydratedKey } of PARTICIPANT_ID_KEYS) addParticipant((row as any)?.[hydratedKey]);
   }
 
   return ids;

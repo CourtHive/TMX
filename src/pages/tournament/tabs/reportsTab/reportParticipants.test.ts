@@ -1,4 +1,4 @@
-import { collectReportParticipantIds, resolveReportParticipantId } from './reportParticipants';
+import { collectReportParticipantIds, PARTICIPANT_ID_KEYS, resolveReportParticipantId } from './reportParticipants';
 import { describe, expect, it } from 'vitest';
 
 const individual = (participantId: string) => ({ participantId, participantType: 'INDIVIDUAL' });
@@ -92,5 +92,52 @@ describe('collectReportParticipantIds', () => {
   it('returns an empty list for empty and missing input', () => {
     expect(collectReportParticipantIds([])).toEqual([]);
     expect(collectReportParticipantIds(undefined as any)).toEqual([]);
+  });
+});
+
+describe('collectReportParticipantIds — matchUp-grain rows', () => {
+  it('collects both sides, side 1 first', () => {
+    const rows = [{ side1Participant: individual('p1'), side2Participant: individual('p2') }];
+    expect(collectReportParticipantIds(rows)).toEqual(['p1', 'p2']);
+  });
+
+  it('expands a doubles side into its partners', () => {
+    const rows = [
+      {
+        side1Participant: pair('pairA', [individual('a1'), individual('a2')]),
+        side2Participant: pair('pairB', [individual('b1'), individual('b2')]),
+      },
+    ];
+    expect(collectReportParticipantIds(rows)).toEqual(['a1', 'a2', 'b1', 'b2']);
+  });
+
+  it('dedupes a participant met on both sides across rows', () => {
+    const rows = [
+      { side1Participant: individual('p1'), side2Participant: individual('p2') },
+      { side1Participant: individual('p2'), side2Participant: individual('p3') },
+    ];
+    expect(collectReportParticipantIds(rows)).toEqual(['p1', 'p2', 'p3']);
+  });
+
+  it('handles a row carrying both a row participant and sides', () => {
+    const rows = [{ participant: individual('row'), side1Participant: individual('s1') }];
+    expect(collectReportParticipantIds(rows)).toEqual(['row', 's1']);
+  });
+});
+
+describe('PARTICIPANT_ID_KEYS', () => {
+  it('pairs every id key with the hydrated key the table writes', () => {
+    // The table hydrates by iterating these pairs, and collection reads the
+    // hydrated side — a mismatch would silently produce empty prev/next lists.
+    expect(PARTICIPANT_ID_KEYS.map((k) => k.idKey)).toEqual([
+      'participantId',
+      'side1ParticipantId',
+      'side2ParticipantId',
+    ]);
+    expect(PARTICIPANT_ID_KEYS.map((k) => k.hydratedKey)).toEqual([
+      'participant',
+      'side1Participant',
+      'side2Participant',
+    ]);
   });
 });

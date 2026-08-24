@@ -140,4 +140,89 @@ test.describe('Journey 107 — reports participant card', () => {
     await expect(modal).toBeVisible({ timeout: 10_000 });
     if (secondName) await expect(modal).toContainText(secondName, { timeout: 5_000 });
   });
+
+  test('a matchUp-grain report opens the card from either side column', async ({ page }) => {
+    // Match Results names two opponents per row, so neither is "the" participant
+    // of the row and `formatParticipant`'s single `data.participant` key cannot
+    // serve. Both side columns must be independently clickable.
+    const tournamentId = await seedTournament(page, PROFILE_COMPLETED);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+
+    const sideIdsPresent = await page.evaluate(() => {
+      const res: any = dev.factory.tournamentEngine.generateReport({ reportId: 'matchUp.results' });
+      const row = res?.rows?.[0];
+      return !!(row?.side1ParticipantId && row?.side2ParticipantId);
+    });
+    expect(sideIdsPresent, 'Match Results carries no side participant ids').toBe(true);
+
+    await page.evaluate((id) => {
+      window.location.hash = `#/tournament/${id}/reports/matchUp.results`;
+    }, tournamentId);
+
+    const firstRow = page.locator('#tournamentReports .tabulator-row').first();
+    await expect(firstRow).toBeVisible({ timeout: 10_000 });
+
+    // Two rendered participants in the row — one per side column.
+    const names = firstRow.locator('.tmx-i');
+    await expect(names).toHaveCount(2, { timeout: 10_000 });
+
+    const secondSideName = (await names.nth(1).textContent())?.trim();
+    await names.nth(1).click();
+
+    const modal = page.locator(MODAL);
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    if (secondSideName) await expect(modal).toContainText(secondSideName, { timeout: 5_000 });
+  });
+
+  test('the recovery report lists a participant and opens the card', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_COMPLETED);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+
+    // Give every matchUp a planned time so the timeline has start anchors —
+    // without one, every matchUp is undatable and the report is empty.
+    const computable = await page.evaluate(() => {
+      const engine: any = dev.factory.tournamentEngine;
+      const matchUps = engine.allTournamentMatchUps({}).matchUps ?? [];
+      const startDate = engine.getTournament()?.tournamentRecord?.startDate;
+      for (const matchUp of matchUps) {
+        engine.addMatchUpScheduledDate({
+          matchUpId: matchUp.matchUpId,
+          drawId: matchUp.drawId,
+          scheduledDate: startDate,
+        });
+        engine.addMatchUpScheduledTime({
+          matchUpId: matchUp.matchUpId,
+          drawId: matchUp.drawId,
+          scheduledTime: '09:00',
+        });
+      }
+      const avail: any = engine.getAvailableReports() ?? {};
+      const recovery = (avail.availableReports ?? []).find((r: any) => r.reportId === 'participant.recoveryTime');
+      const res: any = engine.generateReport({ reportId: 'participant.recoveryTime' });
+      return { computableNow: !!recovery?.computableNow, rows: res?.rows?.length ?? 0, error: res?.error };
+    });
+    expect(computable.error, `recovery report errored: ${computable.error}`).toBeFalsy();
+    expect(computable.computableNow).toBe(true);
+    expect(computable.rows).toBeGreaterThan(0);
+
+    await page.evaluate((id) => {
+      window.location.hash = `#/tournament/${id}/reports/participant.recoveryTime`;
+    }, tournamentId);
+
+    const firstRow = page.locator('#tournamentReports .tabulator-row').first();
+    await expect(firstRow).toBeVisible({ timeout: 10_000 });
+
+    const name = firstRow.locator('.tmx-i').first();
+    await expect(name).toBeVisible({ timeout: 10_000 });
+    const clicked = (await name.textContent())?.trim();
+    await name.click();
+
+    const modal = page.locator(MODAL);
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    if (clicked) await expect(modal).toContainText(clicked, { timeout: 5_000 });
+  });
 });
