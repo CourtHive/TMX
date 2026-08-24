@@ -596,3 +596,41 @@
   color: var(--tmx-accent-green);
   background: transparent;
 }
+
+/* Call-to-court prompt mode toggle (On / Off / Auto) in the grid header.
+   Off is the default and the resting state, so it must read as INERT — a desk that
+   never opens this should not see a lit control implying something is switched on.
+   Only on/auto carry colour. Tokens mirror the badges beside it. */
+.tmx-checkin-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--tmx-text-primary);
+  opacity: 0.55;
+}
+
+.tmx-checkin-mode-toggle:hover {
+  opacity: 1;
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+}
+
+.tmx-checkin-mode-toggle.is-on {
+  opacity: 1;
+  color: var(--tmx-accent-green);
+  border-color: var(--tmx-accent-green);
+}
+
+.tmx-checkin-mode-toggle.is-auto {
+  opacity: 1;
+  color: var(--tmx-accent-orange);
+  border-color: var(--tmx-accent-orange);
+}
