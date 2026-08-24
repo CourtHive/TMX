@@ -167,6 +167,16 @@ export interface RestRow {
   anchorUnreliable?: boolean;
   /** Which rung produced the anchor. Absent for `none`. */
   source?: RestSourceKind;
+  /**
+   * Rungs the ladder passed over on its way to `source`, strongest first. Present
+   * only when something was actually skipped.
+   *
+   * A silent fall-through is a fix that hides its own cause: the row reads as a
+   * clean estimate while a recorded stamp sits in the record contradicting it.
+   * Every reason for skipping one is a fault worth someone's attention — a score
+   * filed the next day, or a page asking about the wrong day.
+   */
+  discardedSources?: RestSourceKind[];
   /** The matchUp the rest is measured from. Absent for `none`. */
   fromMatchUpId?: string;
   fromMatchUpLabel?: string;
@@ -192,8 +202,15 @@ const SINGLES = 'SINGLES';
  * no-show *or* a mid-match disqualification. The score tells them apart, so they
  * are decided by `wasPlayed` rather than by status alone. `RETIRED` and
  * `ABANDONED` are likewise absent — both mean time was spent on court.
+ *
+ * `CANCELLED` is here to match `factory/src/query/reports/recoveryTimeline.ts`,
+ * which ported this predicate from this file and added it. Two copies of one rule
+ * that disagree by a status is how a director gets one rest figure in the
+ * Inspector and a different one in the recovery report for the same matchUp; a
+ * cancelled matchUp plainly put nobody on court, so the factory's set is right
+ * and this one follows it.
  */
-const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER']);
+const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED']);
 const DEFAULT_STATUSES = new Set(['DEFAULTED', 'DOUBLE_DEFAULT']);
 
 /** True when this matchUp actually put the participants on court. */
@@ -239,6 +256,38 @@ const LADDER: { source: RestSourceKind; read: (times: NormalizedTimes) => number
 interface Anchor {
   minutes: number;
   source: RestSourceKind;
+  /**
+   * True when a recorded finish sits an implausible distance from its own start —
+   * bookkeeping rather than play. Projected rungs are derived FROM the start and
+   * so are plausible by construction.
+   */
+  implausible?: boolean;
+}
+
+/**
+ * How far after its own start a recorded finish may sit and still be a finish.
+ *
+ * Twelve hours covers any real match including a long weather suspension, while
+ * excluding a score entered the next day. Matches
+ * `MAX_PLAUSIBLE_MATCH_MINUTES` in `factory/src/query/reports/recoveryTimeline.ts`
+ * so the Inspector and the recovery report reject the same stamps.
+ */
+const MAX_PLAUSIBLE_MATCH_MINUTES = 12 * 60;
+
+/**
+ * Whether a recorded finish sits a plausible distance after a known start.
+ *
+ * **Deliberate divergence from the factory**, which returns false when there is
+ * no start at all. That module computes a *duration*, which is meaningless
+ * without one. This module computes a *finish anchor*, which is not: a score
+ * entered from the draw view leaves neither a scheduledTime nor a startTime, and
+ * its stamp is then the only evidence the match happened. With nothing to
+ * contradict, there is nothing to reject.
+ */
+function isPlausibleFinish(finishMinutes: number, startMinutes?: number): boolean {
+  if (startMinutes === undefined) return true;
+  const elapsed = finishMinutes - startMinutes;
+  return elapsed > 0 && elapsed <= MAX_PLAUSIBLE_MATCH_MINUTES;
 }
 
 /**
@@ -251,10 +300,13 @@ interface Anchor {
  * caller to accept it or report nothing.
  */
 export function resolveAnchors(times: NormalizedTimes, timing: RestTiming): Anchor[] {
+  const startReference = times.startMinutes ?? times.calledMinutes ?? times.scheduledMinutes;
   return LADDER.flatMap((rung) => {
     const minutes = rung.read(times);
     if (minutes === undefined) return [];
-    return [{ minutes: rung.projected ? minutes + timing.averageMinutes : minutes, source: rung.source }];
+    if (rung.projected) return [{ minutes: minutes + timing.averageMinutes, source: rung.source }];
+    const implausible = !isPlausibleFinish(minutes, startReference);
+    return [{ minutes, source: rung.source, ...(implausible && { implausible: true }) }];
   });
 }
 
@@ -364,6 +416,37 @@ interface AnchoredPrior {
   anchor: Anchor;
   matchUp: ReadinessMatchUp;
   timing: RestTiming;
+  /** Rungs passed over on the way to `anchor`, strongest first. */
+  discarded: RestSourceKind[];
+}
+
+/**
+ * The rung one prior matchUp should be read from, and what was passed over.
+ *
+ * Two reasons to skip a rung, and they are different faults. **Implausible**: the
+ * stamp sits more than a match's length from its own start, so it records
+ * bookkeeping rather than play. **Ahead of now**: a finish that has not happened,
+ * which is a projection on a matchUp recorded complete early, or a page asking
+ * about a day other than the one the stamp belongs to.
+ *
+ * When nothing is readable the strongest *plausible* rung is still named, so the
+ * row can point at the matchUp it failed to measure rather than at a stamp it has
+ * already rejected. `discarded` then carries only the rungs the gate threw out —
+ * "everything is in the future" is what `anchorUnreliable` already says.
+ */
+function selectAnchor(
+  anchors: Anchor[],
+  asOfMinutes: number,
+): { anchor: Anchor; usable: boolean; discarded: RestSourceKind[] } | undefined {
+  const readable = anchors.findIndex((anchor) => !anchor.implausible && anchor.minutes <= asOfMinutes);
+  if (readable >= 0) {
+    return { anchor: anchors[readable], usable: true, discarded: anchors.slice(0, readable).map((a) => a.source) };
+  }
+
+  const plausible = anchors.findIndex((anchor) => !anchor.implausible);
+  const index = plausible >= 0 ? plausible : 0;
+  const anchor = anchors.at(index);
+  return anchor && { anchor, usable: false, discarded: anchors.slice(0, index).map((a) => a.source) };
 }
 
 /**
@@ -397,11 +480,10 @@ function latestAnchor(
   let future: AnchoredPrior | undefined;
 
   for (const entry of prior) {
-    const anchors = resolveAnchors(entry.times, entry.timing);
-    const usable = anchors.find((candidate) => candidate.minutes <= asOfMinutes);
-    const anchor = usable ?? anchors.at(0);
-    if (!anchor) continue;
-    const candidate = { anchor, matchUp: entry.matchUp, timing: entry.timing };
+    const selected = selectAnchor(resolveAnchors(entry.times, entry.timing), asOfMinutes);
+    if (!selected) continue;
+    const { anchor, usable, discarded } = selected;
+    const candidate = { anchor, matchUp: entry.matchUp, timing: entry.timing, discarded };
     if (usable) {
       if (!past || anchor.minutes > past.anchor.minutes) past = candidate;
     } else if (!future || anchor.minutes < future.anchor.minutes) {
@@ -474,6 +556,7 @@ function restRowFor(
     typeChange,
     ...(showReadyAt && { readyAt: minutesToClock(latest.anchor.minutes + requiredMinutes) }),
     ...(latest.unreliable && { anchorUnreliable: true }),
+    ...(latest.discarded.length && { discardedSources: latest.discarded }),
     source: latest.anchor.source,
     fromMatchUpId: latest.matchUp.matchUpId,
     fromMatchUpLabel: matchUpLabel(latest.matchUp),

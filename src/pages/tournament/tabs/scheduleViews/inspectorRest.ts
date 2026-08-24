@@ -175,16 +175,45 @@ function readDailyLimits(): RestDailyLimits | undefined {
   return result?.matchUpDailyLimits;
 }
 
+/**
+ * The day a matchUp's rest should be measured on.
+ *
+ * A **scheduled** matchUp carries its own answer, and that answer cannot drift:
+ * it is a property of the thing being inspected rather than a second variable
+ * that has to be kept in step with the page. The ambient date is the fallback,
+ * for a catalog card that has not been scheduled yet and genuinely has no day of
+ * its own.
+ *
+ * This ordering exists because the two disagreed in production. The Inspector
+ * took its date from the schedule-page store's `selectedDate`, which seeded from
+ * the tournament's FIRST date and was never synced — TMX drives the date itself
+ * and collapses the component's date strip, so nothing ever wrote to it. The card
+ * badge, on the same matchUp, took gridView's `currentDate` and was correct. One
+ * final, two surfaces, two different days, and rest that read "cannot be
+ * measured" beside a badge reading "41m". The store is fixed (courthive-components
+ * 3.15.1), but a fix that only synchronises two variables leaves the next
+ * consumer free to desynchronise them again. Reading the date off the matchUp
+ * makes that class of bug unrepresentable.
+ */
+export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: string | null): string | null {
+  return matchUp?.schedule?.scheduledDate ?? viewedDate;
+}
+
 /** Rest for one matchUp, resolved against current factory state and the current clock. */
 export function evaluateRest(matchUpId: string, viewedDate: string | null): RestResult {
   const { matchUps } = getCachedAllMatchUps();
+  const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
+  const restDate = restDateFor(
+    hydrated.find((matchUp) => matchUp.matchUpId === matchUpId),
+    viewedDate,
+  );
   const timingFor = makeTimingResolver();
   return analyzeParticipantRest({
     matchUpId,
-    matchUps: (matchUps ?? []) as ReadinessMatchUp[],
-    scheduledDate: viewedDate ?? '',
+    matchUps: hydrated,
+    scheduledDate: restDate ?? '',
     asOfMinutes: nowDayMinutes(),
-    timesFor: (matchUp) => normalizeTimes(matchUp, viewedDate),
+    timesFor: (matchUp) => normalizeTimes(matchUp, restDate),
     dailyLimits: readDailyLimits(),
     timingFor,
   });
@@ -222,6 +251,20 @@ export function describeRest(row: RestRow): string {
   return t('schedule.inspector.rest.resting', { rested, required, time: row.readyAt ?? '' });
 }
 
+/**
+ * The rungs the ladder could not read, as a sentence fragment. Empty when nothing
+ * was skipped, which is the ordinary case.
+ *
+ * Named plainly rather than through the `source.*` labels: those read "from score
+ * entry (est.)", which is a provenance claim and reads as nonsense inside a
+ * sentence about what was rejected.
+ */
+export function describeDiscarded(row: RestRow): string {
+  if (!row.discardedSources?.length) return '';
+  const names = row.discardedSources.map((source) => t(`schedule.inspector.rest.discardedName.${source}`));
+  return t('schedule.inspector.rest.discarded', { sources: names.join(', ') });
+}
+
 /** The daily-load fragment: "3rd match today, limit 3". */
 export function describeLoad(row: RestRow): string {
   const { ordinal, limit } = row.load;
@@ -255,6 +298,15 @@ function buildRow(row: RestRow): HTMLElement {
   if (row.load.atLimit.length) {
     element.dataset.atLimit = row.load.atLimit.join(',');
     element.appendChild(line(t('schedule.inspector.rest.atLimit'), 'tmx-rest-limit'));
+  }
+  // A rung the ladder threw out is a fault in the record, not a detail of the
+  // estimate: a score filed the next day, or a day being asked about that the
+  // stamp does not belong to. Falling through silently would leave the row
+  // reading as a clean projection with the contradiction still sitting in the
+  // data, which is the failure this whole change exists to stop repeating.
+  if (row.discardedSources?.length) {
+    element.dataset.discardedSources = row.discardedSources.join(',');
+    element.appendChild(line(describeDiscarded(row), 'tmx-rest-discarded'));
   }
   // A row whose anchor was inferred rather than recorded must say so structurally,
   // not only in prose, so the distinction survives styling and screen readers.

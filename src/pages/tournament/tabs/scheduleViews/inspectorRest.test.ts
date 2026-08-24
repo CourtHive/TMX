@@ -1,7 +1,9 @@
 import {
+  describeDiscarded,
   describeRest,
   instantLocalDate,
   normalizeTimes,
+  restDateFor,
   toDayMinutesFromClock,
   toDayMinutesFromInstant,
 } from './inspectorRest';
@@ -237,6 +239,51 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
   it('projects a readyAt from the anchor it actually used', () => {
     // 10:38 + 60 minutes of recovery.
     expect(analyze().rows.find((row) => row.participantId === 'p-alice')?.readyAt).toBe('11:38');
+  });
+});
+
+/**
+ * The structural half of the two-viewed-dates fix. Syncing the store's
+ * `selectedDate` (courthive-components 3.15.1) makes the two surfaces agree
+ * today; taking the date off the matchUp makes them unable to disagree.
+ */
+describe('restDateFor — a scheduled matchUp carries its own day', () => {
+  it("prefers the matchUp's own scheduledDate over the ambient viewed date", () => {
+    const matchUp: ReadinessMatchUp = { matchUpId: 'm1', schedule: { scheduledDate: DATE } };
+    expect(restDateFor(matchUp, '2026-01-01')).toBe(DATE);
+  });
+
+  it('falls back to the viewed date for an unscheduled catalog card', () => {
+    expect(restDateFor({ matchUpId: 'm1', schedule: {} }, DATE)).toBe(DATE);
+    expect(restDateFor(undefined, DATE)).toBe(DATE);
+  });
+
+  it('returns null only when neither the matchUp nor the page names a day', () => {
+    expect(restDateFor({ matchUpId: 'm1', schedule: {} }, null)).toBeNull();
+  });
+});
+
+describe('describeDiscarded — a dropped rung is named, not buried', () => {
+  const base: RestRow = {
+    participantId: 'p1',
+    participantName: 'Alice',
+    status: 'resting',
+    requiredMinutes: 60,
+    typeChange: false,
+    load: { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] },
+  };
+
+  it('says nothing when nothing was dropped', () => {
+    expect(describeDiscarded(base)).toBe('');
+    expect(describeDiscarded({ ...base, discardedSources: [] })).toBe('');
+  });
+
+  it('names each dropped rung in plain words rather than provenance phrasing', () => {
+    const text = describeDiscarded({ ...base, discardedSources: ['endTime', 'scoredTime'] });
+    expect(text).toContain('recorded end time');
+    expect(text).toContain('score entry');
+    // The `source.*` labels are provenance claims and read as nonsense here.
+    expect(text).not.toContain('from score entry (est.)');
   });
 });
 

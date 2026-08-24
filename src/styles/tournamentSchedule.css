@@ -385,6 +385,14 @@
   color: var(--tmx-accent-red);
 }
 
+/* A rung the ladder could not read. Amber rather than red: the rest figure above
+   it is still usable, it just came from a weaker source than the record claims to
+   hold — a caution about the data, not a blocker on the decision. */
+.tmx-rest-discarded {
+  font-size: 0.6875rem;
+  color: var(--tmx-accent-orange);
+}
+
 /* ── Schedule2 catalog card: rest badge ──
    The one-line headline rendered through courthive-components'
    `renderCardExtra`. Status drives the colour so a scan of the catalog reads

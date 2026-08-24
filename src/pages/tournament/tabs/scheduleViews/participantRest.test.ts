@@ -540,6 +540,116 @@ describe('the ladder falls through a rung it cannot read', () => {
   });
 });
 
+/**
+ * Mirrors `MAX_PLAUSIBLE_MATCH_MINUTES` in
+ * `factory/src/query/reports/recoveryTimeline.ts`, so the Inspector and the
+ * recovery report reject the same stamps. Raised by the factory session's note
+ * of 2026-08-24: the two ladders are independent implementations of one rule and
+ * a director must not get different rest figures from them.
+ */
+describe('a recorded finish an implausible distance from its own start is not a finish', () => {
+  const target = singles({ id: 'm-final', ids: [ALICE, BOB] });
+  const semi = singles({ id: 'm-semi', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+
+  it('accepts a long match — twelve hours covers a weather suspension', () => {
+    // 09:00 start, finish 20:00: eleven hours, ugly but real.
+    const anchors = resolveAnchors({ scoredMinutes: 1200, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 1200, source: 'scoredTime' });
+  });
+
+  it('rejects a score entered the next morning', () => {
+    // 09:00 start, stamp rolled to 09:30 the following day.
+    const anchors = resolveAnchors({ scoredMinutes: 1440 + 570, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toMatchObject({ source: 'scoredTime', implausible: true });
+  });
+
+  it('rejects a finish that precedes its own start', () => {
+    const anchors = resolveAnchors({ scoredMinutes: 500, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toMatchObject({ source: 'scoredTime', implausible: true });
+  });
+
+  it('accepts a stamp with no start to contradict it — the draw-view entry keeps working', () => {
+    // Deliberate divergence from the factory, which returns false without a start
+    // because it is computing a duration. This module computes a finish anchor.
+    const anchors = resolveAnchors({ scoredMinutes: 700 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 700, source: 'scoredTime' });
+  });
+
+  it('never marks a projected rung implausible — it is derived FROM the start', () => {
+    const anchors = resolveAnchors({ scheduledMinutes: 540 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 630, source: 'scheduledTime' });
+  });
+
+  it('falls through an implausible stamp to the projection, and says which rung it dropped', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 1440 + 570, scheduledMinutes: 540 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 41, source: 'scheduledTime' });
+    expect(alice?.discardedSources).toEqual(['scoredTime']);
+  });
+
+  it('reports no discards on the ordinary path, so the signal means something', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 620, scheduledMinutes: 540 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.discardedSources).toBeUndefined();
+  });
+
+  it('names the matchUp from a plausible rung even when nothing is readable yet', () => {
+    // Every rung ahead of now, and the strongest is also implausible: the row must
+    // still point at the match rather than at the stamp it already rejected.
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 1440 + 570, scheduledMinutes: 700 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ anchorUnreliable: true, source: 'scheduledTime' });
+    expect(alice?.discardedSources).toEqual(['scoredTime']);
+  });
+});
+
+describe('a cancelled matchUp put nobody on court', () => {
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+
+  it('charges no recovery and takes no slot against the daily limit', () => {
+    const cancelled = singles({ id: 'm-prior', ids: [ALICE, CHEN], status: 'CANCELLED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, cancelled],
+          times: { 'm-prior': { endMinutes: 600 } },
+          asOfMinutes: 700,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice?.status).toBe('none');
+    expect(alice?.load.ordinal).toBe(1);
+  });
+});
+
 describe('a completed matchUp with no scheduledDate is dated by its scoredTime', () => {
   /**
    * Scores entered from the draw view leave no `schedule.scheduledDate`, so the

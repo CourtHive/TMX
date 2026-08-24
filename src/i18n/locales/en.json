@@ -1021,6 +1021,14 @@
           "calledAt": "projected from call to court (est.)",
           "scheduledTime": "projected from scheduled time (est.)"
         },
+        "discarded": "Could not read: {{sources}}",
+        "discardedName": {
+          "endTime": "recorded end time",
+          "scoredTime": "score entry",
+          "startTime": "start time",
+          "calledAt": "call to court",
+          "scheduledTime": "scheduled time"
+        },
         "skip": {
           "generic": "Rest cannot be evaluated for this matchUp.",
           "bye": "A BYE needs no rest.",
