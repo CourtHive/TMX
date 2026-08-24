@@ -11,6 +11,10 @@
  * **not** carry `checkedInParticipantIds`) and supply their own wording — the cell menu and the
  * active-strip drop phrase the question differently because they are different gestures.
  *
+ * **Content only — the gating lives in [`checkInPromptMode`](./checkInPromptMode.ts).** This answers
+ * *"who is missing?"*; that answers *"should we interrupt for it?"*. Keeping them apart is what lets
+ * the On/Off/Auto decision be unit-tested without a DOM.
+ *
  * ⚠️ **This is not consulted by `runAutoCallPass`, and that is deliberate (D4f).** Autocall is
  * timer-driven and batched, so there is nobody standing there to answer a prompt. It calls and marks:
  * the badge carries the incomplete state instead. A silent skip would stall the schedule for a reason
@@ -18,22 +22,6 @@
  */
 
 import { getMatchUpCheckInState, awaitingCheckIn } from './checkInState';
-
-export interface CallToCourtPromptOptions {
-  /**
-   * Suppress the prompt when NOBODY has checked in yet.
-   *
-   * For a high-frequency gesture — dragging onto the Now strip — a prompt at zero fires on every
-   * single drop before the desk has checked anyone in, which at the start of a day is every match,
-   * and at a tournament not using check-in at all is every match all week. That is the reflexive
-   * dismissal D4d exists to avoid, so the drop asks only when the count is PARTIAL: somebody is
-   * demonstrably at the desk for this match and somebody else is not, which is real information.
-   *
-   * An explicit "Call to court" from the cell menu leaves this off: the operator asked to call this
-   * one match, so "nobody is here" is exactly what they need to be told.
-   */
-  onlyWhenPartial?: boolean;
-}
 
 export interface CallToCourtPrompt {
   /** How many of the matchUp's individuals are not yet at the desk. Always ≥ 1. */
@@ -46,10 +34,9 @@ export interface CallToCourtPrompt {
  * Returns null when the call needs no warning — either everyone is checked in, or the matchUp has no
  * participants who could check in (an unfilled draw position).
  */
-export function callToCourtPrompt(matchUp?: any, options: CallToCourtPromptOptions = {}): CallToCourtPrompt | null {
+export function callToCourtPrompt(matchUp?: any): CallToCourtPrompt | null {
   const state = getMatchUpCheckInState(matchUp);
   if (!state.hasParticipants) return null;
-  if (options.onlyWhenPartial && state.checkedInCount === 0) return null;
 
   const awaiting = awaitingCheckIn(state);
   if (!awaiting.length) return null;

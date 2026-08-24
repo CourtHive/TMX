@@ -2609,6 +2609,15 @@
     "badgePartial_one": "{{count}} participant has not checked in yet",
     "badgePartial_other": "{{count}} participants have not checked in yet",
     "callOnDropBeforeCheckIn_one": "{{count}} participant has not checked in. Call this match to court anyway?",
-    "callOnDropBeforeCheckIn_other": "{{count}} participants have not checked in. Call this match to court anyway?"
+    "callOnDropBeforeCheckIn_other": "{{count}} participants have not checked in. Call this match to court anyway?",
+    "promptMode": {
+      "label": "Check-in prompts",
+      "off": "Off",
+      "on": "On",
+      "auto": "Auto",
+      "offHint": "Never ask before calling a match to court.",
+      "onHint": "Always ask when someone has not checked in.",
+      "autoHint": "Ask only when this tournament is using check-in today."
+    }
   }
 }

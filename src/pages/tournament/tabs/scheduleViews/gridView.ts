@@ -271,11 +271,14 @@ import {
   writeScheduledGroupBy,
   readScheduledFilters,
   writeScheduledFilters,
+  readCheckInPromptMode,
   readInspectorVisible,
   writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
+import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
+import { buildCheckInModeToggle } from './checkInModeToggle';
 import { renderInspectorSections } from './inspectorReadiness';
 import { renderCheckInBadge } from './checkInBadge';
 import { renderRestBadge } from './restBadge';
@@ -365,7 +368,13 @@ export function renderGridView(
       renderCell: (matchUp) => {
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
-        return buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
+        const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
+        // The strip is where the call-to-court gesture happens, so the check-in state has to be
+        // legible HERE and not only back on the catalog card. Never gated by the prompt mode:
+        // `off` means "do not interrupt me", not "show me nothing".
+        const badge = renderCheckInBadge(matchUp.matchUpId);
+        if (badge) cell.appendChild(badge);
+        return cell;
       },
     },
   );
@@ -397,7 +406,10 @@ export function renderGridView(
     scheduleDates,
     issues,
     courtGridElement: gridWrapper,
-    headerActions: options?.headerActions,
+    // Built here rather than by each caller: three entry points (schedulingTab, planView,
+    // profileView) thread headerActions, and the prompt mode belongs to the schedule surface itself
+    // rather than to any one of them.
+    headerActions: [buildCheckInModeToggle(), ...(options?.headerActions ?? [])],
     titleLeadingActions: options?.titleLeadingActions,
     titleSlot: options?.titleSlot,
     // Seed the store with the persisted visibility so the very first click
@@ -2930,10 +2942,19 @@ function commitActiveStripDrop(
   const dropped = getCachedAllMatchUps()?.matchUps?.find(
     (matchUp: any) => matchUp?.matchUpId === payload.matchUp.matchUpId,
   );
-  const prompt = callToCourtPrompt(dropped, { onlyWhenPartial: true });
-  const message =
-    prompt && `${t('checkIn.callOnDropBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`;
-  if (message && !globalThis.confirm(message)) return;
+  const prompt = callToCourtPrompt(dropped);
+  const gated =
+    prompt &&
+    shouldPromptOnCall({
+      mode: readCheckInPromptMode(),
+      inUse: checkInInUse(getCachedAllMatchUps()?.matchUps, currentDate),
+      awaitingCount: prompt.awaitingCount,
+    });
+  if (
+    gated &&
+    !globalThis.confirm(`${t('checkIn.callOnDropBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`)
+  )
+    return;
 
   const methods: any[] = [];
 

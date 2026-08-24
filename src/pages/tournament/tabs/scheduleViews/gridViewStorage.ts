@@ -1,3 +1,10 @@
+import { isCheckInPromptMode, DEFAULT_CHECK_IN_PROMPT_MODE } from 'services/checkIn/checkInPromptMode';
+
+// constants and types
+import type { CheckInPromptMode } from 'services/checkIn/checkInPromptMode';
+
+const CHECK_IN_PROMPT_MODE_KEY = 'tmx.schedule.checkInPromptMode';
+
 /**
  * `gridView.ts` persists five pieces of view state across page reloads via
  * `localStorage`:
@@ -136,4 +143,23 @@ export function writeInspectorVisible(visible: boolean): void {
   } catch {
     // storage unavailable
   }
+}
+
+/**
+ * Call-to-court prompt mode (On / Off / Auto). Defaults to `off`.
+ *
+ * **localStorage is a deliberate v1 choice with a known limitation.** "Does this tournament run a
+ * check-in desk?" is a property of operating practice, not of this browser, so two desks at the same
+ * tournament can disagree. That is tolerable only because the default is `off`: a lost or divergent
+ * setting degrades to "no prompts", which is the safe direction. The durable home is a sanctioning
+ * policy on the tournament record — see the note in TMX_PRESENCE_AND_CHECK_IN — and when that lands
+ * it should take precedence over this, with `auto` retiring.
+ */
+export function readCheckInPromptMode(): CheckInPromptMode {
+  const stored = globalThis.localStorage?.getItem(CHECK_IN_PROMPT_MODE_KEY);
+  return isCheckInPromptMode(stored) ? stored : DEFAULT_CHECK_IN_PROMPT_MODE;
+}
+
+export function writeCheckInPromptMode(mode: CheckInPromptMode): void {
+  globalThis.localStorage?.setItem(CHECK_IN_PROMPT_MODE_KEY, mode);
 }

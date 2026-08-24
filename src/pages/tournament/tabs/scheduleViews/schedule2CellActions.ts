@@ -8,6 +8,9 @@
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
+import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { readCheckInPromptMode } from './gridViewStorage';
+import { getCachedAllMatchUps } from './schedule2DataCache';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { collectStartAllRestWarning, type StartAllRestWarning } from './startAllRestGuard';
 import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
@@ -336,8 +339,18 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     // rang ahead, an official who waved them through — and a hard block would teach operators to check
     // everyone in pre-emptively, which destroys the signal the check-in is there to carry.
     const prompt = callToCourtPrompt(matchUp);
-    const message = prompt && `${t('checkIn.callBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`;
-    if (message && !globalThis.confirm(message)) return;
+    const gated =
+      prompt &&
+      shouldPromptOnCall({
+        mode: readCheckInPromptMode(),
+        inUse: checkInInUse(getCachedAllMatchUps()?.matchUps, scheduledDate),
+        awaitingCount: prompt.awaitingCount,
+      });
+    if (
+      gated &&
+      !globalThis.confirm(`${t('checkIn.callBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`)
+    )
+      return;
 
     executeMethods(
       [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: new Date().toISOString() } }],
