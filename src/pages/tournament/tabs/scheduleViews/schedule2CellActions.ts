@@ -8,7 +8,7 @@
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
-import { awaitingCheckIn, getMatchUpCheckInState } from 'services/checkIn/checkInState';
+import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { collectStartAllRestWarning, type StartAllRestWarning } from './startAllRestGuard';
 import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -335,15 +335,9 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     // WARN and proceed, never block (D4d). The desk knows things the record does not — a player who
     // rang ahead, an official who waved them through — and a hard block would teach operators to check
     // everyone in pre-emptively, which destroys the signal the check-in is there to carry.
-    const checkInState = getMatchUpCheckInState(matchUp);
-    const awaiting = awaitingCheckIn(checkInState);
-    if (checkInState.hasParticipants && awaiting.length) {
-      const names = awaiting
-        .map((participant) => participant.participantName)
-        .filter(Boolean)
-        .join(', ');
-      if (!globalThis.confirm(`${t('checkIn.callBeforeCheckIn', { count: awaiting.length })}\n\n${names}`)) return;
-    }
+    const prompt = callToCourtPrompt(matchUp);
+    const message = prompt && `${t('checkIn.callBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`;
+    if (message && !globalThis.confirm(message)) return;
 
     executeMethods(
       [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: new Date().toISOString() } }],
