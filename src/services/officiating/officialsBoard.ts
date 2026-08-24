@@ -1,0 +1,160 @@
+/**
+ * The officials board — who is on which court right now, who is free, who has been working.
+ *
+ * P0 of TMX_OFFICIALS_COORDINATION: read-only, derived entirely from data the factory already
+ * hydrates. No schema change, no AMS registry, no declarations service, no factory work.
+ *
+ * **D5 (CA, 2026-08-24): all four states derive. Nothing is persisted.**
+ *
+ * | state | derivation |
+ * |---|---|
+ * | `onCourt` | an assigned matchUp is in progress |
+ * | `assigned` | an assigned matchUp for this date has not started |
+ * | `waiting` | signed in **on this date**, holding no current assignment |
+ * | `available` | has the OFFICIAL role, not signed in today — engaged, but not known to be here |
+ *
+ * The plan called `waiting` "not derivable — a fact about the physical world". That holds only if
+ * arrival goes unrecorded, and `SIGN_IN_STATUS` records exactly that, role-agnostically. Deriving it
+ * keeps officials and volunteers on **one** presence model rather than two.
+ *
+ * Pure and DOM-free: TMX has no jsdom, so a decision made inside a renderer gets no unit coverage.
+ */
+
+import { participantRoles } from 'tods-competition-factory';
+
+// constants and types
+const { OFFICIAL } = participantRoles;
+
+const SIGN_IN_STATUS = 'SIGN_IN_STATUS';
+const SIGNED_IN = 'SIGNED_IN';
+const IN_PROGRESS = 'IN_PROGRESS';
+const SUSPENDED = 'SUSPENDED';
+
+const COMPLETED_STATUSES = new Set([
+  'CANCELLED',
+  'ABANDONED',
+  'COMPLETED',
+  'DEAD_RUBBER',
+  'DEFAULTED',
+  'DOUBLE_WALKOVER',
+  'DOUBLE_DEFAULT',
+  'RETIRED',
+  'WALKOVER',
+]);
+
+export type OfficialState = 'onCourt' | 'assigned' | 'waiting' | 'available';
+
+export interface OfficialRow {
+  participantId: string;
+  participantName: string;
+  state: OfficialState;
+  /** Court of the in-progress or next assignment, when there is one. */
+  courtName?: string;
+  matchUpId?: string;
+  /** `scheduledTime` of the next not-yet-started assignment on this date. */
+  nextScheduledTime?: string;
+  matchesToday: number;
+  minutesOnCourtToday: number;
+}
+
+/**
+ * Was this person signed in **on this date**?
+ *
+ * **Deliberately not `participant.signedIn`.** That field is derived by `getParticipantMap` via
+ * `getTimeItem`, which returns the *latest* `SIGN_IN_STATUS` by `createdAt` — and since nothing signs
+ * anybody out at end of day, a Thursday sign-in still reads SIGNED_IN on Sunday. Reading the history
+ * and filtering by date is what makes `waiting` mean what it says.
+ *
+ * **A date with no entry returns false, and that is the point.** It renders `available` — "not known
+ * to be here" — never `waiting`. Presenting an inferred presence as a recorded one is precisely the
+ * trap the presence plan keeps naming.
+ */
+export function signedInOnDate(participant: any, date: string): boolean {
+  const entries = (participant?.timeItems ?? [])
+    .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
+    .filter((timeItem: any) => String(timeItem.createdAt).slice(0, 10) === date);
+
+  if (!entries.length) return false;
+
+  const latest = entries.reduce((acc: any, timeItem: any) =>
+    String(timeItem.createdAt) > String(acc.createdAt) ? timeItem : acc,
+  );
+  return latest?.itemValue === SIGNED_IN;
+}
+
+/**
+ * `"HH:MM:SS"` to whole minutes.
+ *
+ * The factory attaches `matchUpDuration` as a formatted string during hydration
+ * (`getMatchUpScheduleDetails`); the underlying function is **not** exported, so parsing the field is
+ * the supported route and reimplementing the START/STOP/RESUME/END ladder here would be a second
+ * source of truth for a number the factory already computes.
+ */
+export function durationToMinutes(duration?: string): number {
+  if (!duration) return 0;
+  const parts = String(duration).split(':').map(Number);
+  if (parts.length < 2 || parts.some((part) => !Number.isFinite(part))) return 0;
+  const [hours, minutes] = parts;
+  return hours * 60 + minutes;
+}
+
+function isLive(matchUp: any): boolean {
+  return matchUp?.matchUpStatus === IN_PROGRESS || matchUp?.matchUpStatus === SUSPENDED;
+}
+
+function isFinished(matchUp: any): boolean {
+  return COMPLETED_STATUSES.has(matchUp?.matchUpStatus) || matchUp?.winningSide !== undefined;
+}
+
+/** Officials are identified by what they DO, never by participantType. */
+export function isOfficial(participant: any): boolean {
+  return participant?.participantRole === OFFICIAL;
+}
+
+export interface BoardArgs {
+  matchUps: any[];
+  participants: any[];
+  /** The viewed date, `YYYY-MM-DD`. */
+  date: string;
+}
+
+export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs): OfficialRow[] {
+  const officials = (participants ?? []).filter(isOfficial);
+  const onDate = (matchUps ?? []).filter((matchUp) => matchUp?.schedule?.scheduledDate === date);
+
+  const rows = officials.map((participant: any) => {
+    const assigned = onDate.filter((matchUp) => matchUp?.schedule?.official === participant.participantId);
+    const live = assigned.find(isLive);
+    const upcoming = assigned
+      .filter((matchUp) => !isLive(matchUp) && !isFinished(matchUp))
+      .toSorted((a, b) =>
+        String(a?.schedule?.scheduledTime ?? '').localeCompare(String(b?.schedule?.scheduledTime ?? '')),
+      );
+
+    const current = live ?? upcoming[0];
+    let state: OfficialState;
+    if (live) state = 'onCourt';
+    else if (upcoming.length) state = 'assigned';
+    else if (signedInOnDate(participant, date)) state = 'waiting';
+    else state = 'available';
+
+    return {
+      participantId: participant.participantId,
+      participantName: participant.participantName ?? '',
+      state,
+      courtName: current?.schedule?.courtName,
+      matchUpId: current?.matchUpId,
+      nextScheduledTime: live ? undefined : upcoming[0]?.schedule?.scheduledTime,
+      matchesToday: assigned.length,
+      minutesOnCourtToday: assigned.reduce((total, matchUp) => total + durationToMinutes(matchUp?.matchUpDuration), 0),
+    };
+  });
+
+  // Pre-sorted before it reaches Tabulator (house rule): busiest states first, then by name.
+  const ORDER: OfficialState[] = ['onCourt', 'assigned', 'waiting', 'available'];
+  return rows.toSorted(
+    (a, b) =>
+      ORDER.indexOf(a.state) - ORDER.indexOf(b.state) ||
+      a.participantName.localeCompare(b.participantName, undefined, { numeric: true }),
+  );
+}

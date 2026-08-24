@@ -25,6 +25,9 @@ import {
   TOURNAMENT_TEAMS,
   PARTICIPANTS,
   MATCHUPS_TAB,
+  OFFICIALS_TAB,
+  OFFICIALS_CONTROL,
+  TOURNAMENT_OFFICIALS,
   PUBLISHING_TAB,
   PUBLISHING_CONTROL,
   TOURNAMENT_PUBLISHING,
@@ -55,6 +58,7 @@ const refMap: Record<string, string> = {
   [PARTICIPANTS]: 'p-tab',
   [EVENTS_TAB]: 'e-tab',
   [MATCHUPS_TAB]: 'm-tab',
+  [OFFICIALS_TAB]: 'of-tab',
   [SCHEDULING_TAB]: 'sw-tab',
   [VENUES_TAB]: 'v-tab',
   [PUBLISHING_TAB]: 'b-tab',
@@ -96,6 +100,16 @@ export function tournamentContent(): void {
             <div class='section block'>
               <div id='${SCHEDULING_CONTROL}' class='controlBar flexcol flexcenter'></div>
               <div id='${SCHEDULING_CONTAINER}' style='width: 100%; height: 0; flex: 1 1 auto; min-height: 0;'></div>
+            </div>
+        </div>
+        `;
+
+  const officialsTab = `
+        <div class='tab_section officials_tab'>
+            <div class='section'>
+              <div class='tabHeader foreground'></div>
+              <div id='${OFFICIALS_CONTROL}' class='controlBar'></div>
+              <div id='${TOURNAMENT_OFFICIALS}' class='tableClass flexcol flexcenter'></div>
             </div>
         </div>
         `;
@@ -163,6 +177,7 @@ export function tournamentContent(): void {
     'sw-tab': schedulingTab,
     'v-tab': venuesTab,
     'm-tab': matchUpsTab,
+    'of-tab': officialsTab,
     'r-tab': reportsTab,
     'rg-tab': registrationsTab,
     'b-tab': publishingTab,
