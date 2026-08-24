@@ -125,6 +125,24 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
   selectReport(initialReport);
 }
 
+/**
+ * Parameters every factory report is generated with.
+ *
+ * `utcOffsetMinutes` is the venue's offset from UTC (local = UTC + offset),
+ * taken from the runtime rather than a stored value so it is DST-correct for an
+ * operator sitting at the venue. Until now `generateReport` was called with no
+ * parameters at all, so the offset path the factory wrappers already expose was
+ * dead and each report had to localize its own timestamps client-side.
+ *
+ * Caveat for reports that add more time columns: a single offset is the offset
+ * *now*, so a tournament spanning a DST change is off by an hour on the far side
+ * of it. `localizeReportTimes` below converts per instant and does not have that
+ * problem — prefer that shape when a report carries several timestamps.
+ */
+function reportParameters(): Record<string, any> {
+  return { utcOffsetMinutes: -new Date().getTimezoneOffset() };
+}
+
 async function selectReport(report: any): Promise<void> {
   const { reportId, name, source } = report;
   activeReportName = name;
@@ -134,7 +152,7 @@ async function selectReport(report: any): Promise<void> {
   if (source === 'server') {
     await fetchServerReport(reportId);
   } else {
-    const result: any = tournamentEngine.generateReport({ reportId });
+    const result: any = tournamentEngine.generateReport({ reportId, parameters: reportParameters() });
     if (result.error) return;
     localizeReportTimes(result.rows);
     activeReport = { columns: result.columns, rows: result.rows };

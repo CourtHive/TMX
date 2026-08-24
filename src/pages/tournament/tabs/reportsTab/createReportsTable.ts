@@ -1,4 +1,6 @@
+import { collectReportParticipantIds, resolveReportParticipantId } from './reportParticipants';
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
+import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
@@ -44,10 +46,18 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
 } {
   destroyTable({ anchorId: TOURNAMENT_REPORTS });
 
-  // If rows contain participantId, resolve full participant objects for renderParticipant
+  // If rows contain participantId, resolve full participant objects for renderParticipant.
+  // `withIndividualParticipants` is what makes a PAIR row render its two members
+  // as separately clickable names instead of one unclickable pair name.
+  //
+  // It is REQUIRED by the `sideBySide` layout below, not merely complementary:
+  // `renderPairParticipant` iterates `individualParticipants`, so without the
+  // hydration a PAIR cell renders EMPTY rather than falling back to the pair
+  // name. Measured — journey 107's doubles case finds 0 rendered names when this
+  // flag is dropped. Change the two together or not at all.
   const hasParticipantId = rows.length > 0 && 'participantId' in rows[0];
   if (hasParticipantId) {
-    const result: any = tournamentEngine.getParticipants({});
+    const result: any = tournamentEngine.getParticipants({ withIndividualParticipants: true });
     const pMap: Record<string, any> = {};
     for (const p of result?.participants ?? []) {
       pMap[p.participantId] = p;
@@ -58,6 +68,20 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
       }
     }
   }
+
+  // Prev/next inside the card walks the whole table, not just the clicked row.
+  const participantIds = collectReportParticipantIds(rows);
+
+  // `renderIndividual` already calls `pointerEvent.stopPropagation()` before it
+  // invokes this (courthive-components `renderIndividual.ts:90`), so a click on a
+  // name in a draw-navigable report opens the card WITHOUT also firing the
+  // `rowClick` handler below. Do not add a second stopPropagation here — verify
+  // that one is still there instead.
+  const onParticipantClick = (params: any) => {
+    const participantId = resolveReportParticipantId(params);
+    if (!participantId) return;
+    participantProfileModal({ participantId, participantIds });
+  };
 
   const numberCellFormatter = (cell: any) => {
     const value = cell.getValue();
@@ -71,7 +95,15 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
         return {
           title: col.title,
           field: col.key,
-          formatter: formatParticipant(undefined),
+          // `sideBySide` renders a PAIR as its two individuals, each with its own
+          // click target, so a doubles row resolves unambiguously. Reached by
+          // Seeding Performance, whose rows are PAIRs for a doubles event.
+          //
+          // It must be passed as the formatter's third argument explicitly:
+          // Tabulator's own third argument is `onRendered`, not a layout, which is
+          // why `formatParticipant(...)` handed straight to `formatter` can never
+          // take this branch. Requires the hydration above.
+          formatter: (cell: any) => (formatParticipant(onParticipantClick) as any)(cell, undefined, 'sideBySide'),
           headerSort: true,
           minWidth: 180,
         };
