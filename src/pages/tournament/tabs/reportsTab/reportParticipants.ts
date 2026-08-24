@@ -35,8 +35,10 @@ export interface ReportParticipant {
 
 /** A report row, as the factory report wrappers emit it plus the table's hydration. */
 export interface ReportRow {
+  winnerParticipant?: ReportParticipant;
   side1Participant?: ReportParticipant;
   side2Participant?: ReportParticipant;
+  winningParticipantId?: string;
   participant?: ReportParticipant;
   side1ParticipantId?: string;
   side2ParticipantId?: string;
@@ -48,12 +50,15 @@ export interface ReportRow {
  *
  * `participantId` is the participant-grain reports (one row per participant);
  * the side keys are the matchUp-grain ones, where a row names two opponents and
- * neither is "the" participant of the row.
+ * neither is "the" participant of the row. `winningParticipantId` is the winner
+ * columns — one hydrated key serves both Match Results and the Draw Structure
+ * report, since a row has exactly one winner.
  */
 export const PARTICIPANT_ID_KEYS = [
   { idKey: 'participantId', hydratedKey: 'participant' },
   { idKey: 'side1ParticipantId', hydratedKey: 'side1Participant' },
   { idKey: 'side2ParticipantId', hydratedKey: 'side2Participant' },
+  { idKey: 'winningParticipantId', hydratedKey: 'winnerParticipant' },
 ] as const;
 
 /**

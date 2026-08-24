@@ -50,9 +50,19 @@ const HIDDEN_FIELDS = [
   'structureId',
 ];
 
-// Side columns whose plain name string is upgraded to a clickable participant
+// Name-bearing columns whose plain string is upgraded to a clickable participant
 // when the report carries the matching id.
-const SIDE_COLUMNS: Record<string, string> = { side1: 'side1Participant', side2: 'side2Participant' };
+//
+// `winner` (Draw Structure) is here because it is the ONLY participant that
+// report names — without it a champion is unreachable. Match Results' equivalent
+// column, `winnerName`, is deliberately NOT here: that row already renders both
+// opponents as click targets, so converting it would add a third identical chip
+// and reach nobody new. The id is still emitted for export and other consumers.
+const SIDE_COLUMNS: Record<string, string> = {
+  side1: 'side1Participant',
+  side2: 'side2Participant',
+  winner: 'winnerParticipant',
+};
 
 export function createReportsTable({ columns, rows }: { columns: ReportColumn[]; rows: Record<string, any>[] }): {
   table: any;

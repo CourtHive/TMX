@@ -225,4 +225,37 @@ test.describe('Journey 107 — reports participant card', () => {
     await expect(modal).toBeVisible({ timeout: 10_000 });
     if (clicked) await expect(modal).toContainText(clicked, { timeout: 5_000 });
   });
+
+  test('the Draw Structure report opens the card from its winner column', async ({ page }) => {
+    // The winner was the one name in the reports surface with no reachable card.
+    // Its id is a PERSON id upstream, so this also proves the factory resolves it
+    // to a participantId rather than passing the personId through.
+    const tournamentId = await seedTournament(page, PROFILE_COMPLETED);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+
+    const winner = await page.evaluate(() => {
+      const res: any = dev.factory.tournamentEngine.generateReport({ reportId: 'structure.drawReport' });
+      const row = (res?.rows ?? []).find((r: any) => r.winner);
+      return row ? { name: row.winner as string, id: row.winningParticipantId as string } : null;
+    });
+    expect(winner, 'no structure reported a winner — the case would be untested').toBeTruthy();
+    expect(winner!.id, 'structure report carries no winningParticipantId').toBeTruthy();
+
+    await page.evaluate((id) => {
+      window.location.hash = `#/tournament/${id}/reports/structure.drawReport`;
+    }, tournamentId);
+
+    const firstRow = page.locator('#tournamentReports .tabulator-row').first();
+    await expect(firstRow).toBeVisible({ timeout: 10_000 });
+
+    const name = firstRow.locator('.tmx-i').first();
+    await expect(name).toBeVisible({ timeout: 10_000 });
+    await name.click();
+
+    const modal = page.locator(MODAL);
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await expect(modal).toContainText(winner!.name, { timeout: 5_000 });
+  });
 });
