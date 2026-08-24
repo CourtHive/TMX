@@ -9,6 +9,7 @@ import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/parti
 import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
+import { renderOfficialsTab, destroyOfficialsTab } from 'pages/tournament/tabs/officialsTab/officialsTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
@@ -52,6 +53,7 @@ import {
 } from 'services/messaging/crowdsourcedScores';
 import {
   MATCHUPS_TAB,
+  OFFICIALS_TAB,
   PARTICIPANTS,
   PUBLISHING_TAB,
   SCHEDULING_TAB,
@@ -162,6 +164,7 @@ let activeRenderedTab: string | null = null;
 
 function destroyActiveTab(): void {
   if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
+  if (activeRenderedTab === OFFICIALS_TAB) destroyOfficialsTab();
   activeRenderedTab = null;
 }
 
@@ -203,6 +206,7 @@ export function routeTo(config: any): void {
     if (selectedTab === TOURNAMENT_OVERVIEW) renderOverview();
     if (selectedTab === EVENTS_TAB) renderEventsTab(config);
     if (selectedTab === MATCHUPS_TAB) renderMatchUpTab();
+    if (selectedTab === OFFICIALS_TAB) renderOfficialsTab();
     if (selectedTab === VENUES_TAB) renderVenueTab({ venueView: config.venueView, venueId: config.venueId });
     if (selectedTab === REPORTS_TAB) renderReportsTab({ reportId: config.reportId });
     if (selectedTab === REGISTRATIONS_TAB) void renderRegistrationsTab();

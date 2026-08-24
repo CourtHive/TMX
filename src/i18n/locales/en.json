@@ -2619,5 +2619,24 @@
       "onHint": "Always ask when someone has not checked in.",
       "autoHint": "Ask only when this tournament is using check-in today."
     }
+  },
+  "ofc": "Officials",
+  "officials": {
+    "empty": "No officials on this tournament yet",
+    "state": {
+      "onCourt": "On court",
+      "assigned": "Assigned",
+      "waiting": "Waiting",
+      "available": "Available",
+      "availableHint": "Not signed in today — engaged, but not known to be here"
+    },
+    "columns": {
+      "name": "Official",
+      "state": "State",
+      "court": "Court",
+      "next": "Next",
+      "matches": "Matches",
+      "onCourt": "On court"
+    }
   }
 }

@@ -36,6 +36,7 @@ import {
   SCHEDULING_TAB,
   PARTICIPANTS,
   MATCHUPS_TAB,
+  OFFICIALS_TAB,
   SETTINGS_TAB,
   REPORTS_TAB,
   VENUES_TAB,
@@ -70,6 +71,10 @@ const TAB_ACTIONS: Record<string, CapabilityAction[]> = {
     'modifyEntries',
   ],
   [MATCHUPS_TAB]: ['enterScores', 'modifySchedule'],
+  // Read-only board. Listed so its visibility is a decision rather than an
+  // omission — an unlisted tab falls through `ownsTabVisibility` and is always
+  // shown, which is fail-open by accident.
+  [OFFICIALS_TAB]: ['modifySchedule'],
   [SCHEDULING_TAB]: ['modifySchedule', 'useBulkScheduling'],
   // Not just venue CRUD: a scheduler needs this surface to place matches on courts.
   [VENUES_TAB]: ['createVenue', 'deleteVenue', 'modifySchedule'],
@@ -82,7 +87,7 @@ const TAB_ACTIONS: Record<string, CapabilityAction[]> = {
  * them is the point. A recorder scoring on court 7 needs to know when and where
  * they are playing.
  */
-const READ_USEFUL_TABS: ReadonlySet<string> = new Set([MATCHUPS_TAB, SCHEDULING_TAB]);
+const READ_USEFUL_TABS: ReadonlySet<string> = new Set([MATCHUPS_TAB, SCHEDULING_TAB, OFFICIALS_TAB]);
 
 /** Tabs whose visibility this module does NOT own. */
 const EXTERNALLY_GATED: ReadonlySet<string> = new Set([REGISTRATIONS_TAB]);

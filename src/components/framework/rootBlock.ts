@@ -223,6 +223,7 @@ function newBlock(): HTMLDivElement {
     </div>
     <div id='trnynav' class="navbar-item" style="display: flex; flex-direction: row;">
       <i id='o-route' class="nav-icon fa-solid fa-trophy"></i>
+      <i id='of-route' class="nav-icon fa-solid fa-user-shield"></i>
       <i id='b-route' class="nav-icon fa-solid fa-eye"></i>
       <i id='p-route' class="nav-icon fa-solid fa-user-group"></i>
       <i id='e-route' class="nav-icon fa-solid fa-diagram-project"></i>

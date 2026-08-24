@@ -29,6 +29,7 @@ export const S = {
   NAV_PARTICIPANTS: id('p-route'),
   NAV_EVENTS: id('e-route'),
   NAV_MATCHUPS: id('m-route'),
+  NAV_OFFICIALS: id('of-route'),
   NAV_SCHEDULE: id('s-route'),
   // The "Schedule" nav icon keeps its historical DOM id 's2-route' but now
   // routes to the unified /scheduling workspace (the /schedule2 shell is retired).
@@ -78,6 +79,7 @@ export const S = {
 
   // MatchUps
   TOURNAMENT_MATCHUPS: id('tournamentMatchUps'),
+  TOURNAMENT_OFFICIALS: id('tournamentOfficials'),
   MATCHUPS_CONTROL: id('matchUpsControl'),
 
   // Schedule
