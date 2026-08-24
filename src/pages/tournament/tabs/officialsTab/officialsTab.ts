@@ -14,6 +14,9 @@
  */
 
 import { getCachedAllMatchUps, invalidateMatchUpCaches } from 'pages/tournament/tabs/scheduleViews/schedule2DataCache';
+import { contactFormatter } from 'components/tables/common/formatters/contactFormatter';
+import { controlBar } from 'courthive-components';
+import { callSheet } from 'components/modals/callSheet';
 import { buildOfficialsBoard, type OfficialRow } from 'services/officiating/officialsBoard';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -22,7 +25,7 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 // constants and types
-import { TOURNAMENT_OFFICIALS } from 'constants/tmxConstants';
+import { OFFICIALS_CONTROL, TOURNAMENT_OFFICIALS, RIGHT } from 'constants/tmxConstants';
 
 const TABLE_KEY = 'officialsBoard';
 
@@ -73,6 +76,15 @@ function columns(): any[] {
     { title: t('officials.columns.next'), field: 'nextScheduledTime', hozAlign: 'center', headerSort: true },
     { title: t('officials.columns.matches'), field: 'matchesToday', hozAlign: 'center', headerSort: true },
     {
+      // D6 (mark, don't hide) lives inside contactFormatter — every contact renders, with a marker
+      // on the un-consented ones. A second isPublic gate here would silently disagree with the
+      // participants call sheet.
+      title: t('officials.columns.contact'),
+      field: 'contacts',
+      formatter: contactFormatter,
+      headerSort: false,
+    },
+    {
       title: t('officials.columns.onCourt'),
       field: 'minutesOnCourtToday',
       hozAlign: 'center',
@@ -100,12 +112,50 @@ export function renderOfficialsTab(): void {
   });
 
   context.tables[TABLE_KEY] = table;
+  mountControlBar(table);
 
   // Every column here is derived from matchUp state, so a score or a reschedule behind this board
   // silently invalidates all of it.
   unsubscribe = onMutationApplied(() => {
     invalidateMatchUpCaches();
     context.tables[TABLE_KEY]?.replaceData(rows());
+  });
+}
+
+/**
+ * Call sheet over the board.
+ *
+ * Selection wins when there is one; otherwise the sheet covers the rows the current filters leave
+ * visible. `getRows('active')` rather than `getData()` is load-bearing — `getData()` returns the
+ * unfiltered set, so a director who filtered to the officials still waiting and pressed Call sheet
+ * would get the whole crew. Same rule the participants sheet documents.
+ *
+ * The rows go through verbatim: `buildCallSheet` owns who is reachable and who is not, and
+ * re-deriving personnel here is exactly the drift its header warns about.
+ */
+function openCallSheet(table: any): void {
+  const selected = table?.getSelectedData?.() ?? [];
+  const visible = (table?.getRows('active') ?? []).map((row: any) => row.getData());
+  const rows = selected.length ? selected : visible;
+  callSheet({ rows, subtitle: t('officials.callSheetSubtitle') });
+}
+
+function mountControlBar(table: any): void {
+  const target = document.getElementById(OFFICIALS_CONTROL);
+  if (!target) return;
+  target.innerHTML = '';
+  controlBar({
+    table,
+    target,
+    items: [
+      {
+        label: t('officials.callSheet'),
+        onClick: () => openCallSheet(table),
+        location: RIGHT,
+        id: 'officialsCallSheet',
+        intent: 'none',
+      },
+    ],
   });
 }
 
