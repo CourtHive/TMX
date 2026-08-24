@@ -1,8 +1,8 @@
 import { collectReportParticipantIds, PARTICIPANT_ID_KEYS, resolveReportParticipantId } from './reportParticipants';
 import { formatParticipant } from 'components/tables/common/formatters/participantFormatter';
-import { formatSideParticipant } from './sideParticipantFormatter';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { formatSideParticipant } from './sideParticipantFormatter';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
