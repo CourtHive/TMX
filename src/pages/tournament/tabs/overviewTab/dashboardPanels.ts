@@ -1,5 +1,6 @@
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
+import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
@@ -551,9 +552,19 @@ export function createActionsPanel(): HTMLElement {
     );
   }
 
-  // Manage access moved to admin-client (provider admin work belongs there,
-  // not in TMX which is end-user-only). The button used to live here; users
-  // now access it via the admin-client `/admin` page → TournamentDetail panel.
+  // Manage access itself lives in the admin console (provider admin work belongs
+  // there, not in TMX which is end-user-only). What is here is a DEEP LINK, not
+  // a return of that UI: grants are per-tournament, and this panel is the only
+  // place in TMX that already knows which tournament — the avatar menu does not,
+  // which is why the general console icon in homeNavigation cannot serve this.
+  if (tournamentRecord && admin && providerId) {
+    btnContainer.appendChild(
+      createActionButton(t('modals.tournamentActions.scopedAccess'), 'fa-user-shield', () => {
+        const route = consoleGrantsRoute(tournamentRecord.tournamentId);
+        globalThis.open(consoleUrl(globalThis.location.origin, route), '_blank', 'noopener');
+      }),
+    );
+  }
 
   if (providerId) {
     btnContainer.appendChild(

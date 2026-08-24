@@ -15,8 +15,10 @@ import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
+import { loadCallerGrants } from 'services/capability/loadCallerGrants';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
+import { clearCallerGrants } from 'services/capability/scopeState';
 import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { showContent } from 'services/transitions/screenSlaver';
 import { factoryConstants } from 'tods-competition-factory';
@@ -278,7 +280,14 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     if (config.tournamentId) {
       const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
       if (offline) return tryLocal();
-      requestTournament({ tournamentId: config.tournamentId, silent: true }).then(showResult, tryLocal);
+      // Grants are fetched ALONGSIDE the record rather than after it, so the
+      // first paint is already scoped. Resolving them after the render would
+      // show a scoped recorder every control for a moment and then take them
+      // away, which reads as a bug rather than as a restriction.
+      Promise.all([
+        requestTournament({ tournamentId: config.tournamentId, silent: true }),
+        loadCallerGrants(config.tournamentId),
+      ]).then(([result]) => showResult(result), tryLocal);
     }
   } else {
     // No provider context (logged out / local). If the record is missing — e.g. it was deleted
@@ -286,6 +295,9 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     // setState(undefined) and rendering an empty, record-less tournament view that traps the
     // whole nav (every tab renders empty and back-to-list is dead).
     if (!tournamentRecord) return notFound();
+    // No server to ask, so no grants — but the mask is a singleton and the
+    // previous tournament's would otherwise survive the navigation.
+    clearCallerGrants();
     tournamentEngine.setState(tournamentRecord);
     runActiveScaleAutoSwitch();
     renderTournament({ config });

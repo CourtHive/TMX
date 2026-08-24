@@ -1412,7 +1412,8 @@
       "notClaimed": "Not claimed",
       "offline": "Offline",
       "online": "Online",
-      "uploadWarning": "Warning: This action will replace the tournament record on the server"
+      "uploadWarning": "Warning: This action will replace the tournament record on the server",
+      "scopedAccess": "Scoped access"
     },
     "manageAccess": {
       "title": "Manage access",
