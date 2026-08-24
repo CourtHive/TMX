@@ -128,19 +128,24 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
 /**
  * Parameters every factory report is generated with.
  *
- * `utcOffsetMinutes` is the venue's offset from UTC (local = UTC + offset),
- * taken from the runtime rather than a stored value so it is DST-correct for an
- * operator sitting at the venue. Until now `generateReport` was called with no
- * parameters at all, so the offset path the factory wrappers already expose was
- * dead and each report had to localize its own timestamps client-side.
+ * Both frames are sent. `timeZone` is the IANA identifier the runtime resolves
+ * to, and the factory prefers it: it yields the offset **per instant**, so a
+ * tournament spanning a DST change converts correctly on both sides. A bare
+ * `utcOffsetMinutes` is the offset *now* and would be an hour wrong on the far
+ * side of the change — silently, in reports measured in minutes.
  *
- * Caveat for reports that add more time columns: a single offset is the offset
- * *now*, so a tournament spanning a DST change is off by an hour on the far side
- * of it. `localizeReportTimes` below converts per instant and does not have that
- * problem — prefer that shape when a report carries several timestamps.
+ * `utcOffsetMinutes` is still sent as the fallback for wrappers that predate the
+ * zone parameter, and for the case where the runtime cannot name its zone.
+ *
+ * Until this existed `generateReport` was called with no parameters at all, so
+ * the offset path the factory wrappers already exposed was dead and each report
+ * had to localize its own timestamps client-side.
  */
 function reportParameters(): Record<string, any> {
-  return { utcOffsetMinutes: -new Date().getTimezoneOffset() };
+  return {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    utcOffsetMinutes: -new Date().getTimezoneOffset(),
+  };
 }
 
 async function selectReport(report: any): Promise<void> {
