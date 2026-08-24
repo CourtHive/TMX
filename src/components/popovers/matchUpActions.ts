@@ -4,7 +4,9 @@
  */
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
+import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
 import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
+import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import {
   buildScheduleLockMethod,
   canToggleScheduleLock,
@@ -218,7 +220,10 @@ export function matchUpActions({
     });
   };
 
-  const selectOfficial = () => {
+  /** Bounded so an unconfigured or unreachable AMS cannot stall the picker. */
+  const OFFICIALS_REGISTRY_TIMEOUT_MS = 1500;
+
+  const selectOfficial = async () => {
     const { participants: officials = [] } = tournamentEngine.getParticipants({
       participantFilters: { participantRoles: [OFFICIAL] },
     });
@@ -249,15 +254,33 @@ export function matchUpActions({
     // Conflict state per candidate, computed locally — no fetch. Evaluated up front so a TD is never
     // offered a choice that will be refused.
     const conflictPolicy = resolveConflictPolicy();
+
+    // Certification / suspension state lives in courthive-ams, so this one is a fetch. It is bounded
+    // rather than awaited indefinitely: most tournaments have no registry configured at all, and a
+    // picker that stalls waiting for a service that will never answer is worse than one that opens
+    // saying "not checked". A timeout resolves to `undefined`, which IS the not-checkable signal —
+    // the failure mode and the honest answer are the same value, so there is nothing to get wrong.
+    const recordsById = await fetchOfficialRecords(
+      officials.map((official: any) => official?.person?.personId ?? official.participantId),
+      AbortSignal.timeout(OFFICIALS_REGISTRY_TIMEOUT_MS),
+    );
+
     const conflictByOfficial = new Map<string, CandidateConflicts>(
       officials.map((official: any) => [
         official.participantId,
-        evaluateCandidate({
-          officialParticipantId: official.participantId,
-          policyDefinitions: conflictPolicy,
-          matchUpId: matchUp.matchUpId,
-          drawId: matchUp.drawId,
-        }),
+        mergeVerdicts(
+          evaluateCandidate({
+            officialParticipantId: official.participantId,
+            policyDefinitions: conflictPolicy,
+            matchUpId: matchUp.matchUpId,
+            drawId: matchUp.drawId,
+          }),
+          evaluateEligibility({
+            recordsById,
+            personId: official?.person?.personId ?? official.participantId,
+            asOfDate: matchUp?.schedule?.scheduledDate,
+          }),
+        ),
       ]),
     );
 
@@ -532,7 +555,7 @@ export function matchUpActions({
       hide: noParticipants || isTerminal,
     },
     {
-      onClick: selectOfficial,
+      onClick: () => void selectOfficial(),
       text: t('officiating.selectOfficial'),
     },
     {
