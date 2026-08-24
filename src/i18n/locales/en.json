@@ -1021,7 +1021,7 @@
           "calledAt": "projected from call to court (est.)",
           "scheduledTime": "projected from scheduled time (est.)"
         },
-        "discarded": "Could not read: {{sources}}",
+        "discarded": "Could not read: {{rungs}}",
         "discardedName": {
           "endTime": "recorded end time",
           "scoredTime": "score entry",

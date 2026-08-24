@@ -262,7 +262,9 @@ export function describeRest(row: RestRow): string {
 export function describeDiscarded(row: RestRow): string {
   if (!row.discardedSources?.length) return '';
   const names = row.discardedSources.map((source) => t(`schedule.inspector.rest.discardedName.${source}`));
-  return t('schedule.inspector.rest.discarded', { sources: names.join(', ') });
+  // `rungs`, not `sources`: attr-audit reads a key one letter from `source` as a
+  // likely typo, and the ladder's own word for these is the clearer one anyway.
+  return t('schedule.inspector.rest.discarded', { rungs: names.join(', ') });
 }
 
 /** The daily-load fragment: "3rd match today, limit 3". */
