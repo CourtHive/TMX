@@ -2603,6 +2603,12 @@
     "callBeforeCheckIn_one": "{{count}} participant has not checked in. Call to court anyway?",
     "callBeforeCheckIn_other": "{{count}} participants have not checked in. Call to court anyway?",
     "columnHeader": "Checked in",
-    "columnTooltip": "Participants who have presented at the desk for this match"
+    "columnTooltip": "Participants who have presented at the desk for this match",
+    "badgeComplete_one": "The participant has checked in",
+    "badgeComplete_other": "All {{count}} participants have checked in",
+    "badgePartial_one": "{{count}} participant has not checked in yet",
+    "badgePartial_other": "{{count}} participants have not checked in yet",
+    "callOnDropBeforeCheckIn_one": "{{count}} participant has not checked in. Call this match to court anyway?",
+    "callOnDropBeforeCheckIn_other": "{{count}} participants have not checked in. Call this match to court anyway?"
   }
 }

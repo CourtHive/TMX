@@ -19,6 +19,41 @@ const column = (courtId: string, cells: any[]): StripColumn => ({ courtId, cells
 const NOW = '12:00';
 
 describe('computeAutoCalls', () => {
+  // ── D4f: autocall CALLS AND MARKS; it never skips on incomplete check-in ──
+  //
+  // These pin a decision, not a mechanism. `computeAutoCalls` has no check-in filter today, so they
+  // pass trivially against current source — that is the point: they exist so that adding one turns
+  // red. CA, 2026-08-24: a silent skip stalls the schedule for a reason no operator can see, and
+  // `runAutoCallPass` is timer-driven and batched, so there is nobody standing there to warn.
+  //
+  // The interactive sites warn instead (D4d) — a test routed through `schedule2CellActions` would
+  // pass identically whether or not autocall skips, and would prove nothing about this decision.
+
+  // Self-contained rather than extending `ready()`: the check-in field belongs to this decision
+  // alone, and widening the shared fixture would imply every autocall case cares about it.
+  const withCheckIn = (checkedInParticipantIds: string[]) => ({
+    drawId: 'd',
+    matchUpId: 'M1',
+    matchUpStatus: 'TO_BE_PLAYED',
+    participantIds: ['p1', 'p2'],
+    payload: {
+      sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+      schedule: {},
+      checkedInParticipantIds,
+    },
+  });
+
+  it('calls a match on which NOBODY has checked in', () => {
+    expect(computeAutoCalls([column('C1', [withCheckIn([])])], NOW)).toEqual([{ matchUpId: 'M1', drawId: 'd' }]);
+  });
+
+  it('calls a match on which only ONE of two participants has checked in', () => {
+    // The partial — the state the badge exists to surface. Autocall stamps calledAt anyway and
+    // lets the badge carry it; the operator sees "called, 1/2 here" rather than a match that
+    // silently never appeared on the strip.
+    expect(computeAutoCalls([column('C1', [withCheckIn(['p1'])])], NOW)).toEqual([{ matchUpId: 'M1', drawId: 'd' }]);
+  });
+
   it('auto-calls a free court next match with no scheduledTime', () => {
     const cols = [column('C1', [ready({ matchUpId: 'M1', matchUpStatus: 'TO_BE_PLAYED' })])];
     expect(computeAutoCalls(cols, NOW)).toEqual([{ matchUpId: 'M1', drawId: 'd' }]);

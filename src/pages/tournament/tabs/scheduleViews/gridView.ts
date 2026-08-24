@@ -275,7 +275,9 @@ import {
   writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
+import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { renderInspectorSections } from './inspectorReadiness';
+import { renderCheckInBadge } from './checkInBadge';
 import { renderRestBadge } from './restBadge';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
@@ -410,10 +412,11 @@ export function renderGridView(
     // matchUp. A render hook rather than an external append — the Inspector rebuilds its
     // body on every store tick and would wipe anything appended from outside.
     renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp.matchUpId, state.selectedDate),
-    // The rest headline goes on the card itself: the "which do I call next"
-    // decision is made while scanning the catalog, before any card is selected
+    // The rest and check-in headlines go on the card itself: the "which do I call
+    // next" decision is made while scanning the catalog, before any card is selected
     // and before the drag starts, so the Inspector is one interaction too late.
-    renderCardExtra: (matchUp) => renderRestBadge(matchUp.matchUpId, currentDate),
+    // Rest asks whether they are fit to be called, check-in whether they are here.
+    renderCardExtra: (matchUp) => renderCardBadges(matchUp.matchUpId, currentDate),
     // Restore catalog filter state captured from a previous mount within
     // this tournament session. Cleared on tournament load (see loadTournament).
     initialCatalogState: context.scheduleCatalogState,
@@ -2917,6 +2920,21 @@ function commitActiveStripDrop(
   refresh: () => void,
 ): void {
   const courtOrder = target.rowIndex + 1;
+
+  // WARN and proceed, never block (D4d). The active-strip drop IS the call to court, so declining
+  // cancels the whole drop rather than landing the match uncalled — a half-applied drop would leave
+  // the grid asserting a placement the operator did not choose.
+  //
+  // The catalog payload cannot answer this: `CatalogMatchUpItem` carries no `checkedInParticipantIds`,
+  // so the hydrated matchUp has to be resolved. Autocall deliberately skips this prompt (D4f).
+  const dropped = getCachedAllMatchUps()?.matchUps?.find(
+    (matchUp: any) => matchUp?.matchUpId === payload.matchUp.matchUpId,
+  );
+  const prompt = callToCourtPrompt(dropped, { onlyWhenPartial: true });
+  const message =
+    prompt && `${t('checkIn.callOnDropBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`;
+  if (message && !globalThis.confirm(message)) return;
+
   const methods: any[] = [];
 
   if (payload.type === 'GRID_MATCHUP') {
@@ -3617,4 +3635,23 @@ function dateRange(start: string, end: string): string[] {
     current.setDate(current.getDate() + 1);
   }
   return dates;
+}
+
+/**
+ * Both catalog card badges, composed into the single element `renderCardExtra` accepts.
+ *
+ * Rest answers *"are these players fit to be called?"*; check-in answers *"are they actually here?"*.
+ * They are independent questions and an operator scanning the catalog needs both, so neither may
+ * suppress the other. Returns null only when both decline to render, so a card with nothing to say
+ * still gets no empty wrapper.
+ */
+function renderCardBadges(matchUpId: string, viewedDate: string | null): HTMLElement | null {
+  const badges = [renderRestBadge(matchUpId, viewedDate), renderCheckInBadge(matchUpId)].filter(Boolean);
+  if (!badges.length) return null;
+  if (badges.length === 1) return badges[0];
+
+  const wrap = document.createElement('span');
+  wrap.className = 'tmx-card-badges';
+  wrap.append(...(badges as HTMLElement[]));
+  return wrap;
 }

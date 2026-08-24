@@ -551,3 +551,48 @@
   margin-top: 2px;
   border-top: 1px solid var(--tmx-border-primary);
 }
+
+/* Catalog card badge row — rest and check-in sit side by side; see renderCardBadges.
+   Both are independent signals, so the row wraps rather than truncating one away. */
+.tmx-card-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Check-in badge — "how many of this match's players are at the desk" (D4d/D4f).
+   Rendered ONLY once someone has checked in: a 0/2 on every card at 9am is noise
+   exactly when the operator most needs to scan.
+
+   Deliberately mirrors .tmx-rest-badge's shape and token set rather than inventing
+   its own palette — the two sit side by side on the same card, and they are already
+   proven in both light and dark. */
+.tmx-checkin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--tmx-text-primary);
+  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
+}
+
+/* Partial is the state the whole feature exists to surface, so it is the one that
+   carries colour. Complete stays quiet — it is the expected case, and a catalog of
+   green ticks is as unscannable as a catalog of warnings. */
+.tmx-checkin-badge.is-partial {
+  border-color: var(--tmx-accent-orange);
+  color: var(--tmx-accent-orange);
+  background: transparent;
+}
+
+.tmx-checkin-badge.is-complete {
+  border-color: var(--tmx-accent-green);
+  color: var(--tmx-accent-green);
+  background: transparent;
+}
