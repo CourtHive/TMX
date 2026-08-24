@@ -55,6 +55,16 @@ export interface OfficialRow {
   nextScheduledTime?: string;
   matchesToday: number;
   minutesOnCourtToday: number;
+  /**
+   * Carried through verbatim for the contact column and the call sheet (P1).
+   *
+   * **Not filtered here.** `contactFormatter` and `buildCallSheet` already own the D6 rule — every
+   * contact is shown with a marker on the un-consented ones, and `isPublic` gates public surfaces
+   * only. Filtering in this module would be a second gate on top of a decided one, and it would
+   * silently disagree with the participants call sheet.
+   */
+  contacts?: any[];
+  participantRole?: string;
 }
 
 /**
@@ -145,6 +155,8 @@ export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs)
       courtName: current?.schedule?.courtName,
       matchUpId: current?.matchUpId,
       nextScheduledTime: live ? undefined : upcoming[0]?.schedule?.scheduledTime,
+      contacts: participant?.person?.contacts ?? [],
+      participantRole: participant?.participantRole,
       matchesToday: assigned.length,
       minutesOnCourtToday: assigned.reduce((total, matchUp) => total + durationToMinutes(matchUp?.matchUpDuration), 0),
     };

@@ -2636,7 +2636,10 @@
       "court": "Court",
       "next": "Next",
       "matches": "Matches",
-      "onCourt": "On court"
-    }
+      "onCourt": "On court",
+      "contact": "Contact"
+    },
+    "callSheet": "Call sheet",
+    "callSheetSubtitle": "Officials"
   }
 }

@@ -35,7 +35,12 @@ async function seedOfficials(page: Page): Promise<string> {
           participantName: 'Ada Signed',
           participantType: 'INDIVIDUAL',
           participantRole: 'OFFICIAL',
-          person: { standardFamilyName: 'Signed', standardGivenName: 'Ada' },
+          person: {
+            standardFamilyName: 'Signed',
+            standardGivenName: 'Ada',
+            // isPublic false on purpose: D6 is mark-don't-hide, so this must still RENDER.
+            contacts: [{ contactType: 'MOBILE', mobileTelephone: '+15550100', isPublic: false }],
+          },
         },
         {
           participantId: 'official-absent',
@@ -81,5 +86,24 @@ test.describe('Journey 106 — officials board', () => {
     // D5: signed in today and unassigned = waiting; not signed in = available.
     await expect(signedInRow.locator('[data-official-state]')).toHaveAttribute('data-official-state', 'waiting');
     await expect(absentRow.locator('[data-official-state]')).toHaveAttribute('data-official-state', 'available');
+  });
+
+  test('an un-consented mobile still renders on the board (D6 — mark, do not hide)', async ({ page }) => {
+    const tournamentId = await seedOfficials(page);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await page.locator(S.NAV_OFFICIALS).click();
+
+    const board = page.locator(S.TOURNAMENT_OFFICIALS);
+    const signedInRow = board.locator('.tabulator-row').filter({ hasText: 'Ada Signed' }).first();
+    await expect(signedInRow).toBeVisible({ timeout: 10_000 });
+
+    // The tappable affordance, not merely the digits — a number a director cannot press is not a
+    // call sheet. Ada's contact is isPublic:false, so this also pins D6.
+    await expect(signedInRow.locator('a[href^="tel:"]').first()).toBeVisible();
+
+    // Bo has no contact at all: absence must read as absence, never as a dead link.
+    const absentRow = board.locator('.tabulator-row').filter({ hasText: 'Bo Absent' }).first();
+    await expect(absentRow.locator('a[href^="tel:"]')).toHaveCount(0);
   });
 });
