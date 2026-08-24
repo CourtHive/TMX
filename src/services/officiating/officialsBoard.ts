@@ -42,6 +42,38 @@ const COMPLETED_STATUSES = new Set([
   'WALKOVER',
 ]);
 
+/**
+ * A matchUp longer than this is not a match, it is an unclosed timer.
+ *
+ * `matchUpDuration` adds a live-elapsed term for anything started and not ended, so an operator who
+ * forgets to stop the clock makes "time on court today" grow without bound. Twelve hours covers any
+ * real match including a long weather suspension, and matches the factory's own
+ * `MAX_PLAUSIBLE_MATCH_MINUTES` in `recoveryTimeline.ts` — the two surfaces should not disagree about
+ * what is plausible.
+ */
+const MAX_PLAUSIBLE_MATCH_MINUTES = 12 * 60;
+
+/**
+ * The **local** calendar date of an instant — never `toISOString().slice(0, 10)`.
+ *
+ * `toISOString` is UTC, so west of UTC it rolls over while the tournament is still playing: at 8pm in
+ * Florida it already reports tomorrow. Every schedule surface in TMX keys "today" on the operator's
+ * local calendar date (see `gridView.todayIso`), and this must agree with them or the officials board
+ * and the Now strip disagree about what day it is.
+ *
+ * ⚠️ **Local is the established convention, not the ideal one.** The venue's own zone would be better
+ * — a director running a Florida tournament from a Pacific laptop still reads the wrong day — but
+ * moving to venue time is a change every schedule surface must make together. Fixing it here alone
+ * would introduce a *fourth* notion of time.
+ */
+export function localCalendarDate(value?: string | Date): string {
+  const date = value instanceof Date ? value : value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export type OfficialState = 'onCourt' | 'assigned' | 'waiting' | 'available';
 
 export interface OfficialRow {
@@ -82,7 +114,9 @@ export interface OfficialRow {
 export function signedInOnDate(participant: any, date: string): boolean {
   const entries = (participant?.timeItems ?? [])
     .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
-    .filter((timeItem: any) => String(timeItem.createdAt).slice(0, 10) === date);
+    // `createdAt` is a UTC instant; `date` is a local calendar date. Slicing the ISO string would
+    // compare a UTC day against a local one and disagree for every evening sign-in west of UTC.
+    .filter((timeItem: any) => localCalendarDate(timeItem.createdAt) === date);
 
   if (!entries.length) return false;
 
@@ -158,7 +192,10 @@ export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs)
       contacts: participant?.person?.contacts ?? [],
       participantRole: participant?.participantRole,
       matchesToday: assigned.length,
-      minutesOnCourtToday: assigned.reduce((total, matchUp) => total + durationToMinutes(matchUp?.matchUpDuration), 0),
+      minutesOnCourtToday: assigned.reduce(
+        (total, matchUp) => total + Math.min(durationToMinutes(matchUp?.matchUpDuration), MAX_PLAUSIBLE_MATCH_MINUTES),
+        0,
+      ),
     };
   });
 

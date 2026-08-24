@@ -5,8 +5,15 @@
  * sign-in must NOT make somebody read as present on Friday. Nothing signs anybody out at end of day,
  * so `participant.signedIn` — the latest value — would say it does.
  */
-import { buildOfficialsBoard, signedInOnDate, durationToMinutes, isOfficial } from './officialsBoard';
+import {
+  buildOfficialsBoard,
+  signedInOnDate,
+  durationToMinutes,
+  isOfficial,
+  localCalendarDate,
+} from './officialsBoard';
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 const DAY = '2026-08-24';
 const PRIOR = '2026-08-23';
@@ -19,11 +26,17 @@ const official = (participantId: string, participantName: string, timeItems: any
   timeItems,
 });
 
-const signIn = (date: string, itemValue = 'SIGNED_IN') => ({
-  itemType: 'SIGN_IN_STATUS',
-  createdAt: `${date}T08:00:00.000Z`,
-  itemValue,
-});
+// Built as a LOCAL midday instant so the fixture means "signed in on that local day" in whatever
+// zone the suite runs in. A fixed `...T08:00:00.000Z` would land on the previous local day for any
+// runner west of UTC-8 — the fixture would then encode the very bug under test.
+const signIn = (date: string, itemValue = 'SIGNED_IN') => {
+  const [y, m, d] = date.split('-').map(Number);
+  return {
+    itemType: 'SIGN_IN_STATUS',
+    createdAt: new Date(y, m - 1, d, 12, 0, 0).toISOString(),
+    itemValue,
+  };
+};
 
 const assignment = (over: any = {}) => ({
   matchUpId: over.matchUpId ?? 'm1',
@@ -51,8 +64,8 @@ describe('signedInOnDate', () => {
 
   it('honours a sign-out later the same day', () => {
     const p = official('o1', 'Ana', [
-      { itemType: 'SIGN_IN_STATUS', createdAt: `${DAY}T08:00:00.000Z`, itemValue: 'SIGNED_IN' },
-      { itemType: 'SIGN_IN_STATUS', createdAt: `${DAY}T17:00:00.000Z`, itemValue: 'SIGNED_OUT' },
+      signIn(DAY, 'SIGNED_IN'),
+      { ...signIn(DAY, 'SIGNED_OUT'), createdAt: new Date(2026, 7, 24, 17, 0, 0).toISOString() },
     ]);
     expect(signedInOnDate(p, DAY)).toBe(false);
   });
@@ -60,6 +73,41 @@ describe('signedInOnDate', () => {
   it('is false with no timeItems at all', () => {
     expect(signedInOnDate(official('o1', 'Ana'), DAY)).toBe(false);
     expect(signedInOnDate(undefined, DAY)).toBe(false);
+  });
+});
+
+describe('localCalendarDate', () => {
+  /**
+   * ⚠️ **The obvious unit test for this is VACUOUS and was removed.**
+   *
+   * TMX runs vitest with `TZ=UTC` (`package.json`: `TZ=UTC vitest`), so local and UTC days are
+   * identical in the suite and no assertion on a Date value can tell the correct implementation from
+   * the shipped bug. Verified rather than assumed: restoring `toISOString().slice(0, 10)` left an
+   * earlier version of this block fully green.
+   *
+   * So the invariant is guarded at the SOURCE instead, which is falsifiable — reintroducing the bug
+   * turns the guard red.
+   */
+  /** Comments are stripped first: this file's own docstring quotes the banned pattern as prose. */
+  const codeOf = (file: string) =>
+    readFileSync(new URL(file, import.meta.url), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '');
+
+  it('never derives a calendar date from toISOString — that is UTC, and the board is local', () => {
+    const code = codeOf('./officialsBoard.ts');
+    expect(code).not.toMatch(/toISOString\(\)\s*\.slice\(\s*0\s*,\s*10\s*\)/);
+    // Control: the guard must be able to see the code at all, not merely fail to match an empty string.
+    expect(code).toContain('export function localCalendarDate');
+  });
+
+  it('builds the date from LOCAL getters', () => {
+    const code = codeOf('./officialsBoard.ts');
+    for (const getter of ['getFullYear()', 'getMonth()', 'getDate()']) expect(code).toContain(getter);
+  });
+
+  it('returns empty for an unparseable value rather than "NaN-NaN-NaN"', () => {
+    expect(localCalendarDate('not-a-date')).toBe('');
   });
 });
 
@@ -148,6 +196,19 @@ describe('buildOfficialsBoard', () => {
     });
     expect(rows[0].matchesToday).toBe(2);
     expect(rows[0].minutesOnCourtToday).toBe(135);
+  });
+
+  it('caps an unclosed timer at 12h rather than letting it grow without bound', () => {
+    // matchUpDuration adds a live-elapsed term for anything started and not ended, so a forgotten
+    // STOP would otherwise inflate "time on court today" indefinitely.
+    const rows = buildOfficialsBoard({
+      matchUps: [
+        assignment({ matchUpId: 'm1', official: 'o1', matchUpStatus: 'IN_PROGRESS', matchUpDuration: '97:00:00' }),
+      ],
+      participants: [official('o1', 'Ana', [signIn(DAY)])],
+      date: DAY,
+    });
+    expect(rows[0].minutesOnCourtToday).toBe(12 * 60);
   });
 
   it('sorts busiest state first, then by name', () => {

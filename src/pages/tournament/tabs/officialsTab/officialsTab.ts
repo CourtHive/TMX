@@ -17,7 +17,7 @@ import { getCachedAllMatchUps, invalidateMatchUpCaches } from 'pages/tournament/
 import { contactFormatter } from 'components/tables/common/formatters/contactFormatter';
 import { controlBar } from 'courthive-components';
 import { callSheet } from 'components/modals/callSheet';
-import { buildOfficialsBoard, type OfficialRow } from 'services/officiating/officialsBoard';
+import { buildOfficialsBoard, localCalendarDate, type OfficialRow } from 'services/officiating/officialsBoard';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -31,9 +31,15 @@ const TABLE_KEY = 'officialsBoard';
 
 let unsubscribe: (() => void) | null = null;
 
-/** Today in the tournament's own frame, matching how the schedule surfaces date-scope. */
+/**
+ * Today, in the same frame every other schedule surface uses.
+ *
+ * Was `toISOString().slice(0, 10)`, which is **UTC**: from ~8pm in Florida it reported tomorrow, so
+ * no matchUp matched the date filter and every official silently read `available`. The comment
+ * claiming it was "the tournament's own frame" was simply wrong.
+ */
 function viewedDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localCalendarDate();
 }
 
 function rows(): OfficialRow[] {
