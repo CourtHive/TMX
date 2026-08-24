@@ -133,11 +133,34 @@ describe('PARTICIPANT_ID_KEYS', () => {
       'participantId',
       'side1ParticipantId',
       'side2ParticipantId',
+      'winningParticipantId',
     ]);
     expect(PARTICIPANT_ID_KEYS.map((k) => k.hydratedKey)).toEqual([
       'participant',
       'side1Participant',
       'side2Participant',
+      'winnerParticipant',
     ]);
+  });
+});
+
+describe('collectReportParticipantIds — winner columns', () => {
+  it('collects a winner who appears in no other column', () => {
+    // The Draw Structure report names ONLY a winner — no sides, no row
+    // participant — so without the winner key those rows contribute nothing and
+    // prev/next would skip every champion in the table.
+    const rows = [{ winnerParticipant: individual('champ') }];
+    expect(collectReportParticipantIds(rows)).toEqual(['champ']);
+  });
+
+  it('does not double-count a winner who is also a side', () => {
+    const rows = [
+      {
+        side1Participant: individual('p1'),
+        side2Participant: individual('p2'),
+        winnerParticipant: individual('p1'),
+      },
+    ];
+    expect(collectReportParticipantIds(rows)).toEqual(['p1', 'p2']);
   });
 });
