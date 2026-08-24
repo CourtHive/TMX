@@ -24,6 +24,24 @@
  * Treating `scoredTime` as a wall clock — or `endTime` as an instant — produces
  * a rest figure wrong by the UTC offset, which is worse than showing nothing.
  *
+ * ── The frame every value ends up in: the VIEWED DAY'S wall clock ──
+ *
+ * `nowDayMinutes()` projects today's time-of-day onto whichever day is on
+ * screen, and the three wall-clock fields are already read against that day. So
+ * the instants have to land in the same frame, and `toDayMinutesFromInstant`
+ * puts them there: local time-of-day, plus a full day for a genuine midnight
+ * crossing, and NOT the raw elapsed interval from the viewed day's midnight.
+ *
+ * The distinction is invisible while the viewed day is the operator's own
+ * calendar today, and decisive the moment it isn't — which is not an exotic
+ * case. `resolveScheduleDate()` opens the schedule on the tournament's LAST
+ * date once all of its dates are past, so anyone operating a past-dated
+ * tournament in real time is in it permanently. Under the elapsed-interval
+ * reading a score entered minutes ago normalized to `+1440·n` and therefore sat
+ * in the "future" against a projected now, which `latestAnchor` can only report
+ * as unmeasurable: the whole rest feature went dark, on every row, for exactly
+ * the operator who is running matches right now.
+ *
  * **Assumption, stated rather than assumed:** browser-local time is venue-local
  * time. This is the convention every other schedule2 surface already uses
  * (`todayIso()`, `effectiveNowOnStripDate()`, the reports tab's `calledAtIso`
@@ -60,20 +78,66 @@ export function toDayMinutesFromClock(value?: string): number | undefined {
 }
 
 /**
- * A UTC ISO instant → minutes from local midnight of `viewedDate`. A stamp from
- * a different calendar day lands outside `0..1439`, which is what the rest
- * arithmetic needs in order to say "ended yesterday" rather than silently
- * wrapping.
+ * An instant → its LOCAL calendar date, `YYYY-MM-DD`. Deliberately not
+ * `toISOString().slice(0, 10)`, which reports the UTC day and so names the wrong
+ * date for every evening stamp west of Greenwich and every early-morning one
+ * east of it. This is what dates a matchUp that carries no `scheduledDate`.
+ */
+export function instantLocalDate(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  const instant = new Date(iso);
+  if (Number.isNaN(instant.getTime())) return undefined;
+  const month = String(instant.getMonth() + 1).padStart(2, '0');
+  const day = String(instant.getDate()).padStart(2, '0');
+  return `${instant.getFullYear()}-${month}-${day}`;
+}
+
+/** Whole calendar days from `fromDate` to `toDate`. Both parsed as UTC, so no DST transition can shorten a day. */
+function dayDelta(fromDate: string, toDate: string): number | undefined {
+  const from = Date.parse(`${fromDate}T00:00:00Z`);
+  const to = Date.parse(`${toDate}T00:00:00Z`);
+  if (Number.isNaN(from) || Number.isNaN(to)) return undefined;
+  return Math.round((to - from) / 86_400_000);
+}
+
+/**
+ * A UTC ISO instant → minutes on the **viewed day's wall clock**.
+ *
+ * Local time-of-day, offset by a whole day when the stamp genuinely crossed
+ * midnight relative to the viewed day — so a match that finished at 00:40 the
+ * following morning still reads as `1480` and orders after one that finished at
+ * 23:50, which is the single reason the offset exists at all.
+ *
+ * The offset is applied for a **±1 day gap only**, and that limit is the
+ * load-bearing part.
+ * A stamp further away than that is not a midnight crossing; it is a score
+ * entered on a different calendar date from the day it is filed under — a late
+ * entry, or an operator running a past-dated tournament in real time. Its
+ * elapsed distance from the viewed midnight says nothing about how long a player
+ * has been off court, while its time-of-day says exactly that, read against the
+ * same projected clock `nowDayMinutes()` supplies. Carrying the full `n·1440`
+ * instead parked the anchor in the future and cost the row its rest figure
+ * entirely.
+ *
+ * Reading time-of-day can only ever place an anchor LATER in the day than the
+ * true finish (a score filed hours after the match), which understates rest and
+ * so holds a player back — the direction this module is required to fail in.
+ *
+ * Day membership is not this function's job precisely because of that limit:
+ * `instantLocalDate` answers it, exactly and without arithmetic.
  */
 export function toDayMinutesFromInstant(iso?: string, viewedDate?: string | null): number | undefined {
   if (!iso || !viewedDate) return undefined;
   const instant = new Date(iso);
   if (Number.isNaN(instant.getTime())) return undefined;
 
-  const midnight = new Date(`${viewedDate}T00:00:00`);
-  if (Number.isNaN(midnight.getTime())) return undefined;
+  const localDate = instantLocalDate(iso);
+  const delta = localDate === undefined ? undefined : dayDelta(viewedDate, localDate);
+  if (delta === undefined) return undefined;
 
-  return Math.round((instant.getTime() - midnight.getTime()) / 60_000);
+  const timeOfDay = instant.getHours() * 60 + instant.getMinutes();
+  const crossedMidnight = Math.abs(delta) === 1;
+  return timeOfDay + (crossedMidnight ? MINUTES_PER_DAY * delta : 0);
 }
 
 /** Every time on a matchUp, normalized into minutes from local midnight of the day being viewed. */
@@ -87,6 +151,7 @@ export function normalizeTimes(matchUp: ReadinessMatchUp, viewedDate: string | n
   return {
     ...(endMinutes !== undefined && { endMinutes: endMinutes + endDayOffset }),
     scoredMinutes: toDayMinutesFromInstant(schedule.scoredTime, viewedDate),
+    scoredDate: instantLocalDate(schedule.scoredTime),
     startMinutes: toDayMinutesFromClock(schedule.startTime),
     calledMinutes: toDayMinutesFromInstant(schedule.calledAt, viewedDate),
     scheduledMinutes: toDayMinutesFromClock(schedule.scheduledTime),

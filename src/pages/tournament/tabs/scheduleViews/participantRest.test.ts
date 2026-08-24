@@ -1,4 +1,4 @@
-import { analyzeParticipantRest, resolveAnchor } from './participantRest';
+import { analyzeParticipantRest, resolveAnchor, resolveAnchors } from './participantRest';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
@@ -432,12 +432,121 @@ describe('a match that overruns its average duration still occupies the player',
   });
 });
 
+/**
+ * The reported defect: a backdraw final whose two semifinals both carried a
+ * `scoredTime` read "Prior match has no recorded finish — rest cannot be
+ * measured". The stamp was real and the ladder stopped there, so four weaker
+ * answers — including the semifinal's own 09:00 slot plus the format average —
+ * were never reached.
+ */
+describe('the ladder falls through a rung it cannot read', () => {
+  const target = singles({ id: 'm-final', ids: [ALICE, BOB] });
+  const semi = singles({ id: 'm-semi', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+
+  /** 09:00 slot, and a scoredTime that lands after now — the shape the bug needs. */
+  const unreadableScore: NormalizedTimes = { scoredMinutes: 800, scheduledMinutes: 540 };
+
+  it('lists every rung that holds a value, strongest first', () => {
+    const anchors = resolveAnchors({ scoredMinutes: 740, startMinutes: 600, scheduledMinutes: 590 }, TIMING);
+    expect(anchors).toEqual([
+      { minutes: 740, source: 'scoredTime' },
+      { minutes: 690, source: 'startTime' },
+      { minutes: 680, source: 'scheduledTime' },
+    ]);
+  });
+
+  it('measures rest from scheduledTime + average when scoredTime projects into the future', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': unreadableScore },
+          asOfMinutes: 671, // 11:11; the 09:00 + 90 anchor is 10:30
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 41, source: 'scheduledTime' });
+    expect(alice?.anchorUnreliable).toBeUndefined();
+  });
+
+  it('names the weaker rung it actually used, so an estimate never reads as a measurement', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { ...unreadableScore, startMinutes: 545 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    // startTime outranks scheduledTime, and both are behind the clock.
+    expect(result.rows.find((row) => row.participantId === ALICE)?.source).toBe('startTime');
+  });
+
+  it('still prefers a readable strong rung over a readable weak one', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 620, scheduledMinutes: 540 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)).toMatchObject({
+      source: 'scoredTime',
+      restMinutes: 59,
+    });
+  });
+
+  it('reports the anchor unreliable ONLY when every rung is in the future', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 800, scheduledMinutes: 700 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 0, anchorUnreliable: true });
+  });
+
+  it('takes the latest usable anchor across matchUps, not the latest rung of one', () => {
+    const early = singles({ id: 'm-early', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, early, semi],
+          times: {
+            'm-early': { endMinutes: 500 },
+            'm-semi': unreadableScore, // falls through to 10:30
+          },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)).toMatchObject({
+      restMinutes: 41,
+      source: 'scheduledTime',
+    });
+  });
+});
+
 describe('a completed matchUp with no scheduledDate is dated by its scoredTime', () => {
   /**
    * Scores entered from the draw view leave no `schedule.scheduledDate`, so the
    * day filter discarded them and the player read as unplayed. `scoredTime` is a
-   * full instant and already normalizes to minutes-from-viewed-midnight, so a
-   * stamp from another day lands outside `0..1439` and dates the match for free.
+   * full instant, so its own local calendar date dates the match — carried as
+   * `scoredDate` beside the minutes, which are clamped into the viewed day's
+   * clock and can no longer say which day they came from.
    */
   const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
 
@@ -451,7 +560,7 @@ describe('a completed matchUp with no scheduledDate is dated by its scoredTime',
         buildInput({
           matchUpId: 'm-next',
           matchUps: [target, undated('m-undated', [ALICE, CHEN])],
-          times: { 'm-undated': { scoredMinutes: 700 } },
+          times: { 'm-undated': { scoredMinutes: 700, scoredDate: DATE } },
           asOfMinutes: 800,
         }),
       ),
@@ -466,7 +575,7 @@ describe('a completed matchUp with no scheduledDate is dated by its scoredTime',
         buildInput({
           matchUpId: 'm-next',
           matchUps: [target, undated('m-yesterday', [ALICE, CHEN])],
-          times: { 'm-yesterday': { scoredMinutes: -220 } }, // 20:20 the previous evening
+          times: { 'm-yesterday': { scoredMinutes: -220, scoredDate: '2026-08-21' } }, // 20:20 the previous evening
           asOfMinutes: 800,
         }),
       ),
