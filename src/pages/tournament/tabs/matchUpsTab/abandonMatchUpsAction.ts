@@ -11,20 +11,26 @@ import { ABANDON_TOURNAMENT_MATCHUPS } from 'constants/mutationConstants';
 import { getRepublishRankingsOption } from 'pages/tournament/tabs/matchUpsTab/republishRankingsAction';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { RIGHT } from 'constants/tmxConstants';
-import dayjs from 'dayjs';
 
 // Calendar-day comparison via ISO `YYYY-MM-DD` string compare. Avoids the
 // `new Date("YYYY-MM-DD")` UTC-midnight off-by-one that renders the wrong day
-// west of UTC; `dayjs().format` yields the local calendar date. True when today
-// is on or after the tournament's last date.
+// west of UTC. True when today is on or after the tournament's last date.
+//
+// "Today" is the VENUE's day, not the device's. `endDate` is a venue calendar
+// day, so comparing it against the operator's would offer — or withhold — the
+// abandon action a day early or late for anyone running the event from another
+// zone. The previous `dayjs().format('YYYY-MM-DD')` fixed the UTC half of this
+// (#1352's bug class) and left the operator-vs-venue half, which is what
+// `venueCalendarDate()` closes.
 function onOrPastLastDate(): boolean {
   const { tournamentRecord } = tournamentEngine.getTournament() ?? {};
   const endDate = tournamentRecord?.endDate;
   if (!endDate) return false;
-  return dayjs().format('YYYY-MM-DD') >= String(endDate).slice(0, 10);
+  return venueCalendarDate() >= String(endDate).slice(0, 10);
 }
 
 // Modal body: a one-line explanation plus a checkbox that relaxes the default
