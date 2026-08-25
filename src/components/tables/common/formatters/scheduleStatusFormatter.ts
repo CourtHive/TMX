@@ -1,16 +1,15 @@
+import { venueCalendarDate, venueClock } from 'functions/venueTimeFrame';
 import { t } from 'i18n';
 
+// `scheduledDate` / `scheduledTime` are bare venue wall-clock values, so the
+// "now" they are compared against must be the venue's clock too — otherwise a
+// match reads as past or future purely because of where the laptop is.
 function todayYmd(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const da = String(d.getDate()).padStart(2, '0');
-  return `${y}-${mo}-${da}`;
+  return venueCalendarDate();
 }
 
 function nowHm(): string {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return venueClock();
 }
 
 type Status = 'future' | 'past' | 'none';

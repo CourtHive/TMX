@@ -1,3 +1,4 @@
+import { resolveVenueFrame, venueOffsetMinutesAt, venueParts, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { downloadJSON, downloadText } from 'services/export/download';
 import { openStructureAuditModal } from './structureAudit';
@@ -128,8 +129,13 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
 /**
  * Parameters every factory report is generated with.
  *
- * Both frames are sent. `timeZone` is the IANA identifier the runtime resolves
- * to, and the factory prefers it: it yields the offset **per instant**, so a
+ * Both frames are sent. `timeZone` is the IANA identifier of the **venue** —
+ * `tournamentRecord.localTimeZone`, with the browser's zone standing in only
+ * when the record carries none (see `functions/venueTimeFrame`). It used to be
+ * the browser's unconditionally, which is right machinery fed the wrong zone:
+ * a director running a Florida event from a Pacific laptop read every call time
+ * and variance three hours out. The factory prefers `timeZone` because it
+ * yields the offset **per instant**, so a
  * tournament spanning a DST change converts correctly on both sides. A bare
  * `utcOffsetMinutes` is the offset *now* and would be an hour wrong on the far
  * side of the change — silently, in reports measured in minutes.
@@ -142,9 +148,13 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
  * had to localize its own timestamps client-side.
  */
 function reportParameters(): Record<string, any> {
+  const { timeZone } = resolveVenueFrame();
   return {
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    utcOffsetMinutes: -new Date().getTimezoneOffset(),
+    timeZone,
+    // The offset of the VENUE zone right now, not the browser's. Only a
+    // fallback: any wrapper that reads it instead of `timeZone` gets an offset
+    // fixed at this moment, which is why `timeZone` is preferred above.
+    utcOffsetMinutes: venueOffsetMinutesAt(new Date(), timeZone) ?? -new Date().getTimezoneOffset(),
   };
 }
 
@@ -167,34 +177,40 @@ async function selectReport(report: any): Promise<void> {
 
 /**
  * Recompute any UTC timestamps a report carries (rows with a `calledAtIso`
- * field, e.g. Call Timing Variance) into the operator's local wall-clock —
- * which on-site is the venue timezone. Doing this in the browser uses the
- * runtime's own tz (DST-correct) instead of a passed offset, so the displayed
- * clock and variance always match what the director actually saw.
+ * field, e.g. Call Timing Variance) into the **venue's** wall clock, resolved
+ * per instant so a tournament spanning a DST change reads correctly on both
+ * sides of it.
  *
  * `calledAt` becomes a bare HH:mm (date-prefixed only when the call landed on a
- * different calendar day than the scheduled date); `varianceMinutes` is the
- * signed difference between the actual call instant and the planned local time.
+ * different venue calendar day than the scheduled date); `varianceMinutes` is
+ * the signed difference between the actual call instant and the planned time.
+ *
+ * The variance is the reason `scheduledTime` cannot simply be `new Date`d. It is
+ * a bare venue wall clock; parsing it without a zone yields the operator's
+ * instant, and subtracting that from a real instant produced a variance wrong by
+ * the offset between laptop and venue — a "12 minutes late" that was actually on
+ * time. `venueWallClockToMs` resolves it against the venue zone instead.
  */
 function localizeReportTimes(rows: Record<string, any>[]): void {
   const pad = (n: number) => String(n).padStart(2, '0');
+  const { timeZone } = resolveVenueFrame();
   for (const row of rows ?? []) {
     if (!row.calledAtIso) continue;
-    const called = new Date(row.calledAtIso);
-    if (Number.isNaN(called.getTime())) continue;
+    const parts = venueParts(row.calledAtIso, timeZone);
+    if (!parts) continue;
 
-    const localDate = `${called.getFullYear()}-${pad(called.getMonth() + 1)}-${pad(called.getDate())}`;
-    const localTime = `${pad(called.getHours())}:${pad(called.getMinutes())}`;
+    const localDate = `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
+    const localTime = `${pad(parts.hour)}:${pad(parts.minute)}`;
     row.calledAt = localDate === row.scheduledDate ? localTime : `${localDate} ${localTime}`;
 
     if (row.scheduledDate && row.scheduledTime) {
-      // No trailing "Z" ⇒ parsed as local wall-clock, matching the venue plan.
-      const planned = new Date(`${row.scheduledDate}T${row.scheduledTime}:00`);
-      if (!Number.isNaN(planned.getTime())) {
+      const calledMs = new Date(row.calledAtIso).getTime();
+      const plannedMs = venueWallClockToMs(row.scheduledDate, row.scheduledTime, timeZone);
+      if (plannedMs !== undefined && !Number.isNaN(calledMs)) {
         // Compare at whole-minute resolution so the number agrees with the HH:mm
         // shown: a call at 15:05:45 displays as 15:05, so 15:00 → 15:05 reads as
         // 5, not 6 (which a seconds-aware round would give).
-        row.varianceMinutes = Math.floor(called.getTime() / 60000) - Math.floor(planned.getTime() / 60000);
+        row.varianceMinutes = Math.floor(calledMs / 60000) - Math.floor(plannedMs / 60000);
       }
     }
   }

@@ -12,6 +12,7 @@
  *   - `popoverStatusPredicate` — the human-friendly popover options (which are
  *     intentionally NOT a partition: "To be played" folds in SUSPENDED, etc.).
  */
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 
 const WALKOVER_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER', 'DEFAULTED', 'DOUBLE_DEFAULT']);
 const COMPLETE_STATUSES = new Set(['DOUBLE_WALKOVER', 'DOUBLE_DEFAULT', 'CANCELLED', 'ABANDONED']);
@@ -36,19 +37,18 @@ function isComplete(rowData: any): boolean {
  * True when the row carries a `calledAt` stamp belonging to the day it is
  * scheduled on. `calledAt` is a full ISO instant and survives a reschedule as
  * historical record (only an explicit unschedule clears it), so a stamp from an
- * earlier day must not make a match look called for today. Compared in local
- * wall-clock — the same convention the calledAt column and the Call Timing
- * Variance report use, and on-site local time is venue time.
+ * earlier day must not make a match look called for today. Resolved in the
+ * VENUE's zone — `scheduledDate` is a venue calendar day, so the day `calledAt`
+ * falls on has to be read on the same clock, which is also what the calledAt
+ * column and the Call Timing Variance report now do.
  */
 function isCalledForScheduledDay(rowData: any): boolean {
   const calledAt = rowData?.calledAt;
   if (!calledAt) return false;
-  const called = new Date(calledAt);
-  if (Number.isNaN(called.getTime())) return false;
+  const calledDay = venueCalendarDate(calledAt);
+  if (!calledDay) return false;
   if (!rowData.scheduledDate) return true;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const localDate = `${called.getFullYear()}-${pad(called.getMonth() + 1)}-${pad(called.getDate())}`;
-  return localDate === rowData.scheduledDate;
+  return calledDay === rowData.scheduledDate;
 }
 
 /**

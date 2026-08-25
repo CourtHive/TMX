@@ -18,34 +18,32 @@
  * participants surface answer this question with one implementation rather than two — the second
  * presence model D4e exists to prevent.
  */
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 
 const SIGN_IN_STATUS = 'SIGN_IN_STATUS';
 const SIGNED_IN = 'SIGNED_IN';
 
 /**
- * The **local** calendar date of an instant — never `toISOString().slice(0, 10)`.
+ * The **venue's** calendar date for an instant — never `toISOString().slice(0, 10)`.
  *
  * `toISOString` is UTC, so west of UTC it rolls over while the tournament is still playing: at 8pm in
  * Florida it already reports tomorrow. Shipping that bug once (#1352, fixed #1355) made every official
- * read "available" every evening. Every schedule surface in TMX keys "today" on the operator's local
- * calendar date (see `gridView.todayIso`), and this must agree with them.
+ * read "available" every evening.
  *
- * ⚠️ Local is the established convention, not the ideal one — the venue's own zone would be better,
- * but moving to it is a change every schedule surface must make together.
+ * That fix moved the day to the *operator's* zone, which is right only when the operator is on site.
+ * It is now the *venue's*, resolved through `venueCalendarDate()` — the convention every schedule
+ * surface in TMX moved to together (see `Mentat/planning/DECISION_VENUE_TIME_FRAME.md`). This function
+ * must keep agreeing with `gridView.todayIso`; both now do, because both ask the same resolver.
  */
-export function localCalendarDate(value?: string | Date): string {
-  const date = value instanceof Date ? value : value ? new Date(value) : new Date();
-  if (Number.isNaN(date.getTime())) return '';
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
+export function venueCalendarDay(value?: string | Date): string {
+  return venueCalendarDate(value);
 }
 
 /** Sign-in entries stamped on a given local day, oldest first. */
 function entriesOn(participant: any, date: string): any[] {
   return (participant?.timeItems ?? [])
     .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
-    .filter((timeItem: any) => localCalendarDate(timeItem.createdAt) === date);
+    .filter((timeItem: any) => venueCalendarDay(timeItem.createdAt) === date);
 }
 
 /**

@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { publishingGovernor } from 'tods-competition-factory';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { getActiveEmbargoes } from './publishingData';
 import { t } from 'i18n';
 
@@ -15,6 +16,8 @@ import { PUBLISH_EVENT, PUBLISH_ORDER_OF_PLAY, PUBLISH_PARTICIPANTS } from 'cons
 function formatEmbargoTime(isoString: string): { display: string; countdown: string } {
   const date = new Date(isoString);
   const display = date.toLocaleString(undefined, {
+    // The embargo is a tournament decision, so it displays on the venue's clock.
+    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

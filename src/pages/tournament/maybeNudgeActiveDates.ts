@@ -1,4 +1,5 @@
 import { openEditDatesModal } from './tabs/overviewTab/editDatesModal';
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
@@ -13,9 +14,9 @@ const nudgedTournamentIds = new Set<string>();
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Today at the venue — compared against tournament dates, which are venue calendar days. */
 function todayLocalIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return venueCalendarDate();
 }
 
 function* dateRangeInclusive(startIso: string, endIso: string): Generator<string> {

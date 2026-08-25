@@ -8,6 +8,7 @@
  *   - 'YYYY-MM-DD' — a specific date string
  *   - '__none__' — matchUps with no scheduledDate
  */
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -15,12 +16,14 @@ import { t } from 'i18n';
 export const TODAY_TOKEN = 'today';
 const NO_DATE_TOKEN = '__none__';
 
+/**
+ * Today at the **venue** (`YYYY-MM-DD`) — the day the "Today" filter token means.
+ *
+ * Not the operator's: the Today bar and the schedule's Now strip have to name the
+ * same day, and the schedule keys on the venue. See `functions/venueTimeFrame`.
+ */
 export function isoToday(): string {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return venueCalendarDate();
 }
 
 function formatDateLabel(iso: string): string {

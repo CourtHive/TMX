@@ -42,15 +42,24 @@
  * as unmeasurable: the whole rest feature went dark, on every row, for exactly
  * the operator who is running matches right now.
  *
- * **Assumption, stated rather than assumed:** browser-local time is venue-local
- * time. This is the convention every other schedule2 surface already uses
- * (`todayIso()`, `effectiveNowOnStripDate()`, the reports tab's `calledAtIso`
- * recomputation), and a page that mixed conventions would be the real hazard.
- * `tournamentRecord.localTimeZone` exists and is the known input for making this
- * explicit later; it is deliberately not consulted yet, so that the whole
- * surface moves in one step rather than half of it.
+ * ── The zone: the VENUE's, not the operator's ──
+ *
+ * Every instant here is read in the tournament's own zone, resolved through
+ * `resolveVenueFrame()` — the convention the whole schedule surface moved to
+ * together, recorded in `Mentat/planning/DECISION_VENUE_TIME_FRAME.md`. It used
+ * to be the browser's, which read every figure on this page off by the offset
+ * between the operator's laptop and the venue, silently and plausibly.
+ *
+ * The frame is captured **once** per evaluator pass, alongside `asOfMinutes` and
+ * for the same reason: every badge in a tick must agree about what time it is,
+ * and re-resolving per row would let them disagree.
+ *
+ * The pure functions take the zone as a trailing argument rather than reaching
+ * for it, so they stay testable without an engine — and so this file's one
+ * impure half remains the only thing that decides what "now" and "where" mean.
  */
 
+import { resolveVenueFrame, venueCalendarDate, venueDayMinutes } from 'functions/venueTimeFrame';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
@@ -83,13 +92,9 @@ export function toDayMinutesFromClock(value?: string): number | undefined {
  * date for every evening stamp west of Greenwich and every early-morning one
  * east of it. This is what dates a matchUp that carries no `scheduledDate`.
  */
-export function instantLocalDate(iso?: string): string | undefined {
+export function instantLocalDate(iso?: string, timeZone?: string): string | undefined {
   if (!iso) return undefined;
-  const instant = new Date(iso);
-  if (Number.isNaN(instant.getTime())) return undefined;
-  const month = String(instant.getMonth() + 1).padStart(2, '0');
-  const day = String(instant.getDate()).padStart(2, '0');
-  return `${instant.getFullYear()}-${month}-${day}`;
+  return venueCalendarDate(iso, timeZone) || undefined;
 }
 
 /** Whole calendar days from `fromDate` to `toDate`. Both parsed as UTC, so no DST transition can shorten a day. */
@@ -126,22 +131,30 @@ function dayDelta(fromDate: string, toDate: string): number | undefined {
  * Day membership is not this function's job precisely because of that limit:
  * `instantLocalDate` answers it, exactly and without arithmetic.
  */
-export function toDayMinutesFromInstant(iso?: string, viewedDate?: string | null): number | undefined {
+export function toDayMinutesFromInstant(
+  iso?: string,
+  viewedDate?: string | null,
+  timeZone?: string,
+): number | undefined {
   if (!iso || !viewedDate) return undefined;
-  const instant = new Date(iso);
-  if (Number.isNaN(instant.getTime())) return undefined;
 
-  const localDate = instantLocalDate(iso);
+  const timeOfDay = venueDayMinutes(iso, timeZone);
+  if (timeOfDay === undefined) return undefined;
+
+  const localDate = instantLocalDate(iso, timeZone);
   const delta = localDate === undefined ? undefined : dayDelta(viewedDate, localDate);
   if (delta === undefined) return undefined;
 
-  const timeOfDay = instant.getHours() * 60 + instant.getMinutes();
   const crossedMidnight = Math.abs(delta) === 1;
   return timeOfDay + (crossedMidnight ? MINUTES_PER_DAY * delta : 0);
 }
 
 /** Every time on a matchUp, normalized into minutes from local midnight of the day being viewed. */
-export function normalizeTimes(matchUp: ReadinessMatchUp, viewedDate: string | null): NormalizedTimes {
+export function normalizeTimes(
+  matchUp: ReadinessMatchUp,
+  viewedDate: string | null,
+  timeZone?: string,
+): NormalizedTimes {
   const schedule = matchUp.schedule ?? {};
   // END_DATE is written only when the match crossed midnight, so its presence
   // is exactly the signal that the bare endTime belongs to the following day.
@@ -150,10 +163,10 @@ export function normalizeTimes(matchUp: ReadinessMatchUp, viewedDate: string | n
 
   return {
     ...(endMinutes !== undefined && { endMinutes: endMinutes + endDayOffset }),
-    scoredMinutes: toDayMinutesFromInstant(schedule.scoredTime, viewedDate),
-    scoredDate: instantLocalDate(schedule.scoredTime),
+    scoredMinutes: toDayMinutesFromInstant(schedule.scoredTime, viewedDate, timeZone),
+    scoredDate: instantLocalDate(schedule.scoredTime, timeZone),
     startMinutes: toDayMinutesFromClock(schedule.startTime),
-    calledMinutes: toDayMinutesFromInstant(schedule.calledAt, viewedDate),
+    calledMinutes: toDayMinutesFromInstant(schedule.calledAt, viewedDate, timeZone),
     scheduledMinutes: toDayMinutesFromClock(schedule.scheduledTime),
   };
 }
@@ -161,11 +174,11 @@ export function normalizeTimes(matchUp: ReadinessMatchUp, viewedDate: string | n
 /**
  * "Now" as minutes from midnight of the viewed day. When the operator is looking
  * at another date, today's time-of-day is projected onto it — the same thing
- * `effectiveNowOnStripDate()` does for the Now strip, so the two agree.
+ * `venueNowOnDate()` does for the Now strip, so the two agree — both in the
+ * venue's zone.
  */
-export function nowDayMinutes(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+export function nowDayMinutes(timeZone?: string): number {
+  return venueDayMinutes(new Date(), timeZone) ?? 0;
 }
 
 /** Tournament daily limits, or undefined when no scheduling policy is attached — never a substituted default. */
@@ -218,7 +231,10 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
   const timingFor = makeTimingResolver();
   const dailyLimits = readDailyLimits();
-  const asOfMinutes = nowDayMinutes();
+  // One frame for the whole pass — see the header note on why this is captured
+  // here rather than read per row.
+  const { timeZone } = resolveVenueFrame();
+  const asOfMinutes = nowDayMinutes(timeZone);
 
   return (matchUpId, viewedDate) => {
     const restDate = restDateFor(
@@ -230,7 +246,7 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
       matchUps: hydrated,
       scheduledDate: restDate ?? '',
       asOfMinutes,
-      timesFor: (matchUp) => normalizeTimes(matchUp, restDate),
+      timesFor: (matchUp) => normalizeTimes(matchUp, restDate, timeZone),
       dailyLimits,
       timingFor,
     });

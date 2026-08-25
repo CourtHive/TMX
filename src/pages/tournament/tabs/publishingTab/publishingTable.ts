@@ -11,6 +11,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
 import { getPublishingTableData } from './publishingData';
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { openEmbargoModal } from './embargoModal';
 import { t } from 'i18n';
 
@@ -84,6 +85,8 @@ function publicUrlFormatter(cell: any): string {
 
 function formatLocalEmbargo(date: Date): string {
   return date.toLocaleString(undefined, {
+    // The embargo is a tournament decision, so it displays on the venue's clock.
+    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

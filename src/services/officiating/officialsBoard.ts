@@ -20,7 +20,7 @@
  * Pure and DOM-free: TMX has no jsdom, so a decision made inside a renderer gets no unit coverage.
  */
 
-import { signedInOnDate, localCalendarDate } from 'services/presence/signInPresence';
+import { signedInOnDate, venueCalendarDay } from 'services/presence/signInPresence';
 import { participantRoles } from 'tods-competition-factory';
 
 // constants and types
@@ -166,4 +166,4 @@ export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs)
 
 // Re-exported so the officials surface has one import site; the implementation is shared with the
 // participants presence surface so the two cannot drift into two presence models (D4e).
-export { signedInOnDate, localCalendarDate };
+export { signedInOnDate, venueCalendarDay };

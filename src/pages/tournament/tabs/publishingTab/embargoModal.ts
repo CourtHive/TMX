@@ -6,6 +6,7 @@
  */
 import { attachTimePicker } from 'pages/tournament/tabs/venuesTab/venueTimeHelpers';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { venueParts, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { renderForm, validators } from 'courthive-components';
 import { toDisplayTime } from 'components/forms/venue';
 import { Datepicker } from 'vanillajs-datepicker';
@@ -21,26 +22,34 @@ type EmbargoModalParams = {
   onClear?: () => void;
 };
 
+/**
+ * An embargo instant → the date and time fields the modal edits, on the
+ * **venue's** clock.
+ *
+ * An embargo is a tournament decision ("hold results until 18:00"), so 18:00
+ * means 18:00 at the venue. Read on the operator's clock, a director travelling
+ * would set an embargo that lifts at the wrong hour on site — and, because the
+ * field round-trips, would silently rewrite the existing one just by opening
+ * the modal. This and `venuePartsToGMT` must always move together for that
+ * reason: they are one conversion in two directions.
+ */
 function embargoToLocalParts(isoString?: string): { date: string; time: string } {
   if (!isoString) return { date: '', time: '' };
-  const d = new Date(isoString);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const parts = venueParts(isoString);
+  if (!parts) return { date: '', time: '' };
+  const pad = (n: number) => String(n).padStart(2, '0');
   return {
-    date: `${year}-${month}-${day}`,
-    time: `${hours}:${minutes}`,
+    date: `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`,
+    time: `${pad(parts.hour)}:${pad(parts.minute)}`,
   };
 }
 
-function localPartsToGMT(date: string, time12h: string): string {
+/** The inverse of `embargoToLocalParts` — a venue wall clock back to a UTC instant. */
+function venuePartsToGMT(date: string, time12h: string): string {
   const militaryTime = tools.dateTime.convertTime(time12h, true) || time12h;
-  const [hours, minutes] = (militaryTime || '12:00').split(':').map(Number);
-  const d = new Date(`${date}T00:00:00`);
-  d.setHours(hours || 0, minutes || 0, 0, 0);
-  return d.toISOString();
+  const ms = venueWallClockToMs(date, militaryTime || '12:00');
+  if (ms === undefined) return new Date().toISOString();
+  return new Date(ms).toISOString();
 }
 
 export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: EmbargoModalParams): void {
@@ -94,7 +103,7 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
     const embargoDate = inputs?.embargoDate?.value;
     const embargoTime = inputs?.embargoTime?.value;
     if (embargoDate && embargoTime) {
-      const isoString = localPartsToGMT(embargoDate, embargoTime);
+      const isoString = venuePartsToGMT(embargoDate, embargoTime);
       closeModal();
       onSet(isoString);
     }

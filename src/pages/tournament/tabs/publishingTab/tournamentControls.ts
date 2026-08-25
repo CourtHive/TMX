@@ -11,6 +11,7 @@ import { eventConstants, fixtures } from 'tods-competition-factory';
 import { barButton, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { providerConfig } from 'config/providerConfig';
 import { openEmbargoModal } from './embargoModal';
 import dayjs from 'dayjs';
@@ -77,6 +78,8 @@ function formatEmbargoDisplay(isoString?: string): string {
   const d = new Date(isoString);
   if (d.getTime() <= Date.now()) return t('publishing.expired');
   return d.toLocaleString(undefined, {
+    // The embargo is a tournament decision, so it displays on the venue's clock.
+    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
