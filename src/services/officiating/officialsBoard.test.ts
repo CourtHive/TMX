@@ -5,7 +5,7 @@
  * sign-in must NOT make somebody read as present on Friday. Nothing signs anybody out at end of day,
  * so `participant.signedIn` — the latest value — would say it does.
  */
-import { buildOfficialsBoard, signedInOnDate, durationToMinutes, isOfficial } from './officialsBoard';
+import { buildOfficialsBoard, signedInOnDate, durationMinutes, isOfficial } from './officialsBoard';
 import { describe, expect, it } from 'vitest';
 
 const DAY = '2026-08-24';
@@ -34,13 +34,14 @@ const signIn = (date: string, itemValue = 'SIGNED_IN') => {
 const assignment = (over: any = {}) => ({
   matchUpId: over.matchUpId ?? 'm1',
   matchUpStatus: over.matchUpStatus ?? 'TO_BE_PLAYED',
-  matchUpDuration: over.matchUpDuration,
   winningSide: over.winningSide,
   schedule: {
     scheduledDate: over.scheduledDate ?? DAY,
     scheduledTime: over.scheduledTime,
     courtName: over.courtName,
     official: over.official,
+    // The factory publishes measured play as schedule.milliseconds, not a top-level field.
+    milliseconds: over.minutes === undefined ? undefined : over.minutes * 60_000,
   },
 });
 
@@ -69,16 +70,31 @@ describe('signedInOnDate', () => {
   });
 });
 
-describe('durationToMinutes', () => {
-  it('parses the factory HH:MM:SS field', () => {
-    expect(durationToMinutes('01:23:45')).toBe(83);
-    expect(durationToMinutes('00:00:30')).toBe(0);
+describe('durationMinutes', () => {
+  /**
+   * Reads `schedule.milliseconds`. The board originally read a top-level `matchUpDuration`, which is
+   * `undefined` on every hydration TMX uses — so the column was always blank. These pin the field, not
+   * just the arithmetic: an implementation that went back to `matchUpDuration` returns 0 here.
+   */
+  it('reads schedule.milliseconds', () => {
+    expect(durationMinutes({ schedule: { milliseconds: 5_400_000 } })).toBe(90);
   });
 
-  it('returns 0 for absent or malformed input rather than NaN', () => {
+  it('is 0 when only the top-level matchUpDuration is present', () => {
+    // The exact shipped bug: this shape is what the board was reading, and the factory never sets it.
+    expect(durationMinutes({ matchUpDuration: '01:30:00' })).toBe(0);
+  });
+
+  it('floors partial minutes rather than rounding up', () => {
+    expect(durationMinutes({ schedule: { milliseconds: 119_000 } })).toBe(1);
+  });
+
+  it('is 0 for absent, non-numeric or negative input rather than NaN', () => {
     // NaN would poison the summed column silently — worse than a visible zero.
-    expect(durationToMinutes(undefined)).toBe(0);
-    expect(durationToMinutes('not-a-duration')).toBe(0);
+    expect(durationMinutes(undefined)).toBe(0);
+    expect(durationMinutes({ schedule: {} })).toBe(0);
+    expect(durationMinutes({ schedule: { milliseconds: 'lots' } })).toBe(0);
+    expect(durationMinutes({ schedule: { milliseconds: -1 } })).toBe(0);
   });
 });
 
@@ -146,8 +162,8 @@ describe('buildOfficialsBoard', () => {
   it('sums time on court and counts matches for the date', () => {
     const rows = buildOfficialsBoard({
       matchUps: [
-        assignment({ matchUpId: 'm1', official: 'o1', matchUpStatus: 'COMPLETED', matchUpDuration: '01:30:00' }),
-        assignment({ matchUpId: 'm2', official: 'o1', matchUpStatus: 'COMPLETED', matchUpDuration: '00:45:00' }),
+        assignment({ matchUpId: 'm1', official: 'o1', matchUpStatus: 'COMPLETED', minutes: 90 }),
+        assignment({ matchUpId: 'm2', official: 'o1', matchUpStatus: 'COMPLETED', minutes: 45 }),
       ],
       participants: [official('o1', 'Ana', [signIn(DAY)])],
       date: DAY,
@@ -160,9 +176,7 @@ describe('buildOfficialsBoard', () => {
     // matchUpDuration adds a live-elapsed term for anything started and not ended, so a forgotten
     // STOP would otherwise inflate "time on court today" indefinitely.
     const rows = buildOfficialsBoard({
-      matchUps: [
-        assignment({ matchUpId: 'm1', official: 'o1', matchUpStatus: 'IN_PROGRESS', matchUpDuration: '97:00:00' }),
-      ],
+      matchUps: [assignment({ matchUpId: 'm1', official: 'o1', matchUpStatus: 'IN_PROGRESS', minutes: 97 * 60 })],
       participants: [official('o1', 'Ana', [signIn(DAY)])],
       date: DAY,
     });

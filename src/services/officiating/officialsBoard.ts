@@ -78,19 +78,24 @@ export interface OfficialRow {
 }
 
 /**
- * `"HH:MM:SS"` to whole minutes.
+ * Minutes of play the factory has already measured for this matchUp.
  *
- * The factory attaches `matchUpDuration` as a formatted string during hydration
- * (`getMatchUpScheduleDetails`); the underlying function is **not** exported, so parsing the field is
- * the supported route and reimplementing the START/STOP/RESUME/END ladder here would be a second
- * source of truth for a number the factory already computes.
+ * **Reads `schedule.milliseconds`, not `matchUpDuration`.** The board originally read a top-level
+ * `matchUpDuration`, which is `undefined` on every hydration TMX uses — verified against
+ * `allTournamentMatchUps({ inContext, nextMatchUps })`, `competitionScheduleMatchUps` and
+ * `getMatchUpScheduleDetails` — so the column was always blank. The figure is published as
+ * `schedule.milliseconds` (with a formatted `schedule.time` alongside).
+ *
+ * Consuming the integer is also the right call: parsing `"HH:MM:SS"` re-derived a number the factory
+ * had already computed, and would silently yield 0 if that format ever changed.
+ *
+ * ⚠️ **Includes a live-elapsed term for a running matchUp**, so it grows between reads and an
+ * unclosed timer would grow without bound — hence the cap at the call site.
  */
-export function durationToMinutes(duration?: string): number {
-  if (!duration) return 0;
-  const parts = String(duration).split(':').map(Number);
-  if (parts.length < 2 || parts.some((part) => !Number.isFinite(part))) return 0;
-  const [hours, minutes] = parts;
-  return hours * 60 + minutes;
+export function durationMinutes(matchUp: any): number {
+  const milliseconds = matchUp?.schedule?.milliseconds;
+  if (typeof milliseconds !== 'number' || !Number.isFinite(milliseconds) || milliseconds <= 0) return 0;
+  return Math.floor(milliseconds / 60_000);
 }
 
 function isLive(matchUp: any): boolean {
@@ -144,7 +149,7 @@ export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs)
       participantRole: participant?.participantRole,
       matchesToday: assigned.length,
       minutesOnCourtToday: assigned.reduce(
-        (total, matchUp) => total + Math.min(durationToMinutes(matchUp?.matchUpDuration), MAX_PLAUSIBLE_MATCH_MINUTES),
+        (total, matchUp) => total + Math.min(durationMinutes(matchUp), MAX_PLAUSIBLE_MATCH_MINUTES),
         0,
       ),
     };
