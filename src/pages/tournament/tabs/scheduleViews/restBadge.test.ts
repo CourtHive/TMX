@@ -1,4 +1,4 @@
-import { badgeText, badgeTooltip, headlineRow, shouldRender } from './restBadge';
+import { badgeModel, badgeText, badgeTooltip, headlineRow, shouldRender } from './restBadge';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
@@ -121,5 +121,65 @@ describe('badge honesty for states that carry no measurable interval', () => {
     const overrun = badgeTooltip([row({ status: 'onCourt', overrun: true })]);
     const normal = badgeTooltip([row({ status: 'onCourt' })]);
     expect(overrun).not.toEqual(normal);
+  });
+});
+
+/**
+ * The badge counts up, so a paint-once badge is wrong from the second after it
+ * renders — and a stale badge beside a live Inspector reading something else is
+ * worse than either alone. `badgeModel` is the single derivation both the first
+ * paint and every repaint go through; a ticker that rebuilt the badge by a
+ * parallel route would drift from the original, which is the shape of the bug
+ * this file's history is about.
+ *
+ * Only the model is asserted here. The DOM half (`applyBadge`, the interval)
+ * cannot be reached — TMX's vitest run has no DOM — and belongs to a journey.
+ */
+describe('badgeModel — one derivation for the first paint and every repaint', () => {
+  function result(rows: RestRow[]): RestResult {
+    return { evaluated: true, asOfMinutes: 700, rows };
+  }
+
+  it('returns null when there is nothing worth drawing', () => {
+    expect(badgeModel({ evaluated: false, reason: 'bye' })).toBeNull();
+    expect(badgeModel(result([row({ status: 'none' })]))).toBeNull();
+  });
+
+  it("carries the headline row's status and text", () => {
+    const model = badgeModel(result([row({ status: 'rested' }), row({ status: 'resting', restMinutes: 41 })]));
+    expect(model).toMatchObject({ status: 'resting', text: badgeText(row({ status: 'resting', restMinutes: 41 })) });
+  });
+
+  it('agrees with badgeText and badgeTooltip rather than re-deriving them', () => {
+    const rows = [row({ status: 'onCourt' }), row({ status: 'rested', restMinutes: 200 })];
+    const model = badgeModel(result(rows));
+    expect(model?.text).toBe(badgeText(headlineRow(rows)!));
+    expect(model?.title).toBe(badgeTooltip(rows));
+  });
+
+  it('leaves the limit fields empty when no daily limit is met, so a repaint clears the marker', () => {
+    const model = badgeModel(result([row({ status: 'resting', restMinutes: 10 })]));
+    expect(model?.atLimit).toBe('');
+    expect(model?.limitText).toBe('');
+  });
+
+  it('carries the limit marker when one is met', () => {
+    const atLimit = row({
+      status: 'resting',
+      restMinutes: 10,
+      load: { singles: 2, doubles: 0, total: 2, ordinal: 3, atLimit: ['singles', 'total'], limit: 3 },
+    });
+    const model = badgeModel(result([atLimit]));
+    expect(model?.atLimit).toBe('singles,total');
+    expect(model?.limitText).not.toBe('');
+  });
+
+  it('reports a status transition as the clock moves, which is the whole point of ticking', () => {
+    // The same participant, evaluated 30 seconds apart across the requirement.
+    const before = badgeModel(result([row({ status: 'resting', restMinutes: 59, requiredMinutes: 60 })]));
+    const after = badgeModel(result([row({ status: 'rested', restMinutes: 60, requiredMinutes: 60 })]));
+    expect(before?.status).toBe('resting');
+    expect(after?.status).toBe('rested');
+    expect(before?.text).not.toBe(after?.text);
   });
 });

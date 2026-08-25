@@ -199,24 +199,47 @@ export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: s
   return matchUp?.schedule?.scheduledDate ?? viewedDate;
 }
 
-/** Rest for one matchUp, resolved against current factory state and the current clock. */
-export function evaluateRest(matchUpId: string, viewedDate: string | null): RestResult {
+/**
+ * A rest evaluator valid for one pass, sharing the engine work across every
+ * matchUp it is asked about.
+ *
+ * `makeTimingResolver()` walks the tournament's events and
+ * `getMatchUpDailyLimits()` reaches the engine. Paying for both once is fine for
+ * the Inspector's single matchUp and wrong for the catalog, where the badge
+ * ticker re-reads every visible card on a timer — that is N engine passes every
+ * 30 seconds for a screen that has not changed.
+ *
+ * `asOfMinutes` is captured once too, so every badge in a tick agrees about what
+ * time it is. Reading the clock per badge would let a pass that straddles a
+ * minute boundary render two cards a minute apart.
+ */
+export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | null) => RestResult {
   const { matchUps } = getCachedAllMatchUps();
   const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
-  const restDate = restDateFor(
-    hydrated.find((matchUp) => matchUp.matchUpId === matchUpId),
-    viewedDate,
-  );
   const timingFor = makeTimingResolver();
-  return analyzeParticipantRest({
-    matchUpId,
-    matchUps: hydrated,
-    scheduledDate: restDate ?? '',
-    asOfMinutes: nowDayMinutes(),
-    timesFor: (matchUp) => normalizeTimes(matchUp, restDate),
-    dailyLimits: readDailyLimits(),
-    timingFor,
-  });
+  const dailyLimits = readDailyLimits();
+  const asOfMinutes = nowDayMinutes();
+
+  return (matchUpId, viewedDate) => {
+    const restDate = restDateFor(
+      hydrated.find((matchUp) => matchUp.matchUpId === matchUpId),
+      viewedDate,
+    );
+    return analyzeParticipantRest({
+      matchUpId,
+      matchUps: hydrated,
+      scheduledDate: restDate ?? '',
+      asOfMinutes,
+      timesFor: (matchUp) => normalizeTimes(matchUp, restDate),
+      dailyLimits,
+      timingFor,
+    });
+  };
+}
+
+/** Rest for one matchUp, resolved against current factory state and the current clock. */
+export function evaluateRest(matchUpId: string, viewedDate: string | null): RestResult {
+  return makeRestEvaluator()(matchUpId, viewedDate);
 }
 
 /** `134` → `'2h 14m'`; under an hour drops the hours part entirely. */
