@@ -57,6 +57,42 @@
  * operator's zone, because "when I saw it" is the question those answer. That
  * line is deliberate; it is not an oversight in the sites this module does not
  * touch.
+ *
+ * ── This file is TMX's Temporal migration seam ──
+ *
+ * The factory is moving to the TC39 Temporal API
+ * (`Mentat/planning/FACTORY_TEMPORAL_MIGRATION.md`), and its Phase 1 —
+ * `tools/timeZone.ts` on `Temporal.ZonedDateTime` — is this same problem solved
+ * one repo over. TMX should follow, and the point of concentrating every
+ * conversion here is that following is a rewrite of ONE file rather than a
+ * sweep of the sixteen call sites this replaced.
+ *
+ * Three things were chosen with that migration in mind:
+ *
+ *   - **Signatures take and return strings, numbers and `Date`.** The factory's
+ *     plan locks the wire format as ISO strings and changes only internal
+ *     arithmetic, so nothing here has to change shape when the internals do.
+ *     Callers never see a `Date` this module constructed except `venueNowOnDate`.
+ *   - **Everything resolves per instant.** That is `ZonedDateTime`'s model
+ *     already, so the migration is a simplification and not a redesign.
+ *     `venueParts` becomes `instant.toZonedDateTimeISO(timeZone)` field reads;
+ *     `venueOffsetMinutesAt` becomes `zdt.offsetNanoseconds`.
+ *   - **`venueWallClockToMs` is the piece that gets genuinely better.** Its
+ *     two-pass offset guess exists only because native `Date` cannot resolve a
+ *     wall clock in a named zone; `Temporal.PlainDateTime.from(…).toZonedDateTime(tz)`
+ *     does it in one step, and turns the ambiguity this settles silently
+ *     (spring-forward's missing hour, fall-back's repeated one) into an explicit
+ *     `disambiguation` choice. Whoever migrates should read the two passes as a
+ *     workaround to delete, not a behaviour to preserve.
+ *
+ * The wart to fix when it lands: `venueNowOnDate` returns a **naive `Date`**
+ * because that is the only shape native `Date` offers for "a wall clock with no
+ * zone", and its callers compare it against other naive Dates. That is exactly
+ * `Temporal.PlainDateTime`, typed — at which point the comparison stops being a
+ * convention this file has to explain and becomes something the compiler knows.
+ *
+ * TMX is the ecosystem's iOS PWA and Safari has no native Temporal, so TMX will
+ * need `@js-temporal/polyfill` imported at app boot before anything here runs.
  */
 import { isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { tournamentEngine } from 'services/factory/engine';

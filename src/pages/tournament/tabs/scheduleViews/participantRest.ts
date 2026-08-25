@@ -209,6 +209,12 @@ const SINGLES = 'SINGLES';
  * Inspector and a different one in the recovery report for the same matchUp; a
  * cancelled matchUp plainly put nobody on court, so the factory's set is right
  * and this one follows it.
+ *
+ * **That agreement is enforced, not merely requested.**
+ * `wasPlayedConformance.test.ts` drives the factory's own Participant Recovery
+ * report over one matchUp per status and checks this predicate reaches the same
+ * verdict. If you change the set below, that test tells you whether the factory
+ * agrees — and if it does not, the factory is right and this file follows.
  */
 const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED']);
 const DEFAULT_STATUSES = new Set(['DEFAULTED', 'DOUBLE_DEFAULT']);

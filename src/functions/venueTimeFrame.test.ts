@@ -9,14 +9,18 @@
  * difference is observable.
  */
 import {
+  resolveVenueFrame,
   venueOffsetMinutesAt,
   venueWallClockToMs,
   venueCalendarDate,
   venueDayMinutes,
   venueNowOnDate,
+  venueTimeZone,
   venueParts,
   venueClock,
 } from './venueTimeFrame';
+import { tournamentEngine } from 'services/factory/engine';
+import { mocksEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 const NEW_YORK = 'America/New_York';
@@ -138,5 +142,47 @@ describe('venueNowOnDate — "now" projected onto a viewed date, as a NAIVE Date
     const blockEnd = new Date('2026-08-21T00:00:00');
     expect(projected >= blockStart).toBe(true);
     expect(projected < blockEnd).toBe(true);
+  });
+});
+
+describe('resolveVenueFrame — which zone, and whether the page may say it is sure', () => {
+  /**
+   * The one function no site may re-implement. Everything else in this module
+   * takes a zone; this decides WHICH zone, and the `source` it returns is what
+   * the schedule's notice branches on. A regression here is silent by
+   * construction — the times still render, they are just framed wrong — so it is
+   * worth the engine setup a value test needs.
+   */
+  const seed = (localTimeZone?: string) => {
+    mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize: 2 }], setState: true });
+    if (localTimeZone) tournamentEngine.setTournamentLocalTimeZone({ localTimeZone });
+  };
+
+  it("takes the tournament's zone when the record carries one, and says so", () => {
+    seed(KOLKATA);
+    expect(resolveVenueFrame()).toEqual({ timeZone: KOLKATA, source: 'tournament' });
+    expect(venueTimeZone()).toBe(KOLKATA);
+  });
+
+  it('falls back to the device zone when the record carries none — and reports the fallback', () => {
+    seed();
+    const frame = resolveVenueFrame();
+    // The suite runs TZ=UTC, so the device zone is UTC here; `source` is the
+    // assertion that matters, because it is what puts the notice on screen.
+    expect(frame.source).toBe('browser');
+    expect(frame.timeZone).toBeTruthy();
+  });
+
+  it('re-reads the record, so setting a zone re-frames the page without a reload', () => {
+    seed();
+    expect(resolveVenueFrame().source).toBe('browser');
+    tournamentEngine.setTournamentLocalTimeZone({ localTimeZone: NEW_YORK });
+    expect(resolveVenueFrame()).toEqual({ timeZone: NEW_YORK, source: 'tournament' });
+  });
+
+  it('always yields a usable zone, so no caller has to handle an absent one', () => {
+    seed();
+    expect(() => venueClock(new Date(), venueTimeZone())).not.toThrow();
+    expect(venueCalendarDate('2026-08-25T12:00:00Z', venueTimeZone())).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
