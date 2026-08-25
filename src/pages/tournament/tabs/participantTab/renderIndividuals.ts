@@ -22,6 +22,7 @@ import { signInParticipants } from './controlBar/signInParticipants';
 import { printPlayerList } from 'components/modals/printPlayerList';
 import { callSheet } from 'components/modals/callSheet';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
+import { closeTheDay } from './controlBar/closeTheDay';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
@@ -152,6 +153,15 @@ export function renderIndividuals({ view }: { view: string }): void {
     {
       onClick: () => signOutUnapproved(replaceTableData),
       label: t('pages.participants.signOutUnapproved'),
+      hide: !hasParticipants,
+      close: true,
+    },
+    {
+      // Sits beside signOutUnapproved deliberately, with a distinct label: that one is
+      // COMPETITOR-scoped entry management, this one is role-agnostic and means the day is over.
+      // Conflating them is what would sign the whole personnel roster out by accident.
+      onClick: () => closeTheDay(replaceTableData),
+      label: t('pages.participants.closeTheDay'),
       hide: !hasParticipants,
       close: true,
     },
