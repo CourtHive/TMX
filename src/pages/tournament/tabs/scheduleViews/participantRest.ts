@@ -47,6 +47,16 @@
  * finish, so rest is understated — the conservative direction, since it holds a
  * rested player back rather than calling a tired one.
  *
+ * The ladder degrades on **unusable**, not merely on absent. A rung that holds a
+ * value can still be unreadable — anything landing after "now" is not a finish
+ * that has happened — and an earlier design stopped at the first rung with a
+ * value, discovered the problem afterwards, and reported the whole row as
+ * unmeasurable. It had four weaker answers in hand and used none of them: a
+ * semifinal at 09:00 plus its format average dates the finish perfectly well.
+ * `resolveAnchors` therefore returns every rung, and the caller takes the
+ * strongest one that is actually behind the clock. `anchorUnreliable` is
+ * reserved for the case where the whole ladder is in the future.
+ *
  * `RestInput` → `RestResult` is the seam, matching `matchUpReadiness.ts`: a
  * future factory `getParticipantRest` replaces this body and keeps the contract.
  * The factory is pure and has no clock, so it would take the same injected
@@ -75,6 +85,13 @@ export const MEASURED_SOURCE: RestSourceKind = 'endTime';
 export interface NormalizedTimes {
   endMinutes?: number;
   scoredMinutes?: number;
+  /**
+   * Local calendar date of `scoredTime`, `YYYY-MM-DD`. Carried separately from
+   * `scoredMinutes` because that value is clamped into the viewed day's clock
+   * and so can no longer say which day it came from — and dating a matchUp is
+   * the one question that needs the unclamped answer.
+   */
+  scoredDate?: string;
   startMinutes?: number;
   calledMinutes?: number;
   scheduledMinutes?: number;
@@ -150,6 +167,16 @@ export interface RestRow {
   anchorUnreliable?: boolean;
   /** Which rung produced the anchor. Absent for `none`. */
   source?: RestSourceKind;
+  /**
+   * Rungs the ladder passed over on its way to `source`, strongest first. Present
+   * only when something was actually skipped.
+   *
+   * A silent fall-through is a fix that hides its own cause: the row reads as a
+   * clean estimate while a recorded stamp sits in the record contradicting it.
+   * Every reason for skipping one is a fault worth someone's attention — a score
+   * filed the next day, or a page asking about the wrong day.
+   */
+  discardedSources?: RestSourceKind[];
   /** The matchUp the rest is measured from. Absent for `none`. */
   fromMatchUpId?: string;
   fromMatchUpLabel?: string;
@@ -165,7 +192,6 @@ export type RestResult =
 const BYE = 'BYE';
 const DOUBLES = 'DOUBLES';
 const SINGLES = 'SINGLES';
-const MINUTES_PER_DAY = 1440;
 
 /**
  * Statuses that advance a participant without their playing. A walkover costs no
@@ -176,8 +202,15 @@ const MINUTES_PER_DAY = 1440;
  * no-show *or* a mid-match disqualification. The score tells them apart, so they
  * are decided by `wasPlayed` rather than by status alone. `RETIRED` and
  * `ABANDONED` are likewise absent — both mean time was spent on court.
+ *
+ * `CANCELLED` is here to match `factory/src/query/reports/recoveryTimeline.ts`,
+ * which ported this predicate from this file and added it. Two copies of one rule
+ * that disagree by a status is how a director gets one rest figure in the
+ * Inspector and a different one in the recovery report for the same matchUp; a
+ * cancelled matchUp plainly put nobody on court, so the factory's set is right
+ * and this one follows it.
  */
-const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER']);
+const UNPLAYED_STATUSES = new Set(['WALKOVER', 'DOUBLE_WALKOVER', 'CANCELLED']);
 const DEFAULT_STATUSES = new Set(['DEFAULTED', 'DOUBLE_DEFAULT']);
 
 /** True when this matchUp actually put the participants on court. */
@@ -195,16 +228,20 @@ export function wasPlayed(matchUp: ReadinessMatchUp): boolean {
  *
  * `scheduledDate` answers it outright when present. When it is absent — which is
  * what a score entered from the draw view leaves behind — `scoredTime` still
- * dates the match, because it arrives as a full instant already normalized to
- * minutes from the viewed day's midnight: a stamp from another day lands outside
- * `0..1439`. A matchUp with neither is genuinely undatable and is excluded, since
- * counting it would be a guess about which day's rest it belongs to.
+ * dates the match, via the stamp's own local calendar date.
+ *
+ * That date is compared directly rather than inferred from `scoredMinutes`
+ * falling inside `0..1439`. The range test was a proxy for the same question and
+ * stopped being one when `scoredMinutes` began clamping to the viewed day's
+ * clock: every stamp now lands in range, so the proxy would admit a match from
+ * any day at all. A matchUp with neither a scheduledDate nor a scoredTime is
+ * genuinely undatable and is excluded, since counting it would be a guess about
+ * which day's rest it belongs to.
  */
 export function occursOnViewedDay(matchUp: ReadinessMatchUp, times: NormalizedTimes, viewedDate: string): boolean {
   const scheduledDate = matchUp.schedule?.scheduledDate;
   if (scheduledDate) return scheduledDate === viewedDate;
-  const scored = times.scoredMinutes;
-  return scored !== undefined && scored >= 0 && scored < MINUTES_PER_DAY;
+  return times.scoredDate !== undefined && times.scoredDate === viewedDate;
 }
 
 /** The ladder, strongest first. Order is the contract; the renderer reports which rung won. */
@@ -219,20 +256,63 @@ const LADDER: { source: RestSourceKind; read: (times: NormalizedTimes) => number
 interface Anchor {
   minutes: number;
   source: RestSourceKind;
+  /**
+   * True when a recorded finish sits an implausible distance from its own start —
+   * bookkeeping rather than play. Projected rungs are derived FROM the start and
+   * so are plausible by construction.
+   */
+  implausible?: boolean;
 }
 
 /**
- * When the participant coming out of `matchUp` became free, in minutes.
- * Walks the ladder strongest-first; projected rungs add `averageMinutes`
- * because they mark a start rather than a finish.
+ * How far after its own start a recorded finish may sit and still be a finish.
+ *
+ * Twelve hours covers any real match including a long weather suspension, while
+ * excluding a score entered the next day. Matches
+ * `MAX_PLAUSIBLE_MATCH_MINUTES` in `factory/src/query/reports/recoveryTimeline.ts`
+ * so the Inspector and the recovery report reject the same stamps.
  */
-export function resolveAnchor(times: NormalizedTimes, timing: RestTiming): Anchor | undefined {
-  for (const rung of LADDER) {
+const MAX_PLAUSIBLE_MATCH_MINUTES = 12 * 60;
+
+/**
+ * Whether a recorded finish sits a plausible distance after a known start.
+ *
+ * **Deliberate divergence from the factory**, which returns false when there is
+ * no start at all. That module computes a *duration*, which is meaningless
+ * without one. This module computes a *finish anchor*, which is not: a score
+ * entered from the draw view leaves neither a scheduledTime nor a startTime, and
+ * its stamp is then the only evidence the match happened. With nothing to
+ * contradict, there is nothing to reject.
+ */
+function isPlausibleFinish(finishMinutes: number, startMinutes?: number): boolean {
+  if (startMinutes === undefined) return true;
+  const elapsed = finishMinutes - startMinutes;
+  return elapsed > 0 && elapsed <= MAX_PLAUSIBLE_MATCH_MINUTES;
+}
+
+/**
+ * Every reading of when the participant coming out of `matchUp` became free,
+ * strongest first. Projected rungs add `averageMinutes` because they mark a
+ * start rather than a finish.
+ *
+ * All of them, not just the winner: whether a rung is usable depends on the
+ * clock, which is the caller's to hold. Handing back one answer forced the
+ * caller to accept it or report nothing.
+ */
+export function resolveAnchors(times: NormalizedTimes, timing: RestTiming): Anchor[] {
+  const startReference = times.startMinutes ?? times.calledMinutes ?? times.scheduledMinutes;
+  return LADDER.flatMap((rung) => {
     const minutes = rung.read(times);
-    if (minutes === undefined) continue;
-    return { minutes: rung.projected ? minutes + timing.averageMinutes : minutes, source: rung.source };
-  }
-  return undefined;
+    if (minutes === undefined) return [];
+    if (rung.projected) return [{ minutes: minutes + timing.averageMinutes, source: rung.source }];
+    const implausible = !isPlausibleFinish(minutes, startReference);
+    return [{ minutes, source: rung.source, ...(implausible && { implausible: true }) }];
+  });
+}
+
+/** The strongest available reading, ignoring whether it is usable. Correct for a live matchUp, whose finish IS ahead. */
+export function resolveAnchor(times: NormalizedTimes, timing: RestTiming): Anchor | undefined {
+  return resolveAnchors(times, timing).at(0);
 }
 
 /**
@@ -336,21 +416,61 @@ interface AnchoredPrior {
   anchor: Anchor;
   matchUp: ReadinessMatchUp;
   timing: RestTiming;
+  /** Rungs passed over on the way to `anchor`, strongest first. */
+  discarded: RestSourceKind[];
 }
 
 /**
- * The most recent anchor across a participant's prior matchUps — "the last one
- * that finished".
+ * The rung one prior matchUp should be read from, and what was passed over.
  *
- * Anchors at or before `asOfMinutes` win outright, and only the latest of those
- * is used. An anchor *after* now is not a finish that has happened: it comes from
- * a projected rung (`scheduledTime + averageMinutes`) on a matchUp recorded as
- * complete ahead of its slot. Treating one as a finish produced `0m of 60m` for a
- * player who had not played, because the negative interval was clamped to zero.
+ * Two reasons to skip a rung, and they are different faults. **Implausible**: the
+ * stamp sits more than a match's length from its own start, so it records
+ * bookkeeping rather than play. **Ahead of now**: a finish that has not happened,
+ * which is a projection on a matchUp recorded complete early, or a page asking
+ * about a day other than the one the stamp belongs to.
  *
- * When every anchor is in the future the match still happened, so reporting "no
- * prior match" would fail open. The caller is handed the earliest future anchor
- * and told, via `unreliable`, that it cannot carry a rest figure.
+ * When nothing is readable the strongest *plausible* rung is still named, so the
+ * row can point at the matchUp it failed to measure rather than at a stamp it has
+ * already rejected. `discarded` then carries only the rungs the gate threw out —
+ * "everything is in the future" is what `anchorUnreliable` already says.
+ */
+function selectAnchor(
+  anchors: Anchor[],
+  asOfMinutes: number,
+): { anchor: Anchor; usable: boolean; discarded: RestSourceKind[] } | undefined {
+  const readable = anchors.findIndex((anchor) => !anchor.implausible && anchor.minutes <= asOfMinutes);
+  if (readable >= 0) {
+    return { anchor: anchors[readable], usable: true, discarded: anchors.slice(0, readable).map((a) => a.source) };
+  }
+
+  const plausible = anchors.findIndex((anchor) => !anchor.implausible);
+  const index = plausible >= 0 ? plausible : 0;
+  const anchor = anchors.at(index);
+  return anchor && { anchor, usable: false, discarded: anchors.slice(0, index).map((a) => a.source) };
+}
+
+/**
+ * The most recent usable anchor across a participant's prior matchUps — "the last
+ * one that finished".
+ *
+ * Two selections, and they are ordered differently on purpose. *Within* one
+ * matchUp the ladder decides: take the strongest rung that is at or before
+ * `asOfMinutes`, so a recorded finish outranks a projection but a projection is
+ * still reached for when the recorded value cannot be read. *Across* matchUps the
+ * clock decides: the latest of those wins, because rest runs from the last time
+ * the player walked off.
+ *
+ * An anchor *after* now is not a finish that has happened — a matchUp recorded as
+ * complete ahead of its slot, or a score filed under a day other than the one it
+ * was entered on. Treating one as a finish produced `0m of 60m` for a player who
+ * had not played, because the negative interval was clamped to zero. Skipping the
+ * rung and trying the next one is what keeps a single unreadable stamp from
+ * taking the whole row down with it.
+ *
+ * When every rung of every prior matchUp is in the future the matches still
+ * happened, so reporting "no prior match" would fail open. The caller is handed
+ * the earliest future anchor and told, via `unreliable`, that it cannot carry a
+ * rest figure.
  */
 function latestAnchor(
   prior: PriorMatchUp[],
@@ -360,10 +480,11 @@ function latestAnchor(
   let future: AnchoredPrior | undefined;
 
   for (const entry of prior) {
-    const anchor = resolveAnchor(entry.times, entry.timing);
-    if (!anchor) continue;
-    const candidate = { anchor, matchUp: entry.matchUp, timing: entry.timing };
-    if (anchor.minutes <= asOfMinutes) {
+    const selected = selectAnchor(resolveAnchors(entry.times, entry.timing), asOfMinutes);
+    if (!selected) continue;
+    const { anchor, usable, discarded } = selected;
+    const candidate = { anchor, matchUp: entry.matchUp, timing: entry.timing, discarded };
+    if (usable) {
       if (!past || anchor.minutes > past.anchor.minutes) past = candidate;
     } else if (!future || anchor.minutes < future.anchor.minutes) {
       future = candidate;
@@ -435,6 +556,7 @@ function restRowFor(
     typeChange,
     ...(showReadyAt && { readyAt: minutesToClock(latest.anchor.minutes + requiredMinutes) }),
     ...(latest.unreliable && { anchorUnreliable: true }),
+    ...(latest.discarded.length && { discardedSources: latest.discarded }),
     source: latest.anchor.source,
     fromMatchUpId: latest.matchUp.matchUpId,
     fromMatchUpLabel: matchUpLabel(latest.matchUp),

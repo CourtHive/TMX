@@ -429,6 +429,18 @@ export function renderGridView(
     // and before the drag starts, so the Inspector is one interaction too late.
     // Rest asks whether they are fit to be called, check-in whether they are here.
     renderCardExtra: (matchUp) => renderCardBadges(matchUp.matchUpId, currentDate),
+    // The store owns `selectedDate`, which the Inspector reads; `currentDate` is
+    // what every other surface here reads. They must never name different days —
+    // rest computed against day one while the card beside it computed against
+    // today is the failure this closes. TMX collapses the component's own date
+    // strip, so this fires only if that panel is ever surfaced; wiring it anyway
+    // is what makes "one viewed date" a property of the page rather than of the
+    // current layout.
+    onDateSelected: (date: string) => {
+      if (!date || date === currentDate) return;
+      currentDate = date;
+      refresh();
+    },
     // Restore catalog filter state captured from a previous mount within
     // this tournament session. Cleared on tournament load (see loadTournament).
     initialCatalogState: context.scheduleCatalogState,

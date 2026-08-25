@@ -1,4 +1,4 @@
-import { analyzeParticipantRest, resolveAnchor } from './participantRest';
+import { analyzeParticipantRest, resolveAnchor, resolveAnchors } from './participantRest';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
@@ -432,12 +432,231 @@ describe('a match that overruns its average duration still occupies the player',
   });
 });
 
+/**
+ * The reported defect: a backdraw final whose two semifinals both carried a
+ * `scoredTime` read "Prior match has no recorded finish — rest cannot be
+ * measured". The stamp was real and the ladder stopped there, so four weaker
+ * answers — including the semifinal's own 09:00 slot plus the format average —
+ * were never reached.
+ */
+describe('the ladder falls through a rung it cannot read', () => {
+  const target = singles({ id: 'm-final', ids: [ALICE, BOB] });
+  const semi = singles({ id: 'm-semi', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+
+  /** 09:00 slot, and a scoredTime that lands after now — the shape the bug needs. */
+  const unreadableScore: NormalizedTimes = { scoredMinutes: 800, scheduledMinutes: 540 };
+
+  it('lists every rung that holds a value, strongest first', () => {
+    const anchors = resolveAnchors({ scoredMinutes: 740, startMinutes: 600, scheduledMinutes: 590 }, TIMING);
+    expect(anchors).toEqual([
+      { minutes: 740, source: 'scoredTime' },
+      { minutes: 690, source: 'startTime' },
+      { minutes: 680, source: 'scheduledTime' },
+    ]);
+  });
+
+  it('measures rest from scheduledTime + average when scoredTime projects into the future', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': unreadableScore },
+          asOfMinutes: 671, // 11:11; the 09:00 + 90 anchor is 10:30
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 41, source: 'scheduledTime' });
+    expect(alice?.anchorUnreliable).toBeUndefined();
+  });
+
+  it('names the weaker rung it actually used, so an estimate never reads as a measurement', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { ...unreadableScore, startMinutes: 545 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    // startTime outranks scheduledTime, and both are behind the clock.
+    expect(result.rows.find((row) => row.participantId === ALICE)?.source).toBe('startTime');
+  });
+
+  it('still prefers a readable strong rung over a readable weak one', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 620, scheduledMinutes: 540 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)).toMatchObject({
+      source: 'scoredTime',
+      restMinutes: 59,
+    });
+  });
+
+  it('reports the anchor unreliable ONLY when every rung is in the future', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 800, scheduledMinutes: 700 } },
+          asOfMinutes: 679,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 0, anchorUnreliable: true });
+  });
+
+  it('takes the latest usable anchor across matchUps, not the latest rung of one', () => {
+    const early = singles({ id: 'm-early', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, early, semi],
+          times: {
+            'm-early': { endMinutes: 500 },
+            'm-semi': unreadableScore, // falls through to 10:30
+          },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)).toMatchObject({
+      restMinutes: 41,
+      source: 'scheduledTime',
+    });
+  });
+});
+
+/**
+ * Mirrors `MAX_PLAUSIBLE_MATCH_MINUTES` in
+ * `factory/src/query/reports/recoveryTimeline.ts`, so the Inspector and the
+ * recovery report reject the same stamps. Raised by the factory session's note
+ * of 2026-08-24: the two ladders are independent implementations of one rule and
+ * a director must not get different rest figures from them.
+ */
+describe('a recorded finish an implausible distance from its own start is not a finish', () => {
+  const target = singles({ id: 'm-final', ids: [ALICE, BOB] });
+  const semi = singles({ id: 'm-semi', ids: [ALICE, CHEN], status: 'COMPLETED', winningSide: 1 });
+
+  it('accepts a long match — twelve hours covers a weather suspension', () => {
+    // 09:00 start, finish 20:00: eleven hours, ugly but real.
+    const anchors = resolveAnchors({ scoredMinutes: 1200, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 1200, source: 'scoredTime' });
+  });
+
+  it('rejects a score entered the next morning', () => {
+    // 09:00 start, stamp rolled to 09:30 the following day.
+    const anchors = resolveAnchors({ scoredMinutes: 1440 + 570, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toMatchObject({ source: 'scoredTime', implausible: true });
+  });
+
+  it('rejects a finish that precedes its own start', () => {
+    const anchors = resolveAnchors({ scoredMinutes: 500, startMinutes: 540 }, TIMING);
+    expect(anchors[0]).toMatchObject({ source: 'scoredTime', implausible: true });
+  });
+
+  it('accepts a stamp with no start to contradict it — the draw-view entry keeps working', () => {
+    // Deliberate divergence from the factory, which returns false without a start
+    // because it is computing a duration. This module computes a finish anchor.
+    const anchors = resolveAnchors({ scoredMinutes: 700 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 700, source: 'scoredTime' });
+  });
+
+  it('never marks a projected rung implausible — it is derived FROM the start', () => {
+    const anchors = resolveAnchors({ scheduledMinutes: 540 }, TIMING);
+    expect(anchors[0]).toEqual({ minutes: 630, source: 'scheduledTime' });
+  });
+
+  it('falls through an implausible stamp to the projection, and says which rung it dropped', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 1440 + 570, scheduledMinutes: 540 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ status: 'resting', restMinutes: 41, source: 'scheduledTime' });
+    expect(alice?.discardedSources).toEqual(['scoredTime']);
+  });
+
+  it('reports no discards on the ordinary path, so the signal means something', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 620, scheduledMinutes: 540 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    expect(result.rows.find((row) => row.participantId === ALICE)?.discardedSources).toBeUndefined();
+  });
+
+  it('names the matchUp from a plausible rung even when nothing is readable yet', () => {
+    // Every rung ahead of now, and the strongest is also implausible: the row must
+    // still point at the match rather than at the stamp it already rejected.
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-final',
+          matchUps: [target, semi],
+          times: { 'm-semi': { scoredMinutes: 1440 + 570, scheduledMinutes: 700 } },
+          asOfMinutes: 671,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice).toMatchObject({ anchorUnreliable: true, source: 'scheduledTime' });
+    expect(alice?.discardedSources).toEqual(['scoredTime']);
+  });
+});
+
+describe('a cancelled matchUp put nobody on court', () => {
+  const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
+
+  it('charges no recovery and takes no slot against the daily limit', () => {
+    const cancelled = singles({ id: 'm-prior', ids: [ALICE, CHEN], status: 'CANCELLED', winningSide: 1 });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'm-next',
+          matchUps: [target, cancelled],
+          times: { 'm-prior': { endMinutes: 600 } },
+          asOfMinutes: 700,
+        }),
+      ),
+    );
+    const alice = result.rows.find((row) => row.participantId === ALICE);
+    expect(alice?.status).toBe('none');
+    expect(alice?.load.ordinal).toBe(1);
+  });
+});
+
 describe('a completed matchUp with no scheduledDate is dated by its scoredTime', () => {
   /**
    * Scores entered from the draw view leave no `schedule.scheduledDate`, so the
    * day filter discarded them and the player read as unplayed. `scoredTime` is a
-   * full instant and already normalizes to minutes-from-viewed-midnight, so a
-   * stamp from another day lands outside `0..1439` and dates the match for free.
+   * full instant, so its own local calendar date dates the match — carried as
+   * `scoredDate` beside the minutes, which are clamped into the viewed day's
+   * clock and can no longer say which day they came from.
    */
   const target = singles({ id: 'm-next', ids: [ALICE, BOB] });
 
@@ -451,7 +670,7 @@ describe('a completed matchUp with no scheduledDate is dated by its scoredTime',
         buildInput({
           matchUpId: 'm-next',
           matchUps: [target, undated('m-undated', [ALICE, CHEN])],
-          times: { 'm-undated': { scoredMinutes: 700 } },
+          times: { 'm-undated': { scoredMinutes: 700, scoredDate: DATE } },
           asOfMinutes: 800,
         }),
       ),
@@ -466,7 +685,7 @@ describe('a completed matchUp with no scheduledDate is dated by its scoredTime',
         buildInput({
           matchUpId: 'm-next',
           matchUps: [target, undated('m-yesterday', [ALICE, CHEN])],
-          times: { 'm-yesterday': { scoredMinutes: -220 } }, // 20:20 the previous evening
+          times: { 'm-yesterday': { scoredMinutes: -220, scoredDate: '2026-08-21' } }, // 20:20 the previous evening
           asOfMinutes: 800,
         }),
       ),
