@@ -2354,7 +2354,11 @@
         "preferNickname": "Prefer nickname in draws",
         "nameTooShort": "Please enter a name of at least 3 characters"
       },
-      "selected": "selected"
+      "selected": "selected",
+      "closeTheDay": "Close the day",
+      "closeTheDayNobody": "Nobody is currently signed in",
+      "closeTheDayConfirm_one": "Sign out {{count}} person who is still signed in today?",
+      "closeTheDayConfirm_other": "Sign out {{count}} people who are still signed in today?"
     }
   },
   "overlays": {

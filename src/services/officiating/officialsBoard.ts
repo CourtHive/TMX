@@ -20,13 +20,12 @@
  * Pure and DOM-free: TMX has no jsdom, so a decision made inside a renderer gets no unit coverage.
  */
 
+import { signedInOnDate, localCalendarDate } from 'services/presence/signInPresence';
 import { participantRoles } from 'tods-competition-factory';
 
 // constants and types
 const { OFFICIAL } = participantRoles;
 
-const SIGN_IN_STATUS = 'SIGN_IN_STATUS';
-const SIGNED_IN = 'SIGNED_IN';
 const IN_PROGRESS = 'IN_PROGRESS';
 const SUSPENDED = 'SUSPENDED';
 
@@ -53,27 +52,6 @@ const COMPLETED_STATUSES = new Set([
  */
 const MAX_PLAUSIBLE_MATCH_MINUTES = 12 * 60;
 
-/**
- * The **local** calendar date of an instant — never `toISOString().slice(0, 10)`.
- *
- * `toISOString` is UTC, so west of UTC it rolls over while the tournament is still playing: at 8pm in
- * Florida it already reports tomorrow. Every schedule surface in TMX keys "today" on the operator's
- * local calendar date (see `gridView.todayIso`), and this must agree with them or the officials board
- * and the Now strip disagree about what day it is.
- *
- * ⚠️ **Local is the established convention, not the ideal one.** The venue's own zone would be better
- * — a director running a Florida tournament from a Pacific laptop still reads the wrong day — but
- * moving to venue time is a change every schedule surface must make together. Fixing it here alone
- * would introduce a *fourth* notion of time.
- */
-export function localCalendarDate(value?: string | Date): string {
-  const date = value instanceof Date ? value : value ? new Date(value) : new Date();
-  if (Number.isNaN(date.getTime())) return '';
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
 export type OfficialState = 'onCourt' | 'assigned' | 'waiting' | 'available';
 
 export interface OfficialRow {
@@ -97,33 +75,6 @@ export interface OfficialRow {
    */
   contacts?: any[];
   participantRole?: string;
-}
-
-/**
- * Was this person signed in **on this date**?
- *
- * **Deliberately not `participant.signedIn`.** That field is derived by `getParticipantMap` via
- * `getTimeItem`, which returns the *latest* `SIGN_IN_STATUS` by `createdAt` — and since nothing signs
- * anybody out at end of day, a Thursday sign-in still reads SIGNED_IN on Sunday. Reading the history
- * and filtering by date is what makes `waiting` mean what it says.
- *
- * **A date with no entry returns false, and that is the point.** It renders `available` — "not known
- * to be here" — never `waiting`. Presenting an inferred presence as a recorded one is precisely the
- * trap the presence plan keeps naming.
- */
-export function signedInOnDate(participant: any, date: string): boolean {
-  const entries = (participant?.timeItems ?? [])
-    .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
-    // `createdAt` is a UTC instant; `date` is a local calendar date. Slicing the ISO string would
-    // compare a UTC day against a local one and disagree for every evening sign-in west of UTC.
-    .filter((timeItem: any) => localCalendarDate(timeItem.createdAt) === date);
-
-  if (!entries.length) return false;
-
-  const latest = entries.reduce((acc: any, timeItem: any) =>
-    String(timeItem.createdAt) > String(acc.createdAt) ? timeItem : acc,
-  );
-  return latest?.itemValue === SIGNED_IN;
 }
 
 /**
@@ -207,3 +158,7 @@ export function buildOfficialsBoard({ matchUps, participants, date }: BoardArgs)
       a.participantName.localeCompare(b.participantName, undefined, { numeric: true }),
   );
 }
+
+// Re-exported so the officials surface has one import site; the implementation is shared with the
+// participants presence surface so the two cannot drift into two presence models (D4e).
+export { signedInOnDate, localCalendarDate };

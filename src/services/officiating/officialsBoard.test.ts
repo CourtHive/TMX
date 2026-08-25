@@ -5,15 +5,8 @@
  * sign-in must NOT make somebody read as present on Friday. Nothing signs anybody out at end of day,
  * so `participant.signedIn` — the latest value — would say it does.
  */
-import {
-  buildOfficialsBoard,
-  signedInOnDate,
-  durationToMinutes,
-  isOfficial,
-  localCalendarDate,
-} from './officialsBoard';
+import { buildOfficialsBoard, signedInOnDate, durationToMinutes, isOfficial } from './officialsBoard';
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
 
 const DAY = '2026-08-24';
 const PRIOR = '2026-08-23';
@@ -73,41 +66,6 @@ describe('signedInOnDate', () => {
   it('is false with no timeItems at all', () => {
     expect(signedInOnDate(official('o1', 'Ana'), DAY)).toBe(false);
     expect(signedInOnDate(undefined, DAY)).toBe(false);
-  });
-});
-
-describe('localCalendarDate', () => {
-  /**
-   * ⚠️ **The obvious unit test for this is VACUOUS and was removed.**
-   *
-   * TMX runs vitest with `TZ=UTC` (`package.json`: `TZ=UTC vitest`), so local and UTC days are
-   * identical in the suite and no assertion on a Date value can tell the correct implementation from
-   * the shipped bug. Verified rather than assumed: restoring `toISOString().slice(0, 10)` left an
-   * earlier version of this block fully green.
-   *
-   * So the invariant is guarded at the SOURCE instead, which is falsifiable — reintroducing the bug
-   * turns the guard red.
-   */
-  /** Comments are stripped first: this file's own docstring quotes the banned pattern as prose. */
-  const codeOf = (file: string) =>
-    readFileSync(new URL(file, import.meta.url), 'utf8')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/\/\/.*$/gm, '');
-
-  it('never derives a calendar date from toISOString — that is UTC, and the board is local', () => {
-    const code = codeOf('./officialsBoard.ts');
-    expect(code).not.toMatch(/toISOString\(\)\s*\.slice\(\s*0\s*,\s*10\s*\)/);
-    // Control: the guard must be able to see the code at all, not merely fail to match an empty string.
-    expect(code).toContain('export function localCalendarDate');
-  });
-
-  it('builds the date from LOCAL getters', () => {
-    const code = codeOf('./officialsBoard.ts');
-    for (const getter of ['getFullYear()', 'getMonth()', 'getDate()']) expect(code).toContain(getter);
-  });
-
-  it('returns empty for an unparseable value rather than "NaN-NaN-NaN"', () => {
-    expect(localCalendarDate('not-a-date')).toBe('');
   });
 });
 
