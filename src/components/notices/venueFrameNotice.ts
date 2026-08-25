@@ -27,7 +27,7 @@ export function buildVenueFrameNotice(onZoneSet?: () => void): HTMLElement | nul
 
   const pill = document.createElement('button');
   pill.type = 'button';
-  pill.setAttribute('data-tmx', 'venue-frame-notice');
+  pill.dataset.tmx = 'venue-frame-notice';
   pill.title = t('schedule.venueFrame.noticeTitle', {
     defaultValue:
       'This tournament has no time zone set, so times are shown in this device’s zone ({{timeZone}}). Set the venue’s time zone so every operator reads the same clock.',
