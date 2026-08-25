@@ -3,6 +3,7 @@
  */
 import { generateFactSheet, listFactSheetTemplates } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
@@ -39,7 +40,9 @@ export function printFactSheet(): void {
     const templateId = inputs.templateId?.value || 'national-federation';
     const doc = generateFactSheet(tournamentRecord, { templateId });
     const safeName = tournamentName.replaceAll(/[^a-zA-Z0-9-_ ]/g, '').replaceAll(/\s+/g, '-');
-    const date = new Date().toISOString().split('T')[0];
+    // `toISOString()` is the UTC day, so west of Greenwich an evening print
+    // stamps the filename with tomorrow. Same class of bug as #1352.
+    const date = venueCalendarDate();
     const filename = `fact-sheet-${safeName}-${date}.pdf`;
 
     if (action === 'open') {

@@ -6,6 +6,7 @@
 
 import { classifyScorer, type ScorerClassification } from 'services/crowd/classifyScorer';
 import type { CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { t } from 'i18n';
 
 export interface SessionScorerInfo {
@@ -76,7 +77,10 @@ export function decidePrimaryButtonLabel(session: CrowdScoringSession): 'Promote
 
 export function buildSecondaryLine(
   session: CrowdScoringSession,
-  formatTime: (date: Date) => string = (d) => d.toLocaleTimeString(),
+  // `updatedAt` is an instant, and a crowd-scoring session is something
+  // happening AT the venue — so the default reads it on the venue's clock. Still
+  // injectable, which is how the tests pin the string without a zone.
+  formatTime: (date: Date) => string = (d) => d.toLocaleTimeString(undefined, { timeZone: venueTimeZone() }),
 ): string {
   return `${session.pointHistory.length} pts · v${session.version} · updated ${formatTime(new Date(session.updatedAt))}`;
 }

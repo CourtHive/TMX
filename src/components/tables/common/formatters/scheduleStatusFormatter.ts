@@ -70,14 +70,20 @@ export function scheduleLockFormatter(cell: any): HTMLSpanElement | string {
   return el;
 }
 
-// `calledAt` is a full ISO timestamp (stamped when a matchUp is dropped on the
-// active strip), unlike scheduledTime's bare HH:MM — render it as local HH:MM.
+// `calledAt` is a full ISO **instant** (stamped when a matchUp is dropped on the
+// active strip), unlike scheduledTime's bare HH:MM — so it needs a zone, and the
+// zone is the venue's.
+//
+// This column is the one `matchUpStatusPredicates.isCalledForScheduledDay` names
+// when it says "the same convention the calledAt column uses". #1362 moved that
+// predicate and the Call Timing Variance report and missed the column itself,
+// which left the page disagreeing with itself in the sharpest possible way: the
+// row was bucketed as called-today on the venue's clock while the cell beside it
+// printed the operator's.
 export function calledAtFormatter(cell: any): HTMLSpanElement | string {
-  const value = cell.getValue();
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
+  const clock = venueClock(cell.getValue());
+  if (!clock) return '';
   const el = document.createElement('span');
-  el.textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  el.textContent = clock;
   return el;
 }
