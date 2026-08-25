@@ -17,9 +17,26 @@
  * added it) rather than by post-processing `.spl-matchup-card`: the catalog
  * rebuilds its cards on every state change, so an externally appended node
  * would be wiped rather than reused.
+ *
+ * ── Why the badge ticks ──
+ *
+ * Rest counts up, so a badge that is painted once and left alone is wrong from
+ * the second after it renders. The Inspector has always repainted on a timer;
+ * the badge did not, and the gap was not cosmetic — a card could sit reading
+ * `41m` long after the player was rested, and a stale badge beside a live
+ * Inspector reading something else is worse than either alone, because it makes
+ * the operator distrust both. That mismatch is exactly what surfaced the
+ * two-viewed-dates defect, and it took a while to establish which of the two was
+ * lying.
+ *
+ * The catalog is NOT rebuilt to achieve this. Rebuilding every card on a timer
+ * would cost the operator their scroll position, any open menu, and an in-flight
+ * drag — the badge is a passenger on the card, and a passenger does not get to
+ * demolish the vehicle. Instead the badges already in the document are repainted
+ * in place, on the Inspector's cadence so the two never disagree.
  */
 
-import { evaluateRest, formatDuration } from './inspectorRest';
+import { evaluateRest, formatDuration, makeRestEvaluator } from './inspectorRest';
 import { t } from 'i18n';
 
 // constants and types
@@ -89,32 +106,122 @@ export function shouldRender(result: RestResult): boolean {
 }
 
 /**
+ * Everything the badge displays, as plain data.
+ *
+ * Extracted so the first paint and every repaint go through one derivation. A
+ * ticker that rebuilt the badge by a second, parallel route would drift from the
+ * original — which is the shape of the bug this file's whole history is about.
+ */
+export interface RestBadgeModel {
+  status: RestStatus;
+  text: string;
+  title: string;
+  /** Joined limit keys for the data attribute; empty when no limit is met. */
+  atLimit: string;
+  /** The "#3" marker riding the badge; empty when no limit is met. */
+  limitText: string;
+}
+
+/** The badge's data for one matchUp, or null when there is nothing worth drawing. */
+export function badgeModel(result: RestResult): RestBadgeModel | null {
+  if (!shouldRender(result) || !result.evaluated) return null;
+  const row = headlineRow(result.rows);
+  if (!row) return null;
+
+  return {
+    status: row.status,
+    text: badgeText(row),
+    title: badgeTooltip(result.rows),
+    atLimit: row.load.atLimit.join(','),
+    // The daily-limit signal is the one thing a director must not miss while
+    // scanning, so it rides the badge rather than waiting for the Inspector.
+    limitText: row.load.atLimit.length ? t('schedule.card.rest.limit', { ordinal: row.load.ordinal }) : '',
+  };
+}
+
+/** Write a model onto an element, creating or removing the limit marker to match. */
+function applyBadge(badge: HTMLElement, model: RestBadgeModel): void {
+  badge.className = `tmx-rest-badge is-${model.status.toLowerCase()}`;
+  badge.dataset.restStatus = model.status;
+  badge.title = model.title;
+
+  // `textContent =` would take the limit marker with it, so the leading text node
+  // is addressed on its own and the marker survives every repaint.
+  const existing = badge.querySelector<HTMLElement>('.tmx-rest-badge-limit');
+  const leading = badge.firstChild;
+  if (leading?.nodeType === Node.TEXT_NODE) {
+    leading.textContent = model.text;
+  } else {
+    badge.prepend(document.createTextNode(model.text));
+  }
+
+  if (!model.limitText) {
+    delete badge.dataset.atLimit;
+    existing?.remove();
+    return;
+  }
+  badge.dataset.atLimit = model.atLimit;
+  const limit = existing ?? document.createElement('span');
+  limit.className = 'tmx-rest-badge-limit';
+  limit.textContent = model.limitText;
+  if (!existing) badge.appendChild(limit);
+}
+
+// ── Live refresh ──────────────────────────────────────────────────────────
+// One module-level interval drives every badge currently in the document. It
+// stops itself once none are connected, which is what makes it safe against the
+// catalog rebuilding its cards on every state change and against the schedule
+// tab unmounting without telling us — the same contract `inspectorRest.ts` uses
+// for its section, and the same cadence, so a card and the Inspector never
+// disagree about a figure that is only counting up.
+
+const REFRESH_MS = 30_000;
+let tickHandle: ReturnType<typeof setInterval> | null = null;
+
+function stopTicker(): void {
+  if (tickHandle) clearInterval(tickHandle);
+  tickHandle = null;
+}
+
+function tick(): void {
+  const badges = Array.from(document.querySelectorAll<HTMLElement>('.tmx-rest-badge[data-matchup-id]'));
+  if (!badges.length) {
+    stopTicker();
+    return;
+  }
+  // One evaluator for the whole pass: the engine work is per-tournament, not
+  // per-card, and every badge in a tick should agree about what time it is.
+  const evaluate = makeRestEvaluator();
+  for (const badge of badges) {
+    const matchUpId = badge.dataset.matchUpId;
+    if (!matchUpId) continue;
+    const model = badgeModel(evaluate(matchUpId, badge.dataset.viewedDate || null));
+    // A badge with nothing left to say is removed rather than frozen — this node
+    // is ours, appended by `renderCardExtra`, so taking it back is not reaching
+    // into the card's own markup.
+    if (model) applyBadge(badge, model);
+    else badge.remove();
+  }
+}
+
+/**
  * The `renderCardExtra` implementation. Returns a fresh element per call, or
  * null when there is nothing worth saying.
  */
 export function renderRestBadge(matchUpId: string, viewedDate: string | null): HTMLElement | null {
   if (!matchUpId) return null;
 
-  const result = evaluateRest(matchUpId, viewedDate);
-  if (!shouldRender(result) || !result.evaluated) return null;
-
-  const row = headlineRow(result.rows);
-  if (!row) return null;
+  const model = badgeModel(evaluateRest(matchUpId, viewedDate));
+  if (!model) return null;
 
   const badge = document.createElement('span');
-  badge.className = `tmx-rest-badge is-${row.status.toLowerCase()}`;
-  badge.dataset.restStatus = row.status;
-  badge.textContent = badgeText(row);
-  badge.title = badgeTooltip(result.rows);
+  // Carried on the element because the ticker finds badges by query rather than
+  // by a registry: a registry would have to be invalidated every time the
+  // catalog discarded a card, and the document already knows which ones exist.
+  badge.dataset.matchUpId = matchUpId;
+  if (viewedDate) badge.dataset.viewedDate = viewedDate;
+  applyBadge(badge, model);
 
-  // The daily-limit signal is the one thing a director must not miss while
-  // scanning, so it rides the badge rather than waiting for the Inspector.
-  if (row.load.atLimit.length) {
-    badge.dataset.atLimit = row.load.atLimit.join(',');
-    const limit = document.createElement('span');
-    limit.className = 'tmx-rest-badge-limit';
-    limit.textContent = t('schedule.card.rest.limit', { ordinal: row.load.ordinal });
-    badge.appendChild(limit);
-  }
+  tickHandle ??= setInterval(tick, REFRESH_MS);
   return badge;
 }
