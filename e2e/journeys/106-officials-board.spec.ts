@@ -43,6 +43,13 @@ async function seedOfficials(page: Page): Promise<string> {
           },
         },
         {
+          participantId: 'official-worked',
+          participantName: 'Cy Worked',
+          participantType: 'INDIVIDUAL',
+          participantRole: 'OFFICIAL',
+          person: { standardFamilyName: 'Worked', standardGivenName: 'Cy' },
+        },
+        {
           participantId: 'official-absent',
           participantName: 'Bo Absent',
           participantType: 'INDIVIDUAL',
@@ -52,7 +59,28 @@ async function seedOfficials(page: Page): Promise<string> {
       ],
     });
     // Only ONE of them signs in — the control that makes waiting/available distinguishable.
-    engine.modifyParticipantsSignInStatus({ participantIds: ['official-signed-in'], signInState: 'SIGNED_IN' });
+    engine.modifyParticipantsSignInStatus({
+      participantIds: ['official-signed-in', 'official-worked'],
+      signInState: 'SIGNED_IN',
+    });
+
+    // Assign Ada a completed matchUp with measured play, scheduled TODAY, so the board has a
+    // non-empty "time on court" to render. This is the case a unit test cannot prove: the column read
+    // a field the factory never populates, so it was plausible in isolation and blank on screen.
+    const today = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localToday = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const { matchUps } = engine.allTournamentMatchUps();
+    const target = matchUps[0];
+    if (target) {
+      const ids = { drawId: target.drawId, matchUpId: target.matchUpId };
+      engine.addMatchUpScheduledDate({ ...ids, scheduledDate: localToday });
+      engine.addMatchUpStartTime({ ...ids, startTime: '10:00' });
+      engine.addMatchUpEndTime({ ...ids, endTime: '11:30' });
+      // Cy, not Ada: assigning Ada a matchUp would make her `assigned` and destroy the
+      // waiting-vs-available distinction the first test exists to prove.
+      engine.addMatchUpOfficial({ ...ids, participantId: 'official-worked' });
+    }
 
     await dev.save?.();
     return tournamentRecord.tournamentId;
@@ -86,6 +114,25 @@ test.describe('Journey 106 — officials board', () => {
     // D5: signed in today and unassigned = waiting; not signed in = available.
     await expect(signedInRow.locator('[data-official-state]')).toHaveAttribute('data-official-state', 'waiting');
     await expect(absentRow.locator('[data-official-state]')).toHaveAttribute('data-official-state', 'available');
+  });
+
+  test('time on court renders a measured duration, not a blank', async ({ page }) => {
+    // The shipped defect: the column read a top-level `matchUpDuration` that no TMX hydration sets,
+    // so it was always empty. 90 minutes of play must render as 1:30.
+    const tournamentId = await seedOfficials(page);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await page.locator(S.NAV_OFFICIALS).click();
+
+    const board = page.locator(S.TOURNAMENT_OFFICIALS);
+    const cyRow = board.locator('.tabulator-row').filter({ hasText: 'Cy Worked' }).first();
+    await expect(cyRow).toBeVisible({ timeout: 10_000 });
+    await expect(cyRow).toContainText('1:30');
+
+    // Control: an official with no matchUp shows no duration, so the assertion above is about the
+    // measured value rather than a string that appears on every row.
+    const adaRow = board.locator('.tabulator-row').filter({ hasText: 'Ada Signed' }).first();
+    await expect(adaRow).not.toContainText('1:30');
   });
 
   test('an un-consented mobile still renders on the board (D6 — mark, do not hide)', async ({ page }) => {
