@@ -2,6 +2,7 @@
  * Tournament-level publishing controls: Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { getTournamentPublishData, getPublishingTableData } from './publishingData';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
 import { buildOrderOfPlayDateToggleMethods } from 'services/publishing/orderOfPlayPublish';
@@ -77,6 +78,8 @@ function formatEmbargoDisplay(isoString?: string): string {
   const d = new Date(isoString);
   if (d.getTime() <= Date.now()) return t('publishing.expired');
   return d.toLocaleString(undefined, {
+    // The embargo is a tournament decision, so it displays on the venue's clock.
+    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

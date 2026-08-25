@@ -35,6 +35,7 @@ import {
   openShiftCourtsModal,
   Schedule2NowContext,
 } from './schedule2CellActions';
+import { venueCalendarDate, venueClock, venueNowOnDate } from 'functions/venueTimeFrame';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -580,6 +581,8 @@ export function renderGridView(
     onOpenTimingReport: openTimingVarianceReport,
     datePublished: isOrderOfPlayDatePublished(currentDate, getOrderOfPlayPublishState()),
     onTogglePublish: () => confirmTogglePublish(),
+    // Setting the venue zone re-frames every clock on the page, so redraw.
+    onVenueTimeZoneSet: refresh,
   });
   gridActionBar = actionBar;
 
@@ -2462,7 +2465,7 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   // Use the strip's date as the time anchor so painted blocks on a non-today
   // date (e.g. tournament startDate) still surface as active when the
   // operator is working at the matching time-of-day.
-  const now = effectiveNowOnStripDate(date);
+  const now = venueNowOnDate(date);
   const courtBlocks: Record<string, ActiveStripCourtBlock> = {};
   const activeRegsByCourtId = getActiveRegistrationNamesByCourtId({
     tournamentRecord,
@@ -2495,6 +2498,15 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   return courtBlocks;
 }
 
+/**
+ * `HH:MM` from a **naive** Date — one built from a zone-less
+ * `YYYY-MM-DDTHH:MM:SS` string (court block bounds, `venueNowOnDate`).
+ *
+ * Raw accessors are correct here and a venue-zone conversion would be the bug:
+ * these values were never instants, so their digits are already venue wall
+ * clock, and parsing-then-reading in the same browser zone hands them back
+ * unchanged. See the "What is NOT an instant" note in `venueTimeFrame.ts`.
+ */
 function formatHM(d: Date): string {
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
@@ -2568,10 +2580,15 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   return { grid: { columns }, courts, courtBlocks, gridTemplateColumns, minWidth };
 }
 
-/** Local calendar date (YYYY-MM-DD) for "today" — the only day the Now strip is live. */
+/**
+ * The **venue's** calendar date for "today" — the only day the Now strip is live.
+ *
+ * The venue's, not the operator's: a director west of the tournament would
+ * otherwise see the strip go live a day late (or early, east of it), and every
+ * surface that keys "today" has to give the same answer as this one.
+ */
 function todayIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return venueCalendarDate();
 }
 
 function refreshActiveStrip(date: string): void {
@@ -2600,8 +2617,9 @@ function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
   if (!isTournamentProviderMember({ loginState: getLoginState(), tournamentRecord })) return;
   const now = new Date();
-  const nowHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const calls = computeAutoCalls(columns as any, nowHHMM);
+  // Compared against `scheduledTime`, which is a venue wall clock — so "now"
+  // has to be one too, or the desk auto-calls on the operator's clock.
+  const calls = computeAutoCalls(columns as any, venueClock(now));
   if (!calls.length) return;
 
   const calledAt = now.toISOString();
@@ -3060,8 +3078,9 @@ function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
   const assigned = (matchUp.sides || []).filter((s: any) => s?.participantId || s?.participant?.participantId).length;
   if (assigned < 2) return [];
 
-  const now = new Date();
-  const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  // `startTime` is stored as a bare venue wall clock, so it must be read off the
+  // venue's clock rather than the operator's.
+  const startTime = venueClock();
   return [
     {
       method: BULK_SCHEDULE_MATCHUPS,
@@ -3100,24 +3119,6 @@ function buildUnstartOnRemoveMethods(matchUpId: string, drawId: string): any[] {
       params: { matchUpId, drawId, outcome: { matchUpStatus: TO_BE_PLAYED } },
     },
   ];
-}
-
-/**
- * Project today's real-time HH:MM onto the strip's date. Lets the live-strip
- * warnings work when the user is viewing a non-today date (e.g. tournament
- * startDate from yesterday) so painted blocks still surface as active /
- * upcoming relative to the time-of-day the operator is working at.
- *
- * When the strip date IS today, returns the real clock as-is.
- */
-function effectiveNowOnStripDate(stripDate: string): Date {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  if (today === stripDate) return now;
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  return new Date(`${stripDate}T${hh}:${mm}:${ss}`);
 }
 
 /**
@@ -3193,7 +3194,7 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   }
   if (!blocks.length) return undefined;
 
-  const now = effectiveNowOnStripDate(currentDate);
+  const now = venueNowOnDate(currentDate);
 
   // First: is a non-SCHEDULED block currently active on this court?
   for (const block of blocks) {

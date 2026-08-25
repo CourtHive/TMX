@@ -5,6 +5,7 @@
  * in the schedule2 CSS grid. Uses tippy.js directly with custom DOM for a modern
  * pill/icon layout rather than the legacy flat menu list.
  */
+import { venueClock } from 'functions/venueTimeFrame';
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
@@ -317,8 +318,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const startMatch = () => {
     const drawId = matchUp?.drawId || cellData.drawId;
     if (!drawId) return;
-    const now = new Date();
-    const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const startTime = venueClock();
     executeMethods(
       [
         {
@@ -712,8 +712,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   };
 
   const shotgunStart = () => {
-    const now = new Date();
-    const startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const startTime = venueClock();
     const startableIds = startableMatchUps.map((m: any) => m.matchUpId);
     executeMethods(
       [
@@ -813,9 +812,14 @@ function nowCellLabel(cell: NowStripCell): string {
   return cell.courtName ? `${cell.courtName} · ${versus}` : versus;
 }
 
+/**
+ * "Now" as a `HH:MM` **venue** wall clock. Everything it is written into —
+ * `startTime`, `scheduledTime` — is stored as a bare venue clock with no zone,
+ * so reading the operator's clock would file a match as starting at the wrong
+ * time for anyone not sitting in the operator's zone.
+ */
 function currentClockTime(): string {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  return venueClock();
 }
 
 /**

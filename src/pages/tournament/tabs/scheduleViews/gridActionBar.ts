@@ -13,6 +13,7 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 import { ScheduleIssue } from 'courthive-components';
+import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import { buildStepper } from './stepperControl';
 import {
   MIN_COURT_WIDTH_FLOOR,
@@ -46,6 +47,12 @@ export interface GridActionBarParams {
   datePublished?: boolean;
   /** Toggle publication of the viewed date. When omitted, the publish pill never renders. */
   onTogglePublish?: () => void;
+  /**
+   * Called after the venue-frame notice's Edit Dates modal saves. Every clock on
+   * the page is resolved against the tournament's zone, so setting one has to
+   * re-render the grid rather than wait for the next refresh.
+   */
+  onVenueTimeZoneSet?: () => void;
 }
 
 export interface GridActionBar {
@@ -90,6 +97,12 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   };
   bar.appendChild(issuesSlot);
   setIssues(issues);
+
+  // Venue-frame notice — leftmost, and only when the tournament carries no time
+  // zone so every clock on this page is being read off the operator's device.
+  // Null (not an empty box) once a zone is set, so no flex gap is reserved.
+  const venueNotice = buildVenueFrameNotice(params.onVenueTimeZoneSet);
+  if (venueNotice) bar.appendChild(venueNotice);
 
   bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
 

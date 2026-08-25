@@ -3,6 +3,7 @@
  * Shows hierarchical event > draw rows with publish toggles, embargo pickers,
  * clickable names (navigate to draw), and public URL links.
  */
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -84,6 +85,8 @@ function publicUrlFormatter(cell: any): string {
 
 function formatLocalEmbargo(date: Date): string {
   return date.toLocaleString(undefined, {
+    // The embargo is a tournament decision, so it displays on the venue's clock.
+    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

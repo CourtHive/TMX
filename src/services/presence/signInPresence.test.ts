@@ -5,7 +5,7 @@
  * Friday. Nothing signs anybody out at end of day, so `participant.signedIn` — the latest value —
  * says it does. That is the bug (c) exists to fix, not an edge case.
  */
-import { signedInOnDate, stillSignedInOnDate, localCalendarDate } from './signInPresence';
+import { signedInOnDate, stillSignedInOnDate, venueCalendarDay } from './signInPresence';
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 
@@ -20,7 +20,7 @@ const at = (date: string, hour = 12, itemValue = 'SIGNED_IN') => {
 
 const person = (participantId: string, timeItems: any[] = []) => ({ participantId, timeItems });
 
-describe('localCalendarDate', () => {
+describe('venueCalendarDay', () => {
   /**
    * ⚠️ The obvious value-based test for this is VACUOUS. TMX runs vitest with `TZ=UTC`
    * (`package.json`), so local and UTC days are identical in the suite and no assertion on a Date can
@@ -36,16 +36,25 @@ describe('localCalendarDate', () => {
     const code = codeOf('./signInPresence.ts');
     expect(code).not.toMatch(/toISOString\(\)\s*\.slice\(\s*0\s*,\s*10\s*\)/);
     // Control: the guard must be able to see the code, not merely fail to match an empty string.
-    expect(code).toContain('export function localCalendarDate');
+    expect(code).toContain('export function venueCalendarDay');
   });
 
-  it('builds the date from LOCAL getters', () => {
+  /**
+   * The guard this replaces asserted the date was built from `getFullYear()` / `getMonth()` /
+   * `getDate()` — the operator's zone, which was the convention at the time. It is now the VENUE's,
+   * so the same vacuousness argument applies to a new implementation: under `TZ=UTC` a browser-zone
+   * regression is invisible in values. Guard the delegation instead.
+   */
+  it('derives the day through the venue frame, not the browser clock', () => {
     const code = codeOf('./signInPresence.ts');
-    for (const getter of ['getFullYear()', 'getMonth()', 'getDate()']) expect(code).toContain(getter);
+    expect(code).toContain('venueCalendarDate');
+    for (const browserGetter of ['getFullYear()', 'getMonth()', 'getDate()']) {
+      expect(code).not.toContain(browserGetter);
+    }
   });
 
   it('returns empty for an unparseable value rather than "NaN-NaN-NaN"', () => {
-    expect(localCalendarDate('not-a-date')).toBe('');
+    expect(venueCalendarDay('not-a-date')).toBe('');
   });
 });
 
