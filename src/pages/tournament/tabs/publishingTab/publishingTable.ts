@@ -3,7 +3,6 @@
  * Shows hierarchical event > draw rows with publish toggles, embargo pickers,
  * clickable names (navigate to draw), and public URL links.
  */
-import { venueTimeZone } from 'functions/venueTimeFrame';
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -12,6 +11,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
 import { getPublishingTableData } from './publishingData';
+import { venueTimeZone } from 'functions/venueTimeFrame';
 import { openEmbargoModal } from './embargoModal';
 import { t } from 'i18n';
 

@@ -4,9 +4,9 @@
  * and attachTimePicker for time — consistent with patterns used elsewhere in TMX.
  * Local date/time is converted to GMT for storage.
  */
-import { venueParts, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { attachTimePicker } from 'pages/tournament/tabs/venuesTab/venueTimeHelpers';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { venueParts, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { renderForm, validators } from 'courthive-components';
 import { toDisplayTime } from 'components/forms/venue';
 import { Datepicker } from 'vanillajs-datepicker';

@@ -9,11 +9,11 @@
  * Matches the visual of the profile view's action bar so both views read
  * as a unified "panel + bottom strip" pair.
  */
+import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
 import { t } from 'i18n';
 import { ScheduleIssue } from 'courthive-components';
-import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import { buildStepper } from './stepperControl';
 import {
   MIN_COURT_WIDTH_FLOOR,

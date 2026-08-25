@@ -1,5 +1,5 @@
-import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { openEditDatesModal } from './tabs/overviewTab/editDatesModal';
+import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
