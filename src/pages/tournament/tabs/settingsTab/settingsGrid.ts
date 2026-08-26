@@ -4,6 +4,7 @@ import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
+import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
@@ -48,60 +49,8 @@ const { SINGLES } = factoryConstants.eventConstants;
 
 const RATINGS_PANEL_BLUE = 'settings-panel panel-blue';
 
-// Hardcoded display labels for the bundled / always-present `en` locale.
-// Used as the last-resort fallback when the CFS manifest is unreachable
-// AND no other locales are loaded in i18next yet.
-const FALLBACK_LANGUAGES: Record<string, string> = {
-  en: 'English',
-};
-
-interface LanguageOption {
-  value: string;
-  label: string;
-  selected: boolean;
-}
-
-/** Build the radio-button options list for the language panel. Prefers the
- *  manifest's native labels (e.g. "Čeština" for cs). Falls back to whatever
- *  i18next already has loaded, then to the bundled-en label. */
-function buildLanguageOptions(
-  manifestLocales: Array<{ code: string; label?: string; nativeLabel?: string }> | undefined,
-  knownInI18next: Set<string>,
-  currentLanguage: string,
-): LanguageOption[] {
-  const seen = new Set<string>();
-  const out: LanguageOption[] = [];
-
-  // Manifest is the primary source. Use nativeLabel so the option reads in
-  // the speaker's own script (e.g. "Čeština", "العربية") — that's the most
-  // self-evident way to recognise your own language in a settings list.
-  for (const entry of manifestLocales ?? []) {
-    if (seen.has(entry.code)) continue;
-    seen.add(entry.code);
-    out.push({
-      value: entry.code,
-      label: entry.nativeLabel || entry.label || entry.code,
-      selected: currentLanguage === entry.code,
-    });
-  }
-
-  // Backstop: any locale i18next has loaded that wasn't in the manifest
-  // (e.g. CFS unreachable, but a prior session fetched the file and it's
-  // still in memory). Include them so the user can keep using them.
-  for (const code of knownInI18next) {
-    if (seen.has(code)) continue;
-    seen.add(code);
-    out.push({
-      value: code,
-      label: FALLBACK_LANGUAGES[code] || code,
-      selected: currentLanguage === code,
-    });
-  }
-
-  return out;
-}
-
 async function persistAll(
+  availableLanguages: string[],
   languageInputs: any,
   ratingInputs: any,
   scoringInputs: any,
@@ -135,15 +84,21 @@ async function persistAll(
   });
 
   const language = languageInputs.language.value;
-  const languageChanged = language !== i18next.language;
+  // Compare against the code the control was OPENED on, not `i18next.language` — those differ
+  // whenever the active language is region-tagged (`en-US` resolving to the `en` option), and
+  // comparing raw would report a change on every save and reload the app each time.
+  const languageChanged = language !== resolveCurrentLanguageCode(availableLanguages, i18next.language);
 
   if (activeScale) setActiveScale(activeScale);
 
   const assistantChanged = (displayInputs.assistant?.checked || false) !== previousAssistant;
 
-  // User explicitly picked a language here — mark as explicit so provider
-  // default-language no longer overrides on subsequent boots.
-  persistConfigToStorage({ language, languageExplicit: true });
+  // `languageExplicit` defeats the provider default on every subsequent boot, so it may only be set
+  // when the user actually chose a language here. Writing it unconditionally is what turned "changed
+  // an unrelated setting" into a permanent, silent switch to whichever option the control happened
+  // to be showing. An explicit choice made earlier is preserved.
+  const languageExplicit = languageChanged || !!loadSettings()?.languageExplicit;
+  persistConfigToStorage({ language, languageExplicit });
 
   if (languageChanged) {
     // Fetch + cache the new locale BEFORE reload so the post-reload boot
@@ -177,7 +132,9 @@ export async function renderSettingsGrid(
   let storageInputs: any;
   let displayInputs: any;
 
-  const persist = () => persistAll(languageInputs, ratingInputs, scoringInputs, storageInputs, displayInputs);
+  let availableLanguages: string[] = [];
+  const persist = () =>
+    persistAll(availableLanguages, languageInputs, ratingInputs, scoringInputs, storageInputs, displayInputs);
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
@@ -191,6 +148,7 @@ export async function renderSettingsGrid(
   const manifest = await fetchManifest({ force: true });
   const knownInI18next = new Set(Object.keys(i18next.options?.resources || {}));
   const languageOptions = buildLanguageOptions(manifest?.locales, knownInI18next, i18next.language);
+  availableLanguages = languageOptions.map((option) => option.value);
 
   const languagePanel = document.createElement('div');
   languagePanel.className = RATINGS_PANEL_BLUE;
