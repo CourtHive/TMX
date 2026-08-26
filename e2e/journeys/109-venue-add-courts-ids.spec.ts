@@ -19,6 +19,11 @@ import { TournamentPage } from '../pages/TournamentPage';
  *
  * `addVenue.ts` had always passed explicit courtIds; the add-to-existing-venue path had not. This
  * pins that it does, by asserting the courts actually created carry the ids that were dispatched.
+ *
+ * The same trace carries a second defect: the engine names generated courts from 1 on every call, so
+ * the two new courts arrived as duplicate "Court 1"/"Court 2" and the operator renamed both by hand
+ * within seconds. `nextCourtNames` continues the venue's own numbering, and the drawer now previews
+ * the names before the mutation so a duplicate is visible rather than absorbed.
  */
 
 const VENUE_ROW = '#venuesTable .tabulator-row';
@@ -88,5 +93,45 @@ test.describe('Journey 109 — venue add courts', () => {
       dev.factory.tournamentEngine.getVenuesAndCourts().courts.map((c: any) => c.courtId),
     );
     for (const courtId of courtIds ?? []) expect(present).toContain(courtId);
+  });
+
+  test('continues the venue numbering rather than reissuing names already in use', async ({ page }) => {
+    await gotoVenuesTable(page);
+
+    const before = await page.evaluate(() =>
+      dev.factory.tournamentEngine.getVenuesAndCourts().courts.map((c: any) => c.courtName),
+    );
+    expect(before.length).toBeGreaterThan(0);
+
+    await openAddCourtsDrawer(page);
+
+    const countField = page.locator('.drawer .field:has(label.label:text-is("Number of courts")) input').first();
+    await expect(countField).toBeVisible({ timeout: 10_000 });
+    await countField.fill('2');
+    await countField.dispatchEvent('input');
+
+    // The preview names the courts before anything is dispatched.
+    const preview = page.locator('#addCourtsPreview');
+    await expect(preview).toContainText('Will add:');
+    const previewed = (await preview.innerText()).replace('Will add:', '').trim();
+
+    await page.locator('#addCourtsButton').click();
+
+    await expect
+      .poll(() => page.evaluate(() => dev.factory.tournamentEngine.getVenuesAndCourts().courts.length))
+      .toBe(before.length + 2);
+
+    const after = await page.evaluate(() =>
+      dev.factory.tournamentEngine.getVenuesAndCourts().courts.map((c: any) => c.courtName),
+    );
+    const added = after.filter((name: string) => !before.includes(name));
+
+    // The regression: these came back as a second "Court 1" and "Court 2".
+    expect(new Set(after).size).toBe(after.length);
+    expect(added).toHaveLength(2);
+    for (const name of added) expect(before).not.toContain(name);
+
+    // What the operator was shown is what was created.
+    expect(previewed).toBe(added.join(', '));
   });
 });

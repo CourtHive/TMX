@@ -1,12 +1,12 @@
 import { validators, renderButtons, renderForm, controlBar } from 'courthive-components';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { nextCourtNames, summariseCourtNames } from './courtNaming';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import { deriveCourtNameBase } from 'components/forms/venue';
 import { destroyTipster } from 'components/popovers/tipster';
 import { tournamentEngine } from 'services/factory/engine';
-import { tools } from 'tods-competition-factory';
 import { getCourtColumns } from './getCourtColumns';
+import { tools } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -14,17 +14,36 @@ import { t } from 'i18n';
 import { ADD_COURTS, DELETE_COURTS, MODIFY_COURT } from 'constants/mutationConstants';
 import { NONE, OVERLAY, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
 
+const COURTS_PREVIEW_ID = 'addCourtsPreview';
+
 function addCourtsToVenue(venueId: string, courtsTable: any): void {
   const numberValidator = (value: string) => value && !Number.isNaN(Number(value)) && Number(value) > 0;
 
-  const enableSubmit = ({ inputs }: any) => {
-    const isValid = !!numberValidator(inputs['courtsCount']?.value);
-    const btn = document.getElementById('addCourtsButton');
-    if (btn) (btn as HTMLButtonElement).disabled = !isValid;
+  const plannedNames = (count: number) =>
+    nextCourtNames({ courts: tournamentEngine.findVenue({ venueId })?.venue?.courts ?? [], count });
+
+  // Naming is derived, not typed, so show what will actually be created. A duplicate "Court 1"
+  // becomes visible before the mutation rather than after — which is how the original defect was
+  // absorbed as a manual rename instead of being reported.
+  const updatePreview = (count: number) => {
+    const preview = document.getElementById(COURTS_PREVIEW_ID);
+    if (!preview) return;
+    const names = count > 0 ? plannedNames(count) : [];
+    preview.textContent = names.length ? t('pages.venues.addCourtsPreview', { names: summariseCourtNames(names) }) : '';
   };
 
-  const content = (elem: HTMLElement) =>
-    renderForm(
+  const enableSubmit = ({ inputs }: any) => {
+    const value = inputs['courtsCount']?.value;
+    const isValid = !!numberValidator(value);
+    const btn = document.getElementById('addCourtsButton');
+    if (btn) (btn as HTMLButtonElement).disabled = !isValid;
+    updatePreview(isValid ? Number.parseInt(value) : 0);
+  };
+
+  const content = (elem: HTMLElement) => {
+    // The drawer stores this return value as `attributes.content`, which `saveCourts` reads for the
+    // court count — returning anything else (or nothing) silently disables the Add button's effect.
+    const inputs = renderForm(
       elem,
       [
         {
@@ -39,25 +58,34 @@ function addCourtsToVenue(venueId: string, courtsTable: any): void {
       [{ control: 'courtsCount', onInput: enableSubmit }],
     );
 
+    const preview = document.createElement('div');
+    preview.id = COURTS_PREVIEW_ID;
+    preview.className = 'courts-preview';
+    elem.appendChild(preview);
+    updatePreview(1);
+
+    return inputs;
+  };
+
   const saveCourts = () => {
     const courtsCount = Number.parseInt(context.drawer.attributes.content?.courtsCount?.value);
     if (!courtsCount || courtsCount < 1) return;
 
-    // Derive court name root from existing courts, fall back to venue abbreviation
     const { venue } = tournamentEngine.findVenue({ venueId });
     const existingCourts = venue?.courts || [];
-    const courtNameRoot = deriveCourtNameBase(existingCourts);
 
-    // Mint the courtIds here rather than letting the engine generate them. Under server-first the
-    // client replays the acknowledged mutation against its own factory instance, and an engine-
-    // generated UUID differs between the two runs — leaving the browser holding courtIds the server
-    // has never seen, so the next modifyCourt/deleteCourts on one of them fails ERR_NOT_FOUND_COURT.
-    // `addVenue.ts` has always passed explicit courtIds; this path had not.
+    // Name the courts here rather than leaving it to the engine, which numbers from 1 on every call
+    // and so hands a venue of "Court 1".."Court 15" a second "Court 1". `nextCourtNames` continues
+    // the venue's own numbering.
+    const courtNames = nextCourtNames({ courts: existingCourts, count: courtsCount });
+
+    // Mint the courtIds here for the same reason — under server-first the client replays the
+    // acknowledged mutation against its own factory instance, and an engine-generated UUID differs
+    // between the two runs, leaving the browser holding courtIds the server has never seen. The next
+    // modifyCourt/deleteCourts on one of them then fails ERR_NOT_FOUND_COURT. `addVenue.ts` has
+    // always passed explicit courtIds; this path had not.
     const courtIds = Array.from({ length: courtsCount }, () => tools.UUID());
-    const addCourtsParams: any = { courtsCount, venueId, courtIds };
-    if (courtNameRoot) {
-      addCourtsParams.courtNameRoot = courtNameRoot;
-    }
+    const addCourtsParams: any = { courtsCount, venueId, courtIds, courtNames };
 
     const methods = [{ method: ADD_COURTS, params: addCourtsParams }];
     mutationRequest({

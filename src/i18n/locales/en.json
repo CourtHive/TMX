@@ -2217,7 +2217,8 @@
         "addVenue": "Add to tournament",
         "added": "Venue added from the registry",
         "searching": "Searching…"
-      }
+      },
+      "addCourtsPreview": "Will add: {{names}}"
     },
     "events": {
       "title": "Events",
