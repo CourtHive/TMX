@@ -1881,7 +1881,18 @@
     "cannotModifyParticipant": "Participant could not be saved",
     "cannotDeleteTournament": "Cannot delete tournament",
     "tournamentNotEnded": "Cannot delete a tournament before its end date. Set the end date to a past date first, then delete.",
-    "deleteForbidden": "You are not authorized to delete this tournament."
+    "deleteForbidden": "You are not authorized to delete this tournament.",
+    "schedule": {
+      "endBeforeStart": "End time {{endTime}} is before the start time {{startTime}} — check the AM/PM setting.",
+      "startAfterEnd": "Start time {{startTime}} is after the end time {{endTime}} — check the AM/PM setting.",
+      "beforeCourtOpens": "{{time}} is before the court opens at {{earliest}}.",
+      "afterCourtCloses": "{{time}} is after the court closes at {{latest}}.",
+      "invalidEndTime": "End time not saved: it must be after the start time, or within 12 hours of it if the match finished after midnight.",
+      "invalidStartTime": "Start time not saved: it must come before the end time already recorded.",
+      "invalidTime": "That time could not be recorded.",
+      "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
+      "notSaved": "Schedule change was not saved: {{reason}}"
+    }
   },
   "loginMenu": {
     "authorization": "Authorization",

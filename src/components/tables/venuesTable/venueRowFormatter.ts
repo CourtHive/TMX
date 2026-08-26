@@ -5,6 +5,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { deriveCourtNameBase } from 'components/forms/venue';
 import { destroyTipster } from 'components/popovers/tipster';
 import { tournamentEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
 import { getCourtColumns } from './getCourtColumns';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -47,7 +48,13 @@ function addCourtsToVenue(venueId: string, courtsTable: any): void {
     const existingCourts = venue?.courts || [];
     const courtNameRoot = deriveCourtNameBase(existingCourts);
 
-    const addCourtsParams: any = { courtsCount, venueId };
+    // Mint the courtIds here rather than letting the engine generate them. Under server-first the
+    // client replays the acknowledged mutation against its own factory instance, and an engine-
+    // generated UUID differs between the two runs — leaving the browser holding courtIds the server
+    // has never seen, so the next modifyCourt/deleteCourts on one of them fails ERR_NOT_FOUND_COURT.
+    // `addVenue.ts` has always passed explicit courtIds; this path had not.
+    const courtIds = Array.from({ length: courtsCount }, () => tools.UUID());
+    const addCourtsParams: any = { courtsCount, venueId, courtIds };
     if (courtNameRoot) {
       addCourtsParams.courtNameRoot = courtNameRoot;
     }

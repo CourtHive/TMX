@@ -15,6 +15,7 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { makeUpdatedAtFormatter } from '../common/formatters/updatedAtFormatter';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
+import { resolveTimeSeed, validateTimeValue } from './scheduleTimeFields';
 import { profileFormatter } from '../common/formatters/profileFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { matchUpThreeDotsFormatter } from './matchUpThreeDotsFormatter';
@@ -27,17 +28,81 @@ import { handleScoreClick } from './handleMatchUpScoreClick';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { scoreSorter } from '../common/sorters/scoreSorter';
 import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { setMatchUpSchedule } from './setMatchUpSchedule';
 import { datePicker } from 'components/modals/datePicker';
 import { timePicker } from 'components/modals/timePicker';
+import { getCourtTimeBounds } from './courtTimeBounds';
 import { headerMenu } from '../common/headerMenu';
 import { tools } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 
 // constants
+import type { ScheduleTimeField, ScheduleTimes, TimeBounds } from './scheduleTimeFields';
 import { CENTER, LEFT, RIGHT, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 import { t } from 'i18n';
+
+/**
+ * Schedule time cells previously went straight from the picker to the mutation with no validation —
+ * unlike the matchUp actions popover, which had checked ordering all along. That divergence let an
+ * impossible end time reach the server, where it was rejected and, because `setMatchUpSchedule`
+ * supplies a callback, silently discarded. Both paths now share `scheduleTimeFields`.
+ */
+function applyTimeSelection({
+  field,
+  time,
+  row,
+  data,
+  schedule,
+  bounds,
+}: {
+  field: ScheduleTimeField;
+  time: string;
+  row: any;
+  data: any;
+  schedule: ScheduleTimes;
+  bounds: TimeBounds;
+}): void {
+  const value = tools.dateTime.convertTime(time, true) as string;
+
+  // An empty value clears `scheduledTime`; start/end are not clearable from this cell (unchanged).
+  if (!value && field !== 'scheduledTime') return;
+  if (value === data[field]) return;
+
+  const invalid = validateTimeValue({ field, value, schedule, bounds });
+  if (invalid) {
+    tmxToast({ message: invalid, intent: 'is-danger' });
+    return;
+  }
+
+  setMatchUpSchedule({
+    matchUpId: data.matchUpId,
+    schedule: { [field]: value },
+    callback: () => row.update({ ...data, [field]: value }),
+  });
+}
+
+function timeCellClickHandler(field: ScheduleTimeField) {
+  return (_e: Event, cell: any): void => {
+    const row = cell.getRow();
+    const data = row.getData();
+
+    // Read the times off the row rather than `data.matchUp.schedule`: `row.update` keeps the flat
+    // fields current after an edit, while the captured matchUp object does not.
+    const schedule: ScheduleTimes = {
+      scheduledTime: data.scheduledTime,
+      startTime: data.startTime,
+      endTime: data.endTime,
+    };
+    const bounds = getCourtTimeBounds(data.matchUp);
+
+    timePicker({
+      time: resolveTimeSeed({ field, schedule, bounds }),
+      callback: ({ time }: { time: string }) => applyTimeSelection({ field, time, row, data, schedule, bounds }),
+    });
+  };
+}
 
 export function getMatchUpColumns({
   data,
@@ -82,57 +147,9 @@ export function getMatchUpColumns({
     });
   };
 
-  const matchUpTimeClick = (_e: Event, cell: any) => {
-    const existingTime = cell.getValue();
-    const timeSelected = ({ time }: { time: string }) => {
-      const militaryTime = true;
-      const scheduledTime = tools.dateTime.convertTime(time, militaryTime);
-      const row = cell.getRow();
-      const data = row.getData();
-      const { matchUpId } = data;
-      if (scheduledTime !== existingTime) {
-        const callback = () => row.update({ ...data, scheduledTime });
-        setMatchUpSchedule({ matchUpId, schedule: { scheduledTime }, callback });
-      }
-    };
-    timePicker({ time: existingTime, callback: timeSelected });
-  };
-
-  const matchUpStartTimeClick = (_e: Event, cell: any) => {
-    const existingTime = cell.getValue();
-    const timeSelected = ({ time }: { time: string }) => {
-      const startTime = tools.dateTime.convertTime(time, true) as string;
-      const row = cell.getRow();
-      const data = row.getData();
-      const { matchUpId } = data;
-      if (startTime && startTime !== existingTime) {
-        setMatchUpSchedule({
-          matchUpId,
-          schedule: { startTime },
-          callback: () => row.update({ ...data, startTime }),
-        });
-      }
-    };
-    timePicker({ time: existingTime, callback: timeSelected });
-  };
-
-  const matchUpEndTimeClick = (_e: Event, cell: any) => {
-    const existingTime = cell.getValue();
-    const timeSelected = ({ time }: { time: string }) => {
-      const endTime = tools.dateTime.convertTime(time, true) as string;
-      const row = cell.getRow();
-      const data = row.getData();
-      const { matchUpId } = data;
-      if (endTime && endTime !== existingTime) {
-        setMatchUpSchedule({
-          matchUpId,
-          schedule: { endTime },
-          callback: () => row.update({ ...data, endTime }),
-        });
-      }
-    };
-    timePicker({ time: existingTime, callback: timeSelected });
-  };
+  const matchUpTimeClick = timeCellClickHandler('scheduledTime');
+  const matchUpStartTimeClick = timeCellClickHandler('startTime');
+  const matchUpEndTimeClick = timeCellClickHandler('endTime');
 
   const participantChange = () => replaceTableData();
   const showCourts = data.some((m) => m.courtName);
