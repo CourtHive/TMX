@@ -57,6 +57,12 @@ describe('setMatchUpSchedule', () => {
     expect(tmxToast).not.toHaveBeenCalled();
   });
 
+  it('tolerates a success with no callback supplied', () => {
+    setMatchUpSchedule({ matchUpId: 'm1', schedule: { endTime: '14:29' } });
+    expect(() => lastCallback()({ success: true })).not.toThrow();
+    expect(tmxToast).not.toHaveBeenCalled();
+  });
+
   it('sends the mutation the server actually received in production', () => {
     setMatchUpSchedule({ matchUpId: 'm1', schedule: { endTime: '14:29' } });
     expect(mutationRequest.mock.calls[0][0].methods).toEqual([

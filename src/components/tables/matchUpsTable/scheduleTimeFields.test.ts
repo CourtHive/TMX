@@ -87,6 +87,8 @@ describe('resolveTimeSeed', () => {
 
   it('returns an empty seed when nothing is known', () => {
     expect(resolveTimeSeed({ field: 'endTime' })).toBe('');
+    expect(resolveTimeSeed({ field: 'startTime' })).toBe('');
+    expect(resolveTimeSeed({ field: 'scheduledTime' })).toBe('');
   });
 });
 

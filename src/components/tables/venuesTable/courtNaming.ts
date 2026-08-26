@@ -56,8 +56,8 @@ export function dominantCourtNameBase(courts: any[] = []): string | undefined {
  *
  * Counts up from the highest index already in use for the chosen base — `max + 1`, not
  * `existing.length + 1`, so a venue with a deleted court in the middle does not reissue a name that
- * is still on a scheduled matchUp. That rule alone makes a collision impossible for the chosen base;
- * the explicit skip below is what keeps the invariant true if it is ever changed.
+ * is still on a scheduled matchUp. Counting above the highest index is also what makes a collision
+ * impossible: every name returned sorts past every `${root} n` the venue already holds.
  */
 export function nextCourtNames({
   courts = [],
@@ -71,24 +71,13 @@ export function nextCourtNames({
   if (!Number.isInteger(count) || count < 1) return [];
 
   const root = base?.trim() || dominantCourtNameBase(courts) || DEFAULT_ROOT;
-  const taken = new Set<string>(courts.map((court: any) => court?.courtName).filter(Boolean));
-
   let highest = 0;
   for (const court of courts) {
     const parsed = parseNumberedName(court?.courtName);
     if (parsed?.base === root && parsed.index > highest) highest = parsed.index;
   }
 
-  const names: string[] = [];
-  let next = highest;
-  while (names.length < count) {
-    next += 1;
-    const candidate = `${root} ${next}`;
-    if (taken.has(candidate)) continue;
-    taken.add(candidate);
-    names.push(candidate);
-  }
-  return names;
+  return Array.from({ length: count }, (_, i) => `${root} ${highest + i + 1}`);
 }
 
 /** "Court 16, Court 17" — or "Court 16, Court 17, … Court 35" once the list stops being readable. */
