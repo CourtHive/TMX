@@ -5,7 +5,7 @@ import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
 /**
- * Journey 108 — schedule time entry cannot silently send an impossible end time.
+ * Journey 110 — schedule time entry cannot silently send an impossible end time.
  *
  * Reproduces the production defect behind two `ERR_INVALID_END_TIME` rejections on 2026-08-23
  * (CFS audit_log, tournament 189ab4d5). TMX's picker is a 12-hour clock which, seeded empty, opened
@@ -122,7 +122,7 @@ async function dialMinutes(page: Page, minutes: string) {
   await expect(field).toHaveValue(minutes);
 }
 
-test.describe('Journey 108 — schedule time entry', () => {
+test.describe('Journey 110 — schedule time entry', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);
