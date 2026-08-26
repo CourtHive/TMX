@@ -13,7 +13,10 @@ import {
   isScheduleLocked,
 } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
+import { resolveTimeSeed, validateTimeValue } from 'components/tables/matchUpsTable/scheduleTimeFields';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import { getCourtTimeBounds } from 'components/tables/matchUpsTable/courtTimeBounds';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
@@ -33,6 +36,7 @@ import tippy, { Instance } from 'tippy.js';
 import { t } from 'i18n';
 
 // constants
+import type { ScheduleTimeField } from 'components/tables/matchUpsTable/scheduleTimeFields';
 import { ADD_MATCHUP_OFFICIAL, DELETE_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
 
@@ -60,60 +64,6 @@ function destroyOfficialTip() {
     officialTip.destroy();
     officialTip = undefined;
   }
-}
-
-function getTimeBounds(matchUp: any): { earliest?: string; latest?: string } {
-  const { courts = [] } = tournamentEngine.getVenuesAndCourts() || {};
-  if (!courts.length) {
-    console.log('getTimeBounds: no courts found');
-    return {};
-  }
-
-  const courtId = matchUp?.schedule?.courtId;
-  const venueId = matchUp?.schedule?.venueId;
-  const scheduledDate = matchUp?.schedule?.scheduledDate;
-
-  let relevantCourts = courts;
-  if (courtId) {
-    relevantCourts = courts.filter((c: any) => c.courtId === courtId);
-  } else if (venueId) {
-    relevantCourts = courts.filter((c: any) => c.venueId === venueId);
-  }
-
-  console.log('getTimeBounds:', {
-    courtId,
-    venueId,
-    scheduledDate,
-    totalCourts: courts.length,
-    relevantCourts: relevantCourts.length,
-    filter: courtId ? 'by courtId' : venueId ? 'by venueId' : 'all courts',
-  });
-
-  if (!relevantCourts.length) return {};
-
-  let earliest: string | undefined;
-  let latest: string | undefined;
-
-  for (const court of relevantCourts) {
-    const dateAvail = scheduledDate ? court.dateAvailability?.find((a: any) => a.date === scheduledDate) : undefined;
-    const defaultAvail = court.dateAvailability?.find((a: any) => !a.date);
-    const avail = dateAvail || defaultAvail;
-
-    console.log('getTimeBounds court:', {
-      courtId: court.courtId,
-      courtName: court.courtName,
-      usedDateSpecific: !!dateAvail,
-      availStartTime: avail?.startTime,
-      availEndTime: avail?.endTime,
-      dateAvailabilityCount: court.dateAvailability?.length,
-    });
-
-    if (avail?.startTime && (!earliest || avail.startTime < earliest)) earliest = avail.startTime;
-    if (avail?.endTime && (!latest || avail.endTime > latest)) latest = avail.endTime;
-  }
-
-  console.log('getTimeBounds result:', { earliest, latest });
-  return { earliest, latest };
 }
 
 export function matchUpActions({
@@ -192,31 +142,36 @@ export function matchUpActions({
     });
   };
 
-  const setTimeField = (field: 'scheduledTime' | 'startTime' | 'endTime') => {
+  const applySelectedTime = (field: ScheduleTimeField, time: string) => {
     const schedule = matchUp?.schedule || {};
-    const { earliest, latest } = getTimeBounds(matchUp);
-    const defaultTime = field === 'endTime' ? latest : earliest;
+    const bounds = getCourtTimeBounds(matchUp);
+    const converted = tools.dateTime.convertTime(time, true) as string;
+    if (!converted) return;
+
+    // Previously each of these checks was a bare `return`, so a rejected time looked identical to
+    // no interaction at all. The old ordering check also refused any end before its start, which
+    // blocked the after-midnight finishes the engine accepts — `validateTimeValue` mirrors the
+    // engine's own cross-midnight rule instead.
+    const invalid = validateTimeValue({ field, value: converted, schedule, bounds });
+    if (invalid) {
+      tmxToast({ message: invalid, intent: 'is-danger' });
+      return;
+    }
+
+    setMatchUpSchedule({
+      matchUpId: matchUp.matchUpId,
+      schedule: { [field]: converted },
+      callback: () => updateRow({ [field]: converted }),
+    });
+  };
+
+  const setTimeField = (field: ScheduleTimeField) => {
+    const schedule = matchUp?.schedule || {};
+    const bounds = getCourtTimeBounds(matchUp);
 
     timePicker({
-      time: schedule[field] || defaultTime || '',
-      callback: ({ time }) => {
-        const converted = tools.dateTime.convertTime(time, true) as string;
-        if (!converted) return;
-
-        if (field === 'startTime' || field === 'endTime') {
-          if (earliest && converted < earliest) return;
-          if (latest && converted > latest) return;
-          const crossField = field === 'startTime' ? 'endTime' : 'startTime';
-          const crossValue = schedule[crossField];
-          if (crossValue && (field === 'startTime' ? converted > crossValue : converted < crossValue)) return;
-        }
-
-        setMatchUpSchedule({
-          matchUpId: matchUp.matchUpId,
-          schedule: { [field]: converted },
-          callback: () => updateRow({ [field]: converted }),
-        });
-      },
+      time: resolveTimeSeed({ field, schedule, bounds }),
+      callback: ({ time }) => applySelectedTime(field, time),
     });
   };
 

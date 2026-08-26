@@ -117,3 +117,15 @@
 .tp-ui-wrapper.mobile {
   z-index: 10001 !important;
 }
+
+/* Preview of the court names the "Add courts" drawer will create. */
+.courts-preview {
+  color: var(--tmx-text-secondary);
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.courts-preview:empty {
+  display: none;
+}
