@@ -2,6 +2,7 @@
  * MatchUp type filter for filterPopoverButton.
  * Filters matchUps by type: singles, doubles, or team.
  */
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { eventConstants } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -21,10 +22,10 @@ export function getMatchUpTypeFilter(
 
   const typeFilter = (rowData: any): boolean => rowData.matchUpType === filterValue;
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(typeFilter);
     typeFilterApplied = true;
+    whenTableBuilt(table, () => typeFilterApplied && table.addFilter(typeFilter));
   }
 
   const updateFilter = (type?: string) => {

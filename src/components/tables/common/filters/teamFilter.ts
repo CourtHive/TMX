@@ -1,3 +1,4 @@
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -30,10 +31,10 @@ export function getTeamFilter({
     if (onChange) onChange();
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(teamFilter);
     teamFilterApplied = true;
+    whenTableBuilt(table, () => teamFilterApplied && table.addFilter(teamFilter));
   }
   const anyTeamLabel = t('pages.participants.anyTeam');
   const allTeams = {

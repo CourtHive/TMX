@@ -4,6 +4,7 @@
  */
 import { participantConstants, eventConstants, unwrapOr } from 'tods-competition-factory';
 import { getTeamVs, getSideScore, getSide } from 'components/elements/getTeamVs';
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
@@ -48,8 +49,8 @@ export function getMatchUpTeamFilter(
       ? rowData.individualParticipantIds.some((id: string) => teamMap[filterValue as string]?.includes(id))
       : true;
 
-  // Restore saved filter
-  if (filterValue) table.addFilter(teamFilter);
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
+  if (filterValue) whenTableBuilt(table, () => filterValue && table.addFilter(teamFilter));
 
   const updateFilter = (teamParticipantId?: string) => {
     if (filterValue) table.removeFilter(teamFilter);

@@ -8,6 +8,7 @@
  *   - 'YYYY-MM-DD' — a specific date string
  *   - '__none__' — matchUps with no scheduledDate
  */
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
@@ -79,10 +80,10 @@ export function getMatchUpDateFilter(table: any): {
     }
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(dateFilter);
     dateFilterApplied = true;
+    whenTableBuilt(table, () => dateFilterApplied && table.addFilter(dateFilter));
   }
 
   // Resolve active dates: prefer tournamentInfo.activeDates, fall back to date range.

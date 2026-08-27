@@ -8,6 +8,7 @@
  * matchUpStatusPredicates for the shared classification.
  */
 import { classifyTodayBucket, popoverStatusPredicate, TODAY_STATUS_PREFIX } from './matchUpStatusPredicates';
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -33,10 +34,10 @@ export function getMatchUpStatusFilter(table: any): {
     return popoverStatusPredicate(rowData, filterValue);
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(statusFilter);
     statusFilterApplied = true;
+    whenTableBuilt(table, () => statusFilterApplied && table.addFilter(statusFilter));
   }
 
   const updateFilter = (status?: string) => {

@@ -1,3 +1,4 @@
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
 import type { Event } from 'tods-competition-factory';
 import { context } from 'services/context';
@@ -37,10 +38,10 @@ export function getEventFilter(
     if (onChange) onChange();
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(eventFilter);
     eventFilterApplied = true;
+    whenTableBuilt(table, () => eventFilterApplied && table.addFilter(eventFilter));
   }
   const events = tournamentEngine.q.events() || [];
   const allEventsLabel = t('pages.participants.allEvents');

@@ -20,6 +20,23 @@ export function saveColumnVisibility(): void {
 }
 
 /**
+ * Marks a column as always-visible: excluded from the headerMenu toggle list and
+ * never overridden by saved visibility state.
+ *
+ * Carried in `cssClass` rather than as a bespoke `lockVisible` key because
+ * Tabulator validates every column-definition key against its own option list
+ * and warns on the console for anything it does not recognise ("Invalid column
+ * definition option: lockVisible"). `cssClass` is a supported option, so the
+ * marker travels with the definition — which is where it belongs, since
+ * `getDefinition()` is the only handle the headerMenu has on a built column —
+ * without tripping the validator.
+ */
+export const LOCK_VISIBLE_CLASS = 'tmx-lock-visible';
+
+export const isLockedVisible = (def: any): boolean =>
+  typeof def?.cssClass === 'string' && def.cssClass.split(/\s+/).includes(LOCK_VISIBLE_CLASS);
+
+/**
  * Returns true unless the user has explicitly hidden this column.
  * Use for columns that default to visible.
  */
@@ -39,14 +56,14 @@ export const columnVisibility = (field, defaultVisible: boolean) =>
  * value is treated as the default; any value previously saved in
  * `context.columns` overrides it.
  *
- * Columns marked `lockVisible` are always shown: they are excluded from the
- * headerMenu and their visibility is never overridden by saved state (which
- * also shields them from field-name collisions across tables — `context.columns`
- * is a single global map keyed by field name).
+ * Locked columns are always shown: they are excluded from the headerMenu and
+ * their visibility is never overridden by saved state (which also shields them
+ * from field-name collisions across tables — `context.columns` is a single
+ * global map keyed by field name).
  */
 export function applyColumnVisibility(columns: any[]): any[] {
   for (const col of columns) {
-    if (!col.title || !col.field || col.lockVisible) continue;
+    if (!col.title || !col.field || isLockedVisible(col)) continue;
     if (col.field in context.columns) {
       col.visible = context.columns[col.field];
     }

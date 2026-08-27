@@ -7,7 +7,7 @@ import { formatParticipant } from '../../common/formatters/participantFormatter'
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
 import { teamsFormatter } from '../../common/formatters/teamsFormatter';
 import { createGroupedSorter, SEGMENT_LABELS } from './segmentSorter';
-import { applyColumnVisibility } from '../../common/columnIsVisible';
+import { LOCK_VISIBLE_CLASS, applyColumnVisibility } from '../../common/columnIsVisible';
 import { numericEditor } from '../../common/editors/numericEditor';
 import { getRatingColumns } from '../../common/getRatingColumns';
 import { cellBorder } from '../../common/formatters/cellBorder';
@@ -109,7 +109,7 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
     {
       title: 'Grouping',
       field: 'segment',
-      lockVisible: true,
+      cssClass: LOCK_VISIBLE_CLASS,
       formatter: segmentFormatter,
       hozAlign: CENTER,
       headerHozAlign: CENTER,
@@ -139,7 +139,7 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
       sorter: (a: any, b: any) =>
         (a?.participantName ?? '').localeCompare(b?.participantName ?? '', undefined, { numeric: true }),
       field: 'participant',
-      lockVisible: true,
+      cssClass: LOCK_VISIBLE_CLASS,
       responsive: false,
       resizable: false,
       minWidth: 200,
