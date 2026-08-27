@@ -139,6 +139,39 @@ test.describe('Journey 108 — the venue-frame notice says when the clock is a g
     await expect(page.locator(EDIT_DATES_MARKER)).toHaveCount(1);
   });
 
+  // Regression, #1362 follow-up. The test BELOW this one sets the zone out of
+  // band and re-navigates, so it only ever exercised the path where the action
+  // bar is rebuilt from scratch — which is why it stayed green while the bug
+  // shipped. The reported failure is the in-place path: save from the notice's
+  // OWN modal, no navigation, and the pill outlived the save. Every clock on the
+  // page silently re-framed into the new zone while the footer still said the
+  // zone was unset, which reads as "Save did nothing".
+  test('goes away when the zone is saved from its own modal, without navigating', async ({ page }) => {
+    const tournamentId = await seedZonelessTournament(page);
+    await openGrid(page, tournamentId);
+    await expect(page.locator(NOTICE)).toBeVisible({ timeout: 10_000 });
+
+    await page.locator(NOTICE).click();
+    await expect(page.locator(EDIT_DATES_MARKER)).toHaveCount(1);
+
+    // The zone field arrives pre-filled with the browser-detected zone precisely
+    // so the TD can confirm with one click — so this is the reported gesture,
+    // not a shortcut around it.
+    await page.locator(MODAL).getByRole('button', { name: 'Save' }).click();
+
+    // Controls first: prove the save actually happened. Without these, a pill
+    // that vanished for any unrelated reason would satisfy the assertion below.
+    await expect(page.locator(MODAL)).toHaveCount(0, { timeout: 10_000 });
+    await expect
+      .poll(() => page.evaluate(() => dev.factory.tournamentEngine.getTournament().tournamentRecord.localTimeZone), {
+        timeout: 10_000,
+      })
+      .toBeTruthy();
+
+    // The load-bearing assertion: same bar instance, no re-navigation.
+    await expect(page.locator(NOTICE)).toHaveCount(0);
+  });
+
   test('goes away once the tournament carries a venue zone', async ({ page }) => {
     const tournamentId = await seedZonelessTournament(page);
     await openGrid(page, tournamentId);

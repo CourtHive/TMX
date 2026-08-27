@@ -73,6 +73,16 @@ export interface GridActionBar {
    * reflects the new state without rebuilding the bar. No-op without onTogglePublish.
    */
   setDatePublished: (published: boolean) => void;
+  /**
+   * Re-evaluate the venue-frame notice against the current tournament record.
+   *
+   * The notice is the one control in this bar whose own action removes it: the
+   * modal it opens sets `localTimeZone`, after which `buildVenueFrameNotice`
+   * returns null. Without this the pill outlived a successful save — the grid
+   * re-rendered in the new zone while the footer still said the zone was unset,
+   * which reads as "Save did nothing".
+   */
+  setVenueFrame: () => void;
 }
 
 export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
@@ -98,11 +108,19 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   bar.appendChild(issuesSlot);
   setIssues(issues);
 
-  // Venue-frame notice — leftmost, and only when the tournament carries no time
-  // zone so every clock on this page is being read off the operator's device.
-  // Null (not an empty box) once a zone is set, so no flex gap is reserved.
-  const venueNotice = buildVenueFrameNotice(params.onVenueTimeZoneSet);
-  if (venueNotice) bar.appendChild(venueNotice);
+  // Venue-frame notice — only when the tournament carries no time zone, so every
+  // clock on this page is being read off the operator's device. Its own
+  // `display: contents` slot: null (not an empty box) once a zone is set, so no
+  // flex gap is reserved, and setVenueFrame can drop it in place once saved.
+  const venueSlot = document.createElement('div');
+  venueSlot.style.display = 'contents';
+  const setVenueFrame = (): void => {
+    venueSlot.replaceChildren();
+    const venueNotice = buildVenueFrameNotice(params.onVenueTimeZoneSet);
+    if (venueNotice) venueSlot.appendChild(venueNotice);
+  };
+  bar.appendChild(venueSlot);
+  setVenueFrame();
 
   bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
 
@@ -147,7 +165,7 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
   }
 
-  return { element: bar, setIssues, setTimingAvailable, setDatePublished };
+  return { element: bar, setIssues, setTimingAvailable, setDatePublished, setVenueFrame };
 }
 
 // ── Order-of-play publish pill ──
