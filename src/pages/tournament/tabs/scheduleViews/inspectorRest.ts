@@ -253,9 +253,41 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   };
 }
 
+/**
+ * The evaluator for the pass currently in progress, released as soon as the task
+ * that built it finishes.
+ *
+ * `makeRestEvaluator` is documented as being worth building once per pass, and the
+ * badge ticker duly builds one and reuses it across every card. The render did
+ * not: `renderRestBadge` is `renderCardExtra`, called once per card, and it reached
+ * `evaluateRest`, which built a whole evaluator per call. On a 149-matchUp
+ * tournament that was 149 event-map walks, 149 daily-limit reads and 149
+ * venue-frame resolutions — measured at 307 `getTournament` calls and ~235ms of a
+ * ~300ms schedule render, for work whose answer is identical every time.
+ *
+ * A microtask is the release boundary because it is the tightest one that still
+ * covers a whole synchronous render: every card drawn in one pass shares the
+ * evaluator, and nothing survives into the next task, so no caller can read state
+ * that a mutation has since replaced. It also gives the render the property the
+ * ticker already has deliberately — every badge in a pass agrees about what time
+ * it is, rather than a pass straddling a minute boundary and rendering two cards a
+ * minute apart.
+ */
+let passEvaluator: ReturnType<typeof makeRestEvaluator> | null = null;
+
+function evaluatorForPass(): ReturnType<typeof makeRestEvaluator> {
+  if (!passEvaluator) {
+    passEvaluator = makeRestEvaluator();
+    queueMicrotask(() => {
+      passEvaluator = null;
+    });
+  }
+  return passEvaluator;
+}
+
 /** Rest for one matchUp, resolved against current factory state and the current clock. */
 export function evaluateRest(matchUpId: string, viewedDate: string | null): RestResult {
-  return makeRestEvaluator()(matchUpId, viewedDate);
+  return evaluatorForPass()(matchUpId, viewedDate);
 }
 
 /** `134` → `'2h 14m'`; under an hour drops the hours part entirely. */
