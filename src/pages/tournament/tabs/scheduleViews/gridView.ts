@@ -344,6 +344,10 @@ export function renderGridView(
     // order) in the action bar's issues button without rebuilding the bar.
     gridActionBar?.setIssues(freshIssues);
     gridActionBar?.setTimingAvailable(hasCallTimingData());
+    // The venue-frame pill is removed by its own action — setting the zone from
+    // the notice's modal makes the notice obsolete, so it has to be re-evaluated
+    // on the same refresh that re-frames the clocks.
+    gridActionBar?.setVenueFrame();
     refreshActiveStrip(currentDate);
   }
   currentRefresh = refresh;

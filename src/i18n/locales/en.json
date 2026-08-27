@@ -1155,6 +1155,7 @@
       "minScheduleGridRows": "Minimum schedule grid rows",
       "minScheduleGridRowsError": "Must be a number between 1 and 100",
       "betaFeatures": "Beta features",
+      "linkedTournaments": "Linked Tournaments",
       "pdfPrinting": "PDF printing",
       "googleSheetsImport": "Google Sheets import",
       "topologyBuilder": "Topology builder",

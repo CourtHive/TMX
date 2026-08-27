@@ -98,8 +98,11 @@ async function dispatchUnlink(removeId: string, onDone: () => void): Promise<voi
 // ─── UI ───────────────────────────────────────────────────────────────────
 
 /** Full-width Settings panel listing linked tournaments with add/remove controls. */
+export const LINKED_TOURNAMENTS_PANEL_ID = 'linkedTournamentsPanel';
+
 export function buildLinkedTournamentsPanel(): HTMLElement {
   const panel = document.createElement('div');
+  panel.id = LINKED_TOURNAMENTS_PANEL_ID;
   panel.className = 'settings-panel panel-teal';
   panel.style.gridColumn = '1 / -1';
   void renderPanelContents(panel);
