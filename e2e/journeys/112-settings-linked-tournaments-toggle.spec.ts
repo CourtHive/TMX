@@ -102,10 +102,17 @@ test('logged out, the toggle does not expose the provider-authenticated panel', 
   await page.goto(`/#/tournament/${tournamentId}/settings`);
   await page.locator('#tournamentSettings .settings-panel').first().waitFor({ timeout: 15_000 });
 
-  await page.locator(LABEL).click();
-  await page.waitForTimeout(600);
+  // The checkbox must not be OFFERED here either. A previous pass hid it only on the
+  // global settings page, leaving it visible-but-inert in a tournament while logged out —
+  // which is the same defect that pass set out to remove, and is what a user reported.
+  // It is now gated on the same `linkedEligible` value the panel uses.
+  await expect(page.locator(CHECKBOX)).toHaveCount(0);
 
-  // The panel 401s and baseApi turns that into a full logout, so it must stay hidden.
+  // The control: the Beta Features panel IS rendered, so "checkbox absent" cannot pass by
+  // the whole panel having failed to render while logged out.
+  await expect(page.locator('#assistant')).toHaveCount(1);
+
+  // …and the provider-authenticated panel stays away, since a 401 here becomes a full logout.
   await expect(page.locator(PANEL)).toHaveCount(0);
   expect(calendarReqs, `my-calendars was called while logged out: ${calendarReqs.join(', ')}`).toEqual([]);
 });
