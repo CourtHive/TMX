@@ -16,6 +16,7 @@ import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { validateToken } from 'services/authentication/validateToken';
 import { resetLocalCalendar } from 'services/storage/localCalendar';
+import { contentEquals } from 'services/transitions/screenSlaver';
 import { disconnectSocket } from 'services/messaging/socketIo';
 import { refreshAccessToken } from 'services/apis/baseApi';
 import { tournamentEngine } from 'services/factory/engine';
@@ -108,7 +109,8 @@ export function logOut(): void {
     .then(() => resetLocalCalendar())
     .catch((err) => {
       console.error('[auth] failed to clear provider-bound tournaments on logout', err);
-    });
+    })
+    .finally(redrawTournamentsListAfterWipe);
   // Stop the staleness timer so a leftover scheduled check can't fire after
   // logout and toast a "Missing tournamentRecord" error for a local-only
   // tournament that was never on the server.
@@ -116,6 +118,32 @@ export function logOut(): void {
   context.matchUpFilters = {};
   context.router?.navigate(`/${TMX_TOURNAMENTS}/logout`);
   styleLogin(false);
+}
+
+/**
+ * Re-read the tournaments list once the logout IDB wipe has landed.
+ *
+ * `logOut` navigates synchronously, and with the identity gone the list falls
+ * back to reading local IndexedDB (`createTournamentsTable` → `fromLocalDb`).
+ * That render happens while `deleteProviderBoundTournaments` +
+ * `resetLocalCalendar` are still in flight, so the departing user's cached
+ * provider-bound tournaments — including any picked up while impersonating —
+ * paint for whoever is at the browser next. The wipe does complete; nothing
+ * re-reads it, which is why the stale rows persist until a manual reload.
+ *
+ * Runs on `finally`: a failed wipe still needs the list re-read, because the
+ * synchronous identity clears above already changed what the list may show.
+ *
+ * Dynamically imported — `createTournamentsTable` imports `getLoginState` from
+ * this module, so a static import would close a cycle.
+ */
+function redrawTournamentsListAfterWipe(): void {
+  if (!contentEquals(TMX_TOURNAMENTS)) return;
+  void import('components/tables/tournamentsTable/createTournamentsTable')
+    .then((m) => m.createTournamentsTable())
+    .catch(() => {
+      /* non-fatal — the next navigation re-reads the list anyway */
+    });
 }
 
 export function logIn({
