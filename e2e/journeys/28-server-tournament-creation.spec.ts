@@ -5,6 +5,15 @@ const E2E_EMAIL = 'e2e-client@courthive.com';
 const E2E_PASSWORD = 'e2e-test-pass';
 const SERVER = 'http://localhost:8383';
 
+// The provider this journey creates its tournament under, and whose calendar it then searches.
+// Resolved by ABBREVIATION at runtime — never a hardcoded id. A literal providerId here silently
+// bound the suite to one machine's database: on the box where it was written the id belonged to
+// "TMX Sandbox", accumulated dev history that nothing seeded. Anywhere else the invite named a
+// provider that did not exist, the tournament was never associated with TMX, and the calendar
+// lookup returned nothing — surfacing as `expect(serverEntry).toBeTruthy()` receiving `undefined`,
+// which says nothing about the cause. `Mentat/scripts/local/seed-local.mjs` now seeds this provider.
+const PROVIDER_ABBR = 'TMX';
+
 /**
  * Journey 28 — Authenticated tournament creation via server.
  *
@@ -25,7 +34,7 @@ const SERVER = 'http://localhost:8383';
  */
 async function cleanupServerTournament(request: any, token: string, tournamentName: string): Promise<void> {
   try {
-    const calendarResult = await request.post(`${SERVER}/provider/calendar`, { data: { providerAbbr: 'TMX' } });
+    const calendarResult = await request.post(`${SERVER}/provider/calendar`, { data: { providerAbbr: PROVIDER_ABBR } });
     if (!calendarResult.ok()) return;
     const calendar = await calendarResult.json();
     const entries = calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
@@ -63,6 +72,7 @@ async function cleanupServerTournament(request: any, token: string, tournamentNa
 
 test.describe('Journey 28 — Authenticated server tournament creation', () => {
   let authToken: string;
+  let providerId: string | undefined;
   let cfsReachable = false;
   let createdTournamentName: string | undefined;
 
@@ -83,39 +93,41 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     }
     if (!cfsReachable) return;
 
-    // Ensure the e2e test user exists
-    const loginAttempt = await request.post(`${SERVER}/auth/login`, {
-      data: { email: E2E_EMAIL, password: E2E_PASSWORD },
-    });
-
-    if (loginAttempt.ok()) {
-      authToken = (await loginAttempt.json()).token;
-      return;
-    }
-
-    // Create via admin invite flow
+    // Admin session — needed to resolve the provider.
     const adminLogin = await request.post(`${SERVER}/auth/login`, {
       data: { email: 'axel@castle.com', password: 'castle' },
     });
     const adminToken = (await adminLogin.json()).token;
 
-    const invite = await request.post(`${SERVER}/auth/invite`, {
+    // Resolve the provider by abbreviation, never by a literal id. A hardcoded providerId bound
+    // this journey to one machine's database: the id belonged to "TMX Sandbox", accumulated dev
+    // history that nothing seeded, so anywhere else the tournament was never associated with TMX
+    // and the calendar lookup came back empty — surfacing 60 lines later as
+    // `expect(serverEntry).toBeTruthy()` receiving `undefined`, which names nothing.
+    const providerList = await request.post(`${SERVER}/provider/allproviders`, {
       headers: { Authorization: `Bearer ${adminToken}` },
-      data: {
-        email: E2E_EMAIL,
-        providerId: 'fce22f65-08d5-4df5-998f-cbead6e823a4',
-        roles: ['client', 'admin', 'score'],
-      },
     });
-    const inviteCode = (await invite.json()).inviteCode;
+    const providers = (await providerList.json().catch(() => ({})))?.providers ?? [];
+    providerId = providers.find((p: any) => p?.value?.organisationAbbreviation === PROVIDER_ABBR)?.value
+      ?.organisationId;
+    expect(
+      providerId,
+      `No provider abbreviated "${PROVIDER_ABBR}" on ${SERVER}. Seed it: node Mentat/scripts/local/seed-local.mjs`,
+    ).toBeTruthy();
 
-    await request.post(`${SERVER}/auth/register`, {
-      data: { email: E2E_EMAIL, password: E2E_PASSWORD, firstName: 'E2E', lastName: 'Client', code: inviteCode },
-    });
-
+    // Log in as the seeded e2e account. This journey deliberately does NOT provision the user
+    // itself: it used to, via POST /auth/invite + /auth/register, and both routes have since been
+    // removed from the ecosystem. Nobody noticed because the journey returns early when the login
+    // succeeds, so the dead path only ran on hosts where the account did not already exist — where
+    // it 404'd and the failure surfaced as an unrelated assertion much later. The account is now
+    // seeded alongside every other test identity; require it and say so when it is absent.
     const login = await request.post(`${SERVER}/auth/login`, {
       data: { email: E2E_EMAIL, password: E2E_PASSWORD },
     });
+    expect(
+      login.ok(),
+      `Cannot log in as ${E2E_EMAIL} on ${SERVER}. Seed it: node Mentat/scripts/local/seed-local.mjs`,
+    ).toBeTruthy();
     authToken = (await login.json()).token;
   });
 
@@ -186,7 +198,7 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     // ── Verify tournament exists on server ──
     // Check calendar for the tournament
     const calendarResult = await request.post(`${SERVER}/provider/calendar`, {
-      data: { providerAbbr: 'TMX' },
+      data: { providerAbbr: PROVIDER_ABBR },
     });
     const calendar = await calendarResult.json();
     const entries = calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
