@@ -1,0 +1,151 @@
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+
+/**
+ * `logOut` must not let the tournaments list render the departing user's tournaments.
+ *
+ * The list falls back to reading local IndexedDB once identity is cleared, and `logOut`
+ * navigates SYNCHRONOUSLY while the IndexedDB wipe is still in flight. The fix chains a
+ * redraw onto the wipe so the list re-reads once the delete has landed.
+ *
+ * ## Why this is a unit test and not the journey
+ *
+ * Journey 113 covers the post-logout end state and is worth having, but it cannot prove this:
+ * with the fix reverted it stays GREEN, because locally the wipe simply wins the race and the
+ * stale render never happens (600 ballast records did not open the window, and counting anchor
+ * rebuilds does not separate the two states). What is being asserted here is an ORDERING, and
+ * an ordering is deterministic only when the wipe's completion is controlled — which is what
+ * the deferred promise below does.
+ *
+ * No production export was needed. `redrawTournamentsListAfterWipe` stays private on purpose:
+ * testing it directly would only exercise its `contentEquals` guard, and the guard was never
+ * the defect. The defect is whether the rebuild is *chained onto* the wipe or races it, and
+ * that is only visible from `logOut`.
+ */
+
+const deleteProviderBoundTournaments = vi.fn();
+const resetLocalCalendar = vi.fn();
+const createTournamentsTable = vi.fn();
+const navigate = vi.fn();
+let content = 'tournaments';
+
+vi.mock('services/storage/tmx2db', () => ({
+  tmx2db: { deleteProviderBoundTournaments: () => deleteProviderBoundTournaments() },
+}));
+vi.mock('services/storage/localCalendar', () => ({ resetLocalCalendar: () => resetLocalCalendar() }));
+vi.mock('components/tables/tournamentsTable/createTournamentsTable', () => ({
+  createTournamentsTable: () => createTournamentsTable(),
+}));
+vi.mock('services/transitions/screenSlaver', () => ({ contentEquals: (what: string) => what === content }));
+
+// Everything below is incidental to the ordering under test — stubbed so `logOut` can run
+// outside a browser. Deliberately NOT stubbed with behaviour: if any of these grew a role in
+// the wipe/redraw ordering, this test should be revisited rather than silently keep passing.
+vi.mock('./tokenManagement', () => ({
+  getToken: () => undefined,
+  removeToken: vi.fn(),
+  setToken: vi.fn(),
+  getRefreshToken: () => undefined,
+  setRefreshToken: vi.fn(),
+  removeRefreshToken: vi.fn(),
+}));
+vi.mock('./authApi', () => ({ revokeRefreshToken: vi.fn(() => Promise.resolve()) }));
+vi.mock('./getUserContext', () => ({ clearUserContext: vi.fn(), fetchUserContext: vi.fn() }));
+vi.mock('./isProviderAdmin', () => ({ isActiveProviderAdmin: () => false }));
+vi.mock('services/provider/providerState', () => ({ clearActiveProvider: vi.fn() }));
+vi.mock('services/provider/initProviderSwitcher', () => ({ initProviderSwitcher: vi.fn() }));
+vi.mock('services/session/sessionGuard', () => ({ notifySessionRecovered: vi.fn() }));
+vi.mock('services/staleness/stalenessGuard', () => ({ resetActivityTimer: vi.fn() }));
+vi.mock('services/messaging/socketIo', () => ({ disconnectSocket: vi.fn() }));
+vi.mock('services/apis/baseApi', () => ({ refreshAccessToken: vi.fn() }));
+vi.mock('services/factory/engine', () => ({ tournamentEngine: { reset: vi.fn() } }));
+vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
+vi.mock('services/pdf/pdfFont', () => ({ ensurePdfFontReady: vi.fn() }));
+vi.mock('config/providerConfig', () => ({ providerConfig: { reset: vi.fn(), set: vi.fn(), get: () => ({}) } }));
+vi.mock('services/demoMode/demoEligibility', () => ({ clearDemoOverlay: vi.fn(), isDemoEligible: () => false }));
+vi.mock('services/authentication/validateToken', () => ({ validateToken: () => undefined }));
+vi.mock('pages/tournament/tabs/settingsTab/renderSettingsTab', () => ({ renderSettingsTab: vi.fn() }));
+vi.mock('pages/tournament/tabs/overviewTab/renderOverview', () => ({ renderOverview: vi.fn() }));
+vi.mock('components/modals/loginModal', () => ({ loginModal: vi.fn() }));
+vi.mock('components/popovers/tipster', () => ({ tipster: vi.fn() }));
+vi.mock('navigation', () => ({ setupChatIndicator: vi.fn() }));
+vi.mock('functions/getLoginColor', () => ({ getLoginColor: () => '' }));
+vi.mock('i18n', () => ({ t: (k: string) => k, i18next: { language: 'en' } }));
+vi.mock('services/context', () => ({
+  context: { router: { navigate: (r: string) => navigate(r) }, matchUpFilters: {} },
+}));
+
+// TMX runs vitest in a node environment — there is no jsdom or happy-dom in devDependencies —
+// and logOut ends in `styleLogin(false)`, which reads `document.getElementById('login')`. A
+// null-returning stub is sufficient and honest: styleLogin early-returns when the element is
+// absent, which is also what it does on any page without the avatar mounted.
+(globalThis as any).document = { getElementById: () => null };
+
+import { logOut } from './loginState';
+
+/** A promise whose resolution this test controls — the wipe, held open on purpose. */
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((r) => (resolve = r));
+  return { promise, resolve };
+}
+
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+describe('logOut redraws the tournaments list only after the IndexedDB wipe lands', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    content = 'tournaments';
+    resetLocalCalendar.mockResolvedValue(undefined);
+  });
+
+  it('does not rebuild the list while the wipe is still in flight', async () => {
+    const wipe = deferred();
+    deleteProviderBoundTournaments.mockReturnValue(wipe.promise);
+
+    logOut();
+    await flush();
+
+    // The navigate has already happened — this is the exact window in which the list rendered
+    // the departing user's tournaments. The rebuild must NOT have fired yet, because the
+    // records it would read are still in IndexedDB.
+    expect(navigate).toHaveBeenCalled();
+    expect(createTournamentsTable).not.toHaveBeenCalled();
+
+    wipe.resolve();
+    await flush();
+
+    // ...and once the delete has landed, the list re-reads. Reverting the `.finally(redraw)`
+    // chain in logOut fails HERE, with 0 calls: nothing ever re-reads, which is why the stale
+    // rows survived until a manual reload.
+    expect(createTournamentsTable).toHaveBeenCalledTimes(1);
+  });
+
+  it('rebuilds even when the wipe fails — identity is already cleared either way', async () => {
+    deleteProviderBoundTournaments.mockRejectedValue(new Error('idb unavailable'));
+
+    logOut();
+    await flush();
+    await flush();
+
+    // `.finally`, not `.then`. A failed wipe still leaves a list that must be re-read: the
+    // synchronous identity clears above already changed what it is entitled to show.
+    expect(createTournamentsTable).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not touch the list when the user is not looking at it', async () => {
+    // Logging out from inside a tournament: `contentEquals(TMX_TOURNAMENTS)` is false, and
+    // rebuilding a table that is not on screen would be work at best and a stray render at
+    // worst. The wipe still runs — only the redraw is skipped.
+    content = 'tournament';
+    const wipe = deferred();
+    deleteProviderBoundTournaments.mockReturnValue(wipe.promise);
+
+    logOut();
+    wipe.resolve();
+    await flush();
+    await flush();
+
+    expect(deleteProviderBoundTournaments).toHaveBeenCalledTimes(1);
+    expect(createTournamentsTable).not.toHaveBeenCalled();
+  });
+});
