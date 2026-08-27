@@ -1,5 +1,43 @@
 # Changelog
 
+## [8.21.0](https://github.com/CourtHive/TMX/compare/v8.20.0...v8.21.0) (2026-08-26)
+
+
+### Features
+
+* **capability:** answer "may you do this HERE", not just "may you do this" ([#1344](https://github.com/CourtHive/TMX/issues/1344)) ([27fdac2](https://github.com/CourtHive/TMX/commit/27fdac23861b9c7539cd611a4c1a03c2c43121f9))
+* **capability:** hide tournament sections a user has no use for ([#1342](https://github.com/CourtHive/TMX/issues/1342)) ([36413e1](https://github.com/CourtHive/TMX/commit/36413e182a6b8027e71ca7f8f59a43e17acb5d47))
+* **capability:** one reason-carrying answer for "may this user do this here" ([#1338](https://github.com/CourtHive/TMX/issues/1338)) ([8c20ab3](https://github.com/CourtHive/TMX/commit/8c20ab3635abe8cf9658a195a29dafc016506667))
+* **capability:** report which provider permissions TMX actually enforces ([#1334](https://github.com/CourtHive/TMX/issues/1334)) ([26f554f](https://github.com/CourtHive/TMX/commit/26f554f027723a1a31788321540f5515deeb134f))
+* **capability:** scoped-access entry point, and a mask that is actually populated ([#1348](https://github.com/CourtHive/TMX/issues/1348)) ([bad9f4d](https://github.com/CourtHive/TMX/commit/bad9f4d23fc93119fb08ab5d46066656618f1fb2))
+* **demo:** simulate any lockdown posture from the avatar menu ([#1339](https://github.com/CourtHive/TMX/issues/1339)) ([4ecbb28](https://github.com/CourtHive/TMX/commit/4ecbb28eaec52d022f9627c61f4a3813a9f943a4))
+* **matchups:** per-matchUp check-in at the desk ([#1340](https://github.com/CourtHive/TMX/issues/1340)) ([fed3a4a](https://github.com/CourtHive/TMX/commit/fed3a4a21b76d3058c56a6d8d6f82eb0678a362f))
+* **officials:** certification and eligibility in the picker, fail-soft by design ([#1354](https://github.com/CourtHive/TMX/issues/1354)) ([8beb058](https://github.com/CourtHive/TMX/commit/8beb058d266e4a4fa35c56744e71b8ba6766a7e5))
+* **officials:** officials board — who is on court, who is free, who has been working ([#1352](https://github.com/CourtHive/TMX/issues/1352)) ([e3d5e53](https://github.com/CourtHive/TMX/commit/e3d5e533875687fa90d9710a2b0f278c54b75b96))
+* **officials:** reach the official you can see — contact column and call sheet ([#1353](https://github.com/CourtHive/TMX/issues/1353)) ([d762430](https://github.com/CourtHive/TMX/commit/d762430b979378cb936bcb56fe8998af3a05ef5a))
+* **participants:** call sheet + multi-contact editing ([#1337](https://github.com/CourtHive/TMX/issues/1337)) ([dd0a11c](https://github.com/CourtHive/TMX/commit/dd0a11c50dc8be15198c66749c7bccc2d635473a))
+* **presence:** close the day, so "signed in" stops meaning "signed in once" ([#1357](https://github.com/CourtHive/TMX/issues/1357)) ([fb95bcc](https://github.com/CourtHive/TMX/commit/fb95bcca98be52d014790900d02aced87ed1bffc))
+* **reports:** open the participant card from any report row ([#1347](https://github.com/CourtHive/TMX/issues/1347)) ([01a38df](https://github.com/CourtHive/TMX/commit/01a38df47bd5eb87c40d293df306233e89801d39))
+* **reports:** open the participant card from the draw structure winner ([#1350](https://github.com/CourtHive/TMX/issues/1350)) ([650aa8f](https://github.com/CourtHive/TMX/commit/650aa8fc298d8e1aa3ee1fdb22d15b2d998add56))
+* **schedule:** on/off/auto call-to-court prompts, and a check-in badge on the strip ([#1351](https://github.com/CourtHive/TMX/issues/1351)) ([252cce6](https://github.com/CourtHive/TMX/commit/252cce61dc78938cee6b7153c6551ec60a6dd59b))
+* **schedule:** surface check-in at call-to-court, and pin autocall to call-and-mark ([#1349](https://github.com/CourtHive/TMX/issues/1349)) ([02b9cce](https://github.com/CourtHive/TMX/commit/02b9ccea7d18b7a9997b7362a8b4545d2b5e158f))
+
+
+### Bug Fixes
+
+* **deps:** update dependency dayjs to v1.11.23 ([#1316](https://github.com/CourtHive/TMX/issues/1316)) ([43e2601](https://github.com/CourtHive/TMX/commit/43e26014f8a532874e14c3cd60926aa791fc80c0))
+* **deps:** update tods-competition-factory to 6.31.0 ([#1358](https://github.com/CourtHive/TMX/issues/1358)) ([ba18947](https://github.com/CourtHive/TMX/commit/ba18947df1bef8f9374c1a62a7e6d231217c64ef))
+* **deps:** update tods-competition-factory to 6.32.0 ([#1361](https://github.com/CourtHive/TMX/issues/1361)) ([6bc52d5](https://github.com/CourtHive/TMX/commit/6bc52d5e86af9232d1b715dfc5077cdc440a7279))
+* **officials:** the board asked for the wrong day west of UTC ([#1355](https://github.com/CourtHive/TMX/issues/1355)) ([806ecc2](https://github.com/CourtHive/TMX/commit/806ecc2d3696054405d6326fc9dda154996b5a77))
+* **officials:** time on court was always blank — read the field the factory sets ([#1359](https://github.com/CourtHive/TMX/issues/1359)) ([d00d657](https://github.com/CourtHive/TMX/commit/d00d657e80dcf3e5d5b16e160a85cef61695aac6))
+* **officiating:** tell "not checked" apart from "no conflicts" ([#1343](https://github.com/CourtHive/TMX/issues/1343)) ([18f2bcf](https://github.com/CourtHive/TMX/commit/18f2bcfa9a972a6e45d6e3ebcfd8cb9cbcdc96f7))
+* **schedule:** correct five fail-open defects in participant rest ([#1346](https://github.com/CourtHive/TMX/issues/1346)) ([a95af69](https://github.com/CourtHive/TMX/commit/a95af698601b50fcfbc3f4f69bff8525fbabbd24))
+* **schedule:** finish the venue frame — five sites [#1362](https://github.com/CourtHive/TMX/issues/1362) missed ([#1364](https://github.com/CourtHive/TMX/issues/1364)) ([fa0d3b9](https://github.com/CourtHive/TMX/commit/fa0d3b96dc0b85ffe3de525df6b895ac5800a3c6))
+* **schedule:** read every instant in the venue's zone, not the operator's ([#1362](https://github.com/CourtHive/TMX/issues/1362)) ([3e5b1db](https://github.com/CourtHive/TMX/commit/3e5b1db7a0c224e1582031c8600a38b4608dc7a5))
+* **schedule:** rest reads the score entry it was already given ([#1356](https://github.com/CourtHive/TMX/issues/1356)) ([a800e72](https://github.com/CourtHive/TMX/commit/a800e728099ad64f3dd9040c1bc35aa44379a6e0))
+* **schedule:** stop silently discarding schedule time edits; fix court identity and numbering ([#1365](https://github.com/CourtHive/TMX/issues/1365)) ([80cb3df](https://github.com/CourtHive/TMX/commit/80cb3dfe99f3761f58c867820f7f5bf63b83bf97))
+* **settings:** open the language picker on the language actually in use ([#1368](https://github.com/CourtHive/TMX/issues/1368)) ([95256cd](https://github.com/CourtHive/TMX/commit/95256cd4e6b35e3e01a5f0af535198a4a940d9e1))
+
 ## [8.20.0](https://github.com/CourtHive/TMX/compare/v8.19.1...v8.20.0) (2026-08-23)
 
 
