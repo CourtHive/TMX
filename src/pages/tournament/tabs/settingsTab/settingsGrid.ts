@@ -7,7 +7,6 @@ import { removeProviderTournament } from 'services/storage/removeProviderTournam
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
-import { getUserContext } from 'services/authentication/getUserContext';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeTournament } from 'services/apis/servicesApi';
@@ -146,7 +145,18 @@ export async function renderSettingsGrid(
   // Tournament-scoped, and provider-authenticated (it fetches /provider/my-calendars),
   // so it stays hidden when logged out: the panel would 401 and baseApi's interceptor
   // turns a 401 into a full logout, which was breaking the settings tab entirely.
-  const linkedEligible = !options?.excludeTournament && !!getUserContext();
+  // getUserContext() is a SYNCHRONOUS read of a cache that only `/auth/me` fills, so it
+  // returns undefined until that request resolves — and `fetchUserContext()` is called
+  // fire-and-forget at login/boot. This value is then captured by the syncLinkedPanel
+  // closure, so a context arriving later never un-sticks it: the panel stays unavailable
+  // for the life of the render and the beta checkbox appears to do nothing.
+  //
+  // getLoginState() answers the same question — is there an authenticated user — by
+  // validating the JWT locally. Synchronous, no network, no race. Deliberately NOT
+  // `await ensureUserContext()`: that would fire /auth/me for logged-out users, and
+  // baseApi's interceptor turns a 401 into a FULL LOGOUT, which is the exact cascade
+  // #1218/#1370 were fixing.
+  const linkedEligible = !options?.excludeTournament && !!getLoginState();
   const syncLinkedPanel = () => {
     const existing = grid.querySelector(`#${LINKED_TOURNAMENTS_PANEL_ID}`);
     const enabled = linkedEligible && featureFlags.get().linkedTournaments;
@@ -392,19 +402,27 @@ export async function renderSettingsGrid(
       onChange: persist,
       checkbox: true,
     },
-    {
-      label: t('modals.settings.linkedTournaments'),
-      checked: featureFlags.get().linkedTournaments || false,
-      field: 'linkedTournaments',
-      id: 'linkedTournaments',
-      // persistAll writes the flags synchronously before its first await, so the
-      // panel can be added/removed in place rather than forcing a tab re-render.
-      onChange: () => {
-        void persist();
-        syncLinkedPanel();
-      },
-      checkbox: true,
-    },
+    // Tournament-scoped: the panel it controls only exists inside a tournament's
+    // settings tab, so on the global /settings page (excludeTournament) the checkbox
+    // could never do anything. Offering an inert control is the same defect as the
+    // stuck gate above, just with a different cause — so it is not offered there.
+    ...(options?.excludeTournament
+      ? []
+      : [
+          {
+            label: t('modals.settings.linkedTournaments'),
+            checked: featureFlags.get().linkedTournaments || false,
+            field: 'linkedTournaments',
+            id: 'linkedTournaments',
+            // persistAll writes the flags synchronously before its first await, so the
+            // panel can be added/removed in place rather than forcing a tab re-render.
+            onChange: () => {
+              void persist();
+              syncLinkedPanel();
+            },
+            checkbox: true,
+          },
+        ]),
   ]);
 
   if (deviceConfig.get().isElectron) {
