@@ -14,7 +14,7 @@ import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
-import { canViewTab, ownsTabVisibility } from 'services/capability/navCapability';
+import { isTabAvailable, ownsTabVisibility } from 'services/capability/navCapability';
 import { t } from 'i18n';
 
 // constants
@@ -95,15 +95,15 @@ const CONDITIONAL_ROUTE_IDS = new Set(['rg-route']);
  *
  * Derived from the capability action set rather than a second hand-maintained
  * list, so a tab cannot drift from what the user can actually do. Re-evaluated
- * on every tab render alongside the registrations gate, because a demo posture
- * or a provider switch can change the answer between renders.
+ * on every tab render alongside the registrations gate, because a demo posture,
+ * a provider switch, or a Settings toggle can change the answer between renders.
  */
 export function applyTabCapabilityVisibility(): void {
   for (const [id, tab] of Object.entries(routeMap)) {
     if (CONDITIONAL_ROUTE_IDS.has(id)) continue; // owned by its own richer gate
     if (!ownsTabVisibility(tab)) continue;
     const el = document.getElementById(id);
-    if (el) el.style.display = canViewTab(tab) ? '' : 'none';
+    if (el) el.style.display = isTabAvailable(tab) ? '' : 'none';
   }
 }
 

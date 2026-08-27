@@ -12,6 +12,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { removeTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { applyTabCapabilityVisibility } from 'navigation';
 import { setActiveScale } from 'settings/setActiveScale';
 import { setBaseURL } from 'services/apis/baseApi';
 import { featureFlags } from 'config/featureFlags';
@@ -55,12 +56,12 @@ async function persistAll(
   languageInputs: any,
   ratingInputs: any,
   scoringInputs: any,
-  storageInputs: any,
+  optionsInputs: any,
   displayInputs: any,
 ): Promise<void> {
   const previousAssistant = featureFlags.get().assistant;
   const activeScale = ratingInputs?.activeRating?.value;
-  serverConfig.set({ saveLocal: storageInputs.saveLocal.checked });
+  serverConfig.set({ saveLocal: optionsInputs.saveLocal.checked });
   featureFlags.set({
     assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
@@ -83,6 +84,9 @@ async function persistAll(
   preferencesConfig.set({
     scoringApproach,
     smartComplements: scoringInputs.smartComplements?.checked || false,
+    // A preference, not a feature flag: the board is finished, this is only
+    // whether it is offered. Hence Options rather than Beta features.
+    officialsBoard: optionsInputs.officialsBoard?.checked || false,
   });
 
   const language = languageInputs.language.value;
@@ -131,12 +135,12 @@ export async function renderSettingsGrid(
   let languageInputs: any;
   let ratingInputs: any;
   let scoringInputs: any;
-  let storageInputs: any;
+  let optionsInputs: any;
   let displayInputs: any;
 
   let availableLanguages: string[] = [];
   const persist = () =>
-    persistAll(availableLanguages, languageInputs, ratingInputs, scoringInputs, storageInputs, displayInputs);
+    persistAll(availableLanguages, languageInputs, ratingInputs, scoringInputs, optionsInputs, displayInputs);
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
@@ -444,14 +448,16 @@ export async function renderSettingsGrid(
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
 
-  // --- Storage panel (purple, cols 3-4) ---
-  const storagePanel = document.createElement('div');
-  storagePanel.className = 'settings-panel panel-purple';
-  storagePanel.style.gridColumn = '3 / 5';
-  storagePanel.innerHTML = `<h3><i class="fa-solid fa-floppy-disk"></i> ${t('modals.settings.storage')}</h3>`;
+  // --- Options panel (purple, cols 3-4) ---
+  // Was "Storage" when it held one saveLocal checkbox. Widened rather than a new
+  // panel added, so settings that are neither beta nor storage have a home.
+  const optionsPanel = document.createElement('div');
+  optionsPanel.className = 'settings-panel panel-purple';
+  optionsPanel.style.gridColumn = '3 / 5';
+  optionsPanel.innerHTML = `<h3><i class="fa-solid fa-sliders"></i> ${t('modals.settings.options')}</h3>`;
 
-  const storageForm = document.createElement('div');
-  storageInputs = renderForm(storageForm, [
+  const optionsForm = document.createElement('div');
+  optionsInputs = renderForm(optionsForm, [
     {
       label: t('modals.settings.saveLocalCopies'),
       checked: serverConfig.get().saveLocal,
@@ -460,9 +466,22 @@ export async function renderSettingsGrid(
       onChange: persist,
       checkbox: true,
     },
+    {
+      label: t('modals.settings.officialsBoard'),
+      checked: preferencesConfig.get().officialsBoard,
+      field: 'officialsBoard',
+      id: 'officialsBoard',
+      // persistAll writes the preference synchronously before its first await, so
+      // the nav rail can be re-evaluated straight after rather than on next render.
+      onChange: () => {
+        void persist();
+        applyTabCapabilityVisibility();
+      },
+      checkbox: true,
+    },
   ]);
-  storagePanel.appendChild(storageForm);
-  grid.appendChild(storagePanel);
+  optionsPanel.appendChild(optionsForm);
+  grid.appendChild(optionsPanel);
 
   // --- Connection panel (indigo, cols 3-4) — Electron only ---
   if (deviceConfig.get().isElectron) {

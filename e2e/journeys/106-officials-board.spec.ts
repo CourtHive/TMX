@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { enablePreference, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
@@ -94,6 +94,10 @@ test.describe('Journey 106 — officials board', () => {
     await initDevBridge(page);
     await resetState(page);
     await page.evaluate(() => localStorage.clear());
+    // The board is off by default — it is a court-side surface most providers
+    // never staff for, so it is opt-in from Settings > Options. Journey 116
+    // covers the toggle itself; here it is a precondition.
+    await enablePreference(page, 'officialsBoard');
   });
 
   test('the tab mounts and separates signed-in from not-known-to-be-here', async ({ page }) => {

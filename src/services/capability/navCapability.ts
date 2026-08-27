@@ -28,6 +28,7 @@
  */
 import { can } from './can';
 
+import { preferencesConfig } from 'config/preferencesConfig';
 import type { CapabilityAction, Capability } from './can';
 import {
   TOURNAMENT_OVERVIEW,
@@ -89,6 +90,26 @@ const TAB_ACTIONS: Record<string, CapabilityAction[]> = {
  */
 const READ_USEFUL_TABS: ReadonlySet<string> = new Set([MATCHUPS_TAB, SCHEDULING_TAB, OFFICIALS_TAB]);
 
+/**
+ * Tabs the user may switch off in Settings.
+ *
+ * Deliberately separate from `TAB_ACTIONS`. A preference-hidden tab is not a
+ * denied one: the user IS permitted and has simply chosen not to see it. Folding
+ * this into the capability set would make `tabDenialReason` report a permission
+ * reason for a preference, which would be a lie told in a toast.
+ *
+ * Read through a function rather than captured at module load, because the
+ * preference changes while the app is running.
+ */
+const PREFERENCE_GATED: Record<string, () => boolean> = {
+  [OFFICIALS_TAB]: () => preferencesConfig.get().officialsBoard === true,
+};
+
+/** Has the user switched this tab off? Tabs with no preference are always on. */
+export function tabEnabledByPreference(tab: string): boolean {
+  return PREFERENCE_GATED[tab]?.() ?? true;
+}
+
 /** Tabs whose visibility this module does NOT own. */
 const EXTERNALLY_GATED: ReadonlySet<string> = new Set([REGISTRATIONS_TAB]);
 
@@ -138,6 +159,17 @@ export function firstPermittedTab(): string {
     SETTINGS_TAB,
   ];
   return order.find((tab) => canViewTab(tab)) ?? TOURNAMENT_OVERVIEW;
+}
+
+/**
+ * Should this tab be reachable at all — by icon, by deep link, or by redirect?
+ *
+ * The conjunction of "may they" and "do they want to". Both the nav rail and the
+ * router guard must ask the same question, or a hidden icon still answers a
+ * bookmark and the setting reads as inert.
+ */
+export function isTabAvailable(tab: string): boolean {
+  return tabEnabledByPreference(tab) && canViewTab(tab);
 }
 
 /** Exported for the coverage test and for demo tooling. */

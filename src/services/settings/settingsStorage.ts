@@ -83,6 +83,8 @@ export type TMXSettings = {
   unifiedEntriesTable?: boolean;
   /** Whether the bracket minimap navigator appears on large SE draws. */
   drawMinimapVisible?: boolean;
+  /** Whether the top-level Officials board tab is offered. Off unless chosen. */
+  officialsBoard?: boolean;
 };
 
 /**
@@ -144,6 +146,7 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.scoringApproach) prefsPatch.scoringApproach = settings.scoringApproach;
   if (settings.smartComplements !== undefined) prefsPatch.smartComplements = settings.smartComplements;
   if (settings.drawMinimapVisible !== undefined) prefsPatch.drawMinimapVisible = settings.drawMinimapVisible;
+  if (settings.officialsBoard !== undefined) prefsPatch.officialsBoard = settings.officialsBoard;
   if (Object.keys(prefsPatch).length) {
     preferencesConfig.set(prefsPatch);
   }
@@ -180,6 +183,7 @@ export function persistConfigToStorage(
     scoringApproach: prefs.scoringApproach,
     smartComplements: prefs.smartComplements,
     drawMinimapVisible: prefs.drawMinimapVisible,
+    officialsBoard: prefs.officialsBoard,
     saveLocal: server.saveLocal,
     assistant: flags.assistant,
     formatWizard: flags.formatWizard,

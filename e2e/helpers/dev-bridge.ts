@@ -225,3 +225,23 @@ export async function seedFeatureFlagInitScript(
     localStorage.setItem(KEY, JSON.stringify(parsed));
   }, flag);
 }
+
+/**
+ * Turn on a user PREFERENCE before the app reads it.
+ *
+ * Deliberately separate from `seedFeatureFlagInitScript`: a preference is not a
+ * beta flag, and merging the two would blur the distinction the officials-board
+ * toggle exists to make. Writes the stored blob and reloads, because
+ * `hydrateConfigFromStorage` runs once at boot — setting the key on a live page
+ * changes nothing until something re-reads it.
+ */
+export async function enablePreference(page: Page, preference: 'officialsBoard'): Promise<void> {
+  await page.evaluate((name: string) => {
+    const KEY = 'tmx_settings';
+    const parsed = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    parsed[name] = true;
+    localStorage.setItem(KEY, JSON.stringify(parsed));
+  }, preference);
+  await page.reload();
+  await waitForAppReady(page);
+}
