@@ -75,32 +75,48 @@ export const drawer = (): any => {
     openDrawer(target, false, callback);
   };
 
+  // A drawer slot may be a builder `(elem, close) => …` (what most callers use), a raw
+  // HTML string, or an already-built element.
+  //
+  // The Node branch is not a convenience — it is a defect guard. Without it an element
+  // falls through to `innerHTML = content`, which stringifies it to the literal text
+  // "[object HTMLDivElement]" and renders that. It throws nothing and logs nothing: the
+  // drawer opens, looks structurally fine, and displays a string where the UI should be.
+  // demoModeDrawer shipped exactly that to production. Silently coercing the wrong type
+  // into a plausible-looking value is the failure mode worth designing out, so an element
+  // is now appended rather than stringified.
+  type DrawerSlot = string | HTMLElement | ((elem: HTMLElement, close: () => void) => any);
+
   const setTitle = (title: string) => {
     const target = document.getElementById(drawerId);
     const titleElement = target?.querySelector('.drawer__title');
     if (titleElement) titleElement.innerHTML = title;
   };
 
-  const setFooter = (footer?: string | ((elem: HTMLElement, close: () => void) => any)) => {
+  const setFooter = (footer?: DrawerSlot) => {
     const target = document.getElementById(drawerId);
     const footerElement = target?.querySelector('.drawer__footer') as HTMLElement;
     if (footerElement) {
       removeAllChildNodes(footerElement);
       if (isFunction(footer)) {
         attributes.footer = (footer as any)(footerElement, close);
+      } else if (footer instanceof Node) {
+        footerElement.appendChild(footer);
       } else {
         footerElement.innerHTML = (footer as string) || '';
       }
     }
   };
 
-  const setContent = (content: string | ((elem: HTMLElement, close: () => void) => any)) => {
+  const setContent = (content: DrawerSlot) => {
     const target = document.getElementById(drawerId);
     const contentElement = target?.querySelector('.drawer__content') as HTMLElement;
     if (contentElement) {
       removeAllChildNodes(contentElement);
       if (isFunction(content)) {
         attributes.content = (content as any)(contentElement, close);
+      } else if (content instanceof Node) {
+        contentElement.appendChild(content);
       } else {
         contentElement.innerHTML = content as string;
       }
