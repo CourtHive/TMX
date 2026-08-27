@@ -1,11 +1,13 @@
 import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
 import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
+import { buildLinkedTournamentsPanel, LINKED_TOURNAMENTS_PANEL_ID } from './linkedTournaments';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
+import { getUserContext } from 'services/authentication/getUserContext';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeTournament } from 'services/apis/servicesApi';
@@ -64,6 +66,7 @@ async function persistAll(
     assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
     schedulePlan: displayInputs.schedulePlan?.checked || false,
+    linkedTournaments: displayInputs.linkedTournaments?.checked || false,
   });
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
@@ -138,6 +141,22 @@ export async function renderSettingsGrid(
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
+
+  // --- Linked tournaments (teal, full width) — first row of the grid ---
+  // Tournament-scoped, and provider-authenticated (it fetches /provider/my-calendars),
+  // so it stays hidden when logged out: the panel would 401 and baseApi's interceptor
+  // turns a 401 into a full logout, which was breaking the settings tab entirely.
+  const linkedEligible = !options?.excludeTournament && !!getUserContext();
+  const syncLinkedPanel = () => {
+    const existing = grid.querySelector(`#${LINKED_TOURNAMENTS_PANEL_ID}`);
+    const enabled = linkedEligible && featureFlags.get().linkedTournaments;
+    if (enabled && !existing) {
+      grid.prepend(buildLinkedTournamentsPanel());
+    } else if (!enabled && existing) {
+      existing.remove();
+    }
+  };
+  syncLinkedPanel();
 
   // --- Language panel (blue, 1 col) ---
   // Source the language list from the CFS manifest so newly-added locales
@@ -371,6 +390,19 @@ export async function renderSettingsGrid(
       field: 'schedulePlan',
       id: 'schedulePlan',
       onChange: persist,
+      checkbox: true,
+    },
+    {
+      label: t('modals.settings.linkedTournaments'),
+      checked: featureFlags.get().linkedTournaments || false,
+      field: 'linkedTournaments',
+      id: 'linkedTournaments',
+      // persistAll writes the flags synchronously before its first await, so the
+      // panel can be added/removed in place rather than forcing a tab re-render.
+      onChange: () => {
+        void persist();
+        syncLinkedPanel();
+      },
       checkbox: true,
     },
   ]);

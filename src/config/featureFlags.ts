@@ -9,6 +9,8 @@ export interface FeatureFlags {
   assistant: boolean;
   formatWizard: boolean;
   schedulePlan: boolean;
+  /** Linked Tournaments panel in the tournament settings tab. */
+  linkedTournaments: boolean;
   usePublishState: boolean;
   /** Demo-mode lockdown simulator (avatar menu). Off by default. */
   demoMode: boolean;
@@ -18,6 +20,7 @@ const defaults: FeatureFlags = {
   assistant: false,
   formatWizard: false,
   schedulePlan: false,
+  linkedTournaments: false,
   usePublishState: false,
   demoMode: false,
 };
