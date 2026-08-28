@@ -1,5 +1,26 @@
 # Changelog
 
+## [8.22.0](https://github.com/CourtHive/TMX/compare/v8.21.0...v8.22.0) (2026-08-28)
+
+
+### Features
+
+* **settings:** make the Officials board an option, off by default ([#1379](https://github.com/CourtHive/TMX/issues/1379)) ([8a98e34](https://github.com/CourtHive/TMX/commit/8a98e3418e3624009f9181026b356c15bbc7a1db))
+
+
+### Bug Fixes
+
+* **drawer:** render an element slot instead of stringifying it ([#1375](https://github.com/CourtHive/TMX/issues/1375)) ([751e7bc](https://github.com/CourtHive/TMX/commit/751e7bcc901a7eb2337f877a7b071dbbea29a006))
+* four stale-render defects in settings, schedule, demo eligibility and logout ([#1370](https://github.com/CourtHive/TMX/issues/1370)) ([1b96896](https://github.com/CourtHive/TMX/commit/1b968967ac71e0012a662282cdff5d34585fdd3a))
+* **settings:** make the Linked Tournaments beta toggle do something ([#1374](https://github.com/CourtHive/TMX/issues/1374)) ([7b0192f](https://github.com/CourtHive/TMX/commit/7b0192fce3eeff86af5dfd6ee2286c10c910a832))
+* **settings:** stop offering the Linked Tournaments toggle where it cannot work ([#1377](https://github.com/CourtHive/TMX/issues/1377)) ([14643c0](https://github.com/CourtHive/TMX/commit/14643c022b9f66579c35cbd05523b5759dca9381))
+* **tables:** stop Tabulator warning on every entries and matchUps render ([#1378](https://github.com/CourtHive/TMX/issues/1378)) ([fa0ae7c](https://github.com/CourtHive/TMX/commit/fa0ae7c445b705638a5214fd241994f1b9f8343a))
+
+
+### Performance
+
+* **schedule:** build one rest evaluator per render pass, not one per card ([#1380](https://github.com/CourtHive/TMX/issues/1380)) ([d9764d6](https://github.com/CourtHive/TMX/commit/d9764d629cdd2a01e3231371cbf688e812035fcc))
+
 ## [8.21.0](https://github.com/CourtHive/TMX/compare/v8.20.0...v8.21.0) (2026-08-26)
 
 
