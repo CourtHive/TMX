@@ -406,13 +406,15 @@ export async function renderSettingsGrid(
       onChange: persist,
       checkbox: true,
     },
-    // Tournament-scoped: the panel it controls only exists inside a tournament's
-    // settings tab, so on the global /settings page (excludeTournament) the checkbox
-    // could never do anything. Offering an inert control is the same defect as the
-    // stuck gate above, just with a different cause — so it is not offered there.
-    ...(options?.excludeTournament
-      ? []
-      : [
+    // Gated on `linkedEligible` — the SAME value the panel uses, deliberately.
+    //
+    // A previous pass gated the checkbox on `!excludeTournament` alone while the panel
+    // required `!excludeTournament && logged-in`. Two gates that can disagree, and they
+    // did: logged out inside a tournament the checkbox was still offered and still could
+    // not do anything, which is the exact defect that pass set out to remove. One
+    // condition, two consumers, so they cannot drift apart again.
+    ...(linkedEligible
+      ? [
           {
             label: t('modals.settings.linkedTournaments'),
             checked: featureFlags.get().linkedTournaments || false,
@@ -426,7 +428,8 @@ export async function renderSettingsGrid(
             },
             checkbox: true,
           },
-        ]),
+        ]
+      : []),
   ]);
 
   if (deviceConfig.get().isElectron) {
