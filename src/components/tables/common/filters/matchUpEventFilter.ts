@@ -2,6 +2,7 @@
  * MatchUp event filter for filterPopoverButton.
  * Filters matchUps by event (using eventId on row data).
  */
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -36,10 +37,10 @@ export function getMatchUpEventFilter(
     }
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(eventFilter);
     eventFilterApplied = true;
+    whenTableBuilt(table, () => eventFilterApplied && table.addFilter(eventFilter));
   }
 
   // Caller can hand in a pre-fetched events list to share one q.events()

@@ -27,14 +27,31 @@ import { getSexFilter } from './sexFilter';
  * by behaviour rather than by reading the source.
  */
 
+/**
+ * Models Tabulator's build lifecycle, because the filter modules now defer
+ * restoration until `tableBuilt`. A fake that is permanently "built" would let a
+ * regression back in silently; a fake that never builds would report the
+ * deferred restore as a filter that never applies. So it does both, in
+ * Tabulator's own order: `initialized` is set BEFORE `tableBuilt` dispatches.
+ */
 function fakeTable() {
   const added: any[] = [];
   const removed: any[] = [];
+  const handlers: Record<string, any[]> = {};
   return {
+    initialized: false,
+    on: vi.fn((event: string, fn: any) => {
+      handlers[event] = handlers[event] ?? [];
+      handlers[event].push(fn);
+    }),
     addFilter: vi.fn((fn: any) => added.push(fn)),
     removeFilter: vi.fn((fn: any) => removed.push(fn)),
     added,
     removed,
+    build() {
+      this.initialized = true;
+      for (const fn of handlers.tableBuilt ?? []) fn();
+    },
   };
 }
 
@@ -105,12 +122,58 @@ describe('filter modules do not remove a filter they never added', () => {
       matchUpFilters.status = 'complete';
       const table = fakeTable();
       const { setStatus } = getMatchUpStatusFilter(table as any);
+      table.build();
 
-      // Restoration applies the filter up front...
+      // Restoration applies the filter...
       expect(table.addFilter).toHaveBeenCalledTimes(1);
       setStatus(undefined);
       // ...so clearing it must remove it — the guard must not suppress this.
       expect(table.removeFilter).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * Tabulator warns "Table Not Initialized - Calling the addFilter function
+     * before the table is initialized" for every filter restored at construction
+     * time, which is when these modules run. Deferring to `tableBuilt` clears
+     * that, but only if the filter still arrives — hence the pair.
+     */
+    it('restoration waits for tableBuilt rather than filtering an unbuilt table', () => {
+      matchUpFilters.status = 'complete';
+      const table = fakeTable();
+      getMatchUpStatusFilter(table as any);
+
+      expect(table.addFilter, 'nothing may touch the table before it is built').not.toHaveBeenCalled();
+
+      table.build();
+
+      expect(table.addFilter, 'and the saved filter must still be applied').toHaveBeenCalledTimes(1);
+    });
+
+    it('a table that is already built restores immediately', () => {
+      // Tabulator sets `initialized` before dispatching `tableBuilt`, so a module
+      // constructed inside that window would never see the event fire. Without
+      // the `initialized` branch this restores nothing and the saved filter is
+      // silently lost.
+      matchUpFilters.status = 'complete';
+      const table = fakeTable();
+      table.build();
+
+      getMatchUpStatusFilter(table as any);
+
+      expect(table.addFilter).toHaveBeenCalledTimes(1);
+    });
+
+    it('clearing before the table builds does not let the deferred restore resurrect the filter', () => {
+      matchUpFilters.status = 'complete';
+      const table = fakeTable();
+      const { setStatus } = getMatchUpStatusFilter(table as any);
+
+      setStatus(undefined);
+      table.build();
+
+      // The deferred callback re-checks the applied flag; without that it would
+      // re-apply a filter the user had already cleared.
+      expect(table.addFilter).not.toHaveBeenCalled();
     });
   });
 

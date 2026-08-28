@@ -1,3 +1,4 @@
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { genderConstants } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -29,10 +30,10 @@ export function getSexFilter(
     if (onChange) onChange();
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(sexFilter);
     sexFilterApplied = true;
+    whenTableBuilt(table, () => sexFilterApplied && table.addFilter(sexFilter));
   }
   const sexes = [MALE, FEMALE];
   const genders: Record<string, string> = {

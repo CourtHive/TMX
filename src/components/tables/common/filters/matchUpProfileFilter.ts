@@ -6,6 +6,7 @@
  * Backs both the popover "Profile" section and click-to-filter on the
  * competitiveness bar; the token values match the bar's bucket keys.
  */
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { isWalkoverProfile } from './matchUpStatusPredicates';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -30,10 +31,10 @@ export function getMatchUpProfileFilter(table: any): {
     return rowData.competitiveProfile?.competitiveness === filterValue;
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(profileFilter);
     profileFilterApplied = true;
+    whenTableBuilt(table, () => profileFilterApplied && table.addFilter(profileFilter));
   }
 
   const updateFilter = (profile?: string) => {

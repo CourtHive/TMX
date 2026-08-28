@@ -2,6 +2,7 @@
  * MatchUp flight filter for filterPopoverButton.
  * Filters matchUps by flight (draw).
  */
+import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -36,10 +37,10 @@ export function getMatchUpFlightFilter(
     }
   };
 
-  // Restore saved filter
+  // Restore saved filter once the table is built (Tabulator warns if called sooner).
   if (filterValue) {
-    table.addFilter(flightFilter);
     flightFilterApplied = true;
+    whenTableBuilt(table, () => flightFilterApplied && table.addFilter(flightFilter));
   }
 
   // Caller can hand in a pre-fetched events list to share one q.events()

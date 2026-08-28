@@ -1,4 +1,4 @@
-import { saveColumnVisibility } from './columnIsVisible';
+import { isLockedVisible, saveColumnVisibility } from './columnIsVisible';
 import { context } from 'services/context';
 
 const ICON_ON = 'fa-toggle-on';
@@ -28,8 +28,8 @@ export const headerMenu = (displayTitles) => (_, column) => {
 
   for (const column of columns) {
     const def = column.getDefinition();
-    // `lockVisible` columns are always shown and excluded from the toggle menu.
-    if (def.title && !def.lockVisible) {
+    // Locked columns are always shown and excluded from the toggle menu.
+    if (def.title && !isLockedVisible(def)) {
       const visible = column.isVisible();
 
       const icon = document.createElement('i');
