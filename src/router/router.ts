@@ -12,7 +12,7 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { canViewTab, firstPermittedTab, tabDenialReason } from 'services/capability/navCapability';
+import { firstPermittedTab, isTabAvailable, tabDenialReason } from 'services/capability/navCapability';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import Navigo from 'navigo';
@@ -64,18 +64,32 @@ export function routeTMX() {
   });
 
   const displayRoute = ({ selectedTab, renderDraw, renderPoints, data }: any) => {
-    // Route-level capability guard. Hiding a nav icon is not enough on its own:
-    // a bookmark, a shared link, browser history or a typed hash all reach the
-    // route directly. Guarding here rather than at each `router.on` puts it in
-    // the one function every tab-selecting route already calls (standard A10).
-    let tab = selectedTab;
-    if (tab && !canViewTab(tab)) {
+    // Route-level guard. Hiding a nav icon is not enough on its own: a bookmark,
+    // a shared link, browser history or a typed hash all reach the route
+    // directly. Guarding here rather than at each `router.on` puts it in the one
+    // function every tab-selecting route already calls (standard A10).
+    //
+    // `isTabAvailable`, not `canViewTab`: a tab switched off in Settings must
+    // stop answering bookmarks too, or the setting reads as inert. There is no
+    // toast in that case — `tabDenialReason` speaks only for permissions, and a
+    // preference the user set themselves needs no explaining.
+    //
+    // The tab has TWO sources. Routes with a dedicated registration pass it as
+    // `selectedTab`; the generic `/:tournamentId/:selectedTab` route — which is
+    // how officials, matchUps, publishing and settings are all reached — leaves
+    // it inside `data`. Reading only the parameter meant the guard silently did
+    // nothing for exactly those tabs, and `...data` coming last then reinstated
+    // the unguarded value even when it had fired. Hence both reads here, and
+    // `selectedTab` assigned AFTER the spread so the guarded answer is final.
+    let tab = selectedTab ?? data?.selectedTab;
+    if (tab && !isTabAvailable(tab)) {
       const reason = tabDenialReason(tab);
       if (reason) tmxToast({ intent: 'is-warning', message: reason });
       tab = firstPermittedTab();
     }
     destroyTables();
-    displayTournament({ config: { selectedTab: tab, renderDraw, renderPoints, ...data } }); // ...data must come last
+    // ...data must come before the explicit keys, which are the decided values.
+    displayTournament({ config: { renderDraw, renderPoints, ...data, selectedTab: tab } });
   };
 
   // Topology routes — standalone page, reuses tournament loading

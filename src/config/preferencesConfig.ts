@@ -9,6 +9,15 @@ export interface PreferencesConfig {
   scoring: boolean;
   ioc: string;
   drawMinimapVisible: boolean;
+  /**
+   * Whether the top-level Officials board tab is offered.
+   *
+   * Off by default: it is a court-side board (who is on court now, who is free,
+   * who has been working since 9am) that most providers never staff for, and an
+   * always-present tab for a surface nobody uses is clutter. Not a beta flag —
+   * the board is finished, this is a choice about whether to show it.
+   */
+  officialsBoard: boolean;
 }
 
 const defaults: PreferencesConfig = {
@@ -19,6 +28,7 @@ const defaults: PreferencesConfig = {
   scoring: false,
   ioc: 'gbr',
   drawMinimapVisible: true,
+  officialsBoard: false,
 };
 
 let current: PreferencesConfig = { ...defaults };
