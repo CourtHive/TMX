@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 /**
  * `logOut` must not let the tournaments list render the departing user's tournaments.
@@ -74,12 +74,6 @@ vi.mock('services/context', () => ({
   context: { router: { navigate: (r: string) => navigate(r) }, matchUpFilters: {} },
 }));
 
-// TMX runs vitest in a node environment — there is no jsdom or happy-dom in devDependencies —
-// and logOut ends in `styleLogin(false)`, which reads `document.getElementById('login')`. A
-// null-returning stub is sufficient and honest: styleLogin early-returns when the element is
-// absent, which is also what it does on any page without the avatar mounted.
-(globalThis as any).document = { getElementById: () => null };
-
 import { logOut } from './loginState';
 
 /** A promise whose resolution this test controls — the wipe, held open on purpose. */
@@ -92,11 +86,34 @@ function deferred() {
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 describe('logOut redraws the tournaments list only after the IndexedDB wipe lands', () => {
+  // TMX runs vitest in a node environment — no jsdom or happy-dom in devDependencies — and
+  // logOut ends in `styleLogin(false)`, which reads `document.getElementById('login')`. A
+  // null-returning stub is enough: styleLogin early-returns when the element is absent, which
+  // is what it does on any page without the avatar mounted.
+  //
+  // `vi.stubGlobal` per test rather than a bare `globalThis.document = …` at module scope, so
+  // the fake is established and torn down with each test instead of persisting for the file's
+  // lifetime.
+  //
+  // Honesty about why: this file was reported as order-dependent — passing alone, failing in a
+  // full run with a count that varied between 2 and 3 (Mentat in-flight note, 2026-08-27) — and
+  // a leaking module-scope global was the obvious suspect. It is NOT the cause. Vitest isolates
+  // per file here (no `isolate: false`, no pool override), verified with a two-file probe: a
+  // global set at module scope in one spec reads back `undefined` in the next. So the old form
+  // could neither leak out nor be clobbered.
+  //
+  // The scoped stub is kept because it is the better shape regardless, not because it fixes
+  // that. The reported failure was NOT reproduced — seven consecutive full runs across two
+  // checkouts (1717 and 1727 collected). If it recurs, the failing output is the missing
+  // evidence; do not assume this comment settled it.
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('document', { getElementById: () => null });
     content = 'tournaments';
     resetLocalCalendar.mockResolvedValue(undefined);
   });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   it('does not rebuild the list while the wipe is still in flight', async () => {
     const wipe = deferred();
