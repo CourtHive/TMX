@@ -3,6 +3,8 @@
  * Automatically assigns seeding based on rating scales with confidence bands.
  */
 import { drawDefinitionConstants, scaleConstants, fixtures } from 'tods-competition-factory';
+import { hasScaleValueNumber } from 'functions/resolveScaleValueNumber';
+import { ratingSortValue } from './ratingSortValue';
 import { getConfidenceBand } from 'components/tables/common/sorters/ratingSorter';
 import { setParticipantScaleItems } from './setParticipantScaleItems';
 import { tournamentEngine } from 'services/factory/engine';
@@ -34,7 +36,15 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
   const reversed = rating ? ratingsParameters[rating.toUpperCase()].ascending : false;
   const accessor = ratingsParameters[rating.toUpperCase()]?.accessor || `${rating}Rating`;
   const getRating = (participant: any) => participant.ratings?.[rating] || { confidence: 0, [accessor]: Infinity };
-  const getRatingValue = (participant: any) => getRating(participant)?.[accessor] || 0;
+  // See `ratingSortValue` — extracted so the decision is unit-testable, and
+  // because `|| 0` here used to seed an unrated participant #1.
+  const getRatingValue = (participant: any) =>
+    ratingSortValue({
+      rawValue: getRating(participant)?.[accessor],
+      scaleName: rating?.toUpperCase(),
+      accessor,
+      reversed,
+    });
 
   const scaleSort = (a: any, b: any) =>
     (scaleType === 'ratings' && reversed
@@ -46,7 +56,10 @@ export function generateSeedValues({ event, group, table, field }: GenerateSeedV
   let ratedParticipants = 0;
   for (const participant of data) {
     const rating = getRating(participant);
-    if (rating[accessor]) ratedParticipants += 1;
+    // Truthiness here would also miss a participant rated exactly 0.
+    if (hasScaleValueNumber(rating[accessor], { scaleName: field.split('.')[1]?.toUpperCase(), accessor })) {
+      ratedParticipants += 1;
+    }
 
     const confidence = rating.confidence ?? 100;
 
