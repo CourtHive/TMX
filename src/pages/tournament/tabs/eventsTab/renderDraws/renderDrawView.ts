@@ -150,6 +150,10 @@ function applyInlineScoringWrappers(
       isFinalRound,
       moiety,
     });
+    // renderInlineMatchUp REFUSES a matchUp it cannot score correctly — no matchUpFormat from the
+    // factory, or sides that do not resolve to real participant names — and returns null rather than
+    // scoring it against an invented format. Skip it; the published card stays as it is.
+    if (!inlineEl) continue;
     existing.parentElement.replaceChild(inlineEl, existing);
   }
 }
