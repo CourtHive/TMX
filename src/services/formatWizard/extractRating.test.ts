@@ -55,3 +55,40 @@ describe('extractParticipantRating', () => {
     expect(extractParticipantRating(singlesRating('CUSTOM', { customRating: 3.2 }), 'custom')).toEqual(3.2);
   });
 });
+
+/**
+ * Added alongside the original suite, not in place of it.
+ *
+ * These shapes come from production records (ITA regional championships) and are
+ * the ones mocksEngine cannot produce: a rating stored as a STRING, an EMPTY
+ * STRING for a participant with no rating on that scale, and a legitimate ZERO.
+ * The previous `typeof value === 'number'` gate passed every case above and
+ * rejected every real rating — and the caller turns a rejected rating into an
+ * excluded participant, then bails with INSUFFICIENT_RATED_PARTICIPANTS, so the
+ * whole format wizard reported a fully rated field as unrated.
+ */
+describe('extractParticipantRating — production value shapes', () => {
+  it('reads a STRING rating, which is how ingested records store them', () => {
+    expect(extractParticipantRating(singlesRating('UTR', { utrRating: '12.48' }), 'utr')).toEqual(12.48);
+  });
+
+  it('gives string and number representations the same result', () => {
+    expect(extractParticipantRating(singlesRating('UTR', { utrRating: '9.20' }), 'utr')).toEqual(
+      extractParticipantRating(singlesRating('UTR', { utrRating: 9.2 }), 'utr'),
+    );
+  });
+
+  it('returns undefined for an empty-string rating rather than reading it as zero', () => {
+    expect(extractParticipantRating(singlesRating('UTR', { utrRating: '' }), 'utr')).toBeUndefined();
+    expect(extractParticipantRating(singlesRating('UTR', { utrRating: '   ' }), 'utr')).toBeUndefined();
+  });
+
+  it('preserves a legitimate zero instead of discarding it as absent', () => {
+    // PSA declares range [0, 3000] — a new player really is on zero points.
+    expect(extractParticipantRating(singlesRating('PSA', { psaPoints: 0 }), 'psa')).toEqual(0);
+  });
+
+  it('takes the rating rather than a sibling attribute on a multi-property scale', () => {
+    expect(extractParticipantRating(singlesRating('WTN', { confidence: 90, wtnRating: '4.13' }), 'wtn')).toEqual(4.13);
+  });
+});
