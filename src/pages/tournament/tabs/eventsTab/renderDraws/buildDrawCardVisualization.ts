@@ -6,6 +6,7 @@
  * back to no-viz behaviour in that case.
  */
 
+import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
 import { computeRatingDistributionStats, fixtures } from 'tods-competition-factory';
 import {
   aggregateCompetitiveness,
@@ -37,16 +38,6 @@ function buildCompetitivenessForMatchUps(matchUps: any[]): HTMLElement | null {
   return wrap;
 }
 
-function unwrapScaleValue(raw: any, accessor: string | undefined): any {
-  if (!raw || typeof raw !== 'object') return raw;
-  if (accessor && raw[accessor] !== undefined) return raw[accessor];
-  // Fallback when the ratingsParameters accessor isn't available — mocksEngine
-  // emits `{ wtnRating, confidence }` and similar; the first numeric field is
-  // always the rating itself.
-  const numeric = Object.values(raw).find((v) => typeof v === 'number');
-  return numeric === undefined ? raw : numeric;
-}
-
 function extractRatingFromParticipant(participant: any, scaleKey: string, accessor: string | undefined): number | null {
   const ratings = participant?.ratings;
   if (!ratings) return null;
@@ -54,9 +45,13 @@ function extractRatingFromParticipant(participant: any, scaleKey: string, access
     if (!Array.isArray(category)) continue;
     for (const item of category) {
       if (String(item?.scaleName ?? '').toUpperCase() !== scaleKey) continue;
-      const raw = unwrapScaleValue(item.scaleValue, accessor);
-      const n = Number(raw);
-      if (Number.isFinite(n)) return n;
+      // Was: unwrap the accessor, then `Number(raw)` with an isFinite guard.
+      // Real records carry '' for a participant with no rating on this scale,
+      // and `Number('')` is 0 — which is finite, so a rating of ZERO was pushed
+      // into the histogram. On UTR's [1,16] range that is a bar a full unit
+      // below the floor, and it shifts min, mean, stddev and the whole binning.
+      const resolved = resolveScaleValueNumber(item.scaleValue, { accessor, scaleName: scaleKey });
+      if (resolved !== undefined) return resolved;
     }
   }
   return null;
