@@ -80,8 +80,21 @@ export function scheduleLockFormatter(cell: any): HTMLSpanElement | string {
 // which left the page disagreeing with itself in the sharpest possible way: the
 // row was bucketed as called-today on the venue's clock while the cell beside it
 // printed the operator's.
+//
+// The empty-value guard below is load-bearing, and dropping it is the regression
+// #1364 shipped. `venueClock` DEFAULTS TO NOW when handed nothing, so a matchUp
+// that has never been called rendered the current venue clock — every uncalled
+// row showing the same time, advancing on each redraw, and a tournament that had
+// not started yet reading as though its whole draw had been called to court.
+// `if (!clock)` cannot catch that: "now" is a perfectly valid clock string. The
+// only place the absence can be detected is before the conversion.
+export function calledAtClock(value?: string | number | Date | null): string {
+  if (!value) return '';
+  return venueClock(value);
+}
+
 export function calledAtFormatter(cell: any): HTMLSpanElement | string {
-  const clock = venueClock(cell.getValue());
+  const clock = calledAtClock(cell.getValue());
   if (!clock) return '';
   const el = document.createElement('span');
   el.textContent = clock;
