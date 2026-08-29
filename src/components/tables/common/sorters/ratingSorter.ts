@@ -1,4 +1,5 @@
 export const confidenceBands = { high: [80, 100], medium: [60, 80], low: [40, 60] };
+import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
 import { fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
@@ -19,8 +20,18 @@ export const ratingSorter =
     if (ac < bc) return 1;
     if (bc < ac) return -1;
 
-    const ratingA = a?.[accessor] || 0;
-    const ratingB = b?.[accessor] || 0;
+    // Was `a?.[accessor] || 0`. That mapped an unrated participant's '' to 0 —
+    // which lands at opposite ends depending on the scale's direction, so
+    // "unrated" sorted to the top for UTR and the bottom for WTN — and it
+    // collapsed a legitimate 0 into the same bucket as no rating at all.
+    const ratingA = resolveScaleValueNumber(a?.[accessor], { accessor, scaleName: rating });
+    const ratingB = resolveScaleValueNumber(b?.[accessor], { accessor, scaleName: rating });
+
+    // Unrated sorts last regardless of scale direction, rather than being given
+    // a numeric sentinel whose meaning flips with the comparator's polarity.
+    if (ratingA === undefined && ratingB === undefined) return 0;
+    if (ratingA === undefined) return 1;
+    if (ratingB === undefined) return -1;
 
     return reversed ? ratingA - ratingB : ratingB - ratingA;
   };
