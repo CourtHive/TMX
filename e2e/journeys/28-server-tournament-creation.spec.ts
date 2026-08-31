@@ -1,3 +1,4 @@
+import { routeApiToCfs } from '../helpers/cfsProxy';
 import { test, expect } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
 
@@ -32,12 +33,35 @@ const PROVIDER_ABBR = 'TMX';
  *      past via executionQueue, THEN remove — and warn if it still wasn't removed
  *      so the failure is visible instead of silently leaking orphans.
  */
+/**
+ * Fetch the provider calendar as an OPERATOR — including unpublished tournaments.
+ *
+ * CFS 2.29.0 (`f972cdcd`) deliberately split these surfaces: `POST /provider/calendar`
+ * is now the PUBLIC, anonymous feed and returns **published tournaments only**, reduced
+ * to public fields. A tournament this journey has just created through the UI is not
+ * published, so the public feed correctly does not contain it.
+ *
+ * Both call sites below used the public route and broke silently in different ways: the
+ * assertion failed 60 lines from the cause with `expect(serverEntry).toBeTruthy()`
+ * receiving `undefined`, and — worse — the cleanup simply returned early, so every run
+ * since that release has ORPHANED its tournament on the server.
+ *
+ * `calendar/provider` is the operator feed for exactly this case. It is role-gated to
+ * ADMIN / SUPER_ADMIN; the seeded `e2e-client@courthive.com` carries `admin`.
+ */
+async function fetchOperatorCalendar(request: any, token: string): Promise<any[]> {
+  const result = await request.post(`${SERVER}/provider/calendar/provider`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { providerAbbr: PROVIDER_ABBR },
+  });
+  if (!result.ok()) return [];
+  const calendar = await result.json().catch(() => ({}));
+  return calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
+}
+
 async function cleanupServerTournament(request: any, token: string, tournamentName: string): Promise<void> {
   try {
-    const calendarResult = await request.post(`${SERVER}/provider/calendar`, { data: { providerAbbr: PROVIDER_ABBR } });
-    if (!calendarResult.ok()) return;
-    const calendar = await calendarResult.json();
-    const entries = calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
+    const entries = await fetchOperatorCalendar(request, token);
     const entry = entries.find((e: any) => (e.tournament?.tournamentName ?? e.tournamentName) === tournamentName);
     const tournamentId = entry?.tournamentId;
     if (!tournamentId) return; // never created (failed before save) or already removed
@@ -145,6 +169,10 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     // Record immediately so afterEach can clean up even if a later step fails.
     createdTournamentName = tournamentName;
 
+    // Under TEST_PROD the built app calls its own origin and `vite preview` has no
+    // API behind it, so the UI login below would 404 silently. See cfsProxy.
+    await routeApiToCfs(page);
+
     await page.goto('/');
     await waitForAppReady(page);
 
@@ -197,17 +225,16 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
 
     // ── Verify tournament exists on server ──
     // Check calendar for the tournament
-    const calendarResult = await request.post(`${SERVER}/provider/calendar`, {
-      data: { providerAbbr: PROVIDER_ABBR },
-    });
-    const calendar = await calendarResult.json();
-    const entries = calendar?.calendar?.tournaments ?? calendar?.calendar ?? [];
+    const entries = await fetchOperatorCalendar(request, authToken);
     const serverEntry = entries.find((e: any) => {
       const name = e.tournament?.tournamentName ?? e.tournamentName;
       return name === tournamentName;
     });
 
-    expect(serverEntry).toBeTruthy();
+    expect(
+      serverEntry,
+      `"${tournamentName}" is not on ${PROVIDER_ABBR}'s operator calendar — the UI create did not reach the server`,
+    ).toBeTruthy();
     const tournamentId = serverEntry.tournamentId;
     expect(tournamentId).toBeTruthy();
 
