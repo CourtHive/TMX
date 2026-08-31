@@ -1750,6 +1750,12 @@
       "rankingPoints": "Ranking Points",
       "previous": "← Previous",
       "next": "Next →"
+    },
+    "displaySettings": {
+      "google": "Google",
+      "showSchedule": "Show Schedule",
+      "detail": "Detail",
+      "title": "Edit display settings"
     }
   },
   "dashboard": {
@@ -2786,5 +2792,94 @@
     "addToAlternates": "Add to Alternates",
     "addEntries": "Add entries",
     "pairingOff": "Pairing: OFF"
+  },
+  "swissStandings": {
+    "losses": "Losses",
+    "ties": "Ties",
+    "pts": "Pts",
+    "buchholz": "Buchholz tiebreaker",
+    "sonnebornBerger": "Sonneborn-Berger tiebreaker",
+    "empty": "No standings available — generate and complete rounds first"
+  },
+  "policyCatalog": {
+    "empty": "The catalog is empty.",
+    "back": "← Back to My Policies",
+    "title": "Public Policy Catalog",
+    "intro": "Federation ranking-points policies anyone can browse. Open a policy and click “Save to my policies” to copy it into your local catalog where you can edit, attach, and apply it.",
+    "features": "Features",
+    "saveToMine": "Save to my policies",
+    "saved": "Saved — open My Policies to edit or apply.",
+    "openMine": "Open My Policies"
+  },
+  "avoidances": {
+    "selectRules": "Select rules",
+    "doublesPairs": "Doubles pairs",
+    "postalCodeDigits": "Postal code digits"
+  },
+  "schedulingProfile": {
+    "dragHint": "Drag rounds from the catalog to venue lanes. Click \"Apply Schedule\" to assign times.",
+    "clearedTitle": "Scheduling profile cleared",
+    "cleared": "Profile cleared.",
+    "savedTitle": "Scheduling profile saved",
+    "saved": "Profile saved.",
+    "noRounds": "No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.",
+    "failed": "Scheduling failed. Check console for details.",
+    "gridFailed": "Grid scheduling failed."
+  },
+  "topology": {
+    "clearCanvas": "Clear Canvas",
+    "drawFailed": "Draw generation failed",
+    "drawGenerated": "Draw generated successfully",
+    "templateName": "Template Name",
+    "templateSaved": "Template saved"
+  },
+  "participantFields": {
+    "identifiers": "Identifiers",
+    "person": "Person"
+  },
+  "draft": {
+    "notFound": "No draft found for this draw",
+    "configure": "Configure Draft",
+    "transparencyReport": "Draft Transparency Report",
+    "alreadyResolved": "Draft has already been resolved",
+    "resolved": "Draft resolved — participants placed",
+    "resolve": "Resolve Draft",
+    "preview": "Preview",
+    "resolveAndPlace": "Resolve & Place"
+  },
+  "eventRow": {
+    "noDraws": "No draws",
+    "renameSelected": "Rename selected",
+    "viewEntries": "View entries",
+    "avoidances": "Avoidances"
+  },
+  "gridView": {
+    "publishFailed": "Publish change failed",
+    "localFailed": "Schedule change failed locally",
+    "serverFailed": "Failed to save scheduling changes to server",
+    "discarded": "Scheduling changes discarded",
+    "noScheduled": "No scheduled matches to resolve on this day",
+    "noConflicts": "No player conflicts to resolve on this day",
+    "resolveConflicts": "Resolve player conflicts?",
+    "nowOccupied": "That court's Now slot is occupied"
+  },
+  "welcome": {
+    "events": "Create events, manage draws, and run tournaments from start to finish.",
+    "scheduling": "Assign courts, manage time slots, and handle schedule conflicts.",
+    "participants": "Register players, manage ratings, and seed draws automatically.",
+    "scoring": "Score matches in real time with automatic draw progression.",
+    "getStarted": "Get started by generating example tournaments to explore TMX features, or create your own.",
+    "generateDemo": "Generate Demo Tournaments",
+    "createNew": "Create New Tournament",
+    "back": "← Back to Tournaments"
+  },
+  "courtCards": {
+    "noScheduledOnCourt": "No scheduled matches on this court",
+    "matchUpNotFound": "MatchUp not found",
+    "noDataForMatchUp": "No court card data for this matchUp",
+    "noUpcoming": "No upcoming matches with both participants assigned on this court",
+    "noData": "No court card data",
+    "noneOnCourts": "No matches scheduled on courts",
+    "noneInRound": "No matches in this round are assigned to courts"
   }
 }

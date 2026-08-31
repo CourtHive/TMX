@@ -1,3 +1,4 @@
+import { t } from 'i18n';
 const STYLE_ID = 'welcome-view-styles';
 
 function ensureStyles(): void {
@@ -121,22 +122,22 @@ const featurePanels: PanelConfig[] = [
   {
     icon: 'fa-trophy',
     heading: 'Tournament Management',
-    text: 'Create events, manage draws, and run tournaments from start to finish.',
+    text: t('welcome.events'),
   },
   {
     icon: 'fa-calendar',
     heading: 'Smart Scheduling',
-    text: 'Assign courts, manage time slots, and handle schedule conflicts.',
+    text: t('welcome.scheduling'),
   },
   {
     icon: 'fa-users',
     heading: 'Participant Tracking',
-    text: 'Register players, manage ratings, and seed draws automatically.',
+    text: t('welcome.participants'),
   },
   {
     icon: 'fa-table-tennis',
     heading: 'Live Scoring',
-    text: 'Score matches in real time with automatic draw progression.',
+    text: t('welcome.scoring'),
   },
 ];
 
@@ -174,7 +175,7 @@ export function renderWelcomeView(
     {
       icon: 'fa-rocket',
       heading: 'Welcome to TMX',
-      text: 'Get started by generating example tournaments to explore TMX features, or create your own.',
+      text: t('welcome.getStarted'),
     },
     'welcome-panel-hero welcome-hero',
   );
@@ -184,13 +185,13 @@ export function renderWelcomeView(
 
   const generateBtn = document.createElement('button');
   generateBtn.className = 'welcome-generate-btn';
-  generateBtn.textContent = 'Generate Demo Tournaments';
+  generateBtn.textContent = t('welcome.generateDemo');
   generateBtn.addEventListener('click', callbacks.onGenerate);
   btnGroup.appendChild(generateBtn);
 
   const createBtn = document.createElement('button');
   createBtn.className = 'welcome-create-btn';
-  createBtn.textContent = 'Create New Tournament';
+  createBtn.textContent = t('welcome.createNew');
   createBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     callbacks.onCreate();
@@ -202,7 +203,7 @@ export function renderWelcomeView(
   if (callbacks.onBack) {
     const backLink = document.createElement('span');
     backLink.className = 'welcome-back-link';
-    backLink.textContent = '\u2190 Back to Tournaments';
+    backLink.textContent = t('welcome.back');
     backLink.addEventListener('click', callbacks.onBack);
     hero.appendChild(backLink);
   }

@@ -613,7 +613,7 @@ export function renderGridView(
           methods,
           callback: (result: any) => {
             if (result?.error) {
-              scheduleToast({ message: 'Publish change failed', intent: INTENT_DANGER });
+              scheduleToast({ message: t('gridView.publishFailed'), intent: INTENT_DANGER });
               return;
             }
             actionBar.setDatePublished(willPublish);
@@ -1593,7 +1593,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   const result = competitionEngine.executionQueue(directives, true);
   if (result?.error) {
     console.error('[schedule2] local execution error', result);
-    scheduleToast({ message: 'Schedule change failed locally', intent: INTENT_DANGER });
+    scheduleToast({ message: t('gridView.localFailed'), intent: INTENT_DANGER });
     return;
   }
 
@@ -1641,7 +1641,7 @@ async function savePending(): Promise<void> {
         scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: INTENT_SUCCESS });
       } else {
         console.error('[schedule2] bulk save error', result);
-        scheduleToast({ message: 'Failed to save scheduling changes to server', intent: INTENT_DANGER });
+        scheduleToast({ message: t('gridView.serverFailed'), intent: INTENT_DANGER });
       }
       updateActionBar();
     },
@@ -1674,7 +1674,7 @@ async function discardPending(): Promise<void> {
   }
 
   pendingMethods = [];
-  scheduleToast({ message: 'Scheduling changes discarded', intent: INTENT_WARNING });
+  scheduleToast({ message: t('gridView.discarded'), intent: INTENT_WARNING });
   updateActionBar();
 
   // Re-render the grid view to reflect restored state
@@ -2761,7 +2761,7 @@ export function resolveColumnConflicts(): void {
     (m: any) => m.schedule?.courtId && m.schedule?.scheduledDate === currentDate,
   );
   if (!scheduledMatchUps.length) {
-    scheduleToast({ message: 'No scheduled matches to resolve on this day', intent: INTENT_WARNING });
+    scheduleToast({ message: t('gridView.noScheduled'), intent: INTENT_WARNING });
     return;
   }
 
@@ -2775,12 +2775,12 @@ export function resolveColumnConflicts(): void {
         (issue.issueType === CONFLICT_PARTICIPANTS || issue.issueType === CONFLICT_POTENTIAL_PARTICIPANTS),
     );
   if (!participantConflicts.length) {
-    scheduleToast({ message: 'No player conflicts to resolve on this day', intent: INTENT_SUCCESS });
+    scheduleToast({ message: t('gridView.noConflicts'), intent: INTENT_SUCCESS });
     return;
   }
 
   confirmModal({
-    title: 'Resolve player conflicts?',
+    title: t('gridView.resolveConflicts'),
     query:
       `Space matches down to clear player conflicts on ${currentDate}. ` +
       'Courts and start times stay the same — only the row order changes. Continue?',
@@ -2918,7 +2918,7 @@ function handleActiveStripDrop(
         occupantMatchUpId: cellEl.querySelector(`[${DATA_MATCHUP_ID}]`)?.getAttribute(DATA_MATCHUP_ID),
       });
       if (reject) {
-        scheduleToast({ message: "That court's Now slot is occupied", intent: INTENT_WARNING });
+        scheduleToast({ message: t('gridView.nowOccupied'), intent: INTENT_WARNING });
         return;
       }
     }
