@@ -3,6 +3,7 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
+import { markReadyMatchUpsInProgress } from './markReadyMatchUpsInProgress';
 import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
 import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
@@ -42,6 +43,7 @@ import {
   buildStructureMinimap,
   compositions,
   controlBar,
+  isScorable,
   renderContainer,
   renderInlineMatchUp,
   renderStructure,
@@ -109,16 +111,6 @@ function renderEmptyStructure(
   }
 }
 
-function markReadyMatchUpsInProgress(displayMatchUps: any[]): void {
-  for (const m of displayMatchUps) {
-    const hasBothParticipants = m?.sides?.length === 2 && m.sides[0]?.participant && m.sides[1]?.participant;
-    if (!hasBothParticipants) continue;
-    if (m?.readyToScore && !m?.winningSide && (!m?.matchUpStatus || m.matchUpStatus === 'TO_BE_PLAYED')) {
-      m.matchUpStatus = 'IN_PROGRESS';
-    }
-  }
-}
-
 function applyInlineScoringWrappers(
   structureContent: HTMLElement,
   displayMatchUps: any[],
@@ -132,7 +124,9 @@ function applyInlineScoringWrappers(
     const isInProgress = m?.matchUpStatus === 'IN_PROGRESS' && !m?.winningSide;
     const isIrregularEnding = irregularStatuses.has(m?.matchUpStatus);
     if (!isInProgress && !isIrregularEnding) continue;
-    if (!m?.sides?.length || !m.sides[0]?.participant || !m.sides[1]?.participant) continue;
+    // renderInlineMatchUp refuses these anyway and returns null; checking here keeps the two in step
+    // and skips the work rather than relying on the null path for correctness.
+    if (!isScorable(m)) continue;
 
     const existing = structureContent.querySelector(`#${CSS.escape(m.matchUpId)}`);
     if (!existing?.parentElement) continue;
