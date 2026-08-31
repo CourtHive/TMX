@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
+import { routeApiToCfs } from '../helpers/cfsProxy';
 
 /**
  * Shared real-login flow for the auth cluster. TMX's authenticated boot is
@@ -10,8 +11,23 @@ import { waitForAppReady } from '../helpers/dev-bridge';
 export class AuthFlow {
   constructor(private page: Page) {}
 
-  /** Boot the app and log in through the modal. Leaves the app on /tournaments. */
+  /**
+   * Boot the app and log in through the modal. Leaves the app on /tournaments.
+   *
+   * Routes the page's API calls to a live CFS first. Under `TEST_PROD=1` the build takes
+   * `.env.production`, where `SERVER` is empty, so every REST call resolves to the preview
+   * origin — which serves the client and nothing else. The symptom is not an HTTP error the
+   * spec can see: login silently fails, no token is stored, and the assertion times out on a
+   * locator, pointing at the app instead of at the harness. That cost journeys 71, 72, 73 and
+   * 76 a `TEST_PROD` failure each; 103 already opted in per-spec and passed throughout.
+   *
+   * It belongs HERE rather than in each spec because every caller of this method is by
+   * definition a real-login journey that needs a reachable CFS — and unlike a `preview.proxy`
+   * in vite.config (implemented and reverted; see cfsProxy's header) it changes nothing for
+   * the ~110 journeys that do not log in.
+   */
   async login(email: string, password: string): Promise<void> {
+    await routeApiToCfs(this.page);
     await this.page.goto('/');
     await waitForAppReady(this.page);
     await this.page.locator('#login').click();

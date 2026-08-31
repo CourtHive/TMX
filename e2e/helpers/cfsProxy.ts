@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { SERVER } from './role-fixtures';
 
 /** API path prefixes CFS serves and TMX calls. */
-const API_PREFIXES = ['auth', 'provider', 'factory', 'registrations', 'admin', 'declarations'];
+const API_PREFIXES = ['auth', 'provider', 'factory', 'participation', 'registrations', 'admin', 'declarations'];
 const API_PATTERN = new RegExp(`/(${API_PREFIXES.join('|')})(/|$)`);
 
 /**

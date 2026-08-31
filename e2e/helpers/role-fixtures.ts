@@ -18,17 +18,32 @@ export const ROLE_PASSWORD = process.env.E2E_ROLE_PASSWORD ?? 'e2e-role-password
 
 const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-/** Returns a super-admin JWT, or null if the bootstrap admin can't authenticate. */
+/**
+ * Returns a super-admin JWT, or null if the bootstrap admin can't authenticate.
+ *
+ * Warns with the STATUS on failure. Every caller turns a null into `test.skip(...)` worded as
+ * "seed unavailable", which reads as "this machine has no bootstrap account" — and that is usually
+ * not the cause. `/auth/login` is throttled at **10 requests per 60s**, and the real-login journeys
+ * spend roughly two logins each (one here, one through the UI), so a few of them back to back —
+ * or one run with retries — reliably returns **429** and skips whole files. A silent skip on a
+ * rate limit is a false all-clear: the suite reports green having tested nothing.
+ */
 export async function signInSuperAdmin(request: APIRequestContext): Promise<string | null> {
   try {
     const res = await request.post(`${SERVER}/auth/login`, {
       data: { email: SUPERADMIN_EMAIL, password: SUPERADMIN_PASSWORD },
       timeout: 5000,
     });
-    if (!res.ok()) return null;
+    if (!res.ok()) {
+      const hint = res.status() === 429 ? ' — login throttle (10/60s); re-run after a pause' : '';
+      console.warn(`signInSuperAdmin: POST ${SERVER}/auth/login → ${res.status()}${hint}`);
+      return null;
+    }
     const body = await res.json();
+    if (!body?.token) console.warn(`signInSuperAdmin: 200 with no token (keys: ${Object.keys(body ?? {})})`);
     return body?.token ?? null;
-  } catch {
+  } catch (err: any) {
+    console.warn(`signInSuperAdmin: ${SERVER} unreachable — ${err?.message ?? err}`);
     return null;
   }
 }

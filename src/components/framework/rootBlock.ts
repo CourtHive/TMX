@@ -17,6 +17,7 @@ import {
   TOURNAMENTS_CONTROL,
   TMX_CONTENT,
   TMX_TOURNAMENTS,
+  TMX_PARTICIPATION,
   TMX_TOPOLOGY,
   TMX_FORMAT_WIZARD,
   TMX_TEMPLATES,
@@ -166,6 +167,15 @@ export function rootBlock(): HTMLElement {
 
   main.appendChild(tournaments);
 
+  // A subject's schedule reads from the participation index, not from any calendar — see
+  // pages/participation/renderProviderSchedulePage.ts. Its own home-context page for that reason.
+  const participation = document.createElement('div');
+  participation.className = flexColFlexGrow;
+  participation.style.display = NONE;
+  participation.id = TMX_PARTICIPATION;
+
+  main.appendChild(participation);
+
   const topology = document.createElement('div');
   topology.className = flexColFlexGrow;
   topology.style.display = NONE;
@@ -248,6 +258,7 @@ function newBlock(): HTMLDivElement {
     </div>
     <div id='homenav' class="navbar-item" style="display: none; flex-direction: row;">
       <i id='h-tournaments' class="home-nav-icon fa-solid fa-list"></i>
+      <i id='h-schedule' class="home-nav-icon fa-solid fa-calendar-days" style="display: none;"></i>
 
       <i id='h-templates' class="home-nav-icon fa-solid fa-sitemap"></i>
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>

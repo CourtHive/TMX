@@ -14,17 +14,19 @@ import {
   TMX_POLICIES,
   TMX_SETTINGS,
   TMX_ADMIN,
+  TMX_PARTICIPATION,
 } from 'constants/tmxConstants';
 
 let content: string | undefined;
 
-const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
+const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_PARTICIPATION, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
 const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY, TMX_FORMAT_WIZARD];
 
 function selectDisplay(which: string): void {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
+  setState(TMX_PARTICIPATION, which);
   setState(TMX_TOPOLOGY, which);
   setState(TMX_FORMAT_WIZARD, which);
   setState(TMX_ADMIN, which);
@@ -95,6 +97,23 @@ export const showTopology = (): void => {
 };
 export const showFormatWizard = (): void => {
   content = TMX_FORMAT_WIZARD;
+  selectDisplay(content);
+};
+/**
+ * A subject's schedule — a different page from the tournaments CALENDAR, and deliberately so.
+ *
+ * Takes its title rather than hardcoding one: the surrounding functions predate i18n in this file
+ * and still carry English literals, and reaching for `t()` here would pull the translation layer
+ * into a module every screen transition loads. The caller already has it.
+ */
+export const showProviderSchedule = (title: string): void => {
+  const tournamentElement = document.getElementById('pageTitle');
+  if (tournamentElement) {
+    tournamentElement.innerHTML = `<div class='tmx-title'></div>`;
+    const titleElement = tournamentElement.firstElementChild;
+    if (titleElement) titleElement.textContent = title;
+  }
+  content = TMX_PARTICIPATION;
   selectDisplay(content);
 };
 export const showTMXtemplates = (): void => {
