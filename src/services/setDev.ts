@@ -9,7 +9,6 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
-import { buildFromSources } from '../dev/cfsToTournamentRecord.mjs';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -244,7 +243,7 @@ function build(sources: any): any {
     console.warn('[dev.build] no sources passed');
     return undefined;
   }
-  const { record, classification, unknownCount } = buildFromSources(sources);
+  const { record, classification, unknownCount } = factory.tools.buildFromSources(sources);
   console.log(
     `[dev.build] classified ${classification.length} source(s):`,
     classification.map((c: any) => `${c.index}:${c.kind}`).join(', '),
