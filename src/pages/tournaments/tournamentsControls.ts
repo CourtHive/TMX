@@ -46,7 +46,7 @@ interface SortOption {
   label: string;
 }
 
-const SORT_OPTIONS: SortOption[] = [
+const sortOptions = (): SortOption[] => [
   { field: 'startDate', dir: 'desc', label: t('tournamentsControls.sortDateNewest') },
   { field: 'startDate', dir: 'asc', label: t('tournamentsControls.sortDateOldest') },
   { field: 'tournamentName', dir: 'asc', label: t('tournamentsControls.sortNameAsc') },
@@ -67,10 +67,10 @@ function makeTableShim(reloadAll: () => void, ids: string[]): any {
 function buildSortItem(view: TournamentsView): any {
   const current = view.getState();
   const activeLabel =
-    SORT_OPTIONS.find((o) => o.field === current.sortField && o.dir === current.sortDir)?.label ?? 'Sort';
+    sortOptions().find((o) => o.field === current.sortField && o.dir === current.sortDir)?.label ?? 'Sort';
   return {
     label: activeLabel,
-    options: SORT_OPTIONS.map((opt) => ({
+    options: sortOptions().map((opt) => ({
       label: opt.label,
       onClick: () => view.setSort(opt.field, opt.dir),
     })),

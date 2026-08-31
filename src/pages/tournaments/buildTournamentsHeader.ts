@@ -13,14 +13,15 @@ import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { TournamentsStatusFilter } from './tournamentsViewState';
 
 import './tournamentsHeader.css';
+import { t } from 'i18n';
 
 interface StatusChip {
   value: TournamentsStatusFilter;
   label: string;
 }
 
-const STATUS_CHIPS: StatusChip[] = [
-  { value: 'all', label: 'All' },
+const statusChips = (): StatusChip[] => [
+  { value: 'all', label: t('tournamentsControls.all') },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'live', label: 'Live' },
   { value: 'completed', label: 'Completed' },
@@ -52,7 +53,7 @@ function buildChips(view: TournamentsView): HTMLElement {
   const ul = document.createElement('ul');
   wrap.appendChild(ul);
 
-  for (const chip of STATUS_CHIPS) {
+  for (const chip of statusChips()) {
     const li = document.createElement('li');
     if (chip.value === current) li.classList.add('is-active');
 

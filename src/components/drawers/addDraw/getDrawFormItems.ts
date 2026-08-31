@@ -306,12 +306,12 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     },
     {
       options: [
-        { label: 'Final', value: 'F', selected: true },
-        { label: 'Semifinal', value: 'SF' },
-        { label: 'Quarterfinal', value: 'QF' },
-        { label: 'Round of 16', value: 'R16' },
+        { label: t('round_names.F'), value: 'F', selected: true },
+        { label: t('round_names.SF'), value: 'SF' },
+        { label: t('round_names.QF'), value: 'QF' },
+        { label: t('addDrawForm.roundOf16'), value: 'R16' },
       ],
-      label: 'Consolation feed depth',
+      label: t('addDrawForm.consolationFeedDepth'),
       field: FIC_DEPTH,
       visible: false,
     },

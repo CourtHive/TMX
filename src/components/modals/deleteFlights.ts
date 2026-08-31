@@ -10,6 +10,7 @@ import { isDev } from 'functions/isDev';
 
 import { DELETE_FLIGHT_AND_DRAW } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type DeleteFlightsParams = {
   eventData?: any;
@@ -41,11 +42,11 @@ export function deleteFlights(params: DeleteFlightsParams): void {
   };
   const items = [
     {
-      text: `Please provide a reason for draw deletion.`,
+      text: t('drawActions.deleteReason'),
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
-      placeholder: 'Explanation',
+      placeholder: t('ui.explanation'),
       field: 'drawDeletionReason',
       value: devMode ? 'this is only a test' : undefined,
       validator: validators.wordValidator(5),
@@ -54,7 +55,7 @@ export function deleteFlights(params: DeleteFlightsParams): void {
       focus: true,
     },
     {
-      text: `This action cannot be undone!`,
+      text: t('common.cannotBeUndone'),
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
   ];
@@ -75,9 +76,9 @@ export function deleteFlights(params: DeleteFlightsParams): void {
     title: modalTitle,
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
+      { label: t('common.cancel'), intent: NONE, close: true },
       {
-        label: 'Delete',
+        label: t('delete'),
         id: 'deleteDraw',
         disabled: !devMode,
         intent: 'is-danger',

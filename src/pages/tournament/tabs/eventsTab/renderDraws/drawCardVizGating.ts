@@ -11,6 +11,7 @@
  */
 
 import type { DrawCardDisplayMode } from './drawCardDisplayMode';
+import { t } from 'i18n';
 
 export const HARD_CAP = 15;
 export const SUNBURST_CAP = 6;
@@ -80,16 +81,16 @@ export function buildDisplayModeOptions({
   availability: VizDataAvailability;
 }): DisplayModeOption[] {
   const options: DisplayModeOption[] = [
-    { value: 'none', label: 'None' },
+    { value: 'none', label: t('none') },
     {
       value: 'histogram',
-      label: 'Ratings histogram',
+      label: t('roundOptions.ratingsHistogram'),
       disabled: !availability.hasRatings,
       reason: availability.hasRatings ? undefined : 'no ratings',
     },
     {
       value: 'competitiveness',
-      label: 'Competitiveness',
+      label: t('roundOptions.competitiveness'),
       disabled: !availability.hasCompetitiveness,
       reason: availability.hasCompetitiveness ? undefined : 'no completed matches',
     },
@@ -97,10 +98,10 @@ export function buildDisplayModeOptions({
   // Burst variants only available when the draw count is below the SUNBURST_CAP.
   if (drawCount < SUNBURST_CAP) {
     options.push(
-      { value: 'sunburst', label: 'Burst (progression)' },
+      { value: 'sunburst', label: t('roundOptions.burstProgression') },
       {
         value: SUNBURST_COMPETITIVE,
-        label: 'Burst (competitive)',
+        label: t('roundOptions.burstCompetitive'),
         disabled: !availability.hasCompetitiveness,
         reason: availability.hasCompetitiveness ? undefined : 'no completed matches',
       },

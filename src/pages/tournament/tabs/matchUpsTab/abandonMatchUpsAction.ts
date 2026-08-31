@@ -15,6 +15,7 @@ import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 // Calendar-day comparison via ISO `YYYY-MM-DD` string compare. Avoids the
 // `new Date("YYYY-MM-DD")` UTC-midnight off-by-one that renders the wrong day
@@ -40,8 +41,7 @@ function buildAbandonContent(): { element: HTMLElement; getRequireNoScore: () =>
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;font-size:0.875rem;';
 
   const summary = document.createElement('div');
-  summary.textContent =
-    'Mark every remaining ready-to-score match as Abandoned. Completed matches and byes are unaffected. Intended for tournaments that will not be completed.';
+  summary.textContent = t('matchUpsActions.abandonExplain');
   wrap.appendChild(summary);
 
   const label = document.createElement('label');
@@ -49,7 +49,7 @@ function buildAbandonContent(): { element: HTMLElement; getRequireNoScore: () =>
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   const text = document.createElement('span');
-  text.textContent = 'Also abandon matches with partial scores';
+  text.textContent = t('matchUpsActions.abandonPartial');
   label.appendChild(checkbox);
   label.appendChild(text);
   wrap.appendChild(label);
@@ -75,7 +75,7 @@ function runAbandon(requireNoScore: boolean, onDone?: () => void): void {
 function showAbandonModal(onDone?: () => void): void {
   const { element, getRequireNoScore } = buildAbandonContent();
   confirmModal({
-    title: 'Abandon remaining matches',
+    title: t('matchUpsActions.abandonRemaining'),
     query: element,
     okIntent: 'is-danger',
     okAction: () => runAbandon(getRequireNoScore(), onDone),
@@ -91,7 +91,7 @@ export function getActionsItem(replaceTableData: () => void): any | null {
   if (onOrPastLastDate()) {
     options.push({
       onClick: () => showAbandonModal(replaceTableData),
-      label: 'Abandon remaining matches',
+      label: t('matchUpsActions.abandonRemaining'),
       intent: 'is-danger',
       close: true,
     });
@@ -102,5 +102,5 @@ export function getActionsItem(replaceTableData: () => void): any | null {
   if (republish) options.push(republish);
 
   if (!options.length) return null;
-  return { options, id: 'matchUpsActions', location: RIGHT, label: 'Actions', align: RIGHT };
+  return { options, id: 'matchUpsActions', location: RIGHT, label: t('actions.actions'), align: RIGHT };
 }

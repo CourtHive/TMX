@@ -271,7 +271,7 @@ function generateFromTopologyTemplate({
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
-      tmxToast({ message: 'Draw generation failed', intent: 'is-danger' });
+      tmxToast({ message: t('topology.drawFailed'), intent: 'is-danger' });
       return;
     }
 
@@ -323,13 +323,13 @@ function generateFromTopologyTemplate({
       mutationRequest({
         methods,
         callback: () => {
-          tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+          tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
           navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
           if (callback) callback(result);
         },
       });
     } else {
-      tmxToast({ message: 'Draw generated successfully', intent: 'is-success' });
+      tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
       navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
       if (callback) callback(result);
     }

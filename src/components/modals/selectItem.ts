@@ -5,6 +5,7 @@ import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 
 import { LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 /*
  * assumes that all options have their own .onClick method
@@ -13,7 +14,7 @@ export function selectItem(params) {
   const { title, placeholder, options, selectionLimit } = params;
   const controlId = 'selectionControl';
   const anchorId = 'selectionTable';
-  const buttons = [{ label: 'Cancel', intent: 'none', close: true }];
+  const buttons = [{ label: t('common.cancel'), intent: 'none', close: true }];
   const onClose = () => {
     const table = context.tables['selectionTable'];
     table?.destroy();
@@ -51,7 +52,7 @@ export function selectItem(params) {
       onChange: (e) => setSearchFilter(e.target.value),
       onKeyUp: (e) => setSearchFilter(e.target.value),
       clearSearch: () => setSearchFilter(''),
-      placeholder: 'Search',
+      placeholder: t('settings.search'),
       location: LEFT,
       search: true,
     },

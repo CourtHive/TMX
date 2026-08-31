@@ -11,6 +11,7 @@ import { isDev } from 'functions/isDev';
 // constants
 import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
   const eventId = eventData.eventInfo.eventId;
@@ -38,11 +39,11 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
   };
   const items = [
     {
-      text: `Please provide a reason for resetting the draw.`,
+      text: t('drawActions.resetReason'),
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
-      placeholder: 'Explanation',
+      placeholder: t('ui.explanation'),
       field: 'drawResetReason',
       value: devMode ? 'this is only a test' : undefined,
       validator: validators.wordValidator(5),
@@ -51,13 +52,13 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
       focus: true,
     },
     {
-      label: 'Remove all position assignments',
+      label: t('drawActions.removeAssignments'),
       field: 'removeAssignments',
       id: 'removeAssignments',
       checkbox: true,
     },
     {
-      text: `This action cannot be undone!`,
+      text: t('common.cannotBeUndone'),
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
   ];
@@ -78,8 +79,15 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
     title: modalTitle,
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Reset', id: 'resetDraw', disabled: !devMode, intent: 'is-warning', close: true, onClick: resetAction },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      {
+        label: t('ui.reset'),
+        id: 'resetDraw',
+        disabled: !devMode,
+        intent: 'is-warning',
+        close: true,
+        onClick: resetAction,
+      },
     ],
   });
 }

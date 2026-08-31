@@ -33,7 +33,7 @@ export function openModal(params: OpenModal) {
 }
 
 export function informModal({ message, title, okAction }) {
-  const buttons = [{ label: 'Ok', onClick: okAction, close: true }];
+  const buttons = [{ label: t('ui.ok'), onClick: okAction, close: true }];
   return cModal.open({ title, content: message, buttons });
 }
 
@@ -51,14 +51,14 @@ export function confirmModal({ title, query, okAction, cancelAction, okIntent }:
   const buttons = [
     {
       onClick: cancelAction,
-      label: 'Cancel',
+      label: t('common.cancel'),
       intent: NONE,
       close: true,
     },
     okAction && {
       intent: okIntent || 'is-warning',
       onClick: okAction,
-      label: 'Ok',
+      label: t('ui.ok'),
       close: true,
     },
   ].filter(Boolean);

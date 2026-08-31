@@ -68,7 +68,7 @@ export const participantActions =
             editGroupingParticipant({
               participant,
               refresh: replaceTableData,
-              title: 'Rename team',
+              title: t('pages.participants.rowActions.renameTeam'),
             });
           }
         },
@@ -99,7 +99,7 @@ export const participantActions =
             editGroupingParticipant({
               participantType: 'GROUP',
               refresh: replaceTableData,
-              title: 'Edit group',
+              title: t('pages.participants.rowActions.editGroup'),
               participant,
             });
           }

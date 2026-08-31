@@ -35,7 +35,7 @@ import 'styles/importParticipants.css';
 import type { ColumnMapping } from 'services/import/autoMapColumns';
 import {
   RATING_SYNONYMS,
-  TARGET_FIELD_GROUPS,
+  targetFieldGroups,
   TargetField,
   TargetFieldKind,
 } from 'services/import/participantFieldModel';
@@ -267,7 +267,7 @@ function buildTargetSelect(state: State, colIdx: number, refresh: () => void): H
   const currentKind: TargetFieldKind = current?.kind ?? 'ignore';
 
   const noEvents = state.events.length === 0;
-  for (const group of TARGET_FIELD_GROUPS) {
+  for (const group of targetFieldGroups()) {
     const optgroup = document.createElement('optgroup');
     optgroup.label = group.label;
     for (const kind of group.fields) {

@@ -8,7 +8,7 @@ import { t } from 'i18n';
  *   "Date of Birth").
  * `RATING_SYNONYMS` is a separate table mapping header text to a rating scale name
  *   so the auto-mapper can pre-populate `{ kind: 'rating', ratingScaleName }`.
- * `TARGET_FIELD_GROUPS` is the source of truth for the grouped dropdown rendered in
+ * `targetFieldGroups()` is the source of truth for the grouped dropdown rendered in
  *   the import view (Milestone 3).
  *
  * The kinds and their semantics deliberately mirror the TODS Person / Participant /
@@ -141,7 +141,7 @@ export const RATING_SYNONYMS: Array<{ scaleName: string; synonyms: string[] }> =
  *  most important mapping decision — it determines whether rows for the same
  *  underlying person collapse together (and how reliably). Person attributes
  *  follow. */
-export const TARGET_FIELD_GROUPS: Array<{ label: string; fields: TargetFieldKind[] }> = [
+export const targetFieldGroups = () => [
   { label: t('participantFields.identifiers'), fields: ['participantId', 'tennisId', 'ustaId', 'itfId', 'utrProfile'] },
   {
     label: t('participantFields.person'),

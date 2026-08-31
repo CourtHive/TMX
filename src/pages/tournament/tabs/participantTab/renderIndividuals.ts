@@ -90,10 +90,10 @@ export function renderIndividuals({ view }: { view: string }): void {
   const buildFilteredPlaceholder = () => {
     const el = document.createElement('div');
     el.style.textAlign = 'center';
-    el.textContent = 'No matches — adjust or clear filters';
+    el.textContent = t('groupings.noMatchesFilters');
     const btn = document.createElement('button');
     btn.className = 'clear-filters-btn';
-    btn.textContent = 'Clear Filters';
+    btn.textContent = t('ui.clearFilters');
     btn.onclick = () => {
       clearAllFilters();
       renderIndividuals({ view });

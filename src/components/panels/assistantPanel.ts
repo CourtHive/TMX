@@ -6,6 +6,7 @@
 import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
+import { t } from 'i18n';
 
 const PANEL_ID = 'assistantPanel';
 const MAX_HISTORY = 50;
@@ -47,7 +48,7 @@ function buildAssistantLabel(): HTMLElement {
   const label = document.createElement('div');
   label.style.cssText =
     'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-bottom: 2px; font-weight: 600;';
-  label.textContent = 'TMX Assistant';
+  label.textContent = t('assistant.title');
   return label;
 }
 
@@ -315,7 +316,7 @@ export function openAssistantPanel(): void {
   titleRow.style.cssText = 'display: flex; align-items: center; gap: 8px; user-select: none;';
   titleRow.innerHTML = '<i class="fa-solid fa-robot"></i>';
   const titleText = document.createElement('span');
-  titleText.textContent = 'Ask TMX';
+  titleText.textContent = t('assistant.ask');
   titleText.style.fontWeight = '600';
   titleRow.appendChild(titleText);
 

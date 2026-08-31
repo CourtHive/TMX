@@ -9,6 +9,7 @@ import {
   DrawAudit,
 } from './structureAuditData';
 import { cModal } from 'courthive-components';
+import { t } from 'i18n';
 
 // Admin/director-facing structure-integrity audit. Runs the factory's read-only
 // getStructureInconsistencies check on every draw of the loaded tournament (via the DOM-free
@@ -245,7 +246,7 @@ export function openStructureAuditModal(): void {
   cModal.open({
     title: 'Structure Integrity Audit',
     content: buildAuditContent(),
-    buttons: [{ label: 'Close', close: true }],
+    buttons: [{ label: t('common.close'), close: true }],
     config: { maxWidth: 760 },
   });
 }

@@ -7,6 +7,7 @@ import { competitionEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const courtActions =
   () =>
@@ -46,7 +47,7 @@ export const courtActions =
     const items = [
       {
         onClick: () => editCourt({ court: courtRow, callback: doneEditing }),
-        text: 'Edit',
+        text: t('tournaments.edit'),
       },
     ];
 

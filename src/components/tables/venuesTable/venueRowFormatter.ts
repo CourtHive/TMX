@@ -157,7 +157,7 @@ export const venueRowFormatter =
         'indoorOutdoor',
       ]),
       data: row.getData().courts,
-      placeholder: 'No courts',
+      placeholder: t('ui.noCourts'),
       layout: 'fitColumns',
       index: 'courtId',
       maxHeight: 400,
@@ -176,7 +176,7 @@ export const venueRowFormatter =
 
     const items = [
       {
-        label: 'Delete selected',
+        label: t('pages.events.deleteSelected'),
         onClick: deleteCourts,
         intent: 'is-danger',
         stateChange: true,

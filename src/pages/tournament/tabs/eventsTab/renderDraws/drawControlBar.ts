@@ -18,6 +18,7 @@ import { controlBar } from 'courthive-components';
 // constants
 import { DRAW_CONTROL, LEFT, NONE, RIGHT } from 'constants/tmxConstants';
 import { SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 const { MAIN, QUALIFYING, SWISS } = drawDefinitionConstants;
 const AUTO_POSITION_PLAYOFF = 'autoPositionPlayoff';
@@ -108,7 +109,7 @@ export function drawControlBar({
       visible: !hasAssignedPositions,
       onClick: playoffPositioning,
       id: AUTO_POSITION_PLAYOFF,
-      label: 'Auto position',
+      label: t('drawActions.autoPosition'),
       location: RIGHT,
       style: { marginRight: '0.5em' },
     });

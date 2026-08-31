@@ -13,6 +13,7 @@ import { getEventColumns } from './getEventColumns';
 
 // constants
 import { TOURNAMENT_EVENTS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const EVENT_COUNT_THRESHOLD = 15;
 
@@ -59,7 +60,7 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
         'drawsCount',
       ]),
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      placeholder: 'No events',
+      placeholder: t('pages.participants.noEvents'),
       layout: 'fitColumns',
       reactiveData: true,
       index: 'eventId',

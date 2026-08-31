@@ -48,7 +48,7 @@ export function deleteEvents(params: { eventIds: string[]; callback?: (result: a
   items.push(
     { text: t('modals.deleteEvents.reasonPrompt') },
     {
-      placeholder: 'Explanation',
+      placeholder: t('ui.explanation'),
       field: 'eventDeletionReason',
       value: devMode ? 'this is only a test' : undefined,
       validator: validators.wordValidator(5),

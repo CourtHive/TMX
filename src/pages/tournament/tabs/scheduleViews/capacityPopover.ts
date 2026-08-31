@@ -26,6 +26,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 import { MODIFY_COURT_AVAILABILITY } from 'constants/mutationConstants';
 import { updateCourtDateAvailability } from './capacityPopoverLogic';
+import { t } from 'i18n';
 
 interface CapacityPopoverOpts {
   anchor: HTMLElement;
@@ -205,7 +206,7 @@ function buildPopoverContent(
   saveBtn.type = 'button';
   saveBtn.style.cssText =
     'font-size: 0.75rem; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--tmx-fill-accent, #2563eb); background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600; cursor: pointer;';
-  saveBtn.textContent = 'Apply';
+  saveBtn.textContent = t('modals.courtAvailability.apply');
   saveBtn.addEventListener('click', () => {
     void applyChanges(rows, scheduledDate, tournamentRecord, onApplied);
   });

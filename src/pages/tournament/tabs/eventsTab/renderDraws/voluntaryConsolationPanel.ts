@@ -45,7 +45,7 @@ const STRUCTURE_ADDED = 'modals.addConsolation.structureAdded';
 const IS_SUCCESS = 'is-success';
 const toastStructureAdded = () => tmxToast({ message: t(STRUCTURE_ADDED), intent: IS_SUCCESS });
 
-const DRAW_TYPE_OPTIONS = [
+const drawTypeOptions = () => [
   { label: t('voluntaryConsolation.singleElimination'), value: SINGLE_ELIMINATION },
   { label: t('draws.roundrobin'), value: ROUND_ROBIN },
   { label: t('voluntaryConsolation.luckyDraw'), value: LUCKY_DRAW },
@@ -53,11 +53,11 @@ const DRAW_TYPE_OPTIONS = [
 ];
 
 // Entry status → chip config
-const STATUS_CHIPS: Record<string, { label: string; intent: string }> = {
+const statusChips = () => ({
   [DIRECT_ACCEPTANCE]: { label: t('voluntaryConsolation.accepted'), intent: IS_SUCCESS },
   [ALTERNATE]: { label: t('draws.alternate'), intent: 'is-warning' },
   [WITHDRAWN]: { label: t('signin.withdrawn'), intent: 'is-danger' },
-};
+});
 
 type Params = {
   structure: any;
@@ -183,7 +183,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   // ── Entry status chip formatter ──
   const entryStatusFormatter = (_cell: any) => {
     const status = _cell.getValue();
-    const chip = STATUS_CHIPS[status];
+    const chip = statusChips()[status];
     if (!chip) return '';
     return `<span class="tag ${chip.intent}" style="font-size:0.75em;font-weight:600">${chip.label}</span>`;
   };
@@ -221,7 +221,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   };
 
   const getDrawTypeOptions = () =>
-    DRAW_TYPE_OPTIONS.map((opt) => ({
+    drawTypeOptions().map((opt) => ({
       label: opt.label,
       onClick: () => {
         drawType = opt.value;
@@ -540,7 +540,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
       },
       {
         options: getDrawTypeOptions(),
-        label: DRAW_TYPE_OPTIONS.find((o) => o.value === drawType)?.label || 'Draw Type',
+        label: drawTypeOptions().find((o) => o.value === drawType)?.label || 'Draw Type',
         selection: false,
         location: LEFT,
       },

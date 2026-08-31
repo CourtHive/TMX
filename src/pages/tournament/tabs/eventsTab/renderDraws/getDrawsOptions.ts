@@ -5,6 +5,7 @@
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
+import { t } from 'i18n';
 
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });
@@ -21,7 +22,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
 
   const allDrawsOption = {
     onClick: () => navigateToEvent({ eventId, renderDraw: true }),
-    label: 'All draws',
+    label: t('drawActions.allDraws'),
     modifyLabel: false,
     close: true,
   };
@@ -43,7 +44,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   if (totalDrawItems > 1) {
     options.push({
       onClick: deleteFlights,
-      label: 'Delete flights',
+      label: t('ui.deleteFlights'),
       modifyLabel: false,
       close: true,
     });

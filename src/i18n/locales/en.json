@@ -2881,5 +2881,177 @@
     "noData": "No court card data",
     "noneOnCourts": "No matches scheduled on courts",
     "noneInRound": "No matches in this round are assigned to courts"
+  },
+  "ui": {
+    "explanation": "Explanation",
+    "noParticipants": "No participants",
+    "noMatches": "No matches",
+    "ok": "Ok",
+    "deleteFlights": "Delete flights",
+    "totalMatchUps": "Total MatchUps",
+    "grid": "Grid",
+    "policyLabel": "Policy:",
+    "newValue": "New value",
+    "newName": "New name",
+    "template": "Template",
+    "reset": "Reset",
+    "change": "Change",
+    "display": "Display",
+    "website": "Website",
+    "fee": "Fee",
+    "lights": "Lights",
+    "grouping": "Grouping",
+    "winLoss": "Win/Loss",
+    "scorelines": "Scorelines",
+    "chart": "Chart",
+    "table": "Table",
+    "stats": "Stats",
+    "standings": "Standings",
+    "tableView": "Table view",
+    "noCourts": "No courts",
+    "noVenues": "No venues",
+    "noTournaments": "No tournaments",
+    "noCollections": "No collections",
+    "noEntries": "No entries",
+    "noDrawsYet": "No draws yet.",
+    "notGenerated": "Not generated",
+    "clearFilters": "Clear Filters"
+  },
+  "addDrawForm": {
+    "sizeMin": "Draw size must be at least 2",
+    "qualifyingNoPositions": "Cannot attach qualifying — target structure has no positions",
+    "qualifierRequired": "At least one qualifier position is required when attaching a qualifying structure",
+    "regenerate": "Regenerate draw?",
+    "roundOf16": "Round of 16",
+    "consolationFeedDepth": "Consolation feed depth",
+    "roundProfile": "Round profile",
+    "matchUpsPerRound": "matchUps per round",
+    "evenDrawSize": "An explicit round profile requires an even draw size of 2 or more."
+  },
+  "keyActions": {
+    "enterNewKey": "Enter new key",
+    "storedKeys": "Stored Keys"
+  },
+  "chat": {
+    "tournamentChat": "Tournament Chat",
+    "noRecentActivity": "No chat activity in the recent window.",
+    "monitorTitle": "Chat Monitor — all tournaments",
+    "selectGroup": "Select a group pill to reply into that tournament"
+  },
+  "drawActions": {
+    "pagePlayoff": "Page Playoff",
+    "selectDate": "Select date",
+    "deleteReason": "Please provide a reason for draw deletion.",
+    "noEntriesInDraw": "No entries in this draw",
+    "resetReason": "Please provide a reason for resetting the draw.",
+    "removeAssignments": "Remove all position assignments",
+    "noInvalidParticipants": "No invalid participants",
+    "addQualifying": "Add qualifying",
+    "addPlayoffs": "Add playoffs",
+    "allDraws": "All draws",
+    "noDrawsForEvent": "No draws have been created for this event.",
+    "generateQualifying": "Generate qualifying",
+    "completeRoundFirst": "Complete all current round matches before generating the next round",
+    "exitAssignmentMode": "Exit Assignment Mode",
+    "autoPosition": "Auto position"
+  },
+  "sports": {
+    "tennis": "Tennis",
+    "pickleball": "Pickleball",
+    "badminton": "Badminton",
+    "basketball": "Basketball",
+    "baseball": "Baseball",
+    "hockey": "Hockey",
+    "padel": "Padel"
+  },
+  "tieFormatEditor": {
+    "scorecardName": "Scorecard Name",
+    "addCollection": "Add Collection",
+    "noCollections": "No collections — click Add Collection to start"
+  },
+  "assistant": {
+    "title": "TMX Assistant",
+    "ask": "Ask TMX"
+  },
+  "matchUpActions": {
+    "scheduleDate": "Schedule date",
+    "scheduleTime": "Schedule time",
+    "printMatchCard": "Print match card",
+    "assignParticipant": "Assign participant",
+    "removeParticipant": "Remove participant",
+    "replaceParticipant": "Replace participant",
+    "substitution": "Substitution",
+    "assignSeedNumber": "Assign seed number ",
+    "seedNumber": "Seed number",
+    "nickname": "Nickname "
+  },
+  "entries": {
+    "alreadyInDraw": "All selected participants are already in this draw",
+    "addToDraw": "Add to draw",
+    "changeStatus": "Change status",
+    "addFlight": "Add flight",
+    "destroyPairs": "Destroy pairs",
+    "noDestroyablePairs": "No destroyable pairs selected",
+    "saveSeeding": "Save seeding",
+    "numberOfDraws": "Number of Draws",
+    "acceptedEntries": "Accepted Entries",
+    "completedMatchUps": "Completed MatchUps",
+    "noTeamParticipants": "No team participants",
+    "noIndividualParticipants": "No individual participants",
+    "addPlayers": "Add players",
+    "noRatingData": "No rating data available",
+    "scheduledMatches": "Scheduled matches"
+  },
+  "ageCategories": {
+    "u10": "10 and Under",
+    "u12": "12 and Under",
+    "u14": "14 and Under",
+    "u16": "16 and Under",
+    "u18": "18 and Under"
+  },
+  "roundOptions": {
+    "roundActions": "Round actions",
+    "scheduleRoundEllipsis": "Schedule round...",
+    "printRoundMatchCards": "Print round match cards",
+    "printCourtCards": "Print court cards",
+    "timeOptional": "Time (optional)",
+    "scheduleRound": "Schedule Round",
+    "generateSwissRound": "Generate Swiss Round",
+    "cardDisplay": "Card display",
+    "ratingsHistogram": "Ratings histogram",
+    "competitiveness": "Competitiveness",
+    "burstProgression": "Burst (progression)",
+    "burstCompetitive": "Burst (competitive)"
+  },
+  "maps": {
+    "google": "Open in Google Maps",
+    "bing": "Open in Bing Maps"
+  },
+  "policiesPage": {
+    "browseCatalog": "Browse public catalog →"
+  },
+  "matchUpsActions": {
+    "abandonExplain": "Mark every remaining ready-to-score match as Abandoned. Completed matches and byes are unaffected. Intended for tournaments that will not be completed.",
+    "abandonPartial": "Also abandon matches with partial scores",
+    "abandonRemaining": "Abandon remaining matches",
+    "republishExplain": "Republish this tournament to the public rankings list. Points are recomputed from its decided matches.",
+    "rankingsNotConfigured": "Rankings pipeline is not configured",
+    "republishRankings": "Republish rankings"
+  },
+  "groupings": {
+    "generateMockTeams": "Generate Mock Teams",
+    "noMatchesFilters": "No matches — adjust or clear filters"
+  },
+  "printModals": {
+    "factSheet": "Print Fact Sheet",
+    "playerList": "Print Player List",
+    "competitor": "Competitor"
+  },
+  "eventActions": {
+    "rankingPoints": "Ranking points"
+  },
+  "registrations": {
+    "applicant": "Applicant",
+    "rankSingles": "Rank (SINGLES)"
   }
 }

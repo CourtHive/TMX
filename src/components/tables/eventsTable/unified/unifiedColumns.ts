@@ -107,7 +107,7 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
       width: 65,
     },
     {
-      title: 'Grouping',
+      title: t('ui.grouping'),
       field: 'segment',
       cssClass: LOCK_VISIBLE_CLASS,
       formatter: segmentFormatter,

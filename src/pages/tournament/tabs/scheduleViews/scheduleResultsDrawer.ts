@@ -21,6 +21,7 @@ import {
   type ParticipantLookup,
   type OverLimitAttempt,
 } from './scheduleResultsDescribe';
+import { t } from 'i18n';
 
 const BLOCK_STYLE = 'margin-top: 10px;';
 const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 2px;';
@@ -93,7 +94,7 @@ function openWideModal(content: HTMLElement): void {
     content,
     buttons: [
       {
-        label: 'Close',
+        label: t('common.close'),
         intent: 'is-primary',
         close: true,
         onClick: closeModal,

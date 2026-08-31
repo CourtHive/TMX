@@ -118,7 +118,7 @@ interface PanelConfig {
   text: string;
 }
 
-const featurePanels: PanelConfig[] = [
+const featurePanelsList = (): PanelConfig[] => [
   {
     icon: 'fa-trophy',
     heading: 'Tournament Management',
@@ -211,7 +211,7 @@ export function renderWelcomeView(
   grid.appendChild(hero);
 
   // Feature panels
-  for (const config of featurePanels) {
+  for (const config of featurePanelsList()) {
     grid.appendChild(createPanel(config, 'welcome-panel-feature'));
   }
 

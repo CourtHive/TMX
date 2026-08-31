@@ -25,6 +25,7 @@ import { context } from 'services/context';
 
 // constants
 import { CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { MAIN } = drawDefinitionConstants;
 const { UNGROUPED, WITHDRAWN } = entryStatusConstants;
@@ -299,7 +300,7 @@ export function createUnifiedEntriesPanel({
     reactiveData: true,
     height: `${tableHeight}px`,
     data: entries,
-    placeholder: 'No entries',
+    placeholder: t('ui.noEntries'),
     rowFormatter: (row: any) => {
       const data = row.getData();
       if (data._isSeparator) {
@@ -412,7 +413,7 @@ export function createUnifiedEntriesPanel({
         onChange: (e: any) => applySearchFilter(e.target.value),
         onKeyUp: (e: any) => applySearchFilter(e.target.value),
         clearSearch: () => applySearchFilter(''),
-        placeholder: 'Search entries',
+        placeholder: t('modals.selectParticipant.searchEntries'),
         id: 'unifiedSearch',
         location: LEFT,
         search: true,
@@ -428,13 +429,13 @@ export function createUnifiedEntriesPanel({
         onClick: () => editAvoidances({ eventId }),
         intent: 'is-warning',
         id: 'editAvoidances',
-        label: 'Avoidances',
+        label: t('eventRow.avoidances'),
         location: RIGHT,
       },
       {
         onClick: () => addFlights({ eventId, callback: () => navigateToEvent({ eventId }) }),
         intent: 'is-info',
-        label: 'Add flights',
+        label: t('pages.events.addFlights'),
         location: RIGHT,
         hide: !!drawId,
       },
@@ -455,7 +456,7 @@ export function createUnifiedEntriesPanel({
           });
         },
         intent: 'is-primary',
-        label: 'Add draw',
+        label: t('pages.events.addDraw'),
         location: RIGHT,
       },
     ];

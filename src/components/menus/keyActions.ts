@@ -24,7 +24,7 @@ export function displayKeyActions(): void {
         .map(toStoredKeyMenuItem);
       const menu = [
         {
-          label: 'Enter new key',
+          label: t('keyActions.enterNewKey'),
           placeholder: t('phrases.submitkey'),
           id: 'keyEntryField',
           type: 'input',
@@ -34,7 +34,7 @@ export function displayKeyActions(): void {
         },
         { type: 'divider' },
         {
-          text: 'Stored Keys',
+          text: t('keyActions.storedKeys'),
           items,
         },
       ];

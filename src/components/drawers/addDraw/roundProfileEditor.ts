@@ -20,6 +20,8 @@
  * ceil-halving cascade for that drawSize).
  */
 
+import { t } from 'i18n';
+
 export type RoundProfileEditorOptions = {
   drawSize: number;
   initialProfile?: number[];
@@ -60,10 +62,10 @@ export function mountRoundProfileEditor(
   const labelEl = document.createElement('div');
   labelEl.className = CLASS_LABEL;
   const labelTitle = document.createElement('div');
-  labelTitle.textContent = 'Round profile';
+  labelTitle.textContent = t('addDrawForm.roundProfile');
   const labelSub = document.createElement('em');
   labelSub.className = `${CLASS_LABEL}-sub`;
-  labelSub.textContent = 'matchUps per round';
+  labelSub.textContent = t('addDrawForm.matchUpsPerRound');
   labelEl.append(labelTitle, labelSub);
   root.appendChild(labelEl);
 
@@ -78,7 +80,7 @@ export function mountRoundProfileEditor(
   const resetBtn = document.createElement('button');
   resetBtn.className = CLASS_RESET;
   resetBtn.type = 'button';
-  resetBtn.textContent = 'Reset to defaults';
+  resetBtn.textContent = t('formatWizard.reset');
   root.appendChild(resetBtn);
 
   parentEl.appendChild(root);
@@ -94,7 +96,7 @@ export function mountRoundProfileEditor(
 
     if (drawSize < 2 || drawSize % 2 !== 0) {
       const msg = document.createElement('div');
-      msg.textContent = 'An explicit round profile requires an even draw size of 2 or more.';
+      msg.textContent = t('addDrawForm.evenDrawSize');
       strip.appendChild(msg);
       root.classList.add(CLASS_DISABLED);
       hideError();

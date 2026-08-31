@@ -5,6 +5,7 @@
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 type EnterLinkParams = {
   title: string;
@@ -24,7 +25,7 @@ export function enterLink({ title, existingValue, callback, message }: EnterLink
       { text: message },
       {
         value: existingValue,
-        label: 'New value',
+        label: t('ui.newValue'),
         field: 'newValue',
       },
     ]);
@@ -33,8 +34,8 @@ export function enterLink({ title, existingValue, callback, message }: EnterLink
     title,
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Update', intent: 'is-primary', onClick: onClick as any, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.editProvider.update'), intent: 'is-primary', onClick: onClick as any, close: true },
     ],
   });
 }

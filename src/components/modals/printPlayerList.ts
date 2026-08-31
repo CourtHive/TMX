@@ -43,10 +43,10 @@ export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
   const formItems = [
     {
       field: 'format',
-      label: 'Format',
+      label: t('fmt'),
       options: [
-        { label: 'Player List', value: 'playerList', selected: true },
-        { label: 'Sign-In Sheet', value: 'signInSheet' },
+        { label: t('print.playerlist'), value: 'playerList', selected: true },
+        { label: t('print.signin'), value: 'signInSheet' },
       ],
     },
     ...(eventId ? [{ text: `Event: ${eventName}`, style: 'font-weight: bold; margin-top: 8px;' }] : []),
@@ -114,7 +114,7 @@ export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
   ];
 
   openModal({
-    title: 'Print Player List',
+    title: t('printModals.playerList'),
     content,
     buttons,
   });

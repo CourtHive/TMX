@@ -22,6 +22,7 @@ import {
   loadSchedulingChoices,
   resolveAttachedChoiceId,
 } from './schedulingPolicyChoices';
+import { t } from 'i18n';
 
 export type { PolicyChoice } from './schedulingPolicyChoices';
 
@@ -69,7 +70,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     fieldRow.style.cssText = 'display: flex; align-items: center; gap: 10px;';
     const fieldLabel = document.createElement('span');
     fieldLabel.style.cssText = 'flex: 0 0 auto; font-size: 0.75rem;';
-    fieldLabel.textContent = 'Policy:';
+    fieldLabel.textContent = t('ui.policyLabel');
     const select = document.createElement('select');
     select.style.cssText = [
       'flex: 1',
@@ -106,13 +107,13 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     content,
     buttons: [
       {
-        label: 'Cancel',
+        label: t('common.cancel'),
         intent: 'none',
         close: true,
         onClick: () => params.onCancel?.(),
       },
       {
-        label: 'Apply',
+        label: t('modals.courtAvailability.apply'),
         intent: 'is-primary',
         close: true,
         disabled: !allChoices.length,

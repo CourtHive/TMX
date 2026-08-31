@@ -19,6 +19,7 @@ import { mapRound } from './mapRound';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 const { CONTAINER } = drawDefinitionConstants;
 
 export async function createRoundsTable({
@@ -92,7 +93,7 @@ export async function createRoundsTable({
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       responsiveLayout: 'collapse',
-      placeholder: 'No matches',
+      placeholder: t('ui.noMatches'),
       layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',

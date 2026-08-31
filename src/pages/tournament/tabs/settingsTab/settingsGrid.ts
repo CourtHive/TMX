@@ -26,8 +26,8 @@ import { i18next, t } from 'i18n';
 import {
   applyFont,
   applyFontSize,
-  FONT_OPTIONS,
-  FONT_SIZE_OPTIONS,
+  fontOptions,
+  fontSizeOptions,
   getFontPreference,
   getFontSizePreference,
 } from 'services/theme/themeService';
@@ -309,7 +309,7 @@ export async function renderSettingsGrid(
   const fontForm = document.createElement('div');
   renderForm(fontForm, [
     {
-      options: Object.entries(FONT_OPTIONS).map(([key, { label }]) => ({
+      options: Object.entries(fontOptions()).map(([key, { label }]) => ({
         value: key,
         label,
         selected: key === currentFont,
@@ -329,7 +329,7 @@ export async function renderSettingsGrid(
   fontSizeForm.style.marginTop = '8px';
   renderForm(fontSizeForm, [
     {
-      options: Object.entries(FONT_SIZE_OPTIONS).map(([key, { label }]) => ({
+      options: Object.entries(fontSizeOptions()).map(([key, { label }]) => ({
         value: key,
         label,
         selected: key === currentFontSize,

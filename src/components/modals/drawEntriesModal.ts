@@ -14,6 +14,7 @@ import { cModal, controlBar } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 
 import { LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export interface DrawEntriesModalParams {
   eventId: string;
@@ -91,7 +92,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
   const table = new Tabulator(tableElement, {
     headerSortElement: headerSortElement([...ratingFields, 'seedNumber', 'ranking', 'participant']),
     columns: drawColumns,
-    placeholder: 'No entries in this draw',
+    placeholder: t('drawActions.noEntriesInDraw'),
     responsiveLayout: 'collapse',
     index: 'participantId',
     layout: 'fitColumns',
@@ -132,7 +133,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     content,
     buttons: [
       {
-        label: 'Close',
+        label: t('common.close'),
         close: true,
       },
     ],

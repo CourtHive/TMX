@@ -7,6 +7,7 @@ import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
 import { NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): void {
   const options = eventData.drawsData.map(({ drawId, drawName }: any) => ({
@@ -37,11 +38,11 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
 
   modalHandle = openModal({
-    title: `Delete flights`,
+    title: t('ui.deleteFlights'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Delete', id: 'deleteSelected', intent: 'is-danger', disabled: true, close: true, onClick },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('delete'), id: 'deleteSelected', intent: 'is-danger', disabled: true, close: true, onClick },
     ],
   });
 }

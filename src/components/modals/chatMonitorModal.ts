@@ -16,6 +16,7 @@ import {
   sendAdminReply,
   type AdminChatMessage,
 } from 'services/chat/adminChatService';
+import { t } from 'i18n';
 
 const PANEL_ID = 'chatMonitorPanel';
 const PANEL_WIDTH = 420;
@@ -68,7 +69,7 @@ export function openChatMonitorModal(): void {
       const empty = document.createElement('div');
       empty.style.cssText =
         'padding: 24px 12px; text-align: center; font-size: 0.8rem; color: var(--chc-text-secondary, #888);';
-      empty.textContent = 'No chat activity in the recent window.';
+      empty.textContent = t('chat.noRecentActivity');
       stream.appendChild(empty);
       return;
     }
@@ -131,7 +132,7 @@ export function openChatMonitorModal(): void {
     'background: var(--chc-bg-secondary, #f8f8f8)',
   ].join('; ');
   const title = document.createElement('span');
-  title.textContent = 'Chat Monitor — all tournaments';
+  title.textContent = t('chat.monitorTitle');
   title.style.cssText = 'font-weight: 600; font-size: 0.9rem;';
   const closeBtn = document.createElement('button');
   closeBtn.textContent = '✕';
@@ -152,7 +153,7 @@ export function openChatMonitorModal(): void {
     'border-top: 1px solid var(--chc-border-primary, #ddd); padding: 8px 12px; display: flex; flex-direction: column; gap: 6px;';
   replyLabel = document.createElement('div');
   replyLabel.style.cssText = 'font-size: 0.72rem; color: var(--chc-text-secondary, #888);';
-  replyLabel.textContent = 'Select a group pill to reply into that tournament';
+  replyLabel.textContent = t('chat.selectGroup');
   const replyRow = document.createElement('div');
   replyRow.style.cssText = 'display: flex; gap: 6px;';
   replyInput = document.createElement('input');
@@ -165,7 +166,7 @@ export function openChatMonitorModal(): void {
     if (e.key === 'Enter') handleReply();
   };
   const sendBtn = document.createElement('button');
-  sendBtn.textContent = 'Send';
+  sendBtn.textContent = t('phrases.send');
   sendBtn.style.cssText =
     'padding: 6px 12px; border: none; border-radius: 8px; background: var(--tmx-accent-blue, #3273dc); color: #fff; cursor: pointer; font-size: 0.85rem;';
   sendBtn.onclick = handleReply;

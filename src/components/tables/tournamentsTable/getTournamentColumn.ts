@@ -137,7 +137,7 @@ export function getTournamentColumns(): any[] {
       visible: !isMobile,
     },
     {
-      title: 'Tournament',
+      title: t('trn'),
       formatter: nameFormatter,
       cellClick: openTournament,
       sorter: sortByName,
@@ -145,14 +145,14 @@ export function getTournamentColumns(): any[] {
       widthGrow: 3,
     },
     {
-      title: 'Status',
+      title: t('schedule.status'),
       formatter: statusFormatter,
       headerSort: false,
       width: 130,
       hozAlign: 'center',
     },
     {
-      title: 'Location',
+      title: t('signin.place'),
       formatter: locationFormatter,
       headerSort: false,
       minWidth: 140,
@@ -160,14 +160,14 @@ export function getTournamentColumns(): any[] {
       visible: !isMobile,
     },
     {
-      title: 'Dates',
+      title: t('dates'),
       formatter: datesFormatter,
       sorter: sortByStartDate,
       minWidth: 160,
       widthGrow: 1,
     },
     {
-      title: 'Tier',
+      title: t('registrationProfile.tier'),
       field: 'tier',
       formatter: tierFormatter,
       sorter: sortByTier,
@@ -182,7 +182,7 @@ export function getTournamentColumns(): any[] {
       visible: false,
     },
     {
-      title: 'Players',
+      title: t('pyr'),
       formatter: playersFormatter,
       sorter: sortByPlayerCount,
       hozAlign: 'right',
@@ -190,7 +190,7 @@ export function getTournamentColumns(): any[] {
       visible: !isMobile,
     },
     {
-      title: 'Fee',
+      title: t('ui.fee'),
       formatter: feeFormatter,
       headerSort: false,
       width: 130,

@@ -5,6 +5,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 // constants
 import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
 import { DRAWS_VIEW } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 function hasIncompleteMatchUps(structure: any): boolean {
   const matchUps = structure?.matchUps ?? [];
@@ -23,7 +24,7 @@ export function generateSwissRound({
   const structureId = structure?.structureId;
 
   if (hasIncompleteMatchUps(structure)) {
-    tmxToast({ message: 'Complete all current round matches before generating the next round', intent: 'is-warning' });
+    tmxToast({ message: t('drawActions.completeRoundFirst'), intent: 'is-warning' });
     return;
   }
 

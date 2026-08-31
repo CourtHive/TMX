@@ -14,13 +14,13 @@ import { t } from 'i18n';
 
 const { COMPETITOR, OFFICIAL, COACH, MEDICAL, SECURITY, MEDIA } = participantRoles;
 
-const ROLE_OPTIONS = [
-  { label: 'Competitor', value: COMPETITOR },
-  { label: 'Official', value: OFFICIAL },
-  { label: 'Coach', value: COACH },
-  { label: 'Medical', value: MEDICAL },
-  { label: 'Security', value: SECURITY },
-  { label: 'Media', value: MEDIA },
+const roleOptions = () => [
+  { label: t('printModals.competitor'), value: COMPETITOR },
+  { label: t('modals.inviteUser.official'), value: OFFICIAL },
+  { label: t('participantRoles.COACH'), value: COACH },
+  { label: t('signin.medical'), value: MEDICAL },
+  { label: t('participantRoles.SECURITY'), value: SECURITY },
+  { label: t('participantRoles.MEDIA'), value: MEDIA },
 ];
 
 export function mockParticipants({ callback }: { callback?: () => void }): void {
@@ -32,7 +32,7 @@ export function mockParticipants({ callback }: { callback?: () => void }): void 
   getMockParticipantsModal({
     consideredDate,
     title: t('modals.generateParticipants.title'),
-    roleOptions: ROLE_OPTIONS,
+    roleOptions: roleOptions(),
     labels: {
       role: t('modals.generateParticipants.role'),
       gender: t('modals.generateParticipants.gender'),

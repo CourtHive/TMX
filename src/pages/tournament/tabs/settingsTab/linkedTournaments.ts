@@ -8,6 +8,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
 import type { SiblingTournament } from './linkedTournamentsHelpers';
+import { t } from 'i18n';
 
 // ─── data access ────────────────────────────────────────────────────────────
 
@@ -187,7 +188,7 @@ function openLinkPicker(candidates: SiblingTournament[], onDone: () => void): vo
     title: 'Link tournaments',
     content,
     buttons: [
-      { label: 'Cancel', intent: 'is-light', close: true },
+      { label: t('common.cancel'), intent: 'is-light', close: true },
       {
         label: 'Link',
         intent: 'is-success',

@@ -17,6 +17,7 @@ import { isFunction } from 'functions/typeOf';
 
 // constants
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { SUBSTITUTION, PENALTY, REMOVE_PARTICIPANT, REPLACE_PARTICIPANT } = matchUpActionConstants;
 const { POLICY_TYPE_MATCHUP_ACTIONS } = policyConstants;
@@ -58,27 +59,27 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
   const itemMap: any = {
     [ASSIGN_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles },
-      text: 'Assign participant',
+      text: t('matchUpActions.assignParticipant'),
       method: assignOrReplace,
     },
     [PENALTY]: {
       onClick: () => console.log({ data }),
-      text: 'Assess penalty',
+      text: t('draws.penalty'),
     },
     [REMOVE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
-      text: 'Remove participant',
+      text: t('matchUpActions.removeParticipant'),
       method: removeParticipant,
     },
     [REPLACE_PARTICIPANT]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
-      text: 'Replace participant',
+      text: t('matchUpActions.replaceParticipant'),
       method: assignOrReplace,
     },
     [SUBSTITUTION]: {
       params: { data, sideNumber, callback, isTeam, isDoubles, clickedParticipantId },
       method: assignOrReplace,
-      text: 'Substitution',
+      text: t('matchUpActions.substitution'),
     },
   };
 

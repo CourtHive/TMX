@@ -9,6 +9,7 @@ import { deleteEvents } from 'components/modals/deleteEvents';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const eventActions =
   () =>
@@ -43,19 +44,19 @@ export const eventActions =
     const items = [
       {
         onClick: () => navigateToEvent({ eventId: data.eventId, renderPoints: true }),
-        text: 'Ranking points',
+        text: t('eventActions.rankingPoints'),
       },
       {
         onClick: () => editDisplaySettings({ eventId: data.eventId }),
-        text: 'Display settings',
+        text: t('pages.events.displaySettings'),
       },
       {
         onClick: deleteEvent,
-        text: 'Delete',
+        text: t('delete'),
       },
       {
         onClick: () => editEvent({ event: data.event, callback: doneEditing }),
-        text: 'Edit',
+        text: t('tournaments.edit'),
       },
     ];
 
