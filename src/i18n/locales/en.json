@@ -2768,7 +2768,8 @@
     "importTournament": "Import tournament",
     "chatMonitor": "Chat monitor",
     "welcome": "Welcome",
-    "examples": "Examples"
+    "examples": "Examples",
+    "upcoming": "Upcoming"
   },
   "theme": {
     "systemDefault": "System (default)",
@@ -3040,7 +3041,8 @@
   },
   "groupings": {
     "generateMockTeams": "Generate Mock Teams",
-    "noMatchesFilters": "No matches — adjust or clear filters"
+    "noMatchesFilters": "No matches — adjust or clear filters",
+    "createNewEvent": "Create new event"
   },
   "printModals": {
     "factSheet": "Print Fact Sheet",
@@ -3052,6 +3054,111 @@
   },
   "registrations": {
     "applicant": "Applicant",
-    "rankSingles": "Rank (SINGLES)"
+    "rankSingles": "Rank (SINGLES)",
+    "applied": "Applied",
+    "partner": "Partner",
+    "noProvider": "Tournament has no provider — cannot load registrations.",
+    "accepted": "Applicant accepted into the tournament.",
+    "waitlisted": "Applicant moved to waitlist.",
+    "rejected": "Applicant rejected."
+  },
+  "reports": {
+    "noData": "No data",
+    "audit": "Audit",
+    "noDraws": "This tournament has no generated draws to audit.",
+    "structureAudit": "Structure Integrity Audit"
+  },
+  "applyScheduling": {
+    "noPolicy": "No policy (do not enforce daily limits)",
+    "applyGridTitle": "Apply Grid — Scheduling Policy",
+    "selectPolicy": "Select the scheduling policy to use for Apply Times:",
+    "noPolicies": "No scheduling policies available",
+    "applyTimesTitle": "Apply Times — Scheduling Policy"
+  },
+  "capacity": {
+    "noCourts": "No courts configured for this tournament",
+    "noCourtsAddVenues": "No courts configured. Add courts via Venues.",
+    "openPainter": "Open availability painter →",
+    "noChanges": "No changes to apply"
+  },
+  "clearSchedule": {
+    "dayKeepCompleted": "Clear this day (keep completed)",
+    "dayIncludingCompleted": "Clear this day (including completed)",
+    "allData": "Clear all schedule data",
+    "nothingInScope": "No matchUps to clear in this scope.",
+    "nothingVisible": "Nothing scheduled on visible courts."
+  },
+  "gridActions": {
+    "minWidth": "Min Width",
+    "minWidthHint": "Minimum court column width — cells grow wider when there is room",
+    "conflictsWith": " conflicts with ",
+    "minRowsHint": "Minimum number of time rows in the schedule grid"
+  },
+  "scheduleResults": {
+    "title": "Scheduling Results",
+    "noActivity": "No scheduler activity on this date.",
+    "noPerDate": "The scheduler completed but reported no per-date activity."
+  },
+  "schedulingTab": {
+    "availability": "Availability",
+    "plan": "Plan",
+    "discardChanges": "Discard unsaved changes?",
+    "discard": "Discard"
+  },
+  "linkedTournaments": {
+    "intro": "Tournaments sharing this facility. Linking lets their schedules account for each other on shared courts.",
+    "empty": "No linked tournaments yet.",
+    "link": "Link tournaments",
+    "linkAction": "Link"
+  },
+  "settingsGrid": {
+    "askAssistant": "Ask TMX assistant",
+    "schedulePlan": "Schedule Plan",
+    "desktopNotifications": " Desktop Notifications",
+    "serverUrl": "Server URL",
+    "workOffline": " Work Offline"
+  },
+  "venueDetail": {
+    "noCourts": "No courts at this venue yet.",
+    "notFound": "Venue not found."
+  },
+  "tournamentDisplay": {
+    "refreshed": "Tournament data refreshed from server"
+  },
+  "platform": {
+    "about": "About TMX"
+  },
+  "activeScale": {
+    "switchTitle": "Switch active rating?"
+  },
+  "scoreRelay": {
+    "networkError": "score-relay: network error"
+  },
+  "exportFile": {
+    "saveJson": "Save JSON",
+    "saveFile": "Save File"
+  },
+  "remoteMutations": {
+    "updateFailed": "Remote update failed — please reload"
+  },
+  "mutationPrompts": {
+    "modify": "Modify?",
+    "impersonate": "Impersonate?",
+    "rejected": "Server rejected mutation",
+    "sessionExpired": "Session expired"
+  },
+  "queueService": {
+    "saved": "Saved"
+  },
+  "storage": {
+    "importTournament": "Import Tournament",
+    "resetFailed": "Failed to reset database",
+    "writeFailed": "Database write failed"
+  },
+  "participantActions": {
+    "editParticipant": "Edit Participant"
+  },
+  "tournamentActions": {
+    "send": "Send??"
   }
 }

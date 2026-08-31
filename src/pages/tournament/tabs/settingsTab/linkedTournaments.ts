@@ -129,8 +129,7 @@ async function renderPanelContents(panel: HTMLElement): Promise<void> {
 
   const description = document.createElement('p');
   description.style.cssText = 'margin: 0 0 12px 0; color: var(--tmx-text-secondary); font-size: 0.85rem;';
-  description.textContent =
-    'Tournaments sharing this facility. Linking lets their schedules account for each other on shared courts.';
+  description.textContent = t('linkedTournaments.intro');
   panel.appendChild(description);
 
   if (rows.length) {
@@ -141,13 +140,13 @@ async function renderPanelContents(panel: HTMLElement): Promise<void> {
   } else {
     const empty = document.createElement('div');
     empty.style.cssText = 'color: var(--tmx-text-secondary); font-size: 0.85rem; margin-bottom: 12px;';
-    empty.textContent = 'No linked tournaments yet.';
+    empty.textContent = t('linkedTournaments.empty');
     panel.appendChild(empty);
   }
 
   const linkButton = document.createElement('button');
   linkButton.className = 'button is-small';
-  linkButton.textContent = 'Link tournaments';
+  linkButton.textContent = t('linkedTournaments.link');
   linkButton.disabled = !candidates.length;
   linkButton.onclick = () => openLinkPicker(candidates, () => refresh(panel));
   panel.appendChild(linkButton);
@@ -185,12 +184,12 @@ function openLinkPicker(candidates: SiblingTournament[], onDone: () => void): vo
   }
 
   openModal({
-    title: 'Link tournaments',
+    title: t('linkedTournaments.link'),
     content,
     buttons: [
       { label: t('common.cancel'), intent: 'is-light', close: true },
       {
-        label: 'Link',
+        label: t('linkedTournaments.linkAction'),
         intent: 'is-success',
         close: true,
         onClick: () => {

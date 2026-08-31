@@ -77,7 +77,7 @@ export function openCapacityPopover(opts: CapacityPopoverOpts): void {
     // engine stays null — handled below
   }
   if (!engine) {
-    tmxToast({ message: 'No courts configured for this tournament', intent: 'is-warning' });
+    tmxToast({ message: t('capacity.noCourts'), intent: 'is-warning' });
     return;
   }
 
@@ -173,7 +173,7 @@ function buildPopoverContent(
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.style.cssText = 'font-size: 0.75rem; color: var(--tmx-text-muted); padding: 8px 0;';
-    empty.textContent = 'No courts configured. Add courts via Venues.';
+    empty.textContent = t('capacity.noCourtsAddVenues');
     root.appendChild(empty);
     return root;
   }
@@ -192,7 +192,7 @@ function buildPopoverContent(
   jump.type = 'button';
   jump.style.cssText =
     'font-size: 0.75rem; background: transparent; color: var(--tmx-fill-accent, #2563eb); border: none; padding: 4px 0; cursor: pointer; text-decoration: underline;';
-  jump.textContent = 'Open availability painter →';
+  jump.textContent = t('capacity.openPainter');
   jump.addEventListener('click', () => {
     // Dismiss before navigating; tippy popovers don't auto-hide on route
     // change and would linger over the painter mode otherwise.
@@ -350,7 +350,7 @@ async function applyChanges(
   }
 
   if (!methods.length) {
-    tmxToast({ message: 'No changes to apply', intent: 'is-info' });
+    tmxToast({ message: t('capacity.noChanges'), intent: 'is-info' });
     return;
   }
 

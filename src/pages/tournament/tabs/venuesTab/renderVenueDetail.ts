@@ -72,7 +72,7 @@ function buildCourtsSection(courts: any[], sport: any, onCourtClick: (id: string
   if (courts.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'tmx-venue-detail__empty';
-    empty.textContent = 'No courts at this venue yet.';
+    empty.textContent = t('venueDetail.noCourts');
     wrap.appendChild(empty);
     return wrap;
   }
@@ -99,7 +99,7 @@ export function renderVenueDetail({ anchor, venueId, refreshHeader }: Params): v
     refreshHeader(0);
     const empty = document.createElement('div');
     empty.className = 'tmx-venue-detail__empty';
-    empty.textContent = 'Venue not found.';
+    empty.textContent = t('venueDetail.notFound');
     anchor.appendChild(empty);
     return;
   }

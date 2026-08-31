@@ -22,9 +22,9 @@ interface StatusChip {
 
 const statusChips = (): StatusChip[] => [
   { value: 'all', label: t('tournamentsControls.all') },
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'live', label: 'Live' },
-  { value: 'completed', label: 'Completed' },
+  { value: 'upcoming', label: t('tournamentsControls.upcoming') },
+  { value: 'live', label: t('pages.matchUps.live') },
+  { value: 'completed', label: t('draws.completed') },
 ];
 
 interface BuildHeaderParams {

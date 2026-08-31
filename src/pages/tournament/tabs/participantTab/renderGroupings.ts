@@ -66,7 +66,7 @@ export function renderGroupings({ view }: { view: string }): void {
   }
 
   const createNewEvent = {
-    label: '<p style="font-weight: bold">Create new event</p>',
+    label: `<p style="font-weight: bold">${t('groupings.createNewEvent')}</p>`,
     onClick: () => eventFromParticipants(table, replaceTableData),
     close: true,
   };

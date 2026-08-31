@@ -180,7 +180,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     { divider: true } as any,
     {
       onClick: () => printPlayerList({}),
-      label: '<i class="fa-solid fa-print"></i> Print Player List',
+      label: `<i class="fa-solid fa-print"></i> ${t('printModals.playerList')}`,
       close: true,
     },
     {

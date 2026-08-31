@@ -47,10 +47,10 @@ export interface SchedulingHeader {
 // Order follows the lifecycle: set up Availability → plan with Profile → run Grid.
 // Plan = alternate ("contingency") schedules staged off the live grid.
 const modeOptions = (): ModeOption[] => [
-  { key: 'availability', label: 'Availability', icon: 'fa-calendar-check' },
-  { key: 'profile', label: 'Profile', icon: 'fa-layer-group' },
+  { key: 'availability', label: t('schedulingTab.availability'), icon: 'fa-calendar-check' },
+  { key: 'profile', label: t('tables.rounds.profile'), icon: 'fa-layer-group' },
   { key: 'grid', label: t('ui.grid'), icon: 'fa-table-cells' },
-  { key: 'plan', label: 'Plan', icon: 'fa-clipboard-list' },
+  { key: 'plan', label: t('schedulingTab.plan'), icon: 'fa-clipboard-list' },
 ];
 
 export function buildSchedulingHeader(params: SchedulingHeaderParams): SchedulingHeader {

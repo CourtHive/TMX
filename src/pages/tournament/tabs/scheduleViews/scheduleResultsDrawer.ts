@@ -90,7 +90,7 @@ export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): 
 
 function openWideModal(content: HTMLElement): void {
   openModal({
-    title: 'Scheduling Results',
+    title: t('scheduleResults.title'),
     content,
     buttons: [
       {
@@ -204,7 +204,7 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
 
   if (empty) {
     const note = document.createElement('p');
-    note.textContent = 'No scheduler activity on this date.';
+    note.textContent = t('scheduleResults.noActivity');
     note.style.cssText = 'margin: 0; font-size: 0.8rem; color: var(--sp-muted, var(--tmx-text-muted));';
     section.appendChild(note);
     return section;
@@ -437,7 +437,7 @@ function buildEmptyState(): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText =
     'padding: 24px; text-align: center; color: var(--sp-muted, var(--tmx-text-muted)); font-size: 0.85rem;';
-  wrap.textContent = 'The scheduler completed but reported no per-date activity.';
+  wrap.textContent = t('scheduleResults.noPerDate');
   return wrap;
 }
 

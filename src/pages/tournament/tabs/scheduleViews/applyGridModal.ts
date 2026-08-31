@@ -89,7 +89,7 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     // Always offer the "No policy" choice first.
     const noneOpt = document.createElement('option');
     noneOpt.value = NO_POLICY_ID;
-    noneOpt.textContent = 'No policy (do not enforce daily limits)';
+    noneOpt.textContent = t('applyScheduling.noPolicy');
     noneOpt.selected = true;
     select.appendChild(noneOpt);
 
@@ -106,7 +106,7 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
   };
 
   openModal({
-    title: 'Apply Grid — Scheduling Policy',
+    title: t('applyScheduling.applyGridTitle'),
     content,
     buttons: [
       {

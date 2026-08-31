@@ -47,7 +47,7 @@ export const participantActions =
       },
       {
         hide: !isIndividual,
-        text: "<i class='fas fa-user'></i> Edit Participant",
+        text: `<i class='fas fa-user'></i> ${t('participantActions.editParticipant')}`,
         onClick: () => {
           editPlayer({ participantId, callback: replaceTableData });
         },

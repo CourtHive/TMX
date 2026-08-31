@@ -63,7 +63,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     root.appendChild(summary);
 
     const intro = document.createElement('div');
-    intro.textContent = 'Select the scheduling policy to use for Apply Times:';
+    intro.textContent = t('applyScheduling.selectPolicy');
     root.appendChild(intro);
 
     const fieldRow = document.createElement('label');
@@ -91,7 +91,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
       });
     } else {
       const opt = document.createElement('option');
-      opt.textContent = 'No scheduling policies available';
+      opt.textContent = t('applyScheduling.noPolicies');
       opt.disabled = true;
       opt.selected = true;
       select.appendChild(opt);
@@ -103,7 +103,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
   };
 
   openModal({
-    title: 'Apply Times — Scheduling Policy',
+    title: t('applyScheduling.applyTimesTitle'),
     content,
     buttons: [
       {

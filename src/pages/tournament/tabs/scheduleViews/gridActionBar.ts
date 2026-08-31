@@ -265,13 +265,13 @@ function buildTimingReportButton(onOpen: () => void): HTMLElement {
 
 function buildMinCourtWidthStepper(initial: number, onChange: (width: number) => void): HTMLElement {
   return buildStepper({
-    label: 'Min Width',
+    label: t('gridActions.minWidth'),
     initial,
     min: MIN_COURT_WIDTH_FLOOR,
     max: MIN_COURT_WIDTH_CEILING,
     step: MIN_COURT_WIDTH_STEP,
     suffix: 'px',
-    title: 'Minimum court column width — cells grow wider when there is room',
+    title: t('gridActions.minWidthHint'),
     onChange,
   });
 }
@@ -376,7 +376,7 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
       if (issue.conflictParticipants?.length) {
         const sep = document.createElement('span');
         sep.style.cssText = MUTED;
-        sep.textContent = ' conflicts with ';
+        sep.textContent = t('gridActions.conflictsWith');
         msg.appendChild(sep);
 
         issue.conflictParticipants.forEach((cp, i) => {
