@@ -1,5 +1,6 @@
 import { loadSettings, persistConfigToStorage } from 'services/settings/settingsStorage';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 
@@ -14,7 +15,7 @@ type FontOption = {
 
 export const FONT_OPTIONS: Record<string, FontOption> = {
   system: {
-    label: 'System (default)',
+    label: t('theme.systemDefault'),
     value:
       "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Helvetica, Arial, sans-serif",
   },
@@ -56,11 +57,11 @@ export const FONT_OPTIONS: Record<string, FontOption> = {
 };
 
 export const FONT_SIZE_OPTIONS: Record<string, { label: string; value: string }> = {
-  xs: { label: 'Extra Small (13px)', value: '13px' },
-  sm: { label: 'Small (14px)', value: '14px' },
-  md: { label: 'Medium (16px)', value: '16px' },
-  lg: { label: 'Large (18px)', value: '18px' },
-  xl: { label: 'Extra Large (20px)', value: '20px' },
+  xs: { label: t('theme.sizes.xs'), value: '13px' },
+  sm: { label: t('theme.sizes.sm'), value: '14px' },
+  md: { label: t('theme.sizes.md'), value: '16px' },
+  lg: { label: t('theme.sizes.lg'), value: '18px' },
+  xl: { label: t('theme.sizes.xl'), value: '20px' },
 };
 
 /** Track which fonts have already been injected so we don't add duplicate <link> tags. */

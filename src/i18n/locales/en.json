@@ -1044,7 +1044,7 @@
     "byeRemoveScheduling": "Remove scheduling",
     "venueFrame": {
       "notice": "Times in {{timeZone}} — venue zone not set",
-      "noticeTitle": "This tournament has no time zone set, so times are shown in this device\u2019s zone ({{timeZone}}). Set the venue\u2019s time zone so every operator reads the same clock."
+      "noticeTitle": "This tournament has no time zone set, so times are shown in this device’s zone ({{timeZone}}). Set the venue’s time zone so every operator reads the same clock."
     }
   },
   "penalties": {
@@ -1404,7 +1404,43 @@
       "includeRankings": "Include rankings",
       "includeTimestamp": "Include timestamp",
       "includeOrganizers": "Include organizers",
-      "generateError": "Failed to generate PDF."
+      "generateError": "Failed to generate PDF.",
+      "preset": "Preset",
+      "headerLayout": "Header Layout",
+      "footerLayout": "Footer Layout",
+      "pdfComposition": "PDF Composition",
+      "composition": "Composition",
+      "multiPage": "Multi-page (split into sections)",
+      "presets": {
+        "clubBasic": "Club Basic",
+        "nationalFederation": "National Federation",
+        "itfJunior": "ITF Junior",
+        "itfProCircuit": "ITF Pro Circuit",
+        "ncaaCollegiate": "NCAA Collegiate",
+        "atp250": "ATP 250",
+        "atpFinals": "ATP Finals",
+        "wta500": "WTA 500",
+        "wta1000": "WTA 1000",
+        "grandSlam": "Grand Slam",
+        "wimbledon": "Wimbledon",
+        "australianOpen": "Australian Open"
+      },
+      "headerLayouts": {
+        "grandSlam": "Grand Slam",
+        "itfProfessional": "ITF / Professional",
+        "wtaAtpTour": "WTA / ATP Tour",
+        "nationalFederation": "National Federation",
+        "minimal": "Minimal",
+        "none": "None"
+      },
+      "footerLayouts": {
+        "standard": "Standard",
+        "seedingsTable": "Seedings Table",
+        "prizeMoney": "Prize Money",
+        "officialsSignoff": "Officials Sign-off",
+        "combinedTour": "Combined Tour",
+        "none": "None"
+      }
     },
     "listPicker": {
       "title": "Select"
@@ -1705,6 +1741,15 @@
         "email": "Email",
         "public": "Public"
       }
+    },
+    "participantProfile": {
+      "wins": "Wins",
+      "perWin": "Per Win",
+      "bonus": "Bonus",
+      "quality": "Quality",
+      "rankingPoints": "Ranking Points",
+      "previous": "← Previous",
+      "next": "Next →"
     }
   },
   "dashboard": {
@@ -2671,5 +2716,75 @@
     },
     "callSheet": "Call sheet",
     "callSheetSubtitle": "Officials"
+  },
+  "templates": {
+    "topologies": "Topologies",
+    "tieFormats": "Tie Formats",
+    "compositions": "Compositions",
+    "topologyTemplates": "Topology Templates",
+    "selectTopology": "Select a template to view or click New",
+    "tieFormatTemplates": "Tie Format Templates",
+    "selectTieFormat": "Select a tie format to view or click New",
+    "compositionTemplates": "Composition Templates",
+    "selectComposition": "Select a composition to view or click New",
+    "empty": "Empty",
+    "noCollectionDefinitions": "No collection definitions",
+    "templateName": "Template name",
+    "nameRequired": "Please enter a name",
+    "saveTemplate": "Save Template"
+  },
+  "registrationProfile": {
+    "title": "Registration Profile",
+    "select": "-- Select --",
+    "priceRange": "Price Range",
+    "eventName": "Event Name",
+    "description": "Description",
+    "sponsorName": "Sponsor Name",
+    "tier": "Tier"
+  },
+  "voluntaryConsolation": {
+    "singleElimination": "Single Elimination",
+    "luckyDraw": "Lucky Draw",
+    "adHoc": "Ad Hoc",
+    "accepted": "Accepted",
+    "generate": "Generate Consolation",
+    "eliminated": "Eliminated"
+  },
+  "tournamentsControls": {
+    "sortDateNewest": "Date (newest first)",
+    "sortDateOldest": "Date (oldest first)",
+    "sortNameAsc": "Name (A → Z)",
+    "sortNameDesc": "Name (Z → A)",
+    "sortPlayers": "Players (most first)",
+    "search": "Search tournaments",
+    "all": "All",
+    "exampleTournaments": "Example Tournaments",
+    "importTournament": "Import tournament",
+    "chatMonitor": "Chat monitor",
+    "welcome": "Welcome",
+    "examples": "Examples"
+  },
+  "theme": {
+    "systemDefault": "System (default)",
+    "sizes": {
+      "xs": "Extra Small (13px)",
+      "sm": "Small (14px)",
+      "md": "Medium (16px)",
+      "lg": "Large (18px)",
+      "xl": "Extra Large (20px)"
+    }
+  },
+  "segmentOverlay": {
+    "moveParticipants": "Move participants",
+    "removeFromDraw": "Remove from draw",
+    "createPair": "Create pair",
+    "removeFromEvent": "Remove from event",
+    "manualSeeding": "Manual seeding",
+    "clearSeeding": "Clear seeding",
+    "addToAccepted": "Add to Accepted",
+    "addToQualifying": "Add to Qualifying",
+    "addToAlternates": "Add to Alternates",
+    "addEntries": "Add entries",
+    "pairingOff": "Pairing: OFF"
   }
 }

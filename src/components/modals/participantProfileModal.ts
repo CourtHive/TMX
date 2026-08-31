@@ -13,6 +13,7 @@ import { controlBar, cModal } from 'courthive-components';
 
 // constants
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
@@ -20,7 +21,7 @@ const { SINGLES } = factoryConstants.eventConstants;
 function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
   return [
     {
-      title: 'Event',
+      title: t('tables.events.event'),
       field: 'eventName',
       minWidth: 160,
       headerSort: true,
@@ -41,10 +42,24 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
         return val || '';
       },
     },
-    { title: 'Finish', field: 'rangeAccessor', hozAlign: 'center', headerSort: true, width: 90, responsive: 2 },
-    { title: 'Wins', field: 'winCount', hozAlign: 'center', headerSort: true, width: 70, responsive: 2 },
     {
-      title: 'Position',
+      title: t('tournaments.done'),
+      field: 'rangeAccessor',
+      hozAlign: 'center',
+      headerSort: true,
+      width: 90,
+      responsive: 2,
+    },
+    {
+      title: t('modals.participantProfile.wins'),
+      field: 'winCount',
+      hozAlign: 'center',
+      headerSort: true,
+      width: 70,
+      responsive: 2,
+    },
+    {
+      title: t('tables.selection.position'),
       field: 'positionPoints',
       hozAlign: 'center',
       headerSort: true,
@@ -53,7 +68,7 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Per Win',
+      title: t('modals.participantProfile.perWin'),
       field: 'perWinPoints',
       hozAlign: 'center',
       headerSort: true,
@@ -62,7 +77,7 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Bonus',
+      title: t('modals.participantProfile.bonus'),
       field: 'bonusPoints',
       hozAlign: 'center',
       headerSort: true,
@@ -71,7 +86,7 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Quality',
+      title: t('modals.participantProfile.quality'),
       field: 'qualityWinPoints',
       hozAlign: 'center',
       headerSort: true,
@@ -80,7 +95,7 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Total',
+      title: t('tot'),
       field: 'points',
       hozAlign: 'center',
       headerSort: true,
@@ -351,7 +366,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   if (availablePolicies.length) {
     const sectionLabel = document.createElement('div');
     sectionLabel.style.cssText = 'font-weight: 600; margin-bottom: 0.5em; font-size: 0.95em;';
-    sectionLabel.textContent = 'Ranking Points';
+    sectionLabel.textContent = t('modals.participantProfile.rankingPoints');
     content.appendChild(sectionLabel);
 
     // Control bar container
@@ -514,7 +529,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
       'display: flex; align-items: center; justify-content: center; gap: 0.5em; margin-bottom: 1em;';
 
     const prevBtn = document.createElement('button');
-    prevBtn.textContent = '\u2190 Previous';
+    prevBtn.textContent = t('modals.participantProfile.previous');
     prevBtn.style.cssText =
       'padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: pointer;';
     if (currentIndex <= 0) {
@@ -528,7 +543,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
     counter.textContent = `${currentIndex + 1} of ${participantIds.length}`;
 
     const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Next \u2192';
+    nextBtn.textContent = t('modals.participantProfile.next');
     nextBtn.style.cssText =
       'padding: 4px 12px; font-size: 12px; border-radius: 4px; border: 1px solid var(--tmx-border-secondary, #555); background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-primary, #ccc); cursor: pointer;';
     if (currentIndex >= participantIds.length - 1) {
@@ -557,7 +572,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   if (hasList && currentIndex >= 0) {
     buttons.push(
       {
-        label: '\u2190 Previous',
+        label: t('modals.participantProfile.previous'),
         intent: 'none',
         close: false,
         disabled: currentIndex <= 0,
@@ -565,7 +580,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
         footer: { style: navButtonStyle },
       },
       {
-        label: 'Next \u2192',
+        label: t('modals.participantProfile.next'),
         intent: 'none',
         close: false,
         disabled: currentIndex >= participantIds.length - 1,
@@ -575,7 +590,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
     );
   }
 
-  buttons.push({ label: 'Close', close: true });
+  buttons.push({ label: t('common.close'), close: true });
 
   cModal.open({
     title: participant.participantName || 'Participant Profile',

@@ -47,11 +47,11 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { field: 'startDate', dir: 'desc', label: 'Date (newest first)' },
-  { field: 'startDate', dir: 'asc', label: 'Date (oldest first)' },
-  { field: 'tournamentName', dir: 'asc', label: 'Name (A → Z)' },
-  { field: 'tournamentName', dir: 'desc', label: 'Name (Z → A)' },
-  { field: 'participantCount', dir: 'desc', label: 'Players (most first)' },
+  { field: 'startDate', dir: 'desc', label: t('tournamentsControls.sortDateNewest') },
+  { field: 'startDate', dir: 'asc', label: t('tournamentsControls.sortDateOldest') },
+  { field: 'tournamentName', dir: 'asc', label: t('tournamentsControls.sortNameAsc') },
+  { field: 'tournamentName', dir: 'desc', label: t('tournamentsControls.sortNameDesc') },
+  { field: 'participantCount', dir: 'desc', label: t('tournamentsControls.sortPlayers') },
 ];
 
 function makeTableShim(reloadAll: () => void, ids: string[]): any {
@@ -88,7 +88,7 @@ function buildSearchItem(view: TournamentsView): any {
     onChange: (e: Event) => view.setSearchQuery((e.target as HTMLInputElement).value),
     onKeyUp: (e: Event) => view.setSearchQuery((e.target as HTMLInputElement).value),
     clearSearch: () => view.setSearchQuery(''),
-    placeholder: 'Search tournaments',
+    placeholder: t('tournamentsControls.search'),
     id: SEARCH_INPUT_ID,
     location: LEFT,
     search: true,
@@ -104,9 +104,9 @@ function showWelcomeRedirect(reloadAll: () => void): void {
   const navigate = () => context.router?.navigate(`/${TMX_TOURNAMENTS}/${Date.now()}`);
   renderWelcomeView(anchor, {
     onGenerate: () => {
-      const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+      const options = [{ label: t('tournamentsControls.all'), value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
       listPicker({
-        title: 'Example Tournaments',
+        title: t('tournamentsControls.exampleTournaments'),
         actionLabel: 'Generate',
         actionIntent: IS_SUCCESS,
         options,
@@ -140,21 +140,24 @@ function buildAdminActions(reloadAll: () => void, tableShim: any): any[] {
   const admin = state?.roles?.includes(SUPER_ADMIN);
 
   return [
-    admin && { label: 'Import tournament', onClick: () => importTournaments({ table: tableShim }) },
-    admin && { label: 'Load by ID', onClick: () => loadTournamentById({ table: tableShim }) },
-    admin && { label: 'Chat monitor', onClick: () => openChatMonitorModal() },
-    admin && { label: 'Welcome', onClick: () => showWelcomeRedirect(reloadAll), close: true },
+    admin && {
+      label: t('tournamentsControls.importTournament'),
+      onClick: () => importTournaments({ table: tableShim }),
+    },
+    admin && { label: t('tournaments.loadbyid'), onClick: () => loadTournamentById({ table: tableShim }) },
+    admin && { label: t('tournamentsControls.chatMonitor'), onClick: () => openChatMonitorModal() },
+    admin && { label: t('tournamentsControls.welcome'), onClick: () => showWelcomeRedirect(reloadAll), close: true },
   ].filter(Boolean);
 }
 
 function buildExamplesItem(reloadAll: () => void, tableShim: any): any {
   return {
-    label: 'Examples',
+    label: t('tournamentsControls.examples'),
     intent: 'is-info',
     onClick: () => {
-      const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+      const options = [{ label: t('tournamentsControls.all'), value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
       listPicker({
-        title: 'Example Tournaments',
+        title: t('tournamentsControls.exampleTournaments'),
         actionLabel: 'Generate',
         actionIntent: IS_SUCCESS,
         options,
@@ -199,7 +202,7 @@ export function calendarControls(view: TournamentsView, reloadAll: () => void, r
       align: RIGHT,
     },
     !state && buildExamplesItem(reloadAll, tableShim),
-    actions.length && { label: 'Actions', options: actions, align: RIGHT },
+    actions.length && { label: t('actions.actions'), options: actions, align: RIGHT },
     buildSortItem(view),
   ].filter(Boolean);
 
