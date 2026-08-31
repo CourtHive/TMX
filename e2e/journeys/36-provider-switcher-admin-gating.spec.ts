@@ -1,3 +1,4 @@
+import { routeApiToCfs } from '../helpers/cfsProxy';
 import { test, expect, type Page } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
 import {
@@ -42,6 +43,11 @@ let providerId = '';
 let provisionerId = '';
 
 async function loginViaModal(page: Page, email: string, password: string): Promise<void> {
+  // Under TEST_PROD the built app calls its own origin and `vite preview` has no API
+  // behind it, so this login 404s and leaves no session — which surfaced here as
+  // intermittent failure rather than a clean one, because the assertions race the
+  // (never-arriving) provider resolution. See cfsProxy.
+  await routeApiToCfs(page);
   await page.goto('/');
   await waitForAppReady(page);
   await page.locator('#login').click();
