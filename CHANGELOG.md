@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.23.0](https://github.com/CourtHive/TMX/compare/v8.22.1...v8.23.0) (2026-08-31)
+
+
+### Features
+
+* **i18n:** TMX hardcoded-English burn-down — 612 literals to 18 ([#1400](https://github.com/CourtHive/TMX/issues/1400)) ([e97c737](https://github.com/CourtHive/TMX/commit/e97c7379ad28f0a118b15e999ce717f630267a8c))
+
+
+### Bug Fixes
+
+* **scoring:** gate TMX's status promotion on the library's isScorable ([#1397](https://github.com/CourtHive/TMX/issues/1397)) ([df18ad5](https://github.com/CourtHive/TMX/commit/df18ad5e8db149d817b20b62e547e68d9bfe1014))
+
 ## [8.22.1](https://github.com/CourtHive/TMX/compare/v8.22.0...v8.22.1) (2026-08-31)
 
 
