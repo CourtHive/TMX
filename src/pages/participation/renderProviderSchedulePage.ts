@@ -36,7 +36,7 @@ import {
   renderScheduleGroups,
   renderScheduleSkeleton,
 } from './providerScheduleView';
-import { groupEntriesByYear, readParticipationResponse, SUBJECT_TYPE_TEAM } from './participationEntries';
+import { groupEntriesByYear, readParticipationResponse } from './participationEntries';
 
 import {
   PARTICIPATION_CONTROL,
@@ -105,7 +105,7 @@ function mountPage(container: HTMLElement): ScheduleAnchors {
 
 async function loadSchedule(anchors: ScheduleAnchors, providerId: string, subjectLabel: string): Promise<void> {
   const token = renderToken;
-  const response = await getParticipation({ subjectType: SUBJECT_TYPE_TEAM, subjectId: providerId });
+  const response = await getParticipation({ subjectId: providerId });
   if (token !== renderToken) return;
 
   const result = readParticipationResponse(response);

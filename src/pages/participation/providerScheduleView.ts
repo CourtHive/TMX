@@ -124,10 +124,12 @@ function buildRow(entry: ParticipationEntry, onOpen: (tournamentId: string) => v
   name.textContent = entry.tournamentName ?? entry.tournamentId;
   row.appendChild(name);
 
+  // No per-row event count. CFS's participation index carried one; courthive-query's read does not,
+  // and deriving it here would mean a second query per row. The fixture NAME already names both
+  // programmes ("Denison University vs Hobart College"), which is the information a season needs.
   const events = document.createElement('span');
   events.className = 'tmx-schedule-row__events';
-  events.textContent =
-    entry.eventCount === undefined ? '' : t('pages.participation.eventCount', { count: entry.eventCount });
+  events.textContent = entry.teamName ?? '';
   row.appendChild(events);
 
   row.onclick = () => onOpen(entry.tournamentId);

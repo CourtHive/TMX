@@ -2442,8 +2442,6 @@
       "navLabel": "Schedule",
       "fixtureCount_one": "{{count}} fixture",
       "fixtureCount_other": "{{count}} fixtures",
-      "eventCount_one": "{{count}} event",
-      "eventCount_other": "{{count}} events",
       "undated": "No date",
       "noFixtures": "No fixtures recorded for this programme.",
       "loadFailed": "The schedule could not be loaded.",

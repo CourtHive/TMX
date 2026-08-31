@@ -54,9 +54,14 @@ export const emitVersionJson = (): Plugin => ({
  * Compile-time env replacement. Both targets read `process.env.SERVER` at
  * runtime; without this plugin the reference survives into the bundle and
  * throws in the browser (and in the Electron renderer, which has no `process`).
+ *
+ * `QUERY_SERVER` is the read-model service (courthive-query), which is a SEPARATE
+ * origin from CFS in development — CFS on :8383, query on :3150. In production both
+ * are same-origin behind nginx, which routes `/query/*` to the query service, so the
+ * default empty string is correct there and only dev needs to set it.
  */
 export const rendererPlugins = (): Plugin[] => [
-  EnvironmentPlugin({ SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
+  EnvironmentPlugin({ SERVER: '', QUERY_SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
   emitVersionJson(),
 ];
 

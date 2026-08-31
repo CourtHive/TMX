@@ -9,38 +9,39 @@
  * apart, and it is unit-tested in both directions.
  */
 
-/** The read model's own vocabulary. Deliberately not `factoryConstants.participantTypes`: that set
- * is INDIVIDUAL | PAIR | TEAM | GROUP, and PERSON — the other participation grain — has no member
- * there. Two vocabularies that happen to share the token `TEAM` are still two vocabularies. */
-export const SUBJECT_TYPE_TEAM = 'TEAM';
-
 export interface ParticipationEntry {
-  subjectType: string;
-  subjectId: string;
   tournamentId: string;
   tournamentName?: string;
-  participantId?: string;
   providerId?: string;
   startDate?: string;
   endDate?: string;
-  eventCount?: number;
+  /** The team's name AS THIS FIXTURE RECORDED IT — courthive-query takes it from the TEAM
+   *  competitor row. Absent when the team reached the fixture only through an entry, because there
+   *  is no competitor row to take a name from yet. */
+  teamName?: string;
 }
 
 export type ParticipationResult = { status: 'ok'; entries: ParticipationEntry[] } | { status: 'error'; reason: string };
 
 /**
- * Read the `GET /participation/:subjectType/:subjectId` response.
+ * Read the `GET /programs/:teamId/participations` response (courthive-query).
  *
  * `baseApi` resolves a rejected request to `undefined` rather than rejecting, and a server-side
- * refusal can arrive as a 200 carrying `{ error }`. Neither has an `entries` array, so the presence
- * of that array — not the absence of an error field — is what makes a response readable.
+ * refusal can arrive as a 200 carrying `{ error }` — or, from a service behind a proxy, as an
+ * `{ message, statusCode }` error body. **None of those has a `participations` array, and the
+ * presence of that array — not the absence of an error field — is what makes a response readable.**
+ *
+ * That distinction is not theoretical: reading an unauthorised body leniently, with a
+ * `?? []` style default, reports "0 fixtures" for a request that was REFUSED. It happened twice
+ * while this feature was being built, once against a 401 whose body had no `participations` key at
+ * all. Requiring the array is what makes a refusal impossible to mistake for an empty season.
  */
 export function readParticipationResponse(response: any): ParticipationResult {
   if (!response) return { status: 'error', reason: 'no-response' };
   const data = response.data;
   if (data?.error) return { status: 'error', reason: 'server-error' };
-  if (!Array.isArray(data?.entries)) return { status: 'error', reason: 'malformed' };
-  return { status: 'ok', entries: data.entries as ParticipationEntry[] };
+  if (!Array.isArray(data?.participations)) return { status: 'error', reason: 'malformed' };
+  return { status: 'ok', entries: data.participations as ParticipationEntry[] };
 }
 
 export interface ParticipationYearGroup {

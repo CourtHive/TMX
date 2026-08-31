@@ -12,6 +12,23 @@ import { SERVER, signInSuperAdmin, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } from 
 /**
  * Journey 119 — a programme's SCHEDULE, and why it cannot be its calendar.
  *
+ * ## Why the read is STUBBED here, and what still proves the rest
+ *
+ * The season is served by **courthive-query**, a different service from CFS. Reaching it for real
+ * from a journey would need CFS's projection outbox enabled locally, its consumer running, and the
+ * factory release that puts a durable team id on entries — three moving parts outside TMX, none of
+ * which this spec is about. So the transport is stubbed, and this journey asserts what is genuinely
+ * TMX's: the nav gate, the route, the rendering, and the four states.
+ *
+ * The layers it does not cover are covered where they belong, not nowhere:
+ *   - the read model's semantics (an entered-but-unpublished fixture is visible to an operator and
+ *     NOT to the public) — courthive-query's own DB-backed `query-verify.e2e.spec.ts`;
+ *   - the whole chain against real data — the acceptance run against Button, recorded in
+ *     `Mentat/statuses/2026-08-31-tmx-provider-schedule-participation.md`.
+ *
+ * The tournament IS seeded for real, because "drill through to its results" must open a record CFS
+ * actually holds.
+ *
  * The mandate journey, end to end: sign in as a super-admin, impersonate a programme, reach that
  * programme's fixtures, and drill from one into its results.
  *
@@ -64,6 +81,14 @@ async function loginViaModal(page: Page): Promise<void> {
   await page.waitForTimeout(1500);
 }
 
+/** The read TMX now performs — courthive-query's operator route, same-origin `/query/...` under
+ *  TEST_PROD. Stubbed per test so each state is exact and no second service has to be standing. */
+async function stubSeason(page: Page, body: unknown, status = 200): Promise<void> {
+  await page.route('**/programs/**/participations', (route) =>
+    route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) }),
+  );
+}
+
 /** Impersonate a provider through the super-admin switcher — the mandate's own entry point. */
 async function impersonate(page: Page, providerName: string): Promise<void> {
   await page.locator('#provider').click();
@@ -109,6 +134,21 @@ test.describe('Journey 119 — provider schedule from the participation index', 
     const f = fixture as ParticipationFixture;
 
     await loginViaModal(page);
+    // The season is stubbed; the TOURNAMENT it names is real and seeded on CFS, so clicking the row
+    // opens a record the server actually holds and the results assertion below means something.
+    await stubSeason(page, {
+      teamId: f.programmeA.providerId,
+      participations: [
+        {
+          tournamentId: f.tournamentId,
+          tournamentName: f.tournamentName,
+          startDate: f.startDate,
+          endDate: f.startDate,
+          providerId: f.governingProviderId,
+          teamName: f.programmeA.name,
+        },
+      ],
+    });
     await impersonate(page, f.programmeA.name);
 
     // The nav entry is the discoverable path from where the journey previously dead-ended.
@@ -143,43 +183,24 @@ test.describe('Journey 119 — provider schedule from the participation index', 
     await expect(page.locator(`${S.TOURNAMENT_MATCHUPS} .tabulator-row`).first()).toBeVisible({ timeout: 20_000 });
   });
 
-  test('the SAME fixture appears in the other programme season — which no calendar could express', async ({
-    page,
-  }) => {
-    test.skip(!fixture, `seed unavailable — CFS at ${SERVER}: ${skipReason}`);
-    const f = fixture as ParticipationFixture;
-
-    await loginViaModal(page);
-
-    // Reached by URL rather than by impersonating again: the point of putting the subject in the
-    // path is that an operator can read a season without becoming that provider.
-    await page.goto(`/#/provider/${f.programmeB.providerId}/schedule`);
-    const row = page.locator(`${S.PARTICIPATION_LIST} [data-tournament-id="${f.tournamentId}"]`);
-    await expect(row).toBeVisible({ timeout: 15_000 });
-
-    // And the fixture reached both seasons WITHOUT being in anybody's calendar. Read the calendar of
-    // the provider that actually OWNS it — the only one it could possibly be listed in.
-    const calendar = await page.request.post(`${SERVER}/provider/calendar/provider`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { providerAbbr: f.governingAbbr },
-    });
-    const body = await calendar.json().catch(() => ({}));
-    const tournamentIds = (body?.calendar?.tournaments ?? []).map((t: any) => t.tournamentId);
-
-    // CONTROL first. An empty or unreachable calendar would satisfy the exclusion below no matter
-    // what the `calendarListed` seam did — so prove the read works by finding the ordinary,
-    // deliberately-listed tournament seeded under the same owner.
-    expect(tournamentIds).toContain(f.listedTournamentId);
-    // Only now does this mean anything: the fixture is owned by this provider and still absent from
-    // its calendar, which is what lets it belong to two programmes' seasons at once.
-    expect(tournamentIds).not.toContain(f.tournamentId);
-  });
+  // REMOVED — "the SAME fixture appears in BOTH programmes' seasons, and in neither calendar".
+  //
+  // It was the sharpest test here, and it cannot live at this layer any more. With the season
+  // stubbed it would assert the stub — my own fixture data — rather than anything the system
+  // decided. A test that can only confirm what the test itself supplied is worse than no test,
+  // because it reads like coverage.
+  //
+  // The property is real and still tested, one layer down and against real Postgres:
+  // `courthive-query/src/modules/query/query-verify.e2e.spec.ts` asserts that a team which merely
+  // ENTERED an unpublished tournament is found by the operator read and NOT by the public one,
+  // with a deliberately-listed control tournament proving the calendar read works at all.
 
   test('a programme with no fixtures reads as an empty season, never as a failure', async ({ page }) => {
     test.skip(!fixture, `seed unavailable — CFS at ${SERVER}: ${skipReason}`);
     const f = fixture as ParticipationFixture;
 
     await loginViaModal(page);
+    await stubSeason(page, { teamId: f.emptyProgramme.providerId, participations: [] });
     await page.goto(`/#/provider/${f.emptyProgramme.providerId}/schedule`);
 
     const notice = page.locator(`${S.PARTICIPATION_LIST} [data-notice-variant]`);
@@ -190,19 +211,29 @@ test.describe('Journey 119 — provider schedule from the participation index', 
     await expect(page.locator(`${S.PARTICIPATION_CONTROL} [data-fixture-count="0"]`)).toBeVisible();
   });
 
-  // The other half of the pair above, and the one that gives it meaning. An empty season and a
-  // failed load are the two answers a user is most likely to confuse, and a page that rendered
-  // BOTH as "no fixtures recorded" would pass the previous test perfectly while telling an operator
-  // that a programme has no season during an outage. Asserted here against a refused request.
+  // The other half of the pair above. An empty season and a failed load are the two answers a user
+  // is most likely to confuse, and a page rendering BOTH as "no fixtures recorded" would pass the
+  // previous test perfectly while telling an operator a programme has no season during an outage.
+  //
+  // ⚠️ WHAT THIS DOES NOT GUARD, measured rather than assumed. A refused request makes axios reject,
+  // so `baseApi` returns `undefined` and the reader's FIRST guard (`!response`) produces the error
+  // state — the response BODY is never parsed. Injecting the lenient-reader defect
+  // (`participations ?? []`, which turns a refusal into "0 fixtures") and building it into the
+  // bundle leaves all three tests here GREEN. The unit suite is what catches it: the same defect
+  // fails three cases in `participationEntries.test.ts`, including a 401 body with no
+  // `participations` key at all.
+  //
+  // So this test guards the UI rendering a failure on a refused transport. It is not, and cannot
+  // be, the guard on how a refusal BODY is read.
   test('a refused request reads as a failure, never as an empty season', async ({ page }) => {
     test.skip(!fixture, `seed unavailable — CFS at ${SERVER}: ${skipReason}`);
     const f = fixture as ParticipationFixture;
 
     await loginViaModal(page);
     // Registered AFTER routeApiToCfs so it wins — Playwright tries handlers in reverse order.
-    await page.route('**/participation/**', (route) =>
-      route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Forbidden' }) }),
-    );
+    // A 403 body with no `participations` key at all: exactly what the query service returns behind
+    // its guard, and exactly the shape a lenient reader turns into "0 fixtures".
+    await stubSeason(page, { message: 'Forbidden', error: 'Forbidden', statusCode: 403 }, 403);
 
     // The SAME subject the first test read a fixture for, so the difference between the two
     // outcomes can only be the refusal — not a different, emptier subject.

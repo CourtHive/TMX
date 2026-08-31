@@ -6,7 +6,6 @@ import {
   groupEntriesByYear,
   parseCalendarDay,
   readParticipationResponse,
-  SUBJECT_TYPE_TEAM,
 } from './participationEntries';
 
 import type { ParticipationEntry } from './participationEntries';
@@ -14,13 +13,11 @@ import type { ParticipationEntry } from './participationEntries';
 const MAR_4 = '2026-03-04';
 
 const entry = (overrides: Partial<ParticipationEntry> = {}): ParticipationEntry => ({
-  subjectType: SUBJECT_TYPE_TEAM,
-  subjectId: 'subject-1',
   tournamentId: 'dual-1',
   tournamentName: 'A vs B',
   startDate: MAR_4,
   endDate: MAR_4,
-  eventCount: 1,
+  teamName: 'Team A',
   ...overrides,
 });
 
@@ -29,12 +26,12 @@ describe('readParticipationResponse', () => {
   // likely to confuse, and the only defence is that the reader tells them apart before anything
   // renders. Both directions are asserted so neither can quietly become the other.
   it('reads a populated season as ok', () => {
-    const result = readParticipationResponse({ data: { count: 1, entries: [entry()] } });
+    const result = readParticipationResponse({ data: { teamId: 't', participations: [entry()] } });
     expect(result).toEqual({ status: 'ok', entries: [entry()] });
   });
 
   it('reads a subject with NO fixtures as ok with zero entries — not as an error', () => {
-    const result = readParticipationResponse({ data: { subjectType: 'TEAM', count: 0, entries: [] } });
+    const result = readParticipationResponse({ data: { teamId: 't', participations: [] } });
     expect(result).toEqual({ status: 'ok', entries: [] });
   });
 
@@ -49,9 +46,17 @@ describe('readParticipationResponse', () => {
     });
   });
 
-  it('reads a body with no entries array as an error, never as an empty season', () => {
-    expect(readParticipationResponse({ data: { count: 0 } })).toEqual({ status: 'error', reason: 'malformed' });
+  it('reads a body with no participations array as an error, never as an empty season', () => {
+    expect(readParticipationResponse({ data: { teamId: 't' } })).toEqual({ status: 'error', reason: 'malformed' });
     expect(readParticipationResponse({})).toEqual({ status: 'error', reason: 'malformed' });
+  });
+
+  // The exact body a refused request returns from the query service behind its guard. Read
+  // leniently it yields "0 fixtures"; it must read as a REFUSAL. This is not hypothetical — it was
+  // misread twice during development, once by a probe that defaulted the missing key to [].
+  it('reads a 401 body — no participations key at all — as an error, not an empty season', () => {
+    const unauthorised = { data: { message: 'no HS256 secret configured', error: 'Unauthorized', statusCode: 401 } };
+    expect(readParticipationResponse(unauthorised)).toEqual({ status: 'error', reason: 'server-error' });
   });
 });
 
