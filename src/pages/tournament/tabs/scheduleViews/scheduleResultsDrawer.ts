@@ -21,6 +21,7 @@ import {
   type ParticipantLookup,
   type OverLimitAttempt,
 } from './scheduleResultsDescribe';
+import { t } from 'i18n';
 
 const BLOCK_STYLE = 'margin-top: 10px;';
 const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 2px;';
@@ -89,11 +90,11 @@ export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): 
 
 function openWideModal(content: HTMLElement): void {
   openModal({
-    title: 'Scheduling Results',
+    title: t('scheduleResults.title'),
     content,
     buttons: [
       {
-        label: 'Close',
+        label: t('common.close'),
         intent: 'is-primary',
         close: true,
         onClick: closeModal,
@@ -203,7 +204,7 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
 
   if (empty) {
     const note = document.createElement('p');
-    note.textContent = 'No scheduler activity on this date.';
+    note.textContent = t('scheduleResults.noActivity');
     note.style.cssText = 'margin: 0; font-size: 0.8rem; color: var(--sp-muted, var(--tmx-text-muted));';
     section.appendChild(note);
     return section;
@@ -436,7 +437,7 @@ function buildEmptyState(): HTMLElement {
   const wrap = document.createElement('div');
   wrap.style.cssText =
     'padding: 24px; text-align: center; color: var(--sp-muted, var(--tmx-text-muted)); font-size: 0.85rem;';
-  wrap.textContent = 'The scheduler completed but reported no per-date activity.';
+  wrap.textContent = t('scheduleResults.noPerDate');
   return wrap;
 }
 

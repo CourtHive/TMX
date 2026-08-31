@@ -390,7 +390,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
       if (!enabled && hasUnsavedGridChanges()) {
         const count = getUnsavedGridChangeCount();
         confirmModal({
-          title: 'Discard unsaved changes?',
+          title: t('schedulingTab.discardChanges'),
           query: `You have ${count} unsaved scheduling change(s). Switching to immediate mode will discard them. Continue?`,
           okIntent: 'is-warning',
           okAction: () => {
@@ -500,7 +500,7 @@ function guardUnsavedAndProceed(proceed: () => void): void {
     return;
   }
   confirmModal({
-    title: 'Discard unsaved changes?',
+    title: t('schedulingTab.discardChanges'),
     query: 'You have unsaved scheduling changes. Discard and continue?',
     okIntent: 'is-warning',
     okAction: () => proceed(),
@@ -537,7 +537,7 @@ function refreshActionBar(): void {
 
   const discardBtn = document.createElement('button');
   discardBtn.type = 'button';
-  discardBtn.textContent = 'Discard';
+  discardBtn.textContent = t('schedulingTab.discard');
   discardBtn.style.cssText = 'padding: 6px 14px; cursor: pointer;';
   discardBtn.addEventListener('click', () => {
     void discardPending();
@@ -546,7 +546,7 @@ function refreshActionBar(): void {
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
-  saveBtn.textContent = 'Save';
+  saveBtn.textContent = t('common.save');
   saveBtn.style.cssText =
     'padding: 6px 14px; cursor: pointer; background: var(--tmx-fill-accent, #2563eb); color: #fff; border: 0; border-radius: 4px; font-weight: 600;';
   saveBtn.addEventListener('click', () => {

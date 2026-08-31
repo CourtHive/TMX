@@ -178,7 +178,7 @@ export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOp
       engine: COMPETITION_ENGINE,
       callback: (result: any) => {
         if (result?.success) {
-          tmxToast({ message: 'Saved', intent: 'is-success' });
+          tmxToast({ message: t('queueService.saved'), intent: 'is-success' });
           onResult?.({ success: true });
         } else {
           console.error('[scheduling] mutation error', result);
@@ -195,7 +195,7 @@ export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOp
   const result = competitionEngine.executionQueue(directives, true);
   if (result?.error) {
     console.error('[scheduling] local execution error', result);
-    tmxToast({ message: 'Schedule change failed locally', intent: 'is-danger' });
+    tmxToast({ message: t('gridView.localFailed'), intent: 'is-danger' });
     onResult?.({ success: false, error: result.error });
     return;
   }
@@ -255,7 +255,7 @@ export async function savePending(): Promise<void> {
         tmxToast({ message: `Saved ${count} scheduling changes`, intent: 'is-success' });
       } else {
         console.error('[scheduling] bulk save error', result);
-        tmxToast({ message: 'Failed to save scheduling changes to server', intent: 'is-danger' });
+        tmxToast({ message: t('gridView.serverFailed'), intent: 'is-danger' });
       }
     },
   });
@@ -283,7 +283,7 @@ export async function discardPending(): Promise<void> {
   }
 
   pendingBatches = [];
-  tmxToast({ message: 'Scheduling changes discarded', intent: INTENT_WARNING });
+  tmxToast({ message: t('gridView.discarded'), intent: INTENT_WARNING });
   notify();
 }
 

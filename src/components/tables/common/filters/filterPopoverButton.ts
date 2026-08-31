@@ -1,6 +1,7 @@
 import tippy, { Instance } from 'tippy.js';
 
 import { LEFT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const FILTER_BUTTON_ID = 'filterPopoverButton';
 const IS_FILTERING = 'is-filtering';
@@ -63,7 +64,7 @@ export function filterPopoverButton(
 
     const clearAll = document.createElement('button');
     clearAll.className = 'button is-small is-light font-medium';
-    clearAll.textContent = 'Clear All';
+    clearAll.textContent = t('schedule.filterClearAll');
     clearAll.onclick = (e) => {
       e.stopPropagation();
       for (const { select, resetOption, row } of selects) {

@@ -61,12 +61,12 @@ function suggestCompetitionFormatKey(event: any): CompetitionFormatKey {
   return '';
 }
 
-const DEFAULT_AGE_CATEGORIES = [
-  { code: 'U10', label: '10 and Under' },
-  { code: 'U12', label: '12 and Under' },
-  { code: 'U14', label: '14 and Under' },
-  { code: 'U16', label: '16 and Under' },
-  { code: 'U18', label: '18 and Under' },
+const defaultAgeCategories = () => [
+  { code: 'U10', label: t('ageCategories.u10') },
+  { code: 'U12', label: t('ageCategories.u12') },
+  { code: 'U14', label: t('ageCategories.u14') },
+  { code: 'U16', label: t('ageCategories.u16') },
+  { code: 'U18', label: t('ageCategories.u18') },
 ];
 
 function resolveEnteredGenderOptions(event: any, enteredParticipantGenders: any[]): string[] {
@@ -107,13 +107,15 @@ function buildCategoryOptionsList(
         });
       });
   } else {
-    DEFAULT_AGE_CATEGORIES.filter(({ code }) => isCategoryAllowed(code)).forEach(({ code, label }) => {
-      options.push({
-        selected: selectedCode === code,
-        label,
-        value: code,
+    defaultAgeCategories()
+      .filter(({ code }) => isCategoryAllowed(code))
+      .forEach(({ code, label }) => {
+        options.push({
+          selected: selectedCode === code,
+          label,
+          value: code,
+        });
       });
-    });
   }
 
   options.push({

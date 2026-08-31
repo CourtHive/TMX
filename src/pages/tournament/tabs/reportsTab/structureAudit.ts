@@ -9,6 +9,7 @@ import {
   DrawAudit,
 } from './structureAuditData';
 import { cModal } from 'courthive-components';
+import { t } from 'i18n';
 
 // Admin/director-facing structure-integrity audit. Runs the factory's read-only
 // getStructureInconsistencies check on every draw of the loaded tournament (via the DOM-free
@@ -228,7 +229,7 @@ function buildAuditContent(): HTMLElement {
   if (!drawCount) {
     const summary = document.createElement('div');
     summary.style.cssText = `font-size: 0.8125rem; color: ${TEXT_SECONDARY};`;
-    summary.textContent = 'This tournament has no generated draws to audit.';
+    summary.textContent = t('reports.noDraws');
     container.appendChild(summary);
     return container;
   }
@@ -243,9 +244,9 @@ function buildAuditContent(): HTMLElement {
 
 export function openStructureAuditModal(): void {
   cModal.open({
-    title: 'Structure Integrity Audit',
+    title: t('reports.structureAudit'),
     content: buildAuditContent(),
-    buttons: [{ label: 'Close', close: true }],
+    buttons: [{ label: t('common.close'), close: true }],
     config: { maxWidth: 760 },
   });
 }

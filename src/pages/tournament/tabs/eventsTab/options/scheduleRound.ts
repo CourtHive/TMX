@@ -47,7 +47,7 @@ export function scheduleRound(params: ScheduleRoundParams): void {
     // Date field
     const dateLabel = document.createElement('label');
     dateLabel.className = 'label';
-    dateLabel.textContent = 'Date';
+    dateLabel.textContent = t('tables.matchUps.date');
     elem.appendChild(dateLabel);
 
     const dateInput = document.createElement('input');
@@ -83,7 +83,7 @@ export function scheduleRound(params: ScheduleRoundParams): void {
     const timeLabel = document.createElement('label');
     timeLabel.className = 'label';
     timeLabel.style.marginTop = '0.75rem';
-    timeLabel.textContent = 'Time (optional)';
+    timeLabel.textContent = t('roundOptions.timeOptional');
     elem.appendChild(timeLabel);
 
     const timeWrapper = document.createElement('div');
@@ -148,11 +148,11 @@ export function scheduleRound(params: ScheduleRoundParams): void {
   };
 
   openModal({
-    title: 'Schedule Round',
+    title: t('roundOptions.scheduleRound'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Submit', intent: 'is-primary', onClick: onSubmit },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('sbt'), intent: 'is-primary', onClick: onSubmit },
     ],
   });
 }

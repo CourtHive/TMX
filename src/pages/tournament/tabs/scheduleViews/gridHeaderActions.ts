@@ -14,6 +14,7 @@ import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 import { buildStepper } from './stepperControl';
 import { buildToggleIconButton, TOGGLE_BG_UNPRESSED, TOGGLE_BTN_BASE_STYLE } from 'components/buttons/toggleIconButton';
+import { t } from 'i18n';
 
 const MIN_ROWS_FLOOR = 1;
 const MIN_ROWS_CEILING = 200;
@@ -195,11 +196,11 @@ function buildSearchSlot(onSearch: (text: string) => void): HTMLElement {
 
 function buildMinRowsStepper(initial: number, onChange: (rows: number) => void): HTMLElement {
   return buildStepper({
-    label: 'Rows',
+    label: t('modals.printSchedule.rows'),
     initial,
     min: MIN_ROWS_FLOOR,
     max: MIN_ROWS_CEILING,
-    title: 'Minimum number of time rows in the schedule grid',
+    title: t('gridActions.minRowsHint'),
     onChange,
   });
 }

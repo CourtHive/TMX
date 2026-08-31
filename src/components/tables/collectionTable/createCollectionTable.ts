@@ -1,6 +1,7 @@
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { getCollectionColumns } from './getCollectionColumns';
+import { t } from 'i18n';
 
 export function createCollectionTable({
   matchUp,
@@ -20,7 +21,7 @@ export function createCollectionTable({
   const table = new Tabulator(tableElement, {
     responsiveLayoutCollapseStartOpen: false,
     responsiveLayout: 'collapse',
-    placeholder: 'No matches',
+    placeholder: t('ui.noMatches'),
     reactiveData: true,
     layout: 'fitColumns',
     index: 'matchUpId',

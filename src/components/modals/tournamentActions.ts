@@ -39,7 +39,7 @@ export function tournamentActions(): void {
       return tmxToast({
         action: {
           onClick: () => sendTournament({ tournamentRecord }).then(success, failure),
-          text: 'Send??',
+          text: t('tournamentActions.send'),
         },
         message: t('modals.tournamentActions.uploadTournament'),
         intent: 'is-danger',

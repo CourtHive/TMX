@@ -16,6 +16,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 import { LUCKY_DRAW_ADVANCEMENT } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 interface LuckyLoserSelectionParams {
   roundNumber: number;
@@ -176,7 +177,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'none', close: true },
+    { label: t('common.cancel'), intent: 'none', close: true },
     ...(canAdvance
       ? [
           {

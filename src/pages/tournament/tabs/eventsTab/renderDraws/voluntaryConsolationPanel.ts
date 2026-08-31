@@ -45,19 +45,19 @@ const STRUCTURE_ADDED = 'modals.addConsolation.structureAdded';
 const IS_SUCCESS = 'is-success';
 const toastStructureAdded = () => tmxToast({ message: t(STRUCTURE_ADDED), intent: IS_SUCCESS });
 
-const DRAW_TYPE_OPTIONS = [
-  { label: 'Single Elimination', value: SINGLE_ELIMINATION },
-  { label: 'Round Robin', value: ROUND_ROBIN },
-  { label: 'Lucky Draw', value: LUCKY_DRAW },
-  { label: 'Ad Hoc', value: AD_HOC },
+const drawTypeOptions = () => [
+  { label: t('voluntaryConsolation.singleElimination'), value: SINGLE_ELIMINATION },
+  { label: t('draws.roundrobin'), value: ROUND_ROBIN },
+  { label: t('voluntaryConsolation.luckyDraw'), value: LUCKY_DRAW },
+  { label: t('voluntaryConsolation.adHoc'), value: AD_HOC },
 ];
 
 // Entry status → chip config
-const STATUS_CHIPS: Record<string, { label: string; intent: string }> = {
-  [DIRECT_ACCEPTANCE]: { label: 'Accepted', intent: IS_SUCCESS },
-  [ALTERNATE]: { label: 'Alternate', intent: 'is-warning' },
-  [WITHDRAWN]: { label: 'Withdrawn', intent: 'is-danger' },
-};
+const statusChips = () => ({
+  [DIRECT_ACCEPTANCE]: { label: t('voluntaryConsolation.accepted'), intent: IS_SUCCESS },
+  [ALTERNATE]: { label: t('draws.alternate'), intent: 'is-warning' },
+  [WITHDRAWN]: { label: t('signin.withdrawn'), intent: 'is-danger' },
+});
 
 type Params = {
   structure: any;
@@ -183,7 +183,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   // ── Entry status chip formatter ──
   const entryStatusFormatter = (_cell: any) => {
     const status = _cell.getValue();
-    const chip = STATUS_CHIPS[status];
+    const chip = statusChips()[status];
     if (!chip) return '';
     return `<span class="tag ${chip.intent}" style="font-size:0.75em;font-weight:600">${chip.label}</span>`;
   };
@@ -221,7 +221,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
   };
 
   const getDrawTypeOptions = () =>
-    DRAW_TYPE_OPTIONS.map((opt) => ({
+    drawTypeOptions().map((opt) => ({
       label: opt.label,
       onClick: () => {
         drawType = opt.value;
@@ -533,14 +533,14 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
         onChange: (e: Event) => applySearchFilter((e.target as HTMLInputElement).value),
         onKeyUp: (e: Event) => applySearchFilter((e.target as HTMLInputElement).value),
         clearSearch: () => applySearchFilter(''),
-        placeholder: 'Participant name',
+        placeholder: t('modals.importParticipants.target.participantName'),
         id: 'vcSearch',
         location: LEFT,
         search: true,
       },
       {
         options: getDrawTypeOptions(),
-        label: DRAW_TYPE_OPTIONS.find((o) => o.value === drawType)?.label || 'Draw Type',
+        label: drawTypeOptions().find((o) => o.value === drawType)?.label || 'Draw Type',
         selection: false,
         location: LEFT,
       },
@@ -605,25 +605,25 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
     // OVERLAY items — visible when rows are selected
     const overlayItems: any[] = [
       {
-        label: 'Accepted',
+        label: t('voluntaryConsolation.accepted'),
         intent: IS_SUCCESS,
         onClick: () => setEntryStatus(DIRECT_ACCEPTANCE),
         location: OVERLAY,
       },
       {
-        label: 'Alternate',
+        label: t('draws.alternate'),
         intent: 'is-warning',
         onClick: () => setEntryStatus(ALTERNATE),
         location: OVERLAY,
       },
       {
-        label: 'Withdrawn',
+        label: t('signin.withdrawn'),
         intent: 'is-danger',
         onClick: () => setEntryStatus(WITHDRAWN),
         location: OVERLAY,
       },
       {
-        label: 'Clear',
+        label: t('schedule.clear'),
         intent: 'is-light',
         onClick: clearEntryStatus,
         location: OVERLAY,
@@ -638,7 +638,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
         ...overlayItems,
         {
           onClick: onGenerate,
-          label: 'Generate Consolation',
+          label: t('voluntaryConsolation.generate'),
           id: 'vcGenerate',
           intent: 'is-info',
           location: RIGHT,
@@ -710,14 +710,14 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
         width: 40,
       },
       {
-        title: 'Participant',
+        title: t('tables.selection.participant'),
         field: 'participantName',
         formatter: formatParticipant(undefined),
         headerSort: false,
         widthGrow: 3,
       },
       {
-        title: 'Status',
+        title: t('schedule.status'),
         field: 'entryStatus',
         formatter: entryStatusFormatter,
         hozAlign: 'center',
@@ -739,7 +739,7 @@ export function voluntaryConsolationPanel({ structure, drawId, eventId, callback
         width: 80,
       })),
       {
-        title: 'Eliminated',
+        title: t('voluntaryConsolation.eliminated'),
         field: 'roundEliminated',
         hozAlign: 'center',
         headerHozAlign: 'center',

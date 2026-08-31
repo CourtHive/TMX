@@ -38,6 +38,7 @@ import {
 
 // constants
 import { TOURNAMENTS_CONTROL, TOURNAMENTS_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export interface TournamentsView {
   getState(): TournamentsViewState;
@@ -73,9 +74,9 @@ function showWelcome(anchor: HTMLElement, onCreated: () => void): void {
   clearControl();
   renderWelcomeView(anchor, {
     onGenerate: () => {
-      const options = [{ label: 'All', value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
+      const options = [{ label: t('tournamentsControls.all'), value: -1 }, ...EXAMPLE_TOURNAMENT_CATALOG];
       listPicker({
-        title: 'Example Tournaments',
+        title: t('tournamentsControls.exampleTournaments'),
         actionLabel: 'Generate',
         actionIntent: IS_SUCCESS,
         options,
@@ -124,7 +125,7 @@ function renderTable(anchor: HTMLElement, rows: TournamentRow[]): any {
   clearAnchor(anchor);
   const table = new Tabulator(anchor, {
     height: globalThis.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-    placeholder: 'No tournaments',
+    placeholder: t('ui.noTournaments'),
     layout: 'fitColumns',
     index: 'tournamentId',
     headerVisible: true,

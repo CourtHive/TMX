@@ -16,6 +16,7 @@ import { scalesMap } from 'config/scalesConfig';
 import tippy, { type Instance } from 'tippy.js';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { ratingsParameters } = fixtures;
 const ELO_RANGE = ratingsParameters.ELO?.range || [0, 3000];
@@ -320,7 +321,7 @@ function buildDynamicColumns(isEloDynamic: boolean, activeScale: string, ascendi
       },
     },
     {
-      title: 'Change',
+      title: t('ui.change'),
       field: 'ratingChange',
       hozAlign: 'center',
       headerHozAlign: 'center',
@@ -417,7 +418,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
 
   const columns: any[] = [
     {
-      title: 'Participant',
+      title: t('tables.selection.participant'),
       field: 'participantName',
       formatter: formatParticipant(undefined),
       sorter: participantSorter,
@@ -425,7 +426,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
       frozen: true,
     },
     {
-      title: 'Scorelines',
+      title: t('ui.scorelines'),
       field: 'scorelines',
       minWidth: 200,
       formatter: buildScorelineFormatter(drawId),
@@ -455,7 +456,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   new Tabulator(element, {
     headerSortElement: headerSortElement(sortableFields),
     height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-    placeholder: 'No rating data available',
+    placeholder: t('entries.noRatingData'),
     responsiveLayout: 'collapse',
     layout: 'fitColumns',
     reactiveData: true,

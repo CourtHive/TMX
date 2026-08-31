@@ -12,6 +12,7 @@ import { isFunction } from 'functions/typeOf';
 // constants
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export async function editDisplaySettings(params) {
   const { eventId, drawId, callback } = params;
@@ -46,7 +47,7 @@ export async function editDisplaySettings(params) {
   const venueId = 'venueId';
   const venueProfiles = [
     {
-      onlineResources: [{ link: 'https://www.google.com', label: 'Google' }],
+      onlineResources: [{ link: 'https://www.google.com', label: t('modals.displaySettings.google') }],
       venueName: 'Club Courts',
       venueAbbreviation: 'CC',
       startTime: '08:00',
@@ -142,9 +143,9 @@ export async function editDisplaySettings(params) {
 
   const participantDetail = selections.configuration.participantDetail;
   const detailOptions = [
-    { label: 'None', value: 'NONE', selected: !participantDetail },
-    { label: 'Address', value: 'ADDRESS', selected: participantDetail === 'ADDRESS' },
-    { label: 'Team', value: 'TEAM', selected: participantDetail === 'TEAM' },
+    { label: t('none'), value: 'NONE', selected: !participantDetail },
+    { label: t('locations.address'), value: 'ADDRESS', selected: participantDetail === 'ADDRESS' },
+    { label: t('formats.team'), value: 'TEAM', selected: participantDetail === 'TEAM' },
   ];
 
   const onChange = () => {
@@ -158,7 +159,7 @@ export async function editDisplaySettings(params) {
   const formElements = [
     {
       options: compositionOptions,
-      label: 'Composition',
+      label: t('modals.printDraw.composition'),
       field: 'composition',
       onChange,
     },
@@ -166,7 +167,7 @@ export async function editDisplaySettings(params) {
       controlVisible: !noScheduleInfo.has(selections.compositionName),
       checked: selections.configuration.scheduleInfo,
       controlId: 'scheduleToggle',
-      label: 'Show Schedule',
+      label: t('modals.displaySettings.showSchedule'),
       field: 'showSchedule',
       id: 'showSchedule',
       checkbox: true,
@@ -174,7 +175,7 @@ export async function editDisplaySettings(params) {
     },
     {
       options: detailOptions,
-      label: 'Detail',
+      label: t('modals.displaySettings.detail'),
       field: 'detail',
       onChange,
     },
@@ -232,10 +233,10 @@ export async function editDisplaySettings(params) {
   };
 
   openModal({
-    title: `Edit display settings`,
+    title: t('modals.displaySettings.title'),
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Save', id: saveId, intent: 'is-info', close: true, onClick: saveComposition },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('common.save'), id: saveId, intent: 'is-info', close: true, onClick: saveComposition },
     ],
     content,
   });

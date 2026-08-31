@@ -11,6 +11,7 @@ import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { TOURNAMENT_VENUES } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type CreateVenuesTableResult = {
   table: any;
@@ -65,7 +66,7 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
       ]),
       minHeight: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       rowFormatter: venueRowFormatter(setNestedTable),
-      placeholder: 'No venues',
+      placeholder: t('ui.noVenues'),
       layout: 'fitColumns',
       reactiveData: true,
       index: 'venueId',

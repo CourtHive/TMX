@@ -17,6 +17,7 @@ import { getBracketData } from './getBracketData';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_BRACKET } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 /** Flatten all matchUps across rounds in a structure. */
 function getStructureMatchUps(structure: any): any[] {
@@ -380,7 +381,7 @@ export async function createBracketTable({
       const table = new Tabulator(tableDiv, {
         height:
           groups.length > 1 ? undefined : window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-        placeholder: 'No participants',
+        placeholder: t('ui.noParticipants'),
         // fitDataTable (instead of fitData) makes the `.tabulator` root
         // display:inline-block, so it shrinks to the column row's width
         // and the header's bottom border stops at the rightmost column

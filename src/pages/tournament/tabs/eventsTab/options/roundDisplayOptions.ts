@@ -6,6 +6,7 @@ import { drawDefinitionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { RIGHT, ROUNDS_COLUMNS, ROUNDS_STATS, ROUNDS_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 const { CONTAINER } = drawDefinitionConstants;
 
 type RoundDisplayOptionsParams = {
@@ -31,19 +32,19 @@ export function getRoundDisplayOptions({ callback, structure, existingView }: Ro
   existingView !== ROUNDS_TABLE &&
     actionOptions.push({
       onClick: () => displayUpdate(ROUNDS_TABLE),
-      label: 'Table view',
+      label: t('ui.tableView'),
       close: true,
     });
 
   if ((isAdHoc || isRoundRobin) && existingView !== ROUNDS_STATS)
     actionOptions.push({
       onClick: () => displayUpdate(ROUNDS_STATS),
-      label: 'Statistics',
+      label: t('stats'),
       close: true,
     });
 
   return {
-    label: 'Display',
+    label: t('ui.display'),
     options: actionOptions,
     selection: false,
     location: RIGHT,

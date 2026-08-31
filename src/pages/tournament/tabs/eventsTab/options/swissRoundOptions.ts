@@ -2,6 +2,7 @@ import { generateSwissRound } from '../renderDraws/generateSwissRound';
 
 // Constants
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function getSwissRoundOptions({
   structure,
@@ -15,7 +16,7 @@ export function getSwissRoundOptions({
   const refreshCallback = () => callback({ refresh: true });
 
   return {
-    label: 'Generate Swiss Round',
+    label: t('roundOptions.generateSwissRound'),
     onClick: () => generateSwissRound({ structure, drawId, callback: refreshCallback }),
     location: RIGHT,
     intent: 'is-info',

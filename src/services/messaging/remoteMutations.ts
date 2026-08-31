@@ -183,7 +183,7 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
 
   if (result?.error) {
     console.warn('[remoteMutation] local execution failed:', result.error);
-    tmxToast({ message: 'Remote update failed — please reload', intent: 'is-warning' });
+    tmxToast({ message: t('remoteMutations.updateFailed'), intent: 'is-warning' });
     return;
   }
 

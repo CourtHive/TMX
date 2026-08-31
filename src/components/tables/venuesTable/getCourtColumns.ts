@@ -63,7 +63,7 @@ export function getCourtColumns(): any[] {
     {
       title: `<i class="fa-regular fa-lightbulb"></i>`,
       formatter: lightsFormatter,
-      headerTooltip: 'Lights',
+      headerTooltip: t('ui.lights'),
       field: 'floodlit',
       width: 50,
     },

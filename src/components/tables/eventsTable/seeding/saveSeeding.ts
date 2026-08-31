@@ -2,6 +2,7 @@ import { saveSeedingValues } from './saveSeedingValues';
 import { hideSaveSeeding } from './hideSaveSeeding';
 
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const saveSeeding = (event: any) => (table: any) => {
   const onClick = (e: any) => {
@@ -11,7 +12,7 @@ export const saveSeeding = (event: any) => (table: any) => {
   };
 
   return {
-    label: 'Save seeding',
+    label: t('entries.saveSeeding'),
     class: 'saveSeeding',
     intent: 'is-info',
     location: RIGHT,

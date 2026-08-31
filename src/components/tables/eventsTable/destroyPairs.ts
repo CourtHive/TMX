@@ -10,6 +10,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 import { DESTROY_PAIR_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { PAIR } = participantConstants;
 
@@ -17,7 +18,7 @@ export const destroySelected =
   (eventId: string, onRefresh: () => void, drawId?: string) =>
   (table: any): any => ({
     onClick: () => destroyPairs(table, eventId, onRefresh, drawId),
-    label: 'Destroy pairs',
+    label: t('entries.destroyPairs'),
     intent: 'is-danger',
     location: OVERLAY,
   });
@@ -38,7 +39,7 @@ function destroyPairs(table: any, eventId: string, onRefresh: () => void, drawId
 
   if (!participantIds.length) {
     table.deselectRow();
-    tmxToast({ message: 'No destroyable pairs selected', intent: 'is-warning' });
+    tmxToast({ message: t('entries.noDestroyablePairs'), intent: 'is-warning' });
     return;
   }
 

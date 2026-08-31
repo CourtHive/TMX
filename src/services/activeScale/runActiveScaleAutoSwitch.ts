@@ -17,6 +17,7 @@ import { env } from 'settings/env';
 
 import { markRatingPromptDismissed, wasRatingPromptDismissed } from './ratingPromptStorage';
 import { decideActiveScaleSwitch } from './decideActiveScaleSwitch';
+import { t } from 'i18n';
 
 interface ModalButton {
   label: string;
@@ -111,7 +112,7 @@ export function runActiveScaleAutoSwitch(): void {
   ];
 
   openModal({
-    title: 'Switch active rating?',
+    title: t('activeScale.switchTitle'),
     content: renderPromptContent(decision.availableScales, decision.fromScale),
     buttons,
     onClose: () => {

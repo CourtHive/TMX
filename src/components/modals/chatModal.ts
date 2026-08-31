@@ -3,6 +3,7 @@
  * Floating panel (not a modal) so the user can keep it open while working.
  */
 import { getMessages, getOnlineCount, sendMessage, setChatModalOpen, onChatUpdate } from 'services/chat/chatService';
+import { t } from 'i18n';
 
 const PANEL_ID = 'chatPanel';
 const PANEL_WIDTH = 340;
@@ -177,7 +178,7 @@ export function openChatModal(): void {
   titleGroup.style.cssText = 'display: flex; align-items: center; gap: 8px; min-width: 0;';
 
   const title = document.createElement('span');
-  title.textContent = 'Tournament Chat';
+  title.textContent = t('chat.tournamentChat');
   title.style.cssText = 'font-weight: 600; font-size: 0.9rem; user-select: none;';
 
   presenceLabel = document.createElement('span');

@@ -23,6 +23,7 @@ import { TMX_POLICIES, POLICIES } from 'constants/tmxConstants';
 import { serverConfig } from 'config/serverConfig';
 import { context } from 'services/context';
 import { saveUserPolicy } from './policyBridge';
+import { t } from 'i18n';
 
 interface CatalogPolicy {
   policyId: string;
@@ -56,7 +57,7 @@ export async function renderPolicyCatalogPage(): Promise<void> {
 
   const statusEl = document.createElement('div');
   statusEl.className = 'policy-catalog__status';
-  statusEl.textContent = 'Loading…';
+  statusEl.textContent = t('crowd.loading');
   page.appendChild(statusEl);
 
   try {
@@ -65,7 +66,7 @@ export async function renderPolicyCatalogPage(): Promise<void> {
     if (!policies.length) {
       const empty = document.createElement('div');
       empty.className = 'policy-catalog__empty';
-      empty.textContent = 'The catalog is empty.';
+      empty.textContent = t('policyCatalog.empty');
       listEl.appendChild(empty);
       return;
     }
@@ -90,7 +91,7 @@ function buildIntro(): HTMLElement {
   const backBtn = document.createElement('button');
   backBtn.type = 'button';
   backBtn.className = 'policy-catalog__entry-button';
-  backBtn.textContent = '← Back to My Policies';
+  backBtn.textContent = t('policyCatalog.back');
   backBtn.addEventListener('click', () => {
     context.router?.navigate(`/${POLICIES}`);
   });
@@ -98,13 +99,12 @@ function buildIntro(): HTMLElement {
   wrap.appendChild(actions);
 
   const heading = document.createElement('h2');
-  heading.textContent = 'Public Policy Catalog';
+  heading.textContent = t('policyCatalog.title');
   wrap.appendChild(heading);
 
   const sub = document.createElement('div');
   sub.className = 'policy-catalog__intro-sub';
-  sub.textContent =
-    'Federation ranking-points policies anyone can browse. Open a policy and click “Save to my policies” to copy it into your local catalog where you can edit, attach, and apply it.';
+  sub.textContent = t('policyCatalog.intro');
   wrap.appendChild(sub);
 
   return wrap;
@@ -327,7 +327,7 @@ function buildFeatureList(policy: CatalogPolicy): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'policy-catalog__features';
   const heading = document.createElement('h4');
-  heading.textContent = 'Features';
+  heading.textContent = t('policyCatalog.features');
   wrap.appendChild(heading);
 
   const list = document.createElement('ul');
@@ -398,7 +398,7 @@ function buildModalActions(policy: CatalogPolicy, backdrop: HTMLElement): HTMLEl
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
   saveBtn.className = 'button is-info';
-  saveBtn.textContent = 'Save to my policies';
+  saveBtn.textContent = t('policyCatalog.saveToMine');
   saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
     try {
@@ -412,7 +412,7 @@ function buildModalActions(policy: CatalogPolicy, backdrop: HTMLElement): HTMLEl
       };
       await saveUserPolicy(item);
       tmxToast({ message: `Saved ${policy.name} to your policies`, intent: 'is-success' });
-      status.textContent = 'Saved — open My Policies to edit or apply.';
+      status.textContent = t('policyCatalog.saved');
       saveBtn.disabled = true;
     } catch (err) {
       tmxToast({ message: `Save failed: ${(err as Error).message}`, intent: 'is-danger' });
@@ -423,7 +423,7 @@ function buildModalActions(policy: CatalogPolicy, backdrop: HTMLElement): HTMLEl
   const openMyPoliciesBtn = document.createElement('button');
   openMyPoliciesBtn.type = 'button';
   openMyPoliciesBtn.className = 'button';
-  openMyPoliciesBtn.textContent = 'Open My Policies';
+  openMyPoliciesBtn.textContent = t('policyCatalog.openMine');
   openMyPoliciesBtn.addEventListener('click', () => {
     backdrop.remove();
     context.router?.navigate(`/${POLICIES}`);
@@ -432,7 +432,7 @@ function buildModalActions(policy: CatalogPolicy, backdrop: HTMLElement): HTMLEl
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button';
-  closeBtn.textContent = 'Close';
+  closeBtn.textContent = t('common.close');
   closeBtn.addEventListener('click', () => backdrop.remove());
 
   wrap.appendChild(status);

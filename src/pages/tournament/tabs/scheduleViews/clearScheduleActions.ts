@@ -174,18 +174,18 @@ function summaryFor(scope: Scope, bucket: Bucket, scheduledDate: string): { titl
   switch (scope) {
     case SCOPE.DAY_PENDING:
       return {
-        title: 'Clear this day (keep completed)',
+        title: t('clearSchedule.dayKeepCompleted'),
         summary: `Will clear ${n} pending matchUp${n === 1 ? '' : 's'} on ${scheduledDate}. Completed matchUps are preserved.`,
       };
     case SCOPE.DAY_ALL:
       return {
-        title: 'Clear this day (including completed)',
+        title: t('clearSchedule.dayIncludingCompleted'),
         summary: `Will clear ${n} matchUp${n === 1 ? '' : 's'} on ${scheduledDate} — including completed results.`,
       };
     case SCOPE.ALL: {
       const dates = new Set(bucket.visible.map((m) => m.schedule?.scheduledDate).filter(Boolean));
       return {
-        title: 'Clear all schedule data',
+        title: t('clearSchedule.allData'),
         summary: `Will clear ${n} matchUp${n === 1 ? '' : 's'} across ${dates.size} date${dates.size === 1 ? '' : 's'} — every scheduling assignment is removed.`,
       };
     }
@@ -196,7 +196,7 @@ function openConfirm(scope: Scope, scheduledDate: string, params: OpenClearMenuP
   const buckets = buildBuckets(scheduledDate);
   const bucket = buckets[scope];
   if (!bucket.visible.length) {
-    scheduleToast({ message: 'No matchUps to clear in this scope.', intent: 'is-info' });
+    scheduleToast({ message: t('clearSchedule.nothingInScope'), intent: 'is-info' });
     return;
   }
 
@@ -247,7 +247,7 @@ export function openClearScheduleMenu(params: OpenClearMenuParams): void {
   ];
 
   if (!options.filter((o) => !o.disabled).length) {
-    scheduleToast({ message: 'Nothing scheduled on visible courts.', intent: 'is-info' });
+    scheduleToast({ message: t('clearSchedule.nothingVisible'), intent: 'is-info' });
     return;
   }
 

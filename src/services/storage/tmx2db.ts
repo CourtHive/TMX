@@ -7,6 +7,7 @@
  */
 import { tmxToast } from 'services/notifications/tmxToast';
 import Dexie from 'dexie';
+import { t } from 'i18n';
 
 export class TMXDatabase {
   dex: any;
@@ -52,7 +53,7 @@ export class TMXDatabase {
       },
       (err: any) => {
         console.error('[IndexedDB] Failed to reset database:', err);
-        tmxToast({ message: 'Failed to reset database', intent: 'is-danger' });
+        tmxToast({ message: t('storage.resetFailed'), intent: 'is-danger' });
       },
     );
   };
@@ -132,7 +133,7 @@ export class TMXDatabase {
       return await this.dex[tbl].put(item);
     } catch (err) {
       console.error('[IndexedDB] put failed:', err);
-      tmxToast({ message: 'Database write failed', intent: 'is-danger' });
+      tmxToast({ message: t('storage.writeFailed'), intent: 'is-danger' });
       throw err;
     }
   };

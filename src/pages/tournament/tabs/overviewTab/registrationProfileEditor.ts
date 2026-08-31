@@ -78,7 +78,7 @@ function createSelect(
 
   const emptyOpt = document.createElement('option');
   emptyOpt.value = '';
-  emptyOpt.textContent = '-- Select --';
+  emptyOpt.textContent = t('registrationProfile.select');
   select.appendChild(emptyOpt);
 
   for (const opt of options) {
@@ -187,14 +187,14 @@ function buildInlineForm(
   const cancelBtn = document.createElement('button');
   cancelBtn.type = 'button';
   cancelBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-bg-primary); color:var(--tmx-text-secondary);`;
-  cancelBtn.textContent = 'Cancel';
+  cancelBtn.textContent = t('common.cancel');
   cancelBtn.addEventListener('click', onCancel);
   btnRow.appendChild(cancelBtn);
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
   saveBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-accent, #4a9eff); color:#fff; border-color:var(--tmx-accent, #4a9eff);`;
-  saveBtn.textContent = 'Save';
+  saveBtn.textContent = t('common.save');
   saveBtn.addEventListener('click', () => {
     const requiredFields = fields.filter((f) => f.required);
     for (const f of requiredFields) {
@@ -273,11 +273,11 @@ function createLogisticsEditor(
   renderList();
 
   const logisticsFields: FieldDef[] = [
-    { key: 'name', label: 'Name', required: true, gridSpan: 2 },
-    { key: 'phone', label: 'Phone' },
-    { key: 'email', label: 'Email', type: 'email' },
-    { key: 'address', label: 'Address', gridSpan: 2 },
-    { key: 'priceRange', label: 'Price Range' },
+    { key: 'name', label: t('teams.name'), required: true, gridSpan: 2 },
+    { key: 'phone', label: t('modals.importParticipants.target.phone') },
+    { key: 'email', label: t('modals.importParticipants.target.email'), type: 'email' },
+    { key: 'address', label: t('locations.address'), gridSpan: 2 },
+    { key: 'priceRange', label: t('registrationProfile.priceRange') },
     { key: 'url', label: 'URL', type: 'url' },
   ];
 
@@ -483,11 +483,11 @@ export function openRegistrationProfileEditor(): void {
     'fa-calendar-alt',
     rp.socialEvents || [],
     [
-      { key: 'name', label: 'Event Name', required: true, gridSpan: 2 },
-      { key: 'date', label: 'Date', type: 'date' },
-      { key: 'time', label: 'Time', type: 'time' },
-      { key: 'location', label: 'Location' },
-      { key: 'description', label: 'Description' },
+      { key: 'name', label: t('registrationProfile.eventName'), required: true, gridSpan: 2 },
+      { key: 'date', label: t('tables.matchUps.date'), type: 'date' },
+      { key: 'time', label: t('schedule.time'), type: 'time' },
+      { key: 'location', label: t('signin.place') },
+      { key: 'description', label: t('registrationProfile.description') },
     ],
     (e) => {
       const datePart = e.date ? ' (' + e.date + ')' : '';
@@ -504,9 +504,9 @@ export function openRegistrationProfileEditor(): void {
     'fa-handshake',
     rp.sponsors || [],
     [
-      { key: 'name', label: 'Sponsor Name', required: true },
-      { key: 'tier', label: 'Tier', options: SPONSOR_TIERS },
-      { key: 'websiteUrl', label: 'Website URL', type: 'url', gridSpan: 2 },
+      { key: 'name', label: t('registrationProfile.sponsorName'), required: true },
+      { key: 'tier', label: t('registrationProfile.tier'), options: SPONSOR_TIERS },
+      { key: 'websiteUrl', label: t('pages.venues.editVenue.websiteLabel'), type: 'url', gridSpan: 2 },
     ],
     (s) => s.name + (s.tier ? ' [' + s.tier + ']' : ''),
   );
@@ -582,7 +582,7 @@ export function openRegistrationProfileEditor(): void {
   };
 
   openModal({
-    title: 'Registration Profile',
+    title: t('registrationProfile.title'),
     content,
     config: { maxWidth: 700, padding: '1' },
     buttons: [

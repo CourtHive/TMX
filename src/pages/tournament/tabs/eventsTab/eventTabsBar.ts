@@ -152,7 +152,7 @@ export function renderNoDrawsPlaceholder({
     'display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3em; gap: 1em;';
 
   const msg = document.createElement('p');
-  msg.textContent = 'No draws have been created for this event.';
+  msg.textContent = t('drawActions.noDrawsForEvent');
   msg.style.cssText = 'color: var(--tmx-text-secondary, #888); font-size: 1em; margin: 0;';
   placeholder.appendChild(msg);
 

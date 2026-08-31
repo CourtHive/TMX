@@ -90,7 +90,7 @@ export function addStructures({
         checkbox: true,
         fieldPair: {
           field: PAGE_PLAYOFF_NAME_FIELD,
-          placeholder: 'Page Playoff',
+          placeholder: t('drawActions.pagePlayoff'),
           id: PAGE_PLAYOFF_NAME_FIELD,
           width: '350px',
         },

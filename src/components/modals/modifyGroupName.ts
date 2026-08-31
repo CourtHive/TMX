@@ -18,7 +18,7 @@ export function modifyGroupName({ bracket }: { bracket: any }): void {
     renderForm(elem, [
       {
         value,
-        label: 'New name',
+        label: t('ui.newName'),
         field: 'newName',
       },
     ]);
@@ -27,8 +27,8 @@ export function modifyGroupName({ bracket }: { bracket: any }): void {
     title: t('nm'),
     content,
     buttons: [
-      { label: 'Cancel', intent: 'none', close: true },
-      { label: 'Update', intent: 'is-primary', onClick: submitRRname as any, close: true },
+      { label: t('common.cancel'), intent: 'none', close: true },
+      { label: t('modals.editProvider.update'), intent: 'is-primary', onClick: submitRRname as any, close: true },
     ],
   });
 }

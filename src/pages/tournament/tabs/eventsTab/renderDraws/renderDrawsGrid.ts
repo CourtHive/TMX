@@ -37,6 +37,7 @@ import {
 } from './drawCardVizGating';
 
 import './drawsGrid.css';
+import { t } from 'i18n';
 
 const WRAP_CLASS = 'tmx-draws-grid-wrap';
 const GRID_CLASS = 'tmx-draws-grid';
@@ -159,7 +160,7 @@ function buildUngeneratedRows(resolved: ResolvedEvent, eventId: string): DrawCar
       entryCount: f.drawEntries?.length || 0,
       generated: false,
       eventId,
-      status: { kind: 'ungenerated', label: 'Not generated' },
+      status: { kind: 'ungenerated', label: t('ui.notGenerated') },
     }));
 }
 
@@ -264,7 +265,7 @@ export function renderDrawsGrid({
   if (rows.length === 0) {
     const empty = document.createElement('div');
     empty.className = EMPTY_CLASS;
-    empty.textContent = 'No draws yet.';
+    empty.textContent = t('ui.noDrawsYet');
     target.appendChild(empty);
     return { count: 0, availability, resolved };
   }

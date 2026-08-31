@@ -19,7 +19,7 @@ export function printFactSheet(): void {
   const formItems = [
     {
       field: 'templateId',
-      label: 'Template',
+      label: t('ui.template'),
       options: templates.map((tmpl) => ({
         label: tmpl.name,
         value: tmpl.id,
@@ -69,7 +69,7 @@ export function printFactSheet(): void {
   ];
 
   openModal({
-    title: 'Print Fact Sheet',
+    title: t('printModals.factSheet'),
     content,
     buttons,
   });

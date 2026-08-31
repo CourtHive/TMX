@@ -8,6 +8,7 @@ import { tipster } from 'components/popovers/tipster';
 
 // constants
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const drawActions = (eventRow) => (e, cell) => {
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
@@ -37,17 +38,17 @@ export const drawActions = (eventRow) => (e, cell) => {
   const items = [
     {
       onClick: () => editDisplaySettings({ drawId: data.drawId }),
-      text: 'Display settings',
+      text: t('pages.events.displaySettings'),
     },
     {
       onClick: deleteDraw,
-      text: 'Delete',
+      text: t('delete'),
     },
     {
       // Renames every draw in the event (a full edit-draw drawer would require
       // changing far more), so it matches the draws-list "Rename selected" modal.
       onClick: () => editDrawNames({ eventId, callback: refreshDrawNames }),
-      text: 'Rename',
+      text: t('rename'),
     },
   ];
 

@@ -10,6 +10,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import type { RegistrationEntry } from 'services/apis/registrationsApi';
 import { collapseRegistrationPairs } from './collapseRegistrationPairs';
 import { TOURNAMENT_REGISTRATIONS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 interface CreateRegistrationsTableParams {
   entries: RegistrationEntry[];
@@ -77,13 +78,13 @@ export function createRegistrationsTable(params: CreateRegistrationsTableParams)
     },
     columns: [
       { formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerSort: false, width: 40 },
-      { title: 'Applicant', field: 'applicantName', widthGrow: 2, headerFilter: 'input' },
-      { title: 'Status', field: 'status', formatter: statusPillFormatter, width: 130 },
-      { title: 'Events', field: 'eventCount', hozAlign: 'right', width: 80 },
-      { title: 'Applied', field: 'appliedAtShort', width: 110 },
-      { title: 'Partner', field: 'partnerSummary', widthGrow: 1 },
-      { title: 'Reason', field: 'statusReason', widthGrow: 1 },
-      { title: 'Actions', field: 'actions', formatter: actionsFormatter, headerSort: false, widthGrow: 1 },
+      { title: t('registrations.applicant'), field: 'applicantName', widthGrow: 2, headerFilter: 'input' },
+      { title: t('schedule.status'), field: 'status', formatter: statusPillFormatter, width: 130 },
+      { title: t('evt'), field: 'eventCount', hozAlign: 'right', width: 80 },
+      { title: t('registrations.applied'), field: 'appliedAtShort', width: 110 },
+      { title: t('registrations.partner'), field: 'partnerSummary', widthGrow: 1 },
+      { title: t('tables.invalidParticipants.reason'), field: 'statusReason', widthGrow: 1 },
+      { title: t('actions.actions'), field: 'actions', formatter: actionsFormatter, headerSort: false, widthGrow: 1 },
     ],
   });
 

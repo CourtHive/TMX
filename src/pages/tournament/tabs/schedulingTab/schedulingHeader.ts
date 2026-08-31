@@ -13,6 +13,7 @@ import { ScheduleDate } from 'courthive-components';
 import { featureFlags } from 'config/featureFlags';
 
 import type { SchedulingMode } from './schedulingTab';
+import { t } from 'i18n';
 
 const BORDER_PRIMARY = 'border: 1px solid var(--tmx-border-primary)';
 const BG_PRIMARY = 'background: var(--tmx-bg-primary)';
@@ -45,11 +46,11 @@ export interface SchedulingHeader {
 
 // Order follows the lifecycle: set up Availability → plan with Profile → run Grid.
 // Plan = alternate ("contingency") schedules staged off the live grid.
-const MODES: ModeOption[] = [
-  { key: 'availability', label: 'Availability', icon: 'fa-calendar-check' },
-  { key: 'profile', label: 'Profile', icon: 'fa-layer-group' },
-  { key: 'grid', label: 'Grid', icon: 'fa-table-cells' },
-  { key: 'plan', label: 'Plan', icon: 'fa-clipboard-list' },
+const modeOptions = (): ModeOption[] => [
+  { key: 'availability', label: t('schedulingTab.availability'), icon: 'fa-calendar-check' },
+  { key: 'profile', label: t('tables.rounds.profile'), icon: 'fa-layer-group' },
+  { key: 'grid', label: t('ui.grid'), icon: 'fa-table-cells' },
+  { key: 'plan', label: t('schedulingTab.plan'), icon: 'fa-clipboard-list' },
 ];
 
 export function buildSchedulingHeader(params: SchedulingHeaderParams): SchedulingHeader {
@@ -69,7 +70,7 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   switcher.style.cssText = 'display: flex; align-items: center; gap: 0;';
 
   // Plan mode is an in-flight beta — hide its segment unless the flag is on.
-  const modes = featureFlags.get().schedulePlan ? MODES : MODES.filter((mode) => mode.key !== 'plan');
+  const modes = featureFlags.get().schedulePlan ? modeOptions() : modeOptions().filter((mode) => mode.key !== 'plan');
 
   modes.forEach((mode, index) => {
     const btn = document.createElement('button');

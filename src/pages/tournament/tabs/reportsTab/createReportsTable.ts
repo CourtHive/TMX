@@ -8,6 +8,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { TOURNAMENT_REPORTS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type ReportColumn = {
   key: string;
@@ -186,7 +187,7 @@ export function createReportsTable({ columns, rows }: { columns: ReportColumn[];
   const navigable = (data: any) => !!(data?.eventId && data?.drawId);
 
   const table = new Tabulator(tableEl, {
-    placeholder: 'No data',
+    placeholder: t('reports.noData'),
     layout: 'fitColumns',
     columns: tabulatorColumns,
     data: rows,

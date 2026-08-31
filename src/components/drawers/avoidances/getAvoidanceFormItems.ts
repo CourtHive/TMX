@@ -4,6 +4,7 @@
  */
 import { getAttachedAvoidances } from './getAttachedAvoidances';
 import { avoidanceRules } from './avoidanceRules';
+import { t } from 'i18n';
 
 export function getAvoidanceFormItems({ event }: { event: any }): { items: any[] } {
   const policyAttributes = getAttachedAvoidances({ eventId: event.eventId });
@@ -23,11 +24,11 @@ export function getAvoidanceFormItems({ event }: { event: any }): { items: any[]
 
   const items = [
     {
-      text: 'Select rules',
+      text: t('avoidances.selectRules'),
     },
     {
       checked: selected.includes('pairs'),
-      label: 'Doubles pairs',
+      label: t('avoidances.doublesPairs'),
       id: 'avoidancePairs',
       checkbox: true,
       field: 'pairs',
@@ -36,20 +37,20 @@ export function getAvoidanceFormItems({ event }: { event: any }): { items: any[]
       checked: selected.includes('groups'),
       id: 'avoidanceGroups',
       checkbox: true,
-      label: 'Groups',
+      label: t('pages.participants.groups'),
       field: 'groups',
     },
     {
       checked: selected.includes('teams'),
       id: 'avoidanceTeams',
       checkbox: true,
-      label: 'Teams',
+      label: t('events.teams'),
       field: 'teams',
     },
     {
       checked: selected.includes('iso'),
       id: 'avoidanceCountry',
-      label: 'Country',
+      label: t('tables.participants.country'),
       checkbox: true,
       field: 'iso',
     },
@@ -57,25 +58,25 @@ export function getAvoidanceFormItems({ event }: { event: any }): { items: any[]
       checked: selected?.includes('city'),
       id: 'avoidancedCity',
       checkbox: true,
-      label: 'City',
+      label: t('pages.venues.editVenue.cityLabel'),
       field: 'city',
     },
     {
       checked: selected.includes('state'),
       id: 'avoidancedState',
       checkbox: true,
-      label: 'State',
+      label: t('officials.columns.state'),
       field: 'state',
     },
     {
       checked: selected.includes('zip'),
       id: 'avoidancedPostal',
-      label: 'Postal code',
+      label: t('pages.venues.editVenue.postalCodeLabel'),
       checkbox: true,
       field: 'zip',
     },
     {
-      label: 'Postal code digits',
+      label: t('avoidances.postalCodeDigits'),
       visible: false,
       field: 'zip',
     },

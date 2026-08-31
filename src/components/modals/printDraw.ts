@@ -11,37 +11,48 @@ import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
 
-const CATALOG_PRESETS = [
-  { value: 'club-basic', label: 'Club Basic' },
-  { value: 'national-federation', label: 'National Federation' },
-  { value: 'itf-junior', label: 'ITF Junior' },
-  { value: 'itf-pro-circuit', label: 'ITF Pro Circuit' },
-  { value: 'collegiate-ncaa', label: 'NCAA Collegiate' },
-  { value: 'atp-250', label: 'ATP 250' },
-  { value: 'atp-finals', label: 'ATP Finals' },
-  { value: 'wta-500', label: 'WTA 500' },
-  { value: 'wta-1000', label: 'WTA 1000' },
-  { value: 'grand-slam', label: 'Grand Slam' },
-  { value: 'wimbledon', label: 'Wimbledon' },
-  { value: 'australian-open', label: 'Australian Open' },
+// Functions, not module-level consts: `t()` evaluated at module scope resolves
+// once at import — before `initialState` has switched to the user's locale —
+// and never updates on a language change, so these dropdowns would stay English
+// inside an otherwise translated modal.
+//
+// The preset names are deliberately IN the locale file even though several are
+// proper nouns. They label PDF layouts styled after those events, and a reader
+// in a non-Latin script expects the transliteration they know (Chinese renders
+// Wimbledon as 温布尔登); where a name genuinely does not change — "ATP 250" —
+// the locale simply repeats it, which the translation gate records explicitly
+// as a cognate rather than mistaking it for an untranslated string.
+const catalogPresets = () => [
+  { value: 'club-basic', label: t('modals.printDraw.presets.clubBasic') },
+  { value: 'national-federation', label: t('modals.printDraw.presets.nationalFederation') },
+  { value: 'itf-junior', label: t('modals.printDraw.presets.itfJunior') },
+  { value: 'itf-pro-circuit', label: t('modals.printDraw.presets.itfProCircuit') },
+  { value: 'collegiate-ncaa', label: t('modals.printDraw.presets.ncaaCollegiate') },
+  { value: 'atp-250', label: t('modals.printDraw.presets.atp250') },
+  { value: 'atp-finals', label: t('modals.printDraw.presets.atpFinals') },
+  { value: 'wta-500', label: t('modals.printDraw.presets.wta500') },
+  { value: 'wta-1000', label: t('modals.printDraw.presets.wta1000') },
+  { value: 'grand-slam', label: t('modals.printDraw.presets.grandSlam') },
+  { value: 'wimbledon', label: t('modals.printDraw.presets.wimbledon') },
+  { value: 'australian-open', label: t('modals.printDraw.presets.australianOpen') },
 ];
 
-const HEADER_LAYOUTS = [
-  { label: 'Grand Slam', value: 'grand-slam' },
-  { label: 'ITF / Professional', value: 'itf' },
-  { label: 'WTA / ATP Tour', value: 'wta-tour' },
-  { label: 'National Federation', value: 'national-federation' },
-  { label: 'Minimal', value: 'minimal' },
-  { label: 'None', value: 'none' },
+const headerLayouts = () => [
+  { label: t('modals.printDraw.headerLayouts.grandSlam'), value: 'grand-slam' },
+  { label: t('modals.printDraw.headerLayouts.itfProfessional'), value: 'itf' },
+  { label: t('modals.printDraw.headerLayouts.wtaAtpTour'), value: 'wta-tour' },
+  { label: t('modals.printDraw.headerLayouts.nationalFederation'), value: 'national-federation' },
+  { label: t('modals.printDraw.headerLayouts.minimal'), value: 'minimal' },
+  { label: t('modals.printDraw.headerLayouts.none'), value: 'none' },
 ];
 
-const FOOTER_LAYOUTS = [
-  { label: 'Standard', value: 'standard' },
-  { label: 'Seedings Table', value: 'seedings-table' },
-  { label: 'Prize Money', value: 'prize-money' },
-  { label: 'Officials Sign-off', value: 'officials-signoff' },
-  { label: 'Combined Tour', value: 'combined-tour' },
-  { label: 'None', value: 'none' },
+const footerLayouts = () => [
+  { label: t('modals.printDraw.footerLayouts.standard'), value: 'standard' },
+  { label: t('modals.printDraw.footerLayouts.seedingsTable'), value: 'seedings-table' },
+  { label: t('modals.printDraw.footerLayouts.prizeMoney'), value: 'prize-money' },
+  { label: t('modals.printDraw.footerLayouts.officialsSignoff'), value: 'officials-signoff' },
+  { label: t('modals.printDraw.footerLayouts.combinedTour'), value: 'combined-tour' },
+  { label: t('modals.printDraw.footerLayouts.none'), value: 'none' },
 ];
 
 const DEFAULT_PRESET = 'club-basic';
@@ -91,8 +102,8 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
       renderForm(container, [
         {
           field: 'catalogPreset',
-          label: 'Preset',
-          options: CATALOG_PRESETS.map((p) => ({
+          label: t('modals.printDraw.preset'),
+          options: catalogPresets().map((p) => ({
             ...p,
             selected: p.value === (printOptions.catalogPreset || DEFAULT_PRESET),
           })),
@@ -100,16 +111,16 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
         { divider: true },
         {
           field: 'headerLayout',
-          label: 'Header Layout',
-          options: HEADER_LAYOUTS.map((h) => ({
+          label: t('modals.printDraw.headerLayout'),
+          options: headerLayouts().map((h) => ({
             ...h,
             selected: h.value === (printOptions.headerLayout || 'itf'),
           })),
         },
         {
           field: 'footerLayout',
-          label: 'Footer Layout',
-          options: FOOTER_LAYOUTS.map((f) => ({
+          label: t('modals.printDraw.footerLayout'),
+          options: footerLayouts().map((f) => ({
             ...f,
             selected: f.value === (printOptions.footerLayout || 'standard'),
           })),
@@ -126,13 +137,13 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
 
     const editorButtons = [
       {
-        label: 'Back',
+        label: t('common.back'),
         intent: 'none',
         close: false,
         onClick: () => showPrintOptions(),
       },
       {
-        label: 'Apply',
+        label: t('modals.courtAvailability.apply'),
         intent: 'is-info',
         close: false,
         onClick: () => showPrintOptions(),
@@ -140,7 +151,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
     ];
 
     modalHandle.update({
-      title: 'PDF Composition',
+      title: t('modals.printDraw.pdfComposition'),
       content: editorContent,
       buttons: editorButtons,
     });
@@ -157,14 +168,14 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
         placeholder: t('modals.printDraw.drawTitlePlaceholder'),
       },
       {
-        text: 'Composition',
+        text: t('modals.printDraw.composition'),
         class: 'itemTitle',
       },
       {
-        label: 'Preset',
+        label: t('modals.printDraw.preset'),
         field: 'catalogPreset',
         id: 'pd-preset',
-        options: CATALOG_PRESETS.map((p) => ({ ...p, selected: p.value === printOptions.catalogPreset })),
+        options: catalogPresets().map((p) => ({ ...p, selected: p.value === printOptions.catalogPreset })),
       },
       {
         text: t('modals.printDraw.options'),
@@ -187,7 +198,7 @@ export function printDraw({ drawId, eventId, structureId }: PrintDrawParams): vo
       ...(drawDefinition.drawSize >= 64
         ? [
             {
-              label: 'Multi-page (split into sections)',
+              label: t('modals.printDraw.multiPage'),
               field: 'splitPages',
               id: 'pd-split',
               checkbox: true,

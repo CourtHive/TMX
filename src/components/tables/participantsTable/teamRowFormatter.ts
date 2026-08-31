@@ -56,7 +56,7 @@ export const teamRowFormatter = (row: any): void => {
   const data = getData(participant.individualParticipants);
 
   const ipTable = new Tabulator(tableEl, {
-    placeholder: 'No individual participants',
+    placeholder: t('entries.noIndividualParticipants'),
     index: 'participantId',
     layout: 'fitColumns',
     movableRows: true,
@@ -169,14 +169,14 @@ export const teamRowFormatter = (row: any): void => {
   const items = [
     {
       onClick: () => removeFromTeam({ table: ipTable, team: participant }),
-      label: 'Delete selected',
+      label: t('pages.events.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
       location: OVERLAY,
     },
     {
       onClick: addIndividualParticipants,
-      label: 'Add players',
+      label: t('entries.addPlayers'),
       intent: 'is-primary',
       location: RIGHT,
     },

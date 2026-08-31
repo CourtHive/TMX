@@ -63,7 +63,7 @@ export function getEventControlItems({
       onChange: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       onKeyUp: (e: Event) => updateParticipantFilter((e.target as HTMLInputElement).value),
       clearSearch: () => updateParticipantFilter(''),
-      placeholder: 'Participant name',
+      placeholder: t('modals.importParticipants.target.participantName'),
       id: 'participantFilter',
       location: LEFT,
       search: true,

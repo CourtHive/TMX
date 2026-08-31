@@ -15,6 +15,7 @@ import { renderDrawView } from './renderDrawView';
 // Constants
 import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
 import { ROUNDS_BRACKET, ROUNDS_COLUMNS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { FINISHING_POSITIONS, CONTAINER, MAIN, AD_HOC, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
@@ -89,13 +90,13 @@ export function getStructureOptions({
       { divider: true },
       {
         onClick: () => editStructureNames({ drawId, callback: refreshAfterStructuralChange }),
-        label: 'Edit structure names',
+        label: t('modals.editStructureNames.title'),
         modifyLabel: false,
         close: true,
       },
       {
         onClick: () => editGroupNames({ drawId, structure, callback: refreshAfterStructuralChange }),
-        label: 'Edit group names',
+        label: t('modals.editGroupNames.title'),
         hide: !isRoundRobin,
         modifyLabel: false,
         close: true,
@@ -103,14 +104,14 @@ export function getStructureOptions({
       {
         onClick: () => addNewQualifying(),
         hide: !canAddQualifying,
-        label: 'Add qualifying',
+        label: t('drawActions.addQualifying'),
         modifyLabel: false,
         close: true,
       },
       {
         onClick: () => (addStructures as any)({ drawId, structureId, callback: refreshAfterStructuralChange }),
         hide: !canAddPlayoffs,
-        label: 'Add playoffs',
+        label: t('drawActions.addPlayoffs'),
         modifyLabel: false,
         close: true,
       },
@@ -157,7 +158,7 @@ export function getStructureOptions({
           }
         },
         hide: !canAddConsolation,
-        label: 'Add voluntary consolation',
+        label: t('modals.addConsolation.title'),
         modifyLabel: false,
         close: true,
       },

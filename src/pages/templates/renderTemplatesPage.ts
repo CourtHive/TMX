@@ -24,6 +24,7 @@ import type { TopologyCatalogItem } from './topologyBridge';
 
 // constants
 import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const TPL_PANEL_TITLE = 'tpl-panel-title';
 const TPL_LAYOUT = 'tpl-layout';
@@ -88,9 +89,9 @@ export async function renderTemplatesPage(params?: { templateView?: string }): P
   chipsRow.className = 'tpl-nav-chips';
 
   const views: { key: TemplateView; label: string }[] = [
-    { key: 'topologies', label: 'Topologies' },
-    { key: 'tieFormats', label: 'Tie Formats' },
-    { key: 'compositions', label: 'Compositions' },
+    { key: 'topologies', label: t('templates.topologies') },
+    { key: 'tieFormats', label: t('templates.tieFormats') },
+    { key: 'compositions', label: t('templates.compositions') },
   ];
 
   for (const view of views) {
@@ -155,14 +156,14 @@ function buildTopologyLayout(
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
-  title.textContent = 'Topology Templates';
+  title.textContent = t('templates.topologyTemplates');
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
-  newBtn.textContent = 'New';
+  newBtn.textContent = t('new');
   newBtn.onclick = () => selectTopologyItem(undefined);
 
   header.appendChild(title);
@@ -193,7 +194,7 @@ function buildTopologyLayout(
 
   emptyEl = document.createElement('div');
   emptyEl.className = TPL_EMPTY;
-  emptyEl.textContent = 'Select a template to view or click New';
+  emptyEl.textContent = t('templates.selectTopology');
 
   rightPanel.appendChild(builderPanel);
   rightPanel.appendChild(emptyEl);
@@ -382,14 +383,14 @@ function buildTieFormatLayout(
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
-  title.textContent = 'Tie Format Templates';
+  title.textContent = t('templates.tieFormatTemplates');
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
-  newBtn.textContent = 'New';
+  newBtn.textContent = t('new');
   newBtn.onclick = () => selectTieFormatItem(undefined);
 
   header.appendChild(title);
@@ -420,7 +421,7 @@ function buildTieFormatLayout(
 
   emptyEl = document.createElement('div');
   emptyEl.className = TPL_EMPTY;
-  emptyEl.textContent = 'Select a tie format to view or click New';
+  emptyEl.textContent = t('templates.selectTieFormat');
 
   rightPanel.appendChild(builderPanel);
   rightPanel.appendChild(emptyEl);
@@ -436,7 +437,7 @@ function tieFormatMeta(item: CatalogItem, container: HTMLElement): void {
   const tf = (item as TieFormatCatalogItem).tieFormat;
   if (!tf?.collectionDefinitions?.length) {
     const span = document.createElement('span');
-    span.textContent = 'Empty';
+    span.textContent = t('templates.empty');
     container.appendChild(span);
     return;
   }
@@ -691,7 +692,7 @@ function renderTieFormatPreview(container: HTMLElement, tieFormat: any): void {
   } else {
     const empty = document.createElement('div');
     empty.className = 'tfp-empty';
-    empty.textContent = 'No collection definitions';
+    empty.textContent = t('templates.noCollectionDefinitions');
     wrap.appendChild(empty);
   }
 
@@ -755,14 +756,14 @@ function buildCompositionLayout(
 
   const title = document.createElement('div');
   title.className = TPL_PANEL_TITLE;
-  title.textContent = 'Composition Templates';
+  title.textContent = t('templates.compositionTemplates');
 
   catalogMeta = document.createElement('div');
   catalogMeta.className = TPL_PANEL_META;
 
   const newBtn = document.createElement('button');
   newBtn.className = BTN_SMALL_INFO;
-  newBtn.textContent = 'New';
+  newBtn.textContent = t('new');
   newBtn.onclick = () => selectCompositionItem(undefined);
 
   header.appendChild(title);
@@ -793,7 +794,7 @@ function buildCompositionLayout(
 
   emptyEl = document.createElement('div');
   emptyEl.className = TPL_EMPTY;
-  emptyEl.textContent = 'Select a composition to view or click New';
+  emptyEl.textContent = t('templates.selectComposition');
 
   rightPanel.appendChild(builderPanel);
   rightPanel.appendChild(emptyEl);
@@ -904,7 +905,7 @@ function selectCompositionItem(item: CompositionCatalogItem | undefined, readOnl
   if (!readOnly) {
     const saveBtn = document.createElement('button');
     saveBtn.className = BTN_SMALL_INFO;
-    saveBtn.textContent = 'Save';
+    saveBtn.textContent = t('common.save');
     saveBtn.onclick = () => {
       if (!compositionEditorInstance) return;
       const saved = compositionEditorInstance.getComposition();
@@ -1066,7 +1067,7 @@ function promptForName(defaultValue: string, onConfirm: (name: string) => void):
 
   const content = (elem: HTMLElement) => {
     const label = document.createElement('label');
-    label.textContent = 'Template name';
+    label.textContent = t('templates.templateName');
     label.style.cssText = 'display:block;margin-bottom:6px;font-weight:600;font-size:13px;';
     elem.appendChild(label);
 
@@ -1085,15 +1086,15 @@ function promptForName(defaultValue: string, onConfirm: (name: string) => void):
   };
 
   const buttons = [
-    { label: 'Cancel', intent: 'is-light', close: true },
+    { label: t('common.cancel'), intent: 'is-light', close: true },
     {
-      label: 'Save',
+      label: t('common.save'),
       intent: 'is-info',
       close: true,
       onClick: () => {
         const name = nameInput?.value?.trim();
         if (!name) {
-          tmxToast({ message: 'Please enter a name', intent: 'is-warning' });
+          tmxToast({ message: t('templates.nameRequired'), intent: 'is-warning' });
           return;
         }
         onConfirm(name);
@@ -1101,7 +1102,7 @@ function promptForName(defaultValue: string, onConfirm: (name: string) => void):
     },
   ];
 
-  openModal({ title: 'Save Template', content, buttons });
+  openModal({ title: t('templates.saveTemplate'), content, buttons });
 }
 
 function destroyBuilder(): void {

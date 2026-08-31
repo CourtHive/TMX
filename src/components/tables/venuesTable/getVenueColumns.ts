@@ -68,7 +68,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     },
     {
       title: '<i class="fa-solid fa-table-columns" />',
-      headerTooltip: 'Number of courts',
+      headerTooltip: t('pages.venues.addVenue.numberOfCourts'),
       headerHozAlign: CENTER,
       field: 'courtsCount',
       hozAlign: CENTER,
@@ -78,7 +78,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     },
     {
       title: t('tables.venues.scheduled'),
-      headerTooltip: 'Scheduled matches',
+      headerTooltip: t('entries.scheduledMatches'),
       field: 'scheduledMatchUpsCount',
       headerHozAlign: CENTER,
       headerSort: true,
@@ -98,7 +98,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     {
       title: `<i class="fa-sharp fa-solid fa-location-dot"></i>`,
       formatter: locationFormatter,
-      headerTooltip: 'Location',
+      headerTooltip: t('signin.place'),
       headerHozAlign: CENTER,
       cellClick: setLatLong,
       field: 'hasLocation',
@@ -110,7 +110,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     {
       title: `<i class="fa-solid fa-globe"></i>`,
       formatter: websiteFormatter,
-      headerTooltip: 'Website',
+      headerTooltip: t('ui.website'),
       headerHozAlign: CENTER,
       cellClick: openWebsite,
       field: 'venueWebsiteURL',

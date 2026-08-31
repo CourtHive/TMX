@@ -423,7 +423,7 @@ function buildColumnSelector(data: any): { columnFormContainer: HTMLElement; inp
   if (hasRanking) {
     const rankingSelected = currentColumns?.rankings ? currentColumns.rankings.includes('SINGLES') : false;
     columnOptions.push({
-      label: `Rank (SINGLES)`,
+      label: t('registrations.rankSingles'),
       value: 'ranking:SINGLES',
       selected: rankingSelected,
     });

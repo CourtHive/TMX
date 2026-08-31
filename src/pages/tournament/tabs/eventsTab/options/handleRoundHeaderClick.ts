@@ -15,6 +15,7 @@ import { scheduleRound } from './scheduleRound';
 
 // Constants
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function handleRoundHeaderClick(props: any): void {
   const { structureId, drawId, roundNumber } = props?.context ?? props;
@@ -82,17 +83,17 @@ export function handleRoundHeaderClick(props: any): void {
           eventData: props.eventData,
           callback: props.callback,
         }),
-      text: 'Schedule round...',
+      text: t('roundOptions.scheduleRoundEllipsis'),
     });
 
     roundActions.push({
       onClick: () => printRoundMatchCards({ drawId, structureId, roundNumber, action: 'open' }),
-      text: 'Print round match cards',
+      text: t('roundOptions.printRoundMatchCards'),
     });
 
     roundActions.push({
       onClick: () => printRoundCourtCards({ drawId, structureId, roundNumber }),
-      text: 'Print court cards',
+      text: t('roundOptions.printCourtCards'),
     });
   }
 

@@ -17,6 +17,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 
 import { ADD_DRAW_ENTRIES } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { DIRECT_ACCEPTANCE } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
@@ -30,7 +31,7 @@ const addTo = (table: any, event: any, drawId: string, entryStage: string): void
 
   if (!eligible.length) {
     tmxToast({
-      message: 'All selected participants are already in this draw',
+      message: t('entries.alreadyInDraw'),
       intent: 'is-warning',
     });
     return;
@@ -100,7 +101,7 @@ export const addToDraw =
 
     return {
       hide: !options.length || !!drawId,
-      label: 'Add to draw',
+      label: t('entries.addToDraw'),
       location: OVERLAY,
       options,
     };

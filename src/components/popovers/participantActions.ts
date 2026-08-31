@@ -47,7 +47,7 @@ export const participantActions =
       },
       {
         hide: !isIndividual,
-        text: "<i class='fas fa-user'></i> Edit Participant",
+        text: `<i class='fas fa-user'></i> ${t('participantActions.editParticipant')}`,
         onClick: () => {
           editPlayer({ participantId, callback: replaceTableData });
         },
@@ -68,7 +68,7 @@ export const participantActions =
             editGroupingParticipant({
               participant,
               refresh: replaceTableData,
-              title: 'Rename team',
+              title: t('pages.participants.rowActions.renameTeam'),
             });
           }
         },
@@ -99,7 +99,7 @@ export const participantActions =
             editGroupingParticipant({
               participantType: 'GROUP',
               refresh: replaceTableData,
-              title: 'Edit group',
+              title: t('pages.participants.rowActions.editGroup'),
               participant,
             });
           }

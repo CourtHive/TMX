@@ -5,6 +5,7 @@ import { removeSeeding } from './removeSeeding';
 
 import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { QUALIFYING } = drawDefinitionConstants;
 
@@ -63,7 +64,7 @@ export const cancelManualSeeding =
       class: 'cancelManualSeeding',
       intent: 'is-warning',
       location: RIGHT,
-      label: 'Cancel',
+      label: t('common.cancel'),
       visible: false,
       onClick,
     };

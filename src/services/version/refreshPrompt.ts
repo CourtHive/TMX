@@ -9,6 +9,7 @@
  * mismatch, where a reload is futile.
  */
 import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 
 let prompted = false;
 
@@ -22,7 +23,7 @@ export function promptRefresh(message: string): void {
     dismissible: true,
     pauseOnHover: true,
     message,
-    action: { text: 'Refresh', onClick: () => globalThis.location.reload() },
+    action: { text: t('actions.refresh'), onClick: () => globalThis.location.reload() },
   });
 }
 

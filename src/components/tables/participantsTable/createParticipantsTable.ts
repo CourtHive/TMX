@@ -135,7 +135,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
         'tennisId',
       ]),
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      placeholder: 'No participants',
+      placeholder: t('ui.noParticipants'),
       index: 'participantId',
       layout: 'fitColumns',
       reactiveData: true,

@@ -6,6 +6,7 @@ import { factoryConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openPDF } from 'services/pdf/export/pdfExport';
+import { t } from 'i18n';
 
 const IS_WARNING = 'is-warning';
 const { IN_PROGRESS } = factoryConstants.matchUpStatusConstants;
@@ -29,7 +30,7 @@ export function printCourtCard({ courtId, scheduledDate }: PrintCourtCardParams)
 
   const cards = extractCourtCardData({ matchUps: courtMatchUps, venues });
   if (!cards.length) {
-    tmxToast({ message: 'No scheduled matches on this court', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noScheduledOnCourt'), intent: IS_WARNING });
     return;
   }
 
@@ -51,13 +52,13 @@ export function printMatchUpCourtCard({
   const { matchUps = [], venues, tournamentName } = getScheduleData({ scheduledDate });
   const matchUp = matchUps.find((m: any) => m.matchUpId === matchUpId);
   if (!matchUp) {
-    tmxToast({ message: 'MatchUp not found', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.matchUpNotFound'), intent: IS_WARNING });
     return;
   }
 
   const cards = extractCourtCardData({ matchUps: [matchUp], venues });
   if (!cards.length) {
-    tmxToast({ message: 'No court card data for this matchUp', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noDataForMatchUp'), intent: IS_WARNING });
     return;
   }
 
@@ -90,14 +91,14 @@ export function printCourtMatchUpCards({ courtId, scheduledDate }: PrintCourtCar
   });
 
   if (!courtMatchUps.length) {
-    tmxToast({ message: 'No upcoming matches with both participants assigned on this court', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noUpcoming'), intent: IS_WARNING });
     return;
   }
 
   // One card per matchUp — extractCourtCardData collapses by court, so call per matchUp.
   const cards = courtMatchUps.flatMap((mu: any) => extractCourtCardData({ matchUps: [mu], venues }));
   if (!cards.length) {
-    tmxToast({ message: 'No court card data', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noData'), intent: IS_WARNING });
     return;
   }
 
@@ -113,7 +114,7 @@ export function printAllCourtCards({ scheduledDate }: { scheduledDate?: string }
 
   const cards = extractCourtCardData({ matchUps, venues, scheduledDate });
   if (!cards.length) {
-    tmxToast({ message: 'No matches scheduled on courts', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noneOnCourts'), intent: IS_WARNING });
     return;
   }
 
@@ -143,7 +144,7 @@ export function printRoundCourtCards({
   const cards = extractCourtCardData({ matchUps: scheduledMatchUps, venues });
 
   if (!cards.length) {
-    tmxToast({ message: 'No matches in this round are assigned to courts', intent: IS_WARNING });
+    tmxToast({ message: t('courtCards.noneInRound'), intent: IS_WARNING });
     return;
   }
 

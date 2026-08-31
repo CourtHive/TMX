@@ -11,6 +11,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { validators } from 'courthive-components';
 import { tools } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 const actionLabels: Record<string, string> = {
   ALTERNATE: 'Assign alternate',
@@ -154,9 +155,9 @@ function assignSeed({ target, action, callback }: { target: HTMLElement; action:
   }
   const menuItems = [
     {
-      label: 'Assign seed number ',
+      label: t('matchUpActions.assignSeedNumber'),
       validator: validators.numericValidator,
-      placeholder: 'Seed number',
+      placeholder: t('matchUpActions.seedNumber'),
       field: 'seedNumber',
       id: 'seedNumber',
       type: 'input',
@@ -187,7 +188,7 @@ function assignNickname({ target, action, callback }: { target: HTMLElement; act
   }
   const menuItems = [
     {
-      label: 'Nickname ',
+      label: t('matchUpActions.nickname'),
       placeholder: action.participant?.participantOtherName || 'Nickname',
       value: action.participant?.participantOtherName || '',
       field: 'nickname',

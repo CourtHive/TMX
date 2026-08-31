@@ -14,6 +14,7 @@ import { isFunction } from 'functions/typeOf';
 
 // Constants
 import { ADD_DRAW_DEFINITION, ADD_DRAW_DEFINITION_EXTENSION, INITIALIZE_DRAFT } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 export function generateDraw({
   eventId,
@@ -31,7 +32,7 @@ export function generateDraw({
   // force, so this is the friendly front-half of that backstop (and a recoverable snapshot is kept).
   if (restOptions.drawId && !confirmedReplace && drawHasScores(restOptions.drawId)) {
     confirmModal({
-      title: 'Regenerate draw?',
+      title: t('addDrawForm.regenerate'),
       query:
         'This draw has completed matches. Regenerating will discard them. A recoverable snapshot is saved. Continue?',
       okIntent: 'is-warning',

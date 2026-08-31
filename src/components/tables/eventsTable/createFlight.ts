@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { ADD_FLIGHT } from 'constants/mutationConstants';
 import { OVERLAY } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const newFlight = (table: any, event: any): void => {
   const selected = table.getSelectedData();
@@ -37,7 +38,7 @@ export const createFlight =
   (table: any): any => {
     return {
       onClick: () => newFlight(table, event),
-      label: 'Add flight',
+      label: t('entries.addFlight'),
       location: OVERLAY,
       hide: drawId,
     };

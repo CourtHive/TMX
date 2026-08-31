@@ -59,7 +59,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
     table = new Tabulator(element, {
       headerSortElement: headerSortElement(['complete', 'duration', 'score', 'scheduledTime']),
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      placeholder: 'No matches',
+      placeholder: t('ui.noMatches'),
       layout: 'fitColumns',
       reactiveData: true,
       index: 'matchUpId',

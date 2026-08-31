@@ -21,6 +21,7 @@ import { context } from 'services/context';
 // constants
 import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
 import { ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
@@ -88,7 +89,7 @@ export function renderTopologyPage({
       ? undefined
       : () => {
           confirmModal({
-            title: 'Clear Canvas',
+            title: t('topology.clearCanvas'),
             query: 'This will remove all structures and links. Continue?',
             okIntent: 'is-danger',
             cancelAction: undefined,
@@ -131,7 +132,7 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
-      tmxToast({ message: 'Draw generation failed', intent: 'is-danger' });
+      tmxToast({ message: t('topology.drawFailed'), intent: 'is-danger' });
       return;
     }
 
@@ -160,7 +161,7 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
       mutationRequest({
         methods,
         callback: () => {
-          tmxToast({ message: 'Draw generated successfully', intent: IS_SUCCESS });
+          tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
           navigateToEvent({
             eventId,
             drawId: generatedDrawId,
@@ -170,7 +171,7 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
         },
       });
     } else {
-      tmxToast({ message: 'Draw generated successfully', intent: IS_SUCCESS });
+      tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
       navigateToEvent({
         eventId,
         drawId: generatedDrawId,
@@ -187,7 +188,7 @@ function handleSaveTemplate({ state }: { state: TopologyState }): void {
   const content = document.createElement('div');
   const inputs = renderForm(content, [
     {
-      label: 'Template Name',
+      label: t('topology.templateName'),
       field: 'templateName',
       value: state.drawName || 'My Template',
       focus: true,
@@ -195,12 +196,12 @@ function handleSaveTemplate({ state }: { state: TopologyState }): void {
   ]);
 
   openModal({
-    title: 'Save Template',
+    title: t('templates.saveTemplate'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
+      { label: t('common.cancel'), intent: NONE, close: true },
       {
-        label: 'Save',
+        label: t('common.save'),
         intent: 'is-info',
         close: true,
         onClick: () => {
@@ -211,7 +212,7 @@ function handleSaveTemplate({ state }: { state: TopologyState }): void {
             name,
             description: `${state.nodes.length} structures, ${state.edges.length} links`,
           });
-          tmxToast({ message: 'Template saved', intent: IS_SUCCESS });
+          tmxToast({ message: t('topology.templateSaved'), intent: IS_SUCCESS });
         },
       },
     ],

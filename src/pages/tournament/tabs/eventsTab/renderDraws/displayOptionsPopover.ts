@@ -7,6 +7,7 @@ import tippy, { Instance } from 'tippy.js';
 
 import { buildDisplayModeOptions, VizDataAvailability } from './drawCardVizGating';
 import type { DrawCardDisplayMode } from './drawCardDisplayMode';
+import { t } from 'i18n';
 
 let tip: Instance | undefined;
 
@@ -38,7 +39,7 @@ export function openDisplayOptionsPopover({
   container.style.cssText = 'padding: 0.5em; min-width: 220px;';
 
   const heading = document.createElement('div');
-  heading.textContent = 'Card display';
+  heading.textContent = t('roundOptions.cardDisplay');
   heading.style.cssText = 'font-weight: 600; margin-bottom: 0.5em; font-size: 0.9em;';
   container.appendChild(heading);
 

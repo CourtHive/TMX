@@ -8,6 +8,7 @@ import { clearSeeding } from 'components/tables/eventsTable/seeding/removeSeedin
 import { drawDefinitionConstants } from 'tods-competition-factory';
 
 import { ACCEPTED, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { QUALIFYING } = drawDefinitionConstants;
 
@@ -22,8 +23,8 @@ export const drawEntriesSeedingSelector = (event: any, drawStage: string, table:
     .filter((def: any) => def.field?.startsWith('ratings.'));
 
   const options = [
-    { label: 'Manual seeding', onClick: (e: any) => enableManualSeeding(e, table), close: true },
-    { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
+    { label: t('segmentOverlay.manualSeeding'), onClick: (e: any) => enableManualSeeding(e, table), close: true },
+    { label: t('segmentOverlay.clearSeeding'), onClick: () => clearSeeding({ event, table }), close: true },
   ].concat(
     ...seedingColumns.map((column: any) => ({
       onClick: () => generateSeedValues({ event, group, table, field: column.field }),
@@ -35,7 +36,7 @@ export const drawEntriesSeedingSelector = (event: any, drawStage: string, table:
 
   return {
     class: 'seedingOptions',
-    label: 'Seeding',
+    label: t('seeding'),
     selection: false,
     location: RIGHT,
     align: RIGHT,

@@ -12,6 +12,7 @@ import { context } from 'services/context';
 import { platform } from 'platform';
 
 import { ADMIN, SUPER_ADMIN } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 function isAdmin(): boolean {
   const state = getLoginState();
@@ -43,7 +44,7 @@ export function registerMenuHandler(): void {
 
       case 'about':
         openModal({
-          title: 'About TMX',
+          title: t('platform.about'),
           content: 'TMX Tournament Management — Desktop Edition',
           buttons: [{ label: 'OK', intent: 'is-primary', close: true }],
         });

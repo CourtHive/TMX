@@ -476,7 +476,7 @@ export function matchUpActions({
   const items = [
     {
       onClick: clearSchedule,
-      text: 'Clear schedule',
+      text: t('pages.schedule.clearSchedule'),
       hide: !hasSchedule,
     },
     {
@@ -486,20 +486,20 @@ export function matchUpActions({
     },
     {
       onClick: setScheduleDate,
-      text: 'Schedule date',
+      text: t('matchUpActions.scheduleDate'),
     },
     {
       onClick: () => setTimeField('scheduledTime'),
-      text: 'Schedule time',
+      text: t('matchUpActions.scheduleTime'),
     },
     {
       onClick: () => setTimeField('startTime'),
-      text: 'Start time',
+      text: t('schedule.startTime'),
       hide: hideTimeOptions,
     },
     {
       onClick: () => setTimeField('endTime'),
-      text: 'End time',
+      text: t('schedule.endTime'),
       hide: hideTimeOptions,
     },
     {
@@ -515,7 +515,7 @@ export function matchUpActions({
     },
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
-      text: 'Print match card',
+      text: t('matchUpActions.printMatchCard'),
     },
     {
       onClick: () =>

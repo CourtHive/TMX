@@ -124,7 +124,7 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
 
   const table = new Tabulator(tableEl, {
     headerSortElement: headerSortElement(['entries']),
-    placeholder: 'No draws',
+    placeholder: t('eventRow.noDraws'),
     layout: 'fitColumns',
     index: 'drawId',
     columns,

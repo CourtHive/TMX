@@ -12,6 +12,7 @@ import { env } from 'settings/env';
 import axios from 'axios';
 
 import { LEFT, REPORTS_CONTROL, REPORTS_TAB, RIGHT, TOURNAMENT, TOURNAMENT_REPORTS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 let activeReport: any;
 let activeReportName = '';
@@ -50,7 +51,7 @@ const syncReportUrl = (reportId: string): void => {
 // admin/director-only structure-integrity audit launcher for the reports control bar
 const auditControlItem = () => ({
   onClick: () => openStructureAuditModal(),
-  label: 'Audit',
+  label: t('reports.audit'),
   intent: 'is-warning',
   location: RIGHT,
   id: 'structureAudit',
