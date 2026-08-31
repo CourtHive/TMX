@@ -1,0 +1,133 @@
+/* Provider schedule page — a season read top to bottom.
+ * Theme variables only (--tmx-* / --chc-*); no Bulma custom properties. */
+
+.tabHeader--banner.tmx-schedule-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+}
+
+.tmx-schedule-header__title {
+  justify-self: start;
+}
+
+.tmx-schedule-header__subject {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--tmx-text-primary);
+  justify-self: start;
+  overflow-wrap: anywhere;
+}
+
+.tmx-schedule-header__count {
+  justify-self: end;
+  font-size: 0.8125rem;
+  color: var(--tmx-text-secondary);
+  white-space: nowrap;
+}
+
+.tmx-schedule-body {
+  width: 100%;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+.tmx-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tmx-schedule-year {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tmx-text-muted);
+  padding: 1rem 0.25rem 0.375rem;
+  border-bottom: 1px solid var(--tmx-border-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.tmx-schedule-row {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tmx-schedule-row:hover {
+  background: var(--tmx-tab-row-hover-bg);
+  border-color: var(--tmx-border-primary);
+}
+
+.tmx-schedule-row:focus-visible {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: -2px;
+}
+
+.tmx-schedule-row__dates {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tmx-text-secondary);
+  white-space: nowrap;
+}
+
+.tmx-schedule-row__name {
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.tmx-schedule-row__events {
+  font-size: 0.75rem;
+  color: var(--tmx-text-muted);
+  white-space: nowrap;
+}
+
+.tmx-schedule-row--skeleton {
+  height: 2.75rem;
+  background: var(--tmx-bg-secondary);
+  cursor: default;
+  pointer-events: none;
+}
+
+.tmx-schedule-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--tmx-text-muted);
+}
+
+.tmx-schedule-notice--error {
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-schedule-retry {
+  align-self: center;
+}

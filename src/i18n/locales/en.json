@@ -2436,6 +2436,19 @@
       "closeTheDayNobody": "Nobody is currently signed in",
       "closeTheDayConfirm_one": "Sign out {{count}} person who is still signed in today?",
       "closeTheDayConfirm_other": "Sign out {{count}} people who are still signed in today?"
+    },
+    "participation": {
+      "title": "Schedule",
+      "navLabel": "Schedule",
+      "fixtureCount_one": "{{count}} fixture",
+      "fixtureCount_other": "{{count}} fixtures",
+      "eventCount_one": "{{count}} event",
+      "eventCount_other": "{{count}} events",
+      "undated": "No date",
+      "noFixtures": "No fixtures recorded for this programme.",
+      "loadFailed": "The schedule could not be loaded.",
+      "retry": "Try again",
+      "adminOnly": "An administrator role is required to view a schedule."
     }
   },
   "overlays": {

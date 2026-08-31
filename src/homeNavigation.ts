@@ -4,6 +4,7 @@
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
 import { getProviderRankingsUrl, providerHasRankings } from 'services/rankings/providerRankings';
+import { hasGlobalAdminRole } from 'services/authentication/hasGlobalAdminRole';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { getLoginState } from 'services/authentication/loginState';
@@ -12,7 +13,7 @@ import { context } from 'services/context';
 import tippy from 'tippy.js';
 import { t } from 'i18n';
 
-import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES, SETTINGS } from 'constants/tmxConstants';
+import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES, PROVIDER, SCHEDULE, SETTINGS } from 'constants/tmxConstants';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
@@ -118,6 +119,77 @@ function setupRankingsNav(): void {
 
     addRankingsMobileItem(abbreviation);
   });
+}
+
+// The schedule icon routes INSIDE TMX, but to a parameterised path
+// (`/provider/:providerId/schedule`), so it cannot live in `homeRouteMap` — that map is
+// id → static route. Handled here alongside the other two exceptions.
+//
+// Gated on the JWT's GLOBAL admin roles, deliberately NOT `isActiveProviderAdmin()`: the
+// participation route is `@Roles([ADMIN, SUPER_ADMIN])`, which a PROVIDER_ADMIN does not satisfy.
+// Gating on provider-admin would show the icon to users for whom it can only ever 403.
+//
+// It is NOT gated on whether the subject HAS fixtures. A provider with none is an ordinary,
+// correct state — dozens are in it — and hiding the entry point for those would make an honest
+// empty season indistinguishable from a feature that is not there.
+const SCHEDULE_ICON = 'h-schedule';
+const SCHEDULE_MOBILE_ITEM = 'mobile-nav-schedule';
+
+function activeProviderId(): string | undefined {
+  return (context.provider ?? getLoginState()?.provider)?.organisationId;
+}
+
+function openProviderSchedule(providerId: string): void {
+  context.router?.navigate(`/${PROVIDER}/${providerId}/${SCHEDULE}`);
+}
+
+function removeScheduleMobileItem(): void {
+  document.getElementById(SCHEDULE_MOBILE_ITEM)?.remove();
+}
+
+function addScheduleMobileItem(providerId: string): void {
+  const menu = document.getElementById(MOBILE_MENU_ID);
+  if (!menu || document.getElementById(SCHEDULE_MOBILE_ITEM)) return;
+
+  const item = document.createElement('button');
+  item.id = SCHEDULE_MOBILE_ITEM;
+  item.className = MOBILE_ITEM_CLASS;
+  item.textContent = t('pages.participation.navLabel');
+  item.onclick = () => {
+    menu.classList.remove(MENU_OPEN_CLASS);
+    document.getElementById(MOBILE_TOGGLE_ID)?.setAttribute(ARIA_EXPANDED, 'false');
+    openProviderSchedule(providerId);
+  };
+  menu.appendChild(item);
+}
+
+function setupScheduleNav(currentRoute?: string): void {
+  const icon = document.getElementById(SCHEDULE_ICON);
+  if (!icon) return;
+
+  removeScheduleMobileItem();
+
+  const providerId = activeProviderId();
+  if (!hasGlobalAdminRole() || !providerId) {
+    icon.style.display = 'none';
+    icon.onclick = null;
+    return;
+  }
+
+  icon.style.display = '';
+  icon.style.color = currentRoute === SCHEDULE ? ACCENT_BLUE : '';
+  icon.onclick = () => openProviderSchedule(providerId);
+
+  if ((icon as any)._tippy) (icon as any)._tippy.destroy();
+  (tippy as any)(icon, {
+    dynContent: () => !deviceConfig.get().isMobile && sidebarTip(t('pages.participation.navLabel')),
+    onShow: (options: any) => !!options.props.content,
+    plugins: [enhancedContentFunction],
+    placement: BOTTOM,
+    arrow: false,
+  });
+
+  addScheduleMobileItem(providerId);
 }
 
 // The console icon links out to the AMS provider console at `<origin>/console/`
@@ -272,6 +344,7 @@ export function homeNavigation(currentRoute?: string): void {
   });
 
   setupMobileHomeNav(currentRoute);
+  setupScheduleNav(currentRoute);
   setupRankingsNav();
   setupConsoleNav();
 }

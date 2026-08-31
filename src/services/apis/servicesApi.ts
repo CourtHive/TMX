@@ -58,6 +58,26 @@ export async function getMyCalendars({ providerAbbr }: { providerAbbr?: string }
   return await baseApi.post('/provider/my-calendars', { providerAbbr });
 }
 
+/**
+ * One subject's SCHEDULE — every competition it took part in, whoever owned them.
+ *
+ * This is NOT `getCalendar`. A calendar answers "what does this provider own", and a tournament
+ * lives in exactly one of them (`detachFromOtherCalendars` enforces it). A college dual belongs to
+ * the seasons of TWO programmes, so it is deliberately in neither calendar; the relation it needs
+ * is participation, which is its own read model keyed on `(subjectType, subjectId)`.
+ *
+ * `subjectType` is `TEAM` or `PERSON`; an unknown one is a 400 by design, so a typo cannot
+ * masquerade as an empty season. For a team-grain provider the `subjectId` IS the provider's id,
+ * which is why impersonating a provider and reading its schedule use the same key.
+ *
+ * Role-gated `ADMIN` / `SUPER_ADMIN` server-side — see {@link hasGlobalAdminRole} for the client
+ * gate that has to match it.
+ */
+export async function getParticipation({ subjectType, subjectId }: { subjectType: string; subjectId: string }) {
+  const path = `/participation/${encodeURIComponent(subjectType)}/${encodeURIComponent(subjectId)}`;
+  return await baseApi.get(path);
+}
+
 export async function getProviders(): Promise<ProvidersResponse> {
   return await baseApi.post('/provider/allProviders', {});
 }
