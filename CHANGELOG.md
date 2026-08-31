@@ -1,5 +1,16 @@
 # Changelog
 
+## [8.22.1](https://github.com/CourtHive/TMX/compare/v8.22.0...v8.22.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* **deps:** update dependency axios to v1.20.0 ([#1388](https://github.com/CourtHive/TMX/issues/1388)) ([e743b4a](https://github.com/CourtHive/TMX/commit/e743b4ac511fa03edd66c7e45eb0b2ce17432335))
+* **matchUps:** stop the Called column printing "now" for every uncalled matchUp ([#1387](https://github.com/CourtHive/TMX/issues/1387)) ([f54eda3](https://github.com/CourtHive/TMX/commit/f54eda3dc9f6729ea1e9ecb56f8dbb7ddd866edf))
+* **scales:** close the last three sites that mis-read a scale value ([#1389](https://github.com/CourtHive/TMX/issues/1389)) ([fcac5cb](https://github.com/CourtHive/TMX/commit/fcac5cbe8a8dfe334aaa5c09d9907e2995146138))
+* **scales:** stop fabricating a rating of zero from an empty scale value ([#1384](https://github.com/CourtHive/TMX/issues/1384)) ([bf3bef4](https://github.com/CourtHive/TMX/commit/bf3bef43c0fe8190840775dc3ead39f4daed8545))
+* **scoring:** skip a matchUp the inline renderer refuses to score ([#1386](https://github.com/CourtHive/TMX/issues/1386)) ([de26243](https://github.com/CourtHive/TMX/commit/de26243cb92d925834d5c2f3b78f16498e1b1da0))
+
 ## [8.22.0](https://github.com/CourtHive/TMX/compare/v8.21.0...v8.22.0) (2026-08-28)
 
 
