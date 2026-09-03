@@ -1,7 +1,7 @@
 FROM node:22-bookworm-slim AS build
 
 ARG CFS_REPOSITORY=https://github.com/CourtHive/competition-factory-server.git
-ARG CFS_REF=8307af5c17a52bebb62c8705293a9f65b2386e7f
+ARG CFS_REF=525571e5f8110376d6c8534c37cc3d975a2f0f15
 
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends ca-certificates git \
@@ -41,7 +41,11 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules/ ./node_modules/
 COPY --from=build /app/build/ ./build/
 COPY --from=build /app/i18n/ ./i18n/
-COPY --from=build /app/seeds/ ./seeds/
+# Provider-owned policy seeds reference provider rows from the upstream
+# deployment and violate the foreign key on a fresh standalone database.
+# Ship only portable, platform-owned catalog policies in the generic image.
+COPY --from=build /app/seeds/policies/README.md ./seeds/policies/README.md
+COPY --from=build /app/seeds/policies/_global/ ./seeds/policies/_global/
 COPY --from=build /app/src/storage/postgres/migrations/ ./src/storage/postgres/migrations/
 COPY --from=build /app/src/scripts/admin-user.mjs ./src/scripts/admin-user.mjs
 COPY --chmod=755 docker/cfs-entrypoint.sh /usr/local/bin/cfs-entrypoint

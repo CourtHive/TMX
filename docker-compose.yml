@@ -6,7 +6,7 @@ services:
       context: .
       args:
         VITE_SCORE_RELAY_URL: "${VITE_SCORE_RELAY_URL:-disabled}"
-    image: tmx:local
+    image: "${TMX_IMAGE:-tmx:local}"
     restart: unless-stopped
     environment:
       APP_PORT: "${APP_PORT:-8383}"
@@ -27,7 +27,7 @@ services:
       dockerfile: docker/cfs.Dockerfile
       args:
         CFS_REF: "${CFS_REF:-525571e5f8110376d6c8534c37cc3d975a2f0f15}"
-    image: tmx-cfs:local
+    image: "${TMX_CFS_IMAGE:-tmx-cfs:local}"
     restart: unless-stopped
     environment:
       NODE_ENV: production
