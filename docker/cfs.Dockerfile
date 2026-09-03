@@ -44,7 +44,6 @@ COPY --from=build /app/i18n/ ./i18n/
 COPY --from=build /app/seeds/ ./seeds/
 COPY --from=build /app/src/storage/postgres/migrations/ ./src/storage/postgres/migrations/
 COPY --from=build /app/src/scripts/admin-user.mjs ./src/scripts/admin-user.mjs
+COPY --chmod=755 docker/cfs-entrypoint.sh /usr/local/bin/cfs-entrypoint
 
-EXPOSE 8383
-
-CMD ["node", "build/src/main.js"]
+CMD ["cfs-entrypoint"]

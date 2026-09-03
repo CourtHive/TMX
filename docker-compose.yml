@@ -8,6 +8,8 @@ services:
         VITE_SCORE_RELAY_URL: "${VITE_SCORE_RELAY_URL:-disabled}"
     image: tmx:local
     restart: unless-stopped
+    environment:
+      APP_PORT: "${APP_PORT:-8383}"
     ports:
       - "${TMX_PORT:-8080}:80"
     depends_on:
@@ -31,7 +33,7 @@ services:
       NODE_ENV: production
       APP_MODE: production
       APP_NAME: Competition Factory Server
-      APP_PORT: "8383"
+      APP_PORT: "${APP_PORT:-8383}"
       APP_BASE_URL: "${APP_BASE_URL:-http://localhost:8080}"
       TMX_URL: /tmx/
       SERVER_PROFILE: full
@@ -44,6 +46,9 @@ services:
       PG_USER: "${PG_USER:-courthive}"
       PG_PASSWORD: "${PG_PASSWORD:-courthive}"
       PG_DATABASE: "${PG_DATABASE:-courthive}"
+      TMX_ADMIN_EMAIL: "${TMX_ADMIN_EMAIL:-}"
+      TMX_ADMIN_PASSWORD: "${TMX_ADMIN_PASSWORD:-}"
+      TMX_ADMIN_PROVIDER_ID: "${TMX_ADMIN_PROVIDER_ID:-}"
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: "6379"
@@ -64,7 +69,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:8383/api/config').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:' + process.env.APP_PORT + '/api/config').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s

@@ -45,7 +45,10 @@ docker compose up --build -d
 Open <http://localhost:8080/tmx/>. The first build downloads a pinned revision
 of `CourtHive/competition-factory-server`; subsequent builds use Docker's cache.
 
-Create the first administrator after the stack is healthy:
+For automatic first-start provisioning, copy `.env.docker.example` to `.env`,
+set `TMX_ADMIN_EMAIL` and `TMX_ADMIN_PASSWORD`, then start the stack. The account
+is created after database migrations; later restarts do not reset its password.
+You can also create an administrator manually after the stack is healthy:
 
 ```bash
 docker compose exec cfs node src/scripts/admin-user.mjs create \
@@ -53,8 +56,8 @@ docker compose exec cfs node src/scripts/admin-user.mjs create \
   --password change-me-now
 ```
 
-Copy `.env.docker.example` to `.env` and replace its example secrets before
-making the service reachable outside a trusted development machine. PostgreSQL
+Replace all example secrets before making the service reachable outside a
+trusted development machine. PostgreSQL
 data survives container replacement in the `tmx_postgres-data` named volume.
 Normal shutdown preserves it:
 

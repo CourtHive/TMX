@@ -23,7 +23,10 @@ RUN sed -i '/: link:\.\.\//d' pnpm-workspace.yaml \
 
 FROM nginx:1.29-alpine
 
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# The stock nginx entrypoint renders templates with container environment
+# variables before startup. This keeps the CFS upstream port aligned with the
+# same APP_PORT value passed to the cfs service by Compose.
+COPY docker/nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/ /usr/share/nginx/html/tmx/
 
 EXPOSE 80
