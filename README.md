@@ -33,6 +33,39 @@ pnpm start
 pnpm build
 ```
 
+## Docker with server persistence
+
+The Compose stack serves TMX and Competition Factory Server from one origin,
+with tournament data persisted in PostgreSQL and Redis used as a cache:
+
+```bash
+docker compose up --build -d
+```
+
+Open <http://localhost:8080/tmx/>. The first build downloads a pinned revision
+of `CourtHive/competition-factory-server`; subsequent builds use Docker's cache.
+
+Create the first administrator after the stack is healthy:
+
+```bash
+docker compose exec cfs node src/scripts/admin-user.mjs create \
+  --email admin@example.com \
+  --password change-me-now
+```
+
+Copy `.env.docker.example` to `.env` and replace its example secrets before
+making the service reachable outside a trusted development machine. PostgreSQL
+data survives container replacement in the `tmx_postgres-data` named volume.
+Normal shutdown preserves it:
+
+```bash
+docker compose down
+```
+
+Passing `--volumes` to `docker compose down` deliberately deletes the database.
+Anonymous/demo tournaments remain browser-local; authenticated provider-owned
+tournaments use CFS's server-first persistence.
+
 ## Technology Stack
 
 - **Data Standard:** TODS (Tennis Open Data Standards)
