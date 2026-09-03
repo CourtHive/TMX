@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.24.0](https://github.com/CourtHive/TMX/compare/v8.23.0...v8.24.0) (2026-08-31)
+
+
+### Features
+
+* **schedule:** a programme's season, read from courthive-query ([#1402](https://github.com/CourtHive/TMX/issues/1402)) ([7545c8b](https://github.com/CourtHive/TMX/commit/7545c8b7caa38dfe43fcf42be91924dac8434946))
+
 ## [8.23.0](https://github.com/CourtHive/TMX/compare/v8.22.1...v8.23.0) (2026-08-31)
 
 
