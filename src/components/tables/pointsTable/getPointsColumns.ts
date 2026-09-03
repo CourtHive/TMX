@@ -5,11 +5,12 @@
 import { preferencesConfig } from 'config/preferencesConfig';
 import { renderParticipant } from 'courthive-components';
 import { scalesMap } from 'config/scalesConfig';
+import { t } from 'i18n';
 
 export function getPointsColumns(): any[] {
   return [
     {
-      title: 'Participant',
+      title: t('tables.selection.participant'),
       field: 'participantName',
       minWidth: 220,
       headerSort: true,
@@ -36,7 +37,7 @@ export function getPointsColumns(): any[] {
       },
     },
     {
-      title: 'Finish',
+      title: t('tournaments.done'),
       field: 'rangeAccessor',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -45,7 +46,7 @@ export function getPointsColumns(): any[] {
       responsive: 2,
     },
     {
-      title: 'Wins',
+      title: t('modals.participantProfile.wins'),
       field: 'winCount',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -54,7 +55,7 @@ export function getPointsColumns(): any[] {
       responsive: 2,
     },
     {
-      title: 'Position',
+      title: t('tables.selection.position'),
       field: 'positionPoints',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -64,7 +65,7 @@ export function getPointsColumns(): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Per Win',
+      title: t('modals.participantProfile.perWin'),
       field: 'perWinPoints',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -74,7 +75,7 @@ export function getPointsColumns(): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Bonus',
+      title: t('modals.participantProfile.bonus'),
       field: 'bonusPoints',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -84,7 +85,7 @@ export function getPointsColumns(): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Quality',
+      title: t('modals.participantProfile.quality'),
       field: 'qualityWinPoints',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -94,7 +95,7 @@ export function getPointsColumns(): any[] {
       formatter: (cell: any) => cell.getValue() || '',
     },
     {
-      title: 'Total',
+      title: t('tot'),
       field: 'points',
       headerHozAlign: 'center',
       hozAlign: 'center',

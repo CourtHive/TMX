@@ -53,6 +53,7 @@ import {
   ROUNDS_STATS,
   ROUNDS_TABLE,
 } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { CONTAINER } = drawDefinitionConstants;
 
@@ -318,7 +319,7 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
       items: [
         {
           onClick: deleteSelectedDraws,
-          label: 'Delete selected',
+          label: t('pages.events.deleteSelected'),
           intent: 'is-danger',
           stateChange: true,
           hide: mode === 'grid',
@@ -326,7 +327,7 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
         },
         {
           onClick: renameSelectedDraws,
-          label: 'Rename selected',
+          label: t('eventRow.renameSelected'),
           intent: 'is-info',
           stateChange: true,
           hide: mode === 'grid',
@@ -335,13 +336,13 @@ function renderDrawsTableView(eventId: string, _event: any, renderDraw: boolean 
         {
           onClick: () => addFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
           intent: 'is-info',
-          label: 'Add flights',
+          label: t('pages.events.addFlights'),
           location: RIGHT,
         },
         {
           onClick: () => addDraw({ eventId, callback: drawAdded }),
           intent: 'is-primary',
-          label: 'Add draw',
+          label: t('pages.events.addDraw'),
           location: RIGHT,
         },
       ],

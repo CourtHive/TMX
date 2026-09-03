@@ -1,3 +1,4 @@
+import { renderProviderSchedulePage } from 'pages/participation/renderProviderSchedulePage';
 import { ssoLoginWithToken, consumeMagicLink } from 'services/authentication/authApi';
 import { renderPolicyCatalogPage } from 'pages/policies/renderPolicyCatalogPage';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
@@ -39,6 +40,8 @@ import {
   VENUE,
   TEMPLATES,
   POLICIES,
+  PROVIDER,
+  SCHEDULE,
   SETTINGS,
   INVITE,
   VIEW,
@@ -267,6 +270,14 @@ export function routeTMX() {
       tmxToast({ intent: 'is-danger', message: t('toasts.magicLinkInvalid') });
       router.navigate(`/${TMX_TOURNAMENTS}`);
     }
+  });
+
+  // A subject's SCHEDULE, which is not a calendar: the fixtures a programme took part in, read from
+  // the participation index. The subject is in the path on purpose — it is what lets an operator
+  // open a season for a subject that is not the provider they are currently impersonating.
+  router.on(`/${PROVIDER}/:providerId/${SCHEDULE}`, (match) => {
+    destroyTables();
+    renderProviderSchedulePage(match?.data ?? undefined);
   });
 
   router.on(`/${TEMPLATES}/:templateView`, (match) => renderTemplatesPage(match?.data ?? undefined));

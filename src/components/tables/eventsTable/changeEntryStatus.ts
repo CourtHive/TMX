@@ -2,6 +2,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 
 import { OVERLAY, entryStatusMapping } from 'constants/tmxConstants';
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 const modifyStatus = (table: any, group: string, eventId: string, drawId?: string) => {
   const selected = table.getSelectedData().filter((p: any) => !p._isSeparator);
@@ -48,7 +49,7 @@ export const changeEntryStatus =
     }));
     return {
       location: OVERLAY,
-      label: 'Change status',
+      label: t('entries.changeStatus'),
       options,
     };
   };

@@ -15,6 +15,7 @@ import {
   REMOVE_DRAW_POSITION_ASSIGNMENT,
 } from 'constants/mutationConstants';
 import { DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 let assignmentMode = false;
 let stateManager: DrawStateManager | null = null;
@@ -355,7 +356,7 @@ function updateControlBarForAssignment({
 
   const items = [
     {
-      label: 'Exit Assignment Mode',
+      label: t('drawActions.exitAssignmentMode'),
       icon: 'fa fa-times-circle',
       onClick: () => exitParticipantAssignmentMode({ drawId, eventId, structureId }),
       intent: 'is-primary',

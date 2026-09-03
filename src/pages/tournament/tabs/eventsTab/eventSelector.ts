@@ -6,6 +6,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { EVENTS_TABLE, EVENT_SELECTOR_TABLE, NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const ACCENT_BLUE = 'var(--tmx-accent-blue, #3273dc)';
 const BORDER_PRIMARY = 'var(--tmx-border-primary, #ddd)';
@@ -145,7 +146,7 @@ export function renderEventSelector({ eventId }: { eventId: string }): void {
 
   // "All events" link to return to full table
   const allLink = document.createElement('button');
-  allLink.textContent = 'All Events';
+  allLink.textContent = t('schedule.allevents');
   allLink.style.cssText =
     'padding: 0.3em 0.8em; border: none; background: none; color: var(--tmx-text-secondary, #888); cursor: pointer; font-size: 0.85em; white-space: nowrap; text-decoration: underline;';
   allLink.onclick = () => navigateToEvent({});

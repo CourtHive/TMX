@@ -21,6 +21,7 @@ import { getDrawsColumns } from './getDrawsColumns';
 import { controlBar } from 'courthive-components';
 
 import { LEFT, OVERLAY, NONE, RIGHT, SUB_TABLE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const eventRowFormatter = (setTable: (eventId: string, table: any) => void) => (row: any) => {
   const holderEl = document.createElement('div');
@@ -51,7 +52,7 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
 
   const drawsTable = new Tabulator(tableEl, {
     headerSortElement: headerSortElement(['entries']),
-    placeholder: 'No draws',
+    placeholder: t('eventRow.noDraws'),
     layout: 'fitColumns',
     index: 'drawId',
     maxHeight: 400,
@@ -141,44 +142,44 @@ export const eventRowFormatter = (setTable: (eventId: string, table: any) => voi
   const items = [
     {
       onClick: deleteSelectedDraws,
-      label: 'Delete selected',
+      label: t('pages.events.deleteSelected'),
       intent: 'is-danger',
       stateChange: true,
       location: OVERLAY,
     },
     {
       onClick: renameSelectedDraws,
-      label: 'Rename selected',
+      label: t('eventRow.renameSelected'),
       intent: 'is-info',
       stateChange: true,
       location: OVERLAY,
     },
     {
       onClick: () => navigateToEvent({ eventId }),
-      label: 'View entries',
+      label: t('eventRow.viewEntries'),
       intent: 'is-info',
       location: LEFT,
     },
     {
       onClick: () => editAvoidances({ eventId }),
       id: 'editAvoidances',
-      label: 'Avoidances',
+      label: t('eventRow.avoidances'),
       location: LEFT,
     },
     {
       onClick: () => editEvent({ event, callback }),
-      label: 'Edit event',
+      label: t('pages.events.editEventAction'),
       location: RIGHT,
     },
     {
       onClick: () => addDraw({ eventId, callback: drawAdded }),
       intent: 'is-primary',
-      label: 'Add draw',
+      label: t('pages.events.addDraw'),
       location: RIGHT,
     },
     {
       onClick: () => addFlights({ eventId, callback: flightsAdded }),
-      label: 'Add flights',
+      label: t('pages.events.addFlights'),
       intent: 'is-info',
       location: RIGHT,
     },

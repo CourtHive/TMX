@@ -10,14 +10,14 @@ import { t } from 'i18n';
 import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
-const COURT_OPTIONS: { sport: CourtSport; label: string }[] = [
-  { sport: 'tennis', label: 'Tennis' },
-  { sport: 'pickleball', label: 'Pickleball' },
-  { sport: 'badminton', label: 'Badminton' },
-  { sport: 'basketball', label: 'Basketball' },
-  { sport: 'baseball', label: 'Baseball' },
-  { sport: 'hockey', label: 'Hockey' },
-  { sport: 'padel', label: 'Padel' },
+const courtOptions = () => [
+  { sport: 'tennis', label: t('sports.tennis') },
+  { sport: 'pickleball', label: t('sports.pickleball') },
+  { sport: 'badminton', label: t('sports.badminton') },
+  { sport: 'basketball', label: t('sports.basketball') },
+  { sport: 'baseball', label: t('sports.baseball') },
+  { sport: 'hockey', label: t('sports.hockey') },
+  { sport: 'padel', label: t('sports.padel') },
 ];
 
 export function editTournamentImage({ callback }: { callback?: (url: string) => void } = {}) {
@@ -126,7 +126,7 @@ export function editTournamentImage({ callback }: { callback?: (url: string) => 
   emptyOption.textContent = t('modals.tournamentImage.courtNone');
   courtSelect.appendChild(emptyOption);
 
-  for (const { sport, label } of COURT_OPTIONS) {
+  for (const { sport, label } of courtOptions()) {
     const option = document.createElement('option');
     option.value = sport;
     option.textContent = label;

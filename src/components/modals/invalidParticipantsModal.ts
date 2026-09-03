@@ -138,7 +138,7 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
     data: tableData,
     layout: 'fitColumns',
     height: Math.min(300 + tableData.length * 40, 600), // Dynamic height based on rows
-    placeholder: 'No invalid participants',
+    placeholder: t('drawActions.noInvalidParticipants'),
   });
 
   // Clean up table when modal closes

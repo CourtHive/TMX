@@ -19,6 +19,7 @@ import { getFollowActions } from './getFollowActions';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { TEAM } = participantConstants;
 
@@ -224,12 +225,12 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
           {
             onClick: () => openMap('google'),
             hide: !latitude || !longitude,
-            text: 'Open in Google Maps',
+            text: t('maps.google'),
           },
           {
             onClick: () => openMap('bing'),
             hide: !latitude || !longitude,
-            text: 'Open in Bing Maps',
+            text: t('maps.bing'),
           },
         ];
 

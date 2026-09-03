@@ -397,7 +397,7 @@ function checkForStaleData(tournamentId: string): void {
           }
         }
 
-        tmxToast({ message: 'Tournament data refreshed from server', intent: 'is-info' });
+        tmxToast({ message: t('tournamentDisplay.refreshed'), intent: 'is-info' });
       } else {
         slog('[tournament] local data is up to date');
       }

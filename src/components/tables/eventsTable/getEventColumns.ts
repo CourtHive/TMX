@@ -69,7 +69,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       title: '<i class="fa-solid fa-sitemap" />',
-      headerTooltip: 'Number of Draws',
+      headerTooltip: t('entries.numberOfDraws'),
       cellClick: (_: any, cell: any) => {
         const eventId = cell.getRow().getData().eventId;
         navigateToEvent({ eventId, renderDraw: true });
@@ -83,7 +83,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       title: '<i class="fa-solid fa-user-group" />',
-      headerTooltip: 'Accepted Entries',
+      headerTooltip: t('entries.acceptedEntries'),
       headerHozAlign: CENTER,
       field: 'entriesCount',
       cellClick: eventDetail,
@@ -94,7 +94,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       title: '<i class="fa-solid fa-table-tennis-paddle-ball" />',
-      headerTooltip: 'Total MatchUps',
+      headerTooltip: t('ui.totalMatchUps'),
       headerHozAlign: CENTER,
       field: 'matchUpsCount',
       hozAlign: CENTER,
@@ -104,7 +104,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       title: '<i class="fa-solid fa-clock" />',
-      headerTooltip: 'Scheduled MatchUps',
+      headerTooltip: t('schedule.scheduledTitle'),
       field: 'scheduledMatchUpsCount',
       headerHozAlign: CENTER,
       hozAlign: CENTER,
@@ -114,7 +114,7 @@ export function getEventColumns(getLightMode?: () => boolean): any[] {
     },
     {
       title: '<i class="fa-solid fa-flag-checkered" />',
-      headerTooltip: 'Completed MatchUps',
+      headerTooltip: t('entries.completedMatchUps'),
       field: 'completedMatchUpsCount',
       headerHozAlign: CENTER,
       hozAlign: CENTER,

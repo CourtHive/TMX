@@ -14,6 +14,7 @@ import { getStatsColumns } from './getStatsColumns';
 
 // constants
 import { DRAWS_VIEW, ROUNDS_STATS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type CreateStatsTableParams = {
   structureId: string;
@@ -127,7 +128,7 @@ export async function createStatsTable({
         'order',
       ]),
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      placeholder: 'No participants',
+      placeholder: t('ui.noParticipants'),
       layout: 'fitDataStretch',
       reactiveData: true,
       index: 'matchUpId',

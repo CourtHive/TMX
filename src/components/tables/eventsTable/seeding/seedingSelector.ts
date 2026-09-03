@@ -8,6 +8,7 @@ import { clearSeeding } from './removeSeeding';
 
 // constants
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const seedingSelector =
   (event: any, group: string) =>
@@ -19,8 +20,8 @@ export const seedingSelector =
       .filter((def: any) => def.field?.startsWith('ratings.'));
 
     const options = [
-      { label: 'Manual seeding', onClick: (e: any) => enableManualSeeding(e, table), close: true },
-      { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
+      { label: t('segmentOverlay.manualSeeding'), onClick: (e: any) => enableManualSeeding(e, table), close: true },
+      { label: t('segmentOverlay.clearSeeding'), onClick: () => clearSeeding({ event, table }), close: true },
     ].concat(
       ...seedingColumns.map((column: any) => ({
         onClick: () => generateSeedValues({ event, group, table, field: column.field }),
@@ -32,7 +33,7 @@ export const seedingSelector =
 
     return {
       class: 'seedingOptions',
-      label: 'Seeding',
+      label: t('seeding'),
       selection: false,
       location: RIGHT,
       align: RIGHT,

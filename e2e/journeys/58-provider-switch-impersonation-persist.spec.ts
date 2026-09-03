@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
+import { routeApiToCfs } from '../helpers/cfsProxy';
 import {
   SERVER,
   ensureProvider,
@@ -49,6 +50,10 @@ let token: string | null = null;
 let seeded = false;
 
 async function loginViaModal(page: Page, email: string, password: string): Promise<void> {
+  // Under `TEST_PROD=1` the build's SERVER is empty, so this login would post to the preview
+  // origin and fail silently. This journey predates `AuthFlow` and keeps its own flow, so it
+  // opts in here; everything routed through `AuthFlow.login` gets it there.
+  await routeApiToCfs(page);
   await page.goto('/');
   await waitForAppReady(page);
   await page.locator('#login').click();

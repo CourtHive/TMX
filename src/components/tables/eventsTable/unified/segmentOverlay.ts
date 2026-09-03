@@ -23,6 +23,7 @@ import { addToDraw } from '../addToDraw';
 // Constants
 import { REMOVE_DRAW_ENTRIES, REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
 const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
@@ -145,7 +146,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     }));
 
     return {
-      label: 'Move participants',
+      label: t('segmentOverlay.moveParticipants'),
       location: OVERLAY,
       options,
     };
@@ -210,7 +211,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
           };
           mutationRequest({ methods, callback: postMutation });
         },
-        label: 'Remove from draw',
+        label: t('segmentOverlay.removeFromDraw'),
         intent: 'is-warning',
         location: OVERLAY,
       };
@@ -243,7 +244,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
           table.deselectRow();
           pairFromUnified(event, ids, () => onRefresh());
         },
-        label: 'Create pair',
+        label: t('segmentOverlay.createPair'),
         intent: 'is-info',
         location: OVERLAY,
       };
@@ -274,7 +275,7 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
           };
           mutationRequest({ methods, callback });
         },
-        label: 'Remove from event',
+        label: t('segmentOverlay.removeFromEvent'),
         intent: 'is-danger',
         location: OVERLAY,
       };
@@ -309,8 +310,8 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRe
         .filter((def: any) => def.field?.startsWith('ratings.'));
 
       const options: any[] = [
-        { label: 'Manual seeding', onClick: (e: any) => enableManualSeeding(e, table), close: true },
-        { label: 'Clear seeding', onClick: () => clearSeeding({ event, table }), close: true },
+        { label: t('segmentOverlay.manualSeeding'), onClick: (e: any) => enableManualSeeding(e, table), close: true },
+        { label: t('segmentOverlay.clearSeeding'), onClick: () => clearSeeding({ event, table }), close: true },
         ...seedingColumns.map((column: any) => ({
           onClick: () => generateSeedValues({ event, group, table, field: column.field }),
           label: `Seed by ${column.title}`,
@@ -342,13 +343,13 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRe
       const addAlternate = addEntries(event, ALTERNATE, onRefresh)(table);
 
       const options: any[] = [
-        { label: 'Add to Accepted', onClick: addAccepted.onClick, close: true },
-        { label: 'Add to Qualifying', onClick: addQualifying.onClick, close: true },
-        { label: 'Add to Alternates', onClick: addAlternate.onClick, close: true },
+        { label: t('segmentOverlay.addToAccepted'), onClick: addAccepted.onClick, close: true },
+        { label: t('segmentOverlay.addToQualifying'), onClick: addQualifying.onClick, close: true },
+        { label: t('segmentOverlay.addToAlternates'), onClick: addAlternate.onClick, close: true },
       ];
 
       return {
-        label: 'Add entries',
+        label: t('segmentOverlay.addEntries'),
         class: 'addEntries',
         location: RIGHT,
         options,
@@ -367,7 +368,7 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRe
         button.innerHTML = `Pairing: ${pairingMode.enabled ? 'ON' : 'OFF'}`;
         button.className = button.className.replace(/is-\w+/, pairingMode.enabled ? 'is-info' : 'is-light');
       },
-      label: 'Pairing: OFF',
+      label: t('segmentOverlay.pairingOff'),
       intent: 'is-light',
       id: 'pairing-mode-toggle',
       location: RIGHT,

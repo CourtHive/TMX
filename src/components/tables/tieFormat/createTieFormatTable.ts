@@ -8,6 +8,7 @@ import { toTitleCase } from 'functions/toTitleCase';
 import { tools } from 'tods-competition-factory';
 
 import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export function createTieFormatTable({ tableElement, tieFormat }: { tableElement: HTMLElement; tieFormat: any }): {
   table: any;
@@ -38,7 +39,7 @@ export function createTieFormatTable({ tableElement, tieFormat }: { tableElement
   const table = new Tabulator(tableElement, {
     responsiveLayoutCollapseStartOpen: false,
     columnDefaults: { headerSort: false },
-    placeholder: 'No collections',
+    placeholder: t('ui.noCollections'),
     responsiveLayout: 'collapse',
     index: 'collectionId',
     reactiveData: true,

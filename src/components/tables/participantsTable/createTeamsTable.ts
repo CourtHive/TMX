@@ -17,6 +17,7 @@ import { displayConfig } from 'config/displayConfig';
 
 // constants
 import { TOURNAMENT_TEAMS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 const { TEAM } = participantConstants;
 
 export function createTeamsTable({ view }: { view?: string } = {}): { table: any; replaceTableData: () => void } {
@@ -53,7 +54,7 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
       responsiveLayoutCollapseFormatter: participantResponsiveLayourFormatter,
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
-      placeholder: 'No team participants',
+      placeholder: t('entries.noTeamParticipants'),
       rowFormatter: teamRowFormatter,
       responsiveLayout: 'collapse',
       index: 'participantId',

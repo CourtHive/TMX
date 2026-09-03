@@ -26,6 +26,7 @@ import {
 } from 'services/apis/registrationsApi';
 
 import { LEFT, REGISTRATIONS_CONTROL, RIGHT, TOURNAMENT_REGISTRATIONS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type AdminAction = 'accept' | 'waitlist' | 'reject';
 
@@ -81,7 +82,7 @@ async function refresh(tournamentId: string): Promise<void> {
   if (!state) return;
   const provider = resolveProvider();
   if (!provider) {
-    tmxToast({ message: 'Tournament has no provider — cannot load registrations.', intent: INTENT_DANGER });
+    tmxToast({ message: t('registrations.noProvider'), intent: INTENT_DANGER });
     return;
   }
   try {
@@ -152,16 +153,16 @@ async function runSingleAction(tournamentId: string, action: AdminAction, regist
     if (action === 'accept') {
       // Accept is the ONE CFS touch (addParticipants); reject/waitlist go to declarations.
       await acceptRegistration({ tournamentId, registrationId });
-      tmxToast({ message: 'Applicant accepted into the tournament.', intent: INTENT_SUCCESS });
+      tmxToast({ message: t('registrations.accepted'), intent: INTENT_SUCCESS });
     } else {
       const provider = resolveProvider();
       if (!provider) throw new Error('Tournament has no provider');
       if (action === 'waitlist') {
         await waitlistRegistration({ provider, registrationId });
-        tmxToast({ message: 'Applicant moved to waitlist.', intent: INTENT_INFO });
+        tmxToast({ message: t('registrations.waitlisted'), intent: INTENT_INFO });
       } else {
         await rejectRegistration({ provider, registrationId });
-        tmxToast({ message: 'Applicant rejected.', intent: INTENT_INFO });
+        tmxToast({ message: t('registrations.rejected'), intent: INTENT_INFO });
       }
     }
     await refresh(tournamentId);

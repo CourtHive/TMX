@@ -1,4 +1,5 @@
 import { SERVER, signInSuperAdmin, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } from '../helpers/role-fixtures';
+import { routeApiToCfs } from '../helpers/cfsProxy';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect, type Page } from '@playwright/test';
@@ -108,6 +109,11 @@ test.describe('Journey 103 — the app shell fills the viewport', () => {
   test('the registrations table fills the workspace (CFS-gated)', async ({ page, request }) => {
     const reachable = !!(await signInSuperAdmin(request));
     test.skip(!reachable, `CFS at ${SERVER} / bootstrap super-admin unavailable`);
+
+    // Under TEST_PROD the built app calls its own origin, and `vite preview` has
+    // no API behind it — the login below would 404 and leave no session, hiding
+    // the very nav icon this test asserts on. See cfsProxy for the full why.
+    await routeApiToCfs(page);
 
     // Rows come from the declarations service (:3120), whose player surface is
     // HiveID-guarded — minting one of those tokens is a whole identity chain for

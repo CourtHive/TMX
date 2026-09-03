@@ -7,6 +7,7 @@ import { createPolicyCatalog } from 'courthive-components';
 import type { PolicyCatalogControl } from 'courthive-components';
 import { getBuiltinPolicies, loadUserPolicies, saveUserPolicy } from './policyBridge';
 import './policyCatalog.css';
+import { t } from 'i18n';
 
 let catalogControl: PolicyCatalogControl | null = null;
 
@@ -49,7 +50,7 @@ function buildCatalogLink(): HTMLElement {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'policy-catalog__entry-button';
-  button.textContent = 'Browse public catalog →';
+  button.textContent = t('policiesPage.browseCatalog');
   button.addEventListener('click', () => {
     context.router?.navigate(`/${POLICIES}/catalog`);
   });

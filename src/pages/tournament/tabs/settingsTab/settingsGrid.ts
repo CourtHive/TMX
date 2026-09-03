@@ -26,8 +26,8 @@ import { i18next, t } from 'i18n';
 import {
   applyFont,
   applyFontSize,
-  FONT_OPTIONS,
-  FONT_SIZE_OPTIONS,
+  fontOptions,
+  fontSizeOptions,
   getFontPreference,
   getFontSizePreference,
 } from 'services/theme/themeService';
@@ -309,7 +309,7 @@ export async function renderSettingsGrid(
   const fontForm = document.createElement('div');
   renderForm(fontForm, [
     {
-      options: Object.entries(FONT_OPTIONS).map(([key, { label }]) => ({
+      options: Object.entries(fontOptions()).map(([key, { label }]) => ({
         value: key,
         label,
         selected: key === currentFont,
@@ -329,7 +329,7 @@ export async function renderSettingsGrid(
   fontSizeForm.style.marginTop = '8px';
   renderForm(fontSizeForm, [
     {
-      options: Object.entries(FONT_SIZE_OPTIONS).map(([key, { label }]) => ({
+      options: Object.entries(fontSizeOptions()).map(([key, { label }]) => ({
         value: key,
         label,
         selected: key === currentFontSize,
@@ -383,7 +383,7 @@ export async function renderSettingsGrid(
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
     {
-      label: 'Ask TMX assistant',
+      label: t('settingsGrid.askAssistant'),
       checked: featureFlags.get().assistant || false,
       field: 'assistant',
       id: 'assistant',
@@ -391,7 +391,7 @@ export async function renderSettingsGrid(
       checkbox: true,
     },
     {
-      label: 'Format Wizard',
+      label: t('formatWizard.title'),
       checked: featureFlags.get().formatWizard || false,
       field: 'formatWizard',
       id: 'formatWizard',
@@ -399,7 +399,7 @@ export async function renderSettingsGrid(
       checkbox: true,
     },
     {
-      label: 'Schedule Plan',
+      label: t('settingsGrid.schedulePlan'),
       checked: featureFlags.get().schedulePlan || false,
       field: 'schedulePlan',
       id: 'schedulePlan',
@@ -442,7 +442,7 @@ export async function renderSettingsGrid(
     notifCheckbox.addEventListener('change', () => setDesktopNotificationsEnabled(notifCheckbox.checked));
     const notifLabel = document.createElement('label');
     notifLabel.htmlFor = 'desktopNotifications';
-    notifLabel.textContent = ' Desktop Notifications';
+    notifLabel.textContent = t('settingsGrid.desktopNotifications');
     notifLabel.style.marginLeft = '4px';
     notifRow.appendChild(notifCheckbox);
     notifRow.appendChild(notifLabel);
@@ -495,7 +495,7 @@ export async function renderSettingsGrid(
 
     const serverUrlLabel = document.createElement('label');
     serverUrlLabel.className = 'label';
-    serverUrlLabel.textContent = 'Server URL';
+    serverUrlLabel.textContent = t('settingsGrid.serverUrl');
     serverUrlLabel.style.marginBottom = '4px';
 
     const serverUrlInput = document.createElement('input');
@@ -530,7 +530,7 @@ export async function renderSettingsGrid(
 
     const offlineLabel = document.createElement('label');
     offlineLabel.htmlFor = 'workOffline';
-    offlineLabel.textContent = ' Work Offline';
+    offlineLabel.textContent = t('settingsGrid.workOffline');
     offlineLabel.style.marginLeft = '4px';
 
     const offlineRow = document.createElement('div');

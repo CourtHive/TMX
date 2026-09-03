@@ -12,6 +12,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { baseApi } from 'services/apis/baseApi';
+import { t } from 'i18n';
 
 function buildContent(): HTMLElement {
   const { effectivelyComplete, counts }: any = tournamentEngine.getTournamentActionableMatchUps() ?? {};
@@ -19,8 +20,7 @@ function buildContent(): HTMLElement {
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;font-size:0.875rem;';
 
   const summary = document.createElement('div');
-  summary.textContent =
-    'Republish this tournament to the public rankings list. Points are recomputed from its decided matches.';
+  summary.textContent = t('matchUpsActions.republishExplain');
   wrap.appendChild(summary);
 
   if (!effectivelyComplete) {
@@ -46,7 +46,7 @@ async function runRepublish(): Promise<void> {
 
   const body = response.data ?? {};
   if (body?.skipped) {
-    tmxToast({ message: 'Rankings pipeline is not configured', intent: 'is-info' });
+    tmxToast({ message: t('matchUpsActions.rankingsNotConfigured'), intent: 'is-info' });
     return;
   }
   const awardCount = body?.responseBody?.awardCount;
@@ -63,12 +63,12 @@ export function getRepublishRankingsOption(): any | null {
   return {
     onClick: () =>
       confirmModal({
-        title: 'Republish rankings',
+        title: t('matchUpsActions.republishRankings'),
         query: buildContent(),
         okIntent: 'is-primary',
         okAction: () => runRepublish(),
       }),
-    label: 'Republish rankings',
+    label: t('matchUpsActions.republishRankings'),
     intent: 'is-primary',
     close: true,
   };

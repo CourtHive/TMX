@@ -14,6 +14,7 @@ const { ratingsParameters } = fixtures;
 
 // constants
 import { INITIALIZE_DRAFT, RESOLVE_DRAFT_POSITIONS, SET_DRAW_POSITION_PREFERENCES } from 'constants/mutationConstants';
+import { t } from 'i18n';
 
 const IS_WARNING = 'is-warning';
 const IS_PRIMARY = 'is-primary';
@@ -104,7 +105,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId });
 
   if (error || !draftState) {
-    tmxToast({ message: 'No draft found for this draw', intent: IS_WARNING });
+    tmxToast({ message: t('draft.notFound'), intent: IS_WARNING });
     return;
   }
 
@@ -184,9 +185,9 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
   `;
 
   openModal({
-    title: 'Configure Draft',
+    title: t('draft.configure'),
     content,
-    buttons: [{ label: 'Done', intent: IS_PRIMARY, close: true }],
+    buttons: [{ label: t('actions.done'), intent: IS_PRIMARY, close: true }],
     config: { padding: '.5', maxWidth: 700 },
   });
 
@@ -568,7 +569,7 @@ function openPreferenceEntry({
     content: renderContent(),
     buttons: [
       {
-        label: 'Clear',
+        label: t('schedule.clear'),
         intent: IS_WARNING,
         close: false,
         onClick: () => {
@@ -577,7 +578,7 @@ function openPreferenceEntry({
         },
       },
       {
-        label: 'Done',
+        label: t('actions.done'),
         intent: IS_PRIMARY,
         close: false,
         onClick: () => {
@@ -705,7 +706,7 @@ function openResolutionDetail({
     content: initialHtml,
     buttons: [
       {
-        label: 'Close',
+        label: t('common.close'),
         intent: IS_PRIMARY,
         close: false,
         onClick: () => {
@@ -1037,9 +1038,9 @@ function openTransparencyReport({
   `;
 
   openModal({
-    title: 'Draft Transparency Report',
+    title: t('draft.transparencyReport'),
     content,
-    buttons: [{ label: 'Close', intent: 'is-info', close: true }],
+    buttons: [{ label: t('common.close'), intent: 'is-info', close: true }],
     config: { padding: '.5', maxWidth: 700 },
   });
 }

@@ -1,5 +1,6 @@
 import * as safeJSON from 'utilities/safeJSON';
 import { platform } from 'platform';
+import { t } from 'i18n';
 
 function download(filename: string, dataStr: string): void {
   const a = document.createElement('a');
@@ -18,7 +19,7 @@ export async function downloadJSON(filename: string, json: any): Promise<void> {
   if (platform.canAccessFileSystem() && platform.showSaveDialog && platform.writeFile) {
     const ext = filename.endsWith('.json') ? 'json' : filename.split('.').pop() || 'json';
     const filePath = await platform.showSaveDialog({
-      title: 'Save JSON',
+      title: t('exportFile.saveJson'),
       defaultPath: filename,
       filters: [{ name: 'JSON Files', extensions: [ext] }],
     });
@@ -39,7 +40,7 @@ export async function downloadText(filename: string, text: string): Promise<void
   if (platform.canAccessFileSystem() && platform.showSaveDialog && platform.writeFile) {
     const ext = filename.split('.').pop() || 'txt';
     const filePath = await platform.showSaveDialog({
-      title: 'Save File',
+      title: t('exportFile.saveFile'),
       defaultPath: filename,
       filters: [{ name: 'Text Files', extensions: [ext] }],
     });

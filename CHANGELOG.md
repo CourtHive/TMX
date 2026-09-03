@@ -1,5 +1,28 @@
 # Changelog
 
+## [8.23.0](https://github.com/CourtHive/TMX/compare/v8.22.1...v8.23.0) (2026-08-31)
+
+
+### Features
+
+* **i18n:** TMX hardcoded-English burn-down — 612 literals to 18 ([#1400](https://github.com/CourtHive/TMX/issues/1400)) ([e97c737](https://github.com/CourtHive/TMX/commit/e97c7379ad28f0a118b15e999ce717f630267a8c))
+
+
+### Bug Fixes
+
+* **scoring:** gate TMX's status promotion on the library's isScorable ([#1397](https://github.com/CourtHive/TMX/issues/1397)) ([df18ad5](https://github.com/CourtHive/TMX/commit/df18ad5e8db149d817b20b62e547e68d9bfe1014))
+
+## [8.22.1](https://github.com/CourtHive/TMX/compare/v8.22.0...v8.22.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* **deps:** update dependency axios to v1.20.0 ([#1388](https://github.com/CourtHive/TMX/issues/1388)) ([e743b4a](https://github.com/CourtHive/TMX/commit/e743b4ac511fa03edd66c7e45eb0b2ce17432335))
+* **matchUps:** stop the Called column printing "now" for every uncalled matchUp ([#1387](https://github.com/CourtHive/TMX/issues/1387)) ([f54eda3](https://github.com/CourtHive/TMX/commit/f54eda3dc9f6729ea1e9ecb56f8dbb7ddd866edf))
+* **scales:** close the last three sites that mis-read a scale value ([#1389](https://github.com/CourtHive/TMX/issues/1389)) ([fcac5cb](https://github.com/CourtHive/TMX/commit/fcac5cbe8a8dfe334aaa5c09d9907e2995146138))
+* **scales:** stop fabricating a rating of zero from an empty scale value ([#1384](https://github.com/CourtHive/TMX/issues/1384)) ([bf3bef4](https://github.com/CourtHive/TMX/commit/bf3bef43c0fe8190840775dc3ead39f4daed8545))
+* **scoring:** skip a matchUp the inline renderer refuses to score ([#1386](https://github.com/CourtHive/TMX/issues/1386)) ([de26243](https://github.com/CourtHive/TMX/commit/de26243cb92d925834d5c2f3b78f16498e1b1da0))
+
 ## [8.22.0](https://github.com/CourtHive/TMX/compare/v8.21.0...v8.22.0) (2026-08-28)
 
 

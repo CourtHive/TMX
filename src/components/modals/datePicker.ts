@@ -4,7 +4,7 @@
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { Datepicker } from 'vanillajs-datepicker';
-import { i18next } from 'i18n';
+import { i18next, t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
 
@@ -57,11 +57,11 @@ export function datePicker({ date, activeDates, callback }: DatePickerParams): v
   };
 
   openModal({
-    title: 'Select date',
+    title: t('drawActions.selectDate'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Ok', intent: 'is-primary', onClick: onSave },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('ui.ok'), intent: 'is-primary', onClick: onSave },
     ],
   });
 }

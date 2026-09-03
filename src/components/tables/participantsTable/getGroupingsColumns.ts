@@ -117,7 +117,7 @@ export function getGroupingsColumns({
     },
     {
       title: '<i class="fa-solid fa-user-group" />',
-      headerTooltip: 'Individuals',
+      headerTooltip: t('pages.participants.individuals'),
       headerHozAlign: CENTER,
       field: 'membersCount',
       hozAlign: CENTER,
@@ -127,7 +127,7 @@ export function getGroupingsColumns({
     },
     {
       title: '<i class="fa-solid fa-table-tennis-paddle-ball" />',
-      headerTooltip: 'Total MatchUps',
+      headerTooltip: t('ui.totalMatchUps'),
       headerHozAlign: CENTER,
       field: 'matchUpsCount',
       hozAlign: CENTER,
@@ -137,7 +137,7 @@ export function getGroupingsColumns({
     },
     {
       title: '<i class="fa-solid fa-trophy" />',
-      headerTooltip: 'Win/Loss',
+      headerTooltip: t('ui.winLoss'),
       headerHozAlign: CENTER,
       field: 'winLoss',
       hozAlign: CENTER,

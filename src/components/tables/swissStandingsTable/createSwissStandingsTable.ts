@@ -11,6 +11,7 @@ import { scalesMap } from 'config/scalesConfig';
 
 // Constants
 import { DRAWS_VIEW, ROUNDS_STANDINGS } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 type CreateSwissStandingsTableParams = {
   structureId: string;
@@ -65,10 +66,10 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Rank',
+      headerTooltip: t('rnk'),
     },
     {
-      title: 'Participant',
+      title: t('tables.selection.participant'),
       field: 'participantName',
       minWidth: 180,
       headerSort: true,
@@ -91,7 +92,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Wins',
+      headerTooltip: t('modals.participantProfile.wins'),
     },
     {
       title: 'L',
@@ -101,7 +102,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Losses',
+      headerTooltip: t('swissStandings.losses'),
     },
     {
       title: 'T',
@@ -111,17 +112,17 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Ties',
+      headerTooltip: t('swissStandings.ties'),
     },
     {
-      title: 'Pts',
+      title: t('swissStandings.pts'),
       field: 'points',
       width: 60,
       hozAlign: 'center',
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Points',
+      headerTooltip: t('settings.points'),
     },
     {
       title: 'B',
@@ -131,7 +132,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Buchholz tiebreaker',
+      headerTooltip: t('swissStandings.buchholz'),
     },
     {
       title: 'SB',
@@ -141,7 +142,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
       headerHozAlign: 'center',
       headerSort: true,
       headerSortTristate: true,
-      headerTooltip: 'Sonneborn-Berger tiebreaker',
+      headerTooltip: t('swissStandings.sonnebornBerger'),
     },
   ];
 
@@ -161,7 +162,7 @@ export async function createSwissStandingsTable({ structureId, eventId, drawId }
     data: rows,
     columns,
     height: Math.min(window.innerHeight * 0.75, rows.length * 40 + 60),
-    placeholder: 'No standings available — generate and complete rounds first',
+    placeholder: t('swissStandings.empty'),
   });
 
   const replaceTableData = () => {

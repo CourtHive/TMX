@@ -10,51 +10,20 @@
  * MAX_PARTICIPANTS_FOR_OVERVIEW so large tournaments don't pay the
  * extraction + render cost up front.
  */
-import { computeRatingDistributionStats, factoryConstants, fixtures } from 'tods-competition-factory';
+import { computeRatingDistributionStats } from 'tods-competition-factory';
 import { buildRatingDistributionChart } from 'courthive-components';
+import { collectAvailableScales } from './collectAvailableScales';
 
-const { ratingsParameters } = fixtures;
-const { SINGLES } = factoryConstants.eventConstants;
+// constants and types
+import type { ScaleRatings } from './collectAvailableScales';
+
+// Re-exported so consumers keep one import path; the extraction itself lives in
+// its own module because this one imports courthive-components, which touches
+// `document` at import time and so cannot be loaded in a node test env.
+export { collectAvailableScales };
+export type { ScaleRatings };
 
 export const MAX_PARTICIPANTS_FOR_OVERVIEW = 200;
-
-export interface ScaleRatings {
-  /** Uppercase scale code (e.g. 'WTN', 'UTR'). */
-  scaleName: string;
-  /** Human-readable label — currently same as `scaleName`. */
-  label: string;
-  /** Numeric values for participants that carry this scale. */
-  values: number[];
-}
-
-/**
- * Walk participants, pull numeric scale values per rating scale.
- * Skips scales with zero finite values. Order is insertion order so
- * callers can stably re-render selectors as filters change.
- */
-export function collectAvailableScales(participants: any[]): ScaleRatings[] {
-  const map = new Map<string, number[]>();
-  for (const p of participants || []) {
-    const items = p?.ratings?.[SINGLES] || [];
-    for (const item of items) {
-      const key = String(item?.scaleName || '').toUpperCase();
-      if (!key) continue;
-      const params: any = (ratingsParameters as any)[key];
-      const accessor = params?.accessor;
-      let raw: any = item.scaleValue;
-      if (raw && typeof raw === 'object' && accessor) raw = raw[accessor];
-      const n = Number(raw);
-      if (!Number.isFinite(n)) continue;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(n);
-    }
-  }
-  return Array.from(map.entries()).map(([scaleName, values]) => ({
-    scaleName,
-    label: scaleName,
-    values,
-  }));
-}
 
 export interface ScalingsChartOptions {
   /** Visual variant. `compact` ≈ 200x36 sparkline; `full` ≈ 480x180 panel chart. */

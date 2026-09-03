@@ -17,6 +17,7 @@
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { t } from 'i18n';
 
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 
@@ -67,7 +68,7 @@ export function maybeRenderGenerateQualifyingBanner({
   const button = document.createElement('button');
   button.className = 'button is-info is-small';
   button.style.marginLeft = '0.75rem';
-  button.textContent = 'Generate qualifying';
+  button.textContent = t('drawActions.generateQualifying');
   button.onclick = (e) => {
     e.stopPropagation();
     e.preventDefault();

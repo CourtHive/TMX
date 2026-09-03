@@ -11,6 +11,7 @@ import {
   ROUNDS_SWISS_CHART,
   ROUNDS_TABLE,
 } from 'constants/tmxConstants';
+import { t } from 'i18n';
 const { CONTAINER, SWISS } = drawDefinitionConstants;
 
 export function getRoundTabs({ callback, structure, existingView, drawId }: any) {
@@ -31,7 +32,7 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     actionOptions.push({
       active: !existingView || existingView === ROUNDS_BRACKET,
       onClick: () => displayUpdate(ROUNDS_BRACKET),
-      label: 'Grid',
+      label: t('ui.grid'),
       close: true,
     });
 
@@ -46,14 +47,14 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     actionOptions.push({
       active: existingView === ROUNDS_SWISS_CHART,
       onClick: () => displayUpdate(ROUNDS_SWISS_CHART),
-      label: 'Chart',
+      label: t('ui.chart'),
       close: true,
     });
 
   actionOptions.push({
     active: existingView === ROUNDS_TABLE,
     onClick: () => displayUpdate(ROUNDS_TABLE),
-    label: 'Table',
+    label: t('ui.table'),
     close: true,
   });
 
@@ -61,7 +62,7 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     actionOptions.push({
       active: existingView === ROUNDS_STATS,
       onClick: () => displayUpdate(ROUNDS_STATS),
-      label: 'Stats',
+      label: t('ui.stats'),
       close: true,
     });
 
@@ -69,7 +70,7 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     actionOptions.push({
       active: existingView === ROUNDS_STANDINGS,
       onClick: () => displayUpdate(ROUNDS_STANDINGS),
-      label: 'Standings',
+      label: t('ui.standings'),
       close: true,
     });
 
@@ -77,7 +78,7 @@ export function getRoundTabs({ callback, structure, existingView, drawId }: any)
     actionOptions.push({
       active: existingView === ROUNDS_RATINGS,
       onClick: () => displayUpdate(ROUNDS_RATINGS),
-      label: 'Ratings',
+      label: t('rtz'),
       close: true,
     });
 

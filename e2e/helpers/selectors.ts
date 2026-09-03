@@ -41,6 +41,12 @@ export const S = {
   TOURNAMENTS_TABLE: id('tournamentsTable'),
   TOURNAMENTS_CONTROL: id('tournamentsControl'),
 
+  // Provider schedule (participation read model) — a SUBJECT's fixtures, which is a different
+  // question from the calendar above and a different page.
+  NAV_HOME_SCHEDULE: id('h-schedule'),
+  PARTICIPATION_LIST: id('participationList'),
+  PARTICIPATION_CONTROL: id('participationControl'),
+
   // Tournament overview
   TOURNAMENT_OVERVIEW: id('overview'),
 

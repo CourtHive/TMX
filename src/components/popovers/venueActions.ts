@@ -7,6 +7,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
 import { BOTTOM } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const venueActions =
   (nestedTables: any) =>
@@ -47,7 +48,7 @@ export const venueActions =
     const items = [
       {
         onClick: () => editVenue({ venue: data, callback: doneEditing }),
-        text: 'Edit',
+        text: t('tournaments.edit'),
       },
     ];
 

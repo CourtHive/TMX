@@ -37,7 +37,7 @@ export function importTournaments({ table }: { table: any }): void {
   if (platform.canAccessFileSystem() && platform.showOpenDialog && platform.readFile) {
     platform
       .showOpenDialog({
-        title: 'Import Tournament',
+        title: t('storage.importTournament'),
         filters: [{ name: 'TODS JSON', extensions: ['json'] }],
         multiple: true,
       })

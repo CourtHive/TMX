@@ -1044,7 +1044,7 @@
     "byeRemoveScheduling": "Remove scheduling",
     "venueFrame": {
       "notice": "Times in {{timeZone}} — venue zone not set",
-      "noticeTitle": "This tournament has no time zone set, so times are shown in this device\u2019s zone ({{timeZone}}). Set the venue\u2019s time zone so every operator reads the same clock."
+      "noticeTitle": "This tournament has no time zone set, so times are shown in this device’s zone ({{timeZone}}). Set the venue’s time zone so every operator reads the same clock."
     }
   },
   "penalties": {
@@ -1404,7 +1404,43 @@
       "includeRankings": "Include rankings",
       "includeTimestamp": "Include timestamp",
       "includeOrganizers": "Include organizers",
-      "generateError": "Failed to generate PDF."
+      "generateError": "Failed to generate PDF.",
+      "preset": "Preset",
+      "headerLayout": "Header Layout",
+      "footerLayout": "Footer Layout",
+      "pdfComposition": "PDF Composition",
+      "composition": "Composition",
+      "multiPage": "Multi-page (split into sections)",
+      "presets": {
+        "clubBasic": "Club Basic",
+        "nationalFederation": "National Federation",
+        "itfJunior": "ITF Junior",
+        "itfProCircuit": "ITF Pro Circuit",
+        "ncaaCollegiate": "NCAA Collegiate",
+        "atp250": "ATP 250",
+        "atpFinals": "ATP Finals",
+        "wta500": "WTA 500",
+        "wta1000": "WTA 1000",
+        "grandSlam": "Grand Slam",
+        "wimbledon": "Wimbledon",
+        "australianOpen": "Australian Open"
+      },
+      "headerLayouts": {
+        "grandSlam": "Grand Slam",
+        "itfProfessional": "ITF / Professional",
+        "wtaAtpTour": "WTA / ATP Tour",
+        "nationalFederation": "National Federation",
+        "minimal": "Minimal",
+        "none": "None"
+      },
+      "footerLayouts": {
+        "standard": "Standard",
+        "seedingsTable": "Seedings Table",
+        "prizeMoney": "Prize Money",
+        "officialsSignoff": "Officials Sign-off",
+        "combinedTour": "Combined Tour",
+        "none": "None"
+      }
     },
     "listPicker": {
       "title": "Select"
@@ -1705,6 +1741,21 @@
         "email": "Email",
         "public": "Public"
       }
+    },
+    "participantProfile": {
+      "wins": "Wins",
+      "perWin": "Per Win",
+      "bonus": "Bonus",
+      "quality": "Quality",
+      "rankingPoints": "Ranking Points",
+      "previous": "← Previous",
+      "next": "Next →"
+    },
+    "displaySettings": {
+      "google": "Google",
+      "showSchedule": "Show Schedule",
+      "detail": "Detail",
+      "title": "Edit display settings"
     }
   },
   "dashboard": {
@@ -2385,6 +2436,17 @@
       "closeTheDayNobody": "Nobody is currently signed in",
       "closeTheDayConfirm_one": "Sign out {{count}} person who is still signed in today?",
       "closeTheDayConfirm_other": "Sign out {{count}} people who are still signed in today?"
+    },
+    "participation": {
+      "title": "Schedule",
+      "navLabel": "Schedule",
+      "fixtureCount_one": "{{count}} fixture",
+      "fixtureCount_other": "{{count}} fixtures",
+      "undated": "No date",
+      "noFixtures": "No fixtures recorded for this programme.",
+      "loadFailed": "The schedule could not be loaded.",
+      "retry": "Try again",
+      "adminOnly": "An administrator role is required to view a schedule."
     }
   },
   "overlays": {
@@ -2671,5 +2733,443 @@
     },
     "callSheet": "Call sheet",
     "callSheetSubtitle": "Officials"
+  },
+  "templates": {
+    "topologies": "Topologies",
+    "tieFormats": "Tie Formats",
+    "compositions": "Compositions",
+    "topologyTemplates": "Topology Templates",
+    "selectTopology": "Select a template to view or click New",
+    "tieFormatTemplates": "Tie Format Templates",
+    "selectTieFormat": "Select a tie format to view or click New",
+    "compositionTemplates": "Composition Templates",
+    "selectComposition": "Select a composition to view or click New",
+    "empty": "Empty",
+    "noCollectionDefinitions": "No collection definitions",
+    "templateName": "Template name",
+    "nameRequired": "Please enter a name",
+    "saveTemplate": "Save Template"
+  },
+  "registrationProfile": {
+    "title": "Registration Profile",
+    "select": "-- Select --",
+    "priceRange": "Price Range",
+    "eventName": "Event Name",
+    "description": "Description",
+    "sponsorName": "Sponsor Name",
+    "tier": "Tier"
+  },
+  "voluntaryConsolation": {
+    "singleElimination": "Single Elimination",
+    "luckyDraw": "Lucky Draw",
+    "adHoc": "Ad Hoc",
+    "accepted": "Accepted",
+    "generate": "Generate Consolation",
+    "eliminated": "Eliminated"
+  },
+  "tournamentsControls": {
+    "sortDateNewest": "Date (newest first)",
+    "sortDateOldest": "Date (oldest first)",
+    "sortNameAsc": "Name (A → Z)",
+    "sortNameDesc": "Name (Z → A)",
+    "sortPlayers": "Players (most first)",
+    "search": "Search tournaments",
+    "all": "All",
+    "exampleTournaments": "Example Tournaments",
+    "importTournament": "Import tournament",
+    "chatMonitor": "Chat monitor",
+    "welcome": "Welcome",
+    "examples": "Examples",
+    "upcoming": "Upcoming"
+  },
+  "theme": {
+    "systemDefault": "System (default)",
+    "sizes": {
+      "xs": "Extra Small (13px)",
+      "sm": "Small (14px)",
+      "md": "Medium (16px)",
+      "lg": "Large (18px)",
+      "xl": "Extra Large (20px)"
+    }
+  },
+  "segmentOverlay": {
+    "moveParticipants": "Move participants",
+    "removeFromDraw": "Remove from draw",
+    "createPair": "Create pair",
+    "removeFromEvent": "Remove from event",
+    "manualSeeding": "Manual seeding",
+    "clearSeeding": "Clear seeding",
+    "addToAccepted": "Add to Accepted",
+    "addToQualifying": "Add to Qualifying",
+    "addToAlternates": "Add to Alternates",
+    "addEntries": "Add entries",
+    "pairingOff": "Pairing: OFF"
+  },
+  "swissStandings": {
+    "losses": "Losses",
+    "ties": "Ties",
+    "pts": "Pts",
+    "buchholz": "Buchholz tiebreaker",
+    "sonnebornBerger": "Sonneborn-Berger tiebreaker",
+    "empty": "No standings available — generate and complete rounds first"
+  },
+  "policyCatalog": {
+    "empty": "The catalog is empty.",
+    "back": "← Back to My Policies",
+    "title": "Public Policy Catalog",
+    "intro": "Federation ranking-points policies anyone can browse. Open a policy and click “Save to my policies” to copy it into your local catalog where you can edit, attach, and apply it.",
+    "features": "Features",
+    "saveToMine": "Save to my policies",
+    "saved": "Saved — open My Policies to edit or apply.",
+    "openMine": "Open My Policies"
+  },
+  "avoidances": {
+    "selectRules": "Select rules",
+    "doublesPairs": "Doubles pairs",
+    "postalCodeDigits": "Postal code digits"
+  },
+  "schedulingProfile": {
+    "dragHint": "Drag rounds from the catalog to venue lanes. Click \"Apply Schedule\" to assign times.",
+    "clearedTitle": "Scheduling profile cleared",
+    "cleared": "Profile cleared.",
+    "savedTitle": "Scheduling profile saved",
+    "saved": "Profile saved.",
+    "noRounds": "No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.",
+    "failed": "Scheduling failed. Check console for details.",
+    "gridFailed": "Grid scheduling failed."
+  },
+  "topology": {
+    "clearCanvas": "Clear Canvas",
+    "drawFailed": "Draw generation failed",
+    "drawGenerated": "Draw generated successfully",
+    "templateName": "Template Name",
+    "templateSaved": "Template saved"
+  },
+  "participantFields": {
+    "identifiers": "Identifiers",
+    "person": "Person"
+  },
+  "draft": {
+    "notFound": "No draft found for this draw",
+    "configure": "Configure Draft",
+    "transparencyReport": "Draft Transparency Report",
+    "alreadyResolved": "Draft has already been resolved",
+    "resolved": "Draft resolved — participants placed",
+    "resolve": "Resolve Draft",
+    "preview": "Preview",
+    "resolveAndPlace": "Resolve & Place"
+  },
+  "eventRow": {
+    "noDraws": "No draws",
+    "renameSelected": "Rename selected",
+    "viewEntries": "View entries",
+    "avoidances": "Avoidances"
+  },
+  "gridView": {
+    "publishFailed": "Publish change failed",
+    "localFailed": "Schedule change failed locally",
+    "serverFailed": "Failed to save scheduling changes to server",
+    "discarded": "Scheduling changes discarded",
+    "noScheduled": "No scheduled matches to resolve on this day",
+    "noConflicts": "No player conflicts to resolve on this day",
+    "resolveConflicts": "Resolve player conflicts?",
+    "nowOccupied": "That court's Now slot is occupied"
+  },
+  "welcome": {
+    "events": "Create events, manage draws, and run tournaments from start to finish.",
+    "scheduling": "Assign courts, manage time slots, and handle schedule conflicts.",
+    "participants": "Register players, manage ratings, and seed draws automatically.",
+    "scoring": "Score matches in real time with automatic draw progression.",
+    "getStarted": "Get started by generating example tournaments to explore TMX features, or create your own.",
+    "generateDemo": "Generate Demo Tournaments",
+    "createNew": "Create New Tournament",
+    "back": "← Back to Tournaments"
+  },
+  "courtCards": {
+    "noScheduledOnCourt": "No scheduled matches on this court",
+    "matchUpNotFound": "MatchUp not found",
+    "noDataForMatchUp": "No court card data for this matchUp",
+    "noUpcoming": "No upcoming matches with both participants assigned on this court",
+    "noData": "No court card data",
+    "noneOnCourts": "No matches scheduled on courts",
+    "noneInRound": "No matches in this round are assigned to courts"
+  },
+  "ui": {
+    "explanation": "Explanation",
+    "noParticipants": "No participants",
+    "noMatches": "No matches",
+    "ok": "Ok",
+    "deleteFlights": "Delete flights",
+    "totalMatchUps": "Total MatchUps",
+    "grid": "Grid",
+    "policyLabel": "Policy:",
+    "newValue": "New value",
+    "newName": "New name",
+    "template": "Template",
+    "reset": "Reset",
+    "change": "Change",
+    "display": "Display",
+    "website": "Website",
+    "fee": "Fee",
+    "lights": "Lights",
+    "grouping": "Grouping",
+    "winLoss": "Win/Loss",
+    "scorelines": "Scorelines",
+    "chart": "Chart",
+    "table": "Table",
+    "stats": "Stats",
+    "standings": "Standings",
+    "tableView": "Table view",
+    "noCourts": "No courts",
+    "noVenues": "No venues",
+    "noTournaments": "No tournaments",
+    "noCollections": "No collections",
+    "noEntries": "No entries",
+    "noDrawsYet": "No draws yet.",
+    "notGenerated": "Not generated",
+    "clearFilters": "Clear Filters"
+  },
+  "addDrawForm": {
+    "sizeMin": "Draw size must be at least 2",
+    "qualifyingNoPositions": "Cannot attach qualifying — target structure has no positions",
+    "qualifierRequired": "At least one qualifier position is required when attaching a qualifying structure",
+    "regenerate": "Regenerate draw?",
+    "roundOf16": "Round of 16",
+    "consolationFeedDepth": "Consolation feed depth",
+    "roundProfile": "Round profile",
+    "matchUpsPerRound": "matchUps per round",
+    "evenDrawSize": "An explicit round profile requires an even draw size of 2 or more."
+  },
+  "keyActions": {
+    "enterNewKey": "Enter new key",
+    "storedKeys": "Stored Keys"
+  },
+  "chat": {
+    "tournamentChat": "Tournament Chat",
+    "noRecentActivity": "No chat activity in the recent window.",
+    "monitorTitle": "Chat Monitor — all tournaments",
+    "selectGroup": "Select a group pill to reply into that tournament"
+  },
+  "drawActions": {
+    "pagePlayoff": "Page Playoff",
+    "selectDate": "Select date",
+    "deleteReason": "Please provide a reason for draw deletion.",
+    "noEntriesInDraw": "No entries in this draw",
+    "resetReason": "Please provide a reason for resetting the draw.",
+    "removeAssignments": "Remove all position assignments",
+    "noInvalidParticipants": "No invalid participants",
+    "addQualifying": "Add qualifying",
+    "addPlayoffs": "Add playoffs",
+    "allDraws": "All draws",
+    "noDrawsForEvent": "No draws have been created for this event.",
+    "generateQualifying": "Generate qualifying",
+    "completeRoundFirst": "Complete all current round matches before generating the next round",
+    "exitAssignmentMode": "Exit Assignment Mode",
+    "autoPosition": "Auto position"
+  },
+  "sports": {
+    "tennis": "Tennis",
+    "pickleball": "Pickleball",
+    "badminton": "Badminton",
+    "basketball": "Basketball",
+    "baseball": "Baseball",
+    "hockey": "Hockey",
+    "padel": "Padel"
+  },
+  "tieFormatEditor": {
+    "scorecardName": "Scorecard Name",
+    "addCollection": "Add Collection",
+    "noCollections": "No collections — click Add Collection to start"
+  },
+  "assistant": {
+    "title": "TMX Assistant",
+    "ask": "Ask TMX"
+  },
+  "matchUpActions": {
+    "scheduleDate": "Schedule date",
+    "scheduleTime": "Schedule time",
+    "printMatchCard": "Print match card",
+    "assignParticipant": "Assign participant",
+    "removeParticipant": "Remove participant",
+    "replaceParticipant": "Replace participant",
+    "substitution": "Substitution",
+    "assignSeedNumber": "Assign seed number ",
+    "seedNumber": "Seed number",
+    "nickname": "Nickname "
+  },
+  "entries": {
+    "alreadyInDraw": "All selected participants are already in this draw",
+    "addToDraw": "Add to draw",
+    "changeStatus": "Change status",
+    "addFlight": "Add flight",
+    "destroyPairs": "Destroy pairs",
+    "noDestroyablePairs": "No destroyable pairs selected",
+    "saveSeeding": "Save seeding",
+    "numberOfDraws": "Number of Draws",
+    "acceptedEntries": "Accepted Entries",
+    "completedMatchUps": "Completed MatchUps",
+    "noTeamParticipants": "No team participants",
+    "noIndividualParticipants": "No individual participants",
+    "addPlayers": "Add players",
+    "noRatingData": "No rating data available",
+    "scheduledMatches": "Scheduled matches"
+  },
+  "ageCategories": {
+    "u10": "10 and Under",
+    "u12": "12 and Under",
+    "u14": "14 and Under",
+    "u16": "16 and Under",
+    "u18": "18 and Under"
+  },
+  "roundOptions": {
+    "roundActions": "Round actions",
+    "scheduleRoundEllipsis": "Schedule round...",
+    "printRoundMatchCards": "Print round match cards",
+    "printCourtCards": "Print court cards",
+    "timeOptional": "Time (optional)",
+    "scheduleRound": "Schedule Round",
+    "generateSwissRound": "Generate Swiss Round",
+    "cardDisplay": "Card display",
+    "ratingsHistogram": "Ratings histogram",
+    "competitiveness": "Competitiveness",
+    "burstProgression": "Burst (progression)",
+    "burstCompetitive": "Burst (competitive)"
+  },
+  "maps": {
+    "google": "Open in Google Maps",
+    "bing": "Open in Bing Maps"
+  },
+  "policiesPage": {
+    "browseCatalog": "Browse public catalog →"
+  },
+  "matchUpsActions": {
+    "abandonExplain": "Mark every remaining ready-to-score match as Abandoned. Completed matches and byes are unaffected. Intended for tournaments that will not be completed.",
+    "abandonPartial": "Also abandon matches with partial scores",
+    "abandonRemaining": "Abandon remaining matches",
+    "republishExplain": "Republish this tournament to the public rankings list. Points are recomputed from its decided matches.",
+    "rankingsNotConfigured": "Rankings pipeline is not configured",
+    "republishRankings": "Republish rankings"
+  },
+  "groupings": {
+    "generateMockTeams": "Generate Mock Teams",
+    "noMatchesFilters": "No matches — adjust or clear filters",
+    "createNewEvent": "Create new event"
+  },
+  "printModals": {
+    "factSheet": "Print Fact Sheet",
+    "playerList": "Print Player List",
+    "competitor": "Competitor"
+  },
+  "eventActions": {
+    "rankingPoints": "Ranking points"
+  },
+  "registrations": {
+    "applicant": "Applicant",
+    "rankSingles": "Rank (SINGLES)",
+    "applied": "Applied",
+    "partner": "Partner",
+    "noProvider": "Tournament has no provider — cannot load registrations.",
+    "accepted": "Applicant accepted into the tournament.",
+    "waitlisted": "Applicant moved to waitlist.",
+    "rejected": "Applicant rejected."
+  },
+  "reports": {
+    "noData": "No data",
+    "audit": "Audit",
+    "noDraws": "This tournament has no generated draws to audit.",
+    "structureAudit": "Structure Integrity Audit"
+  },
+  "applyScheduling": {
+    "noPolicy": "No policy (do not enforce daily limits)",
+    "applyGridTitle": "Apply Grid — Scheduling Policy",
+    "selectPolicy": "Select the scheduling policy to use for Apply Times:",
+    "noPolicies": "No scheduling policies available",
+    "applyTimesTitle": "Apply Times — Scheduling Policy"
+  },
+  "capacity": {
+    "noCourts": "No courts configured for this tournament",
+    "noCourtsAddVenues": "No courts configured. Add courts via Venues.",
+    "openPainter": "Open availability painter →",
+    "noChanges": "No changes to apply"
+  },
+  "clearSchedule": {
+    "dayKeepCompleted": "Clear this day (keep completed)",
+    "dayIncludingCompleted": "Clear this day (including completed)",
+    "allData": "Clear all schedule data",
+    "nothingInScope": "No matchUps to clear in this scope.",
+    "nothingVisible": "Nothing scheduled on visible courts."
+  },
+  "gridActions": {
+    "minWidth": "Min Width",
+    "minWidthHint": "Minimum court column width — cells grow wider when there is room",
+    "conflictsWith": " conflicts with ",
+    "minRowsHint": "Minimum number of time rows in the schedule grid"
+  },
+  "scheduleResults": {
+    "title": "Scheduling Results",
+    "noActivity": "No scheduler activity on this date.",
+    "noPerDate": "The scheduler completed but reported no per-date activity."
+  },
+  "schedulingTab": {
+    "availability": "Availability",
+    "plan": "Plan",
+    "discardChanges": "Discard unsaved changes?",
+    "discard": "Discard"
+  },
+  "linkedTournaments": {
+    "intro": "Tournaments sharing this facility. Linking lets their schedules account for each other on shared courts.",
+    "empty": "No linked tournaments yet.",
+    "link": "Link tournaments",
+    "linkAction": "Link"
+  },
+  "settingsGrid": {
+    "askAssistant": "Ask TMX assistant",
+    "schedulePlan": "Schedule Plan",
+    "desktopNotifications": " Desktop Notifications",
+    "serverUrl": "Server URL",
+    "workOffline": " Work Offline"
+  },
+  "venueDetail": {
+    "noCourts": "No courts at this venue yet.",
+    "notFound": "Venue not found."
+  },
+  "tournamentDisplay": {
+    "refreshed": "Tournament data refreshed from server"
+  },
+  "platform": {
+    "about": "About TMX"
+  },
+  "activeScale": {
+    "switchTitle": "Switch active rating?"
+  },
+  "scoreRelay": {
+    "networkError": "score-relay: network error"
+  },
+  "exportFile": {
+    "saveJson": "Save JSON",
+    "saveFile": "Save File"
+  },
+  "remoteMutations": {
+    "updateFailed": "Remote update failed — please reload"
+  },
+  "mutationPrompts": {
+    "modify": "Modify?",
+    "impersonate": "Impersonate?",
+    "rejected": "Server rejected mutation",
+    "sessionExpired": "Session expired"
+  },
+  "queueService": {
+    "saved": "Saved"
+  },
+  "storage": {
+    "importTournament": "Import Tournament",
+    "resetFailed": "Failed to reset database",
+    "writeFailed": "Database write failed"
+  },
+  "participantActions": {
+    "editParticipant": "Edit Participant"
+  },
+  "tournamentActions": {
+    "send": "Send??"
   }
 }

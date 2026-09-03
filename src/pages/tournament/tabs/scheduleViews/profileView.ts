@@ -34,6 +34,7 @@ import {
 } from 'courthive-components';
 
 import { COMPETITION_ENGINE, SCHEDULING_TAB } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const { calculateCapacityStats } = availability;
 
@@ -72,7 +73,7 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string, o
   // than a toast.
   const statusEl = document.createElement('span');
   statusEl.style.cssText = 'font-size: 0.75rem; color: var(--sp-muted, var(--tmx-text-muted));';
-  statusEl.textContent = 'Drag rounds from the catalog to venue lanes. Click "Apply Schedule" to assign times.';
+  statusEl.textContent = t('schedulingProfile.dragHint');
 
   const headerActions = buildProfileHeaderActions(setup, statusEl, options);
 
@@ -479,8 +480,8 @@ function buildProfileHeaderActions(
       engine: COMPETITION_ENGINE,
       callback: () => {
         invalidateMatchUpCaches();
-        scheduleToast({ message: 'Scheduling profile cleared', intent: INTENT_WARNING });
-        statusEl.textContent = 'Profile cleared.';
+        scheduleToast({ message: t('schedulingProfile.clearedTitle'), intent: INTENT_WARNING });
+        statusEl.textContent = t('schedulingProfile.cleared');
       },
     });
   });
@@ -504,8 +505,8 @@ function buildProfileHeaderActions(
   makeIcon('fa-floppy-disk', 'Save Profile', 'Save Profile', 'var(--tmx-color-primary)', () => {
     if (!activeControl) return;
     saveProfile(activeControl.getProfile(), () => {
-      scheduleToast({ message: 'Scheduling profile saved', intent: INTENT_SUCCESS });
-      statusEl.textContent = 'Profile saved.';
+      scheduleToast({ message: t('schedulingProfile.savedTitle'), intent: INTENT_SUCCESS });
+      statusEl.textContent = t('schedulingProfile.saved');
     });
   });
 
@@ -619,7 +620,7 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
   // No-op when the Day Plan is empty: nothing to schedule.
   if (!hasAnyPlannedRounds(profile)) {
     scheduleToast({
-      message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
+      message: t('schedulingProfile.noRounds'),
       intent: INTENT_WARNING,
     });
     return;
@@ -675,7 +676,7 @@ function runScheduleWithPolicy(
             message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
             intent: INTENT_DANGER,
           });
-          statusEl.textContent = 'Scheduling failed. Check console for details.';
+          statusEl.textContent = t('schedulingProfile.failed');
           console.error('[schedule2] scheduleProfileRounds error:', eqResult);
           return;
         }
@@ -734,7 +735,7 @@ function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
   // No-op when the Day Plan is empty: nothing to place on the grid.
   if (!hasAnyPlannedRounds(profile)) {
     scheduleToast({
-      message: 'No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.',
+      message: t('schedulingProfile.noRounds'),
       intent: INTENT_WARNING,
     });
     return;
@@ -793,7 +794,7 @@ function runGridWithPolicy(
             message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
             intent: INTENT_DANGER,
           });
-          statusEl.textContent = 'Grid scheduling failed.';
+          statusEl.textContent = t('schedulingProfile.gridFailed');
           return;
         }
 

@@ -60,6 +60,15 @@ export const TEMPLATES = 'templates';
 export const POLICIES = 'policies';
 export const SETTINGS = 'settings';
 export const RANKINGS = 'rankings';
+
+// A subject's SCHEDULE — every competition it took part in — as opposed to a provider's CALENDAR,
+// which is the set of competitions that provider OWNS. A college dual belongs to the seasons of two
+// programmes and to the calendar of neither, so the two are separate routes over separate reads.
+export const TMX_PARTICIPATION = 'tmxParticipation';
+export const PARTICIPATION_CONTROL = 'participationControl';
+export const PARTICIPATION_LIST = 'participationList';
+export const PROVIDER = 'provider';
+export const SCHEDULE = 'schedule';
 export const DRAW_ENTRIES = 'drawEntries';
 export const TOURNAMENT = 'tournament';
 export const STRUCTURE = 'structure';

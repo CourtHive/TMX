@@ -8,6 +8,7 @@ import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tournamentEngine } from 'services/factory/engine';
 
 import { RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const deleteMatchUpsAction = 'Delete matches';
 export const addMatchUpsAction = 'Add matches';
@@ -43,7 +44,7 @@ export function getAdHocRoundOptions({
     },
   ];
   return {
-    label: 'Round actions',
+    label: t('roundOptions.roundActions'),
     options: actionOptions,
     selection: false,
     location: RIGHT,

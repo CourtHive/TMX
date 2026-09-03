@@ -11,6 +11,7 @@ import { openModal } from './baseModal/baseModal';
 
 import { RESOLVE_DRAFT_POSITIONS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 const TH_STYLE =
   'text-align: left; padding: 4px 8px; font-size: 12px; color: var(--tmx-text-secondary, #666); border-bottom: 2px solid var(--tmx-border-secondary, #ddd);';
@@ -24,12 +25,12 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
   const { draftState, summary, error } = tournamentEngine.getDraftState({ drawId }) as any;
 
   if (error || !draftState) {
-    tmxToast({ message: 'No draft found for this draw', intent: 'is-warning' });
+    tmxToast({ message: t('draft.notFound'), intent: 'is-warning' });
     return;
   }
 
   if (draftState.status === 'COMPLETED') {
-    tmxToast({ message: 'Draft has already been resolved', intent: 'is-info' });
+    tmxToast({ message: t('draft.alreadyResolved'), intent: 'is-info' });
     return;
   }
 
@@ -134,7 +135,7 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
       methods: [{ method: RESOLVE_DRAFT_POSITIONS, params: { drawId, eventId } }],
       callback: (result: any) => {
         if (result.success) {
-          tmxToast({ message: 'Draft resolved — participants placed', intent: 'is-success' });
+          tmxToast({ message: t('draft.resolved'), intent: 'is-success' });
           renderEventsTab({ eventId, drawId, renderDraw: true });
         } else {
           tmxToast({ message: result.error?.message || 'Failed to resolve draft', intent: 'is-danger' });
@@ -144,14 +145,14 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
   };
 
   modalHandle = openModal({
-    title: 'Resolve Draft',
+    title: t('draft.resolve'),
     content,
     buttons: [
-      { label: 'Cancel', intent: NONE, close: true },
-      { label: 'Preview', intent: 'is-info', onClick: previewDraft },
+      { label: t('common.cancel'), intent: NONE, close: true },
+      { label: t('draft.preview'), intent: 'is-info', onClick: previewDraft },
       {
         id: 'draft-resolve-btn',
-        label: 'Resolve & Place',
+        label: t('draft.resolveAndPlace'),
         intent: 'is-success',
         close: true,
         onClick: resolveDraft,

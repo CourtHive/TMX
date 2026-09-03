@@ -150,7 +150,7 @@ function queryDateRange({
 }): void {
   const onClick = () => (providerIds?.length ? checkPermissions({ state, providerIds, mutate }) : mutate());
   return tmxToast({
-    action: { onClick, text: 'Modify?' },
+    action: { onClick, text: t('mutationPrompts.modify') },
     message: t('toasts.notInDateRange'),
     intent: 'is-danger',
     pauseOnHover: true,
@@ -202,7 +202,7 @@ async function checkPermissions({
     return tmxToast({
       action: {
         onClick: impersonateProvider,
-        text: 'Impersonate?',
+        text: t('mutationPrompts.impersonate'),
       },
       message: t('toasts.superAdmin'),
       intent: 'is-danger',
@@ -287,7 +287,7 @@ async function makeMutation({
           return completion(factoryResult);
         })();
       } else if (strategy === SERVER_FIRST) {
-        completion(ack?.error ? ack : { error: { message: 'Server rejected mutation' } });
+        completion(ack?.error ? ack : { error: { message: t('mutationPrompts.rejected') } });
       }
     };
     if (debugConfig.get().log?.verbose) console.log('%c invoking remote', 'color: lightblue');
@@ -315,10 +315,10 @@ async function makeMutation({
             source: 'mutation-timeout',
             retry: () => replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal, warmCache }),
           });
-          return completion({ error: { message: 'Session expired', code: 'SESSION_EXPIRED' } });
+          return completion({ error: { message: t('mutationPrompts.sessionExpired'), code: 'SESSION_EXPIRED' } });
         }
         tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
-        completion({ error: { message: 'Server not responding' } });
+        completion({ error: { message: t('toasts.serverNotResponding') } });
       }, serverConfig.get().serverTimeout ?? 10000);
     }
   }

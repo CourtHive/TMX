@@ -1,3 +1,4 @@
+import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
 import { fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
@@ -26,9 +27,15 @@ export function extractParticipantRating(participant: any, scaleName: string): n
   const match = singlesArray.find(
     (item: any) => typeof item?.scaleName === 'string' && item.scaleName.toLowerCase() === target,
   );
-  if (!match?.scaleValue) return undefined;
+  // `!match?.scaleValue` would also discard a bare scaleValue of 0, which is a
+  // legitimate rating on PSA / ITTF / BWF / SQUASH_LEVELS.
+  if (match?.scaleValue === undefined || match?.scaleValue === null) return undefined;
 
+  // Was `typeof value === 'number'`. Ingested records store ratings as STRINGS
+  // ('12.48'), so this rejected every real rating while passing every
+  // mocksEngine fixture — and the caller pushes anything non-numeric into
+  // `excludedParticipantIds`, then bails with INSUFFICIENT_RATED_PARTICIPANTS.
+  // The whole format wizard therefore reported a fully rated field as unrated.
   const accessor = resolveAccessor(scaleName);
-  const value = match.scaleValue[accessor];
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return resolveScaleValueNumber(match.scaleValue, { accessor, scaleName: scaleName.toUpperCase() });
 }

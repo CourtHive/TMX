@@ -169,6 +169,7 @@ function applyAddEntriesSuccess({
 
 import { ADD_EVENT_ENTRIES } from 'constants/mutationConstants';
 import { QUALIFYING, RIGHT } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 export const addEntries =
   (event: any, group: string, onRefresh?: () => void) =>
@@ -194,7 +195,7 @@ export const addEntries =
       };
 
       (selectParticipant as any)({
-        title: 'Select participants to add',
+        title: t('modals.groupProfile.selectToAdd'),
         activeOnEnter: true,
         selectionLimit: 99,
         onSelection,
@@ -203,7 +204,7 @@ export const addEntries =
     };
 
     return {
-      label: 'Add entries',
+      label: t('segmentOverlay.addEntries'),
       class: 'addEntries',
       location: RIGHT,
       onClick,

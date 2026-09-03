@@ -22,6 +22,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { providerConfig } from 'config/providerConfig';
 import { serverConfig } from 'config/serverConfig';
 import axios from 'axios';
+import { t } from 'i18n';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
 
@@ -78,7 +79,7 @@ axiosInstance.interceptors.response.use(
     const silent = (error.config as any)?.silenceErrors;
     if (!silent) {
       if (error.message === 'Network Error') {
-        tmxToast({ message: 'score-relay: network error', intent: 'is-danger' });
+        tmxToast({ message: t('scoreRelay.networkError'), intent: 'is-danger' });
       } else if (error.response) {
         const message =
           error.response.data?.error ||

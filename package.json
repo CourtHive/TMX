@@ -3,7 +3,7 @@
   "packageManager": "pnpm@11.24.0",
   "license": "MIT",
   "private": true,
-  "version": "8.22.0",
+  "version": "8.23.0",
   "type": "module",
   "engines": {
     "node": ">=22",
@@ -83,7 +83,7 @@
     "c8": "12.0.0",
     "crypto-browserify": "3.12.1",
     "cz-git": "1.13.2",
-    "electron": "^43.0.0",
+    "electron": "^44.0.0",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
     "envfile": "7.1.0",
@@ -115,10 +115,10 @@
     "@courthive/scoring-visualizations": "^0.2.9",
     "@eslint/js": "^10.0.1",
     "animate.css": "4.1.1",
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "camelcase": "9.0.0",
     "classnames": "2.5.1",
-    "courthive-components": "3.15.2",
+    "courthive-components": "4.0.1",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.23",
     "dexie": "4.4.5",
@@ -140,7 +140,7 @@
     "tabulator-tables": "6.5.2",
     "timepicker-ui": "4.4.0",
     "tippy.js": "6.3.7",
-    "tods-competition-factory": "6.33.0",
+    "tods-competition-factory": "6.37.0",
     "vanillajs-datepicker": "1.3.4"
   }
 }

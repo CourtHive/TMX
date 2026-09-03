@@ -47,6 +47,7 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
 } from 'constants/tmxConstants';
+import { t } from 'i18n';
 
 /** Canonical entry-status whitelist for structure selection. Mirrors the
  *  factory's `STRUCTURE_SELECTED_STATUSES` so the model never drifts from
@@ -668,7 +669,7 @@ function validateDrawSize(drawSize: number, entriesCount: number, qualifiersCoun
   const errors: ValidationError[] = [];
   const required = entriesCount + qualifiersCount;
   if (drawSize < 2) {
-    errors.push({ field: DRAW_SIZE, code: 'DRAW_SIZE_TOO_SMALL', message: 'Draw size must be at least 2' });
+    errors.push({ field: DRAW_SIZE, code: 'DRAW_SIZE_TOO_SMALL', message: t('addDrawForm.sizeMin') });
   }
   if (required > 0 && drawSize < required) {
     errors.push({
@@ -686,14 +687,14 @@ function validateAttachQualifying(drawSize: number, qualifiersCount: number): Va
     errors.push({
       field: DRAW_SIZE,
       code: 'ATTACH_DRAW_SIZE_MISSING',
-      message: 'Cannot attach qualifying — target structure has no positions',
+      message: t('addDrawForm.qualifyingNoPositions'),
     });
   }
   if (qualifiersCount < 1) {
     errors.push({
       field: QUALIFIERS_COUNT,
       code: 'QUALIFIERS_COUNT_TOO_LOW',
-      message: 'At least one qualifier position is required when attaching a qualifying structure',
+      message: t('addDrawForm.qualifierRequired'),
     });
   }
   return errors;

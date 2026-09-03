@@ -97,7 +97,7 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
   nameRow.className = 'tfe-name-row';
   const nameLabel = document.createElement('label');
   nameLabel.className = 'tfe-name-label';
-  nameLabel.textContent = 'Scorecard Name';
+  nameLabel.textContent = t('tieFormatEditor.scorecardName');
   const nameInput = document.createElement('input');
   nameInput.className = 'input tfe-name-input';
   nameInput.value = tieFormatName;
@@ -119,7 +119,7 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
   addRow.className = 'tfe-add-row';
   const addBtn = document.createElement('button');
   addBtn.className = 'button is-small is-info';
-  addBtn.textContent = 'Add Collection';
+  addBtn.textContent = t('tieFormatEditor.addCollection');
   addBtn.onclick = () => {
     rows.push({
       collectionName: `Collection ${rows.length + 1}`,
@@ -149,12 +149,12 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
 
   const cancel = document.createElement('button');
   cancel.className = 'button is-warning is-light';
-  cancel.textContent = 'Cancel';
+  cancel.textContent = t('common.cancel');
   cancel.onclick = () => closeOverlay();
 
   const done = document.createElement('button');
   done.className = 'button is-info button-spacer';
-  done.textContent = 'Done';
+  done.textContent = t('actions.done');
   done.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -361,7 +361,7 @@ function renderGrid(container: HTMLElement, rows: CollectionRow[], refresh: () =
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'tfp-empty';
-    empty.textContent = 'No collections — click Add Collection to start';
+    empty.textContent = t('tieFormatEditor.noCollections');
     container.appendChild(empty);
     return;
   }

@@ -16,7 +16,7 @@ export function processDirective(data: string): void {
       tmxToast({
         action: {
           onClick: () => loadCalendar({ providerId: content.providerId, calendar: content.calendar }),
-          text: 'Load',
+          text: t('modals.loadTournament.load'),
         },
         message: t('toasts.calendarReceived'),
         duration: false,
