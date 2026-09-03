@@ -61,7 +61,12 @@ vi.mock('config/providerConfig', () => ({
   providerConfig: { get: () => mockProviderConfig.current },
 }));
 
-import { isScoreRelayConfigured, isCrowdScoringEnabled, getScoreRelayURL } from './scoreRelayApi';
+import {
+  isScoreRelayConfigured,
+  isCrowdScoringEnabled,
+  getScoreRelayURL,
+  resolveExplicitRelayURL,
+} from './scoreRelayApi';
 
 describe('scoreRelayApi crowd surface', () => {
   beforeEach(() => {
@@ -72,6 +77,18 @@ describe('scoreRelayApi crowd surface', () => {
     // localhost dev → standalone relay on :8384
     expect(getScoreRelayURL()).toBe('http://localhost:8384');
     expect(isScoreRelayConfigured()).toBe(true);
+  });
+
+  it('supports an explicit disabled sentinel for deployments without a relay', () => {
+    expect(resolveExplicitRelayURL('disabled')).toBe('');
+    expect(resolveExplicitRelayURL('OFF')).toBe('');
+    expect(resolveExplicitRelayURL('false')).toBe('');
+  });
+
+  it('normalizes explicit relay URLs and leaves missing values to derivation', () => {
+    expect(resolveExplicitRelayURL(' https://relay.example/ ')).toBe('https://relay.example');
+    expect(resolveExplicitRelayURL('')).toBeUndefined();
+    expect(resolveExplicitRelayURL(undefined)).toBeUndefined();
   });
 
   it('isCrowdScoringEnabled is true when the provider declares no crowdScoring (default ON)', () => {

@@ -5,6 +5,8 @@ WORKDIR /app
 # Serve TMX below /tmx/ so every other same-origin route can be forwarded to
 # competition-factory-server without enumerating its REST endpoints.
 ENV BASE_URL=tmx
+ARG VITE_SCORE_RELAY_URL=disabled
+ENV VITE_SCORE_RELAY_URL=${VITE_SCORE_RELAY_URL}
 
 RUN corepack enable \
   && corepack prepare pnpm@11.24.0 --activate

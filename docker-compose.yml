@@ -4,6 +4,8 @@ services:
   tmx:
     build:
       context: .
+      args:
+        VITE_SCORE_RELAY_URL: "${VITE_SCORE_RELAY_URL:-disabled}"
     image: tmx:local
     restart: unless-stopped
     ports:
@@ -22,7 +24,7 @@ services:
       context: .
       dockerfile: docker/cfs.Dockerfile
       args:
-        CFS_REF: "${CFS_REF:-8307af5c17a52bebb62c8705293a9f65b2386e7f}"
+        CFS_REF: "${CFS_REF:-525571e5f8110376d6c8534c37cc3d975a2f0f15}"
     image: tmx-cfs:local
     restart: unless-stopped
     environment:
@@ -45,6 +47,10 @@ services:
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      # The local stack does not run courthive-rankings. Proxy its public,
+      # read-only provider directory to the hosted service instead of the CFS
+      # default (localhost:3110, which is only valid for a co-resident deploy).
+      RANKINGS_BASE_URL: "${RANKINGS_BASE_URL:-https://courthive.net/api}"
       PERSONS_DISABLED: "true"
       DECLARATIONS_DISABLED: "true"
     depends_on:
