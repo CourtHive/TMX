@@ -43,8 +43,9 @@ vi.mock('socket.io-client', () => ({
 // Mutable so individual tests can flip between dev (localhost) and prod hosts.
 // `get: () => mockServerConfig` returns the live object, so mutating
 // `mockServerConfig.socketPath` before a connect changes what the module reads.
-const { mockServerConfig } = vi.hoisted(() => ({
+const { mockServerConfig, mockCrowdScoringEnabled } = vi.hoisted(() => ({
   mockServerConfig: { socketPath: 'http://localhost:8383' },
+  mockCrowdScoringEnabled: vi.fn(() => true),
 }));
 
 vi.mock('config/serverConfig', () => ({
@@ -57,6 +58,10 @@ vi.mock('config/debugConfig', () => ({
   debugConfig: {
     get: () => ({ socketLog: false }),
   },
+}));
+
+vi.mock('services/apis/scoreRelayApi', () => ({
+  isCrowdScoringEnabled: mockCrowdScoringEnabled,
 }));
 
 const DEV_SOCKET_PATH = 'http://localhost:8383';
@@ -91,6 +96,7 @@ describe('TMX scoreRelay client', () => {
     vi.clearAllMocks();
     handlers.clear();
     mockSocket.connected = false;
+    mockCrowdScoringEnabled.mockReturnValue(true);
     disconnectRelay();
   });
 
@@ -108,6 +114,15 @@ describe('TMX scoreRelay client', () => {
       expect.stringContaining('/live'),
       expect.objectContaining({ transports: ['websocket'] }),
     );
+  });
+
+  it('does not create a socket when crowd scoring is disabled', async () => {
+    const { io } = await import('socket.io-client');
+    mockCrowdScoringEnabled.mockReturnValue(false);
+
+    connectRelay('tid-disabled');
+
+    expect(io).not.toHaveBeenCalled();
   });
 
   it('derives local dev relay URL with port 8384', async () => {

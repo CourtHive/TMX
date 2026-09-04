@@ -16,6 +16,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
 import { providerConfig } from 'config/providerConfig';
 import { context } from 'services/context';
+import { resolveCreationProviderId } from 'services/provider/resolveCreationProviderId';
 import { t, i18next } from 'i18n';
 
 import type { AllowedTierSystem } from '@courthive/provider-config';
@@ -296,17 +297,21 @@ export function editTournament({
         if (nextTier) {
           tournamentEngine.setTournamentTier({ tournamentTier: nextTier });
         }
-        if (state?.providerId && newTournamentRecord) {
-          const addProvider = (result: any) => {
-            const provider = result.data?.provider;
+        const providerId = resolveCreationProviderId(state, context.provider);
+        if (providerId && newTournamentRecord) {
+          const addProvider = async (result: any) => {
+            const provider = result?.data?.provider;
             newTournamentRecord.parentOrganisation = provider;
             if (provider) {
-              const report = (result: any) => console.log('sendTournament', result);
-              sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
+              // Do not add a provider-owned tournament to the visible list until
+              // the server confirms persistence. Otherwise a rejected save looks
+              // successful in this window, then disappears in every other one.
+              const saveResult = await sendTournament({ tournamentRecord: newTournamentRecord });
+              if (!saveResult?.data?.success) return;
             }
             completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
           };
-          getProvider({ providerId: state.providerId }).then(addProvider);
+          getProvider({ providerId }).then(addProvider);
         } else {
           completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
         }

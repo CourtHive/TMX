@@ -50,11 +50,24 @@ function deriveRelayBaseURL(): string {
   return `${serverUrl}/relay`;
 }
 
+/** Resolve an explicit relay setting. `undefined` means "derive a default";
+ * an empty string means "deliberately disabled". The sentinel values make it
+ * possible for container builds to disable the optional relay even though Vite
+ * does not expose a reliable distinction between a missing and blank env var. */
+export function resolveExplicitRelayURL(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const configured = value.trim();
+  if (['disabled', 'false', 'off'].includes(configured.toLowerCase())) return '';
+  return configured ? configured.replace(/\/+$/, '') : undefined;
+}
+
 function resolveInitialBaseURL(): string {
   const fromVite = (import.meta as any)?.env?.VITE_SCORE_RELAY_URL;
-  if (typeof fromVite === 'string' && fromVite.trim()) return fromVite.trim().replace(/\/+$/, '');
+  const viteURL = resolveExplicitRelayURL(fromVite);
+  if (viteURL !== undefined) return viteURL;
   const fromProcess = typeof process === 'undefined' ? undefined : process.env?.SCORE_RELAY_URL;
-  if (typeof fromProcess === 'string' && fromProcess.trim()) return fromProcess.trim().replace(/\/+$/, '');
+  const processURL = resolveExplicitRelayURL(fromProcess);
+  if (processURL !== undefined) return processURL;
   return deriveRelayBaseURL();
 }
 
