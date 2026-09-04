@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.24.1](https://github.com/CourtHive/TMX/compare/v8.24.0...v8.24.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **deps:** raise fast-uri to a patched version ([#1406](https://github.com/CourtHive/TMX/issues/1406)) ([676fcd8](https://github.com/CourtHive/TMX/commit/676fcd8e2cd09b36c2739485f46923dc62971ef7))
+
 ## [8.24.0](https://github.com/CourtHive/TMX/compare/v8.23.0...v8.24.0) (2026-08-31)
 
 
