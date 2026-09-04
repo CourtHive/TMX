@@ -59,7 +59,10 @@ overrides:
   'brace-expansion@>=4 <5.0.5': ^5.0.5
   courthive-components: link:../courthive-components
   dompurify: ^3.4.12 # GHSA (XSS); transitive via jspdf (^3.3.1). patched 3.4.12
-  fast-uri: ^4.0.0 # GHSA-v2hh-gcrm-f6hx (host confusion, high); transitive via ajv (^3.0.1). patched 3.1.4
+  # A security FLOOR, not a range. It was '^4.0.0' for an earlier advisory and stopped being
+  # a floor when four more landed INSIDE 4.x (host confusion x2, SSRF x2), all first patched
+  # in 4.1.3 while the lockfile sat on 4.1.2. Pin the floor to the patched version.
+  fast-uri: '^4.1.3'
   follow-redirects: ^1.16.0
   pdf-factory: link:../pdf-factory
   picomatch: ^4.0.4
