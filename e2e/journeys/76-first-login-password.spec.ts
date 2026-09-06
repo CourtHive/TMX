@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   SERVER,
+  removeUser,
   ROLE_PASSWORD,
   uniqueSuffix,
   signInSuperAdmin,
@@ -21,10 +22,11 @@ const NEW_PASSWORD_INPUT = '#firstLoginNewPassword';
 const email = `e2e-firstlogin-${uniqueSuffix()}@courthive.test`;
 
 let seeded = false;
+let token: string | null = null;
 
 test.describe('Journey 76 — forced first-login password change', () => {
   test.beforeAll(async ({ request }) => {
-    const token = await signInSuperAdmin(request);
+    token = await signInSuperAdmin(request);
     if (!token) return;
     // Create the user but do NOT complete first-login, so the account is left in
     // the mustChangePassword state.
@@ -33,6 +35,12 @@ test.describe('Journey 76 — forced first-login password change', () => {
       data: { email, password: ROLE_PASSWORD, roles: [] },
     });
     seeded = res.ok();
+  });
+
+  test.afterAll(async ({ request }) => {
+    // The account is deliberately left in the mustChangePassword state, so it is
+    // not reusable by a later run — and it accumulated one row per run.
+    if (token) await removeUser(request, token, email);
   });
 
   test('logging in as a first-login user forces the password-change modal', async ({ page }) => {

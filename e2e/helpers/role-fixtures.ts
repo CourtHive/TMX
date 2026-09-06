@@ -48,6 +48,70 @@ export async function signInSuperAdmin(request: APIRequestContext): Promise<stri
   }
 }
 
+/**
+ * Abbreviations minted by `uniqueAbbr` in THIS process — the only ones
+ * `deleteProvider` will ever act on. See the refusal there for why.
+ */
+const mintedAbbrs = new Set<string>();
+
+/**
+ * Run a teardown call, absorbing anything it throws.
+ *
+ * Teardown runs in `afterAll`, and Playwright attributes a throw there to the
+ * LAST TEST in the file — so a spec that passed every assertion is reported red
+ * for a cleanup that had no bearing on what it proved. Measured, not theorised:
+ * adding the journey 76 user removal turned a passing spec red the first time
+ * `localhost` resolved to `::1` while CFS was listening on IPv4 only.
+ *
+ * Cleanup is best-effort by definition — CFS's `cleanup-test-data.mjs` is the
+ * backstop for whatever a crashed run leaves behind — so every teardown call
+ * goes through here and warns instead.
+ */
+async function bestEffort(label: string, run: () => Promise<void>): Promise<void> {
+  try {
+    await run();
+  } catch (err: any) {
+    console.warn(`teardown ${label} failed (ignored): ${err?.message ?? err}`);
+  }
+}
+
+/**
+ * Delete a provider this run created. Cleanup only — never call it on anything
+ * a run did not mint.
+ *
+ * `POST /provider/:id/delete` is Plan A DESTRUCTIVE: it wipes the provider's
+ * tournaments with no archive row and no revive. That is fine for a fixture that
+ * exists for ninety seconds, and unacceptable for anything else — so this refuses
+ * any abbreviation `uniqueAbbr` did not mint in this process, rather than
+ * trusting an `E2E` prefix. A pattern match would delete a real provider the day
+ * someone names one "E2E Demo", and journey 28's fixed `TMX` abbreviation is
+ * excluded by construction rather than by remembering to special-case it.
+ *
+ * Never throws: a teardown failure must not turn a green run red. Mirrors the
+ * warn-and-continue that journey 28's tournament cleanup already uses.
+ */
+export async function deleteProvider(
+  request: APIRequestContext,
+  token: string,
+  providerId: string | undefined,
+  organisationAbbreviation: string | undefined,
+): Promise<void> {
+  if (!providerId || !organisationAbbreviation) return;
+  if (!mintedAbbrs.has(organisationAbbreviation)) {
+    console.warn(`deleteProvider refused "${organisationAbbreviation}": not minted by this run — leaving it alone.`);
+    return;
+  }
+  await bestEffort(`deleteProvider(${organisationAbbreviation})`, async () => {
+    const res = await request.post(`${SERVER}/provider/${providerId}/delete`, {
+      headers: authHeaders(token),
+      data: { confirm: organisationAbbreviation, acknowledgeDataLoss: true },
+    });
+    if (!res.ok()) {
+      console.warn(`deleteProvider(${organisationAbbreviation}) → ${res.status()}: ${await res.text()}`);
+    }
+  });
+}
+
 export async function ensureProvider(
   request: APIRequestContext,
   token: string,
@@ -113,7 +177,9 @@ export async function createLoginableUser(
 
 export async function removeUser(request: APIRequestContext, token: string, email: string): Promise<void> {
   if (!email) return;
-  await request.post(`${SERVER}/auth/remove`, { headers: authHeaders(token), data: { email } });
+  await bestEffort(`removeUser(${email})`, async () => {
+    await request.post(`${SERVER}/auth/remove`, { headers: authHeaders(token), data: { email } });
+  });
 }
 
 export async function createProvisioner(request: APIRequestContext, token: string, name: string): Promise<string> {
@@ -157,11 +223,13 @@ export async function cleanupProvisioner(
   provisionerId: string,
 ): Promise<void> {
   if (!provisionerId) return;
-  await request.put(`${SERVER}/admin/provisioners/${provisionerId}`, {
-    headers: authHeaders(token),
-    data: { isActive: false },
+  await bestEffort(`cleanupProvisioner(${provisionerId})`, async () => {
+    await request.put(`${SERVER}/admin/provisioners/${provisionerId}`, {
+      headers: authHeaders(token),
+      data: { isActive: false },
+    });
+    await request.delete(`${SERVER}/admin/provisioners/${provisionerId}`, { headers: authHeaders(token) });
   });
-  await request.delete(`${SERVER}/admin/provisioners/${provisionerId}`, { headers: authHeaders(token) });
 }
 
 export function uniqueSuffix(): string {
@@ -178,9 +246,14 @@ export function uniqueSuffix(): string {
  * abbreviation per run sidesteps that entirely. The `E2E` prefix keeps these in
  * scope of CFS's cleanup-test-data.mjs (which matches abbreviation LIKE 'E2E%').
  * Kept short (~8 chars) so it renders cleanly in the provider badge.
+ *
+ * Minting also RECORDS the abbreviation, which is what makes `deleteProvider`
+ * safe: teardown can only touch providers this process created.
  */
 export function uniqueAbbr(tag = ''): string {
   const t = Date.now().toString(36).slice(-4);
   const r = Math.floor(Math.random() * 46_656).toString(36); // up to 3 base-36 chars
-  return `E2E${tag}${t}${r}`.toUpperCase();
+  const abbr = `E2E${tag}${t}${r}`.toUpperCase();
+  mintedAbbrs.add(abbr);
+  return abbr;
 }
