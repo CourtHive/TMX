@@ -7,6 +7,7 @@ import {
   uniqueSuffix,
   uniqueAbbr,
   removeUser,
+  deleteProvider,
   ensureProvider,
   createProvisioner,
   signInSuperAdmin,
@@ -36,6 +37,7 @@ const DIRECTOR_EMAIL = `e2e-tmx-director-${suffix}@courthive.test`;
 const REP_EMAIL = `e2e-tmx-rep-${suffix}@courthive.test`;
 const PROVISIONER_NAME = `E2E-TMX-Provisioner-${suffix}`;
 const PROVIDER_NAME = 'E2E TMX Role Provider';
+const providerAbbr = uniqueAbbr('R');
 
 let token: string | null = null;
 let seeded = false;
@@ -68,7 +70,7 @@ test.describe('Journey 36 — provider switcher + admin gating (real login)', ()
     token = await signInSuperAdmin(request);
     if (!token) return; // seed admin unavailable → tests skip below
 
-    providerId = await ensureProvider(request, token, uniqueAbbr('R'), PROVIDER_NAME);
+    providerId = await ensureProvider(request, token, providerAbbr, PROVIDER_NAME);
     await createLoginableUser(request, token, {
       email: PROVIDER_ADMIN_EMAIL,
       roles: ['client'],
@@ -94,6 +96,7 @@ test.describe('Journey 36 — provider switcher + admin gating (real login)', ()
     await removeUser(request, token, PROVIDER_ADMIN_EMAIL);
     await removeUser(request, token, DIRECTOR_EMAIL);
     await removeUser(request, token, REP_EMAIL);
+    await deleteProvider(request, token, providerId, providerAbbr);
   });
 
   test('PROVIDER_ADMIN sees the Admin item in the account menu', async ({ page }) => {

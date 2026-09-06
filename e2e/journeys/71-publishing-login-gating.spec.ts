@@ -4,6 +4,7 @@ import { seedTournament, PROFILE_R1_COMPLETE } from '../helpers/seed';
 import {
   SERVER,
   ensureProvider,
+  deleteProvider,
   uniqueSuffix,
   uniqueAbbr,
   signInSuperAdmin,
@@ -35,13 +36,20 @@ const PROVIDER_ABBR = uniqueAbbr('P');
 const PROVIDER_NAME = `E2E Publish ${uniqueSuffix()}`;
 
 let seeded = false;
+let token: string | null = null;
+let providerId: string | undefined;
 
 test.describe('Journey 71 — publishing login gating', () => {
   test.beforeAll(async ({ request }) => {
-    const token = await signInSuperAdmin(request);
+    token = await signInSuperAdmin(request);
     if (!token) return;
-    await ensureProvider(request, token, PROVIDER_ABBR, PROVIDER_NAME);
+    providerId = await ensureProvider(request, token, PROVIDER_ABBR, PROVIDER_NAME);
     seeded = true;
+  });
+
+  test.afterAll(async ({ request }) => {
+    if (!token) return;
+    await deleteProvider(request, token, providerId, PROVIDER_ABBR);
   });
 
   test('a real login + active provider unlocks the publishing controls', async ({ page }) => {

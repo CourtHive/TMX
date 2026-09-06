@@ -4,6 +4,7 @@ import { routeApiToCfs } from '../helpers/cfsProxy';
 import {
   SERVER,
   ensureProvider,
+  deleteProvider,
   uniqueSuffix,
   uniqueAbbr,
   signInSuperAdmin,
@@ -46,6 +47,9 @@ const PROVIDER_A_NAME = `E2E Switch Alpha ${suffix}`;
 const PROVIDER_B_NAME = `E2E Switch Beta ${suffix}`;
 const PATCH_LAST_SELECTED = '/auth/me/last-selected-provider';
 
+let providerAId: string | undefined;
+let providerBId: string | undefined;
+
 let token: string | null = null;
 let seeded = false;
 
@@ -85,9 +89,15 @@ test.describe('Journey 58 — super-admin provider switch (real login)', () => {
   test.beforeAll(async ({ request }) => {
     token = await signInSuperAdmin(request);
     if (!token) return; // seed admin unavailable → tests skip below
-    await ensureProvider(request, token, PROVIDER_A_ABBR, PROVIDER_A_NAME);
-    await ensureProvider(request, token, PROVIDER_B_ABBR, PROVIDER_B_NAME);
+    providerAId = await ensureProvider(request, token, PROVIDER_A_ABBR, PROVIDER_A_NAME);
+    providerBId = await ensureProvider(request, token, PROVIDER_B_ABBR, PROVIDER_B_NAME);
     seeded = true;
+  });
+
+  test.afterAll(async ({ request }) => {
+    if (!token) return;
+    await deleteProvider(request, token, providerAId, PROVIDER_A_ABBR);
+    await deleteProvider(request, token, providerBId, PROVIDER_B_ABBR);
   });
 
   test('selecting a provider persists without an authorisation error and shows its abbreviation', async ({ page }) => {

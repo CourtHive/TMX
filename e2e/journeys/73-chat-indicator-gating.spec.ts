@@ -4,6 +4,7 @@ import { seedTournament, PROFILE_DRAW_GENERATED } from '../helpers/seed';
 import {
   SERVER,
   ensureProvider,
+  deleteProvider,
   uniqueSuffix,
   uniqueAbbr,
   signInSuperAdmin,
@@ -29,13 +30,20 @@ const PROVIDER_ABBR = uniqueAbbr('C');
 const PROVIDER_NAME = `E2E Chat ${uniqueSuffix()}`;
 
 let seeded = false;
+let token: string | null = null;
+let providerId: string | undefined;
 
 test.describe('Journey 73 — chat indicator gating', () => {
   test.beforeAll(async ({ request }) => {
-    const token = await signInSuperAdmin(request);
+    token = await signInSuperAdmin(request);
     if (!token) return;
-    await ensureProvider(request, token, PROVIDER_ABBR, PROVIDER_NAME);
+    providerId = await ensureProvider(request, token, PROVIDER_ABBR, PROVIDER_NAME);
     seeded = true;
+  });
+
+  test.afterAll(async ({ request }) => {
+    if (!token) return;
+    await deleteProvider(request, token, providerId, PROVIDER_ABBR);
   });
 
   test('is hidden on a locally-loaded tournament with no login', async ({ page }) => {

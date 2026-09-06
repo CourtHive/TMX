@@ -1,7 +1,7 @@
 import type { APIRequestContext } from '@playwright/test';
 import { mocksEngine } from 'tods-competition-factory';
 
-import { SERVER, ensureProvider, uniqueAbbr, uniqueSuffix } from './role-fixtures';
+import { SERVER, deleteProvider, ensureProvider, uniqueAbbr, uniqueSuffix } from './role-fixtures';
 
 /**
  * Server-side fixture for the participation (schedule) journey.
@@ -36,6 +36,7 @@ export interface SeededProgramme {
 
 export interface ParticipationFixture {
   governingProviderId: string;
+  governingAbbr: string;
   programmeA: SeededProgramme;
   programmeB: SeededProgramme;
   emptyProgramme: SeededProgramme;
@@ -80,12 +81,8 @@ export async function seedParticipationFixture(
 ): Promise<ParticipationFixture> {
   const suffix = uniqueSuffix();
 
-  const governingProviderId = await ensureProvider(
-    request,
-    token,
-    uniqueAbbr('GOV'),
-    `E2E Governing Body ${suffix}`,
-  );
+  const governingAbbr = uniqueAbbr('GOV');
+  const governingProviderId = await ensureProvider(request, token, governingAbbr, `E2E Governing Body ${suffix}`);
   const programmeA = await seedProgramme(request, token, 'A', suffix);
   const programmeB = await seedProgramme(request, token, 'B', suffix);
   const emptyProgramme = await seedProgramme(request, token, 'Z', suffix);
@@ -114,6 +111,7 @@ export async function seedParticipationFixture(
 
   return {
     governingProviderId,
+    governingAbbr,
     programmeA,
     programmeB,
     emptyProgramme,
@@ -147,4 +145,12 @@ export async function cleanupParticipationFixture(
     headers: authHeaders(token),
     data: { providerId: fixture.governingProviderId, tournamentId: fixture.tournamentId },
   });
+
+  // The tournament was only ever half the fixture. Until this was added, every
+  // run left four providers behind (governing body + three programmes), which is
+  // most of the nine a full journey run used to silt into the dev database.
+  for (const programme of [fixture.programmeA, fixture.programmeB, fixture.emptyProgramme]) {
+    await deleteProvider(request, token, programme.providerId, programme.abbr);
+  }
+  await deleteProvider(request, token, fixture.governingProviderId, fixture.governingAbbr);
 }
