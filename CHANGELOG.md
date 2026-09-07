@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.24.2](https://github.com/CourtHive/TMX/compare/v8.24.1...v8.24.2) (2026-09-07)
+
+
+### Bug Fixes
+
+* **relay:** let a deployment declare that it has no score-relay ([#1421](https://github.com/CourtHive/TMX/issues/1421)) ([f955321](https://github.com/CourtHive/TMX/commit/f955321ced63f7115a3930deb59dca4d78f04f8a))
+* **tournaments:** create under the selected provider, not the JWT provider ([#1420](https://github.com/CourtHive/TMX/issues/1420)) ([85ac1a9](https://github.com/CourtHive/TMX/commit/85ac1a9ac55e017240b3820dd50cb1b6a09a95e9))
+
 ## [8.24.1](https://github.com/CourtHive/TMX/compare/v8.24.0...v8.24.1) (2026-09-07)
 
 
