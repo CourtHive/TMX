@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.24.1](https://github.com/CourtHive/TMX/compare/v8.24.0...v8.24.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* **deps:** courthive-components 4.1.1 + pdf-factory 0.8.22 ([#1419](https://github.com/CourtHive/TMX/issues/1419)) ([a1816b4](https://github.com/CourtHive/TMX/commit/a1816b4729de36946c4e336db1545563e2238e9a))
+* **deps:** raise fast-uri to a patched version ([#1406](https://github.com/CourtHive/TMX/issues/1406)) ([676fcd8](https://github.com/CourtHive/TMX/commit/676fcd8e2cd09b36c2739485f46923dc62971ef7))
+* **deps:** update dependency courthive-components to v4.1.0 ([#1409](https://github.com/CourtHive/TMX/issues/1409)) ([81b030d](https://github.com/CourtHive/TMX/commit/81b030dff5301bd8dc98669b57dbb2145af9c3d3))
+* **deps:** update dependency hotkeys-js to v4.0.7 ([#1396](https://github.com/CourtHive/TMX/issues/1396)) ([e75abb1](https://github.com/CourtHive/TMX/commit/e75abb1a5a0b0c09c167fd60e9c37475578fe29f))
+* **deps:** update tods-competition-factory to 6.37.1 ([#1408](https://github.com/CourtHive/TMX/issues/1408)) ([ccfa87f](https://github.com/CourtHive/TMX/commit/ccfa87f7b304f734d2d3b7f139e75bfa5653b9c7))
+* **deps:** update tods-competition-factory to 6.37.2 ([#1415](https://github.com/CourtHive/TMX/issues/1415)) ([7385e7f](https://github.com/CourtHive/TMX/commit/7385e7f6ef66a3dc926d79d374ef408664b87198))
+* **e2e:** delete the providers and users the journeys create ([#1416](https://github.com/CourtHive/TMX/issues/1416)) ([e1e199d](https://github.com/CourtHive/TMX/commit/e1e199d49ed9e086e6a52fe0c6000a164fe9bdb2))
+* **e2e:** stop the CFS proxy from swallowing Vite modules and spec stubs ([#1414](https://github.com/CourtHive/TMX/issues/1414)) ([5b3848d](https://github.com/CourtHive/TMX/commit/5b3848de077b03c03d080049d6dceef73db64786))
+
 ## [8.24.0](https://github.com/CourtHive/TMX/compare/v8.23.0...v8.24.0) (2026-08-31)
 
 
