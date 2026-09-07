@@ -57,6 +57,17 @@ export default defineConfig({
     command: process.env.TEST_PROD
       ? 'pnpm build && pnpm preview'
       : 'NODE_OPTIONS=--max-old-space-size=4096 pnpm start',
+    // Playwright defaults `cwd` to the CONFIG file's directory, which is `e2e/`
+    // — and `e2e/` has no package.json, so `pnpm start` there dies with
+    // ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND and Playwright reports only
+    // "Process from config.webServer was not able to start. Exit code: 1".
+    //
+    // This was invisible for as long as it existed because `reuseExistingServer`
+    // finds an already-running dev server and never runs the command at all. It
+    // surfaces only when :5173 is genuinely free — which is exactly the state a
+    // full-suite run is supposed to start from, so the failure was reserved for
+    // the one case that matters most.
+    cwd: '..',
     url: process.env.TEST_PROD ? 'http://localhost:4173' : 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
