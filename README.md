@@ -33,6 +33,74 @@ pnpm start
 pnpm build
 ```
 
+## Docker with server persistence
+
+The Compose stack serves TMX and Competition Factory Server from one origin,
+with tournament data persisted in PostgreSQL and Redis used as a cache:
+
+```bash
+docker compose up --build -d
+```
+
+Open <http://localhost:8080/tmx/>. The first build downloads a pinned revision
+of `CourtHive/competition-factory-server`; subsequent builds use Docker's cache.
+
+For automatic first-start provisioning, copy `.env.docker.example` to `.env`,
+set `TMX_ADMIN_EMAIL` and `TMX_ADMIN_PASSWORD`, then start the stack. The account
+is created after database migrations; later restarts do not reset its password.
+You can also create an administrator manually after the stack is healthy:
+
+```bash
+docker compose exec cfs node src/scripts/admin-user.mjs create \
+  --email admin@example.com \
+  --password change-me-now
+```
+
+Replace all example secrets before making the service reachable outside a
+trusted development machine. PostgreSQL
+data survives container replacement in the `tmx_postgres-data` named volume.
+Normal shutdown preserves it:
+
+```bash
+docker compose down
+```
+
+Passing `--volumes` to `docker compose down` deliberately deletes the database.
+Anonymous/demo tournaments remain browser-local; authenticated provider-owned
+tournaments use CFS's server-first persistence.
+
+### Publishing Docker images
+
+An image built normally on an Apple Silicon machine contains only
+`linux/arm64` and cannot run on a typical `linux/amd64` server. Publish both
+architectures with Buildx (replace the example registry names):
+
+```bash
+docker buildx create --name tmx-builder --driver docker-container --use
+docker buildx inspect --bootstrap
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag ghcr.io/your-user/tmx:latest \
+  --push .
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --file docker/cfs.Dockerfile \
+  --build-arg CFS_REF=525571e5f8110376d6c8534c37cc3d975a2f0f15 \
+  --tag ghcr.io/your-user/tmx-cfs:latest \
+  --push .
+```
+
+For an AMD64-only deployment, use `--platform linux/amd64` instead. Set
+`TMX_IMAGE` and `TMX_CFS_IMAGE` in `.env` to those published tags, then deploy
+without rebuilding them on the server:
+
+```bash
+docker compose pull tmx cfs
+docker compose up --no-build -d
+```
+
 ## Technology Stack
 
 - **Data Standard:** TODS (Tennis Open Data Standards)

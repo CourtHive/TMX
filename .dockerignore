@@ -1,0 +1,17 @@
+.git
+.github
+.husky
+.storybook
+node_modules
+dist
+dev
+e2e
+
+# The development lockfile contains link:../ references to sibling repositories
+# which are intentionally unavailable in the isolated image build context.
+pnpm-lock.yaml
+
+# Do not bake developer-specific server URLs into the production bundle.
+.env
+.env.local
+.env.*.local

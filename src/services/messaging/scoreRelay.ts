@@ -8,6 +8,7 @@
  */
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
+import { isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
 import { io, Socket } from 'socket.io-client';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
@@ -40,6 +41,11 @@ function getRelayConfig(): { origin: string; path: string } {
 }
 
 export function connectRelay(tournamentId: string): void {
+  if (!isCrowdScoringEnabled()) {
+    disconnectRelay();
+    slog('[relay] disabled — connection skipped');
+    return;
+  }
   if (relaySocket?.connected && currentTournamentId === tournamentId) return;
 
   disconnectRelay();
