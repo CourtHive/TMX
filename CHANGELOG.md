@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.24.3](https://github.com/CourtHive/TMX/compare/v8.24.2...v8.24.3) (2026-09-07)
+
+
+### Bug Fixes
+
+* **e2e:** start the dev server from the repo root, not from e2e/ ([#1423](https://github.com/CourtHive/TMX/issues/1423)) ([121b181](https://github.com/CourtHive/TMX/commit/121b181ff899afcb338ff7c6c3104fc5c7786b8a))
+
 ## [8.24.2](https://github.com/CourtHive/TMX/compare/v8.24.1...v8.24.2) (2026-09-07)
 
 
