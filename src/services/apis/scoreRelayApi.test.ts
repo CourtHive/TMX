@@ -61,7 +61,12 @@ vi.mock('config/providerConfig', () => ({
   providerConfig: { get: () => mockProviderConfig.current },
 }));
 
-import { isScoreRelayConfigured, isCrowdScoringEnabled, getScoreRelayURL } from './scoreRelayApi';
+import {
+  isScoreRelayConfigured,
+  isCrowdScoringEnabled,
+  resolveExplicitRelayURL,
+  getScoreRelayURL,
+} from './scoreRelayApi';
 
 describe('scoreRelayApi crowd surface', () => {
   beforeEach(() => {
@@ -72,6 +77,27 @@ describe('scoreRelayApi crowd surface', () => {
     // localhost dev → standalone relay on :8384
     expect(getScoreRelayURL()).toBe('http://localhost:8384');
     expect(isScoreRelayConfigured()).toBe(true);
+  });
+
+  it('treats the disabled sentinels as deliberately off, case-insensitively', () => {
+    expect(resolveExplicitRelayURL('disabled')).toBe('');
+    expect(resolveExplicitRelayURL('OFF')).toBe('');
+    expect(resolveExplicitRelayURL('false')).toBe('');
+    expect(resolveExplicitRelayURL('  Disabled  ')).toBe('');
+  });
+
+  it('normalizes explicit relay URLs and leaves missing values to derivation', () => {
+    expect(resolveExplicitRelayURL(' https://relay.example/ ')).toBe('https://relay.example');
+    expect(resolveExplicitRelayURL('https://relay.example///')).toBe('https://relay.example');
+    expect(resolveExplicitRelayURL('')).toBeUndefined();
+    expect(resolveExplicitRelayURL('   ')).toBeUndefined();
+    expect(resolveExplicitRelayURL(undefined)).toBeUndefined();
+  });
+
+  // A host that merely CONTAINS a sentinel is a real URL, not a request to
+  // disable — the match is on the whole trimmed value, not a substring.
+  it('does not treat a URL containing a sentinel word as disabled', () => {
+    expect(resolveExplicitRelayURL('https://off.example')).toBe('https://off.example');
   });
 
   it('isCrowdScoringEnabled is true when the provider declares no crowdScoring (default ON)', () => {
