@@ -3,6 +3,7 @@
  * Allows creating new tournaments or editing existing tournament details.
  */
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
+import { resolveCreationProviderId } from 'services/provider/resolveCreationProviderId';
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
 import { submitTournamentDates } from 'services/mutation/submitTournamentDates';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
@@ -296,17 +297,26 @@ export function editTournament({
         if (nextTier) {
           tournamentEngine.setTournamentTier({ tournamentTier: nextTier });
         }
-        if (state?.providerId && newTournamentRecord) {
-          const addProvider = (result: any) => {
-            const provider = result.data?.provider;
+        // `context.provider` first: a super-admin who switched provider keeps the
+        // original JWT, so `state.providerId` alone would silently create the
+        // tournament local-only instead of under the provider on screen.
+        const providerId = resolveCreationProviderId(state, context.provider);
+        if (providerId && newTournamentRecord) {
+          const addProvider = async (result: any) => {
+            const provider = result?.data?.provider;
             newTournamentRecord.parentOrganisation = provider;
             if (provider) {
-              const report = (result: any) => console.log('sendTournament', result);
-              sendTournament({ tournamentRecord: newTournamentRecord }).then(() => {}, report);
+              // Do not add a provider-owned tournament to the visible list until
+              // the server confirms persistence. Otherwise a rejected save looks
+              // successful in this window, then disappears in every other one.
+              // baseApi resolves a failed request to `undefined` and has already
+              // raised the error toast, so the abort is reported, not silent.
+              const saveResult = await sendTournament({ tournamentRecord: newTournamentRecord });
+              if (!saveResult?.data?.success) return undefined;
             }
-            completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
+            return completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
           };
-          getProvider({ providerId: state.providerId }).then(addProvider);
+          getProvider({ providerId }).then(addProvider);
         } else {
           completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
         }
