@@ -4,6 +4,7 @@
  * tournament-level controls, event/draw tree, and embargo management.
  */
 import { getTournamentPublishData, getPublishingTableData } from './publishingData';
+import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -314,7 +315,7 @@ export function renderPublishingTab(): void {
   removeAllChildNodes(container);
 
   const state = getLoginState();
-  const activeProvider = context.provider || state?.provider;
+  const activeProvider = resolveActiveProvider(state, context.provider);
   const canPublish = featureFlags.get().usePublishState || (!!state && !!activeProvider);
 
   if (!canPublish) {

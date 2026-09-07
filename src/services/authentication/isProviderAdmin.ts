@@ -13,6 +13,7 @@
  * The active provider is the impersonated one (`context.provider`) when set,
  * otherwise the JWT home provider (`state.provider`).
  */
+import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { getLoginState } from 'services/authentication/loginState';
 import { context } from 'services/context';
 
@@ -24,7 +25,7 @@ export function isActiveProviderAdmin(): boolean {
   if (!state) return false;
   if (state.roles?.includes(SUPER_ADMIN)) return true;
 
-  const activeId = (context.provider ?? state.provider)?.organisationId;
+  const activeId = resolveActiveProvider(state, context.provider)?.organisationId;
   if (activeId) {
     if (state.provisionerProviders?.some((p) => p.providerId === activeId)) return true;
     const association = state.providerAssociations?.find((a) => a.providerId === activeId);
