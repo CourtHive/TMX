@@ -50,11 +50,35 @@ function deriveRelayBaseURL(): string {
   return `${serverUrl}/relay`;
 }
 
+/**
+ * Values that mean "this deployment has no relay", as opposed to "no relay was
+ * configured, derive one". Vite inlines `import.meta.env` at build time and
+ * gives a build no way to express an empty string distinguishable from an unset
+ * variable, so a container image that runs without a relay needs a word rather
+ * than a blank to turn the derivation off.
+ */
+const DISABLED_SENTINELS = new Set(['disabled', 'false', 'off']);
+
+/**
+ * Resolve an explicit relay setting.
+ *
+ * - `undefined` — nothing was configured; the caller should derive a default.
+ * - `''` — deliberately disabled; the caller should NOT derive a default.
+ * - anything else — the configured base URL, trimmed, without a trailing slash.
+ */
+export function resolveExplicitRelayURL(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const configured = value.trim();
+  if (DISABLED_SENTINELS.has(configured.toLowerCase())) return '';
+  return configured ? configured.replace(/\/+$/, '') : undefined;
+}
+
 function resolveInitialBaseURL(): string {
-  const fromVite = (import.meta as any)?.env?.VITE_SCORE_RELAY_URL;
-  if (typeof fromVite === 'string' && fromVite.trim()) return fromVite.trim().replace(/\/+$/, '');
+  const fromVite = resolveExplicitRelayURL((import.meta as any)?.env?.VITE_SCORE_RELAY_URL);
+  if (fromVite !== undefined) return fromVite;
   const fromProcess = typeof process === 'undefined' ? undefined : process.env?.SCORE_RELAY_URL;
-  if (typeof fromProcess === 'string' && fromProcess.trim()) return fromProcess.trim().replace(/\/+$/, '');
+  const explicitProcessURL = resolveExplicitRelayURL(fromProcess);
+  if (explicitProcessURL !== undefined) return explicitProcessURL;
   return deriveRelayBaseURL();
 }
 

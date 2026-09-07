@@ -6,6 +6,7 @@
  * - Production: same host, /relay path (nginx proxy)
  * - Local dev: same host, port 8384
  */
+import { isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { io, Socket } from 'socket.io-client';
@@ -40,6 +41,15 @@ function getRelayConfig(): { origin: string; path: string } {
 }
 
 export function connectRelay(tournamentId: string): void {
+  // Fail closed. No relay base resolves (a deployment that set the disabled
+  // sentinel, or has no server URL at all), or the provider turned crowd
+  // scoring off -> open no socket, and tear down one already open rather than
+  // leaving it reconnecting against a host that is not there.
+  if (!isCrowdScoringEnabled()) {
+    disconnectRelay();
+    slog('[relay] disabled — connection skipped');
+    return;
+  }
   if (relaySocket?.connected && currentTournamentId === tournamentId) return;
 
   disconnectRelay();
