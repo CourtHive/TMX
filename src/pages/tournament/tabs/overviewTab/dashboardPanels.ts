@@ -1,6 +1,7 @@
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
+import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
@@ -529,7 +530,7 @@ export function createActionsPanel(): HTMLElement {
   const providerId = provider?.organisationId;
   const state = getLoginState();
   const admin = isActiveProviderAdmin();
-  const activeProvider = context.provider || state?.provider;
+  const activeProvider = resolveActiveProvider(state, context.provider);
 
   if (tournamentRecord && admin) {
     if (shouldShowFormatWizard()) {

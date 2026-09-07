@@ -6,6 +6,7 @@
 import { getProviderRankingsUrl, providerHasRankings } from 'services/rankings/providerRankings';
 import { hasGlobalAdminRole } from 'services/authentication/hasGlobalAdminRole';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
+import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { getLoginState } from 'services/authentication/loginState';
 import { deviceConfig } from 'config/deviceConfig';
@@ -53,7 +54,7 @@ const RANKINGS_ICON = 'h-rankings';
 const RANKINGS_MOBILE_ITEM = 'mobile-nav-rankings';
 
 function activeProviderAbbr(): string | undefined {
-  const provider = context.provider ?? getLoginState()?.provider;
+  const provider = resolveActiveProvider(getLoginState(), context.provider);
   return provider?.organisationAbbreviation;
 }
 
@@ -136,7 +137,7 @@ const SCHEDULE_ICON = 'h-schedule';
 const SCHEDULE_MOBILE_ITEM = 'mobile-nav-schedule';
 
 function activeProviderId(): string | undefined {
-  return (context.provider ?? getLoginState()?.provider)?.organisationId;
+  return resolveActiveProvider(getLoginState(), context.provider)?.organisationId;
 }
 
 function openProviderSchedule(providerId: string): void {

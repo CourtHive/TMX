@@ -6,6 +6,7 @@ import { connectSocket, connected, disconnectSocket } from 'services/messaging/s
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
 import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
+import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
 import { getLoginState } from 'services/authentication/loginState';
@@ -586,7 +587,7 @@ export async function renderSettingsGrid(
     const createdByUserId = tournamentRecord?.extensions?.find((e) => e?.name === 'createdByUserId')?.value;
     const isCreator = !!createdByUserId && createdByUserId === state?.userId;
     const canDeleteOnServer = superAdmin || isCreator || state?.permissions?.includes('deleteTournament');
-    const activeProvider = context.provider || state?.provider;
+    const activeProvider = resolveActiveProvider(state, context.provider);
 
     const isProviderTournament = !!(activeProvider && providerId);
     if (tournamentRecord && (!isProviderTournament || canDeleteOnServer)) {
