@@ -6,11 +6,35 @@ function isLocalDev(): boolean {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
 }
 
-export function getPublicBaseUrl(): string {
-  if (env.PUBLIC_URL) return env.PUBLIC_URL;
-  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL;
+export function resolvePublicBaseUrl({
+  configuredUrl,
+  currentHref,
+}: {
+  configuredUrl?: string;
+  currentHref: string;
+}): string {
+  const currentUrl = new URL(currentHref);
 
+  if (configuredUrl) {
+    // Treat path-only configuration as origin-relative. Resolving `pub` against
+    // the current document would turn /tmx/pub/ into /tmx/pub/pub.
+    return new URL(configuredUrl, `${currentUrl.origin}/`).toString().replace(/\/$/, '');
+  }
+
+  const tmxPathIndex = currentUrl.pathname.indexOf('/tmx');
+  currentUrl.pathname = tmxPathIndex >= 0 ? `${currentUrl.pathname.slice(0, tmxPathIndex)}/pub` : '/pub';
+  currentUrl.hash = '';
+  currentUrl.search = '';
+  return currentUrl.toString().replace(/\/$/, '');
+}
+
+export function getPublicBaseUrl(): string {
   const url = new URL(globalThis.location.href);
+  const configuredUrl = env.PUBLIC_URL || process.env.PUBLIC_URL;
+
+  if (configuredUrl) {
+    return resolvePublicBaseUrl({ configuredUrl, currentHref: globalThis.location.href });
+  }
 
   // When running standalone on localhost (not served by the factory server),
   // assume courthive-public is on the next port
@@ -19,11 +43,9 @@ export function getPublicBaseUrl(): string {
     return `${url.protocol}//${url.hostname}:${publicPort}`;
   }
 
-  url.pathname = url.pathname.replace(/\/tmx\b/, '/pub');
-  url.hash = '';
-  url.search = '';
-  const publicURl = url.toString().replace(/\/$/, '');
-  return publicURl;
+  return resolvePublicBaseUrl({
+    currentHref: globalThis.location.href,
+  });
 }
 
 export function isEventPublished(eventId: string): boolean {

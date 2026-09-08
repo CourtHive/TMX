@@ -35,15 +35,18 @@ pnpm build
 
 ## Docker with server persistence
 
-The Compose stack serves TMX and Competition Factory Server from one origin,
-with tournament data persisted in PostgreSQL and Redis used as a cache:
+The Compose stack serves TMX, its public tournament viewer, and Competition
+Factory Server from one origin, with tournament data persisted in PostgreSQL
+and Redis used as a cache:
 
 ```bash
 docker compose up --build -d
 ```
 
-Open <http://localhost:8080/tmx/>. The first build downloads a pinned revision
-of `CourtHive/competition-factory-server`; subsequent builds use Docker's cache.
+Open <http://localhost:8080/tmx/>. Published tournament links are served below
+<http://localhost:8080/pub/>. The first build downloads pinned revisions of
+`CourtHive/competition-factory-server` and `CourtHive/courthive-public`;
+subsequent builds use Docker's cache.
 
 For automatic first-start provisioning, copy `.env.docker.example` to `.env`,
 set `TMX_ADMIN_EMAIL` and `TMX_ADMIN_PASSWORD`, then start the stack. The account
@@ -90,14 +93,21 @@ docker buildx build \
   --build-arg CFS_REF=525571e5f8110376d6c8534c37cc3d975a2f0f15 \
   --tag ghcr.io/your-user/tmx-cfs:latest \
   --push .
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --file docker/pub.Dockerfile \
+  --build-arg PUBLIC_REF=3190a0f4c295b0c22d3d171283c28f276884766b \
+  --tag ghcr.io/your-user/tmx-public:latest \
+  --push .
 ```
 
 For an AMD64-only deployment, use `--platform linux/amd64` instead. Set
-`TMX_IMAGE` and `TMX_CFS_IMAGE` in `.env` to those published tags, then deploy
-without rebuilding them on the server:
+`TMX_IMAGE`, `TMX_CFS_IMAGE`, and `TMX_PUBLIC_IMAGE` in `.env` to those
+published tags, then deploy without rebuilding them on the server:
 
 ```bash
-docker compose pull tmx cfs
+docker compose pull tmx cfs pub
 docker compose up --no-build -d
 ```
 

@@ -15,6 +15,8 @@ services:
     depends_on:
       cfs:
         condition: service_healthy
+      pub:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/tmx/ >/dev/null || exit 1"]
       interval: 10s
@@ -77,6 +79,20 @@ services:
       start_period: 20s
     volumes:
       - cfs-archives:/app/.archives-local
+
+  pub:
+    build:
+      context: .
+      dockerfile: docker/pub.Dockerfile
+      args:
+        PUBLIC_REF: "${PUBLIC_REF:-3190a0f4c295b0c22d3d171283c28f276884766b}"
+    image: "${TMX_PUBLIC_IMAGE:-tmx-public:local}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/pub/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:18-alpine
