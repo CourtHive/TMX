@@ -25,10 +25,18 @@
  * DST change converts an hour wrong on the far side — silently, in figures
  * measured in minutes. Measured across the 2026 US spring-forward, 22:00 → 08:00
  * is nine hours, not ten. So every function here resolves the offset **at the
- * instant being converted**, via `Intl.DateTimeFormat` with an IANA zone. This
- * is the approach `factory/src/tools/zonedTime.ts` takes; it is internal to the
- * factory and not exported from `assemblies`, so TMX ports it rather than
- * importing it.
+ * instant being converted**, against an IANA zone.
+ *
+ * That arithmetic is no longer TMX's. It lives in the factory as
+ * `tools.zonedDateTime`, and this module calls it. TMX used to port it, because
+ * the factory's copy was internal and unexported while the exported surface
+ * (`tools.timeZone`) threw on bad input. The factory has since consolidated the
+ * two and exported the result, so the port is deleted rather than maintained,
+ * and there is now ONE implementation of wall-clock <-> instant in the ecosystem.
+ *
+ * What remains here is the part that is genuinely TMX's: which zone to read
+ * against (`resolveVenueFrame`), what to do when the record names none, and the
+ * shapes the UI wants.
  *
  * ── What is NOT an instant ──
  *
@@ -77,13 +85,14 @@
  *     already, so the migration is a simplification and not a redesign.
  *     `venueParts` becomes `instant.toZonedDateTimeISO(timeZone)` field reads;
  *     `venueOffsetMinutesAt` becomes `zdt.offsetNanoseconds`.
- *   - **`venueWallClockToMs` is the piece that gets genuinely better.** Its
- *     two-pass offset guess exists only because native `Date` cannot resolve a
- *     wall clock in a named zone; `Temporal.PlainDateTime.from(…).toZonedDateTime(tz)`
- *     does it in one step, and turns the ambiguity this settles silently
+ *   - **The two-pass offset guess is no longer here to migrate.** It moved to
+ *     the factory with the rest of the arithmetic, so when Temporal lands it is
+ *     deleted once, in one repo, rather than in each copy. Whoever migrates
+ *     should still read those two passes as a workaround to delete and not a
+ *     behaviour to preserve: `Temporal.PlainDateTime.from(…).toZonedDateTime(tz)`
+ *     does it in one step and turns the ambiguity they settle silently
  *     (spring-forward's missing hour, fall-back's repeated one) into an explicit
- *     `disambiguation` choice. Whoever migrates should read the two passes as a
- *     workaround to delete, not a behaviour to preserve.
+ *     `disambiguation` choice.
  *
  * The wart to fix when it lands: `venueNowOnDate` returns a **naive `Date`**
  * because that is the only shape native `Date` offers for "a wall clock with no
@@ -96,6 +105,9 @@
  */
 import { isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { tournamentEngine } from 'services/factory/engine';
+import { tools } from 'tods-competition-factory';
+
+const { offsetMinutesAt, zonedWallClockToMs } = tools.zonedDateTime;
 
 export type VenueFrameSource = 'tournament' | 'browser';
 
@@ -121,30 +133,6 @@ export type VenueParts = {
 };
 
 const MS_PER_MINUTE = 60_000;
-
-/**
- * `Intl.DateTimeFormat` construction is expensive enough to matter on the Now
- * strip, which re-renders every 30s across every court. One formatter per zone,
- * built once.
- */
-const formatterCache = new Map<string, Intl.DateTimeFormat>();
-
-function partsFormatter(timeZone: string): Intl.DateTimeFormat {
-  const cached = formatterCache.get(timeZone);
-  if (cached) return cached;
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    hour12: false,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-  formatterCache.set(timeZone, formatter);
-  return formatter;
-}
 
 /** The runtime's own IANA zone, or `'UTC'` when the platform will not name one. */
 export function browserTimeZone(): string {
@@ -211,21 +199,26 @@ export function venueParts(value?: string | number | Date, timeZone?: string): V
   const date = toDate(value);
   if (!date) return undefined;
 
-  const parts = partsFormatter(resolveZone(timeZone)).formatToParts(date);
-  const grab = (type: string): string => parts.find((part) => part.type === type)?.value ?? '';
+  const ms = date.getTime();
+  const offsetMinutes = offsetMinutesAt(ms, resolveZone(timeZone));
+  if (offsetMinutes === undefined) return undefined;
 
-  const year = Number(grab('year'));
-  const month = Number(grab('month'));
-  const day = Number(grab('day'));
-  // `hour` comes back as '24' rather than '00' at midnight in some engines
-  // (an older Node / Safari quirk); normalise before it becomes an off-by-a-day.
-  const rawHour = grab('hour');
-  const hour = rawHour === '24' ? 0 : Number(rawHour);
-  const minute = Number(grab('minute'));
-  const second = Number(grab('second'));
-
-  if ([year, month, day, hour, minute, second].some((n) => !Number.isFinite(n))) return undefined;
-  return { year, month, day, hour, minute, second };
+  // Shift the instant by the zone's offset and read the fields back as UTC. The
+  // factory's `zonedParts` does exactly this, but returns `YYYY-MM-DD` + `HH:MM`
+  // strings; `venueNowOnDate` needs seconds, so the field read stays here while
+  // the offset resolution — the part that was duplicated — does not.
+  //
+  // This also retires the `hour === '24'` normalisation the formatToParts read
+  // needed: arithmetic on the instant cannot produce a 24th hour.
+  const shifted = new Date(ms + offsetMinutes * MS_PER_MINUTE);
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+    hour: shifted.getUTCHours(),
+    minute: shifted.getUTCMinutes(),
+    second: shifted.getUTCSeconds(),
+  };
 }
 
 function pad2(n: number): string {
@@ -270,10 +263,8 @@ export function venueDayMinutes(value?: string | number | Date, timeZone?: strin
  */
 export function venueOffsetMinutesAt(value: string | number | Date, timeZone?: string): number | undefined {
   const date = toDate(value);
-  const parts = venueParts(date, timeZone);
-  if (!date || !parts) return undefined;
-  const asIfUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
-  return Math.round((asIfUtc - date.getTime()) / MS_PER_MINUTE);
+  if (!date) return undefined;
+  return offsetMinutesAt(date.getTime(), resolveZone(timeZone));
 }
 
 /**
@@ -291,27 +282,9 @@ export function venueOffsetMinutesAt(value: string | number | Date, timeZone?: s
  * one — there isn't a correct one to settle on.
  */
 export function venueWallClockToMs(date?: string, clock?: string, timeZone?: string): number | undefined {
-  if (!date || !clock) return undefined;
-  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})/.exec(date.trim());
-  const clockMatch = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(clock.trim());
-  if (!dateMatch || !clockMatch) return undefined;
-
-  const year = Number(dateMatch[1]);
-  const month = Number(dateMatch[2]);
-  const day = Number(dateMatch[3]);
-  const hour = Number(clockMatch[1]);
-  const minute = Number(clockMatch[2]);
-  const second = Number(clockMatch[3] ?? 0);
-  if (hour > 23 || minute > 59 || second > 59) return undefined;
-
-  const zone = resolveZone(timeZone);
-  const naiveAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
-  const firstOffset = venueOffsetMinutesAt(naiveAsUtc, zone);
-  if (firstOffset === undefined) return undefined;
-  const guess = naiveAsUtc - firstOffset * MS_PER_MINUTE;
-  const secondOffset = venueOffsetMinutesAt(guess, zone);
-  if (secondOffset === undefined) return undefined;
-  return naiveAsUtc - secondOffset * MS_PER_MINUTE;
+  // `resolveZone` guarantees a zone the factory will recognise, so the refusal
+  // path below can only mean a malformed date or clock.
+  return zonedWallClockToMs({ date: date?.trim(), time: clock?.trim(), timeZone: resolveZone(timeZone) })?.ms;
 }
 
 /**
