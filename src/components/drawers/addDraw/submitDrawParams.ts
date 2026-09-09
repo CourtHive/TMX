@@ -10,6 +10,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
+import { resolveSeedsCount } from './seedCount';
 import { t } from 'i18n';
 import {
   drawDefinitionConstants,
@@ -47,6 +48,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
@@ -700,11 +702,35 @@ export function submitDrawParams({
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
-  const seedsCount = tournamentEngine.getSeedsCount({
+  const automaticSeedsCount =
+    tournamentEngine.getSeedsCount({
+      participantsCount: stageEntries.length,
+      policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
+      drawSizeProgression: true,
+    })?.seedsCount ?? 0;
+  const resolvedSeedsCount = resolveSeedsCount({
+    requestedValue: inputs[SEEDS_COUNT]?.value,
+    automaticSeedsCount,
     participantsCount: stageEntries.length,
-    policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
-    drawSizeProgression: true,
-  })?.seedsCount;
+    drawSize,
+  });
+  if (!resolvedSeedsCount.valid) {
+    tmxToast({
+      message: t('drawers.addDraw.invalidSeedsCount'),
+      intent: IS_WARNING,
+      pauseOnHover: true,
+    });
+    return;
+  }
+  const seedsCount = resolvedSeedsCount.seedsCount ?? automaticSeedsCount;
+  const hasSeedCountOverride = inputs[SEEDS_COUNT]?.value !== '' && inputs[SEEDS_COUNT]?.value != null;
+  if (hasSeedCountOverride) {
+    // The factory normally clamps seedsCount back to the active policy's
+    // participant threshold. An explicit operator choice is intentionally an
+    // override of that threshold; structural limits are still enforced by the
+    // selector and by the factory itself.
+    drawOptions.enforcePolicyLimits = false;
+  }
 
   const qualifiersCount = isQualifyingFirst
     ? (validators.numericValidator(inputs[QUALIFYING_POSITIONS]?.value) &&
@@ -753,7 +779,7 @@ export function submitDrawParams({
     structureOptions,
     matchUpFormat,
     structureName,
-    seedsCount: seedsCount ?? 0,
+    seedsCount,
     drawSize,
     drawType,
     drawName,

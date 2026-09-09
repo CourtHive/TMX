@@ -10,6 +10,7 @@ import {
   fixtures,
 } from 'tods-competition-factory';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
+import { getSeedCountChoices } from './seedCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { providerConfig } from 'config/providerConfig';
@@ -42,6 +43,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
@@ -113,6 +115,13 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     ...(hasExistingPolicy ? [{ label: t('drawers.addDraw.inherited'), value: INHERIT, selected: true }] : []),
     { label: t('drawers.addDraw.separatedUsta'), value: SEPARATE, selected: !hasExistingPolicy },
     { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
+  ];
+  const seedCountOptions = [
+    { label: t('drawers.addDraw.automaticSeedsCount'), value: '', selected: true },
+    ...getSeedCountChoices({
+      drawSize,
+      participantsCount: modelView.derivedValues.drawEntries.length,
+    }).map((count) => ({ label: count ? String(count) : t('none'), value: count })),
   ];
 
   const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
@@ -327,6 +336,13 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       visible: fs[SEEDING_POLICY]?.visible ?? true,
       field: SEEDING_POLICY,
       label: t('drawers.addDraw.seedingPolicy'),
+      value: '',
+    },
+    {
+      options: seedCountOptions,
+      visible: fs[SEEDING_POLICY]?.visible ?? true,
+      field: SEEDS_COUNT,
+      label: t('drawers.addDraw.seedsCount'),
       value: '',
     },
     {

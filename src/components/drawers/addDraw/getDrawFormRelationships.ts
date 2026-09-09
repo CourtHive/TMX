@@ -12,6 +12,8 @@ import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { drawFormModel } from './drawFormModel';
+import { getSeedCountChoices } from './seedCount';
+import { t } from 'i18n';
 
 // Constants
 const {
@@ -52,6 +54,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOPOLOGY_TEMPLATE_PREFIX,
@@ -136,6 +139,31 @@ export function getDrawFormRelationships({
     }
   };
 
+  const updateSeedCountOptions = ({
+    inputs,
+    drawSize,
+    entriesCount,
+  }: {
+    inputs: Record<string, any>;
+    drawSize: number;
+    entriesCount: number;
+  }) => {
+    const select = inputs[SEEDS_COUNT];
+    if (!select) return;
+
+    const currentValue = select.value;
+    const options = [
+      { label: t('drawers.addDraw.automaticSeedsCount'), value: '' },
+      ...getSeedCountChoices({ drawSize, participantsCount: entriesCount }).map((count) => ({
+        label: count ? String(count) : t('none'),
+        value: count,
+      })),
+    ];
+    const selectedValue = options.some((option) => String(option.value) === String(currentValue)) ? currentValue : '';
+    removeAllChildNodes(select);
+    renderOptions(select, { options, value: selectedValue });
+  };
+
   const updateDrawSize = ({ drawType, drawId, fields, inputs }: FormInteractionParams): number => {
     const isQualifyingFirst = inputs?.[QUALIFYING_FIRST]?.checked;
     const effectiveStage = isQualifyingFirst ? QUALIFYING : stage;
@@ -152,6 +180,8 @@ export function getDrawFormRelationships({
     const drawSize =
       ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
+
+    updateSeedCountOptions({ inputs, drawSize, entriesCount: Number(entriesCount) || 0 });
 
     checkCreationMethod({ fields, inputs });
     return drawSize;
@@ -187,7 +217,8 @@ export function getDrawFormRelationships({
     }
   };
 
-  const updateFicDepthOptions = (inputs: Record<string, any>) => {
+  const updateFicDepthOptions = (inputs: Record<string, any>, enabled = true) => {
+    if (!enabled) return;
     const drawSize = Number.parseInt(inputs[DRAW_SIZE]?.value) || 0;
     for (const option of inputs[FIC_DEPTH]?.options ?? []) {
       if (option.value === 'R16') option.disabled = drawSize <= 16;
@@ -225,11 +256,12 @@ export function getDrawFormRelationships({
     fields[DYNAMIC_RATINGS].style.display = isDrawMatic ? '' : NONE;
     fields[TEAM_AVOIDANCE].style.display = isDrawMatic ? '' : NONE;
 
-    if (isFIC) updateFicDepthOptions(inputs);
+    updateFicDepthOptions(inputs, isFIC);
     fields[FIC_DEPTH].style.display = isFIC ? '' : NONE;
 
     fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+    fields[SEEDS_COUNT].style.display = isAdHocType ? NONE : '';
     fields[QUALIFIERS_COUNT].style.display = isAdHocType && !isSwiss ? NONE : '';
 
     // DRAFT positioning doesn't apply to DrawMatic or Swiss — both generate
@@ -271,6 +303,7 @@ export function getDrawFormRelationships({
     const value = validGroupSizes.includes(drawSize) ? 4 : validGroupSizes[0];
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
+    updateSeedCountOptions({ inputs, drawSize, entriesCount });
     checkCreationMethod({ fields, inputs });
   };
 
@@ -341,14 +374,20 @@ export function getDrawFormRelationships({
     if (generateButton) generateButton.disabled = !valid;
   };
 
+  const setOptionalFieldDisplay = (fields: Record<string, HTMLElement>, fieldName: string, display: string) => {
+    const field = fields[fieldName];
+    if (field) field.style.display = display;
+  };
+
   const qualifyingFirstChange = ({ fields, inputs }: FormInteractionParams) => {
     const checked = inputs[QUALIFYING_FIRST]?.checked;
     if (fields) {
-      if (fields[DRAW_NAME]) fields[DRAW_NAME].style.display = checked ? NONE : '';
-      if (fields[STRUCTURE_NAME]) fields[STRUCTURE_NAME].style.display = checked ? '' : NONE;
-      if (fields[QUALIFIERS_COUNT]) fields[QUALIFIERS_COUNT].style.display = checked ? NONE : '';
-      if (fields[QUALIFYING_POSITIONS]) fields[QUALIFYING_POSITIONS].style.display = checked ? '' : NONE;
-      if (fields[SEEDING_POLICY]) fields[SEEDING_POLICY].style.display = checked ? NONE : '';
+      setOptionalFieldDisplay(fields, DRAW_NAME, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, STRUCTURE_NAME, checked ? '' : NONE);
+      setOptionalFieldDisplay(fields, QUALIFIERS_COUNT, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, QUALIFYING_POSITIONS, checked ? '' : NONE);
+      setOptionalFieldDisplay(fields, SEEDING_POLICY, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, SEEDS_COUNT, checked ? NONE : '');
     }
 
     // Update draw type options to qualifying-appropriate subset
@@ -368,6 +407,11 @@ export function getDrawFormRelationships({
       : ({ kind: 'NEW_MAIN', event } as const);
     const toggleView = drawFormModel(toggleMode, {});
     inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
+    updateSeedCountOptions({
+      inputs,
+      drawSize: toggleView.derivedValues.drawSize,
+      entriesCount: toggleView.derivedValues.drawEntries.length,
+    });
 
     checkCreationMethod({ fields, inputs });
   };
