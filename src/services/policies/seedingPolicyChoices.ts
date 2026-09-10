@@ -24,6 +24,7 @@ import { getBuiltinPolicies, loadUserPolicies } from 'pages/policies/policyBridg
 import type { PolicyCatalogItem } from 'courthive-components';
 import { providerConfig } from 'config/providerConfig';
 import { policyConstants } from 'tods-competition-factory';
+import { t } from 'i18n';
 
 const { POLICY_TYPE_SEEDING } = policyConstants;
 
@@ -92,8 +93,8 @@ export async function loadSeedingChoices(): Promise<SeedingPolicyChoice[]> {
     ? [
         {
           id: PROVIDER_POLICY_ID,
-          label: policyLabel(providerPolicy, 'Provider policy'),
-          definition: stamped(providerPolicy, policyLabel(providerPolicy, 'Provider policy')),
+          label: policyLabel(providerPolicy, t('settings.seedingPolicy.providerPolicy')),
+          definition: stamped(providerPolicy, policyLabel(providerPolicy, t('settings.seedingPolicy.providerPolicy'))),
           source: 'provider',
         },
       ]
@@ -117,7 +118,7 @@ export async function loadSeedingChoices(): Promise<SeedingPolicyChoice[]> {
     ...providerChoice,
     ...builtins.map(toChoice),
     ...userPolicies.map(toChoice),
-    { id: NO_POLICY_ID, label: 'None — factory default', definition: null, source: 'none' },
+    { id: NO_POLICY_ID, label: t('settings.seedingPolicy.none'), definition: null, source: 'none' },
   ];
 }
 
@@ -154,7 +155,9 @@ export function resolveAttachedChoiceId(
 export function buildAttachedChoice(attached: Record<string, any>, matchedLabel: string | null): SeedingPolicyChoice {
   return {
     id: ATTACHED_POLICY_ID,
-    label: `Attached — ${matchedLabel ?? policyLabel(attached, 'Custom policy')}`,
+    label: t('settings.seedingPolicy.attached', {
+      name: matchedLabel ?? policyLabel(attached, t('settings.seedingPolicy.custom')),
+    }),
     definition: { [POLICY_TYPE_SEEDING]: attached },
     source: 'attached',
   };

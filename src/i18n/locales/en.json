@@ -267,7 +267,11 @@
       "title": "Seeding policy",
       "intro": "Applies to every draw in this tournament. Draws created with \u201cInherited\u201d seeding use it, including draws regenerated later.",
       "locked": "Your provider sets the seeding policy for this tournament. It applies to every draw and cannot be changed here.",
-      "thresholds": "Draw size \u2192 seeds:"
+      "thresholds": "Draw size \u2192 seeds:",
+      "providerPolicy": "Provider policy",
+      "none": "None \u2014 factory default",
+      "custom": "Custom policy",
+      "attached": "Attached \u2014 {{name}}"
     },
     "help": "Help",
     "pagesize": "Page Size",
