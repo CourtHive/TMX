@@ -1838,7 +1838,6 @@
       "seedingPolicy": "Seeding policy",
       "seedsCount": "Seed count",
       "automaticSeedsCount": "Automatic (policy)",
-      "invalidSeedsCount": "Seed count is not valid for this draw size and number of participants",
       "scorecard": "Scorecard",
       "qualifiers": "Qualifiers",
       "qualifyingFirst": "Start with qualifying",

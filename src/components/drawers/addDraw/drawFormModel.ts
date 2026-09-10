@@ -24,6 +24,7 @@
 
 // constants and types
 import { entryStatusConstants } from 'tods-competition-factory';
+import { isSeedableDrawType } from './seedCount';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -587,7 +588,7 @@ function newDrawCommonFieldStates(drawType: string): Partial<Record<DrawFormFiel
     [TEAM_AVOIDANCE]: { visible: isDrawMatic, disabled: false },
     [MATCHUP_FORMAT]: { visible: true, disabled: false },
     [SEEDING_POLICY]: { visible: !isAdHoc, disabled: false },
-    [SEEDS_COUNT]: { visible: !isAdHoc, disabled: false },
+    [SEEDS_COUNT]: { visible: isSeedableDrawType(drawType), disabled: false },
     [AUTOMATED]: { visible: !isSwiss, disabled: false },
   };
 }

@@ -702,33 +702,31 @@ export function submitDrawParams({
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
+  // Pass the operator's drawSize. Without it getSeedsCount derives one from participantsCount, so
+  // the number previewed here is answering a slightly different question than the one the factory
+  // asks when it clamps during generation.
   const automaticSeedsCount =
     tournamentEngine.getSeedsCount({
-      participantsCount: stageEntries.length,
       policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
+      participantsCount: stageEntries.length,
       drawSizeProgression: true,
+      drawSize,
     })?.seedsCount ?? 0;
-  const resolvedSeedsCount = resolveSeedsCount({
+
+  const { seedsCount, isOverride } = resolveSeedsCount({
     requestedValue: inputs[SEEDS_COUNT]?.value,
-    automaticSeedsCount,
+    groupSize: inputs[GROUP_SIZE]?.value,
     participantsCount: stageEntries.length,
+    automaticSeedsCount,
     drawSize,
+    drawType,
   });
-  if (!resolvedSeedsCount.valid) {
-    tmxToast({
-      message: t('drawers.addDraw.invalidSeedsCount'),
-      intent: IS_WARNING,
-      pauseOnHover: true,
-    });
-    return;
-  }
-  const seedsCount = resolvedSeedsCount.seedsCount ?? automaticSeedsCount;
-  const hasSeedCountOverride = inputs[SEEDS_COUNT]?.value !== '' && inputs[SEEDS_COUNT]?.value != null;
-  if (hasSeedCountOverride) {
-    // The factory normally clamps seedsCount back to the active policy's
-    // participant threshold. An explicit operator choice is intentionally an
-    // override of that threshold; structural limits are still enforced by the
-    // selector and by the factory itself.
+
+  if (isOverride) {
+    // The factory otherwise clamps seedsCount back to the active seeding policy's threshold. An
+    // explicit operator choice is precisely an override of that threshold — it is how a national
+    // rule that seeds more deeply than ITF/USTA gets expressed. Structural limits are untouched:
+    // the factory still caps at the stage entry count and at drawSize.
     drawOptions.enforcePolicyLimits = false;
   }
 
