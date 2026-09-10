@@ -325,4 +325,47 @@ describe('providerConfig', () => {
       expect(providerConfig.getAllowedList('allowedCategories')).toHaveLength(2);
     });
   });
+
+  describe('seeding policy', () => {
+    const DEEP_SEEDING = {
+      policyName: 'Deep National',
+      seedsCountThresholds: [{ drawSize: 32, minimumParticipantCount: 24, seedsCount: 16 }],
+    };
+
+    it('reports no policy when the provider declares none', () => {
+      expect(providerConfig.getSeedingPolicy()).toBeUndefined();
+      expect(providerConfig.isSeedingPolicyLocked()).toBe(false);
+    });
+
+    it('returns the declared policy as a bare body, with no policy-type wrapper', () => {
+      providerConfig.set({ policies: { seedingPolicy: DEEP_SEEDING } } as any);
+      expect(providerConfig.getSeedingPolicy()).toEqual(DEEP_SEEDING);
+    });
+
+    it('does not lock on a declared policy alone — that is a default, not a rule', () => {
+      providerConfig.set({ policies: { seedingPolicy: DEEP_SEEDING } } as any);
+      expect(providerConfig.isSeedingPolicyLocked()).toBe(false);
+    });
+
+    it('locks only when a policy is declared AND canModifyPolicies is withheld', () => {
+      providerConfig.set({
+        policies: { seedingPolicy: DEEP_SEEDING },
+        permissions: { canModifyPolicies: false },
+      } as any);
+      expect(providerConfig.isSeedingPolicyLocked()).toBe(true);
+    });
+
+    it('does not lock when the permission is withheld but nothing is declared', () => {
+      // Otherwise a provider that merely restricts policy editing would strand every tournament
+      // with no seeding policy and no way to choose one.
+      providerConfig.set({ permissions: { canModifyPolicies: false } } as any);
+      expect(providerConfig.isSeedingPolicyLocked()).toBe(false);
+    });
+
+    it('ignores a non-object seedingPolicy rather than trusting it', () => {
+      providerConfig.set({ policies: { seedingPolicy: 'ITF' } } as any);
+      expect(providerConfig.getSeedingPolicy()).toBeUndefined();
+      expect(providerConfig.isSeedingPolicyLocked()).toBe(false);
+    });
+  });
 });

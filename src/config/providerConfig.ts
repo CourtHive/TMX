@@ -116,6 +116,31 @@ export const providerConfig = {
     if (key === 'allowedTierSystems') return active.policies?.allowedTierSystems ?? [];
     return (active.permissions?.[key as keyof ProviderPermissions] as any[]) ?? [];
   },
+  /**
+   * The seeding policy this provider declares, as a bare policy body (no `{ seeding: ... }`
+   * wrapper) — or undefined when the provider declares none.
+   *
+   * This is how a governing body's own seeding rules reach a tournament. `seedsCountThresholds`
+   * is the factory's extension point for them, and the two policies TMX ships as presets encode
+   * the same drawSize/4 progression as each other, so a federation seeding to a different depth
+   * has nowhere else to say so.
+   */
+  getSeedingPolicy: (): Record<string, any> | undefined => {
+    const declared = resolved().policies?.seedingPolicy;
+    return declared && typeof declared === 'object' ? declared : undefined;
+  },
+  /**
+   * Whether a declared provider seeding policy may be swapped out per tournament.
+   *
+   * Locked only when the provider both declares a policy AND withholds `canModifyPolicies`.
+   * A provider that declares a policy without restricting the permission is expressing a
+   * default, not a rule — which is how every other `policies.*` field behaves today.
+   */
+  isSeedingPolicyLocked: (): boolean => {
+    const declared = resolved().policies?.seedingPolicy;
+    if (!declared || typeof declared !== 'object') return false;
+    return !providerConfig.isAllowed('canModifyPolicies');
+  },
 } as const;
 
 const PROVIDER_THEME_LINK_ID = 'tmx-provider-theme';
