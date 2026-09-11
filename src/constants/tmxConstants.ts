@@ -252,6 +252,7 @@ export const QUALIFIERS_COUNT = 'qualifiersCount';
 export const GROUP_REMAINING = 'groupRemaining';
 export const MATCHUP_FORMAT = 'matchUpFormat';
 export const SEEDING_POLICY = 'seedingPolicy';
+export const SEEDS_COUNT = 'seedsCount';
 export const STRUCTURE_NAME = 'structureName';
 export const PLAYOFF_DRAW_TYPE = 'playoffDrawType';
 export const PLAYOFF_GROUP_SIZE = 'playoffGroupSize';

@@ -12,6 +12,8 @@ import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { drawFormModel } from './drawFormModel';
+import { getSeedCountChoices, isSeedableDrawType } from './seedCount';
+import { t } from 'i18n';
 
 // Constants
 const {
@@ -52,6 +54,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOPOLOGY_TEMPLATE_PREFIX,
@@ -105,6 +108,32 @@ interface FormInteractionParams {
   e?: Event;
 }
 
+/**
+ * Display of the round-robin group and playoff fields, all of which key off the same two values.
+ * Extracted from `updateFieldVisibility` to keep that function under the cognitive-complexity
+ * threshold — it is a cohesive block, not an arbitrary slice.
+ */
+function updateGroupFieldVisibility(
+  fields: Record<string, HTMLElement>,
+  drawType: string,
+  inputs: Record<string, any>,
+) {
+  const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
+  const playoffType = inputs[PLAYOFF_TYPE].value;
+  const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
+  const advancesByFinishers = playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS;
+
+  fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
+  fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
+  fields[GROUP_REMAINING].style.display = isRRPlayoff && advancesByFinishers ? '' : NONE;
+  fields[PLAYOFF_TYPE].style.display = isRRPlayoff ? '' : NONE;
+  fields[PLAYOFF_DRAW_TYPE].style.display = isRRPlayoff ? '' : NONE;
+  fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
+  fields[GROUP_SIZE].style.display = ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType)
+    ? ''
+    : NONE;
+}
+
 export function getDrawFormRelationships({
   isQualifying,
   isPopulateMain,
@@ -136,6 +165,42 @@ export function getDrawFormRelationships({
     }
   };
 
+  /** Entries that will actually contend for the new draw's stage — the cap on how deep seeding can go. */
+  const seedableEntriesCount = (inputs: Record<string, any>): number => {
+    const effectiveStage = inputs?.[QUALIFYING_FIRST]?.checked ? QUALIFYING : stage;
+    return acceptedEntriesCount({ drawId, event, stage: effectiveStage });
+  };
+
+  const updateSeedCountOptions = ({
+    inputs,
+    drawSize,
+    drawType,
+  }: {
+    inputs: Record<string, any>;
+    drawSize: number;
+    drawType?: string;
+  }) => {
+    const select = inputs[SEEDS_COUNT];
+    if (!select) return;
+
+    const currentValue = select.value;
+    const options = [
+      { label: t('drawers.addDraw.automaticSeedsCount'), value: '' },
+      ...getSeedCountChoices({
+        participantsCount: seedableEntriesCount(inputs),
+        groupSize: inputs[GROUP_SIZE]?.value,
+        drawType: drawType ?? inputs[DRAW_TYPE]?.value,
+        drawSize,
+      }).map((count) => ({
+        label: count ? String(count) : t('none'),
+        value: count,
+      })),
+    ];
+    const selectedValue = options.some((option) => String(option.value) === String(currentValue)) ? currentValue : '';
+    removeAllChildNodes(select);
+    renderOptions(select, { options, value: selectedValue });
+  };
+
   const updateDrawSize = ({ drawType, drawId, fields, inputs }: FormInteractionParams): number => {
     const isQualifyingFirst = inputs?.[QUALIFYING_FIRST]?.checked;
     const effectiveStage = isQualifyingFirst ? QUALIFYING : stage;
@@ -152,6 +217,8 @@ export function getDrawFormRelationships({
     const drawSize =
       ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
     inputs[DRAW_SIZE].value = drawSize;
+
+    updateSeedCountOptions({ inputs, drawSize, drawType });
 
     checkCreationMethod({ fields, inputs });
     return drawSize;
@@ -201,23 +268,11 @@ export function getDrawFormRelationships({
     drawType: string,
     inputs: Record<string, any>,
   ) => {
-    const playoffType = inputs[PLAYOFF_TYPE].value;
-    const isRRPlayoff = drawType === ROUND_ROBIN_WITH_PLAYOFF;
     const isDrawMatic = drawType === DRAW_MATIC;
     const isAdHocType = drawType === AD_HOC || drawType === SWISS || isDrawMatic;
     const isFIC = drawType === FEED_IN_CHAMPIONSHIP;
 
-    fields[ADVANCE_PER_GROUP].style.display = isRRPlayoff && playoffType === TOP_FINISHERS ? '' : NONE;
-    fields[TOTAL_ADVANCE].style.display = isRRPlayoff && playoffType === BEST_FINISHERS ? '' : NONE;
-    fields[GROUP_REMAINING].style.display =
-      isRRPlayoff && (playoffType === TOP_FINISHERS || playoffType === BEST_FINISHERS) ? '' : NONE;
-    fields[PLAYOFF_TYPE].style.display = isRRPlayoff ? '' : NONE;
-    fields[PLAYOFF_DRAW_TYPE].style.display = isRRPlayoff ? '' : NONE;
-    const playoffDrawType = inputs[PLAYOFF_DRAW_TYPE]?.value;
-    fields[PLAYOFF_GROUP_SIZE].style.display = isRRPlayoff && playoffDrawType === ROUND_ROBIN ? '' : NONE;
-    fields[GROUP_SIZE].style.display = ([ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF] as string[]).includes(drawType)
-      ? ''
-      : NONE;
+    updateGroupFieldVisibility(fields, drawType, inputs);
 
     const isSwiss = drawType === SWISS;
     fields[ROUNDS_COUNT].style.display = isDrawMatic ? '' : NONE;
@@ -230,6 +285,9 @@ export function getDrawFormRelationships({
 
     fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
     fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+    // Not the same predicate as the seeding policy above: LUCKY_DRAW and ADAPTIVE are not ad hoc,
+    // but the factory forces their seedsCount to 0, so offering a count would be a lie.
+    fields[SEEDS_COUNT].style.display = isSeedableDrawType(drawType) ? '' : NONE;
     fields[QUALIFIERS_COUNT].style.display = isAdHocType && !isSwiss ? NONE : '';
 
     // DRAFT positioning doesn't apply to DrawMatic or Swiss — both generate
@@ -271,6 +329,7 @@ export function getDrawFormRelationships({
     const value = validGroupSizes.includes(drawSize) ? 4 : validGroupSizes[0];
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
+    updateSeedCountOptions({ inputs, drawSize });
     checkCreationMethod({ fields, inputs });
   };
 
@@ -332,6 +391,10 @@ export function getDrawFormRelationships({
         .generateRange(maxValue + 1, newGroupSize + 1)
         .forEach((v) => inputs[ADVANCE_PER_GROUP].add(new Option(v.toString(), v.toString())));
     }
+
+    // Round robin seeds one participant per group before it seeds a second, so the group size
+    // changes which seed counts are reachable.
+    updateSeedCountOptions({ inputs, drawSize: Number.parseInt(inputs[DRAW_SIZE].value) || 0 });
   };
 
   const structureNameChange = ({ inputs, name }: FormInteractionParams) => {
@@ -341,14 +404,20 @@ export function getDrawFormRelationships({
     if (generateButton) generateButton.disabled = !valid;
   };
 
+  const setOptionalFieldDisplay = (fields: Record<string, HTMLElement>, fieldName: string, display: string) => {
+    const field = fields[fieldName];
+    if (field) field.style.display = display;
+  };
+
   const qualifyingFirstChange = ({ fields, inputs }: FormInteractionParams) => {
     const checked = inputs[QUALIFYING_FIRST]?.checked;
     if (fields) {
-      if (fields[DRAW_NAME]) fields[DRAW_NAME].style.display = checked ? NONE : '';
-      if (fields[STRUCTURE_NAME]) fields[STRUCTURE_NAME].style.display = checked ? '' : NONE;
-      if (fields[QUALIFIERS_COUNT]) fields[QUALIFIERS_COUNT].style.display = checked ? NONE : '';
-      if (fields[QUALIFYING_POSITIONS]) fields[QUALIFYING_POSITIONS].style.display = checked ? '' : NONE;
-      if (fields[SEEDING_POLICY]) fields[SEEDING_POLICY].style.display = checked ? NONE : '';
+      setOptionalFieldDisplay(fields, DRAW_NAME, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, STRUCTURE_NAME, checked ? '' : NONE);
+      setOptionalFieldDisplay(fields, QUALIFIERS_COUNT, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, QUALIFYING_POSITIONS, checked ? '' : NONE);
+      setOptionalFieldDisplay(fields, SEEDING_POLICY, checked ? NONE : '');
+      setOptionalFieldDisplay(fields, SEEDS_COUNT, checked ? NONE : '');
     }
 
     // Update draw type options to qualifying-appropriate subset
@@ -368,6 +437,7 @@ export function getDrawFormRelationships({
       : ({ kind: 'NEW_MAIN', event } as const);
     const toggleView = drawFormModel(toggleMode, {});
     inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
+    updateSeedCountOptions({ inputs, drawSize: toggleView.derivedValues.drawSize });
 
     checkCreationMethod({ fields, inputs });
   };

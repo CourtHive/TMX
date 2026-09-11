@@ -116,6 +116,13 @@ export class DrawFormDrawer {
     return this.fieldInput(labelText).inputValue();
   }
 
+  /** The `value` of every <option> in a labeled select, in document order. */
+  async getSelectOptionValues(labelText: string): Promise<string[]> {
+    return this.fieldSelect(labelText)
+      .locator('option')
+      .evaluateAll((options: any[]) => options.map((o) => o.value));
+  }
+
   /* ─── Actions ──────────────────────────────────────────────────────── */
 
   /** Select a draw type by its value (e.g. 'ROUND_ROBIN'). */

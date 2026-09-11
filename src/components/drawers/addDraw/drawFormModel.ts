@@ -24,6 +24,7 @@
 
 // constants and types
 import { entryStatusConstants } from 'tods-competition-factory';
+import { isSeedableDrawType } from './seedCount';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -44,6 +45,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
 } from 'constants/tmxConstants';
@@ -115,6 +117,7 @@ export type DrawFormInputs = {
   totalAdvance?: number | string;
   [MATCHUP_FORMAT]?: string;
   [SEEDING_POLICY]?: string;
+  [SEEDS_COUNT]?: number | string;
   [AUTOMATED]?: string | boolean;
   [ROUNDS_COUNT]?: number | string;
   [RATING_SCALE]?: string;
@@ -349,6 +352,7 @@ function computeNewMainWithQualifyingFirst(
       [QUALIFYING_POSITIONS]: { visible: true, disabled: false, value: qualifyingPositions },
       // Seeding policy is hidden for the qualifying-first sub-flow.
       [SEEDING_POLICY]: { visible: false, disabled: true },
+      [SEEDS_COUNT]: { visible: false, disabled: true },
     },
     derivedValues: {
       drawSize,
@@ -456,6 +460,7 @@ function computeGenerateQualifying(
       [QUALIFIERS_COUNT]: { visible: true, disabled: false, value: qualifiersCount },
       [QUALIFYING_POSITIONS]: { visible: false, disabled: true },
       [SEEDING_POLICY]: { visible: false, disabled: true },
+      [SEEDS_COUNT]: { visible: false, disabled: true },
     },
     derivedValues: {
       drawSize,
@@ -516,6 +521,7 @@ function computeAttachQualifying(
       // qualifying structure inherits the existing draw's policy.
       // Mirrors NEW_QUALIFYING / GENERATE_QUALIFYING.
       [SEEDING_POLICY]: { visible: false, disabled: true },
+      [SEEDS_COUNT]: { visible: false, disabled: true },
       // Automated creation is disabled in the attach flow (mirrors current behavior).
       [AUTOMATED]: { visible: true, disabled: true },
     },
@@ -582,6 +588,7 @@ function newDrawCommonFieldStates(drawType: string): Partial<Record<DrawFormFiel
     [TEAM_AVOIDANCE]: { visible: isDrawMatic, disabled: false },
     [MATCHUP_FORMAT]: { visible: true, disabled: false },
     [SEEDING_POLICY]: { visible: !isAdHoc, disabled: false },
+    [SEEDS_COUNT]: { visible: isSeedableDrawType(drawType), disabled: false },
     [AUTOMATED]: { visible: !isSwiss, disabled: false },
   };
 }

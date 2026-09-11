@@ -265,6 +265,37 @@ test.describe('Journey 2 — Draw form NEW_MAIN', () => {
     await drawer.clickCancel();
   });
 
+  test('3.2.9 — SE → LUCKY_DRAW: seed count hidden', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+    await drawer.expectFieldVisible('Seed count');
+
+    // LUCKY_DRAW is not an ad hoc type, so the seeding policy stays put — but the factory forces
+    // seedsCount to 0 for lucky-based draws, so offering a count would promise nothing.
+    await drawer.selectDrawType('LUCKY_DRAW');
+    await drawer.expectFieldHidden('Seed count');
+
+    await drawer.selectDrawType('SINGLE_ELIMINATION');
+    await drawer.expectFieldVisible('Seed count');
+
+    await drawer.clickCancel();
+  });
+
+  test('3.2.10 — seed count offers power-of-two counts, and group multiples for RR', async ({ page }) => {
+    const { drawer } = await seedAndOpenDrawForm(page);
+
+    // 16 entries in 16 positions. The seeding policy's own answer here is 4; 8 is reachable only
+    // because an explicit choice overrides the policy threshold.
+    expect(await drawer.getSelectOptionValues('Seed count')).toEqual(['', '0', '2', '4', '8']);
+
+    // Round robin seeds one per group before it seeds a second, so its counts are multiples of the
+    // group count — four groups of four here.
+    await drawer.selectDrawType('ROUND_ROBIN');
+    expect(await drawer.getSelectValue('Group size')).toBe('4');
+    expect(await drawer.getSelectOptionValues('Seed count')).toEqual(['', '0', '4', '8']);
+
+    await drawer.clickCancel();
+  });
+
   /* ── Section 4: Mode transitions (qualifyingFirst toggle) ─────────── */
 
   test('4.1 — NEW_MAIN → QUALIFYING_FIRST: field swap on checkbox toggle', async ({ page }) => {

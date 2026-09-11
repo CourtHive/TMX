@@ -10,6 +10,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
+import { resolveSeedsCount } from './seedCount';
 import { t } from 'i18n';
 import {
   drawDefinitionConstants,
@@ -47,6 +48,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
@@ -700,11 +702,33 @@ export function submitDrawParams({
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
-  const seedsCount = tournamentEngine.getSeedsCount({
+  // Pass the operator's drawSize. Without it getSeedsCount derives one from participantsCount, so
+  // the number previewed here is answering a slightly different question than the one the factory
+  // asks when it clamps during generation.
+  const automaticSeedsCount =
+    tournamentEngine.getSeedsCount({
+      policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
+      participantsCount: stageEntries.length,
+      drawSizeProgression: true,
+      drawSize,
+    })?.seedsCount ?? 0;
+
+  const { seedsCount, isOverride } = resolveSeedsCount({
+    requestedValue: inputs[SEEDS_COUNT]?.value,
+    groupSize: inputs[GROUP_SIZE]?.value,
     participantsCount: stageEntries.length,
-    policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
-    drawSizeProgression: true,
-  })?.seedsCount;
+    automaticSeedsCount,
+    drawSize,
+    drawType,
+  });
+
+  if (isOverride) {
+    // The factory otherwise clamps seedsCount back to the active seeding policy's threshold. An
+    // explicit operator choice is precisely an override of that threshold — it is how a national
+    // rule that seeds more deeply than ITF/USTA gets expressed. Structural limits are untouched:
+    // the factory still caps at the stage entry count and at drawSize.
+    drawOptions.enforcePolicyLimits = false;
+  }
 
   const qualifiersCount = isQualifyingFirst
     ? (validators.numericValidator(inputs[QUALIFYING_POSITIONS]?.value) &&
@@ -753,7 +777,7 @@ export function submitDrawParams({
     structureOptions,
     matchUpFormat,
     structureName,
-    seedsCount: seedsCount ?? 0,
+    seedsCount,
     drawSize,
     drawType,
     drawName,

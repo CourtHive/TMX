@@ -10,6 +10,8 @@ import {
   fixtures,
 } from 'tods-competition-factory';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
+import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { getSeedCountChoices } from './seedCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { providerConfig } from 'config/providerConfig';
@@ -42,6 +44,7 @@ import {
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
+  SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
   TOP_FINISHERS,
@@ -49,7 +52,7 @@ import {
   WINNERS,
 } from 'constants/tmxConstants';
 
-const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
+const { MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
 const { SINGLES } = factoryConstants.eventConstants;
@@ -76,6 +79,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
   const drawsCount = event.drawDefinitions?.length || 0;
   const drawType = SINGLE_ELIMINATION;
+  const isQualifyingMode = QUALIFYING_KINDS.has(mode.kind);
 
   // Check for existing seeding policy at event or tournament level
   const tournamentRecord = tournamentEngine.q.tournament();
@@ -113,6 +117,18 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     ...(hasExistingPolicy ? [{ label: t('drawers.addDraw.inherited'), value: INHERIT, selected: true }] : []),
     { label: t('drawers.addDraw.separatedUsta'), value: SEPARATE, selected: !hasExistingPolicy },
     { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
+  ];
+  // `acceptedEntriesCount` is the same count `updateDrawSize` feeds the selector on every later
+  // interaction. Rendering from a different notion of "how many entries" (drawEntries includes
+  // cross-stage entries that never occupy a position) made the initial list disagree with itself
+  // the moment anything on the form was touched.
+  const seedCountOptions = [
+    { label: t('drawers.addDraw.automaticSeedsCount'), value: '', selected: true },
+    ...getSeedCountChoices({
+      participantsCount: acceptedEntriesCount({ drawId, event, stage: isQualifyingMode ? QUALIFYING : MAIN }),
+      drawType,
+      drawSize,
+    }).map((count) => ({ label: count ? String(count) : t('none'), value: count })),
   ];
 
   const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
@@ -210,7 +226,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       focus: true,
     },
     {
-      options: getDrawTypeOptions({ isQualifying: QUALIFYING_KINDS.has(mode.kind) }),
+      options: getDrawTypeOptions({ isQualifying: isQualifyingMode }),
       label: t('drawers.addDraw.drawType'),
       field: DRAW_TYPE,
       value: drawType,
@@ -327,6 +343,13 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       visible: fs[SEEDING_POLICY]?.visible ?? true,
       field: SEEDING_POLICY,
       label: t('drawers.addDraw.seedingPolicy'),
+      value: '',
+    },
+    {
+      options: seedCountOptions,
+      visible: fs[SEEDS_COUNT]?.visible ?? true,
+      field: SEEDS_COUNT,
+      label: t('drawers.addDraw.seedsCount'),
       value: '',
     },
     {
