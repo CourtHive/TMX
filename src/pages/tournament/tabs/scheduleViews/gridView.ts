@@ -2470,6 +2470,10 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   // date (e.g. tournament startDate) still surface as active when the
   // operator is working at the matching time-of-day.
   const now = venueNowOnDate(date);
+  // A date the venue has not reached has no "now" on it, so nothing painted on
+  // it is in effect. Without this the evening before an event marks every block
+  // earlier than the current time-of-day as active on tomorrow's strip.
+  if (!now) return {};
   const courtBlocks: Record<string, ActiveStripCourtBlock> = {};
   const activeRegsByCourtId = getActiveRegistrationNamesByCourtId({
     tournamentRecord,
@@ -3199,6 +3203,12 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   if (!blocks.length) return undefined;
 
   const now = venueNowOnDate(currentDate);
+  // The whole check is anchored on "now" — an active block overlapping it, or
+  // the next one arriving before the matchUp could finish. A future date has no
+  // now to anchor on, so there is no conflict to report: take the same exit as
+  // missing block data, where the caller's documented behaviour is that the
+  // original drop stands.
+  if (!now) return undefined;
 
   // First: is a non-SCHEDULED block currently active on this court?
   for (const block of blocks) {
