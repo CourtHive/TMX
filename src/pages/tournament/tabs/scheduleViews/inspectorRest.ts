@@ -27,10 +27,11 @@
  * ── The frame every value ends up in: the VIEWED DAY'S wall clock ──
  *
  * `nowDayMinutes()` projects today's time-of-day onto whichever day is on
- * screen, and the three wall-clock fields are already read against that day. So
- * the instants have to land in the same frame, and `toDayMinutesFromInstant`
- * puts them there: local time-of-day, plus a full day for a genuine midnight
- * crossing, and NOT the raw elapsed interval from the viewed day's midnight.
+ * screen — forward onto a past day only, never back onto a future one — and the
+ * three wall-clock fields are already read against that day. So the instants
+ * have to land in the same frame, and `toDayMinutesFromInstant` puts them there:
+ * local time-of-day, plus a full day for a genuine midnight crossing, and NOT
+ * the raw elapsed interval from the viewed day's midnight.
  *
  * The distinction is invisible while the viewed day is the operator's own
  * calendar today, and decisive the moment it isn't — which is not an exotic
@@ -50,9 +51,9 @@
  * to be the browser's, which read every figure on this page off by the offset
  * between the operator's laptop and the venue, silently and plausibly.
  *
- * The frame is captured **once** per evaluator pass, alongside `asOfMinutes` and
- * for the same reason: every badge in a tick must agree about what time it is,
- * and re-resolving per row would let them disagree.
+ * The frame is captured **once** per evaluator pass, alongside the instant that
+ * "now" is read from, and for the same reason: every badge in a tick must agree
+ * about what time it is, and re-resolving per row would let them disagree.
  *
  * The pure functions take the zone as a trailing argument rather than reaching
  * for it, so they stay testable without an engine — and so this file's one
@@ -172,13 +173,40 @@ export function normalizeTimes(
 }
 
 /**
- * "Now" as minutes from midnight of the viewed day. When the operator is looking
- * at another date, today's time-of-day is projected onto it — the same thing
- * `venueNowOnDate()` does for the Now strip, so the two agree — both in the
- * venue's zone.
+ * "Now" as minutes from midnight of the viewed day, in the venue's zone.
+ *
+ * For today and for any day already past, today's time-of-day is projected onto
+ * the viewed day — the same thing `venueNowOnDate()` does for the Now strip, so
+ * the two agree. That projection is what keeps the feature working for an
+ * operator running a past-dated tournament in real time, which is the permanent
+ * state of anyone whose tournament dates have gone by (see the header note).
+ *
+ * A **future** day is the one direction the projection must not be applied to.
+ * Nothing on tomorrow has happened yet, and projecting this evening's clock onto
+ * it asserts the opposite: every matchUp scheduled before the current
+ * time-of-day reads as already under way, so `analyzeParticipantRest` reports a
+ * player entered in two of tomorrow's matches as *on court now* — in a
+ * tournament with no courts and no results. Reported from production on
+ * BOBOCA `a4e439fa-…`, whose 07:45 singles card was badged "on court" the
+ * evening before play, because the same player's 15:00 doubles read as started.
+ *
+ * So a day ahead of today is offset by the whole days between them, putting
+ * "now" *before* that day's midnight. Every anchor on it is then in the future,
+ * which is exactly what it is; `collectPriorMatchUps` admits nothing, and the
+ * rest rows report `none` rather than a fiction. The asymmetry is the point: a
+ * past day is one the operator may genuinely be working through, a future day is
+ * one nobody can have played on yet.
+ *
+ * `now` is a parameter so a whole evaluator pass can share one reading of the
+ * clock — and so this stays testable without mocking the global clock.
  */
-export function nowDayMinutes(timeZone?: string): number {
-  return venueDayMinutes(new Date(), timeZone) ?? 0;
+export function nowDayMinutes(timeZone?: string, viewedDate?: string | null, now: Date = new Date()): number {
+  const timeOfDay = venueDayMinutes(now, timeZone) ?? 0;
+  if (!viewedDate) return timeOfDay;
+  const today = venueCalendarDate(now, timeZone);
+  const daysAhead = today ? dayDelta(today, viewedDate) : undefined;
+  if (daysAhead === undefined || daysAhead <= 0) return timeOfDay;
+  return timeOfDay - daysAhead * MINUTES_PER_DAY;
 }
 
 /** Tournament daily limits, or undefined when no scheduling policy is attached — never a substituted default. */
@@ -222,9 +250,12 @@ export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: s
  * ticker re-reads every visible card on a timer — that is N engine passes every
  * 30 seconds for a screen that has not changed.
  *
- * `asOfMinutes` is captured once too, so every badge in a tick agrees about what
- * time it is. Reading the clock per badge would let a pass that straddles a
- * minute boundary render two cards a minute apart.
+ * The clock is read once too, so every badge in a tick agrees about what time it
+ * is. Reading it per badge would let a pass that straddles a minute boundary
+ * render two cards a minute apart. The *minutes* figure is still derived per
+ * matchUp, because it is measured from the midnight of whichever day that
+ * matchUp is being rested against, and `restDateFor` may name a different one
+ * for each.
  */
 export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | null) => RestResult {
   const { matchUps } = getCachedAllMatchUps();
@@ -234,7 +265,11 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   // One frame for the whole pass — see the header note on why this is captured
   // here rather than read per row.
   const { timeZone } = resolveVenueFrame();
-  const asOfMinutes = nowDayMinutes(timeZone);
+  // One reading of the clock for the whole pass — see the note above. The
+  // minutes figure is derived per matchUp because it is relative to the day that
+  // matchUp is being measured on, and `restDateFor` can name a different day for
+  // each; the instant it is derived from does not move.
+  const now = new Date();
 
   return (matchUpId, viewedDate) => {
     const restDate = restDateFor(
@@ -245,7 +280,7 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
       matchUpId,
       matchUps: hydrated,
       scheduledDate: restDate ?? '',
-      asOfMinutes,
+      asOfMinutes: nowDayMinutes(timeZone, restDate, now),
       timesFor: (matchUp) => normalizeTimes(matchUp, restDate, timeZone),
       dailyLimits,
       timingFor,
