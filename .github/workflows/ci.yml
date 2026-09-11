@@ -107,6 +107,12 @@ jobs:
       - name: i18n-audit
         run: pnpm i18n-audit --ci
 
+      # mutationConstants map 1:1 to factory engine methods, and that mapping had drifted: a typo
+      # sent `resetMatchUpLinesUps`, the engine answered METHOD_NOT_FOUND, and two UI actions did
+      # nothing. TypeScript cannot see it — the constant is just a string.
+      - name: mutation-constant drift
+        run: pnpm mutation-drift
+
       # Type-checks src/ against the PUBLISHED factory, because the link:
       # overrides are stripped above. This is the only gate that can catch a
       # call into sibling work that exists locally but has not been published —
