@@ -2,6 +2,7 @@ import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 's
 import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
 import { buildLinkedTournamentsPanel, LINKED_TOURNAMENTS_PANEL_ID } from './linkedTournaments';
+import { buildSeedingPolicyPanel } from './seedingPolicyPanel';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
 import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
@@ -172,6 +173,13 @@ export async function renderSettingsGrid(
     }
   };
   syncLinkedPanel();
+
+  // Tournament-scoped: a seeding policy is attached to the tournamentRecord, so it has nothing to
+  // bind to on the app-level settings screen. Unlike the linked-tournaments panel this needs no
+  // authentication — the catalog is local and the mutation is an ordinary tournament mutation.
+  if (!options?.excludeTournament) {
+    grid.appendChild(buildSeedingPolicyPanel());
+  }
 
   // --- Language panel (blue, 1 col) ---
   // Source the language list from the CFS manifest so newly-added locales

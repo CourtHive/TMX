@@ -7,6 +7,7 @@ import type { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
@@ -350,6 +351,14 @@ function getStructureOptions(drawType: string, inputs: any): any {
 }
 
 function getSeedingPolicyDefinition(selectedSeedingPolicy: string): any {
+  // A locked provider policy is passed explicitly rather than left to INHERIT. Inheriting requires
+  // someone to have attached it on the settings tab first, and a draw created before anyone did
+  // would generate silently non-compliant — the one failure mode a locked policy exists to prevent.
+  // Attaching it as well is not a conflict: same policy, same seeding.
+  if (providerConfig.isSeedingPolicyLocked()) {
+    const providerPolicy = providerConfig.getSeedingPolicy();
+    if (providerPolicy) return { [POLICY_TYPE_SEEDING]: providerPolicy };
+  }
   if (selectedSeedingPolicy === SEPARATE) {
     return POLICY_SEEDING_DEFAULT;
   } else if (selectedSeedingPolicy === CLUSTER) {

@@ -34,6 +34,7 @@ export const ASSIGN_TIE_MATCHUP_PARTICIPANT_ID = 'assignTieMatchUpParticipantId'
 export const ATTACH_FLIGHT_PROFILE = 'attachFlightProfile';
 export const ATTACH_QUALIFYING_STRUCTURE = 'attachQualifyingStructure';
 export const ATTACH_POLICIES = 'attachPolicies';
+export const REMOVE_POLICY = 'removePolicy';
 export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
 export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';

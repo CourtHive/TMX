@@ -81,11 +81,18 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const drawType = SINGLE_ELIMINATION;
   const isQualifyingMode = QUALIFYING_KINDS.has(mode.kind);
 
-  // Check for existing seeding policy at event or tournament level
-  const tournamentRecord = tournamentEngine.q.tournament();
-  const existingEventPolicy = event?.policyDefinitions?.[POLICY_TYPE_SEEDING];
-  const existingTournamentPolicy = (tournamentRecord as any)?.policyDefinitions?.[POLICY_TYPE_SEEDING];
-  const hasExistingPolicy = existingEventPolicy || existingTournamentPolicy;
+  // An attached policy lives in the `appliedPolicies` EXTENSION, not in a `policyDefinitions`
+  // property — `attachPolicies` goes through `addExtension` and never writes such a property, so the
+  // direct reads this used to do could not see one. That mattered more than a missing menu entry:
+  // with no "Inherited" option the form defaulted to a positioning preset, and a preset is sent as
+  // `policyDefinitions`, which the factory prefers over the attached policy
+  // (`validateAndDeriveDrawValues`: `policyDefinitions?.[seeding] ?? appliedPolicies?.[seeding]`).
+  // A tournament carrying its governing body's seeding rules would have had them silently
+  // overridden by every draw generated from this form.
+  const hasExistingPolicy = !!tournamentEngine.getPolicyDefinitions({
+    policyTypes: [POLICY_TYPE_SEEDING],
+    event,
+  })?.policyDefinitions?.[POLICY_TYPE_SEEDING];
 
   const flightProfile = tournamentEngine.q.flightProfile({ event });
   const flight = flightProfile?.flights?.find((f: any) => f.drawId === drawId);
@@ -113,11 +120,16 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     { label: t('drawers.addDraw.custom'), value: CUSTOM },
   ];
 
-  const seedingPolicyOptions = [
-    ...(hasExistingPolicy ? [{ label: t('drawers.addDraw.inherited'), value: INHERIT, selected: true }] : []),
-    { label: t('drawers.addDraw.separatedUsta'), value: SEPARATE, selected: !hasExistingPolicy },
-    { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
-  ];
+  // A provider that declares a seeding policy AND withholds canModifyPolicies is stating a rule.
+  // Offering the two positioning presets here would let an operator override it per draw, which is
+  // the one thing compliance does not permit — so the selector collapses to a single entry.
+  const seedingPolicyOptions = providerConfig.isSeedingPolicyLocked()
+    ? [{ label: t('drawers.addDraw.providerSeedingPolicy'), value: INHERIT, selected: true }]
+    : [
+        ...(hasExistingPolicy ? [{ label: t('drawers.addDraw.inherited'), value: INHERIT, selected: true }] : []),
+        { label: t('drawers.addDraw.separatedUsta'), value: SEPARATE, selected: !hasExistingPolicy },
+        { label: t('drawers.addDraw.adjacentItf'), value: CLUSTER },
+      ];
   // `acceptedEntriesCount` is the same count `updateDrawSize` feeds the selector on every later
   // interaction. Rendering from a different notion of "how many entries" (drawEntries includes
   // cross-stage entries that never occupy a position) made the initial list disagree with itself
