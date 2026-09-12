@@ -1052,6 +1052,23 @@
     "byeScheduledBody": "This match already has scheduling information. Assigning a BYE will leave the court slot occupied unless you remove it.",
     "byeKeepScheduling": "Keep scheduling",
     "byeRemoveScheduling": "Remove scheduling",
+    "legend": {
+      "title": "What the marks on this page mean",
+      "restBadge": "Rest badge (on a match card)",
+      "restOnCourt": "A player is still in an earlier match",
+      "restDurationSample": "41m",
+      "restDuration": "How long the least-rested player has had off",
+      "restUnknown": "The prior match has no recorded finish, so rest cannot be measured",
+      "restNone": "Nobody on this card has played yet today",
+      "restLimit": "Which match of the day this would be for that player",
+      "inspector": "Inspector rest rows",
+      "estimatedSample": "(est.)",
+      "estimated": "The finish was inferred, not recorded — a projection, not a measurement",
+      "discarded": "A recorded stamp was rejected as unreadable, and the next best one was used",
+      "cellMarks": "On a scheduled cell",
+      "checkIn": "Participants who have not yet presented at the desk",
+      "annotations": "Notes a director has pinned to the match"
+    },
     "venueFrame": {
       "notice": "Times in {{timeZone}} — venue zone not set",
       "noticeTitle": "This tournament has no time zone set, so times are shown in this device’s zone ({{timeZone}}). Set the venue’s time zone so every operator reads the same clock."
