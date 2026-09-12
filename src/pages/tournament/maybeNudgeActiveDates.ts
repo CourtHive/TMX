@@ -2,6 +2,7 @@ import { openEditDatesModal } from './tabs/overviewTab/editDatesModal';
 import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { plainDateRange } from 'functions/plainDateRange';
 import { t } from 'i18n';
 
 // Module-scoped set tracking which tournamentIds have already triggered the
@@ -17,19 +18,6 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 /** Today at the venue — compared against tournament dates, which are venue calendar days. */
 function todayLocalIso(): string {
   return venueCalendarDate();
-}
-
-function* dateRangeInclusive(startIso: string, endIso: string): Generator<string> {
-  // UTC math so DST transitions don't skip or duplicate a day. We're only
-  // comparing date strings; nothing here depends on wall-clock hours.
-  const [sy, sm, sd] = startIso.split('-').map(Number);
-  const [ey, em, ed] = endIso.split('-').map(Number);
-  const cur = new Date(Date.UTC(sy, sm - 1, sd));
-  const last = new Date(Date.UTC(ey, em - 1, ed));
-  while (cur.getTime() <= last.getTime()) {
-    yield cur.toISOString().slice(0, 10);
-    cur.setUTCDate(cur.getUTCDate() + 1);
-  }
 }
 
 function scheduledDateOf(matchUp: any): string | null {
@@ -92,7 +80,7 @@ export function maybeNudgeActiveDates({ tournamentRecord }: { tournamentRecord?:
   if (scheduledDates.size === 0) return undefined;
 
   let emptyDaysBeforeToday = 0;
-  for (const iso of dateRangeInclusive(startDate, today)) {
+  for (const iso of plainDateRange(startDate, today)) {
     if (!scheduledDates.has(iso)) {
       emptyDaysBeforeToday += 1;
       if (emptyDaysBeforeToday >= 2) break;

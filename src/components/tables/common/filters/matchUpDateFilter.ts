@@ -11,6 +11,7 @@
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { venueCalendarDate } from 'functions/venueTimeFrame';
 import { competitionEngine } from 'services/factory/engine';
+import { plainDateRange } from 'functions/plainDateRange';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -31,18 +32,6 @@ function formatDateLabel(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function dateRange(start?: string, end?: string): string[] {
-  if (!start || !end) return [];
-  const dates: string[] = [];
-  const current = new Date(`${start}T00:00:00`);
-  const last = new Date(`${end}T00:00:00`);
-  while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
 }
 
 export function getMatchUpDateFilter(table: any): {
@@ -91,7 +80,7 @@ export function getMatchUpDateFilter(table: any): {
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange() ?? {};
   const activeDates: string[] = tournamentInfo?.activeDates?.length
     ? tournamentInfo.activeDates
-    : dateRange(startDate, endDate);
+    : plainDateRange(startDate, endDate);
   const sortedDates = [...activeDates].sort((a, b) => a.localeCompare(b));
 
   const allLabel = t('pages.matchUps.allDates');
