@@ -15,7 +15,9 @@ import {
   venueCalendarDate,
   venueDayMinutes,
   venueNowOnDate,
+  venueNowClock,
   venueTimeZone,
+  venueToday,
   venueParts,
   venueClock,
 } from './venueTimeFrame';
@@ -192,7 +194,46 @@ describe('venueNowOnDate — a day the venue has not reached has no "now"', () =
   });
 
   it('takes the same exit for a date it cannot read', () => {
-    expect(venueNowOnDate('not-a-date', KOLKATA)).toBeUndefined();
+    expect(venueNowOnDate(UNPARSEABLE, KOLKATA)).toBeUndefined();
+  });
+});
+
+/**
+ * The A10 footgun, closed.
+ *
+ * `venueClock()` / `venueCalendarDate()` / `venueDayMinutes()` used to
+ * substitute `new Date()` for a missing instant, which put the CURRENT clock in
+ * the Called column of every matchUp that had never been called (#1387). The
+ * argument is now required, so that mistake is a type error — and the two sites
+ * that genuinely mean "now" ask for it by name.
+ *
+ * A required argument cannot be tested by calling without one (it would not
+ * compile, which is the point), so what is asserted here is the pair of named
+ * helpers and the fact that an UNREADABLE instant still yields a missing value
+ * rather than a substituted one — the same failure mode arriving by a different
+ * door, and the one the compiler cannot close.
+ */
+describe('"now" is asked for by name, and a bad instant is never quietly replaced', () => {
+  it('venueToday agrees with venueCalendarDate on the current instant', () => {
+    expect(venueToday(KOLKATA)).toBe(venueCalendarDate(new Date(), KOLKATA));
+  });
+
+  it('venueNowClock agrees with venueClock on the current instant', () => {
+    // Both read the same clock a moment apart, so compare the hour rather than
+    // the minute-precise string, which can tick between the two calls.
+    expect(venueNowClock(KOLKATA).slice(0, 2)).toBe(venueClock(new Date(), KOLKATA).slice(0, 2));
+  });
+
+  it('reads "now" against the VENUE zone, not the runner zone', () => {
+    // Under TZ=UTC these differ for five and a half hours of every day, which is
+    // the only thing that makes this assertion worth writing.
+    expect(venueNowClock(KOLKATA)).not.toBe(venueNowClock('UTC'));
+  });
+
+  it.each([[UNPARSEABLE], ['']])('returns empty for the unreadable instant %o rather than now', (value) => {
+    expect(venueCalendarDate(value, KOLKATA)).toBe('');
+    expect(venueClock(value, KOLKATA)).toBe('');
+    expect(venueDayMinutes(value, KOLKATA)).toBeUndefined();
   });
 });
 

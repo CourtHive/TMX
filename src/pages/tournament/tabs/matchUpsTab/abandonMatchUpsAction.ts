@@ -11,7 +11,7 @@ import { ABANDON_TOURNAMENT_MATCHUPS } from 'constants/mutationConstants';
 import { getRepublishRankingsOption } from 'pages/tournament/tabs/matchUpsTab/republishRankingsAction';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { venueCalendarDate } from 'functions/venueTimeFrame';
+import { venueToday } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { RIGHT } from 'constants/tmxConstants';
@@ -26,12 +26,12 @@ import { t } from 'i18n';
 // abandon action a day early or late for anyone running the event from another
 // zone. The previous `dayjs().format('YYYY-MM-DD')` fixed the UTC half of this
 // (#1352's bug class) and left the operator-vs-venue half, which is what
-// `venueCalendarDate()` closes.
+// `venueToday()` closes.
 function onOrPastLastDate(): boolean {
   const { tournamentRecord } = tournamentEngine.getTournament() ?? {};
   const endDate = tournamentRecord?.endDate;
   if (!endDate) return false;
-  return venueCalendarDate() >= String(endDate).slice(0, 10);
+  return venueToday() >= String(endDate).slice(0, 10);
 }
 
 // Modal body: a one-line explanation plus a checkbox that relaxes the default

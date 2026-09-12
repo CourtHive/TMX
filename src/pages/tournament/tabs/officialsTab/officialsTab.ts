@@ -17,7 +17,8 @@ import { getCachedAllMatchUps, invalidateMatchUpCaches } from 'pages/tournament/
 import { contactFormatter } from 'components/tables/common/formatters/contactFormatter';
 import { controlBar } from 'courthive-components';
 import { callSheet } from 'components/modals/callSheet';
-import { buildOfficialsBoard, venueCalendarDay, type OfficialRow } from 'services/officiating/officialsBoard';
+import { buildOfficialsBoard, type OfficialRow } from 'services/officiating/officialsBoard';
+import { venueToday } from 'functions/venueTimeFrame';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { tournamentEngine } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -39,7 +40,7 @@ let unsubscribe: (() => void) | null = null;
  * claiming it was "the tournament's own frame" was simply wrong.
  */
 function viewedDate(): string {
-  return venueCalendarDay();
+  return venueToday();
 }
 
 function rows(): OfficialRow[] {

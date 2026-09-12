@@ -35,7 +35,7 @@ const SIGNED_IN = 'SIGNED_IN';
  * surface in TMX moved to together (see `Mentat/planning/DECISION_VENUE_TIME_FRAME.md`). This function
  * must keep agreeing with `gridView.todayIso`; both now do, because both ask the same resolver.
  */
-export function venueCalendarDay(value?: string | Date): string {
+export function venueCalendarDay(value: string | Date): string {
   return venueCalendarDate(value);
 }
 

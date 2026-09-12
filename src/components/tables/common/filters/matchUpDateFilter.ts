@@ -9,7 +9,7 @@
  *   - '__none__' — matchUps with no scheduledDate
  */
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
-import { venueCalendarDate } from 'functions/venueTimeFrame';
+import { venueToday } from 'functions/venueTimeFrame';
 import { competitionEngine } from 'services/factory/engine';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -24,7 +24,7 @@ const NO_DATE_TOKEN = '__none__';
  * same day, and the schedule keys on the venue. See `functions/venueTimeFrame`.
  */
 export function isoToday(): string {
-  return venueCalendarDate();
+  return venueToday();
 }
 
 function formatDateLabel(iso: string): string {

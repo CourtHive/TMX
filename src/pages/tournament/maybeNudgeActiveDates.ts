@@ -1,5 +1,5 @@
 import { openEditDatesModal } from './tabs/overviewTab/editDatesModal';
-import { venueCalendarDate } from 'functions/venueTimeFrame';
+import { venueToday } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
@@ -16,7 +16,7 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Today at the venue — compared against tournament dates, which are venue calendar days. */
 function todayLocalIso(): string {
-  return venueCalendarDate();
+  return venueToday();
 }
 
 function* dateRangeInclusive(startIso: string, endIso: string): Generator<string> {
