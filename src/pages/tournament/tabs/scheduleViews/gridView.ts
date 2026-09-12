@@ -280,6 +280,7 @@ import {
 } from './gridViewStorage';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
+import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { renderInspectorSections } from './inspectorReadiness';
 import { renderCheckInBadge } from './checkInBadge';
@@ -1477,16 +1478,15 @@ export function searchGridCells(text: string): void {
   const prev = gridRootElement.querySelectorAll(`.${SEARCH_HIGHLIGHT_CLASS}`);
   for (const el of prev) el.classList.remove(SEARCH_HIGHLIGHT_CLASS);
 
-  if (!text.trim()) return;
+  const needle = searchNormalize(text);
+  if (!needle) return;
 
-  const needle = text.trim().toLowerCase();
   const cells = gridRootElement.querySelectorAll(`[${DATA_MATCHUP_ID}]`);
   let firstMatch: HTMLElement | null = null;
 
   for (const cell of cells) {
     const el = cell as HTMLElement;
-    const cellText = el.textContent?.toLowerCase() || '';
-    if (cellText.includes(needle)) {
+    if (cellSearchText(el).includes(needle)) {
       el.classList.add(SEARCH_HIGHLIGHT_CLASS);
       firstMatch ??= el;
     }

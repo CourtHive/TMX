@@ -355,6 +355,23 @@
   border-left-color: var(--tmx-accent-green);
 }
 
+/* A rest row that can drive the grid search. Only rows rendered while the court
+   grid (and therefore its search box) is on screen carry this class — the plan
+   and profile views have no search box, so their rows stay inert and look it. */
+.tmx-rest-row.is-searchable {
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.tmx-rest-row.is-searchable:hover {
+  background: var(--tmx-tab-row-hover-bg);
+}
+
+.tmx-rest-row.is-searchable:focus-visible {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: 1px;
+}
+
 .tmx-rest-name {
   font-size: 0.75rem;
   font-weight: 600;
