@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.25.0](https://github.com/CourtHive/TMX/compare/v8.24.3...v8.25.0) (2026-09-12)
+
+
+### Features
+
+* **draw:** specify a seed count, and let it reach the counts it exists for ([#1432](https://github.com/CourtHive/TMX/issues/1432)) ([d28b5bb](https://github.com/CourtHive/TMX/commit/d28b5bb0c049b7b509c6f693cb361e176d0b4671))
+* **policies:** bind a seeding policy to the tournament, and let a draw see it ([#1433](https://github.com/CourtHive/TMX/issues/1433)) ([f02fd0f](https://github.com/CourtHive/TMX/commit/f02fd0fd089bc4508906471cdb523ca7bd69e637))
+* **schedule:** a legend for the marks the scheduling page makes ([#1441](https://github.com/CourtHive/TMX/issues/1441)) ([67804ce](https://github.com/CourtHive/TMX/commit/67804cec54c97cbc3c78fd9139f0c33cc64517b4))
+
+
+### Bug Fixes
+
+* **dates:** a date range was a day early for every operator east of UTC ([#1439](https://github.com/CourtHive/TMX/issues/1439)) ([0c980ea](https://github.com/CourtHive/TMX/commit/0c980ead13824005d1e6beab871da294f9269158))
+* **mutations:** resetMatchUpLineUps was misspelled, so lineup reset never worked ([#1435](https://github.com/CourtHive/TMX/issues/1435)) ([f77d79a](https://github.com/CourtHive/TMX/commit/f77d79adfcba68ed0fc61fcdfe4e0804b32aebcb))
+* **schedule:** a date the venue has not reached has no "now" on it ([#1438](https://github.com/CourtHive/TMX/issues/1438)) ([2292fbd](https://github.com/CourtHive/TMX/commit/2292fbd55268330b19df453b15a8283d8e25eb66))
+* **schedule:** do not project today's clock forward onto a future schedule day ([#1437](https://github.com/CourtHive/TMX/issues/1437)) ([ab11d03](https://github.com/CourtHive/TMX/commit/ab11d036e29d7296f588effbca8a4f09d47645dc))
+
+
+### Documentation
+
+* **schedule:** the factory queries these modules were built for now exist ([#1443](https://github.com/CourtHive/TMX/issues/1443)) ([6a32d08](https://github.com/CourtHive/TMX/commit/6a32d0808f8b3483c237b59a334d42d8f3f2b9f7))
+
 ## [8.24.3](https://github.com/CourtHive/TMX/compare/v8.24.2...v8.24.3) (2026-09-07)
 
 
