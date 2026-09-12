@@ -12,6 +12,7 @@
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { providerConfig } from 'config/providerConfig';
+import { buildLegendButton } from './scheduleLegend';
 import { t } from 'i18n';
 import { ScheduleIssue } from 'courthive-components';
 import { buildStepper } from './stepperControl';
@@ -164,6 +165,10 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   if (onClearSchedule) {
     bar.appendChild(buildClearButton(bulkMode, onClearSchedule));
   }
+  // Last in the right cluster, and unconditional: it is the one control here
+  // that explains the others, so it must not be the one that disappears with a
+  // capability or an empty state.
+  bar.appendChild(buildLegendButton());
 
   return { element: bar, setIssues, setTimingAvailable, setDatePublished, setVenueFrame };
 }
