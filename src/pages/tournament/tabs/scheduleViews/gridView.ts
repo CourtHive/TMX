@@ -23,6 +23,7 @@ import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedule
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { openScheduleLockMenu } from './scheduleLockActions';
+import { plainDateRange } from 'functions/plainDateRange';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -596,7 +597,7 @@ export function renderGridView(
   // onMutationApplied subscription.
   function confirmTogglePublish(): void {
     const publishState = getOrderOfPlayPublishState();
-    const fullRange = dateRange(
+    const fullRange = plainDateRange(
       getCachedCompetitionDateRange().startDate ?? '',
       getCachedCompetitionDateRange().endDate ?? '',
     );
@@ -3402,7 +3403,7 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
   const { startDate, endDate } = getCachedCompetitionDateRange();
   const { tournamentInfo } = getCachedTournamentInfo();
   const activeDates = tournamentInfo?.activeDates;
-  const dates = activeDates?.length ? [...activeDates].sort() : dateRange(startDate ?? '', endDate ?? '');
+  const dates = activeDates?.length ? [...activeDates].sort() : plainDateRange(startDate ?? '', endDate ?? '');
 
   const { matchUps } = getCachedAllMatchUps();
   const dateCounts = new Map<string, number>();
@@ -3673,17 +3674,6 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
 }
 
 // ── Helpers ──
-
-function dateRange(start: string, end: string): string[] {
-  const dates: string[] = [];
-  const current = new Date(start + 'T00:00:00');
-  const last = new Date(end + 'T00:00:00');
-  while (current <= last) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setDate(current.getDate() + 1);
-  }
-  return dates;
-}
 
 /**
  * Both catalog card badges, composed into the single element `renderCardExtra` accepts.
