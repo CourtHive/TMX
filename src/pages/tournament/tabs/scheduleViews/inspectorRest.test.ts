@@ -3,6 +3,7 @@ import {
   describeRest,
   instantLocalDate,
   normalizeTimes,
+  nowDayMinutes,
   restDateFor,
   toDayMinutesFromClock,
   toDayMinutesFromInstant,
@@ -239,6 +240,94 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
   it('projects a readyAt from the anchor it actually used', () => {
     // 10:38 + 60 minutes of recovery.
     expect(analyze().rows.find((row) => row.participantId === 'p-alice')?.readyAt).toBe('11:38');
+  });
+});
+
+/**
+ * The future-day half of the projection rule. Reported from production on BOBOCA
+ * `a4e439fa-…`: the schedule page for the next day, opened the evening before,
+ * badged a 07:45 singles card "on court" in a tournament that had no courts and
+ * no results — because the same player's 15:00 doubles read as already under way
+ * against a clock projected from the operator's evening.
+ *
+ * Written against the runner's own zone rather than a named one, like the rest of
+ * this file: the assertion is about the DAY offset, which no zone changes.
+ */
+describe('nowDayMinutes — the projection runs backwards in time, never forwards', () => {
+  /** 22:51 local on 2026-09-11 — the evening the production report came from. */
+  const EVENING = new Date('2026-09-11T22:51:00');
+  const EVENING_MINUTES = 22 * 60 + 51;
+
+  it('projects onto today unchanged', () => {
+    expect(nowDayMinutes(undefined, '2026-09-11', EVENING)).toBe(EVENING_MINUTES);
+  });
+
+  it('projects onto a past day unchanged, which is what a past-dated tournament needs', () => {
+    expect(nowDayMinutes(undefined, '2026-09-08', EVENING)).toBe(EVENING_MINUTES);
+  });
+
+  it('places "now" before midnight of a future day, by a whole day per day ahead', () => {
+    expect(nowDayMinutes(undefined, '2026-09-12', EVENING)).toBe(EVENING_MINUTES - 1440);
+    expect(nowDayMinutes(undefined, '2026-09-14', EVENING)).toBe(EVENING_MINUTES - 3 * 1440);
+  });
+
+  it('falls back to the bare time of day when no day is named or the day is unparseable', () => {
+    expect(nowDayMinutes(undefined, null, EVENING)).toBe(EVENING_MINUTES);
+    expect(nowDayMinutes(undefined, UNPARSEABLE, EVENING)).toBe(EVENING_MINUTES);
+  });
+});
+
+/**
+ * The defect end to end: two matchUps on tomorrow's card sharing one player, no
+ * scores, no courts. Before the fix the earlier one reported its shared player
+ * `onCourt`, because the later one's scheduledTime sat behind a projected clock.
+ */
+describe('a future schedule day: nobody is on court yet', () => {
+  const TOMORROW = '2026-09-12';
+  const EVENING = new Date('2026-09-11T22:51:00');
+  const TIMING = { averageMinutes: 90, recoveryMinutes: 60 };
+
+  const singles: ReadinessMatchUp = {
+    matchUpId: 'm-singles',
+    matchUpType: 'SINGLES',
+    matchUpStatus: 'TO_BE_PLAYED',
+    sides: [{ participantId: 'p-nassar', participantName: 'Caden-Chady Nassar' }, { participantId: 'p-soares' }],
+    schedule: { scheduledDate: TOMORROW, scheduledTime: '07:45' },
+  };
+  const doubles: ReadinessMatchUp = {
+    matchUpId: 'm-doubles',
+    matchUpType: 'DOUBLES',
+    matchUpStatus: 'TO_BE_PLAYED',
+    sides: [
+      { participant: { participantId: 'pair-a', individualParticipantIds: ['p-livson', 'p-nassar'] } },
+      { participant: { participantId: 'pair-b', individualParticipantIds: ['p-x', 'p-y'] } },
+    ],
+    schedule: { scheduledDate: TOMORROW, scheduledTime: '15:00' },
+  };
+
+  function analyze(asOfMinutes: number) {
+    const result = analyzeParticipantRest({
+      matchUpId: 'm-singles',
+      matchUps: [singles, doubles],
+      scheduledDate: TOMORROW,
+      asOfMinutes,
+      timingFor: () => TIMING,
+      timesFor: (matchUp) => normalizeTimes(matchUp, TOMORROW),
+    });
+    if (!result.evaluated) throw new Error('expected evaluation');
+    return result;
+  }
+
+  it('reports no prior match for every player', () => {
+    const rows = analyze(nowDayMinutes(undefined, TOMORROW, EVENING)).rows;
+    expect(rows.every((row) => row.status === 'none')).toBe(true);
+  });
+
+  it('would badge the shared player "on court" under the projected evening clock', () => {
+    // The defect, pinned: the same data with today's time-of-day projected onto
+    // tomorrow puts the 15:00 doubles behind the clock and the player on court.
+    const rows = analyze(22 * 60 + 51).rows;
+    expect(rows.find((row) => row.participantId === 'p-nassar')?.status).toBe('onCourt');
   });
 });
 
