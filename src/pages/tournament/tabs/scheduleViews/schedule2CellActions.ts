@@ -24,7 +24,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { evaluateRest, formatDuration } from './inspectorRest';
 import { timePicker } from 'components/modals/timePicker';
-import { venueClock } from 'functions/venueTimeFrame';
+import { venueNowClock } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
@@ -318,7 +318,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const startMatch = () => {
     const drawId = matchUp?.drawId || cellData.drawId;
     if (!drawId) return;
-    const startTime = venueClock();
+    const startTime = venueNowClock();
     executeMethods(
       [
         {
@@ -712,7 +712,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   };
 
   const shotgunStart = () => {
-    const startTime = venueClock();
+    const startTime = venueNowClock();
     const startableIds = startableMatchUps.map((m: any) => m.matchUpId);
     executeMethods(
       [
@@ -819,7 +819,7 @@ function nowCellLabel(cell: NowStripCell): string {
  * time for anyone not sitting in the operator's zone.
  */
 function currentClockTime(): string {
-  return venueClock();
+  return venueNowClock();
 }
 
 /**

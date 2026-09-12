@@ -47,9 +47,12 @@ describe('scheduleStatusFormatter reads the venue clock, never the browser`s', (
     expect(code).toContain('venueTimeFrame');
     // `calledAt` is an instant and must go through `venueClock`; `scheduledDate`
     // / `scheduledTime` are bare venue wall clocks compared against "now", which
-    // is why the module needs both the day and the clock.
+    // is why the module needs both the day and the clock. "Now" is asked for by
+    // name — `venueToday` / `venueNowClock` — since the converters stopped
+    // substituting it for a missing argument.
     expect(code).toContain('venueClock');
-    expect(code).toContain('venueCalendarDate');
+    expect(code).toContain('venueToday');
+    expect(code).toContain('venueNowClock');
   });
 });
 
@@ -61,11 +64,16 @@ describe('scheduleStatusFormatter reads the venue clock, never the browser`s', (
  * before its start date showed its entire draw called to court, all at the same
  * clock, ticking forward on each redraw.
  *
- * The cause is that `venueClock` DEFAULTS TO NOW for empty input, so the
- * formatter's own `if (!clock) return ''` is unreachable for an absent stamp.
+ * The cause was that `venueClock` DEFAULTED TO NOW for empty input, so the
+ * formatter's own `if (!clock) return ''` was unreachable for an absent stamp.
  * That is a value fact, not a which-imports-does-it-use fact, so it needs a
  * value test — hence `calledAtClock`, extracted purely so this can exist without
  * a DOM.
+ *
+ * The default is gone and the converters now require an instant, so the
+ * compiler refuses the original mistake. These assertions stay anyway: the cell
+ * value reaches `calledAtClock` as `any` from Tabulator, which is precisely
+ * where the type system has nothing to say.
  */
 describe('calledAtClock renders nothing for a matchUp that was never called', () => {
   it.each([

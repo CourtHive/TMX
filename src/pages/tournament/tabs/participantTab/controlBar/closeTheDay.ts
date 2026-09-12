@@ -15,9 +15,10 @@
  * no jsdom and a decision made here would get no coverage.
  */
 
-import { stillSignedInOnDate, venueCalendarDay } from 'services/presence/signInPresence';
+import { stillSignedInOnDate } from 'services/presence/signInPresence';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
+import { venueToday } from 'functions/venueTimeFrame';
 import { participantConstants } from 'tods-competition-factory';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -35,7 +36,7 @@ const { SIGNED_OUT } = participantConstants;
  * which is the *latest* value and therefore true for anybody who ever signed in. The date-scoped read
  * is the whole reason (c) exists.
  */
-export function participantsToCloseOut(date = venueCalendarDay()): string[] {
+export function participantsToCloseOut(date = venueToday()): string[] {
   const { participants } = tournamentEngine.getParticipants({}) ?? {};
   return stillSignedInOnDate(participants, date);
 }

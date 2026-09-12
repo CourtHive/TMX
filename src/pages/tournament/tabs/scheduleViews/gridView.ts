@@ -36,7 +36,7 @@ import {
   openShiftCourtsModal,
   Schedule2NowContext,
 } from './schedule2CellActions';
-import { venueCalendarDate, venueClock, venueNowOnDate } from 'functions/venueTimeFrame';
+import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
@@ -2597,7 +2597,7 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
  * surface that keys "today" has to give the same answer as this one.
  */
 function todayIso(): string {
-  return venueCalendarDate();
+  return venueToday();
 }
 
 function refreshActiveStrip(date: string): void {
@@ -3089,7 +3089,7 @@ function buildStartOnDropMethods(matchUpId: string, drawId: string): any[] {
 
   // `startTime` is stored as a bare venue wall clock, so it must be read off the
   // venue's clock rather than the operator's.
-  const startTime = venueClock();
+  const startTime = venueNowClock();
   return [
     {
       method: BULK_SCHEDULE_MATCHUPS,

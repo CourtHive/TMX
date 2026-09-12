@@ -233,6 +233,39 @@ function pad2(n: number): string {
 }
 
 /**
+ * ── "Now" is asked for by name ──
+ *
+ * The three converters below take a **required** instant. They used to default
+ * a missing one to `new Date()`, and that shipped a production bug: an uncalled
+ * matchUp has no `calledAt`, so `venueClock(matchUp.schedule.calledAt)`
+ * rendered the *current* clock as its call time — identical on every row of a
+ * tournament whose first day had not arrived, and advancing on each redraw
+ * ([#1387(TMX)](https://github.com/CourtHive/TMX/pull/1387)). The formatter's own
+ * `if (!clock) return ''` could not catch it, because "now" is a valid clock
+ * string.
+ *
+ * The module already knew better and said so about `venueParts`:
+ *
+ * > *Returns `undefined` for unparseable input rather than a substituted
+ * > default — a wrong time is worse than a missing one everywhere this is used.*
+ *
+ * Its own wrappers then substituted a default. That is `architectural-standards`
+ * **A3 — open defaults are fail-open**, and `coding-standards`' *"a default is
+ * not a detection"*, in the module those standards most need to hold.
+ *
+ * An `arguments.length` check would have been the cheap fix and the wrong one:
+ * it breaks **forwarding wrappers**, which always pass one argument whether or
+ * not their own caller did. `signInPresence.venueCalendarDay(value?)` was
+ * exactly that, and would have started returning `''` for `officialsTab`'s bare
+ * call — a silent regression rather than a compiler error.
+ *
+ * So the sites that genuinely mean "now" say so — `venueToday()`,
+ * `venueNowClock()` — and everywhere else the compiler now requires an instant.
+ * The next `venueClock(possiblyMissingStamp)` is a type error at the keyboard
+ * instead of a plausible wrong time in production.
+ */
+
+/**
  * The calendar day an instant falls on **at the venue**, as `YYYY-MM-DD`.
  *
  * Never `toISOString().slice(0, 10)`: that reports the UTC day, so west of
@@ -240,26 +273,43 @@ function pad2(n: number): string {
  * Florida it already says tomorrow. Shipping that once (#1352, fixed in #1355)
  * made every official read "available" every evening.
  *
- * Defaults to now, which is the "what day is it?" every schedule surface asks.
+ * Empty string when the instant is unreadable — and `''` is falsy, so a caller
+ * that forgets to check gets a missing day rather than a wrong one.
  */
-export function venueCalendarDate(value?: string | number | Date, timeZone?: string): string {
-  const parts = venueParts(value ?? new Date(), timeZone);
+export function venueCalendarDate(value: string | number | Date, timeZone?: string): string {
+  const parts = venueParts(value, timeZone);
   if (!parts) return '';
   return `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`;
 }
 
-/** An instant as a `HH:MM` venue wall clock. Defaults to now. Empty string when unparseable. */
-export function venueClock(value?: string | number | Date, timeZone?: string): string {
-  const parts = venueParts(value ?? new Date(), timeZone);
+/** An instant as a `HH:MM` venue wall clock. Empty string when unparseable. */
+export function venueClock(value: string | number | Date, timeZone?: string): string {
+  const parts = venueParts(value, timeZone);
   if (!parts) return '';
   return `${pad2(parts.hour)}:${pad2(parts.minute)}`;
 }
 
-/** An instant as minutes from venue midnight (`14:20` → `860`). Defaults to now. */
-export function venueDayMinutes(value?: string | number | Date, timeZone?: string): number | undefined {
-  const parts = venueParts(value ?? new Date(), timeZone);
+/** An instant as minutes from venue midnight (`14:20` → `860`). */
+export function venueDayMinutes(value: string | number | Date, timeZone?: string): number | undefined {
+  const parts = venueParts(value, timeZone);
   if (!parts) return undefined;
   return parts.hour * 60 + parts.minute;
+}
+
+/**
+ * Today's calendar day **at the venue**, `YYYY-MM-DD`.
+ *
+ * The "what day is it?" every schedule surface asks. Named rather than reached
+ * by omitting an argument, so that asking for today and forgetting to pass a
+ * stamp stop looking identical in the source.
+ */
+export function venueToday(timeZone?: string): string {
+  return venueCalendarDate(new Date(), timeZone);
+}
+
+/** The current venue wall clock, `HH:MM`. The named form of "now" — see `venueToday`. */
+export function venueNowClock(timeZone?: string): string {
+  return venueClock(new Date(), timeZone);
 }
 
 /**

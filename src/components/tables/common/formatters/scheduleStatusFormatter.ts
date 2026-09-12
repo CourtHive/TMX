@@ -1,15 +1,15 @@
-import { venueCalendarDate, venueClock } from 'functions/venueTimeFrame';
+import { venueNowClock, venueClock, venueToday } from 'functions/venueTimeFrame';
 import { t } from 'i18n';
 
 // `scheduledDate` / `scheduledTime` are bare venue wall-clock values, so the
 // "now" they are compared against must be the venue's clock too — otherwise a
 // match reads as past or future purely because of where the laptop is.
 function todayYmd(): string {
-  return venueCalendarDate();
+  return venueToday();
 }
 
 function nowHm(): string {
-  return venueClock();
+  return venueNowClock();
 }
 
 type Status = 'future' | 'past' | 'none';
@@ -82,12 +82,19 @@ export function scheduleLockFormatter(cell: any): HTMLSpanElement | string {
 // printed the operator's.
 //
 // The empty-value guard below is load-bearing, and dropping it is the regression
-// #1364 shipped. `venueClock` DEFAULTS TO NOW when handed nothing, so a matchUp
-// that has never been called rendered the current venue clock — every uncalled
-// row showing the same time, advancing on each redraw, and a tournament that had
-// not started yet reading as though its whole draw had been called to court.
-// `if (!clock)` cannot catch that: "now" is a perfectly valid clock string. The
-// only place the absence can be detected is before the conversion.
+// #1364 shipped. `venueClock` used to DEFAULT TO NOW when handed nothing, so a
+// matchUp that had never been called rendered the current venue clock — every
+// uncalled row showing the same time, advancing on each redraw, and a
+// tournament that had not started yet reading as though its whole draw had been
+// called to court. `if (!clock)` cannot catch that: "now" is a perfectly valid
+// clock string. The only place the absence can be detected is before the
+// conversion.
+//
+// `venueClock` now REQUIRES an instant, so that class of mistake is a type
+// error rather than a plausible wrong time. This guard stays regardless: the
+// value arrives from a Tabulator cell as `any`, which is exactly where the
+// compiler cannot help, and returning `''` for an absent stamp is this
+// function's contract rather than a workaround for the old default.
 export function calledAtClock(value?: string | number | Date | null): string {
   if (!value) return '';
   return venueClock(value);
