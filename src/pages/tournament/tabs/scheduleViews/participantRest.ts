@@ -58,9 +58,23 @@
  * reserved for the case where the whole ladder is in the future.
  *
  * `RestInput` → `RestResult` is the seam, matching `matchUpReadiness.ts`: a
- * future factory `getParticipantRest` replaces this body and keeps the contract.
- * The factory is pure and has no clock, so it would take the same injected
- * `asOfMinutes` — the `calledAt` idiom of a caller-supplied wall clock.
+ * factory `getParticipantRest` replaces this body and keeps the contract. The
+ * factory is pure and has no clock, so it takes the same injected asOf — the
+ * `calledAt` idiom of a caller-supplied wall clock.
+ *
+ * ── That factory query now exists, and the injected clock is an INSTANT ──
+ *
+ * `getParticipantRest` shipped in factory 7.x (#4828(factory)) with the row shape unchanged. It
+ * takes `asOf` as an ISO instant rather than minutes-from-midnight, because it does its own zone
+ * arithmetic — the day-clamping apparatus in `inspectorRest.ts` goes away with the swap.
+ *
+ * **Do not hand it `new Date().toISOString()`.** `nowDayMinutes()` projects today's time-of-day onto
+ * the *viewed* day, and that projection is load-bearing: the schedule opens on a tournament's last
+ * date once its dates are past, so a genuine `now` against a past-dated day puts every anchor hours
+ * behind and reports everybody rested — the fail-open direction this analysis exists to avoid. Pass
+ * the projected instant instead; `venueNowOnDate()` already computes that clock.
+ *
+ * Waiting on the 7.0.0 publish. Full disposition in `Mentat/TASKS.md`.
  */
 
 import { individualIds, isFinished, matchUpLabel, minutesToClock, nameFor } from './matchUpReadiness';
