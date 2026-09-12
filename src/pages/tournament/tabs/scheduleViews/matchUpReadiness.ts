@@ -30,9 +30,23 @@
  *     `getMatchUpFormatTiming` — the same resolution the auto-scheduler uses,
  *     including its scheduling-policy fallback.
  *
- * `ReadinessInput` → `ReadinessResult` is therefore the seam: a future factory
+ * `ReadinessInput` → `ReadinessResult` is therefore the seam: a factory
  * `getMatchUpReadiness` replaces this function's body and keeps the contract.
  * Nothing above the seam knows which side of it the answer came from.
+ *
+ * ── That factory query now exists ──
+ *
+ * `getMatchUpReadiness` shipped in factory 7.x (#4828(factory)) with this payload shape unchanged,
+ * so the swap here is an import. It is **not done yet**: TMX CI installs the published factory with
+ * the `link:` overrides stripped, so it waits for the 7.0.0 publish.
+ *
+ * The helpers this module exports beside the analysis — `isFinished`, `individualIds`,
+ * `matchUpLabel`, `minutesToClock`, `nameFor` — are exported from the factory query too, so they
+ * come across rather than needing a new home here.
+ *
+ * Read the "TMX — adopt the factory's `getMatchUpReadiness` / `getParticipantRest`" entry in
+ * `Mentat/TASKS.md` before starting: it carries the file-by-file disposition and the one adapter
+ * decision that is not mechanical.
  *
  * Vocabulary deliberately matches `scheduleResultsDescribe.ts` ("needs recovery
  * time", "not before HH:MM", "waiting on …") so the same condition does not read
