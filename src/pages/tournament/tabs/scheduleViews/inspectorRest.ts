@@ -61,6 +61,7 @@
  */
 
 import { resolveVenueFrame, venueCalendarDate, venueDayMinutes } from 'functions/venueTimeFrame';
+import { applyGridSearch, gridSearchAvailable } from './gridSearchControl';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
@@ -394,6 +395,22 @@ function buildRow(row: RestRow): HTMLElement {
   element.dataset.status = row.status;
   element.dataset.participantId = row.participantId;
 
+  // Clicking the row drives the court grid's search box, which highlights every
+  // cell this player appears in on the viewed day — the question a rest figure
+  // immediately raises ("when DID they play?") answered without retyping a name.
+  // Offered only when a search box is actually mounted: the plan and profile
+  // views have none, and an affordance that silently does nothing is worse than
+  // no affordance. `dataset` rather than re-reading `.tmx-rest-name` text so the
+  // seed/ranking suffixes a future display config might add cannot leak into the
+  // query.
+  if (gridSearchAvailable()) {
+    element.dataset.participantName = row.participantName;
+    element.classList.add('is-searchable');
+    element.tabIndex = 0;
+    element.setAttribute('role', 'button');
+    element.setAttribute('aria-label', t('schedule.inspector.rest.searchFor', { name: row.participantName }));
+  }
+
   element.appendChild(line(row.participantName, 'tmx-rest-name'));
   element.appendChild(line(describeRest(row), 'tmx-rest-figure'));
 
@@ -423,6 +440,28 @@ function buildRow(row: RestRow): HTMLElement {
   if (row.overrun) element.dataset.overrun = 'true';
   if (row.fromMatchUpLabel) element.title = row.fromMatchUpLabel;
   return element;
+}
+
+/**
+ * Delegated so it survives `paint()` replacing every row on the 30-second tick —
+ * bound once to the section, which outlives its children.
+ */
+function onSectionActivate(event: Event): void {
+  const target = event.target as HTMLElement | null;
+  const row = target?.closest?.('.tmx-rest-row.is-searchable') as HTMLElement | null;
+  const participantName = row?.dataset.participantName;
+  if (!participantName) return;
+  // `event.type`, not `instanceof KeyboardEvent`: the constructor is realm-bound,
+  // so an event crossing a frame boundary would fail the check and fall through
+  // to activating on every keystroke.
+  if (event.type === 'keydown') {
+    const { key } = event as KeyboardEvent;
+    if (key !== 'Enter' && key !== ' ') return;
+    // Space scrolls the Inspector otherwise, which throws the row out from under
+    // the operator at the moment they act on it.
+    event.preventDefault();
+  }
+  applyGridSearch(participantName);
 }
 
 function skipMessage(reason: string): string {
@@ -483,6 +522,8 @@ export function renderRestSection(matchUpId: string, viewedDate: string | null):
 
   const section = document.createElement('div');
   section.className = 'tmx-rest';
+  section.addEventListener('click', onSectionActivate);
+  section.addEventListener('keydown', onSectionActivate);
   paint(section, matchUpId, viewedDate);
 
   mounted = { section, matchUpId, viewedDate };

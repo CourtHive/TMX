@@ -188,6 +188,23 @@ export function editIndividualParticipant({
     return participant?.participantId ? '' : undefined;
   };
 
+  /**
+   * A name field as it should be stored: every whitespace run collapsed to one space, ends trimmed.
+   *
+   * Every other field on this form is trimmed on submit; these two were not, and the omission is
+   * invisible until something compares the string. A trailing space left in the first-name field
+   * composes a `participantName` of 'Michael  Livson', which renders correctly — HTML collapses the
+   * run — and then fails to match a schedule search for 'Michael Livson'. `trim()` alone would not
+   * have been enough either: it never reaches an interior run pasted in from a roster.
+   *
+   * The factory normalizes on write as well, so this is the near end of a guarantee rather than the
+   * only line of defence. It belongs here too because this form is where the stray space is typed.
+   */
+  const submittedName = (input: any): string =>
+    String(input?.value ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const validValues = ({ firstName, lastName, nickname }: any) => {
     const hasFullName = validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
     const hasNickname = nickname && nickname.trim().length >= 2;
@@ -463,8 +480,8 @@ export function editIndividualParticipant({
         // human-readable label, and `modifyParticipant` silently skips a nationalityCode
         // that fails `validNationalityCode()`, which discarded every country edit.
         nationalityCode: submittedNationalityCode(),
-        standardFamilyName: inputs.lastName.value,
-        standardGivenName: inputs.firstName.value,
+        standardFamilyName: submittedName(inputs.lastName),
+        standardGivenName: submittedName(inputs.firstName),
         birthDate: inputs.birthday.value,
         sex: inputs.sex.value || undefined,
         // `undefined` means "leave the stored list alone" — the factory only replaces `contacts` when
@@ -501,8 +518,8 @@ export function editIndividualParticipant({
   }
 
   function addParticipant(): void {
-    const firstName = inputs.firstName.value;
-    const lastName = inputs.lastName.value;
+    const firstName = submittedName(inputs.firstName);
+    const lastName = submittedName(inputs.lastName);
     const sex = inputs.sex.value || undefined;
     const newParticipant = {
       participantRole: submittedParticipantRole(),

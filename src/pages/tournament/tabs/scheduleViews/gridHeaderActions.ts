@@ -10,6 +10,7 @@
  * Toggle callbacks receive the new state; the consumer persists + applies it.
  */
 import { printSchedule } from 'components/modals/printSchedule';
+import { registerGridSearchControl } from './gridSearchControl';
 import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 import { buildStepper } from './stepperControl';
@@ -161,6 +162,9 @@ function buildSearchSlot(onSearch: (text: string) => void): HTMLElement {
   const input = document.createElement('input');
   input.type = 'text';
   input.placeholder = 'Search schedule…';
+  // A stable hook for journeys and for the Inspector's rest rows to be asserted
+  // against — the placeholder is display copy and will be translated.
+  input.dataset.gridSearch = 'true';
   input.style.cssText = [
     'font-size: 0.8125rem',
     'padding: 4px 10px',
@@ -178,6 +182,19 @@ function buildSearchSlot(onSearch: (text: string) => void): HTMLElement {
     debounceTimer = setTimeout(() => onSearch(input.value), 200);
   };
   input.addEventListener('input', fire);
+
+  // Publish the box so the Inspector's rest rows can drive it. Typed input is
+  // debounced because it arrives a keystroke at a time; a programmatic fill is a
+  // single completed intent, so it runs at once — and the pending debounce is
+  // cleared so a half-typed query cannot land on top of it 200ms later.
+  registerGridSearchControl({
+    input,
+    setText: (text: string) => {
+      clearTimeout(debounceTimer);
+      input.value = text;
+      onSearch(text);
+    },
+  });
 
   const slot = wrapSearchWithClear(input, () => {
     input.value = '';
