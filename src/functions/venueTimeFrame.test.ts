@@ -237,3 +237,42 @@ describe('resolveVenueFrame — which zone, and whether the page may say it is s
     expect(venueCalendarDate('2026-08-25T12:00:00Z', venueTimeZone())).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
+
+describe("the arithmetic is the factory's, and the deltas that moved with it", () => {
+  // venueWallClockToMs / venueOffsetMinutesAt / venueParts now call
+  // tools.zonedDateTime rather than a local port. Equivalence was swept before
+  // the swap — 8 zones x 365 days x 4 instants for parts and offsets, and
+  // x 5 wall clocks for conversions, with zero disagreements. What follows is
+  // the handful of inputs where behaviour deliberately CHANGED.
+
+  it('refuses an out-of-range date instead of rolling it into the next month', () => {
+    // Previously '2026-13-01' silently became 2027-01-01, and '2026-02-30'
+    // became March 2nd — a plausible wrong instant, which is the failure mode
+    // this whole module exists to eliminate. No caller passes these; no test
+    // covered them.
+    expect(venueWallClockToMs('2026-13-01', '09:00', NEW_YORK)).toBeUndefined();
+    expect(venueWallClockToMs('2026-02-30', '09:00', NEW_YORK)).toBeUndefined();
+  });
+
+  it('accepts an unpadded date rather than dropping it', () => {
+    expect(venueWallClockToMs('2026-6-1', '09:00', NEW_YORK)).toEqual(
+      venueWallClockToMs('2026-06-01', '09:00', NEW_YORK),
+    );
+  });
+
+  it('requires a bare calendar day, not an instant, as the wall-clock date', () => {
+    // The old prefix-matching regex accepted a trailing time and ignored it,
+    // which quietly let an instant be passed where a naive day was meant — the
+    // exact confusion this module is built around.
+    expect(venueWallClockToMs('2026-08-25T00:00', '09:00', NEW_YORK)).toBeUndefined();
+  });
+
+  it('still resolves midnight to hour 0', () => {
+    // The formatToParts read this replaced needed a guard for engines that
+    // report midnight as hour '24'. Arithmetic on the instant cannot produce a
+    // 24th hour, so the guard is gone — this proves it was not load-bearing.
+    const midnight = venueWallClockToMs(AUG_25, '00:00', NEW_YORK) as number;
+    expect(venueParts(midnight, NEW_YORK)?.hour).toBe(0);
+    expect(venueClock(midnight, NEW_YORK)).toBe('00:00');
+  });
+});
