@@ -317,6 +317,8 @@ export function venueWallClockToMs(date?: string, clock?: string, timeZone?: str
 /**
  * "Now", projected onto the venue wall clock of `stripDate`, as a **naive**
  * Date — i.e. one whose raw `getHours()` accessors read back the venue clock.
+ * `undefined` when `stripDate` is still ahead of the venue's today, because
+ * there is no such instant.
  *
  * That naivety is deliberate and load-bearing. The values this gets compared
  * against (court block `start`/`end`) are themselves naive `YYYY-MM-DDTHH:MM:SS`
@@ -329,9 +331,29 @@ export function venueWallClockToMs(date?: string, clock?: string, timeZone?: str
  * exotic case: the schedule opens on a tournament's last date once its dates are
  * past, so anyone running a past-dated tournament in real time is in it
  * permanently.
+ *
+ * **That projection only runs backwards.** Onto a future day it does not
+ * describe a clock, it invents one: at 22:51 the evening before, every court
+ * block painted on tomorrow before 22:51 reads as in effect *right now*, and a
+ * match dropped onto tomorrow's Now strip is warned about a block that has not
+ * happened. The same assumption, one module over, badged a player "on court" in
+ * a tournament with no courts — see `nowDayMinutes()` in
+ * `pages/tournament/tabs/scheduleViews/inspectorRest.ts`, which takes the
+ * matching position for rest.
+ *
+ * So a future date returns `undefined` rather than a fabricated Date. Callers
+ * must decide what "there is no now on that day" means for them; they cannot
+ * accidentally compare against a time nobody has reached yet. A malformed
+ * `stripDate` takes the same exit — it sorts after any real date, and an
+ * Invalid Date was never a useful answer either.
  */
-export function venueNowOnDate(stripDate: string, timeZone?: string): Date {
+export function venueNowOnDate(stripDate: string, timeZone?: string): Date | undefined {
   const parts = venueParts(new Date(), timeZone);
   if (!parts) return new Date(`${stripDate}T00:00:00`);
+  // `YYYY-MM-DD` sorts lexicographically, so no parsing is needed to order two
+  // of them — and the comparison is made on the venue's today, never the
+  // browser's, which is the whole point of this module.
+  const todayAtVenue = `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`;
+  if (stripDate.slice(0, 10) > todayAtVenue) return undefined;
   return new Date(`${stripDate}T${pad2(parts.hour)}:${pad2(parts.minute)}:${pad2(parts.second)}`);
 }

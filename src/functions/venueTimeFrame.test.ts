@@ -122,13 +122,21 @@ describe('venueWallClockToMs — a venue wall clock back to an absolute instant'
 
 describe('venueNowOnDate — "now" projected onto a viewed date, as a NAIVE Date', () => {
   /**
+   * A day that is already past at the venue, so the projection applies. Fixed
+   * rather than computed: a relative date would drift into "today" or "future"
+   * depending on when the suite runs, and those are different rules below.
+   */
+  const PAST_DAY = '2026-08-20';
+
+  /**
    * Naivety is load-bearing: this gets compared against court-block bounds,
    * which are zone-less `YYYY-MM-DDTHH:MM:SS` strings parsed the same way. The
    * browser's zone cancels on both sides; only the time-of-day has to be right.
    */
   it('carries the viewed date and the VENUE time-of-day', () => {
-    const projected = venueNowOnDate('2026-08-20', KOLKATA);
+    const projected = venueNowOnDate(PAST_DAY, KOLKATA) as Date;
     const nowParts = venueParts(new Date(), KOLKATA);
+    expect(projected).toBeInstanceOf(Date);
     expect(projected.getFullYear()).toBe(2026);
     expect(projected.getMonth()).toBe(7);
     expect(projected.getDate()).toBe(20);
@@ -137,11 +145,54 @@ describe('venueNowOnDate — "now" projected onto a viewed date, as a NAIVE Date
   });
 
   it('compares correctly against a naive court-block bound in the same frame', () => {
-    const projected = venueNowOnDate('2026-08-20', KOLKATA);
+    const projected = venueNowOnDate(PAST_DAY, KOLKATA) as Date;
     const blockStart = new Date('2026-08-20T00:00:00');
     const blockEnd = new Date('2026-08-21T00:00:00');
     expect(projected >= blockStart).toBe(true);
     expect(projected < blockEnd).toBe(true);
+  });
+});
+
+/**
+ * The projection runs backwards in time only. Onto a future day it would not
+ * describe a clock but invent one, marking every block painted before the
+ * current time-of-day as in effect on a day nobody has reached — which is the
+ * court-block twin of the rest badge that read "on court" in a tournament with
+ * no courts.
+ *
+ * Dated off the venue's own today rather than a literal, because "future" is
+ * the one property a fixed date cannot keep.
+ */
+describe('venueNowOnDate — a day the venue has not reached has no "now"', () => {
+  /** `YYYY-MM-DD`, `offset` days from the venue's today. Parsed as UTC, so no DST can shorten a day. */
+  function venueDayOffsetBy(offset: number, timeZone: string): string {
+    const today = venueCalendarDate(new Date(), timeZone);
+    const shifted = new Date(Date.parse(`${today}T00:00:00Z`) + offset * 86_400_000);
+    return shifted.toISOString().slice(0, 10);
+  }
+
+  it('returns undefined for tomorrow, and for any day beyond it', () => {
+    expect(venueNowOnDate(venueDayOffsetBy(1, KOLKATA), KOLKATA)).toBeUndefined();
+    expect(venueNowOnDate(venueDayOffsetBy(30, KOLKATA), KOLKATA)).toBeUndefined();
+  });
+
+  it('still answers for today and for yesterday', () => {
+    expect(venueNowOnDate(venueDayOffsetBy(0, KOLKATA), KOLKATA)).toBeInstanceOf(Date);
+    expect(venueNowOnDate(venueDayOffsetBy(-1, KOLKATA), KOLKATA)).toBeInstanceOf(Date);
+  });
+
+  /**
+   * The boundary is the VENUE's day, not the operator's. Under `TZ=UTC` the
+   * runner and Kolkata disagree about the date for five and a half hours every
+   * night; asking about the venue's own today must be answerable throughout.
+   */
+  it('reads the boundary against the venue day rather than the runner day', () => {
+    expect(venueNowOnDate(venueDayOffsetBy(0, KOLKATA), KOLKATA)).toBeInstanceOf(Date);
+    expect(venueNowOnDate(venueDayOffsetBy(0, LOS_ANGELES), LOS_ANGELES)).toBeInstanceOf(Date);
+  });
+
+  it('takes the same exit for a date it cannot read', () => {
+    expect(venueNowOnDate('not-a-date', KOLKATA)).toBeUndefined();
   });
 });
 
