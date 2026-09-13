@@ -87,7 +87,7 @@ pnpm test:e2e
 
 | | |
 |---|---|
-| **Data standard** | CODES — a superset of the ITF's TODS, written natively by the engine |
+| **Data standard** | CODES — CourtHive's canonical competition record, written natively by the engine |
 | **Business logic** | [tods-competition-factory](https://github.com/CourtHive/tods-competition-factory) |
 | **UI components** | [courthive-components](https://github.com/CourtHive/courthive-components) |
 | **Framework** | Vanilla TypeScript — no React/Vue/Angular |
