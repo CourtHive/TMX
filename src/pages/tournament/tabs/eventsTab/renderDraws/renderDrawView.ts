@@ -509,7 +509,15 @@ export function renderDrawView({
 
   const onInitialRoundChange = (roundNumber: number) => {
     initialRoundNumber = roundNumber;
-    getData(); // fresh matchUps — renderRound mutates roundFactor in-place
+    // Re-read from the engine. This was originally here because renderRound
+    // rescaled matchUp.roundFactor in place and the division compounded across
+    // renders — fixed in courthive-components 4.1.2, which passes the scale per
+    // render instead. The call STAYS for a different reason: handleRemoteMutation
+    // defers its refresh while a scoring modal is open (remoteMutations.ts),
+    // leaving the engine updated and `structure`/`matchUps` stale. A chip click
+    // is the next thing that reconciles them, and a remote executionQueue can
+    // change the SHAPE of the draw, not just a score.
+    getData();
     if (drawsView) removeAllChildNodes(drawsView);
     updateDrawDisplay();
     // Rebuild the control bar so the minimap toggle icon and active round tab
