@@ -980,6 +980,8 @@
         "tooltipOnCourt": "{{name}} — still on court",
         "tooltipOnCourtOverrun": "{{name}} — still on court, past the expected finish",
         "tooltipNone": "{{name}} — no prior match today",
+        "tooltipPending": "Winner of {{label}} — still to be decided, no rest yet",
+        "tooltipPendingReady": "Winner of {{label}} — still to be decided, ready {{time}}",
         "tooltipUnknown": "{{name}} — prior match has no recorded finish"
       },
       "time": {
@@ -1023,6 +1025,9 @@
         "onCourt": "On court now",
         "onCourtUntil": "On court now — ready {{time}}",
         "onCourtOverrun": "On court now — past the expected finish",
+        "pendingName": "Winner of {{label}}",
+        "pending": "Still to be decided — no rest yet",
+        "pendingUntil": "Still to be decided — ready {{time}}",
         "anchorUnreliable": "Prior match has no recorded finish — rest cannot be measured",
         "noPriorMatch": "No prior match today",
         "typeChange": "type change",

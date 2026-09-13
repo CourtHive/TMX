@@ -183,3 +183,43 @@ describe('badgeModel — one derivation for the first paint and every repaint', 
     expect(before?.text).not.toBe(after?.text);
   });
 });
+
+describe('badge for a side that has not been decided yet', () => {
+  const pending = row({
+    participantId: 'pending:qf',
+    participantName: 'Quarterfinal: Alice vs Chen',
+    status: 'onCourt',
+    pendingUpstream: true,
+    requiredMinutes: 60,
+    readyAt: '15:30',
+    restMinutes: undefined,
+  });
+
+  it('shows zero rest as a figure rather than the on-court word', () => {
+    // The figure is what makes it comparable with the "3h 45m" it sits beside.
+    expect(badgeText(pending)).toBe('0m');
+  });
+
+  it('outranks a rested player, so the card stops reading green', () => {
+    const rested = row({ participantId: 'p-bob', status: 'rested', restMinutes: 225 });
+    expect(headlineRow([rested, pending])?.participantId).toBe('pending:qf');
+  });
+
+  it('names the deciding matchUp in the tooltip, never as a player on court', () => {
+    const tooltip = badgeTooltip([pending]);
+    expect(tooltip).toContain('Quarterfinal: Alice vs Chen');
+    expect(tooltip).toContain('15:30');
+    expect(tooltip).not.toContain('still on court');
+  });
+
+  it('says only that rest has not started when the finish cannot be projected', () => {
+    const tooltip = badgeTooltip([{ ...pending, readyAt: undefined }]);
+    expect(tooltip).toContain('no rest yet');
+  });
+
+  it('carries the pending flag on the model so the DOM can say which zero this is', () => {
+    const model = badgeModel({ evaluated: true, asOfMinutes: 810, rows: [pending] });
+    expect(model?.pendingUpstream).toBe(true);
+    expect(model?.text).toBe('0m');
+  });
+});

@@ -57,6 +57,18 @@
  * strongest one that is actually behind the clock. `anchorUnreliable` is
  * reserved for the case where the whole ladder is in the future.
  *
+ * ── Sides that have not been decided yet ──
+ *
+ * A row does not always stand for a person. When a side has no participant —
+ * "TBD vs Camacho/Talla" — the player who arrives is still finishing a match
+ * upstream, so their rest is zero and stays zero until that match ends. Reporting
+ * only the known side made the worst case read as the best one: a semifinal whose
+ * other half was still being played for showed a comfortable three hours and a
+ * green badge. `pendingSideRows` adds one row per undecided side, banded
+ * `onCourt` and flagged `pendingUpstream` so no renderer presents a matchUp label
+ * as a person. Both sides undecided remains a skip — there is no rest question
+ * until somebody is in the match.
+ *
  * `RestInput` → `RestResult` is the seam, matching `matchUpReadiness.ts`: a
  * factory `getParticipantRest` replaces this body and keeps the contract. The
  * factory is pure and has no clock, so it takes the same injected asOf — the
@@ -179,6 +191,17 @@ export interface RestRow {
    * reported as zero rather than guessed.
    */
   anchorUnreliable?: boolean;
+  /**
+   * True when this row does not stand for a known participant at all, but for a
+   * side that has not been decided yet — whoever comes out of `fromMatchUpId`.
+   *
+   * Their rest is zero and stays zero until that match finishes, which is the
+   * whole point of the row: a card showing only the known side's comfortable
+   * three hours claims the matchUp is ready to call when half of it is still
+   * being played for. Renderers must not present it as a person: the name field
+   * carries a matchUp label, and the daily load is unknowable.
+   */
+  pendingUpstream?: boolean;
   /** Which rung produced the anchor. Absent for `none`. */
   source?: RestSourceKind;
   /**
@@ -597,6 +620,87 @@ function deficitMinutes(row: RestRow): number {
 }
 
 /**
+ * Nothing can be counted for a participant who is not known yet — which of the
+ * two players still on court arrives here decides their day, and that is exactly
+ * what has not happened. Zero rather than a guess, and renderers skip the
+ * ordinal for a pending row rather than printing "match #0 today".
+ */
+const UNKNOWN_LOAD: RestDailyLoad = { singles: 0, doubles: 0, total: 0, ordinal: 0, atLimit: [] };
+
+/** True when `matchUp` feeds either of its outcomes into `matchUpId`. */
+function feedsInto(matchUp: ReadinessMatchUp, matchUpId: string): boolean {
+  return matchUp.winnerMatchUpId === matchUpId || matchUp.loserMatchUpId === matchUpId;
+}
+
+/**
+ * The row for a side that has no participant yet.
+ *
+ * `onCourt` is the right band even when the feeder has not started: the band
+ * means "their previous match has not finished, so rest has not begun", and that
+ * is true of a match still to be played as surely as one in progress. The
+ * projected finish comes from the same ladder every other row uses, so a feeder
+ * that is merely scheduled still yields a `readyAt` — the earliest this matchUp
+ * could honestly be called.
+ */
+function pendingRowFor(feeder: ReadinessMatchUp, target: ReadinessMatchUp, input: RestInput): RestRow {
+  const timing = input.timingFor(feeder);
+  const { requiredMinutes, typeChange } = requirementFor(feeder, target, timing);
+  const anchor = resolveAnchor(input.timesFor(feeder), timing);
+  // Same reading as the live branch: once the projected finish has passed, the
+  // projection has expired and naming a `readyAt` behind the clock would read as
+  // though the winner were already free.
+  const overrun = !!anchor && anchor.minutes <= input.asOfMinutes;
+  const readyAt = anchor && !overrun ? minutesToClock(anchor.minutes + requiredMinutes) : undefined;
+
+  return {
+    // Namespaced because it is not a participantId and nothing downstream should
+    // be able to mistake it for one — the row is keyed by the match that decides
+    // the side, because that is the only identity available.
+    participantId: `pending:${feeder.matchUpId}`,
+    participantName: matchUpLabel(feeder),
+    status: 'onCourt',
+    pendingUpstream: true,
+    requiredMinutes,
+    typeChange,
+    ...(readyAt && { readyAt }),
+    ...(overrun && { overrun: true }),
+    ...(anchor && { source: anchor.source }),
+    fromMatchUpId: feeder.matchUpId,
+    fromMatchUpLabel: matchUpLabel(feeder),
+    load: UNKNOWN_LOAD,
+  };
+}
+
+/**
+ * One row per undecided side, drawn from the unfinished matchUps that feed this
+ * one.
+ *
+ * Without these, a semifinal reading "TBD vs Camacho/Talla" reported only
+ * Camacho/Talla — three hours rested, badge green, apparently ready to call —
+ * while the other half of it was still being played for. The badge takes the
+ * worst row, so surfacing the undecided side is what makes it tell the truth.
+ *
+ * Feeders are paired to sides positionally rather than by draw position: the
+ * count is what matters (two undecided sides, two unfinished feeders), and a
+ * one-sided pairing is the common case. Sorted so the pairing is stable across
+ * renders rather than following `matchUps` order.
+ */
+function pendingSideRows(target: ReadinessMatchUp, input: RestInput): RestRow[] {
+  const undecided = (target.sides ?? []).filter((side) => !(side.participantId ?? side.participant?.participantId));
+  if (!undecided.length) return [];
+
+  const feeders = input.matchUps
+    .filter((matchUp) => feedsInto(matchUp, target.matchUpId) && matchUp.matchUpStatus !== BYE && !isFinished(matchUp))
+    .toSorted(
+      (a, b) =>
+        (a.schedule?.scheduledTime ?? '').localeCompare(b.schedule?.scheduledTime ?? '') ||
+        a.matchUpId.localeCompare(b.matchUpId),
+    );
+
+  return feeders.slice(0, undecided.length).map((feeder) => pendingRowFor(feeder, target, input));
+}
+
+/**
  * Rest for every individual in one matchUp. Rows are ordered worst-first
  * (`onCourt` → `resting` → `rested` → `none`) so a renderer can take the head as
  * the headline without re-deciding severity.
@@ -612,9 +716,12 @@ export function analyzeParticipantRest(input: RestInput): RestResult {
 
   const dayMatchUps = collectPriorMatchUps(target, input);
   const order: RestStatus[] = ['onCourt', 'resting', 'rested', 'none'];
-  const rows = participantIds
-    .map((participantId) => restRowFor(participantId, target, input, dayMatchUps))
-    .toSorted((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || deficitMinutes(b) - deficitMinutes(a));
+  const rows = [
+    ...participantIds.map((participantId) => restRowFor(participantId, target, input, dayMatchUps)),
+    // Sorted in with the rest rather than appended: an undecided side is the
+    // worst row on the card by construction, and the badge reads the worst row.
+    ...pendingSideRows(target, input),
+  ].toSorted((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || deficitMinutes(b) - deficitMinutes(a));
 
   return { evaluated: true, asOfMinutes: input.asOfMinutes, rows };
 }

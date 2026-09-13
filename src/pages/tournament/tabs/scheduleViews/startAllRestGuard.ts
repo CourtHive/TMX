@@ -44,6 +44,10 @@ export interface StartAllRestWarning {
 
 /** A row is a blocker when the player owes recovery or has not left the court. */
 export function isBlocker(row: RestRow): boolean {
+  // A pending row stands for a side nobody has identified yet, not a player who
+  // owes recovery — and a matchUp with an undecided side is not startable in the
+  // first place. Counting it would put a matchUp label in a list of people.
+  if (row.pendingUpstream) return false;
   return row.status === 'onCourt' || row.status === 'resting';
 }
 

@@ -69,6 +69,11 @@ export function headlineRow(rows: RestRow[]): RestRow | undefined {
  * would be a fiction.
  */
 export function badgeText(row: RestRow): string {
+  // An undecided side has had no rest, and saying so as a figure is what makes
+  // the card comparable: "0m" sits in the same column as the 3h 45m beside it,
+  // where the word "on court" would read as a different kind of statement — and
+  // would be a claim about a player nobody has identified yet.
+  if (row.pendingUpstream) return formatDuration(0);
   if (row.status === 'onCourt') return t('schedule.card.rest.onCourt');
   if (row.status === 'none') return t('schedule.card.rest.none');
   // A future anchor yields a zero that is arithmetic, not measurement. Showing
@@ -81,6 +86,10 @@ export function badgeText(row: RestRow): string {
 export function badgeTooltip(rows: RestRow[]): string {
   return rows
     .map((row) => {
+      if (row.pendingUpstream) {
+        const key = row.readyAt ? 'schedule.card.rest.tooltipPendingReady' : 'schedule.card.rest.tooltipPending';
+        return t(key, { label: row.participantName, time: row.readyAt ?? '' });
+      }
       if (row.status === 'onCourt') {
         const key = row.overrun ? 'schedule.card.rest.tooltipOnCourtOverrun' : 'schedule.card.rest.tooltipOnCourt';
         return t(key, { name: row.participantName });
@@ -114,6 +123,8 @@ export function shouldRender(result: RestResult): boolean {
  */
 export interface RestBadgeModel {
   status: RestStatus;
+  /** True when the headline row is an undecided side rather than a known player. */
+  pendingUpstream: boolean;
   text: string;
   title: string;
   /** Joined limit keys for the data attribute; empty when no limit is met. */
@@ -130,6 +141,7 @@ export function badgeModel(result: RestResult): RestBadgeModel | null {
 
   return {
     status: row.status,
+    pendingUpstream: !!row.pendingUpstream,
     text: badgeText(row),
     title: badgeTooltip(result.rows),
     atLimit: row.load.atLimit.join(','),
@@ -143,6 +155,10 @@ export function badgeModel(result: RestResult): RestBadgeModel | null {
 function applyBadge(badge: HTMLElement, model: RestBadgeModel): void {
   badge.className = `tmx-rest-badge is-${model.status.toLowerCase()}`;
   badge.dataset.restStatus = model.status;
+  // Carried so the DOM says which kind of zero this is: a player standing on
+  // court, or a side that has not been decided.
+  if (model.pendingUpstream) badge.dataset.pendingUpstream = 'true';
+  else delete badge.dataset.pendingUpstream;
   badge.title = model.title;
 
   // `textContent =` would take the limit marker with it, so the leading text node

@@ -342,6 +342,14 @@ export function describeSource(row: RestRow): string {
 
 /** The rest figure itself, as a sentence fragment. */
 export function describeRest(row: RestRow): string {
+  // Checked before the status bands: a pending row is banded `onCourt` because
+  // rest has not begun, but nobody is on court under that name — the name is a
+  // matchUp, and the sentence has to say so.
+  if (row.pendingUpstream) {
+    return row.readyAt
+      ? t('schedule.inspector.rest.pendingUntil', { time: row.readyAt })
+      : t('schedule.inspector.rest.pending');
+  }
   if (row.status === 'none') return t('schedule.inspector.rest.noPriorMatch');
   if (row.status === 'onCourt') {
     if (row.overrun) return t('schedule.inspector.rest.onCourtOverrun');
@@ -376,6 +384,9 @@ export function describeDiscarded(row: RestRow): string {
 
 /** The daily-load fragment: "3rd match today, limit 3". */
 export function describeLoad(row: RestRow): string {
+  // Nobody is known, so nothing can be counted — see `UNKNOWN_LOAD`. Printing
+  // the zero would read as "match #0 today".
+  if (row.pendingUpstream) return '';
   const { ordinal, limit } = row.load;
   return limit === undefined
     ? t('schedule.inspector.rest.ordinal', { ordinal })
@@ -393,6 +404,7 @@ function buildRow(row: RestRow): HTMLElement {
   const element = document.createElement('div');
   element.className = `tmx-rest-row is-${row.status.toLowerCase()}`;
   element.dataset.status = row.status;
+  if (row.pendingUpstream) element.dataset.pendingUpstream = 'true';
   element.dataset.participantId = row.participantId;
 
   // Clicking the row drives the court grid's search box, which highlights every
@@ -403,7 +415,10 @@ function buildRow(row: RestRow): HTMLElement {
   // no affordance. `dataset` rather than re-reading `.tmx-rest-name` text so the
   // seed/ranking suffixes a future display config might add cannot leak into the
   // query.
-  if (gridSearchAvailable()) {
+  // The search affordance is offered only for real people: a pending row's name
+  // is a matchUp label, and driving the grid search with it would highlight
+  // nothing while looking like it should.
+  if (gridSearchAvailable() && !row.pendingUpstream) {
     element.dataset.participantName = row.participantName;
     element.classList.add('is-searchable');
     element.tabIndex = 0;
@@ -411,7 +426,10 @@ function buildRow(row: RestRow): HTMLElement {
     element.setAttribute('aria-label', t('schedule.inspector.rest.searchFor', { name: row.participantName }));
   }
 
-  element.appendChild(line(row.participantName, 'tmx-rest-name'));
+  const name = row.pendingUpstream
+    ? t('schedule.inspector.rest.pendingName', { label: row.participantName })
+    : row.participantName;
+  element.appendChild(line(name, 'tmx-rest-name'));
   element.appendChild(line(describeRest(row), 'tmx-rest-figure'));
 
   const detail = document.createElement('div');

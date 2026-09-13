@@ -937,3 +937,166 @@ describe('the DOUBLES daily limit, whose SINGLES twin was already covered', () =
     expect(result.rows.find((row) => row.participantId === ALICE)?.load.atLimit).toEqual([]);
   });
 });
+
+describe('analyzeParticipantRest — sides that have not been decided yet', () => {
+  /** A target with one known side and one still being played for upstream. */
+  function halfKnown(overrides: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp {
+    return {
+      matchUpId: 'sf',
+      matchUpType: 'SINGLES',
+      roundName: 'Semifinal',
+      sides: [{}, { participantId: BOB, participantName: 'Bob' }],
+      schedule: { scheduledDate: DATE, scheduledTime: '14:30' },
+      ...overrides,
+    };
+  }
+
+  /** The quarterfinal that decides the undecided side. */
+  function feeder(overrides: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp {
+    return {
+      ...singles({ id: 'qf', ids: [ALICE, CHEN], roundName: 'Quarterfinal', scheduledTime: '13:00' }),
+      winnerMatchUpId: 'sf',
+      ...overrides,
+    };
+  }
+
+  it('reports the undecided side as the headline, not the rested player beside it', () => {
+    // The defect this closes: Bob is comfortably rested, so the card read green
+    // while the other half of the matchUp was still being played for.
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder(), singles({ id: 'earlier', ids: [BOB, CHEN], winningSide: 1 })],
+          times: { earlier: { endMinutes: 540 }, qf: { startMinutes: 780 } },
+          asOfMinutes: 810,
+        }),
+      ),
+    );
+
+    const [headline] = result.rows;
+    expect(headline.pendingUpstream).toBe(true);
+    expect(headline.status).toBe('onCourt');
+    expect(headline.restMinutes).toBeUndefined();
+    expect(headline.fromMatchUpId).toBe('qf');
+    // Bob is still reported — the undecided side is added, not substituted.
+    expect(result.rows.find((row) => row.participantId === BOB)?.status).toBe('rested');
+  });
+
+  it('names the deciding matchUp rather than inventing a participant', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder()],
+          times: { qf: { startMinutes: 780 } },
+          asOfMinutes: 810,
+        }),
+      ),
+    );
+    const [headline] = result.rows;
+    expect(headline.participantName).toBe('Quarterfinal: p-alice vs p-chen');
+    expect(headline.participantId).toBe('pending:qf');
+  });
+
+  it('projects readyAt through the feeder finish plus recovery', () => {
+    // qf starts 13:00 (780), averages 90 → finishes 14:30 (870); +60 recovery → 15:30.
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder()],
+          times: { qf: { startMinutes: 780 } },
+          asOfMinutes: 800,
+        }),
+      ),
+    );
+    expect(result.rows[0].readyAt).toBe('15:30');
+    expect(result.rows[0].overrun).toBeUndefined();
+  });
+
+  it('withholds readyAt once the feeder has run past its projected finish', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder()],
+          times: { qf: { startMinutes: 780 } },
+          asOfMinutes: 900,
+        }),
+      ),
+    );
+    expect(result.rows[0].overrun).toBe(true);
+    expect(result.rows[0].readyAt).toBeUndefined();
+  });
+
+  it('reports a feeder that has not started yet — rest has not begun either way', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder()],
+          times: { qf: { scheduledMinutes: 780 } },
+          asOfMinutes: 700,
+        }),
+      ),
+    );
+    expect(result.rows[0].pendingUpstream).toBe(true);
+    expect(result.rows[0].readyAt).toBe('15:30');
+  });
+
+  it('says nothing when the feeder is already finished — the side is simply not hydrated', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder({ winningSide: 1, matchUpStatus: 'COMPLETED' })],
+          times: { qf: { endMinutes: 780 } },
+          asOfMinutes: 810,
+        }),
+      ),
+    );
+    expect(result.rows.every((row) => !row.pendingUpstream)).toBe(true);
+  });
+
+  it('adds no pending row when both sides are known', () => {
+    const target = singles({ id: 'sf', ids: [ALICE, BOB], roundName: 'Semifinal' });
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({ matchUpId: 'sf', matchUps: [target, feeder()], times: {}, asOfMinutes: 810 }),
+      ),
+    );
+    expect(result.rows.every((row) => !row.pendingUpstream)).toBe(true);
+  });
+
+  it('still skips when BOTH sides are undecided — there is no rest question yet', () => {
+    // Pending rows supplement known participants; they do not resurrect a matchUp
+    // nobody is in. A card with no rest badge does not read as ready, and the
+    // time header carries the readiness colour for this case.
+    const target = halfKnown({ sides: [{}, {}] });
+    const second = feeder({ matchUpId: 'qf2', roundName: 'Quarterfinal 2' });
+    const result = analyzeParticipantRest(
+      buildInput({
+        matchUpId: 'sf',
+        matchUps: [target, feeder(), second],
+        times: { qf: { startMinutes: 780 }, qf2: { startMinutes: 780 } },
+        asOfMinutes: 810,
+      }),
+    );
+    expect(result).toEqual({ evaluated: false, reason: 'noParticipants' });
+  });
+
+  it('carries an unknown daily load rather than counting a day nobody has had', () => {
+    const result = evaluated(
+      analyzeParticipantRest(
+        buildInput({
+          matchUpId: 'sf',
+          matchUps: [halfKnown(), feeder()],
+          times: { qf: { startMinutes: 780 } },
+          asOfMinutes: 810,
+        }),
+      ),
+    );
+    expect(result.rows[0].load).toEqual({ singles: 0, doubles: 0, total: 0, ordinal: 0, atLimit: [] });
+  });
+});
