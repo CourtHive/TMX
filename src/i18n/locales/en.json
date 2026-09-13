@@ -981,6 +981,11 @@
         "tooltipOnCourtOverrun": "{{name}} — still on court, past the expected finish",
         "tooltipNone": "{{name}} — no prior match today",
         "tooltipUnknown": "{{name}} — prior match has no recorded finish"
+      },
+      "time": {
+        "ok": "This time looks achievable.",
+        "warn": "This time is at risk:",
+        "alert": "This time cannot be met:"
       }
     },
     "inspector": {

@@ -20,6 +20,7 @@
  * the moment the director is deciding whether to call it).
  */
 
+import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
@@ -28,16 +29,48 @@ import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+import type { ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+
+/**
+ * A readiness evaluator valid for one pass, sharing the engine work across every
+ * matchUp it is asked about.
+ *
+ * `makeTimingResolver()` walks the tournament's events, which costs a
+ * `getTournament()`. Paying for that once is fine for the Inspector's single
+ * matchUp and wrong for the Scheduled panel, which now grades the time header of
+ * every card it draws — that would be one tournament walk per card, the same
+ * trap `restBadge.ts` documents measuring at ~235ms of a ~300ms render.
+ */
+export function makeReadinessEvaluator(): (matchUpId: string) => ReadinessResult {
+  const { matchUps } = getCachedAllMatchUps();
+  const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
+  const timingFor = makeTimingResolver();
+  return (matchUpId) => analyzeMatchUpReadiness({ matchUpId, matchUps: hydrated, timingFor });
+}
+
+/**
+ * One evaluator per synchronous pass, released on the next microtask.
+ *
+ * Same boundary and the same reasoning as `inspectorRest.evaluatorForPass`: it is
+ * the tightest release that still covers a whole render, so every card in a pass
+ * is graded against one reading of tournament state and nothing survives into a
+ * task where a mutation could have replaced it.
+ */
+let passEvaluator: ReturnType<typeof makeReadinessEvaluator> | null = null;
+
+function evaluatorForPass(): ReturnType<typeof makeReadinessEvaluator> {
+  if (!passEvaluator) {
+    passEvaluator = makeReadinessEvaluator();
+    queueMicrotask(() => {
+      passEvaluator = null;
+    });
+  }
+  return passEvaluator;
+}
 
 /** Readiness for one matchUp, resolved against current factory state. */
 export function evaluateReadiness(matchUpId: string): ReadinessResult {
-  const { matchUps } = getCachedAllMatchUps();
-  return analyzeMatchUpReadiness({
-    matchUpId,
-    matchUps: (matchUps ?? []) as ReadinessMatchUp[],
-    timingFor: makeTimingResolver(),
-  });
+  return evaluatorForPass()(matchUpId);
 }
 
 function line(text: string, className: string): HTMLElement {
@@ -45,38 +78,6 @@ function line(text: string, className: string): HTMLElement {
   el.className = className;
   el.textContent = text;
   return el;
-}
-
-/**
- * One finding as a sentence. Phrasing tracks `scheduleResultsDescribe.ts` so the
- * auto-scheduler's deferral reasons and the Inspector describe the same condition
- * the same way.
- */
-export function describeFinding(finding: ReadinessFinding): string {
-  const names = finding.participantNames?.join(', ') ?? '';
-  const labels = finding.matchUpLabels?.join(', ') ?? '';
-  const notBefore = finding.notBefore;
-
-  if (finding.kind === 'overlap') return t('schedule.inspector.readiness.overlap', { names, labels });
-  if (finding.kind === 'recovery') {
-    return notBefore
-      ? t('schedule.inspector.readiness.recoveryNotBefore', { names, time: notBefore })
-      : t('schedule.inspector.readiness.recovery', { names });
-  }
-  if (finding.kind === 'dependency') {
-    return notBefore
-      ? t('schedule.inspector.readiness.dependencyNotBefore', { labels, time: notBefore })
-      : t('schedule.inspector.readiness.dependencyUnscheduled', { labels });
-  }
-  return t('schedule.inspector.readiness.undetermined', { labels });
-}
-
-function skipMessage(reason: string): string {
-  const key = `schedule.inspector.readiness.skip.${reason}`;
-  const message = t(key);
-  // `t()` echoes the key when it resolves to nothing; fall back to the generic
-  // line rather than printing a dotted path at the operator.
-  return message === key ? t('schedule.inspector.readiness.skip.generic') : message;
 }
 
 /**

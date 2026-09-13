@@ -274,6 +274,40 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(page.locator(READINESS_FINDING)).toHaveCount(0);
   });
 
+  test('the scheduled time is graded by the same finding the Inspector shows', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    const card = page.locator(SCHEDULED_CARD).nth(1);
+    await card.click();
+
+    // The seed yields `overlap` or `recovery` depending on how the engine
+    // resolves the format average (see the test above), and the two grade to
+    // different tiers on purpose: on court elsewhere is impossible, under-rested
+    // is merely compromised. So the expected colour is read FROM the finding
+    // rather than hard-coded — the point being that the card and the panel
+    // cannot disagree.
+    const kind = await page.locator(`${READINESS_FINDING}[data-kind]`).first().getAttribute('data-kind');
+    const expected = kind === 'overlap' || kind === 'dependency' ? 'alert' : 'warn';
+
+    const timeHeader = card.locator('.spl-card-time-header');
+    await expect(timeHeader).toHaveAttribute('data-time-status', expected);
+    // A colour that cannot be interrogated is one the operator learns to ignore.
+    expect(await timeHeader.getAttribute('title')).toBeTruthy();
+  });
+
+  test('the scheduled time stays green when readiness reports nothing', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clean');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    // The control for the test above: a grading that always warns would pass it.
+    const timeHeader = page.locator(SCHEDULED_CARD).first().locator('.spl-card-time-header');
+    await expect(timeHeader).toHaveAttribute('data-time-status', 'ok');
+    await expect(timeHeader).not.toHaveClass(/spl-card-time-header--/);
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

@@ -281,8 +281,9 @@ import {
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
+import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { buildCheckInModeToggle } from './checkInModeToggle';
-import { renderInspectorSections } from './inspectorReadiness';
+import { scheduledTimeModel } from './scheduledTimeStatus';
 import { renderCheckInBadge } from './checkInBadge';
 import { renderRestBadge } from './restBadge';
 
@@ -1188,12 +1189,18 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         // visual priority stays stable while the operator searches.
         const base = baseRoundByEvent.get(item.eventId);
         const roundOffset = base === undefined ? undefined : Math.max(0, item.roundNumber - base);
+        // The time header is graded by the same readiness analysis the Inspector
+        // shows, so a card cannot read green while the panel behind it reads red.
+        // `evaluateReadiness` shares one engine pass across every card here.
+        const time = item.scheduledTime ? scheduledTimeModel(evaluateReadiness(item.matchUpId)) : null;
         const card = buildMatchUpCard(
           item,
           { onClick: (m) => selectFromScheduledPanel(m.matchUpId) },
           {
             prominentTime: true,
             roundOffset,
+            timeStatus: time?.status,
+            timeTitle: time?.title,
             // Same hook as the catalog. The Scheduled panel builds its cards
             // directly rather than through the component's catalog, so the
             // badge has to be passed here too or it would appear on only half
