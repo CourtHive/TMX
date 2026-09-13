@@ -173,6 +173,78 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     expect(await freeCells.count()).toBe(3);
   });
 
+  test('a court sitting idle with an overdue matchUp reads DUE, not free', async ({ page }) => {
+    // The case autocall structurally cannot reach. `computeAutoCalls` follows
+    // COURT ORDER: it takes the first candidate in the column and, if that one
+    // is not due yet, leaves the whole court alone — so the overdue match in row
+    // 2 is never called, however long it waits. Until now the strip said `free`
+    // about that court, which is the state this test exists to stop being a lie.
+    //
+    // Times are the day's extremes rather than offsets from the clock: `00:00`
+    // is at-or-before every wall time (a due row) and `23:59` is after all but
+    // one minute of the day (a not-yet-due row). This journey runs
+    // unauthenticated, so provider-gated autocall cannot call either away.
+    const { tournamentId, overdueMatchUpId, courtId } = await page.evaluate(async (date) => {
+      await dev.tmx2db.initDB();
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: 'E2E Strip Due',
+        tournamentAttributes: { tournamentId: 'e2e-strip-due', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [{ eventName: 'Due Singles', drawSize: 8, seedsCount: 2, drawType: 'SINGLE_ELIMINATION' }],
+        venueProfiles: [{ courtsCount: 4, venueName: 'Due Venue' }],
+      });
+
+      const court = (dev.factory.tournamentEngine.getVenuesAndCourts()?.venues || [])[0]?.courts?.[0];
+      const playable = (dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || []).filter(
+        (m: any) =>
+          m.matchUpStatus !== 'BYE' &&
+          (m.sides || []).filter((side: any) => side.participantId || side.participant?.participantId).length === 2,
+      );
+      if (playable.length < 2) throw new Error('seed produced fewer than two playable matchUps');
+
+      const place = (matchUp: any, courtOrder: number, scheduledTime: string) =>
+        dev.factory.tournamentEngine.addMatchUpScheduleItems({
+          matchUpId: matchUp.matchUpId,
+          drawId: matchUp.drawId,
+          schedule: {
+            scheduledDate: date,
+            scheduledTime,
+            courtId: court.courtId,
+            courtOrder,
+            venueId: court.venueId,
+          },
+        });
+
+      place(playable[0], 1, '23:59');
+      place(playable[1], 2, '00:00');
+
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+      return {
+        tournamentId: tournamentRecord.tournamentId as string,
+        overdueMatchUpId: playable[1].matchUpId as string,
+        courtId: court.courtId as string,
+      };
+    }, SCHEDULE_DATE);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+
+    const cell = page.locator(`${CELL_SELECTOR}[data-court-id="${courtId}"]`);
+    await expect(cell).toHaveClass(/state-due/);
+    await expect(cell.locator(STATE_PILL_SELECTOR)).toHaveText('DUE');
+    // The overdue row is what surfaces — not the 23:59 match sitting above it.
+    await expect(cell.locator(`[data-matchup-id="${overdueMatchUpId}"]`)).toHaveCount(1);
+
+    // The control: the other three courts have nothing on them at all, so they
+    // stay free. A `due` that fired on an empty court would pass the assertions
+    // above without meaning anything.
+    expect(await page.locator(`${CELL_SELECTOR}.state-free`).count()).toBe(3);
+  });
+
   test('an IN_PROGRESS matchUp surfaces on its court as LIVE', async ({ page }) => {
     const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 

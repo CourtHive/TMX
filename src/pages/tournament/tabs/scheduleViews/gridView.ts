@@ -96,7 +96,7 @@ import {
 } from './schedule2DataCache';
 import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
 import { getLoginState } from 'services/authentication/loginState';
-import { computeAutoCalls } from './autoCallDueMatches';
+import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -2615,7 +2615,13 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
 
   const courtBlocks = buildCurrentCourtBlocks(date);
 
-  return { grid: { columns }, courts, courtBlocks, gridTemplateColumns, minWidth };
+  // "Should have started by now" is only a question about today, and only on the
+  // venue's clock — a director west of the tournament would otherwise read the
+  // day as running late from the moment they opened it. Every other date is
+  // history or plan, where nothing can be overdue.
+  const dueMatchUpIds = date === todayIso() ? computeDueMatchUps(columns as any, venueClock(new Date())) : [];
+
+  return { grid: { columns }, courts, courtBlocks, dueMatchUpIds, gridTemplateColumns, minWidth };
 }
 
 /**
