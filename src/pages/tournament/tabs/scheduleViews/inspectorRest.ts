@@ -508,26 +508,49 @@ function paint(section: HTMLElement, matchUpId: string, viewedDate: string | nul
 
 // ── Live refresh ──────────────────────────────────────────────────────────
 // Rest counts up, so a static render goes stale the moment it is drawn. One
-// module-level interval drives whichever section is currently mounted; it stops
-// itself when that element leaves the document, which is what makes this safe
-// against the Inspector rebuilding its body on every state change and against
-// the schedule tab unmounting without telling us.
+// module-level interval drives every section currently mounted; each drops itself
+// when its element leaves the document, which is what makes this safe against the
+// Inspector rebuilding its body on every state change and against the schedule
+// tab unmounting without telling us.
+
+interface RestMount {
+  section: HTMLElement;
+  matchUpId: string;
+  viewedDate: string | null;
+}
 
 let tickHandle: ReturnType<typeof setInterval> | null = null;
-let mounted: { section: HTMLElement; matchUpId: string; viewedDate: string | null } | null = null;
+
+/**
+ * Every mounted section, not just the latest one.
+ *
+ * This was a single slot, which was correct while exactly one Rest section could
+ * exist. It cannot be any more: the court grid's cell popover can open its own
+ * Inspector view while the sidebar panel is showing another matchUp, and a
+ * single slot would silently stop the older one — leaving a frozen rest figure
+ * beside a live one, which is the precise failure this file's history is about.
+ *
+ * Pruned by connectedness on each tick, the same contract as before, so a
+ * section discarded by a rebuild or a closed popover drops itself without anyone
+ * having to remember to deregister it.
+ */
+const mounts = new Set<RestMount>();
 
 function stopTicker(): void {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
-  mounted = null;
+  mounts.clear();
 }
 
 function tick(): void {
-  if (!mounted?.section.isConnected) {
-    stopTicker();
-    return;
+  for (const mount of [...mounts]) {
+    if (!mount.section.isConnected) {
+      mounts.delete(mount);
+      continue;
+    }
+    paint(mount.section, mount.matchUpId, mount.viewedDate);
   }
-  paint(mounted.section, mounted.matchUpId, mounted.viewedDate);
+  if (!mounts.size) stopTicker();
 }
 
 /**
@@ -544,7 +567,7 @@ export function renderRestSection(matchUpId: string, viewedDate: string | null):
   section.addEventListener('keydown', onSectionActivate);
   paint(section, matchUpId, viewedDate);
 
-  mounted = { section, matchUpId, viewedDate };
+  mounts.add({ section, matchUpId, viewedDate });
   tickHandle ??= setInterval(tick, REFRESH_MS);
   return section;
 }

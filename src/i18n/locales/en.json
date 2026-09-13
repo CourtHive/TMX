@@ -993,6 +993,8 @@
     "inspector": {
       "show": "Show inspector",
       "hide": "Hide inspector",
+      "heading": "Inspector",
+      "back": "Back to actions",
       "placed": "On the grid — {{court}}",
       "placedAt": "On the grid — {{court}} at {{time}}",
       "placedHint": "Not in either catalog list. Click to highlight it on the court grid.",

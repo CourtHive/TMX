@@ -392,6 +392,51 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(page.locator(KV_ROW).filter({ hasText: 'Court' })).toHaveCount(1);
   });
 
+  test('the cell popover swaps to an Inspector view and back', async ({ page }) => {
+    // The question the cell popover could never answer: "should this be
+    // happening at all". Readiness and rest belong beside a court at least as
+    // much as beside the catalog.
+    const { tournamentId, clashingMatchUpId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    await page.evaluate((matchUpId) => {
+      const cell = document.querySelector('[data-court-id][data-court-order="1"]') as HTMLElement;
+      const all = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const matchUp = all.find((m: any) => m.matchUpId === matchUpId);
+      const dt = new DataTransfer();
+      dt.setData(
+        'application/json',
+        JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: { matchUpId, drawId: matchUp.drawId, sides: [] } }),
+      );
+      cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+      cell.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    }, clashingMatchUpId);
+
+    const cell = page.locator(`[data-court-id][data-matchup-id="${clashingMatchUpId}"]`);
+    await cell.click();
+
+    // A tooltip elsewhere on the page also renders `.tippy-content`; take the
+    // visible one, which is the popover just opened.
+    const popover = page.locator('.tippy-content[data-state="visible"]');
+    await expect(popover).toBeVisible();
+    // The pills come first; the Inspector is behind the (i).
+    await expect(popover.locator('.tmx-rest')).toHaveCount(0);
+
+    await popover.locator('button[title="Inspector"]').click();
+    await expect(popover.locator('.tmx-cell-inspector')).toBeVisible();
+    await expect(popover.locator('.tmx-rest')).toBeVisible();
+    await expect(popover.locator('.tmx-readiness')).toBeVisible();
+    // The "on the grid" note explains a selection missing from the sidebar; the
+    // pointer is on the cell here, so there is nothing to explain.
+    await expect(popover.locator('.tmx-inspector-placed')).toHaveCount(0);
+
+    await popover.locator('button[title="Back to actions"]').click();
+    await expect(popover.locator('.tmx-cell-inspector')).toHaveCount(0);
+    // Back is a swap, not a rebuild: the same pill menu returns.
+    await expect(popover.getByText('Set time', { exact: true })).toBeVisible();
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

@@ -23,6 +23,7 @@ import { closeModal, confirmModal, openModal } from 'components/modals/baseModal
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { evaluateRest, formatDuration } from './inspectorRest';
+import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
 import { timePicker } from 'components/modals/timePicker';
 import { venueNowClock } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
@@ -108,6 +109,9 @@ export function handleSchedule2CellClick(e: MouseEvent, ctx: Schedule2CellContex
 // Shared DOM Helpers
 // ============================================================================
 
+/** Tippy's own cap for the pill menu; the Inspector view raises it and Back restores it. */
+const PILL_POPOVER_WIDTH = 320;
+
 const POPOVER_CSS = [
   'padding: 10px',
   'min-width: 200px',
@@ -177,7 +181,12 @@ function makePill(
   return btn;
 }
 
-function makeIconBtn(title: string, icon: string, onClick: () => void, opts?: { color?: string }): HTMLElement {
+function makeIconBtn(
+  title: string,
+  icon: string,
+  onClick: () => void,
+  opts?: { color?: string; keepOpen?: boolean },
+): HTMLElement {
   const btn = document.createElement('button');
   btn.style.cssText = [
     `background: ${PILL_BG}`,
@@ -202,7 +211,10 @@ function makeIconBtn(title: string, icon: string, onClick: () => void, opts?: { 
     btn.style.opacity = '';
   });
   btn.addEventListener('click', () => {
-    destroyCellTip();
+    // `keepOpen` is for actions that REPLACE the popover's content rather than
+    // navigating away from it — destroying the tippy first would take the
+    // instance they are about to write into.
+    if (!opts?.keepOpen) destroyCellTip();
     onClick();
   });
   return btn;
@@ -223,6 +235,34 @@ function makeDivider(): HTMLElement {
   const hr = document.createElement('hr');
   hr.style.cssText = 'border: none; border-top: 1px solid var(--sp-border, var(--tmx-border-primary)); margin: 6px 0;';
   return hr;
+}
+
+/**
+ * Swap the open cell popover from its action pills to the Inspector, and back.
+ *
+ * `setContent` rather than a second tippy: the popover is already anchored where
+ * the operator is looking, and a new instance would have to re-resolve the cell
+ * and would leave the first one behind it. The pill menu element is kept alive
+ * in the closure, so Back is a swap rather than a rebuild — a rebuilt menu would
+ * lose nothing visible, but it would re-read tournament state mid-interaction
+ * and could come back a different shape.
+ */
+function showCellInspector(matchUpId: string, scheduledDate: string, pills: HTMLElement): void {
+  const tip = cellTip;
+  if (!tip) return;
+
+  const restore = () => {
+    tip.setProps({ maxWidth: PILL_POPOVER_WIDTH });
+    tip.setContent(pills);
+  };
+
+  const view = buildCellInspectorView(matchUpId, scheduledDate, restore);
+  // Nothing to show means the matchUp has left the tournament; leave the pills up
+  // rather than swapping to an empty panel.
+  if (!view) return;
+
+  tip.setProps({ maxWidth: INSPECTOR_POPOVER_WIDTH });
+  tip.setContent(view);
 }
 
 function showPopover(target: HTMLElement, content: HTMLElement): void {
@@ -506,6 +546,18 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     printBtn.style.marginLeft = 'auto';
     actionsRow.appendChild(printBtn);
   }
+  // Inspector — last, and the only button that keeps the popover open: it
+  // replaces this menu's content rather than navigating away from it.
+  actionsRow.appendChild(
+    makeIconBtn(
+      t('schedule.inspector.heading'),
+      'fa-circle-info',
+      () => showCellInspector(matchUpId, scheduledDate, pop),
+      {
+        keepOpen: true,
+      },
+    ),
+  );
   if (actionsRow.children.length) pop.appendChild(actionsRow);
 
   // Walk up to the grid cell for accurate popover positioning
