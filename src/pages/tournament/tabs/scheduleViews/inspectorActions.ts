@@ -21,7 +21,9 @@
  */
 
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { clearScheduledTime, pickScheduledTime } from './matchUpTimeAction';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { scheduleMutationAvailable } from './scheduleMutationControl';
 import { buildInspectorActionModel } from './inspectorActionsModel';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
@@ -30,6 +32,17 @@ import { t } from 'i18n';
 // constants and types
 import type { InspectorActionModel, InspectorActionParticipant } from './inspectorActionsModel';
 import type { ReadinessMatchUp } from './matchUpReadiness';
+
+/** Opening hour, used only when nothing better is known — the same figure the grid falls back to. */
+const DEFAULT_PICKER_TIME = '8:00 AM';
+
+/** What the caller knows that the matchUp itself does not. */
+export interface InspectorActionContext {
+  /** The day being viewed, written when the matchUp carries no date of its own. */
+  viewedDate?: string | null;
+  /** Earliest time readiness says this matchUp could start, `HH:MM`. Seeds the picker. */
+  notBefore?: string;
+}
 
 /** One clickable row in the popover. Shared shape so the draw row and the people read alike. */
 function actionRow(label: string, onClick: () => void, icon?: string): HTMLElement {
@@ -57,9 +70,70 @@ function heading(text: string): HTMLElement {
 }
 
 /** The popover body: the draw destination, then every individual on the matchUp. */
-function buildContent(model: InspectorActionModel, requestClose: () => void): HTMLElement {
+/**
+ * The schedule rows: set a time, and clear one once it exists.
+ *
+ * Offered here rather than only on the court grid because this is the surface
+ * that says *why* a time is wrong — "not before 15:30" is two lines above these
+ * rows. Making the operator find the cell to act on what the Inspector just told
+ * them is the interaction this closes.
+ */
+function scheduleRows(
+  model: InspectorActionModel,
+  context: InspectorActionContext,
+  requestClose: () => void,
+): HTMLElement[] {
+  if (!model.schedulable || !scheduleMutationAvailable()) return [];
+
+  const rows = [
+    actionRow(
+      t('schedule.inspector.actions.setTime'),
+      () => {
+        requestClose();
+        pickScheduledTime({
+          matchUpId: model.matchUpId,
+          // The readiness answer is the better default when there is one: the
+          // Inspector has just said the matchUp cannot start before 15:30, so
+          // opening the picker anywhere else asks the operator to retype what
+          // the panel already worked out.
+          defaultTime: context.notBefore ?? model.scheduledTime ?? DEFAULT_PICKER_TIME,
+          scheduledDate: model.scheduledDate,
+          viewedDate: context.viewedDate,
+        });
+      },
+      'fa-solid fa-clock',
+    ),
+  ];
+
+  if (model.scheduledTime) {
+    rows.push(
+      actionRow(
+        t('schedule.inspector.actions.clearTime'),
+        () => {
+          requestClose();
+          clearScheduledTime(model.matchUpId);
+        },
+        'fa-solid fa-xmark',
+      ),
+    );
+  }
+  return rows;
+}
+
+function buildContent(
+  model: InspectorActionModel,
+  context: InspectorActionContext,
+  requestClose: () => void,
+): HTMLElement {
   const content = document.createElement('div');
   content.className = 'tmx-inspector-actions-menu';
+
+  const schedule = scheduleRows(model, context, requestClose);
+  if (schedule.length) {
+    content.appendChild(heading(t('schedule.inspector.actions.schedule')));
+    for (const row of schedule) content.appendChild(row);
+    content.appendChild(heading(t('schedule.inspector.actions.navigate')));
+  }
 
   content.appendChild(
     actionRow(
@@ -90,11 +164,11 @@ function participantRow(participant: InspectorActionParticipant, requestClose: (
   );
 }
 
-function openMenu(anchor: HTMLElement, model: InspectorActionModel): void {
+function openMenu(anchor: HTMLElement, model: InspectorActionModel, context: InspectorActionContext): void {
   // Forward-declared so a row can dismiss the popover before navigating; a
   // popover left open across a route change lingers over the next page.
   let tip: TippyInstance | null = null;
-  const content = buildContent(model, () => tip?.hide());
+  const content = buildContent(model, context, () => tip?.hide());
 
   tip = tippy(anchor, {
     content,
@@ -113,7 +187,7 @@ function openMenu(anchor: HTMLElement, model: InspectorActionModel): void {
  * call, matching the Inspector's rebuild-on-every-render contract, or null when
  * the matchUp is no longer in the tournament.
  */
-export function renderInspectorActions(matchUpId: string): HTMLElement | null {
+export function renderInspectorActions(matchUpId: string, context: InspectorActionContext = {}): HTMLElement | null {
   if (!matchUpId) return null;
 
   const { matchUps } = getCachedAllMatchUps();
@@ -134,7 +208,7 @@ export function renderInspectorActions(matchUpId: string): HTMLElement | null {
   glyph.setAttribute('aria-hidden', 'true');
   trigger.appendChild(glyph);
 
-  trigger.addEventListener('click', () => openMenu(trigger, model));
+  trigger.addEventListener('click', () => openMenu(trigger, model, context));
   block.appendChild(trigger);
 
   const label = document.createElement('span');

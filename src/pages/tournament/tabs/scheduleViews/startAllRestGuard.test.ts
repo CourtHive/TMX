@@ -84,3 +84,20 @@ describe('collectStartAllRestWarning', () => {
     expect(warning).toBeUndefined();
   });
 });
+
+describe('isBlocker — an undecided side is not a person who owes recovery', () => {
+  it('does not count a pendingUpstream row', () => {
+    // Such a matchUp is not startable anyway, and counting it would put a matchUp
+    // label into a list the operator reads as names.
+    const pending = {
+      participantId: 'pending:qf',
+      participantName: 'Quarterfinal: Alice vs Chen',
+      status: 'onCourt',
+      pendingUpstream: true,
+      requiredMinutes: 60,
+      typeChange: false,
+      load: { singles: 0, doubles: 0, total: 0, ordinal: 0, atLimit: [] },
+    } as RestRow;
+    expect(isBlocker(pending)).toBe(false);
+  });
+});

@@ -109,6 +109,7 @@ import {
   isCompletedStatus,
   buildActiveStripPanel,
   buildMatchUpCard,
+  clearRelatedHighlight,
   wrapSearchWithClear,
   computeActiveStrip,
 } from 'courthive-components';
@@ -278,12 +279,16 @@ import {
   writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
+import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
-import { renderInspectorSections } from './inspectorReadiness';
+import { scheduledTimeModel } from './scheduledTimeStatus';
+import { relatedMatchUpIds } from './relatedMatchUps';
 import { renderCheckInBadge } from './checkInBadge';
+import { evaluateRest } from './inspectorRest';
 import { renderRestBadge } from './restBadge';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
@@ -353,6 +358,11 @@ export function renderGridView(
     refreshActiveStrip(currentDate);
   }
   currentRefresh = refresh;
+
+  // The Inspector's schedule actions dispatch through here rather than calling
+  // `mutationRequest` themselves — `executeMethods` is what honours plan mode,
+  // bulk mode and the deleted-draw check. See `scheduleMutationControl`.
+  registerScheduleMutationControl({ execute: (methods) => executeMethods(methods, refresh) });
 
   const gridCallbacks: GridCallbacks = { onRefresh: refresh, executeMethods };
 
@@ -430,12 +440,16 @@ export function renderGridView(
     // Consumer-supplied Inspector detail: rest + readiness for the selected
     // matchUp. A render hook rather than an external append — the Inspector rebuilds its
     // body on every store tick and would wipe anything appended from outside.
-    renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp.matchUpId, state.selectedDate),
+    renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp, state.selectedDate),
     // The rest and check-in headlines go on the card itself: the "which do I call
     // next" decision is made while scanning the catalog, before any card is selected
     // and before the drag starts, so the Inspector is one interaction too late.
     // Rest asks whether they are fit to be called, check-in whether they are here.
     renderCardExtra: (matchUp) => renderCardBadges(matchUp.matchUpId, currentDate),
+    // Hovering a card lights up what it is waiting on, wherever the page draws
+    // it. The question a red scheduled time raises is "waiting on WHICH match",
+    // and pointing at the grid answers it faster than a sentence can.
+    relatedMatchUpIds: (matchUp) => relatedFor(matchUp.matchUpId, currentDate),
     // The store owns `selectedDate`, which the Inspector reads; `currentDate` is
     // what every other surface here reads. They must never name different days —
     // rest computed against day one while the card beside it computed against
@@ -1150,6 +1164,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
 
     const groups = groupMatchUpCatalog(filtered, scheduledGroupBy);
 
+    // This panel builds its cards directly, so it owns the same teardown the
+    // component's catalog does: a hovered card about to be destroyed never fires
+    // `mouseleave`, and its highlight would be stranded on the grid.
+    clearRelatedHighlight();
+
     for (const [gk, groupItems] of groups) {
       const groupEl = document.createElement('div');
       groupEl.className = 'sp-group';
@@ -1188,12 +1207,19 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
         // visual priority stays stable while the operator searches.
         const base = baseRoundByEvent.get(item.eventId);
         const roundOffset = base === undefined ? undefined : Math.max(0, item.roundNumber - base);
+        // The time header is graded by the same readiness analysis the Inspector
+        // shows, so a card cannot read green while the panel behind it reads red.
+        // `evaluateReadiness` shares one engine pass across every card here.
+        const time = item.scheduledTime ? scheduledTimeModel(evaluateReadiness(item.matchUpId)) : null;
         const card = buildMatchUpCard(
           item,
           { onClick: (m) => selectFromScheduledPanel(m.matchUpId) },
           {
             prominentTime: true,
             roundOffset,
+            timeStatus: time?.status,
+            timeTitle: time?.title,
+            relatedMatchUpIds: (m) => relatedFor(m.matchUpId, currentDate),
             // Same hook as the catalog. The Scheduled panel builds its cards
             // directly rather than through the component's catalog, so the
             // badge has to be passed here too or it would appear on only half
@@ -1397,6 +1423,9 @@ export function destroyGridView(): void {
   actionBarContainer = null;
   gridRootElement = null;
   currentRefresh = null;
+  // An Inspector left on screen by another surface must not dispatch into a dead
+  // render; the action declines to offer itself instead.
+  resetScheduleMutationControl();
 }
 
 /** Toggle visibility of the one-row active courts strip via the store flag. */
@@ -3683,6 +3712,17 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
  * suppress the other. Returns null only when both decline to render, so a card with nothing to say
  * still gets no empty wrapper.
  */
+/**
+ * What one card's hover should light up — the impure half of `relatedMatchUps.ts`.
+ *
+ * Resolved per hover rather than per render: both evaluators are pass-scoped and
+ * released on the next microtask, so a hover costs one engine pass rather than
+ * one per card in every catalog rebuild.
+ */
+function relatedFor(matchUpId: string, viewedDate: string | null): string[] {
+  return relatedMatchUpIds(evaluateReadiness(matchUpId), evaluateRest(matchUpId, viewedDate));
+}
+
 function renderCardBadges(matchUpId: string, viewedDate: string | null): HTMLElement | null {
   const badges = [renderRestBadge(matchUpId, viewedDate), renderCheckInBadge(matchUpId)].filter(Boolean);
   if (!badges.length) return null;

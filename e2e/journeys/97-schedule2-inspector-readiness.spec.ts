@@ -274,6 +274,169 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(page.locator(READINESS_FINDING)).toHaveCount(0);
   });
 
+  test('the scheduled time is graded by the same finding the Inspector shows', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    const card = page.locator(SCHEDULED_CARD).nth(1);
+    await card.click();
+
+    // The seed yields `overlap` or `recovery` depending on how the engine
+    // resolves the format average (see the test above), and the two grade to
+    // different tiers on purpose: on court elsewhere is impossible, under-rested
+    // is merely compromised. So the expected colour is read FROM the finding
+    // rather than hard-coded — the point being that the card and the panel
+    // cannot disagree.
+    const kind = await page.locator(`${READINESS_FINDING}[data-kind]`).first().getAttribute('data-kind');
+    const expected = kind === 'overlap' || kind === 'dependency' ? 'alert' : 'warn';
+
+    const timeHeader = card.locator('.spl-card-time-header');
+    await expect(timeHeader).toHaveAttribute('data-time-status', expected);
+    // A colour that cannot be interrogated is one the operator learns to ignore.
+    expect(await timeHeader.getAttribute('title')).toBeTruthy();
+  });
+
+  test('the scheduled time stays green when readiness reports nothing', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clean');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    // The control for the test above: a grading that always warns would pass it.
+    const timeHeader = page.locator(SCHEDULED_CARD).first().locator('.spl-card-time-header');
+    await expect(timeHeader).toHaveAttribute('data-time-status', 'ok');
+    await expect(timeHeader).not.toHaveClass(/spl-card-time-header--/);
+  });
+
+  test('hovering a card highlights the matchUp it is blocked by, and leaving clears it', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    const cards = page.locator(SCHEDULED_CARD);
+    const blocked = cards.nth(1);
+    const blocker = cards.nth(0);
+
+    // Asserted card-to-card because this seed schedules times without courts, so
+    // neither matchUp is on the grid. The highlight matches on `data-matchup-id`,
+    // which grid cells carry too (`scheduleGridCell.ts`), so one rule covers both
+    // surfaces — what is under test here is that the relation is resolved and
+    // applied at all.
+    await blocked.hover();
+    await expect(blocker).toHaveClass(/spl-related-highlight/);
+    await expect(blocked).toHaveClass(/spl-related-highlight/);
+
+    // Move the pointer somewhere inert rather than to the other card, which would
+    // light up its own relation and mask a failure to clear.
+    await page.locator(SCHEDULED_PANEL).hover({ position: { x: 2, y: 2 } });
+    await expect(blocker).not.toHaveClass(/spl-related-highlight/);
+  });
+
+  test('a card with nothing blocking it lights nothing up', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clean');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    // The control: a hover that always highlights would pass the test above.
+    const card = page.locator(SCHEDULED_CARD).first();
+    await card.hover();
+    await expect(card).not.toHaveClass(/spl-related-highlight/);
+  });
+
+  test('a selected matchUp dropped onto a court keeps the Inspector, and the Inspector says where it went', async ({
+    page,
+  }) => {
+    // Reported from a live tournament, where ANOTHER client did the dragging —
+    // which is when it is most confusing, because the selection appears to
+    // change on its own. A placed matchUp leaves BOTH sidebar lists: the
+    // Unscheduled catalog hides it, and the Scheduled panel only carries
+    // matchUps with a time but no court.
+    const { tournamentId, clashingMatchUpId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    await page.locator(`${SCHEDULED_CARD}[data-matchup-id="${clashingMatchUpId}"]`).click();
+    await expect(page.locator(KV_ROW).first()).toBeVisible();
+
+    const courtId = await page.evaluate(() => {
+      const cell = document.querySelector('[data-court-id][data-court-order="1"]') as HTMLElement;
+      return cell?.dataset.courtId;
+    });
+
+    await page.evaluate((matchUpId) => {
+      const cell = document.querySelector(`[data-court-id][data-court-order="1"]`) as HTMLElement;
+      const all = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const matchUp = all.find((m: any) => m.matchUpId === matchUpId);
+      const dt = new DataTransfer();
+      dt.setData(
+        'application/json',
+        JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: { matchUpId, drawId: matchUp.drawId, sides: [] } }),
+      );
+      cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+      cell.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    }, clashingMatchUpId);
+
+    await page.waitForSelector(`[data-court-id="${courtId}"][data-matchup-id="${clashingMatchUpId}"]`);
+
+    // It is gone from both lists...
+    await expect(page.locator(`${SCHEDULED_CARD}[data-matchup-id="${clashingMatchUpId}"]`)).toHaveCount(0);
+    // ...the Inspector still holds it, and now SAYS so rather than leaving the
+    // operator to guess which of the visible cards it describes.
+    const placed = page.locator(`${INSPECTOR} .tmx-inspector-placed`);
+    await expect(placed).toBeVisible();
+    await expect(placed).toContainText(/on the grid/i);
+
+    // And the kv rows are re-read from the new catalog rather than left on the
+    // snapshot the selection was made from — which used to report no court at
+    // all for a matchUp plainly sitting on one.
+    await expect(page.locator(KV_ROW).filter({ hasText: 'Court' })).toHaveCount(1);
+  });
+
+  test('the cell popover swaps to an Inspector view and back', async ({ page }) => {
+    // The question the cell popover could never answer: "should this be
+    // happening at all". Readiness and rest belong beside a court at least as
+    // much as beside the catalog.
+    const { tournamentId, clashingMatchUpId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    await page.evaluate((matchUpId) => {
+      const cell = document.querySelector('[data-court-id][data-court-order="1"]') as HTMLElement;
+      const all = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const matchUp = all.find((m: any) => m.matchUpId === matchUpId);
+      const dt = new DataTransfer();
+      dt.setData(
+        'application/json',
+        JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: { matchUpId, drawId: matchUp.drawId, sides: [] } }),
+      );
+      cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+      cell.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    }, clashingMatchUpId);
+
+    const cell = page.locator(`[data-court-id][data-matchup-id="${clashingMatchUpId}"]`);
+    await cell.click();
+
+    // A tooltip elsewhere on the page also renders `.tippy-content`; take the
+    // visible one, which is the popover just opened.
+    const popover = page.locator('.tippy-content[data-state="visible"]');
+    await expect(popover).toBeVisible();
+    // The pills come first; the Inspector is behind the (i).
+    await expect(popover.locator('.tmx-rest')).toHaveCount(0);
+
+    await popover.locator('button[title="Inspector"]').click();
+    await expect(popover.locator('.tmx-cell-inspector')).toBeVisible();
+    await expect(popover.locator('.tmx-rest')).toBeVisible();
+    await expect(popover.locator('.tmx-readiness')).toBeVisible();
+    // The "on the grid" note explains a selection missing from the sidebar; the
+    // pointer is on the cell here, so there is nothing to explain.
+    await expect(popover.locator('.tmx-inspector-placed')).toHaveCount(0);
+
+    await popover.locator('button[title="Back to actions"]').click();
+    await expect(popover.locator('.tmx-cell-inspector')).toHaveCount(0);
+    // Back is a swap, not a rebuild: the same pill menu returns.
+    await expect(popover.getByText('Set time', { exact: true })).toBeVisible();
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

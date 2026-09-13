@@ -14,10 +14,12 @@
  * already is once they have chosen a matchUp.
  */
 
-import { matchUpLabel } from './matchUpReadiness';
+import { isFinished, matchUpLabel } from './matchUpReadiness';
 
 // constants and types
 import type { ReadinessMatchUp, ReadinessSide } from './matchUpReadiness';
+
+const BYE = 'BYE';
 
 export interface InspectorActionParticipant {
   participantId: string;
@@ -32,6 +34,20 @@ export interface InspectorActionModel {
   label: string;
   /** Individuals whose participant card can be opened. Empty when the sides are still TBD. */
   participants: InspectorActionParticipant[];
+  /** The matchUp's own day, when it has one. A time written without one is not a placement. */
+  scheduledDate?: string;
+  /** Current `HH:MM`, which seeds the picker. Absent when no time is set. */
+  scheduledTime?: string;
+  /**
+   * Whether a time can still be usefully set.
+   *
+   * False only for a BYE and for a matchUp whose result is in — both are past
+   * the point where a time means anything. Deliberately NOT false for undecided
+   * sides, which is where the grid's cell popover draws its line: a cell with no
+   * participants is an oddity, but a semifinal whose players are still being
+   * played for is the ordinary thing a director schedules ahead.
+   */
+  schedulable: boolean;
 }
 
 /**
@@ -82,5 +98,13 @@ export function buildInspectorActionModel(
     }
   }
 
-  return { matchUpId, eventId: matchUp.eventId, label: matchUpLabel(matchUp), participants };
+  return {
+    matchUpId,
+    eventId: matchUp.eventId,
+    label: matchUpLabel(matchUp),
+    participants,
+    scheduledDate: matchUp.schedule?.scheduledDate,
+    scheduledTime: matchUp.schedule?.scheduledTime,
+    schedulable: matchUp.matchUpStatus !== BYE && !isFinished(matchUp),
+  };
 }

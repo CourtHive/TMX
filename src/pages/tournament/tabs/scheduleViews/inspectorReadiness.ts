@@ -20,7 +20,9 @@
  * the moment the director is deciding whether to call it).
  */
 
+import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
+import { applyRelatedHighlight } from 'courthive-components';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
@@ -28,16 +30,48 @@ import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+import type { ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+
+/**
+ * A readiness evaluator valid for one pass, sharing the engine work across every
+ * matchUp it is asked about.
+ *
+ * `makeTimingResolver()` walks the tournament's events, which costs a
+ * `getTournament()`. Paying for that once is fine for the Inspector's single
+ * matchUp and wrong for the Scheduled panel, which now grades the time header of
+ * every card it draws — that would be one tournament walk per card, the same
+ * trap `restBadge.ts` documents measuring at ~235ms of a ~300ms render.
+ */
+export function makeReadinessEvaluator(): (matchUpId: string) => ReadinessResult {
+  const { matchUps } = getCachedAllMatchUps();
+  const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
+  const timingFor = makeTimingResolver();
+  return (matchUpId) => analyzeMatchUpReadiness({ matchUpId, matchUps: hydrated, timingFor });
+}
+
+/**
+ * One evaluator per synchronous pass, released on the next microtask.
+ *
+ * Same boundary and the same reasoning as `inspectorRest.evaluatorForPass`: it is
+ * the tightest release that still covers a whole render, so every card in a pass
+ * is graded against one reading of tournament state and nothing survives into a
+ * task where a mutation could have replaced it.
+ */
+let passEvaluator: ReturnType<typeof makeReadinessEvaluator> | null = null;
+
+function evaluatorForPass(): ReturnType<typeof makeReadinessEvaluator> {
+  if (!passEvaluator) {
+    passEvaluator = makeReadinessEvaluator();
+    queueMicrotask(() => {
+      passEvaluator = null;
+    });
+  }
+  return passEvaluator;
+}
 
 /** Readiness for one matchUp, resolved against current factory state. */
 export function evaluateReadiness(matchUpId: string): ReadinessResult {
-  const { matchUps } = getCachedAllMatchUps();
-  return analyzeMatchUpReadiness({
-    matchUpId,
-    matchUps: (matchUps ?? []) as ReadinessMatchUp[],
-    timingFor: makeTimingResolver(),
-  });
+  return evaluatorForPass()(matchUpId);
 }
 
 function line(text: string, className: string): HTMLElement {
@@ -45,38 +79,6 @@ function line(text: string, className: string): HTMLElement {
   el.className = className;
   el.textContent = text;
   return el;
-}
-
-/**
- * One finding as a sentence. Phrasing tracks `scheduleResultsDescribe.ts` so the
- * auto-scheduler's deferral reasons and the Inspector describe the same condition
- * the same way.
- */
-export function describeFinding(finding: ReadinessFinding): string {
-  const names = finding.participantNames?.join(', ') ?? '';
-  const labels = finding.matchUpLabels?.join(', ') ?? '';
-  const notBefore = finding.notBefore;
-
-  if (finding.kind === 'overlap') return t('schedule.inspector.readiness.overlap', { names, labels });
-  if (finding.kind === 'recovery') {
-    return notBefore
-      ? t('schedule.inspector.readiness.recoveryNotBefore', { names, time: notBefore })
-      : t('schedule.inspector.readiness.recovery', { names });
-  }
-  if (finding.kind === 'dependency') {
-    return notBefore
-      ? t('schedule.inspector.readiness.dependencyNotBefore', { labels, time: notBefore })
-      : t('schedule.inspector.readiness.dependencyUnscheduled', { labels });
-  }
-  return t('schedule.inspector.readiness.undetermined', { labels });
-}
-
-function skipMessage(reason: string): string {
-  const key = `schedule.inspector.readiness.skip.${reason}`;
-  const message = t(key);
-  // `t()` echoes the key when it resolves to nothing; fall back to the generic
-  // line rather than printing a dotted path at the operator.
-  return message === key ? t('schedule.inspector.readiness.skip.generic') : message;
 }
 
 /**
@@ -113,11 +115,71 @@ export function renderReadinessSection(matchUpId: string): HTMLElement | null {
 }
 
 /**
+ * The earliest time every blocker has cleared, `HH:MM`.
+ *
+ * The LATEST `notBefore` across the findings, not the earliest: each one is a
+ * floor, and the matchUp can only start once all of them are met. Taking the
+ * first would seed the picker with a time that is still blocked by something
+ * else the same panel is displaying.
+ */
+function earliestNotBefore(matchUpId: string): string | undefined {
+  const result = evaluateReadiness(matchUpId);
+  if (!result.evaluated) return undefined;
+  const times = result.findings.map((finding) => finding.notBefore).filter(Boolean) as string[];
+  // `HH:MM` is lexicographically ordered, so a string comparison is the clock one.
+  return times.length ? times.toSorted((a, b) => a.localeCompare(b)).at(-1) : undefined;
+}
+
+/**
+ * "This one is on the grid now" — the line that explains an Inspector nobody
+ * can see a selection for.
+ *
+ * A matchUp dragged onto a court leaves BOTH sidebar lists: the Unscheduled
+ * catalog hides it (it is scheduled) and the Scheduled panel only carries
+ * matchUps that have a time but no court. The Inspector keeps showing it, which
+ * is right — the placement is exactly what an operator wants to check the moment
+ * it is made — but with no card highlighted anywhere, the panel reads as though
+ * it might be describing any of the cards that ARE visible. Observed on a live
+ * tournament where another client did the dragging, which is when it is most
+ * confusing: the selection appears to change on its own.
+ *
+ * Keyed on the court rather than on list membership: a court assignment is a
+ * fact about the matchUp, where "is it in the visible list" depends on which tab
+ * is open, what is typed in the search box and which filters are set — four
+ * inputs to get wrong, in a component that would have to duplicate the catalog's
+ * filter to know.
+ */
+function placedElsewhere(matchUp: CatalogSelection): HTMLElement | null {
+  if (!matchUp.scheduledCourtName) return null;
+
+  const note = line(
+    matchUp.scheduledTime
+      ? t('schedule.inspector.placedAt', { court: matchUp.scheduledCourtName, time: matchUp.scheduledTime })
+      : t('schedule.inspector.placed', { court: matchUp.scheduledCourtName }),
+    'tmx-inspector-placed',
+  );
+  note.dataset.matchUpId = matchUp.matchUpId;
+  note.title = t('schedule.inspector.placedHint');
+  // Clicking points at it: the cell lights up with the same highlight a card
+  // hover uses, which is the shortest answer to "where did it go".
+  note.addEventListener('click', () => applyRelatedHighlight([matchUp.matchUpId]));
+  return note;
+}
+
+/** What the Inspector's own fields are drawn from — only the parts TMX reads. */
+export interface CatalogSelection {
+  matchUpId: string;
+  scheduledTime?: string;
+  scheduledCourtName?: string;
+}
+
+/**
  * Everything TMX adds to the Inspector, for one selected matchUp. Wired as the
  * schedule page's `renderInspectorExtra`; returns a fresh element per call
  * because the Inspector rebuilds its body on every state change.
  */
-export function renderInspectorSections(matchUpId: string, viewedDate: string | null): HTMLElement | null {
+export function renderInspectorSections(selection: CatalogSelection, viewedDate: string | null): HTMLElement | null {
+  const matchUpId = selection.matchUpId;
   if (!matchUpId) return null;
 
   const container = document.createElement('div');
@@ -126,8 +188,14 @@ export function renderInspectorSections(matchUpId: string, viewedDate: string | 
   // Deliberately a SIBLING of the rest section rather than a child of it: the
   // rest section replaces its own children every 30 seconds to keep the figures
   // counting up, which would destroy an open popover mid-interaction.
-  const actions = renderInspectorActions(matchUpId);
+  // Readiness is evaluated here as well as inside the section — the pass
+  // evaluator makes the second call free — so the actions menu can open its time
+  // picker at the hour the panel is about to name.
+  const actions = renderInspectorActions(matchUpId, { viewedDate, notBefore: earliestNotBefore(matchUpId) });
   if (actions) container.appendChild(actions);
+
+  const placed = placedElsewhere(selection);
+  if (placed) container.appendChild(placed);
 
   const rest = renderRestSection(matchUpId, viewedDate);
   if (rest) container.appendChild(rest);

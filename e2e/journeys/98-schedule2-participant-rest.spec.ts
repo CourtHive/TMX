@@ -187,9 +187,34 @@ test.describe('Journey 98 — Schedule2 participant rest', () => {
     // has not played, so exactly one row is not 'none'.
     expect(statuses.filter((s) => s !== 'none').length).toBeGreaterThan(0);
 
-    const played = rows.filter({ hasNot: page.locator('[data-status="none"]') }).first();
+    // `:not([data-pending-upstream])` is load-bearing: this R2 matchUp also has a
+    // side that has not been decided, and that row sorts ABOVE the played one
+    // (rest has not started for it at all). Its detail line is deliberately empty
+    // — nobody is known, so there is no provenance and no daily load to print —
+    // so picking the first non-`none` row here would assert about the wrong row.
+    const played = page.locator(`${INSPECTOR} ${REST_ROW}:not([data-pending-upstream]):not([data-status="none"])`).first();
     await expect(played.locator('.tmx-rest-figure')).not.toBeEmpty();
     await expect(played.locator('.tmx-rest-detail')).toContainText(/recorded end time|score entry|projected/i);
+  });
+
+  test('a side still being played for reports zero rest, and takes the badge from the rested player', async ({
+    page,
+  }) => {
+    // The reported defect: this R2 matchUp is "TBD vs <winner>", and the badge
+    // showed the winner's comfortable rest — green, apparently ready to call —
+    // while the other half of it was still being played for upstream.
+    await page.locator(`${CARD}[data-matchup-id="${seed.restingMatchUpId}"]`).click();
+
+    const pendingRow = page.locator(`${INSPECTOR} ${REST_ROW}[data-pending-upstream="true"]`);
+    await expect(pendingRow).toHaveCount(1);
+    await expect(pendingRow).toHaveAttribute('data-status', 'onCourt');
+    // Named by the match that decides the side — never as a person.
+    await expect(pendingRow.locator('.tmx-rest-name')).toContainText(/winner of/i);
+    await expect(pendingRow.locator('.tmx-rest-figure')).toContainText(/decided/i);
+
+    const badge = page.locator(`${CARD}[data-matchup-id="${seed.restingMatchUpId}"] ${REST_BADGE}`);
+    await expect(badge).toHaveAttribute('data-pending-upstream', 'true');
+    await expect(badge).toHaveText(/^0m/);
   });
 
   test('the catalog card carries a rest badge, and a card with no prior match does not', async ({ page }) => {

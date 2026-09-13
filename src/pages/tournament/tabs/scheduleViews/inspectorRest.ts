@@ -342,6 +342,14 @@ export function describeSource(row: RestRow): string {
 
 /** The rest figure itself, as a sentence fragment. */
 export function describeRest(row: RestRow): string {
+  // Checked before the status bands: a pending row is banded `onCourt` because
+  // rest has not begun, but nobody is on court under that name — the name is a
+  // matchUp, and the sentence has to say so.
+  if (row.pendingUpstream) {
+    return row.readyAt
+      ? t('schedule.inspector.rest.pendingUntil', { time: row.readyAt })
+      : t('schedule.inspector.rest.pending');
+  }
   if (row.status === 'none') return t('schedule.inspector.rest.noPriorMatch');
   if (row.status === 'onCourt') {
     if (row.overrun) return t('schedule.inspector.rest.onCourtOverrun');
@@ -376,6 +384,9 @@ export function describeDiscarded(row: RestRow): string {
 
 /** The daily-load fragment: "3rd match today, limit 3". */
 export function describeLoad(row: RestRow): string {
+  // Nobody is known, so nothing can be counted — see `UNKNOWN_LOAD`. Printing
+  // the zero would read as "match #0 today".
+  if (row.pendingUpstream) return '';
   const { ordinal, limit } = row.load;
   return limit === undefined
     ? t('schedule.inspector.rest.ordinal', { ordinal })
@@ -393,6 +404,7 @@ function buildRow(row: RestRow): HTMLElement {
   const element = document.createElement('div');
   element.className = `tmx-rest-row is-${row.status.toLowerCase()}`;
   element.dataset.status = row.status;
+  if (row.pendingUpstream) element.dataset.pendingUpstream = 'true';
   element.dataset.participantId = row.participantId;
 
   // Clicking the row drives the court grid's search box, which highlights every
@@ -403,7 +415,10 @@ function buildRow(row: RestRow): HTMLElement {
   // no affordance. `dataset` rather than re-reading `.tmx-rest-name` text so the
   // seed/ranking suffixes a future display config might add cannot leak into the
   // query.
-  if (gridSearchAvailable()) {
+  // The search affordance is offered only for real people: a pending row's name
+  // is a matchUp label, and driving the grid search with it would highlight
+  // nothing while looking like it should.
+  if (gridSearchAvailable() && !row.pendingUpstream) {
     element.dataset.participantName = row.participantName;
     element.classList.add('is-searchable');
     element.tabIndex = 0;
@@ -411,7 +426,10 @@ function buildRow(row: RestRow): HTMLElement {
     element.setAttribute('aria-label', t('schedule.inspector.rest.searchFor', { name: row.participantName }));
   }
 
-  element.appendChild(line(row.participantName, 'tmx-rest-name'));
+  const name = row.pendingUpstream
+    ? t('schedule.inspector.rest.pendingName', { label: row.participantName })
+    : row.participantName;
+  element.appendChild(line(name, 'tmx-rest-name'));
   element.appendChild(line(describeRest(row), 'tmx-rest-figure'));
 
   const detail = document.createElement('div');
@@ -490,26 +508,49 @@ function paint(section: HTMLElement, matchUpId: string, viewedDate: string | nul
 
 // ── Live refresh ──────────────────────────────────────────────────────────
 // Rest counts up, so a static render goes stale the moment it is drawn. One
-// module-level interval drives whichever section is currently mounted; it stops
-// itself when that element leaves the document, which is what makes this safe
-// against the Inspector rebuilding its body on every state change and against
-// the schedule tab unmounting without telling us.
+// module-level interval drives every section currently mounted; each drops itself
+// when its element leaves the document, which is what makes this safe against the
+// Inspector rebuilding its body on every state change and against the schedule
+// tab unmounting without telling us.
+
+interface RestMount {
+  section: HTMLElement;
+  matchUpId: string;
+  viewedDate: string | null;
+}
 
 let tickHandle: ReturnType<typeof setInterval> | null = null;
-let mounted: { section: HTMLElement; matchUpId: string; viewedDate: string | null } | null = null;
+
+/**
+ * Every mounted section, not just the latest one.
+ *
+ * This was a single slot, which was correct while exactly one Rest section could
+ * exist. It cannot be any more: the court grid's cell popover can open its own
+ * Inspector view while the sidebar panel is showing another matchUp, and a
+ * single slot would silently stop the older one — leaving a frozen rest figure
+ * beside a live one, which is the precise failure this file's history is about.
+ *
+ * Pruned by connectedness on each tick, the same contract as before, so a
+ * section discarded by a rebuild or a closed popover drops itself without anyone
+ * having to remember to deregister it.
+ */
+const mounts = new Set<RestMount>();
 
 function stopTicker(): void {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
-  mounted = null;
+  mounts.clear();
 }
 
 function tick(): void {
-  if (!mounted?.section.isConnected) {
-    stopTicker();
-    return;
+  for (const mount of [...mounts]) {
+    if (!mount.section.isConnected) {
+      mounts.delete(mount);
+      continue;
+    }
+    paint(mount.section, mount.matchUpId, mount.viewedDate);
   }
-  paint(mounted.section, mounted.matchUpId, mounted.viewedDate);
+  if (!mounts.size) stopTicker();
 }
 
 /**
@@ -526,7 +567,7 @@ export function renderRestSection(matchUpId: string, viewedDate: string | null):
   section.addEventListener('keydown', onSectionActivate);
   paint(section, matchUpId, viewedDate);
 
-  mounted = { section, matchUpId, viewedDate };
+  mounts.add({ section, matchUpId, viewedDate });
   tickHandle ??= setInterval(tick, REFRESH_MS);
   return section;
 }

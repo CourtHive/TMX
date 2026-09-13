@@ -980,12 +980,24 @@
         "tooltipOnCourt": "{{name}} — still on court",
         "tooltipOnCourtOverrun": "{{name}} — still on court, past the expected finish",
         "tooltipNone": "{{name}} — no prior match today",
+        "tooltipPending": "Winner of {{label}} — still to be decided, no rest yet",
+        "tooltipPendingReady": "Winner of {{label}} — still to be decided, ready {{time}}",
         "tooltipUnknown": "{{name}} — prior match has no recorded finish"
+      },
+      "time": {
+        "ok": "This time looks achievable.",
+        "warn": "This time is at risk:",
+        "alert": "This time cannot be met:"
       }
     },
     "inspector": {
       "show": "Show inspector",
       "hide": "Hide inspector",
+      "heading": "Inspector",
+      "back": "Back to actions",
+      "placed": "On the grid — {{court}}",
+      "placedAt": "On the grid — {{court}} at {{time}}",
+      "placedHint": "Not in either catalog list. Click to highlight it on the court grid.",
       "readiness": {
         "heading": "Readiness",
         "ready": "No readiness issues for this time.",
@@ -1006,6 +1018,10 @@
       },
       "actions": {
         "trigger": "MatchUp actions",
+        "schedule": "Schedule",
+        "setTime": "Set time",
+        "clearTime": "Clear time",
+        "navigate": "Go to",
         "viewDraw": "View draw",
         "participants": "Participants"
       },
@@ -1018,6 +1034,9 @@
         "onCourt": "On court now",
         "onCourtUntil": "On court now — ready {{time}}",
         "onCourtOverrun": "On court now — past the expected finish",
+        "pendingName": "Winner of {{label}}",
+        "pending": "Still to be decided — no rest yet",
+        "pendingUntil": "Still to be decided — ready {{time}}",
         "anchorUnreliable": "Prior match has no recorded finish — rest cannot be measured",
         "noPriorMatch": "No prior match today",
         "typeChange": "type change",

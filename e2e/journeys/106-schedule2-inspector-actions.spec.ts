@@ -121,7 +121,9 @@ test.describe('Journey 106 — Schedule2 Inspector actions', () => {
 
     const menu = page.locator(MENU);
     await expect(menu).toBeVisible();
-    await expect(menu.locator(ACTION_ROW)).toHaveCount(seed.individualNames.length + 1);
+    // Two rows beyond the people: "Set time" and the draw. The seed's matchUp is
+    // unscheduled, so there is no "Clear time" row to count.
+    await expect(menu.locator(ACTION_ROW)).toHaveCount(seed.individualNames.length + 2);
 
     const labels = await menu.locator(ACTION_ROW).evaluateAll((els) => els.map((el) => el.textContent?.trim()));
     for (const name of seed.individualNames) expect(labels).toContain(name);
@@ -129,6 +131,39 @@ test.describe('Journey 106 — Schedule2 Inspector actions', () => {
     // The control: the pair label is not a person and opens no card, so it must
     // NOT appear. Without this the test would pass on a side-label expansion.
     expect(labels).not.toContain(seed.pairName);
+  });
+
+  test('the menu offers Set time, and not Clear time for a matchUp that has none', async ({ page }) => {
+    await page.locator(`${INSPECTOR} ${TRIGGER}`).click();
+
+    const labels = await page
+      .locator(`${MENU} ${ACTION_ROW}`)
+      .evaluateAll((els) => els.map((el) => el.textContent?.trim()));
+    expect(labels).toContain('Set time');
+    // The control: Clear is offered only once there is a time to clear, so a
+    // menu that always rendered both rows would fail here.
+    expect(labels).not.toContain('Clear time');
+  });
+
+  test('Set time writes a time AND the viewed date, so the matchUp is really placed', async ({ page }) => {
+    await page.locator(`${INSPECTOR} ${TRIGGER}`).click();
+    await page.locator(MENU).getByText('Set time', { exact: true }).click();
+
+    // The picker is third-party (timepicker-ui); accepting its seeded value is
+    // enough — what is under test is what gets WRITTEN, not the clock widget.
+    const picker = page.locator('.tp-ui-modal');
+    await expect(picker).toBeVisible();
+    await picker.locator('.tp-ui-ok-btn').click();
+
+    const schedule = await page.evaluate(async (matchUpId) => {
+      const all = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      return all.find((m: any) => m.matchUpId === matchUpId)?.schedule;
+    }, seed.matchUpId);
+
+    expect(schedule?.scheduledTime).toMatch(/^\d{2}:\d{2}$/);
+    // The half the grid never had to think about: a time with no date is not a
+    // placement — invisible on every date and reachable only by clearing it.
+    expect(schedule?.scheduledDate).toBe(SCHEDULE_DATE);
   });
 
   test('choosing a participant opens their card and dismisses the popover', async ({ page }) => {
@@ -142,7 +177,9 @@ test.describe('Journey 106 — Schedule2 Inspector actions', () => {
 
   test('choosing the draw navigates to the structure view', async ({ page }) => {
     await page.locator(`${INSPECTOR} ${TRIGGER}`).click();
-    await page.locator(`${MENU} ${ACTION_ROW}`).first().click();
+    // By label, not by position: the schedule rows sit above the draw, and an
+    // index here silently became "Set time" the day they were added.
+    await page.locator(MENU).getByText('View draw', { exact: true }).click();
 
     await expect(page).toHaveURL(/\/event\/[^/]+\/draw\//);
     await expect(page.locator(MENU)).toHaveCount(0);
