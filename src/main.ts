@@ -24,7 +24,8 @@ function onUpdate() {
 
 rootBlock();
 
-// NOTE: serviceWorker.unregister() is used for development; serviceWorker.register() is used for production
-// pehaps an environment variable could be used to determine which to use
-// @ts-expect-error globalThis
-serviceWorker.unregister({ onUpdate });
+// Registers when `VITE_SERVICE_WORKER` is set and REMOVES any installed worker
+// when it is not — see the header of `serviceWorker.ts` for why "off" has to do
+// the second thing. `onUpdate` surfaces the existing update notice rather than
+// swapping the app out under a tournament desk mid-match.
+serviceWorker.configure({ onUpdate });
