@@ -3,7 +3,7 @@ import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/rend
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { headerSortElement } from '../common/sorters/headerSortElement';
-import { mapParticipantResults } from './mapParticiapantResults';
+import { mapParticipantResults } from './mapParticipantResults';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';

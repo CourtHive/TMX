@@ -269,7 +269,13 @@ export function getDrawFormRelationships({
     inputs: Record<string, any>,
   ) => {
     const isDrawMatic = drawType === DRAW_MATIC;
-    const isAdHocType = drawType === AD_HOC || drawType === SWISS || isDrawMatic;
+    // Deliberately NOT named `isAdHocType`: the factory has a function of that name whose
+    // membership is different — `{AD_HOC, LADDER, SWISS}`, no DRAW_MATIC — and 7.0.0's migration
+    // guide talks about it, so a shadow here sends a reader to the wrong definition. The factory's
+    // is also not exported from the package (neither is `isLadder`), so it cannot be imported even
+    // where the semantics would match. This predicate is TMX's own: which draw types hide the
+    // seeding-policy and qualifiers fields on this form.
+    const hidesSeedingFields = drawType === AD_HOC || drawType === SWISS || isDrawMatic;
     const isFIC = drawType === FEED_IN_CHAMPIONSHIP;
 
     updateGroupFieldVisibility(fields, drawType, inputs);
@@ -284,11 +290,11 @@ export function getDrawFormRelationships({
     fields[FIC_DEPTH].style.display = isFIC ? '' : NONE;
 
     fields[AUTOMATED].style.display = drawType === SWISS ? NONE : '';
-    fields[SEEDING_POLICY].style.display = isAdHocType ? NONE : '';
+    fields[SEEDING_POLICY].style.display = hidesSeedingFields ? NONE : '';
     // Not the same predicate as the seeding policy above: LUCKY_DRAW and ADAPTIVE are not ad hoc,
     // but the factory forces their seedsCount to 0, so offering a count would be a lie.
     fields[SEEDS_COUNT].style.display = isSeedableDrawType(drawType) ? '' : NONE;
-    fields[QUALIFIERS_COUNT].style.display = isAdHocType && !isSwiss ? NONE : '';
+    fields[QUALIFIERS_COUNT].style.display = hidesSeedingFields && !isSwiss ? NONE : '';
 
     // DRAFT positioning doesn't apply to DrawMatic or Swiss — both generate
     // pairings algorithmically per round rather than from a pre-positioned
