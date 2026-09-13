@@ -20,10 +20,10 @@
  * the participants table opens.
  */
 
-import { clearScheduledTime, pickScheduledTime } from './matchUpTimeAction';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
-import { scheduleMutationAvailable } from './scheduleMutationControl';
+import { clearScheduledTime, pickScheduledTime } from './matchUpTimeAction';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { scheduleMutationAvailable } from './scheduleMutationControl';
 import { buildInspectorActionModel } from './inspectorActionsModel';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import tippy, { Instance as TippyInstance } from 'tippy.js';

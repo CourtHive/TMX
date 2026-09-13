@@ -21,8 +21,8 @@
  */
 
 import { describeFinding, skipMessage } from './readinessDescribe';
-import { applyRelatedHighlight } from 'courthive-components';
 import { makeTimingResolver } from './scheduleTimingResolver';
+import { applyRelatedHighlight } from 'courthive-components';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';

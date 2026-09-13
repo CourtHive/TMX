@@ -2,8 +2,8 @@ import { relatedMatchUpIds } from './relatedMatchUps';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
-import type { ReadinessResult } from './matchUpReadiness';
 import type { RestResult, RestRow } from './participantRest';
+import type { ReadinessResult } from './matchUpReadiness';
 
 const LOAD = { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] };
 

@@ -1,5 +1,5 @@
-import { clearScheduledTime, scheduleForTime } from './matchUpTimeAction';
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
+import { clearScheduledTime, scheduleForTime } from './matchUpTimeAction';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const VIEWED = '2026-09-13';

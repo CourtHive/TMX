@@ -279,16 +279,16 @@ import {
   writeInspectorVisible,
   type SidebarTab,
 } from './gridViewStorage';
+import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
-import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
-import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
-import { relatedMatchUpIds } from './relatedMatchUps';
-import { evaluateRest } from './inspectorRest';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
+import { relatedMatchUpIds } from './relatedMatchUps';
 import { renderCheckInBadge } from './checkInBadge';
+import { evaluateRest } from './inspectorRest';
 import { renderRestBadge } from './restBadge';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.

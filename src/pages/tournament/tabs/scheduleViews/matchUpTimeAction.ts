@@ -24,8 +24,8 @@
  */
 
 import { executeScheduleMethods, scheduleMutationAvailable } from './scheduleMutationControl';
-import { timePicker } from 'components/modals/timePicker';
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import { timePicker } from 'components/modals/timePicker';
 import { tools } from 'tods-competition-factory';
 
 export interface ScheduledTimeRequest {

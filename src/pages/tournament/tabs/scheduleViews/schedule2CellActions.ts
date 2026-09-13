@@ -7,6 +7,7 @@
  */
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
+import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { readCheckInPromptMode } from './gridViewStorage';
@@ -23,7 +24,6 @@ import { closeModal, confirmModal, openModal } from 'components/modals/baseModal
 import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { evaluateRest, formatDuration } from './inspectorRest';
-import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
 import { timePicker } from 'components/modals/timePicker';
 import { venueNowClock } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
