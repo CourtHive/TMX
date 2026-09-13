@@ -993,6 +993,9 @@
     "inspector": {
       "show": "Show inspector",
       "hide": "Hide inspector",
+      "placed": "On the grid — {{court}}",
+      "placedAt": "On the grid — {{court}} at {{time}}",
+      "placedHint": "Not in either catalog list. Click to highlight it on the court grid.",
       "readiness": {
         "heading": "Readiness",
         "ready": "No readiness issues for this time.",

@@ -440,7 +440,7 @@ export function renderGridView(
     // Consumer-supplied Inspector detail: rest + readiness for the selected
     // matchUp. A render hook rather than an external append — the Inspector rebuilds its
     // body on every store tick and would wipe anything appended from outside.
-    renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp.matchUpId, state.selectedDate),
+    renderInspectorExtra: (matchUp, state) => renderInspectorSections(matchUp, state.selectedDate),
     // The rest and check-in headlines go on the card itself: the "which do I call
     // next" decision is made while scanning the catalog, before any card is selected
     // and before the drag starts, so the Inspector is one interaction too late.

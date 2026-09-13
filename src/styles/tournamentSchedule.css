@@ -269,6 +269,22 @@
   gap: 4px;
 }
 
+/* "On the grid — Court 3 at 14:30". Shown when the selected matchUp has been
+   placed on a court and so appears in neither sidebar list; without it the
+   Inspector reads as though it might be describing one of the cards that ARE
+   visible. Clickable, so it answers "where did it go" by lighting up the cell. */
+.tmx-inspector-placed {
+  font-size: 0.75rem;
+  color: var(--tmx-accent-blue);
+  cursor: pointer;
+  padding: 4px 0;
+  border-top: 1px solid var(--tmx-border-primary);
+}
+
+.tmx-inspector-placed:hover {
+  text-decoration: underline;
+}
+
 .tmx-readiness-heading {
   font-size: 0.6875rem;
   font-weight: 700;

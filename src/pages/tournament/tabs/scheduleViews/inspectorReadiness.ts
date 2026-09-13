@@ -21,6 +21,7 @@
  */
 
 import { describeFinding, skipMessage } from './readinessDescribe';
+import { applyRelatedHighlight } from 'courthive-components';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
@@ -130,11 +131,55 @@ function earliestNotBefore(matchUpId: string): string | undefined {
 }
 
 /**
+ * "This one is on the grid now" — the line that explains an Inspector nobody
+ * can see a selection for.
+ *
+ * A matchUp dragged onto a court leaves BOTH sidebar lists: the Unscheduled
+ * catalog hides it (it is scheduled) and the Scheduled panel only carries
+ * matchUps that have a time but no court. The Inspector keeps showing it, which
+ * is right — the placement is exactly what an operator wants to check the moment
+ * it is made — but with no card highlighted anywhere, the panel reads as though
+ * it might be describing any of the cards that ARE visible. Observed on a live
+ * tournament where another client did the dragging, which is when it is most
+ * confusing: the selection appears to change on its own.
+ *
+ * Keyed on the court rather than on list membership: a court assignment is a
+ * fact about the matchUp, where "is it in the visible list" depends on which tab
+ * is open, what is typed in the search box and which filters are set — four
+ * inputs to get wrong, in a component that would have to duplicate the catalog's
+ * filter to know.
+ */
+function placedElsewhere(matchUp: CatalogSelection): HTMLElement | null {
+  if (!matchUp.scheduledCourtName) return null;
+
+  const note = line(
+    matchUp.scheduledTime
+      ? t('schedule.inspector.placedAt', { court: matchUp.scheduledCourtName, time: matchUp.scheduledTime })
+      : t('schedule.inspector.placed', { court: matchUp.scheduledCourtName }),
+    'tmx-inspector-placed',
+  );
+  note.dataset.matchUpId = matchUp.matchUpId;
+  note.title = t('schedule.inspector.placedHint');
+  // Clicking points at it: the cell lights up with the same highlight a card
+  // hover uses, which is the shortest answer to "where did it go".
+  note.addEventListener('click', () => applyRelatedHighlight([matchUp.matchUpId]));
+  return note;
+}
+
+/** What the Inspector's own fields are drawn from — only the parts TMX reads. */
+export interface CatalogSelection {
+  matchUpId: string;
+  scheduledTime?: string;
+  scheduledCourtName?: string;
+}
+
+/**
  * Everything TMX adds to the Inspector, for one selected matchUp. Wired as the
  * schedule page's `renderInspectorExtra`; returns a fresh element per call
  * because the Inspector rebuilds its body on every state change.
  */
-export function renderInspectorSections(matchUpId: string, viewedDate: string | null): HTMLElement | null {
+export function renderInspectorSections(selection: CatalogSelection, viewedDate: string | null): HTMLElement | null {
+  const matchUpId = selection.matchUpId;
   if (!matchUpId) return null;
 
   const container = document.createElement('div');
@@ -148,6 +193,9 @@ export function renderInspectorSections(matchUpId: string, viewedDate: string | 
   // picker at the hour the panel is about to name.
   const actions = renderInspectorActions(matchUpId, { viewedDate, notBefore: earliestNotBefore(matchUpId) });
   if (actions) container.appendChild(actions);
+
+  const placed = placedElsewhere(selection);
+  if (placed) container.appendChild(placed);
 
   const rest = renderRestSection(matchUpId, viewedDate);
   if (rest) container.appendChild(rest);

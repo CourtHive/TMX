@@ -343,6 +343,55 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(card).not.toHaveClass(/spl-related-highlight/);
   });
 
+  test('a selected matchUp dropped onto a court keeps the Inspector, and the Inspector says where it went', async ({
+    page,
+  }) => {
+    // Reported from a live tournament, where ANOTHER client did the dragging —
+    // which is when it is most confusing, because the selection appears to
+    // change on its own. A placed matchUp leaves BOTH sidebar lists: the
+    // Unscheduled catalog hides it, and the Scheduled panel only carries
+    // matchUps with a time but no court.
+    const { tournamentId, clashingMatchUpId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    await page.locator(`${SCHEDULED_CARD}[data-matchup-id="${clashingMatchUpId}"]`).click();
+    await expect(page.locator(KV_ROW).first()).toBeVisible();
+
+    const courtId = await page.evaluate(() => {
+      const cell = document.querySelector('[data-court-id][data-court-order="1"]') as HTMLElement;
+      return cell?.dataset.courtId;
+    });
+
+    await page.evaluate((matchUpId) => {
+      const cell = document.querySelector(`[data-court-id][data-court-order="1"]`) as HTMLElement;
+      const all = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const matchUp = all.find((m: any) => m.matchUpId === matchUpId);
+      const dt = new DataTransfer();
+      dt.setData(
+        'application/json',
+        JSON.stringify({ type: 'CATALOG_MATCHUP', matchUp: { matchUpId, drawId: matchUp.drawId, sides: [] } }),
+      );
+      cell.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+      cell.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    }, clashingMatchUpId);
+
+    await page.waitForSelector(`[data-court-id="${courtId}"][data-matchup-id="${clashingMatchUpId}"]`);
+
+    // It is gone from both lists...
+    await expect(page.locator(`${SCHEDULED_CARD}[data-matchup-id="${clashingMatchUpId}"]`)).toHaveCount(0);
+    // ...the Inspector still holds it, and now SAYS so rather than leaving the
+    // operator to guess which of the visible cards it describes.
+    const placed = page.locator(`${INSPECTOR} .tmx-inspector-placed`);
+    await expect(placed).toBeVisible();
+    await expect(placed).toContainText(/on the grid/i);
+
+    // And the kv rows are re-read from the new catalog rather than left on the
+    // snapshot the selection was made from — which used to report no court at
+    // all for a matchUp plainly sitting on one.
+    await expect(page.locator(KV_ROW).filter({ hasText: 'Court' })).toHaveCount(1);
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);
