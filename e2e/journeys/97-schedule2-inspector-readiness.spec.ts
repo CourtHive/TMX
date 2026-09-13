@@ -308,6 +308,41 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(timeHeader).not.toHaveClass(/spl-card-time-header--/);
   });
 
+  test('hovering a card highlights the matchUp it is blocked by, and leaving clears it', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clash');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    const cards = page.locator(SCHEDULED_CARD);
+    const blocked = cards.nth(1);
+    const blocker = cards.nth(0);
+
+    // Asserted card-to-card because this seed schedules times without courts, so
+    // neither matchUp is on the grid. The highlight matches on `data-matchup-id`,
+    // which grid cells carry too (`scheduleGridCell.ts`), so one rule covers both
+    // surfaces — what is under test here is that the relation is resolved and
+    // applied at all.
+    await blocked.hover();
+    await expect(blocker).toHaveClass(/spl-related-highlight/);
+    await expect(blocked).toHaveClass(/spl-related-highlight/);
+
+    // Move the pointer somewhere inert rather than to the other card, which would
+    // light up its own relation and mask a failure to clear.
+    await page.locator(SCHEDULED_PANEL).hover({ position: { x: 2, y: 2 } });
+    await expect(blocker).not.toHaveClass(/spl-related-highlight/);
+  });
+
+  test('a card with nothing blocking it lights nothing up', async ({ page }) => {
+    const { tournamentId } = await seedInspector(page, 'clean');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+
+    // The control: a hover that always highlights would pass the test above.
+    const card = page.locator(SCHEDULED_CARD).first();
+    await card.hover();
+    await expect(card).not.toHaveClass(/spl-related-highlight/);
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

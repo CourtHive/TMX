@@ -109,6 +109,7 @@ import {
   isCompletedStatus,
   buildActiveStripPanel,
   buildMatchUpCard,
+  clearRelatedHighlight,
   wrapSearchWithClear,
   computeActiveStrip,
 } from 'courthive-components';
@@ -282,6 +283,8 @@ import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPrompt
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
+import { relatedMatchUpIds } from './relatedMatchUps';
+import { evaluateRest } from './inspectorRest';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
 import { renderCheckInBadge } from './checkInBadge';
@@ -437,6 +440,10 @@ export function renderGridView(
     // and before the drag starts, so the Inspector is one interaction too late.
     // Rest asks whether they are fit to be called, check-in whether they are here.
     renderCardExtra: (matchUp) => renderCardBadges(matchUp.matchUpId, currentDate),
+    // Hovering a card lights up what it is waiting on, wherever the page draws
+    // it. The question a red scheduled time raises is "waiting on WHICH match",
+    // and pointing at the grid answers it faster than a sentence can.
+    relatedMatchUpIds: (matchUp) => relatedFor(matchUp.matchUpId, currentDate),
     // The store owns `selectedDate`, which the Inspector reads; `currentDate` is
     // what every other surface here reads. They must never name different days —
     // rest computed against day one while the card beside it computed against
@@ -1151,6 +1158,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
 
     const groups = groupMatchUpCatalog(filtered, scheduledGroupBy);
 
+    // This panel builds its cards directly, so it owns the same teardown the
+    // component's catalog does: a hovered card about to be destroyed never fires
+    // `mouseleave`, and its highlight would be stranded on the grid.
+    clearRelatedHighlight();
+
     for (const [gk, groupItems] of groups) {
       const groupEl = document.createElement('div');
       groupEl.className = 'sp-group';
@@ -1201,6 +1213,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
             roundOffset,
             timeStatus: time?.status,
             timeTitle: time?.title,
+            relatedMatchUpIds: (m) => relatedFor(m.matchUpId, currentDate),
             // Same hook as the catalog. The Scheduled panel builds its cards
             // directly rather than through the component's catalog, so the
             // badge has to be passed here too or it would appear on only half
@@ -3690,6 +3703,17 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
  * suppress the other. Returns null only when both decline to render, so a card with nothing to say
  * still gets no empty wrapper.
  */
+/**
+ * What one card's hover should light up — the impure half of `relatedMatchUps.ts`.
+ *
+ * Resolved per hover rather than per render: both evaluators are pass-scoped and
+ * released on the next microtask, so a hover costs one engine pass rather than
+ * one per card in every catalog rebuild.
+ */
+function relatedFor(matchUpId: string, viewedDate: string | null): string[] {
+  return relatedMatchUpIds(evaluateReadiness(matchUpId), evaluateRest(matchUpId, viewedDate));
+}
+
 function renderCardBadges(matchUpId: string, viewedDate: string | null): HTMLElement | null {
   const badges = [renderRestBadge(matchUpId, viewedDate), renderCheckInBadge(matchUpId)].filter(Boolean);
   if (!badges.length) return null;
