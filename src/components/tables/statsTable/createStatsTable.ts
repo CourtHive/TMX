@@ -43,7 +43,7 @@ export async function createStatsTable({
       return map;
     }, {});
 
-  const getParticipantResults = () => {
+  const getFilteredStructureResults = () => {
     const { participants, eventData } = tournamentEngine.getEventData({
       participantFilters: { eventIds: [eventId], positionedParticipants: true },
       participantsProfile: { withScaleValues: true },
@@ -76,14 +76,14 @@ export async function createStatsTable({
     });
   };
 
-  const participantResults = getParticipantResults();
+  const participantResults = getFilteredStructureResults();
   const getTableData = () =>
     participantResults
       ?.map((participantInfo: any) => mapParticipantResults({ ...participantInfo, participantMap }))
       .sort((a: any, b: any) => orderSorter(a.order, b.order));
 
   const updateTableData = () =>
-    getParticipantResults()?.map((participantInfo: any) =>
+    getFilteredStructureResults()?.map((participantInfo: any) =>
       mapParticipantResults({ ...participantInfo, participantMap }),
     );
   const replaceTableData = (params?: { participantFilter?: string }) => {
