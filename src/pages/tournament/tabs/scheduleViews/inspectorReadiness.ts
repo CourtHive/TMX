@@ -114,6 +114,22 @@ export function renderReadinessSection(matchUpId: string): HTMLElement | null {
 }
 
 /**
+ * The earliest time every blocker has cleared, `HH:MM`.
+ *
+ * The LATEST `notBefore` across the findings, not the earliest: each one is a
+ * floor, and the matchUp can only start once all of them are met. Taking the
+ * first would seed the picker with a time that is still blocked by something
+ * else the same panel is displaying.
+ */
+function earliestNotBefore(matchUpId: string): string | undefined {
+  const result = evaluateReadiness(matchUpId);
+  if (!result.evaluated) return undefined;
+  const times = result.findings.map((finding) => finding.notBefore).filter(Boolean) as string[];
+  // `HH:MM` is lexicographically ordered, so a string comparison is the clock one.
+  return times.length ? times.toSorted((a, b) => a.localeCompare(b)).at(-1) : undefined;
+}
+
+/**
  * Everything TMX adds to the Inspector, for one selected matchUp. Wired as the
  * schedule page's `renderInspectorExtra`; returns a fresh element per call
  * because the Inspector rebuilds its body on every state change.
@@ -127,7 +143,10 @@ export function renderInspectorSections(matchUpId: string, viewedDate: string | 
   // Deliberately a SIBLING of the rest section rather than a child of it: the
   // rest section replaces its own children every 30 seconds to keep the figures
   // counting up, which would destroy an open popover mid-interaction.
-  const actions = renderInspectorActions(matchUpId);
+  // Readiness is evaluated here as well as inside the section — the pass
+  // evaluator makes the second call free — so the actions menu can open its time
+  // picker at the hour the panel is about to name.
+  const actions = renderInspectorActions(matchUpId, { viewedDate, notBefore: earliestNotBefore(matchUpId) });
   if (actions) container.appendChild(actions);
 
   const rest = renderRestSection(matchUpId, viewedDate);

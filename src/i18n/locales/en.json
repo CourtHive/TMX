@@ -1013,6 +1013,10 @@
       },
       "actions": {
         "trigger": "MatchUp actions",
+        "schedule": "Schedule",
+        "setTime": "Set time",
+        "clearTime": "Clear time",
+        "navigate": "Go to",
         "viewDraw": "View draw",
         "participants": "Participants"
       },

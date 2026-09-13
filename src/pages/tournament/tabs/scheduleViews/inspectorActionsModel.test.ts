@@ -122,3 +122,29 @@ describe('buildInspectorActionModel — defensive fallbacks', () => {
     expect(buildInspectorActionModel('m-1', [matchUp()])?.participants).toEqual([]);
   });
 });
+
+describe('schedule fields — what the actions menu needs to offer a time', () => {
+  it('carries the matchUp own date and time so the picker can be seeded', () => {
+    const matchUp = {
+      matchUpId: 'm1',
+      sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+      schedule: { scheduledDate: '2026-09-13', scheduledTime: '14:30' },
+    } as any;
+    const model = buildInspectorActionModel('m1', [matchUp]);
+    expect(model?.scheduledDate).toBe('2026-09-13');
+    expect(model?.scheduledTime).toBe('14:30');
+    expect(model?.schedulable).toBe(true);
+  });
+
+  it('is schedulable with an undecided side — that is the ordinary thing to schedule ahead', () => {
+    const matchUp = { matchUpId: 'm1', sides: [{}, { participantId: 'p2' }] } as any;
+    expect(buildInspectorActionModel('m1', [matchUp])?.schedulable).toBe(true);
+  });
+
+  it('is not schedulable once the result is in, or for a BYE', () => {
+    const done = { matchUpId: 'm1', winningSide: 1, sides: [{ participantId: 'p1' }] } as any;
+    const bye = { matchUpId: 'm2', matchUpStatus: 'BYE', sides: [{ participantId: 'p1' }] } as any;
+    expect(buildInspectorActionModel('m1', [done])?.schedulable).toBe(false);
+    expect(buildInspectorActionModel('m2', [bye])?.schedulable).toBe(false);
+  });
+});

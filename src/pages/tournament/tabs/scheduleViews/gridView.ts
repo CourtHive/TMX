@@ -283,6 +283,7 @@ import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPrompt
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
+import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { relatedMatchUpIds } from './relatedMatchUps';
 import { evaluateRest } from './inspectorRest';
 import { buildCheckInModeToggle } from './checkInModeToggle';
@@ -357,6 +358,11 @@ export function renderGridView(
     refreshActiveStrip(currentDate);
   }
   currentRefresh = refresh;
+
+  // The Inspector's schedule actions dispatch through here rather than calling
+  // `mutationRequest` themselves — `executeMethods` is what honours plan mode,
+  // bulk mode and the deleted-draw check. See `scheduleMutationControl`.
+  registerScheduleMutationControl({ execute: (methods) => executeMethods(methods, refresh) });
 
   const gridCallbacks: GridCallbacks = { onRefresh: refresh, executeMethods };
 
@@ -1417,6 +1423,9 @@ export function destroyGridView(): void {
   actionBarContainer = null;
   gridRootElement = null;
   currentRefresh = null;
+  // An Inspector left on screen by another surface must not dispatch into a dead
+  // render; the action declines to offer itself instead.
+  resetScheduleMutationControl();
 }
 
 /** Toggle visibility of the one-row active courts strip via the store flag. */
