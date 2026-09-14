@@ -29,6 +29,16 @@ export function describeFinding(finding: ReadinessFinding): string {
       : t('schedule.inspector.readiness.recovery', { names });
   }
   if (finding.kind === 'dependency') {
+    // Both figures when they differ — the court-free projection and the
+    // recovery-inclusive one. See `ReadinessFinding.readyAt` for why they are
+    // two facts rather than one rounded differently.
+    if (notBefore && finding.readyAt) {
+      return t('schedule.inspector.readiness.dependencyBoth', {
+        labels,
+        finishes: notBefore,
+        ready: finding.readyAt,
+      });
+    }
     return notBefore
       ? t('schedule.inspector.readiness.dependencyNotBefore', { labels, time: notBefore })
       : t('schedule.inspector.readiness.dependencyUnscheduled', { labels });

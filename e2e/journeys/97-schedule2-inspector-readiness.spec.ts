@@ -456,6 +456,74 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(timing.locator('.tmx-timing-source')).toContainText(/factory default/i);
   });
 
+  test('a dependency shows the finish AND when the winner could start', async ({ page }) => {
+    // These were one number for a long time and they are two facts: a court
+    // freeing at 15:30 does not put a player on it at 15:30. The panel was
+    // quietly answering one question two ways — readiness reported the finish,
+    // while the Rest section's pendingUpstream row reported the
+    // recovery-inclusive figure for the same situation.
+    const { tournamentId, downstreamId } = await page.evaluate(async (date) => {
+      await dev.tmx2db.initDB();
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: 'E2E Dependency Times',
+        tournamentAttributes: { tournamentId: 'e2e-dependency-times', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [{ eventName: 'Dep Singles', drawSize: 8, drawType: 'SINGLE_ELIMINATION' }],
+        venueProfiles: [{ courtsCount: 2, venueName: 'Dep Venue' }],
+      });
+
+      const all = () => dev.factory.competitionEngine.allTournamentMatchUps({ nextMatchUps: true }).matchUps || [];
+      const r1 = all().find((m: any) => m.roundNumber === 1 && m.matchUpStatus !== 'BYE' && m.winnerMatchUpId);
+      if (!r1) throw new Error('seed produced no R1 matchUp feeding a later round');
+      const downstream = all().find((m: any) => m.matchUpId === r1.winnerMatchUpId);
+      if (!downstream) throw new Error('seed produced no downstream matchUp');
+
+      // Scheduled inline rather than through a local helper: this body runs in
+      // the browser, so it cannot share one with the seed above, and a second
+      // identical closure is a duplicate the linter is right to flag.
+      //
+      // The downstream is scheduled BEFORE its feeder can finish, which is what
+      // produces a dependency finding at all.
+      dev.factory.tournamentEngine.addMatchUpScheduleItems({
+        matchUpId: r1.matchUpId,
+        drawId: r1.drawId,
+        schedule: { scheduledDate: date, scheduledTime: '14:00' },
+      });
+      dev.factory.tournamentEngine.addMatchUpScheduleItems({
+        matchUpId: downstream.matchUpId,
+        drawId: downstream.drawId,
+        schedule: { scheduledDate: date, scheduledTime: '14:30' },
+      });
+
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+      return { tournamentId: tournamentRecord.tournamentId as string, downstreamId: downstream.matchUpId as string };
+    }, SCHEDULE_DATE);
+
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+    await page.locator(`${SCHEDULED_CARD}[data-matchup-id="${downstreamId}"]`).click();
+
+    const dependency = page.locator(`${READINESS_FINDING}[data-kind="dependency"]`).first();
+    await expect(dependency).toBeVisible();
+
+    // Two figures, told apart by structure rather than by wording.
+    const court = dependency.locator('.tmx-readiness-court');
+    const ready = dependency.locator('.tmx-readiness-ready');
+    await expect(court).toContainText(/finishes ~\d{2}:\d{2}/);
+    await expect(ready).toContainText(/ready ~\d{2}:\d{2}/);
+
+    // And they must actually DIFFER — a test that passed with both showing the
+    // same clock would prove nothing about the distinction it exists for.
+    const courtText = (await court.textContent()) ?? '';
+    const readyText = (await ready.textContent()) ?? '';
+    expect(courtText.replace(/\D/g, '')).not.toEqual(readyText.replace(/\D/g, ''));
+
+    // The sentence form survives on the row for a hover and a screen reader.
+    expect(await dependency.getAttribute('title')).toMatch(/finishes|ready/);
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

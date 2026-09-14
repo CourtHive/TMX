@@ -325,6 +325,35 @@
   color: var(--tmx-text-secondary);
 }
 
+/* ── A dependency's two times ─────────────────────────────────────────────
+   They are different facts and used to be reported as one. The court-free
+   projection is when the upstream match ENDS; the emphasised figure is when its
+   winner could actually start, recovery included. Showing them together is what
+   makes the gap visible — a court freeing at 15:30 does not put a player on it
+   at 15:30. */
+.tmx-readiness-times {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.tmx-readiness-court {
+  font-size: 0.6875rem;
+  color: var(--tmx-text-muted);
+}
+
+.tmx-readiness-arrow {
+  font-size: 0.6875rem;
+  color: var(--tmx-text-muted);
+}
+
+.tmx-readiness-ready {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tmx-text-primary);
+}
+
 .tmx-readiness-ok {
   font-size: 0.75rem;
   color: var(--tmx-accent-green);
