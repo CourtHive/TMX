@@ -136,8 +136,29 @@ export interface ReadinessFinding {
   participantNames?: string[];
   matchUpIds?: string[];
   matchUpLabels?: string[];
-  /** Earliest clock time the blocker clears, `HH:MM`. Absent when it cannot be projected. */
+  /**
+   * Earliest clock time the blocker clears, `HH:MM`. Absent when it cannot be
+   * projected.
+   *
+   * ⚠️ For a `dependency` this is when the upstream matchUp is projected to
+   * FINISH — court time. It does NOT include the recovery its winner will then
+   * owe, which is a different quantity and lives in `readyAt`. For a `recovery`
+   * finding it is already recovery-inclusive (`freeAfter`), because that is the
+   * whole subject of the finding.
+   */
   notBefore?: string;
+  /**
+   * Earliest the participant coming out of the blocker could actually START,
+   * recovery included — `dependency` only, and only when it differs from
+   * `notBefore`.
+   *
+   * The two were the same number for a long time and they are not the same
+   * fact: a court freeing at 15:30 does not put a player on it at 15:30. Rest's
+   * `pendingUpstream` row has always reported the recovery-inclusive figure for
+   * the same situation, so the panel was quietly answering one question two
+   * ways. Both are now carried, and the renderer shows them together.
+   */
+  readyAt?: string;
 }
 
 /** Why readiness could not be evaluated. Never reported as "ready" — an unevaluated matchUp is not a clean one. */
@@ -299,12 +320,19 @@ function dependencyFindings(
       continue;
     }
     if (finish > startMinutes) {
+      // `freeAfter` adds the recovery the winner will owe on top of the same
+      // projected finish. Carried only when it differs: with a zero recovery the
+      // court-free time IS the ready time, and showing one figure twice would be
+      // noise dressed as precision.
+      const free = freeAfter(source, timingFor(source));
+      const readyAt = free !== null && free !== finish ? minutesToClock(free) : undefined;
       findings.push({
         kind: 'dependency',
         severity: 'WARN',
         matchUpIds: [source.matchUpId],
         matchUpLabels: [matchUpLabel(source)],
         notBefore: minutesToClock(finish),
+        ...(readyAt && { readyAt }),
       });
     }
   }

@@ -31,7 +31,7 @@ import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
 
 /**
  * A readiness evaluator valid for one pass, sharing the engine work across every
@@ -108,11 +108,48 @@ export function renderReadinessSection(matchUpId: string): HTMLElement | null {
   }
 
   for (const finding of result.findings) {
-    const row = line(describeFinding(finding), `tmx-readiness-finding is-${finding.severity.toLowerCase()}`);
-    row.dataset.kind = finding.kind;
-    section.appendChild(row);
+    section.appendChild(buildFindingRow(finding));
   }
   return section;
+}
+
+/**
+ * One finding as a row.
+ *
+ * A dependency carrying both figures is built from elements rather than a
+ * sentence, so the two times can be told apart at a glance: the court-free
+ * projection is muted, the recovery-inclusive one — the time the matchUp could
+ * actually start — is emphasised. Every other finding stays a single sentence,
+ * because every other finding has one number in it.
+ *
+ * `describeFinding` still produces the sentence form; it is what the card's time
+ * header uses for its hover, where structure is not available.
+ */
+function buildFindingRow(finding: ReadinessFinding): HTMLElement {
+  const row = line('', `tmx-readiness-finding is-${finding.severity.toLowerCase()}`);
+  row.dataset.kind = finding.kind;
+
+  if (finding.kind !== 'dependency' || !finding.notBefore || !finding.readyAt) {
+    row.textContent = describeFinding(finding);
+    return row;
+  }
+
+  const labels = finding.matchUpLabels?.join(', ') ?? '';
+  row.appendChild(line(t('schedule.inspector.readiness.dependencyWaiting', { labels }), 'tmx-readiness-text'));
+
+  const times = document.createElement('div');
+  times.className = 'tmx-readiness-times';
+  times.appendChild(
+    line(t('schedule.inspector.readiness.finishes', { time: finding.notBefore }), 'tmx-readiness-court'),
+  );
+  times.appendChild(line('\u2192', 'tmx-readiness-arrow'));
+  times.appendChild(line(t('schedule.inspector.readiness.ready', { time: finding.readyAt }), 'tmx-readiness-ready'));
+  row.appendChild(times);
+
+  // The sentence form on the row itself, so the distinction survives a hover and
+  // a screen reader even where the two-figure layout does not.
+  row.title = describeFinding(finding);
+  return row;
 }
 
 /**

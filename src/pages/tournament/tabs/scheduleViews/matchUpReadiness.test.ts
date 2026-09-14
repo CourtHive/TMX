@@ -374,3 +374,67 @@ describe('analyzeMatchUpReadiness — ordering', () => {
     expect(kinds(result)).toEqual(['overlap', 'dependency', 'recovery']);
   });
 });
+
+describe('a dependency carries BOTH the court-free and the player-ready time', () => {
+  // The panel was quietly answering one question two ways: readiness reported
+  // when the upstream FINISHES, while rest's pendingUpstream row reported the
+  // recovery-inclusive figure for the same situation. Both are now carried.
+  const upstream = (over: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp => ({
+    matchUpId: 'qf',
+    matchUpType: 'SINGLES',
+    winnerMatchUpId: 'sf',
+    sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+    schedule: { scheduledDate: DATE, scheduledTime: '14:00' },
+    ...over,
+  });
+  const target = (): ReadinessMatchUp => ({
+    matchUpId: 'sf',
+    matchUpType: 'SINGLES',
+    sides: [{}, { participantId: 'p9' }],
+    schedule: { scheduledDate: DATE, scheduledTime: '14:30' },
+  });
+
+  const analyze = (timing: { averageMinutes: number; recoveryMinutes: number }, matchUps: ReadinessMatchUp[]) =>
+    analyzeMatchUpReadiness({ matchUpId: 'sf', matchUps, timingFor: () => timing });
+
+  it('reports the finish and, separately, when the winner could start', () => {
+    const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), upstream()]);
+    const dependency = result.findings.find((f: any) => f.kind === 'dependency');
+    // 14:00 + 90 = 15:30 court-free; + 60 recovery = 16:30 player-ready.
+    expect(dependency.notBefore).toBe('15:30');
+    expect(dependency.readyAt).toBe('16:30');
+  });
+
+  it('omits readyAt when recovery is zero — one figure twice is not precision', () => {
+    const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 0 }, [target(), upstream()]);
+    const dependency = result.findings.find((f: any) => f.kind === 'dependency');
+    expect(dependency.notBefore).toBe('15:30');
+    expect(dependency.readyAt).toBeUndefined();
+  });
+
+  it('projects from a recorded end time when there is one, rather than the average', () => {
+    const played = upstream({ schedule: { scheduledDate: DATE, scheduledTime: '14:00', endTime: '15:00' } });
+    const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), played]);
+    const dependency = result.findings.find((f: any) => f.kind === 'dependency');
+    // The finish stays the projection (the matchUp is not finished), but the
+    // ready figure uses the recorded end — `freeAfter` prefers it.
+    expect(dependency.notBefore).toBe('15:30');
+    expect(dependency.readyAt).toBe('16:00');
+  });
+
+  it('leaves a recovery finding alone — its time already includes recovery', () => {
+    // The distinction that makes a blanket "readiness excludes rest" caveat
+    // wrong: only a dependency's figure is court-free.
+    const earlier: ReadinessMatchUp = {
+      matchUpId: 'earlier',
+      matchUpType: 'SINGLES',
+      sides: [{ participantId: 'p9' }, { participantId: 'p8' }],
+      schedule: { scheduledDate: DATE, scheduledTime: '13:00', endTime: '14:00' },
+      winningSide: 1,
+    };
+    const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), earlier]);
+    const recovery = result.findings.find((f: any) => f.kind === 'recovery');
+    expect(recovery.notBefore).toBe('15:00');
+    expect(recovery.readyAt).toBeUndefined();
+  });
+});
