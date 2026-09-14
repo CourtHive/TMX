@@ -57,4 +57,42 @@ describe('updateCourtDateAvailability', () => {
     updateCourtDateAvailability(existing, NEW_ENTRY);
     expect(JSON.stringify(existing)).toEqual(snapshot);
   });
+
+  it('preserves every other field on the entry it updates, not just bookings', () => {
+    // The popover owns the open window and nothing else. Replacing the entry
+    // dropped `notes`, `extensions`, `timeItems` and the record's own
+    // timestamps on the way past — latent today, because nothing writes them,
+    // and a trap the day something does.
+    const existing = [
+      {
+        date: DATE_TARGET,
+        startTime: '08:00',
+        endTime: '20:00',
+        notes: 'resurfaced in June',
+        extensions: [{ name: 'someExtension', value: 1 }],
+        timeItems: [{ itemType: 'SOMETHING' }],
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+    const result = updateCourtDateAvailability(existing, NEW_ENTRY);
+
+    expect(result[0].startTime).toEqual('07:00');
+    expect(result[0].endTime).toEqual('22:00');
+    expect(result[0].notes).toEqual('resurfaced in June');
+    expect(result[0].extensions).toEqual([{ name: 'someExtension', value: 1 }]);
+    expect(result[0].timeItems).toEqual([{ itemType: 'SOMETHING' }]);
+    expect(result[0].createdAt).toEqual('2026-01-01T00:00:00.000Z');
+  });
+
+  it('leaves a date-less default entry untouched', () => {
+    // A court's default availability carries no date. It must survive an edit
+    // to a specific day — the pairing to the factory fix in #4866(factory),
+    // which stopped the write side turning it into `date: "undefined"`.
+    const dateless = { startTime: '07:00', endTime: '19:00' };
+    const result = updateCourtDateAvailability([dateless, { date: DATE_OTHER, ...NEW_TIMES }], NEW_ENTRY);
+
+    expect(result).toHaveLength(3);
+    expect(result[0]).toEqual(dateless);
+    expect(result.some((entry) => entry.date === 'undefined')).toBe(false);
+  });
 });
