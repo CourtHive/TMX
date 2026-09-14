@@ -1,8 +1,9 @@
-import { resolveVenueFrame, venueOffsetMinutesAt, venueParts, venueWallClockToMs } from 'functions/venueTimeFrame';
+import { resolveVenueFrame, venueOffsetMinutesAt } from 'functions/venueTimeFrame';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { downloadJSON, downloadText } from 'services/export/download';
-import { openStructureAuditModal } from './structureAudit';
+import { localizeReportTimes } from './localizeReportTimes';
 import { resolveAuditBaseUrl } from './resolveAuditBaseUrl';
+import { openStructureAuditModal } from './structureAudit';
 import { tournamentEngine } from 'services/factory/engine';
 import { createReportsTable } from './createReportsTable';
 import { exportReportPDF } from './exportReportPDF';
@@ -168,52 +169,12 @@ async function selectReport(report: any): Promise<void> {
   if (source === 'server') {
     await fetchServerReport(reportId);
   } else {
-    const result: any = tournamentEngine.generateReport({ reportId, parameters: reportParameters() });
+    const parameters = reportParameters();
+    const result: any = tournamentEngine.generateReport({ reportId, parameters });
     if (result.error) return;
-    localizeReportTimes(result.rows);
+    localizeReportTimes(result.rows, parameters.timeZone);
     activeReport = { columns: result.columns, rows: result.rows };
     createReportsTable({ columns: result.columns, rows: result.rows });
-  }
-}
-
-/**
- * Recompute any UTC timestamps a report carries (rows with a `calledAtIso`
- * field, e.g. Call Timing Variance) into the **venue's** wall clock, resolved
- * per instant so a tournament spanning a DST change reads correctly on both
- * sides of it.
- *
- * `calledAt` becomes a bare HH:mm (date-prefixed only when the call landed on a
- * different venue calendar day than the scheduled date); `varianceMinutes` is
- * the signed difference between the actual call instant and the planned time.
- *
- * The variance is the reason `scheduledTime` cannot simply be `new Date`d. It is
- * a bare venue wall clock; parsing it without a zone yields the operator's
- * instant, and subtracting that from a real instant produced a variance wrong by
- * the offset between laptop and venue — a "12 minutes late" that was actually on
- * time. `venueWallClockToMs` resolves it against the venue zone instead.
- */
-function localizeReportTimes(rows: Record<string, any>[]): void {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const { timeZone } = resolveVenueFrame();
-  for (const row of rows ?? []) {
-    if (!row.calledAtIso) continue;
-    const parts = venueParts(row.calledAtIso, timeZone);
-    if (!parts) continue;
-
-    const localDate = `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
-    const localTime = `${pad(parts.hour)}:${pad(parts.minute)}`;
-    row.calledAt = localDate === row.scheduledDate ? localTime : `${localDate} ${localTime}`;
-
-    if (row.scheduledDate && row.scheduledTime) {
-      const calledMs = new Date(row.calledAtIso).getTime();
-      const plannedMs = venueWallClockToMs(row.scheduledDate, row.scheduledTime, timeZone);
-      if (plannedMs !== undefined && !Number.isNaN(calledMs)) {
-        // Compare at whole-minute resolution so the number agrees with the HH:mm
-        // shown: a call at 15:05:45 displays as 15:05, so 15:00 → 15:05 reads as
-        // 5, not 6 (which a seconds-aware round would give).
-        row.varianceMinutes = Math.floor(calledMs / 60000) - Math.floor(plannedMs / 60000);
-      }
-    }
   }
 }
 
