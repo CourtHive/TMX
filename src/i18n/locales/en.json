@@ -1002,6 +1002,17 @@
       "placed": "On the grid — {{court}}",
       "placedAt": "On the grid — {{court}} at {{time}}",
       "placedHint": "Not in either catalog list. Click to highlight it on the court grid.",
+      "timing": {
+        "heading": "Format timing",
+        "average": "{{minutes}} average",
+        "recovery": "{{minutes}} recovery",
+        "typeChange": "{{minutes}} after a type change",
+        "source": {
+          "event": "from this event's scheduling policy",
+          "tournament": "from the tournament's scheduling policy",
+          "default": "factory default \u2014 no scheduling policy attached"
+        }
+      },
       "readiness": {
         "heading": "Readiness",
         "ready": "No readiness issues for this time.",

@@ -437,6 +437,25 @@ test.describe('Journey 97 — Schedule2 Inspector readiness', () => {
     await expect(popover.getByText('Set time', { exact: true })).toBeVisible();
   });
 
+  test('the Inspector prices the format the sections below reason from', async ({ page }) => {
+    // The panel names the format and then spends three sections reasoning from
+    // what it costs, without ever showing the two numbers underneath.
+    const { tournamentId } = await seedInspector(page, 'clean');
+    await openScheduling(page, tournamentId);
+    await openScheduledTab(page);
+    await page.locator(SCHEDULED_CARD).first().click();
+
+    const timing = page.locator(`${INSPECTOR} .tmx-timing`);
+    await expect(timing).toBeVisible();
+    // The figures the scheduler itself resolves, in the panel's own duration
+    // vocabulary so they read alike beside the rest rows.
+    await expect(timing.locator('.tmx-timing-figures')).toContainText(/average/);
+    await expect(timing.locator('.tmx-timing-figures')).toContainText(/recovery/);
+    // And which policy answered — this seed attaches none.
+    await expect(timing).toHaveAttribute('data-timing-source', 'default');
+    await expect(timing.locator('.tmx-timing-source')).toContainText(/factory default/i);
+  });
+
   test('the toggle hides the Inspector on both tabs and the choice survives a reload', async ({ page }) => {
     const { tournamentId } = await seedInspector(page, 'clash');
     await openScheduling(page, tournamentId);

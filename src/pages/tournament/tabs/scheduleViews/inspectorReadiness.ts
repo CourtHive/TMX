@@ -26,6 +26,7 @@ import { applyRelatedHighlight } from 'courthive-components';
 import { analyzeMatchUpReadiness } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
+import { renderTimingSection } from './inspectorTiming';
 import { renderRestSection } from './inspectorRest';
 import { t } from 'i18n';
 
@@ -196,6 +197,12 @@ export function renderInspectorSections(selection: CatalogSelection, viewedDate:
 
   const placed = placedElsewhere(selection);
   if (placed) container.appendChild(placed);
+
+  // Timing sits FIRST among the analyses because it is what they are all
+  // reasoning from: rest counts against the recovery figure, readiness projects
+  // a finish from the average, and the Format row it explains is directly above.
+  const timing = renderTimingSection(matchUpId);
+  if (timing) container.appendChild(timing);
 
   const rest = renderRestSection(matchUpId, viewedDate);
   if (rest) container.appendChild(rest);
