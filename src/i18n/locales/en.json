@@ -966,6 +966,10 @@
       "resting": "{{name}}{{where}} — {{rested}} rested of {{required}} required",
       "onCourt": "{{name}}{{where}} — still on court in an earlier match"
     },
+    "strip": {
+      "runwayHint": "{{minutes}} until this court is taken by {{type}} — a typical match no longer fits",
+      "blockEdgeHint": "{{type}} starts in {{minutes}}, before this match is expected to finish"
+    },
     "startOnDropTitle": "Start match on drop?",
     "startOnDropPrompt": "You dropped a match onto the Now strip. Start matches automatically whenever they are dropped onto Now from now on? You can change this any time with the start-on-drop toggle in the schedule header.",
     "unscheduleAllTitle": "Unschedule all?",
