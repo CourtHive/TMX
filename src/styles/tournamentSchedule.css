@@ -269,6 +269,92 @@
   gap: 4px;
 }
 
+/* ── Time-block modal ────────────────────────────────────────────────────
+   Successive from/to periods, each reading as one line rather than a row of
+   cells under column headings: a table implies a record being maintained,
+   and this is a short list being composed. */
+.tmx-timeblock-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tmx-timeblock-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tmx-timeblock-label {
+  font-size: 0.8125rem;
+  color: var(--tmx-text-muted);
+}
+
+/* Native controls are themed explicitly — an unthemed `input[type=time]` draws
+   whatever the platform wants, which in dark mode is a white box. */
+.tmx-timeblock-time,
+.tmx-timeblock-type {
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--tmx-border-primary);
+  background: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+}
+
+.tmx-timeblock-time:focus,
+.tmx-timeblock-type:focus {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: -1px;
+}
+
+/* The clock glyph the browser draws is black by default and vanishes on a dark
+   field; inverting it is the only hook the shadow DOM exposes. */
+[data-theme='dark'] .tmx-timeblock-time::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.tmx-timeblock-remove {
+  background: transparent;
+  border: 0;
+  color: var(--tmx-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+}
+
+.tmx-timeblock-remove:hover {
+  color: var(--tmx-accent-red);
+}
+
+.tmx-timeblock-add {
+  margin-top: 10px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--tmx-accent-blue);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+.tmx-timeblock-message {
+  margin-top: 8px;
+  min-height: 1.2em;
+  font-size: 0.8125rem;
+  color: var(--tmx-accent-red);
+}
+
+.tmx-timeblock-scope {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
 /* "On the grid — Court 3 at 14:30". Shown when the selected matchUp has been
    placed on a court and so appears in neither sidebar list; without it the
    Inspector reads as though it might be describing one of the cards that ARE

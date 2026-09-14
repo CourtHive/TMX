@@ -970,6 +970,27 @@
       "runwayHint": "{{minutes}} until this court is taken by {{type}} — a typical match no longer fits",
       "blockEdgeHint": "{{type}} starts in {{minutes}}, before this match is expected to finish"
     },
+    "blockType": {
+      "blocked": "Blocked",
+      "maintenance": "Maintenance",
+      "drying": "Drying",
+      "practice": "Practice"
+    },
+    "timeBlock": {
+      "open": "Block time",
+      "title": "Block {{court}}",
+      "from": "From",
+      "to": "to",
+      "addPeriod": "+ Add another period",
+      "removePeriod": "Remove this period",
+      "allCourts": "Apply to all {{count}} courts",
+      "save": "Block",
+      "noWindow": "No open hours recorded for {{courts}} — set the court's availability first.",
+      "error": {
+        "incomplete": "Each period needs both a start and an end.",
+        "inverted": "A period has to end after it starts."
+      }
+    },
     "startOnDropTitle": "Start match on drop?",
     "startOnDropPrompt": "You dropped a match onto the Now strip. Start matches automatically whenever they are dropped onto Now from now on? You can change this any time with the start-on-drop toggle in the schedule header.",
     "unscheduleAllTitle": "Unschedule all?",
