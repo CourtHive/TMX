@@ -40,8 +40,16 @@ const DEFAULT_PICKER_TIME = '8:00 AM';
 export interface InspectorActionContext {
   /** The day being viewed, written when the matchUp carries no date of its own. */
   viewedDate?: string | null;
-  /** Earliest time readiness says this matchUp could start, `HH:MM`. Seeds the picker. */
-  notBefore?: string;
+  /**
+   * Earliest time readiness says this matchUp could actually start, `HH:MM`.
+   * Seeds the picker.
+   *
+   * Named for what it means rather than for the field it came from: for a
+   * dependency this is the RECOVERY-INCLUSIVE figure, not the moment the court
+   * frees. Seeding the clock with the latter offered a time the readiness panel
+   * two lines above said the player could not make.
+   */
+  earliestStart?: string;
 }
 
 /** One clickable row in the popover. Shared shape so the draw row and the people read alike. */
@@ -93,10 +101,10 @@ function scheduleRows(
         pickScheduledTime({
           matchUpId: model.matchUpId,
           // The readiness answer is the better default when there is one: the
-          // Inspector has just said the matchUp cannot start before 15:30, so
-          // opening the picker anywhere else asks the operator to retype what
-          // the panel already worked out.
-          defaultTime: context.notBefore ?? model.scheduledTime ?? DEFAULT_PICKER_TIME,
+          // Inspector has just said when this could start, so opening the
+          // picker anywhere else asks the operator to retype what the panel
+          // already worked out.
+          defaultTime: context.earliestStart ?? model.scheduledTime ?? DEFAULT_PICKER_TIME,
           scheduledDate: model.scheduledDate,
           viewedDate: context.viewedDate,
         });

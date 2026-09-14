@@ -23,7 +23,7 @@
 import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { applyRelatedHighlight } from 'courthive-components';
-import { analyzeMatchUpReadiness } from './matchUpReadiness';
+import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderTimingSection } from './inspectorTiming';
@@ -152,20 +152,10 @@ function buildFindingRow(finding: ReadinessFinding): HTMLElement {
   return row;
 }
 
-/**
- * The earliest time every blocker has cleared, `HH:MM`.
- *
- * The LATEST `notBefore` across the findings, not the earliest: each one is a
- * floor, and the matchUp can only start once all of them are met. Taking the
- * first would seed the picker with a time that is still blocked by something
- * else the same panel is displaying.
- */
-function earliestNotBefore(matchUpId: string): string | undefined {
+/** The earliest this matchUp could start, resolved against current factory state. See `earliestStart`. */
+function earliestStartFor(matchUpId: string): string | undefined {
   const result = evaluateReadiness(matchUpId);
-  if (!result.evaluated) return undefined;
-  const times = result.findings.map((finding) => finding.notBefore).filter(Boolean) as string[];
-  // `HH:MM` is lexicographically ordered, so a string comparison is the clock one.
-  return times.length ? times.toSorted((a, b) => a.localeCompare(b)).at(-1) : undefined;
+  return result.evaluated ? earliestStart(result.findings) : undefined;
 }
 
 /**
@@ -228,8 +218,9 @@ export function renderInspectorSections(selection: CatalogSelection, viewedDate:
   // counting up, which would destroy an open popover mid-interaction.
   // Readiness is evaluated here as well as inside the section — the pass
   // evaluator makes the second call free — so the actions menu can open its time
-  // picker at the hour the panel is about to name.
-  const actions = renderInspectorActions(matchUpId, { viewedDate, notBefore: earliestNotBefore(matchUpId) });
+  // picker at the hour the panel is about to name. `earliestStart`, not
+  // `notBefore`: a dependency's court-free time is not a time a player can make.
+  const actions = renderInspectorActions(matchUpId, { viewedDate, earliestStart: earliestStartFor(matchUpId) });
   if (actions) container.appendChild(actions);
 
   const placed = placedElsewhere(selection);

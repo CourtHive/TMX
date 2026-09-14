@@ -161,6 +161,26 @@ export interface ReadinessFinding {
   readyAt?: string;
 }
 
+/**
+ * The earliest clock time this matchUp could sensibly start, given its findings.
+ *
+ * Takes the LATEST floor across them, not the earliest: each finding is a
+ * separate thing standing in the way, and clearing one while another still
+ * stands is not a start time.
+ *
+ * Prefers `readyAt` over `notBefore` wherever a finding carries both. A
+ * dependency's `notBefore` is when the upstream match frees the COURT; its
+ * `readyAt` is when the winner could actually be on it. Anything seeding a
+ * clock — the Inspector's time picker does — wants the second, or it offers the
+ * operator a time the panel beside it says the player cannot make.
+ *
+ * `HH:MM` is lexicographically ordered, so a string comparison is the clock one.
+ */
+export function earliestStart(findings: ReadinessFinding[]): string | undefined {
+  const times = findings.map((finding) => finding.readyAt ?? finding.notBefore).filter(Boolean) as string[];
+  return times.length ? times.toSorted((a, b) => a.localeCompare(b)).at(-1) : undefined;
+}
+
 /** Why readiness could not be evaluated. Never reported as "ready" — an unevaluated matchUp is not a clean one. */
 export type ReadinessSkipReason = 'unknownMatchUp' | 'bye' | 'completed' | 'notScheduled' | 'noTime';
 
