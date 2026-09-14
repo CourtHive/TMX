@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { analyzeMatchUpReadiness, individualIds, minutesToClock } from './matchUpReadiness';
+import { analyzeMatchUpReadiness, earliestStart, individualIds, minutesToClock } from './matchUpReadiness';
 
 // constants and types
 import type { ReadinessMatchUp, ReadinessTiming } from './matchUpReadiness';
@@ -436,5 +436,44 @@ describe('a dependency carries BOTH the court-free and the player-ready time', (
     const recovery = result.findings.find((f: any) => f.kind === 'recovery');
     expect(recovery.notBefore).toBe('15:00');
     expect(recovery.readyAt).toBeUndefined();
+  });
+});
+
+describe('earliestStart — what a clock should be seeded with', () => {
+  const finding = (over: any) => ({ kind: 'dependency', severity: 'WARN', ...over });
+
+  it('prefers the recovery-inclusive figure over the court-free one', () => {
+    // The whole point: a dependency's `notBefore` is when the COURT frees.
+    // Seeding a picker with it offers a time the panel says the player cannot
+    // make.
+    expect(earliestStart([finding({ notBefore: '15:30', readyAt: '16:30' })])).toBe('16:30');
+  });
+
+  it('falls back to notBefore when a finding carries no readyAt', () => {
+    // A recovery finding's time is already recovery-inclusive; a zero-recovery
+    // dependency has nothing to add.
+    expect(earliestStart([finding({ kind: 'recovery', notBefore: '15:00' })])).toBe('15:00');
+  });
+
+  it('takes the LATEST floor across findings, not the earliest', () => {
+    // Each finding is a separate thing in the way; clearing one while another
+    // stands is not a start time.
+    const findings = [
+      finding({ notBefore: '15:30', readyAt: '16:30' }),
+      finding({ kind: 'recovery', notBefore: '17:00' }),
+    ];
+    expect(earliestStart(findings)).toBe('17:00');
+  });
+
+  it('compares the recovery-inclusive figures, not the raw ones', () => {
+    // A finding whose court-free time is earlier can still carry the latest
+    // ready time; sorting on the wrong field would pick the wrong floor.
+    const findings = [finding({ notBefore: '15:00', readyAt: '18:00' }), finding({ notBefore: '16:00' })];
+    expect(earliestStart(findings)).toBe('18:00');
+  });
+
+  it('says nothing when no finding names a time', () => {
+    expect(earliestStart([finding({})])).toBeUndefined();
+    expect(earliestStart([])).toBeUndefined();
   });
 });
