@@ -273,6 +273,38 @@
    placed on a court and so appears in neither sidebar list; without it the
    Inspector reads as though it might be describing one of the cards that ARE
    visible. Clickable, so it answers "where did it go" by lighting up the cell. */
+/* ── Format timing ───────────────────────────────────────────────────────
+   The two numbers the sections below all reason from: rest counts against the
+   recovery figure, readiness projects a finish from the average. Placed first
+   in the extra block so it sits closest to the Format row it explains. Muted by
+   design — it is a reference, not a finding. */
+.tmx-timing {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--tmx-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tmx-timing-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-timing-figures {
+  font-size: 0.75rem;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-timing-source {
+  font-size: 0.6875rem;
+  color: var(--tmx-text-muted);
+}
+
 .tmx-inspector-placed {
   font-size: 0.75rem;
   color: var(--tmx-accent-blue);
