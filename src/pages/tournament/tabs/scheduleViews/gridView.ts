@@ -72,6 +72,7 @@ import type {
   ActiveStripPanel,
   ActiveStripPanelData,
   ActiveStripCourtBlock,
+  ActiveStripUpcomingBlock,
   ActiveStripCell,
 } from 'courthive-components';
 import {
@@ -131,6 +132,10 @@ import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 const { scheduleConstants } = factoryConstants;
 
 const { BYE, IN_PROGRESS, TO_BE_PLAYED } = matchUpStatusConstants;
+/** Aliased rather than destructured with the rest: `SUSPENDED` is already a local in this module. */
+const SUSPENDED_STATUS = matchUpStatusConstants.SUSPENDED;
+/** Only when the engine cannot answer at all — see `defaultAverageMinutes`. */
+const FALLBACK_AVERAGE_MINUTES = 90;
 
 /**
  * Fallback row count when a tournament hasn't yet had its scheduleDisplay
@@ -286,6 +291,7 @@ import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
+import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
 import { relatedMatchUpIds } from './relatedMatchUps';
 import { renderCheckInBadge } from './checkInBadge';
 import { evaluateRest } from './inspectorRest';
@@ -2470,30 +2476,48 @@ function extractParticipantIds(matchUp: any): string[] {
 }
 
 /**
- * Build a courtId → ActiveStripCourtBlock map describing which availability
- * blocks are active on each court right now. Used by the live strip to
- * surface PRACTICE / MAINTENANCE / RESERVED time windows that aren't
- * matchUps. Excludes SCHEDULED blocks since those are already shown as
- * cells in the grid.
+ * The day's non-SCHEDULED availability blocks, loaded once.
+ *
+ * Building an `AvailabilityEngine` costs an `init(tournamentRecord)` over every
+ * venue and court. The banner, the idle-court runway and the mid-match edge all
+ * need the same list, and `checkBlockInterruption` builds its own on every drop
+ * — doing it per strip cell as well would multiply a per-tournament cost by the
+ * court count on every 30-second tick.
+ *
+ * SCHEDULED blocks are excluded here rather than at each call site: they are
+ * matchUps, already drawn as cells, and no consumer of this wants them.
  */
-function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtBlock> {
+function loadDayBlocks(date: string): any[] {
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
-  if (!tournamentRecord) return {};
+  if (!tournamentRecord) return [];
 
   let engine: any;
   try {
     engine = new AvailabilityEngine();
     engine.init(tournamentRecord);
   } catch {
-    return {};
+    return [];
   }
 
-  let blocks: any[];
   try {
-    blocks = engine.getDayBlocks(date) || [];
+    return (engine.getDayBlocks(date) || []).filter((block: any) => block?.type !== 'SCHEDULED');
   } catch {
-    return {};
+    return [];
   }
+}
+
+/**
+ * Build a courtId → ActiveStripCourtBlock map describing which availability
+ * blocks are active on each court right now. Used by the live strip to
+ * surface PRACTICE / MAINTENANCE / RESERVED time windows that aren't
+ * matchUps. Excludes SCHEDULED blocks since those are already shown as
+ * cells in the grid.
+ */
+function buildCurrentCourtBlocks(date: string, dayBlocks: any[]): Record<string, ActiveStripCourtBlock> {
+  const { tournamentRecord } = tournamentEngine.getTournament() || {};
+  if (!tournamentRecord) return {};
+
+  const blocks = dayBlocks;
   if (!blocks.length) return {};
 
   // Use the strip's date as the time anchor so painted blocks on a non-today
@@ -2512,7 +2536,6 @@ function buildCurrentCourtBlocks(date: string): Record<string, ActiveStripCourtB
   });
 
   for (const block of blocks) {
-    if (block?.type === 'SCHEDULED') continue;
     if (!block.start || !block.end || !block.court?.courtId) continue;
 
     const start = new Date(block.start);
@@ -2613,7 +2636,9 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const gridTemplateColumns = `${GRID_TIME_COL_WIDTH_PX}px repeat(${totalColumns}, minmax(${minCourtWidthPx}px, 1fr))`;
   const minWidth = `${GRID_TIME_COL_WIDTH_PX + totalColumns * minCourtWidthPx}px`;
 
-  const courtBlocks = buildCurrentCourtBlocks(date);
+  const dayBlocks = loadDayBlocks(date);
+  const courtBlocks = buildCurrentCourtBlocks(date, dayBlocks);
+  const { courtUpcomingBlocks, courtBlockEdges } = buildCourtBlockSignals(date, dayBlocks, columns, courtBlocks);
 
   // "Should have started by now" is only a question about today, and only on the
   // venue's clock — a director west of the tournament would otherwise read the
@@ -2621,7 +2646,155 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   // history or plan, where nothing can be overdue.
   const dueMatchUpIds = date === todayIso() ? computeDueMatchUps(columns as any, venueClock(new Date())) : [];
 
-  return { grid: { columns }, courts, courtBlocks, dueMatchUpIds, gridTemplateColumns, minWidth };
+  return {
+    grid: { columns },
+    courts,
+    courtBlocks,
+    courtUpcomingBlocks,
+    courtBlockEdges,
+    dueMatchUpIds,
+    gridTemplateColumns,
+    minWidth,
+  };
+}
+
+/** Venue-local minutes from midnight for a naive block bound. See `formatHM` on why the raw accessors are right. */
+function naiveMinutes(value: string | Date): number | undefined {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+/** `HH:MM` to venue-local minutes from midnight. */
+function clockMinutes(value?: string): number | undefined {
+  if (!value) return undefined;
+  const [hh, mm] = value.split(':').map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return undefined;
+  return hh * 60 + mm;
+}
+
+/**
+ * When the matchUp showing on a court's strip cell is expected to finish, in
+ * venue-local minutes — or undefined when the court is idle, which is what
+ * selects between the runway and the edge.
+ *
+ * "Showing" follows `computeActiveStripCell`'s own precedence: a live or
+ * suspended matchUp, else one that has been called. An un-called pending matchUp
+ * is not on the court, so the court counts as idle here — the same reading the
+ * strip itself takes.
+ */
+function occupiedUntil(column: any, averageFor: (cell: any) => number): number | undefined {
+  const live = column.cells.find(
+    (cell: any) => cell && (cell.matchUpStatus === IN_PROGRESS || cell.matchUpStatus === SUSPENDED_STATUS),
+  );
+  const showing = live ?? column.cells.find((cell: any) => cell?.calledAt && !cell.winningSide);
+  if (!showing) return undefined;
+
+  const schedule = showing.payload?.schedule ?? {};
+  // Strongest anchor first: when it actually started, then when it was called,
+  // then when it was due. Each is a start, so the projected finish is that plus
+  // the format's average — the ladder the rest analysis walks, in miniature.
+  const start =
+    clockMinutes(schedule.startTime) ??
+    (schedule.calledAt ? naiveMinutes(new Date(schedule.calledAt)) : undefined) ??
+    clockMinutes(schedule.scheduledTime);
+  if (start === undefined) return undefined;
+  return start + averageFor(showing);
+}
+
+/**
+ * The idle-court runway and the mid-match block edge, for every court.
+ *
+ * Only ever about today on the venue's clock — a block on a past or future date
+ * is history or plan, and counting down to it would be arithmetic against a
+ * clock that does not exist on that day.
+ */
+function buildCourtBlockSignals(
+  date: string,
+  dayBlocks: any[],
+  columns: any[],
+  courtBlocks: Record<string, ActiveStripCourtBlock>,
+): {
+  courtUpcomingBlocks: Record<string, ActiveStripUpcomingBlock>;
+  courtBlockEdges: Record<string, ActiveStripUpcomingBlock>;
+} {
+  const courtUpcomingBlocks: Record<string, ActiveStripUpcomingBlock> = {};
+  const courtBlockEdges: Record<string, ActiveStripUpcomingBlock> = {};
+  if (!dayBlocks.length) return { courtUpcomingBlocks, courtBlockEdges };
+
+  const now = venueNowOnDate(date);
+  if (!now) return { courtUpcomingBlocks, courtBlockEdges };
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const windows: CourtBlockWindow[] = [];
+  for (const block of dayBlocks) {
+    const courtId = block?.court?.courtId;
+    if (!courtId || !block.start || !block.end) continue;
+    const startMinutes = naiveMinutes(block.start);
+    const endMinutes = naiveMinutes(block.end);
+    if (startMinutes === undefined || endMinutes === undefined) continue;
+    windows.push({ courtId, type: String(block.type), startMinutes, endMinutes });
+  }
+  if (!windows.length) return { courtUpcomingBlocks, courtBlockEdges };
+
+  // The tournament's own scheduling-policy average, resolved once: the threshold
+  // is "a typical match no longer fits HERE", which a hardcoded figure would get
+  // wrong for any event that configured its timing.
+  const averageMinutes = defaultAverageMinutes();
+  const averageFor = (cell: any) => matchUpAverageMinutes(cell) ?? averageMinutes;
+
+  for (const column of columns) {
+    const courtId = column.courtId;
+    // A block in force already owns this cell's second row as a banner.
+    if (courtBlocks[courtId]) continue;
+
+    const signal = courtBlockSignal({
+      courtId,
+      nowMinutes,
+      blocks: windows,
+      averageMinutes,
+      occupiedUntilMinutes: occupiedUntil(column, averageFor),
+    });
+    if (!signal) continue;
+
+    const runway = formatRunway(signal.minutes);
+    const target = signal.kind === 'runway' ? courtUpcomingBlocks : courtBlockEdges;
+    const hintKey = signal.kind === 'runway' ? 'schedule.strip.runwayHint' : 'schedule.strip.blockEdgeHint';
+    target[courtId] = {
+      type: signal.type,
+      label: `${runway} \u2192 ${signal.type}`,
+      title: t(hintKey, { minutes: runway, type: signal.type }),
+    };
+  }
+
+  return { courtUpcomingBlocks, courtBlockEdges };
+}
+
+/** The scheduling policy's average for a matchUp with no format of its own. */
+function defaultAverageMinutes(): number {
+  try {
+    const timing = competitionEngine.getMatchUpFormatTiming?.({}) as any;
+    const average = Number(timing?.averageMinutes);
+    return Number.isFinite(average) && average > 0 ? average : FALLBACK_AVERAGE_MINUTES;
+  } catch {
+    return FALLBACK_AVERAGE_MINUTES;
+  }
+}
+
+/** The average for one strip cell's matchUp, or undefined when its format cannot be resolved. */
+function matchUpAverageMinutes(cell: any): number | undefined {
+  const matchUpFormat = resolveMatchUpFormat(cell.payload);
+  if (!matchUpFormat) return undefined;
+  try {
+    const timing = competitionEngine.getMatchUpFormatTiming?.({
+      matchUpFormat,
+      eventType: cell.payload?.matchUpType,
+    }) as any;
+    const average = Number(timing?.averageMinutes);
+    return Number.isFinite(average) && average > 0 ? average : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**

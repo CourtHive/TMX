@@ -245,6 +245,74 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     expect(await page.locator(`${CELL_SELECTOR}.state-free`).count()).toBe(3);
   });
 
+  test('an idle court counts down to a block that leaves no room for a match', async ({ page }) => {
+    // The clock is FIXED rather than derived from the run's wall time. The whole
+    // feature is a comparison against "now", so a test that computes its fixtures
+    // from the real clock either wraps past midnight on a late CI run or has to
+    // assert something vague. At 14:00 the two blocks below are unambiguous.
+    await page.clock.setFixedTime(new Date(`${SCHEDULE_DATE}T14:00:00`));
+
+    const { tournamentId, nearCourtId, farCourtId } = await page.evaluate(async (date) => {
+      await dev.tmx2db.initDB();
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: 'E2E Strip Runway',
+        tournamentAttributes: { tournamentId: 'e2e-strip-runway', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [{ eventName: 'Runway Singles', drawSize: 8, drawType: 'SINGLE_ELIMINATION' }],
+        venueProfiles: [{ courtsCount: 4, venueName: 'Runway Venue' }],
+      });
+
+      const courts = (dev.factory.tournamentEngine.getVenuesAndCourts()?.venues || [])[0]?.courts || [];
+      // Read-modify-write the WHOLE dateAvailability, the way capacityPopover
+      // does: an entry carrying only `{date, bookings}` is dropped, because the
+      // court's day also has to say when it opens and closes.
+      const book = (court: any, startTime: string, endTime: string) => {
+        const dateAvailability = (court.dateAvailability || []).map((entry: any) =>
+          entry.date === date
+            ? { ...entry, bookings: [...(entry.bookings || []), { startTime, endTime, bookingType: 'MAINTENANCE' }] }
+            : entry,
+        );
+        const result = dev.factory.tournamentEngine.modifyCourtAvailability({
+          courtId: court.courtId,
+          dateAvailability,
+        });
+        if (result?.error) throw new Error(`modifyCourtAvailability failed: ${JSON.stringify(result.error)}`);
+      };
+
+      // 14:30 — 30 minutes away, and the policy average is 90, so a match no
+      // longer fits and the court should say so.
+      book(courts[0], '14:30', '15:30');
+      // 17:00 — three hours away. A match fits, so this court must stay silent:
+      // the control that keeps the countdown from being furniture all day.
+      book(courts[1], '17:00', '18:00');
+
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+      return {
+        tournamentId: tournamentRecord.tournamentId as string,
+        nearCourtId: courts[0].courtId as string,
+        farCourtId: courts[1].courtId as string,
+      };
+    }, SCHEDULE_DATE);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+
+    const runway = page.locator(`${CELL_SELECTOR}[data-court-id="${nearCourtId}"] .spl-active-strip-runway`);
+    await expect(runway).toBeVisible();
+    await expect(runway).toHaveText('30m → MAINTENANCE');
+
+    // The control. A block three hours out is not news.
+    await expect(
+      page.locator(`${CELL_SELECTOR}[data-court-id="${farCourtId}"] .spl-active-strip-runway`),
+    ).toHaveCount(0);
+    // And a court with no block at all says nothing either.
+    expect(await page.locator(`${CELL_SELECTOR} .spl-active-strip-runway`).count()).toBe(1);
+  });
+
   test('an IN_PROGRESS matchUp surfaces on its court as LIVE', async ({ page }) => {
     const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 
