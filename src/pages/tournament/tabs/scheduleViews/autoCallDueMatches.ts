@@ -18,6 +18,8 @@
  * schedule-page/domain/activeStrip.ts in courthive-components.
  */
 
+import { commitmentOf } from './timeCommitment';
+
 export interface StripCell {
   matchUpId: string;
   drawId?: string;
@@ -85,26 +87,24 @@ function isCandidate(cell: StripCell | null): cell is StripCell {
   return present >= 2;
 }
 
-/**
- * Annotations that withdraw the promise a `scheduledTime` otherwise makes.
- *
- * "Followed by" and "next available" say *after something else*, "not before"
- * says *no earlier than*, and "to be announced" says nothing at all — none of
- * them claim the match starts at the time written, so none of them can be late.
- * Treating an annotated matchUp as overdue would flag the schedule's own
- * deliberate vagueness as an error.
- */
-const SOFT_TIME_MODIFIERS = new Set(['FOLLOWED_BY', 'NEXT_AVAILABLE', 'NOT_BEFORE', 'AFTER_REST', 'TO_BE_ANNOUNCED']);
-
 /** `HH:MM` (24h) for a cell, or undefined when it carries no scheduled time. */
 function scheduledTimeOf(cell: StripCell): string | undefined {
   return (cell.payload as any)?.schedule?.scheduledTime as string | undefined;
 }
 
-/** True when the schedule declines to promise the written time — see `SOFT_TIME_MODIFIERS`. */
+/**
+ * True when the schedule states no time for this cell — see `commitmentOf`.
+ *
+ * This used to be a hand-written set of five annotations, all treated as
+ * withdrawing the written time. That was wrong twice: four of the five CLEAR
+ * `scheduledTime` when written, so they could never reach the comparison below;
+ * and the one that can — `NOT_BEFORE` — is a FLOOR, which makes a passed time
+ * more binding, not less. A matchUp annotated "not before 14:30", on an idle
+ * court at 15:10 with both players known, is the clearest case of overdue there
+ * is, and it was the only case the old set ever actually suppressed.
+ */
 function timeIsSoft(cell: StripCell): boolean {
-  const modifiers = ((cell.payload as any)?.schedule?.timeModifiers ?? []) as string[];
-  return modifiers.some((modifier) => SOFT_TIME_MODIFIERS.has(modifier));
+  return commitmentOf((cell.payload as any)?.schedule) === 'none';
 }
 
 /**

@@ -206,17 +206,18 @@ describe('computeDueMatchUps', () => {
   });
 
   it('ignores a matchUp whose annotation withdrew the promise of its time', () => {
-    // "Followed by" / "not before" / TBA never claimed the written time, so they
-    // cannot be late. Flagging them would report the schedule's own deliberate
-    // vagueness as an error.
-    for (const modifier of ['FOLLOWED_BY', 'NEXT_AVAILABLE', 'NOT_BEFORE', 'AFTER_REST', 'TO_BE_ANNOUNCED']) {
+    // These four CLEAR `scheduledTime` when written, so in practice they never
+    // reach the comparison at all. Kept as a guard for legacy records hydrated
+    // from timeItems, where the pair can still arrive: the annotation is the
+    // more recent statement of intent, so it wins.
+    for (const modifier of ['FOLLOWED_BY', 'NEXT_AVAILABLE', 'AFTER_REST', 'TO_BE_ANNOUNCED']) {
       const soft = {
         drawId: 'd',
         matchUpId: 'soft',
         participantIds: ['p1', 'p2'],
         payload: {
           sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
-          schedule: { scheduledTime: '14:30', timeModifiers: [modifier] },
+          schedule: { scheduledTime: PAST, timeModifiers: [modifier] },
         },
       };
       expect(computeDueMatchUps([column(COURT, [soft])], AFTERNOON)).toEqual([]);
@@ -224,6 +225,38 @@ describe('computeDueMatchUps', () => {
     // The control: the same matchUp with no annotation IS due.
     const col = column(COURT, [ready({ matchUpId: 'hard', scheduledTime: PAST })]);
     expect(computeDueMatchUps([col], AFTERNOON)).toEqual(['hard']);
+  });
+
+  it('reports a NOT_BEFORE matchUp once its floor has passed — a cleared floor IS due', () => {
+    // `NOT_BEFORE` is the ONLY annotation the engine lets stand beside a live
+    // time, and it makes that time more binding rather than less: "no earlier
+    // than 14:30" is a floor, and at 16:02 the floor is cleared. Suppressing it
+    // was the entire live effect of the old five-member set — it hid exactly
+    // the matchUp most obviously waiting on an idle court.
+    const floored = {
+      drawId: 'd',
+      matchUpId: 'floored',
+      participantIds: ['p1', 'p2'],
+      payload: {
+        sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+        schedule: { scheduledTime: PAST, timeModifiers: ['NOT_BEFORE'] },
+      },
+    };
+    expect(computeDueMatchUps([column(COURT, [floored])], AFTERNOON)).toEqual(['floored']);
+  });
+
+  it('does not report a NOT_BEFORE matchUp before its floor', () => {
+    // The control for the rule above: a floor still in the future is a floor.
+    const floored = {
+      drawId: 'd',
+      matchUpId: 'floored',
+      participantIds: ['p1', 'p2'],
+      payload: {
+        sides: [{ participantId: 'p1' }, { participantId: 'p2' }],
+        schedule: { scheduledTime: FUTURE, timeModifiers: ['NOT_BEFORE'] },
+      },
+    };
+    expect(computeDueMatchUps([column(COURT, [floored])], AFTERNOON)).toEqual([]);
   });
 
   it('reports every overdue row on an idle court, and handles courts independently', () => {
