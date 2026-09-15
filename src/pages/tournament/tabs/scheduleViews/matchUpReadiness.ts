@@ -54,6 +54,7 @@
  */
 
 import { parseClockMinutes } from './courtTimeOrderIssues';
+import { commitmentOf } from './timeCommitment';
 
 // constants and types
 
@@ -113,6 +114,12 @@ export interface ReadinessSchedule {
   calledAt?: string;
   /** Full ISO instant, UTC. Auto-captured by the factory on first meaningful score. */
   scoredTime?: string;
+  /**
+   * Annotations qualifying `scheduledTime` — see `commitmentOf`. The factory
+   * suppresses these at hydration once the matchUp has begun, so one arriving
+   * here describes a matchUp that has not started.
+   */
+  timeModifiers?: string[];
 }
 
 export interface ReadinessTiming {
@@ -182,7 +189,8 @@ export function earliestStart(findings: ReadinessFinding[]): string | undefined 
 }
 
 /** Why readiness could not be evaluated. Never reported as "ready" — an unevaluated matchUp is not a clean one. */
-export type ReadinessSkipReason = 'unknownMatchUp' | 'bye' | 'completed' | 'notScheduled' | 'noTime';
+export type ReadinessSkipReason =
+  'unknownMatchUp' | 'bye' | 'completed' | 'notScheduled' | 'noTime' | 'timeNotPromised';
 
 export type ReadinessResult =
   { evaluated: false; reason: ReadinessSkipReason } | { evaluated: true; findings: ReadinessFinding[] };
@@ -341,6 +349,11 @@ function skipReasonFor(target: ReadinessMatchUp): ReadinessSkipReason | undefine
   if (isFinished(target)) return 'completed';
   if (!target.schedule?.scheduledDate) return 'notScheduled';
   if (parseClockMinutes(target.schedule?.scheduledTime) === null) return 'noTime';
+  // An annotation that withdraws the time leaves a residual number that is not
+  // a claim. Grading it would have the app contradict its own operator, in red,
+  // about a time the schedule never stated — `noTime` by another route, and the
+  // message for it already exists.
+  if (commitmentOf(target.schedule) === 'none') return 'timeNotPromised';
   return undefined;
 }
 
@@ -514,6 +527,12 @@ export function analyzeMatchUpReadiness(input: ReadinessInput): ReadinessResult 
   if (reason) return skip(reason);
 
   const startMinutes = parseClockMinutes(target.schedule?.scheduledTime) as number;
+  // `NOT_BEFORE 14:30` says nothing may start EARLIER than 14:30. A blocker
+  // that clears at 15:30 is therefore a later floor, not a broken promise, and
+  // the findings say so by riding at INFO — they keep their times, and the
+  // panel keeps its explanation, but the card stops reading "this time cannot
+  // be met" about a time nobody promised to meet.
+  const floored = commitmentOf(target.schedule) === 'floor';
   const upstream = incompleteUpstream(target.matchUpId, buildFeederMap(input.matchUps), byId);
 
   const findings: ReadinessFinding[] = [
@@ -525,5 +544,12 @@ export function analyzeMatchUpReadiness(input: ReadinessInput): ReadinessResult 
   if (undetermined) findings.push(undetermined);
 
   const order: ReadinessKind[] = ['overlap', 'dependency', 'recovery', 'undetermined'];
-  return { evaluated: true, findings: findings.toSorted((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind)) };
+  const ordered = findings.toSorted((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+  // `overlap` never demotes: a shared individual physically on court elsewhere
+  // is a fact about bodies, not about a promise, and it is the one finding whose
+  // truth does not depend on the time being a commitment.
+  const graded = floored
+    ? ordered.map((finding) => (finding.kind === 'overlap' ? finding : { ...finding, severity: 'INFO' as const }))
+    : ordered;
+  return { evaluated: true, findings: graded };
 }

@@ -1032,6 +1032,7 @@
           "completed": "Already complete — nothing left to be ready for.",
           "notScheduled": "Not scheduled yet, so there is no time to check against.",
           "noTime": "No scheduled time, so readiness cannot be projected.",
+          "timeNotPromised": "The schedule does not state a time for this matchUp, so there is none to check against.",
           "unknownMatchUp": "This matchUp is no longer in the tournament."
         }
       },

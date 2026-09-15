@@ -506,3 +506,62 @@ describe('earliestStart — what a clock should be seeded with', () => {
     expect(earliestStart([])).toBeUndefined();
   });
 });
+
+describe('what the schedule actually commits to', () => {
+  const target = (schedule: any): ReadinessMatchUp => ({
+    matchUpId: 'sf',
+    matchUpType: 'SINGLES',
+    sides: [{ participantId: 'p1' }, { participantId: 'p9' }],
+    schedule: { scheduledDate: DATE, ...schedule },
+  });
+  const earlier = (): ReadinessMatchUp => ({
+    matchUpId: 'earlier',
+    matchUpType: 'SINGLES',
+    sides: [{ participantId: 'p1' }, { participantId: 'p8' }],
+    schedule: { scheduledDate: DATE, scheduledTime: '13:00', endTime: '14:00' },
+    winningSide: 1,
+  });
+  const analyze = (t: ReadinessMatchUp) =>
+    analyzeMatchUpReadiness({
+      matchUpId: 'sf',
+      matchUps: [t, earlier()],
+      timingFor: () => ({ averageMinutes: 90, recoveryMinutes: 60 }),
+    }) as any;
+
+  it('does not grade a time the schedule withdrew', () => {
+    // Grading it would have the app contradict its own operator, in red, about
+    // a time the schedule never stated.
+    const result = analyze(target({ scheduledTime: '14:30', timeModifiers: ['TO_BE_ANNOUNCED'] }));
+    expect(result).toEqual({ evaluated: false, reason: 'timeNotPromised' });
+  });
+
+  it('still grades a firm time — the control', () => {
+    const result = analyze(target({ scheduledTime: '14:30' }));
+    expect(result.evaluated).toBe(true);
+    expect(result.findings[0]).toMatchObject({ kind: 'recovery', severity: 'WARN' });
+  });
+
+  it('demotes findings against a NOT_BEFORE floor to INFO, keeping their times', () => {
+    // "No earlier than 14:30" is a floor. A blocker clearing at 15:00 is a
+    // LATER floor, not a broken promise — so the panel keeps the sentence and
+    // the clock, and the card stops shouting.
+    const result = analyze(target({ scheduledTime: '14:30', timeModifiers: ['NOT_BEFORE'] }));
+    expect(result.evaluated).toBe(true);
+    expect(result.findings[0]).toMatchObject({ kind: 'recovery', severity: 'INFO', notBefore: '15:00' });
+  });
+
+  it('never demotes an overlap — a body on a court is not a promise', () => {
+    const onCourt: ReadinessMatchUp = {
+      matchUpId: 'live',
+      matchUpType: 'SINGLES',
+      sides: [{ participantId: 'p1' }, { participantId: 'p7' }],
+      schedule: { scheduledDate: DATE, scheduledTime: '14:00' },
+    };
+    const result: any = analyzeMatchUpReadiness({
+      matchUpId: 'sf',
+      matchUps: [target({ scheduledTime: '14:30', timeModifiers: ['NOT_BEFORE'] }), onCourt],
+      timingFor: () => ({ averageMinutes: 90, recoveryMinutes: 60 }),
+    });
+    expect(result.findings.find((f: any) => f.kind === 'overlap')).toMatchObject({ severity: 'WARN' });
+  });
+});
