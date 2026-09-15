@@ -280,20 +280,55 @@ function incompleteUpstream(
   return found;
 }
 
-/** When an incomplete matchUp is projected to finish, in minutes. `null` when it cannot be projected. */
-function projectedFinish(matchUp: ReadinessMatchUp, timing: ReadinessTiming): number | null {
-  const start = parseClockMinutes(matchUp.schedule?.scheduledTime);
-  if (start === null) return null;
-  return start + timing.averageMinutes;
+/**
+ * When `matchUp` is expected to finish, in minutes. `null` when unprojectable.
+ *
+ * ── One ladder, and why it stops at three rungs ──
+ *
+ * This used to be two functions with DIFFERENT ladders over the same matchUp:
+ * `projectedFinish` read only `scheduledTime`, while `freeAfter` preferred a
+ * recorded `endTime`. A dependency finding calls both — one for `notBefore`, one
+ * for `readyAt` — so the panel rendered `finishes ~15:30 → ready ~16:00` from an
+ * upstream that ended at 15:00 with an hour of recovery. Two anchors, displayed
+ * as one arithmetic, and 15:30 + 60 is not 16:00. One ladder makes `readyAt`
+ * always `notBefore + recovery`, so the row closes by construction.
+ *
+ * The rungs are `endTime` → `startTime` → `scheduledTime`, and they stop there
+ * ON PURPOSE. All three are bare venue wall clock (see `ReadinessSchedule`), so
+ * this module stays free of any instant-to-zone conversion — which is what lets
+ * it run unchanged in the factory, and what keeps its answer a function of the
+ * RECORD rather than of the clock. Two cards rendered a minute apart cannot
+ * disagree.
+ *
+ * `participantRest` walks five rungs, adding `scoredTime` and `calledAt` — both
+ * UTC instants, both needing a viewed date and a venue frame — and it gates
+ * every rung against "now", discarding anchors that sit in the future. That
+ * machinery is right for measuring an elapsed rest and wrong here: its
+ * `resolveAnchor` takes the *first score stamp* of a live matchUp as a finish,
+ * then withholds the figure entirely once that stamp is behind the clock. A
+ * readiness finding that vanished the moment somebody won a game would be worse
+ * than one projected from the plan. The deliberate divergence is pinned by
+ * `readinessRestConformance.test.ts`.
+ */
+function finishOf(matchUp: ReadinessMatchUp, timing: ReadinessTiming): number | null {
+  // Recorded: it has finished, and nothing is projected.
+  const end = parseClockMinutes(matchUp.schedule?.endTime);
+  if (end !== null) return end;
+
+  // Under way: project from when it ACTUALLY started. `startTime` is stamped
+  // with the venue clock at the moment of the start, so a match that went on
+  // forty minutes late carries the evidence — and the old ladder discarded it.
+  const started = parseClockMinutes(matchUp.schedule?.startTime);
+  if (started !== null) return started + timing.averageMinutes;
+
+  const scheduled = parseClockMinutes(matchUp.schedule?.scheduledTime);
+  return scheduled === null ? null : scheduled + timing.averageMinutes;
 }
 
 /** When a participant coming out of `matchUp` is next available, in minutes. `null` when unprojectable. */
 function freeAfter(matchUp: ReadinessMatchUp, timing: ReadinessTiming): number | null {
-  const end = parseClockMinutes(matchUp.schedule?.endTime);
-  if (end !== null) return end + timing.recoveryMinutes;
-  const start = parseClockMinutes(matchUp.schedule?.scheduledTime);
-  if (start === null) return null;
-  return start + timing.averageMinutes + timing.recoveryMinutes;
+  const finish = finishOf(matchUp, timing);
+  return finish === null ? null : finish + timing.recoveryMinutes;
 }
 
 function skip(reason: ReadinessSkipReason): ReadinessResult {
@@ -327,7 +362,7 @@ function dependencyFindings(
 ): ReadinessFinding[] {
   const findings: ReadinessFinding[] = [];
   for (const source of upstream) {
-    const finish = projectedFinish(source, timingFor(source));
+    const finish = finishOf(source, timingFor(source));
     // Unscheduled upstream: cannot be projected, and therefore cannot be
     // promised to finish in time — reported without a `notBefore`.
     if (finish === null) {
@@ -340,12 +375,12 @@ function dependencyFindings(
       continue;
     }
     if (finish > startMinutes) {
-      // `freeAfter` adds the recovery the winner will owe on top of the same
-      // projected finish. Carried only when it differs: with a zero recovery the
-      // court-free time IS the ready time, and showing one figure twice would be
-      // noise dressed as precision.
-      const free = freeAfter(source, timingFor(source));
-      const readyAt = free !== null && free !== finish ? minutesToClock(free) : undefined;
+      // `freeAfter` is this same finish plus the recovery the winner will owe,
+      // so the pair always reconciles. Carried only when recovery adds
+      // something: with a zero-recovery policy the court-free time IS the ready
+      // time, and showing one figure twice would be noise dressed as precision.
+      const timing = timingFor(source);
+      const readyAt = timing.recoveryMinutes > 0 ? minutesToClock(finish + timing.recoveryMinutes) : undefined;
       findings.push({
         kind: 'dependency',
         severity: 'WARN',

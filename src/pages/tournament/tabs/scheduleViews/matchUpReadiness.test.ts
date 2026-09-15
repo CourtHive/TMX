@@ -416,10 +416,39 @@ describe('a dependency carries BOTH the court-free and the player-ready time', (
     const played = upstream({ schedule: { scheduledDate: DATE, scheduledTime: '14:00', endTime: '15:00' } });
     const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), played]);
     const dependency = result.findings.find((f: any) => f.kind === 'dependency');
-    // The finish stays the projection (the matchUp is not finished), but the
-    // ready figure uses the recorded end — `freeAfter` prefers it.
-    expect(dependency.notBefore).toBe('15:30');
+    // BOTH figures come off the recorded end. This test used to assert
+    // `15:30 → 16:00`, which was two anchors rendered as one arithmetic: the
+    // finish from the plan, the ready figure from the recorded end. 15:30 plus
+    // an hour of recovery is not 16:00, and the panel showed exactly that.
+    expect(dependency.notBefore).toBe('15:00');
     expect(dependency.readyAt).toBe('16:00');
+  });
+
+  it('projects from when the upstream ACTUALLY started, not from when it was planned to', () => {
+    // The divergence that started this: a feeder that went on forty minutes late
+    // carries the evidence in `startTime`, and the old ladder discarded it —
+    // so readiness promised a court and a winner earlier than either would exist.
+    const late = upstream({ schedule: { scheduledDate: DATE, scheduledTime: '14:00', startTime: '14:40' } });
+    const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), late]);
+    const dependency = result.findings.find((f: any) => f.kind === 'dependency');
+    expect(dependency.notBefore).toBe('16:10');
+    expect(dependency.readyAt).toBe('17:10');
+  });
+
+  it('always reconciles: readyAt is notBefore plus recovery, whichever rung answered', () => {
+    // The property the single ladder exists to guarantee. A reader seeing
+    // "finishes ~X → ready ~Y" can do the subtraction and get the recovery.
+    const cases = [
+      { schedule: { scheduledDate: DATE, scheduledTime: '14:00' } },
+      { schedule: { scheduledDate: DATE, scheduledTime: '14:00', startTime: '14:40' } },
+      { schedule: { scheduledDate: DATE, scheduledTime: '14:00', endTime: '15:00' } },
+    ];
+    for (const schedule of cases) {
+      const result: any = analyze({ averageMinutes: 90, recoveryMinutes: 60 }, [target(), upstream(schedule as any)]);
+      const dependency = result.findings.find((f: any) => f.kind === 'dependency');
+      const toMinutes = (clock: string) => Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3));
+      expect(toMinutes(dependency.readyAt) - toMinutes(dependency.notBefore)).toBe(60);
+    }
   });
 
   it('leaves a recovery finding alone — its time already includes recovery', () => {
