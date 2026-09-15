@@ -1,5 +1,32 @@
 # Changelog
 
+## [8.26.0](https://github.com/CourtHive/TMX/compare/v8.25.0...v8.26.0) (2026-09-15)
+
+
+### Features
+
+* **pwa:** emit a service worker and register it behind a kill-switch ([#1453](https://github.com/CourtHive/TMX/issues/1453)) ([e3462ef](https://github.com/CourtHive/TMX/commit/e3462ef5d71e5b4101af40ccc81e5788a61677f5))
+* **schedule2:** a court idle with an overdue matchUp reads DUE on the Now strip ([#1451](https://github.com/CourtHive/TMX/issues/1451)) ([53fc02e](https://github.com/CourtHive/TMX/commit/53fc02efbbeb8572dc7ce96251f0713583b4d068))
+* **schedule2:** a dependency shows the finish AND when the winner could start ([#1459](https://github.com/CourtHive/TMX/issues/1459)) ([d28f2a7](https://github.com/CourtHive/TMX/commit/d28f2a7345db645a55079873f36271c20b11cc64))
+* **schedule2:** make the scheduled time mean something — readiness colour, pending-side rest, hover highlight, Inspector actions ([#1449](https://github.com/CourtHive/TMX/issues/1449)) ([66cd07c](https://github.com/CourtHive/TMX/commit/66cd07c4e2729c3185a7472394f91a53b8d7feaf))
+* **schedule2:** show an idle court's runway to its next block ([#1454](https://github.com/CourtHive/TMX/issues/1454)) ([9e6a162](https://github.com/CourtHive/TMX/commit/9e6a1620c8fc6ecf84f348609ff74c86f5c4118c))
+* **schedule2:** show what the format costs in the Inspector ([#1458](https://github.com/CourtHive/TMX/issues/1458)) ([8544d57](https://github.com/CourtHive/TMX/commit/8544d57122eb00ae7c8a65756caa5178d5362727))
+
+
+### Bug Fixes
+
+* **schedule2:** merge into a court's availability entry instead of replacing it ([#1455](https://github.com/CourtHive/TMX/issues/1455)) ([a3e6eb7](https://github.com/CourtHive/TMX/commit/a3e6eb7c713831c37d1af8bf34d4dde868fa16ff))
+* **schedule2:** one finish ladder, so a dependency's two times reconcile ([#1461](https://github.com/CourtHive/TMX/issues/1461)) ([06967e8](https://github.com/CourtHive/TMX/commit/06967e8b016f16661202e95802d7455ff01965ba))
+* **schedule2:** read a time annotation instead of pattern-matching the pill ([#1462](https://github.com/CourtHive/TMX/issues/1462)) ([c4631c2](https://github.com/CourtHive/TMX/commit/c4631c21df270fbd0bab65f8deb91d3e86effb17))
+* **schedule2:** seed the time picker with when a player can start, not when the court frees ([#1460](https://github.com/CourtHive/TMX/issues/1460)) ([cf90bfe](https://github.com/CourtHive/TMX/commit/cf90bfe65983e5d40714c085089bb3ded1e886eb))
+* **stats:** correct the mapParticipantResults filename typo, and stop shadowing the factory's isAdHocType ([#1447](https://github.com/CourtHive/TMX/issues/1447)) ([7c32645](https://github.com/CourtHive/TMX/commit/7c32645e38f9ed5a1f6dc8a8e48f4eec3f22f355))
+
+
+### Documentation
+
+* **readme:** drop the last TODS mention ([#1452](https://github.com/CourtHive/TMX/issues/1452)) ([fe7d6a5](https://github.com/CourtHive/TMX/commit/fe7d6a5ae6fe0088144d74cdb3c1b59cff7251a1))
+* **readme:** drop the TODS framing, link How CourtHive works, and describe what TMX grew into ([#1450](https://github.com/CourtHive/TMX/issues/1450)) ([4cb7ad8](https://github.com/CourtHive/TMX/commit/4cb7ad85c07cde8b21d1c4ddbe723c0ddcb5b9f0))
+
 ## [8.25.0](https://github.com/CourtHive/TMX/compare/v8.24.3...v8.25.0) (2026-09-13)
 
 
