@@ -92,7 +92,11 @@ function badgeElement(key: Key): HTMLElement {
   return span;
 }
 
-export function demoModeDrawer(): void {
+/**
+ * Build the panel body. Separate from `demoModeDrawer` so a posture change can swap the
+ * content in place — see `rerender`.
+ */
+function buildPanel(): HTMLElement {
   const content = document.createElement('div');
   content.className = 'tmx-demo-panel';
 
@@ -107,9 +111,13 @@ export function demoModeDrawer(): void {
   postureHeading.textContent = t('demoMode.posture');
   content.appendChild(postureHeading);
 
+  // A posture change only invalidates the checkbox states, so replace the body rather than
+  // tearing the drawer down and standing it back up. Closing and reopening ran the ~350ms
+  // close animation and then an open animation, which reads as the drawer dismissing itself
+  // the instant you choose a posture — the opposite of the "you are still here, this changed"
+  // feedback the moment calls for.
   const rerender = () => {
-    context.drawer.close();
-    demoModeDrawer();
+    context.drawer.setContent(buildPanel());
     renderDemoAffordance();
   };
 
@@ -172,6 +180,11 @@ export function demoModeDrawer(): void {
   legend.textContent = t('demoMode.legend');
   content.appendChild(legend);
 
+  return content;
+}
+
+/** The Exit button never changes, so it is built once rather than on every posture change. */
+function buildFooter(): HTMLElement {
   const footer = document.createElement('div');
   const exit = document.createElement('button');
   exit.className = 'button is-warning';
@@ -182,6 +195,15 @@ export function demoModeDrawer(): void {
     renderDemoAffordance();
   });
   footer.appendChild(exit);
+  return footer;
+}
 
-  context.drawer.open({ title: t('demoMode.title'), content, footer, side: RIGHT, width: '420px' });
+export function demoModeDrawer(): void {
+  context.drawer.open({
+    title: t('demoMode.title'),
+    content: buildPanel(),
+    footer: buildFooter(),
+    side: RIGHT,
+    width: '420px',
+  });
 }

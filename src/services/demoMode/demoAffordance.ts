@@ -1,11 +1,29 @@
 /**
- * Demo mode must be visually unmistakable — a posture that silently persists
- * looks like a bug report waiting to happen.
+ * Everything in the chrome that a demo posture governs, re-applied in one place.
  *
- * Two signals, because either alone can be missed on a projector: a navbar badge
- * and a non-dismissible banner. Both use `--tmx-fill-warning`, which is defined
- * with the same value in light and dark, so no per-theme override is needed.
+ * Called at every point the overlay is mutated, so it is the de facto
+ * "posture changed" hook. Keep it that way: splitting the nav back out into its
+ * own call is how the nav went stale in the first place.
+ *
+ * ## Visual signals
+ *
+ * Demo mode must be visually unmistakable — a posture that silently persists
+ * looks like a bug report waiting to happen. Two signals, because either alone
+ * can be missed on a projector: a navbar badge and a non-dismissible banner.
+ * Both use `--tmx-fill-warning`, which is defined with the same value in light
+ * and dark, so no per-theme override is needed.
+ *
+ * ## Navigation
+ *
+ * `applyTabCapabilityVisibility` was previously reached only from
+ * `highlightTab` and `tmxNavigation` — i.e. on a tab render. A posture chosen in
+ * the drawer renders no tab, so the icons kept the PREVIOUS posture's visibility
+ * until the user happened to navigate. That failed in both directions: a
+ * restricted posture still offered icons the router then bounced them off, and
+ * exiting demo mode left the restricted set on screen with no icon to click to
+ * trigger the render that would have restored them.
  */
+import { applyTabCapabilityVisibility } from 'navigation';
 import { isDemoActive, getDemoOverlay } from './demoState';
 import { t } from 'i18n';
 
@@ -21,6 +39,10 @@ export function renderDemoAffordance(): void {
 
   const active = isDemoActive();
   document.documentElement.dataset.tmxDemo = active ? 'true' : '';
+
+  // Before the badge and banner: the nav rail is the signal the operator reads first, and a
+  // posture that has not reached it is a posture the user can still navigate around.
+  applyTabCapabilityVisibility();
 
   // ── navbar badge ──
   let badge = document.getElementById(BADGE_ID);
