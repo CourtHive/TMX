@@ -9,6 +9,7 @@ import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/cancelManualSeeding';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { inheritedEntryStage, PAIR_SEGMENTS } from './pairSegment';
 import { generateSeedValues } from '../seeding/generateSeedValues';
 import { modifyEntriesStatus } from '../modifyEntriesStatus';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -22,12 +23,28 @@ import { addToDraw } from '../addToDraw';
 
 // Constants
 import { REMOVE_DRAW_ENTRIES, REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
-import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT } from 'constants/tmxConstants';
+import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
 const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { PAIR } = participantConstants;
+
+const pairingLabel = (enabled: boolean) => (enabled ? t('segmentOverlay.pairingOn') : t('segmentOverlay.pairingOff'));
+
+const PAIR_SEGMENT_LABEL_KEYS: Record<string, string> = {
+  [ALTERNATE]: 'segmentOverlay.pairAsAlternate',
+  [ACCEPTED]: 'segmentOverlay.pairAsAccepted',
+  [QUALIFYING]: 'segmentOverlay.pairAsQualifying',
+};
+
+const segmentName = (segment: string) => t(PAIR_SEGMENT_LABEL_KEYS[segment] ?? PAIR_SEGMENT_LABEL_KEYS[ALTERNATE]);
+
+const pairSegmentLabel = (segment: string) => `${t('segmentOverlay.pairAs')}: ${segmentName(segment)}`;
+
+// The overlay replaces the pairing row the moment rows are selected, so by the time this button is
+// on screen its governing toggle is not — the destination has to be stated on the button itself.
+const createPairLabel = (segment: string) => `${t('segmentOverlay.createPairAs')} ${segmentName(segment)}`;
 
 const ACCEPTED_RANK = 0;
 const QUALIFYING_RANK = 1;
@@ -118,15 +135,29 @@ function intersectMoveTargets(segments: Set<number>, isDoubles: boolean): string
   return result ? [...result] : [];
 }
 
+export type PairingMode = {
+  enabled: boolean;
+  /** TMX segment the next created pair enters as: ACCEPTED | QUALIFYING | ALTERNATE. */
+  segment: string;
+};
+
 type OverlayParams = {
   event: any;
   drawId?: string;
   drawCreated: boolean;
   isDoubles: boolean;
+  pairingMode: PairingMode;
   onRefresh: () => void;
 };
 
-export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefresh }: OverlayParams): any[] {
+export function getOverlayItems({
+  event,
+  drawId,
+  drawCreated,
+  isDoubles,
+  pairingMode,
+  onRefresh,
+}: OverlayParams): any[] {
   const eventId = event?.eventId;
   const items: any[] = [];
 
@@ -182,11 +213,55 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
     return addToDraw(event, drawId, seg === QUALIFYING_RANK ? QUAL_STAGE : MAIN)(table);
   });
 
+  // Destroy pairs — doubles; any selection of unplaced PAIR entries (accepted /
+  // qualifying / alternate). Returns both individuals to the UNGROUPED segment.
+  if (isDoubles) {
+    items.push((table: any) => {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      const destroyable = selected.filter((r: any) => r.participant?.participantType === PAIR && !r.drawPosition);
+      if (!selected.length || destroyable.length !== selected.length) return { location: OVERLAY, hide: true };
+      return destroySelected(eventId, onRefresh, drawId)(table);
+    });
+  }
+
+  // Create pair button — doubles, ungrouped only, exactly 2 selected
+  if (isDoubles) {
+    items.push((table: any) => {
+      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
+      const segments = getSelectedSegments(table);
+      if (segments.size !== 1 || !segments.has(UNGROUPED_RANK) || selected.length !== 2) {
+        return { location: OVERLAY, hide: true };
+      }
+
+      return {
+        onClick: () => {
+          const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
+          table.deselectRow();
+          pairFromUnified({
+            event,
+            participantIds: ids,
+            segment: pairingMode.segment,
+            entryStage: inheritedEntryStage(selected, pairingMode.segment),
+            drawId,
+            callback: () => onRefresh(),
+          });
+        },
+        label: createPairLabel(pairingMode.segment),
+        intent: 'is-info',
+        location: OVERLAY,
+      };
+    });
+  }
+
   // Remove from draw — available when drawId is set (viewing a specific draw)
   // and selected participants have no draw position assignment. The factory
   // returns EXISTING_PARTICIPANT_DRAW_POSITION_ASSIGNMENT for placed
   // participants; gate the option here too so the button doesn't appear
   // when nothing is removable.
+  //
+  // Ordered beside "Remove from event" rather than before the pairing actions so the removal is
+  // last in both views. The two never co-occur — `drawId` implies `drawCreated` — so this is the
+  // same slot in the draw-entries view that "Remove from event" occupies on the all-entries view.
   if (drawId) {
     items.push((table: any) => {
       const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
@@ -213,39 +288,6 @@ export function getOverlayItems({ event, drawId, drawCreated, isDoubles, onRefre
         },
         label: t('segmentOverlay.removeFromDraw'),
         intent: 'is-warning',
-        location: OVERLAY,
-      };
-    });
-  }
-
-  // Destroy pairs — doubles; any selection of unplaced PAIR entries (accepted /
-  // qualifying / alternate). Returns both individuals to the UNGROUPED segment.
-  if (isDoubles) {
-    items.push((table: any) => {
-      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      const destroyable = selected.filter((r: any) => r.participant?.participantType === PAIR && !r.drawPosition);
-      if (!selected.length || destroyable.length !== selected.length) return { location: OVERLAY, hide: true };
-      return destroySelected(eventId, onRefresh, drawId)(table);
-    });
-  }
-
-  // Create pair button — doubles, ungrouped only, exactly 2 selected
-  if (isDoubles) {
-    items.push((table: any) => {
-      const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      const segments = getSelectedSegments(table);
-      if (segments.size !== 1 || !segments.has(UNGROUPED_RANK) || selected.length !== 2) {
-        return { location: OVERLAY, hide: true };
-      }
-
-      return {
-        onClick: () => {
-          const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
-          table.deselectRow();
-          pairFromUnified(event, ids, () => onRefresh());
-        },
-        label: t('segmentOverlay.createPair'),
-        intent: 'is-info',
         location: OVERLAY,
       };
     });
@@ -291,7 +333,7 @@ type RightItemsParams = {
   event: any;
   drawCreated: boolean;
   isDoubles: boolean;
-  pairingMode: { enabled: boolean };
+  pairingMode: PairingMode;
   onRefresh: () => void;
 };
 
@@ -359,19 +401,42 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRe
     items.push(addEntriesHandler);
   }
 
-  // Pairing mode toggle for doubles
-  if (isDoubles && !drawCreated) {
+  // ── Pairing row (doubles) ──
+  //
+  // Both controls set state consumed at pair-creation time, and the controlBar hides
+  // `options_left` whenever rows are selected — so they are deliberately pre-selection controls:
+  // choose the mode and the target segment first, then select the two individuals.
+  //
+  // Rendered in the draw-entries view as well as the all-entries view. They used to be gated on
+  // `!drawCreated`, which hid them in exactly the view where "Create pair" is offered.
+  if (isDoubles) {
     items.push({
       onClick: (e: any) => {
         const button = e.target.closest('button');
         pairingMode.enabled = !pairingMode.enabled;
-        button.innerHTML = `Pairing: ${pairingMode.enabled ? 'ON' : 'OFF'}`;
+        button.innerHTML = pairingLabel(pairingMode.enabled);
         button.className = button.className.replace(/is-\w+/, pairingMode.enabled ? 'is-info' : 'is-light');
       },
-      label: t('segmentOverlay.pairingOff'),
-      intent: 'is-light',
+      label: pairingLabel(pairingMode.enabled),
+      intent: pairingMode.enabled ? 'is-info' : 'is-light',
       id: 'pairing-mode-toggle',
-      location: RIGHT,
+      location: LEFT,
+    });
+
+    // Segment selector — cycles rather than drops down, matching its neighbour. A created pair
+    // enters the event (and, in a draw view, the draw) as this segment instead of the ALTERNATE
+    // that used to be hardcoded, so pairing no longer forces a demotion to alternate.
+    items.push({
+      onClick: (e: any) => {
+        const button = e.target.closest('button');
+        const index = PAIR_SEGMENTS.indexOf(pairingMode.segment);
+        pairingMode.segment = PAIR_SEGMENTS[(index + 1) % PAIR_SEGMENTS.length];
+        button.innerHTML = pairSegmentLabel(pairingMode.segment);
+      },
+      label: pairSegmentLabel(pairingMode.segment),
+      intent: 'is-light',
+      id: 'pair-segment-toggle',
+      location: LEFT,
     });
   }
 
