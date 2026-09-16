@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { S } from '../helpers/selectors';
 
 /**
- * Journey 123 — a calendar response that outlives its session must not paint.
+ * Journey 124 — a calendar response that outlives its session must not paint.
  *
  * Production incident, 2026-09-15. A super-admin impersonating a provider clicked the
  * stop-impersonating X and then logged out. The X clears the provider scope and re-requests
@@ -69,7 +69,7 @@ function staleCalendarBody(count: number) {
   });
 }
 
-test.describe('Journey 123 — a stale calendar must not paint into a logged-out session', () => {
+test.describe('Journey 124 — a stale calendar must not paint into a logged-out session', () => {
   test('logging out while the calendar is in flight leaves its rows unrendered', async ({ page }) => {
     await page.goto('/');
     await waitForAppReady(page);
