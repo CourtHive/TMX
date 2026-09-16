@@ -9,17 +9,20 @@
  * the view toggle can drive re-renders without owning render state.
  */
 
+import { currentSessionScope, sessionScopeUnchanged } from 'services/authentication/sessionScope';
 import { renderTournamentsGrid, renderTournamentsSkeleton } from 'pages/tournaments/createTournamentsGrid';
 import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
 import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournamentRecord';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getUserContext } from 'services/authentication/getUserContext';
-import { getCalendar, getMyCalendars } from 'services/apis/servicesApi';
+import { fetchMyCalendars, type MyCalendarsResult } from 'services/apis/fetchMyCalendars';
+import { getCalendar } from 'services/apis/servicesApi';
 import { getLoginState } from 'services/authentication/loginState';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTipster } from 'components/popovers/tipster';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { getTournamentColumns } from './getTournamentColumn';
 import { listPicker } from 'components/modals/listPicker';
@@ -236,14 +239,22 @@ function fromCalendarTournaments(anchor: HTMLElement, calendars: any[], onCreate
 
 function fromMyCalendars(
   anchor: HTMLElement,
-  result: any,
+  result: MyCalendarsResult,
   fallback: () => Promise<TournamentsView>,
   onCreated: () => void,
 ): Promise<TournamentsView> | TournamentsView {
-  const calendars = result?.data?.calendars;
+  const calendars = result?.calendars;
   if (!calendars?.length) return fallback();
   const tournaments = flattenCalendars(calendars);
   if (tournaments.length === 0) return fallback();
+  // The page walk stopped before the server ran out. Say so — a list that is
+  // quietly missing rows is worse than a short one the user knows is short.
+  if (result.truncated) {
+    tmxToast({
+      intent: 'is-warning',
+      message: t('toasts.tournamentsTruncated', { loaded: result.loaded, total: result.total }),
+    });
+  }
   return fromCalendarTournaments(anchor, calendars, onCreated);
 }
 
@@ -278,9 +289,18 @@ export function createTournamentsTable(): { ready: Promise<TournamentsView | und
   let ready: Promise<TournamentsView | undefined>;
 
   if (userContext) {
-    ready = getMyCalendars(impersonatedAbbr ? { providerAbbr: impersonatedAbbr } : {}).then(
-      (result: any) => Promise.resolve(fromMyCalendars(anchor, result, fallback, onCreated)),
-      () => fallback(),
+    // Capture who is asking. The calendar walk is the longest read on this page,
+    // and on 2026-09-15 one of them resolved after the user had stopped
+    // impersonating AND logged out — painting 49,000+ provider tournaments into
+    // a logged-out browser. A response that outlives its session is discarded;
+    // whatever changed the session has already queued its own render.
+    const scope = currentSessionScope();
+    ready = fetchMyCalendars(impersonatedAbbr ? { providerAbbr: impersonatedAbbr } : {}).then(
+      (result: MyCalendarsResult) =>
+        sessionScopeUnchanged(scope)
+          ? Promise.resolve(fromMyCalendars(anchor, result, fallback, onCreated))
+          : undefined,
+      () => (sessionScopeUnchanged(scope) ? fallback() : undefined),
     );
   } else if (provider?.organisationAbbreviation) {
     ready = getCalendar({ providerAbbr: provider.organisationAbbreviation }).then(

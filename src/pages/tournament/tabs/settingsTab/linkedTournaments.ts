@@ -1,7 +1,8 @@
 import { getPeerLinkedIds, buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
 import { LINK_TOURNAMENTS, UNLINK_TOURNAMENT } from 'constants/mutationConstants';
 import { getUserContext } from 'services/authentication/getUserContext';
-import { requestTournament, getMyCalendars } from 'services/apis/servicesApi';
+import { fetchMyCalendars } from 'services/apis/fetchMyCalendars';
+import { requestTournament } from 'services/apis/servicesApi';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -31,8 +32,10 @@ async function fetchSiblings(providerAbbr?: string): Promise<SiblingTournament[]
   // interceptor treats a 401 as a full logout — which was breaking the settings tab entirely.
   if (!getUserContext()) return [];
   try {
-    const result: any = await getMyCalendars(providerAbbr ? { providerAbbr } : {});
-    const calendars = result?.data?.calendars ?? [];
+    // Paged walk — a provider with more tournaments than one page would
+    // otherwise silently offer only the first page as "available to link".
+    const result = await fetchMyCalendars(providerAbbr ? { providerAbbr } : {});
+    const calendars = result?.calendars ?? [];
     return calendars
       .flatMap((calendar: any) => (calendar?.tournaments ?? []).map(normalizeSibling))
       .filter((sibling: SiblingTournament) => sibling.tournamentId);
