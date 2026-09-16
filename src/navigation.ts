@@ -3,6 +3,7 @@
  * Manages tab navigation and highlighting for tournament sections.
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
+import { firstPermittedTab, isTabAvailable, ownsTabVisibility } from 'services/capability/navCapability';
 import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assistantPanel';
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
@@ -14,7 +15,6 @@ import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
-import { isTabAvailable, ownsTabVisibility } from 'services/capability/navCapability';
 import { t } from 'i18n';
 
 // constants
@@ -98,6 +98,34 @@ const CONDITIONAL_ROUTE_IDS = new Set(['rg-route']);
  * on every tab render alongside the registrations gate, because a demo posture,
  * a provider switch, or a Settings toggle can change the answer between renders.
  */
+/**
+ * The tab currently on screen.
+ *
+ * Recorded here because `highlightTab` is the one function every tab render already calls with
+ * the tab it is rendering — the alternative, re-parsing the route hash, would be a second
+ * source of truth for something the render path already knows.
+ */
+let currentTab: string | undefined;
+
+/**
+ * Re-apply capability to the chrome after something OTHER than a navigation changed it — a demo
+ * posture, a provider switch.
+ *
+ * Hiding the icon is half the job. A posture chosen while sitting on a tab it denies leaves the
+ * user reading a section they are no longer entitled to, with only the icon gone; the route
+ * guard never fires because no route changed. So the section is left as well as hidden.
+ */
+export function reapplyTabCapability(): void {
+  applyTabCapabilityVisibility();
+
+  if (!currentTab || isTabAvailable(currentTab)) return;
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
+  if (!tournamentId) return;
+
+  context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${firstPermittedTab()}`);
+  context.router?.resolve();
+}
+
 export function applyTabCapabilityVisibility(): void {
   for (const [id, tab] of Object.entries(routeMap)) {
     if (CONDITIONAL_ROUTE_IDS.has(id)) continue; // owned by its own richer gate
@@ -366,6 +394,8 @@ function setupAssistantIndicator(): void {
 }
 
 export function highlightTab(selectedTab: string): void {
+  currentTab = selectedTab;
+
   // Re-evaluate conditional icons on every tab-render — a tournament's
   // registrationProfile changes over its lifecycle (publish → close)
   // and a director's role at a provider can change between renders.

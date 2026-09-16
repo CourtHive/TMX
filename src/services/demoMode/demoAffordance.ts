@@ -22,9 +22,12 @@
  * restricted posture still offered icons the router then bounced them off, and
  * exiting demo mode left the restricted set on screen with no icon to click to
  * trigger the render that would have restored them.
+ *
+ * `reapplyTabCapability` also leaves a section the new posture denies. The route
+ * guard cannot help there: no route changed, so it never runs.
  */
-import { applyTabCapabilityVisibility } from 'navigation';
 import { isDemoActive, getDemoOverlay } from './demoState';
+import { reapplyTabCapability } from 'navigation';
 import { t } from 'i18n';
 
 const BADGE_ID = 'demoBadge';
@@ -41,8 +44,10 @@ export function renderDemoAffordance(): void {
   document.documentElement.dataset.tmxDemo = active ? 'true' : '';
 
   // Before the badge and banner: the nav rail is the signal the operator reads first, and a
-  // posture that has not reached it is a posture the user can still navigate around.
-  applyTabCapabilityVisibility();
+  // posture that has not reached it is a posture the user can still navigate around. This also
+  // leaves a section the new posture denies — choosing "read only" while sitting on Events must
+  // not leave Events on screen with only its icon gone.
+  reapplyTabCapability();
 
   // ── navbar badge ──
   let badge = document.getElementById(BADGE_ID);

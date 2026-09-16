@@ -11,12 +11,14 @@ import { factoryConstants, globalState } from 'tods-competition-factory';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { loadUserCompositions } from 'pages/templates/compositionBridge';
 import { startConnectionLifecycle } from 'services/messaging/connectionLifecycle';
+import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initSessionGuard } from 'services/session/sessionGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
 import { initLoginToggle } from 'services/authentication/loginState';
 import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
 import { courthiveComponentsVersion } from 'courthive-components';
+import { hydrateDemoOverlay } from 'services/demoMode/demoState';
 import { tournamentEngine } from 'services/factory/engine';
 import { registerMenuHandler } from 'platform/menuHandler';
 import { EventEmitter } from './services/EventEmitter';
@@ -166,6 +168,14 @@ export function setupTMX(): void {
 
 function tmxReady(): void {
   console.log('%c TMX ready', 'color: lightgreen');
+
+  // BEFORE routeTMX. `demoState` persists the posture to sessionStorage precisely so a mid-demo
+  // reload — dev-server restart, projector reconnect — does not drop it, but nothing read it
+  // back, so every reload silently returned the demonstrator to provider defaults. Hydrating
+  // after the router would be worse than not hydrating at all: the route guard would admit a
+  // deep link the restored posture denies, and only then would the posture appear.
+  hydrateDemoOverlay();
+
   setDev();
   setSubscriptions();
   registerMenuHandler();
@@ -184,6 +194,10 @@ function tmxReady(): void {
   void loadUserCompositions().catch((err) => console.warn('Failed to load user compositions:', err));
   routeTMX();
   tmxNavigation();
+
+  // After the nav exists, so a restored posture paints its badge, banner and hidden icons on the
+  // first frame rather than on the first navigation.
+  renderDemoAffordance();
 }
 
 function setContext(): void {

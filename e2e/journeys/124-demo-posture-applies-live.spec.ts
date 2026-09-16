@@ -1,5 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { test, expect, type Page } from '@playwright/test';
+import { S } from '../helpers/selectors';
 
 /**
  * Journey 124 — a demo posture must take effect the moment it is chosen.
@@ -22,6 +23,15 @@ import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridg
  *
  * Asserted WITHOUT navigating, deliberately: any `page.goto` re-renders a tab and re-applies
  * visibility, which is exactly what masked all three.
+ *
+ * Two more, found while fixing those:
+ *
+ *  - **A posture change left you reading a section it denies.** Choosing "read only" on the
+ *    Events tab hid the icon and left the content. The route guard cannot help — no route
+ *    changed, so it never ran.
+ *  - **The posture did not survive a reload.** `demoState` persists to sessionStorage precisely
+ *    so a mid-demo refresh does not drop it, and `hydrateDemoOverlay` was exported and never
+ *    called, so every reload silently returned the demonstrator to provider defaults.
  */
 
 const DRAWER = '#tmxDrawer';
@@ -135,4 +145,36 @@ test('exiting demo mode restores the full nav rail, with no navigation', async (
   // the next tab render, and the icons that would have triggered one were the hidden ones.
   await expect(page.locator(EVENTS_ICON)).toBeVisible();
   await expect(page.locator(VENUES_ICON)).toBeVisible();
+});
+
+test('a posture that denies the current section leaves it, not just its icon', async ({ page }) => {
+  await bootWithTournament(page);
+
+  await page.locator(EVENTS_ICON).click();
+  await expect(page.locator(S.EVENTS_TABLE)).toBeVisible({ timeout: 15_000 });
+
+  await openDemoDrawer(page);
+  await page.getByText('Read only', { exact: true }).click();
+
+  // Hiding the icon while leaving the section on screen is the half-fix: the user carries on
+  // reading a tab the posture denies until they happen to navigate.
+  await expect(page.locator(S.EVENTS_TABLE)).toBeHidden({ timeout: 10_000 });
+  await expect(page.locator(EVENTS_ICON)).toBeHidden();
+});
+
+test('a posture survives a reload, and paints before the first navigation', async ({ page }) => {
+  await bootWithTournament(page);
+  await openDemoDrawer(page);
+  await page.getByText('Read only', { exact: true }).click();
+  await expect(page.locator(EVENTS_ICON)).toBeHidden();
+
+  await page.reload();
+  await waitForAppReady(page);
+  await page.locator(MATCHUPS_ICON).waitFor({ state: 'visible', timeout: 15_000 });
+
+  // The posture is restored from sessionStorage and has already reached the chrome — no
+  // navigation has happened since the reload.
+  await expect(page.locator(EVENTS_ICON)).toBeHidden();
+  await expect(page.locator(VENUES_ICON)).toBeHidden();
+  await expect(page.locator('#demoBanner')).toBeVisible();
 });
