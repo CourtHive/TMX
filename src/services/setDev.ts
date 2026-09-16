@@ -12,6 +12,7 @@ import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
+import { fetchUserContext, getUserContext } from './authentication/getUserContext';
 import { getLoginState } from './authentication/loginState';
 import { setScoreRelayURL } from './apis/scoreRelayApi';
 import { providerConfig } from 'config/providerConfig';
@@ -129,6 +130,12 @@ export function setDev(): void {
     subs,
   });
 
+  // `userContext` is populated only by logIn()/silent-refresh, so a journey that
+  // seeds a JWT straight into localStorage (dev-bridge `loginAsSuperAdmin`) has
+  // none — and every provider-scoped read branches on it. Exposing the real
+  // fetch, rather than a test-only setter, keeps the journey on the production
+  // path: stub `/auth/me`, call this, and the cache fills the way it does live.
+  addDev({ fetchUserContext, getUserContext });
   addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   addDev({ env, tournamentContext: context });

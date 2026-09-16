@@ -53,9 +53,18 @@ export async function getCalendar({ providerAbbr }: { providerAbbr: string }) {
 /**
  * Authenticated multi-provider calendar — returns one filtered calendar
  * per provider the user is associated with. Used by TMX when logged in.
+ *
+ * ONE PAGE. The server caps the response and reports `paging.hasMore`; callers
+ * that want the whole list use `fetchMyCalendars`, which walks the pages. A
+ * SUPER_ADMIN who passes no `providerAbbr` receives an empty list by design —
+ * see `ProvidersService.resolveTargetAbbrs` in competition-factory-server.
  */
-export async function getMyCalendars({ providerAbbr }: { providerAbbr?: string } = {}) {
-  return await baseApi.post('/provider/my-calendars', { providerAbbr });
+export async function getMyCalendars({
+  providerAbbr,
+  limit,
+  offset,
+}: { providerAbbr?: string; limit?: number; offset?: number } = {}) {
+  return await baseApi.post('/provider/my-calendars', { providerAbbr, limit, offset });
 }
 
 /**
