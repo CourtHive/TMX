@@ -173,7 +173,7 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
   test('9.2 — pairing mode toggle visible for DOUBLES events', async ({ page }) => {
     await navigateToEntries(page, PROFILE_DOUBLES);
 
-    // "Pairing: OFF" toggle should be in the right toolbar
+    // "Pairing: OFF" toggle should be in the left toolbar
     const pairingBtn = page.getByText('Pairing: OFF');
     const isVisible = await pairingBtn
       .waitFor({ state: 'visible', timeout: 5_000 })
@@ -206,6 +206,35 @@ test.describe('Journey 20 — Seeding controls and doubles pairing', () => {
     const offBtn = page.getByText('Pairing: OFF');
     const isOff = await offBtn.isVisible().catch(() => false);
     expect(isOff).toBe(true);
+  });
+
+  test('9.2c — pair segment toggle cycles Alternate → Accepted → Qualifying', async ({ page }) => {
+    await navigateToEntries(page, PROFILE_DOUBLES);
+
+    // On the all-entries view the default is Alternate — the behavior that predates the toggle.
+    const alternateBtn = page.getByText('Pair as: Alternate');
+    await alternateBtn.waitFor({ state: 'visible', timeout: 5_000 });
+
+    await alternateBtn.click();
+    await expect(page.getByText('Pair as: Accepted')).toBeVisible();
+
+    await page.getByText('Pair as: Accepted').click();
+    await expect(page.getByText('Pair as: Qualifying')).toBeVisible();
+
+    await page.getByText('Pair as: Qualifying').click();
+    await expect(page.getByText('Pair as: Alternate')).toBeVisible();
+  });
+
+  test('pair segment toggle NOT visible for SINGLES events', async ({ page }) => {
+    await navigateToEntries(page, PROFILE_SINGLES);
+
+    const segmentBtn = page.getByText('Pair as:');
+    const isVisible = await segmentBtn
+      .waitFor({ state: 'visible', timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
+
+    expect(isVisible).toBe(false);
   });
 
   test('9.1b — ungrouped NOT visible for SINGLES events', async ({ page }) => {

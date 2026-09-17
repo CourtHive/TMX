@@ -5,7 +5,6 @@
  */
 import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
-import { isSeedingEnabled } from '../seeding/seedingState';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../../common/sorters/headerSortElement';
 import { addFlights } from 'components/modals/addFlights/addFlights';
@@ -17,18 +16,21 @@ import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
+import { isSeedingEnabled } from '../seeding/seedingState';
 import { getUnifiedColumns } from './unifiedColumns';
+import { inheritedEntryStage } from './pairSegment';
 import { pairFromUnified } from './pairFromUnified';
+import type { PairingMode } from './segmentOverlay';
 import type { SortState } from './segmentSorter';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
 // constants
-import { CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
+import { ACCEPTED, CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const { MAIN } = drawDefinitionConstants;
-const { UNGROUPED, WITHDRAWN } = entryStatusConstants;
+const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
 
 const UNIFIED_TABLE_KEY = 'unifiedEntries';
@@ -62,7 +64,10 @@ export function createUnifiedEntriesPanel({
   let table: any;
   let searchScope = SCOPE_ALL;
   let searchFilter: ((rowData: any) => boolean) | undefined;
-  const pairingMode = { enabled: false };
+  // Segment a created pair enters as. Inferred rather than fixed: in a draw view the individuals
+  // being paired are draw entries, so their replacement should be an accepted one — pairing must
+  // not shrink the field. On the all-entries view ALTERNATE preserves the historical default.
+  const pairingMode: PairingMode = { enabled: false, segment: drawId ? ACCEPTED : ALTERNATE };
 
   // ── Data loading ──
   const getTableData = () => {
@@ -191,7 +196,14 @@ export function createUnifiedEntriesPanel({
         table.deselectRow();
         inputElement.value = '';
         applySearchFilter('');
-        pairFromUnified(event, ids, () => refresh());
+        pairFromUnified({
+          event,
+          participantIds: ids,
+          segment: pairingMode.segment,
+          entryStage: inheritedEntryStage([selected[0], matchData], pairingMode.segment),
+          drawId,
+          callback: () => refresh(),
+        });
         return;
       }
     }
@@ -332,7 +344,14 @@ export function createUnifiedEntriesPanel({
       if (selected.length === 2 && selected.every((r: any) => r._segmentRank === 3)) {
         const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
         table.deselectRow();
-        pairFromUnified(event, ids, () => refresh());
+        pairFromUnified({
+          event,
+          participantIds: ids,
+          segment: pairingMode.segment,
+          entryStage: inheritedEntryStage(selected, pairingMode.segment),
+          drawId,
+          callback: () => refresh(),
+        });
       }
     });
   }
@@ -471,6 +490,7 @@ export function createUnifiedEntriesPanel({
       drawId,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
+      pairingMode,
       onRefresh: refresh,
     });
 

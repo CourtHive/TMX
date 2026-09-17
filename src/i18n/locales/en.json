@@ -2866,7 +2866,6 @@
   "segmentOverlay": {
     "moveParticipants": "Move participants",
     "removeFromDraw": "Remove from draw",
-    "createPair": "Create pair",
     "removeFromEvent": "Remove from event",
     "manualSeeding": "Manual seeding",
     "clearSeeding": "Clear seeding",
@@ -2874,7 +2873,13 @@
     "addToQualifying": "Add to Qualifying",
     "addToAlternates": "Add to Alternates",
     "addEntries": "Add entries",
-    "pairingOff": "Pairing: OFF"
+    "pairingOff": "Pairing: OFF",
+    "pairingOn": "Pairing: ON",
+    "pairAs": "Pair as",
+    "createPairAs": "Create pair as",
+    "pairAsAccepted": "Accepted",
+    "pairAsQualifying": "Qualifying",
+    "pairAsAlternate": "Alternate"
   },
   "swissStandings": {
     "losses": "Losses",
