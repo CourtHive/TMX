@@ -15,7 +15,7 @@ export function segmentRank(entryStage: string, entryStatus: string): number {
   if (entryStatus === ALTERNATE) return 2;
   if (entryStatus === UNGROUPED) return 3;
   if (entryStatus === WITHDRAWN) return 4;
-  return 5; // unknown
+  return 6; // unknown (5 is Grouped, which is assigned to virtual rows rather than derived from an entry)
 }
 
 export const SEGMENT_LABELS: Record<number, string> = {
@@ -24,6 +24,7 @@ export const SEGMENT_LABELS: Record<number, string> = {
   2: 'Alternates',
   3: 'Ungrouped',
   4: 'Withdrawn',
+  5: 'Grouped',
 };
 
 export type SortState = {
@@ -36,8 +37,8 @@ export function createGroupedSorter(sortState: SortState) {
     const dataA = aRow.getData();
     const dataB = bRow.getData();
 
-    const rankA = dataA._segmentRank ?? 5;
-    const rankB = dataB._segmentRank ?? 5;
+    const rankA = dataA._segmentRank ?? 6;
+    const rankB = dataB._segmentRank ?? 6;
     if (rankA !== rankB) return rankA - rankB;
 
     if (!sortState.secondaryField) return 0;
