@@ -46,8 +46,21 @@ export async function getProvider({ providerId }: { providerId: string }) {
   return await baseApi.post('/provider/detail', { providerId });
 }
 
-export async function getCalendar({ providerAbbr }: { providerAbbr: string }) {
-  return await baseApi.post('/provider/calendar', { providerAbbr });
+/**
+ * PUBLIC calendar — one page. The endpoint is paged (competition-factory-server #974), so a
+ * bare call returns at most the server's default. Callers wanting the whole calendar use
+ * `fetchPublicCalendar`.
+ */
+export async function getCalendar({
+  providerAbbr,
+  limit,
+  offset,
+}: {
+  providerAbbr: string;
+  limit?: number;
+  offset?: number;
+}) {
+  return await baseApi.post('/provider/calendar', { providerAbbr, limit, offset });
 }
 
 /**
