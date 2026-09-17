@@ -18,9 +18,10 @@ import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridg
  *  - The drawer RENDERS. It shipped to production showing the literal string
  *    "[object HTMLDivElement]" because `drawer.setContent` stringified the element it was
  *    given. Nothing threw; the drawer opened and looked structurally fine.
- *  - Choosing a preset SURVIVES the re-render. Selecting one closes and reopens the whole
- *    drawer (`rerender()`), so "the radio is checked" is a genuine round trip through
- *    sessionStorage, not a DOM echo of the click.
+ *  - Choosing a preset SURVIVES the re-render. `rerender()` replaces the panel body wholesale,
+ *    so "the radio is checked" is the rebuilt panel reading stored state, not a DOM echo of
+ *    the click. (It used to close and reopen the entire drawer; journey 124 pins that it no
+ *    longer does, and this assertion holds either way.)
  *  - Ticking a capability flips the posture to `custom`. The preset picker is documented as
  *    setting the checkboxes and then getting out of the way — this is the assertion that it
  *    never became a second code path.
@@ -87,9 +88,9 @@ test('choosing a posture stores an overlay that survives the drawer re-rendering
   expect(stored?.preset).toBe('recorder');
   expect(Object.keys(stored?.permissions ?? {}).length, 'the preset confers permissions').toBeGreaterThan(0);
 
-  // Selecting a preset CLOSES AND REOPENS the drawer. If the radio is still checked after
-  // that, the state genuinely round-tripped through storage rather than the click merely
-  // having ticked a box that was about to be thrown away.
+  // Selecting a preset REBUILDS the panel body. If the radio is still checked afterwards the
+  // state genuinely round-tripped through storage, rather than the click merely having ticked
+  // a box that was about to be thrown away.
   const recorderRadio = page.locator(PRESET_ROW).filter({ hasText: 'Scoring only (Recorder)' }).locator('input');
   await expect(recorderRadio).toBeChecked();
 });
