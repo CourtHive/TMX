@@ -123,7 +123,7 @@
     "courthive-components": "4.4.0",
     "d3-selection": "3.0.0",
     "dayjs": "1.11.23",
-    "dexie": "4.4.5",
+    "dexie": "4.4.6",
     "focus-trap": "8.2.2",
     "hotkeys-js": "4.0.7",
     "html2canvas": "^1.4.1",
