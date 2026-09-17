@@ -17,7 +17,7 @@ import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getUserContext } from 'services/authentication/getUserContext';
 import { fetchMyCalendars, type MyCalendarsResult } from 'services/apis/fetchMyCalendars';
-import { getCalendar } from 'services/apis/servicesApi';
+import { fetchPublicCalendar, type PublicCalendarResult } from 'services/apis/fetchPublicCalendar';
 import { getLoginState } from 'services/authentication/loginState';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -260,12 +260,20 @@ function fromMyCalendars(
 
 function fromPublicCalendar(
   anchor: HTMLElement,
-  result: any,
+  result: PublicCalendarResult,
   fallback: () => Promise<TournamentsView>,
   onCreated: () => void,
 ): Promise<TournamentsView> | TournamentsView {
-  const calendar = result?.data?.calendar;
+  const calendar = result?.calendar;
   if (!calendar) return fallback();
+  // The page walk stopped before the server ran out. Say so — a list quietly missing rows is
+  // worse than a short one the user knows is short.
+  if (result.truncated) {
+    tmxToast({
+      intent: 'is-warning',
+      message: t('toasts.tournamentsTruncated', { loaded: calendar.tournaments.length, total: result.total }),
+    });
+  }
   return fromCalendarTournaments(anchor, [calendar], onCreated);
 }
 
@@ -303,8 +311,10 @@ export function createTournamentsTable(): { ready: Promise<TournamentsView | und
       () => (sessionScopeUnchanged(scope) ? fallback() : undefined),
     );
   } else if (provider?.organisationAbbreviation) {
-    ready = getCalendar({ providerAbbr: provider.organisationAbbreviation }).then(
-      (result: any) => Promise.resolve(fromPublicCalendar(anchor, result, fallback, onCreated)),
+    // Paged, like the authenticated path above: a single request returns at most the
+    // server's default page, which silently truncated providers larger than that.
+    ready = fetchPublicCalendar({ providerAbbr: provider.organisationAbbreviation }).then(
+      (result: PublicCalendarResult) => Promise.resolve(fromPublicCalendar(anchor, result, fallback, onCreated)),
       () => fallback(),
     );
   } else {
