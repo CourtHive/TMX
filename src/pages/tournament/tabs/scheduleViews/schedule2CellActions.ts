@@ -8,6 +8,7 @@
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
 import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
+import { openTimeBlockModal, type TimeBlockCourt } from './timeBlockModal';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { readCheckInPromptMode } from './gridViewStorage';
@@ -85,6 +86,25 @@ export interface Schedule2CellContext {
   executeMethods: (methods: any[], onRefresh: () => void) => void;
   matchUpListProvider?: () => Array<{ label: string; value: string }>;
   findCatalogItem?: (matchUpId: string) => any;
+  /**
+   * Which surface opened this menu.
+   *
+   * The Now strip has always reused the grid's cell menu, and for everything
+   * except blocking that is right. Blocking is where the two part: the grid's
+   * options book by `courtOrder` + `rowCount`, which is the grid's own
+   * vocabulary — a director spaces matchUps down a column so rows approximate
+   * time bands — and is meaningless on a strip that has no rows, only a clock.
+   *
+   * Worse than meaningless, in fact: a grid booking carries no start or end
+   * time, so `AvailabilityEngine` skips it entirely and the block was invisible
+   * ON THE STRIP THAT MADE IT; and a free strip cell has no `rowIndex`, so the
+   * courtOrder fell back to 1 and blocked the court's first grid row.
+   *
+   * Defaults to the grid, so nothing changes for callers that do not say.
+   */
+  surface?: 'grid' | 'strip';
+  /** Courts available to a strip time-block, so one closure need not be entered per court. */
+  blockCourtsProvider?: () => TimeBlockCourt[];
 }
 
 // ── Main dispatcher ──
@@ -570,6 +590,22 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
 // Empty Cell Popover
 // ============================================================================
 
+/** Open the time-block modal for the clicked strip court. */
+function openStripTimeBlock(ctx: Schedule2CellContext): void {
+  const courts = ctx.blockCourtsProvider?.() ?? [];
+  const court = courts.find((candidate) => candidate.courtId === ctx.courtId);
+  // No court record means nothing to write onto; leave the popover's other
+  // actions usable rather than opening a modal that cannot save.
+  if (!court) return;
+
+  openTimeBlockModal({
+    scheduledDate: ctx.scheduledDate,
+    court,
+    allCourts: courts,
+    execute: (methods) => ctx.executeMethods(methods, ctx.onRefresh),
+  });
+}
+
 function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const {
     courtId,
@@ -640,7 +676,27 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     pop.appendChild(assignRow);
   }
 
-  // Block court
+  // Block court — the strip books by CLOCK, the grid by row. See
+  // `Schedule2CellContext.surface` for why this is not a cosmetic difference.
+  if (ctx.surface === 'strip') {
+    pop.appendChild(makeSectionLabel(t('schedule.blockCourt')));
+    const timeRow = document.createElement('div');
+    timeRow.style.cssText = PILL_ROW_CSS;
+    timeRow.appendChild(
+      makePill(t('schedule.timeBlock.open'), () => openStripTimeBlock(ctx), {
+        icon: ICON_BAN,
+        tint: TINT_DANGER,
+        color: '#f43f5e',
+      }),
+    );
+    pop.appendChild(timeRow);
+
+    let stripTarget = e.target as HTMLElement;
+    while (stripTarget && !stripTarget.dataset.courtId) stripTarget = stripTarget.parentElement as HTMLElement;
+    showPopover(stripTarget || (e.target as HTMLElement), pop);
+    return;
+  }
+
   pop.appendChild(makeSectionLabel(t('schedule.blockCourt')));
   const blockRow = document.createElement('div');
   blockRow.style.cssText = PILL_ROW_CSS;

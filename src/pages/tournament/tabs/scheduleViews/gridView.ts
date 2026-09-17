@@ -292,6 +292,7 @@ import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
+import { type TimeBlockCourt } from './timeBlockModal';
 import { relatedMatchUpIds } from './relatedMatchUps';
 import { renderCheckInBadge } from './checkInBadge';
 import { evaluateRest } from './inspectorRest';
@@ -3055,7 +3056,29 @@ function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh:
     executeMethods,
     matchUpListProvider: () => getFilteredMatchUpList(currentDate, activeControl),
     findCatalogItem: (mid: string) => buildCatalog(currentDate).find((m) => m.matchUpId === mid),
+    // The strip books by clock, not by grid row — see `Schedule2CellContext.surface`.
+    surface: 'strip',
+    blockCourtsProvider: () => blockableCourts(),
   });
+}
+
+/**
+ * Every court the time-block modal can write to, with the `dateAvailability` it
+ * has to read-modify-write.
+ *
+ * Read fresh on open rather than captured with the strip's snapshot: the modal
+ * is a separate interaction, and writing back an array that was read minutes ago
+ * would silently drop whatever another client did in between.
+ */
+function blockableCourts(): TimeBlockCourt[] {
+  const { tournamentRecord }: any = tournamentEngine.getTournament() ?? {};
+  return ((tournamentRecord?.venues ?? []) as any[])
+    .flatMap((venue: any) => venue.courts ?? [])
+    .map((court: any) => ({
+      courtId: court.courtId,
+      courtName: court.courtName ?? court.courtId,
+      dateAvailability: court.dateAvailability ?? [],
+    }));
 }
 
 /** Drop handler for the active strip — uses the resolved (courtId, rowIndex). */
