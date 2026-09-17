@@ -15,10 +15,8 @@
 import { entryStatusConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { buildPairMethods } from './rotatingPartners';
 import { segmentToEntry } from './pairSegment';
-
-// Constants
-import { ADD_EVENT_ENTRY_PAIRS } from 'constants/mutationConstants';
 
 const { ALTERNATE } = entryStatusConstants;
 
@@ -29,6 +27,8 @@ type PairFromUnifiedParams = {
   segment?: string;
   drawId?: string;
   entryStage?: string;
+  /** a member is already in another entered PAIR — see `buildPairMethods` */
+  overlaps?: boolean;
 };
 
 export function pairFromUnified({
@@ -37,6 +37,7 @@ export function pairFromUnified({
   callback,
   segment = ALTERNATE,
   entryStage,
+  overlaps = false,
   drawId,
 }: PairFromUnifiedParams): void {
   const { eventId, gender } = event;
@@ -44,22 +45,17 @@ export function pairFromUnified({
 
   const resolved = segmentToEntry(segment);
 
-  const methods = [
-    {
-      method: ADD_EVENT_ENTRY_PAIRS,
-      params: {
-        participantIdPairs: [participantIds],
-        allowDuplicateParticipantIdPairs: true,
-        entryStatus: resolved.entryStatus,
-        // An explicit entryStage wins: when replacing individuals already in a draw, the pair must
-        // inherit the stage they occupied rather than be forced back to MAIN.
-        entryStage: entryStage ?? resolved.entryStage,
-        uuids: [participantId],
-        eventId,
-        drawId,
-      },
-    },
-  ];
+  const methods = buildPairMethods({
+    entryStatus: resolved.entryStatus,
+    // An explicit entryStage wins: when replacing individuals already in a draw, the pair must
+    // inherit the stage they occupied rather than be forced back to MAIN.
+    entryStage: entryStage ?? resolved.entryStage,
+    pairParticipantId: participantId,
+    participantIds,
+    overlaps,
+    eventId,
+    drawId,
+  });
 
   const postMutation = (result: any) => {
     if (result.success) {
@@ -68,6 +64,7 @@ export function pairFromUnified({
       const message = gender === 'MIXED' ? 'Genders must be mixed' : 'Invalid pairing';
       tmxToast({ intent: 'is-danger', message });
     } else {
+      tmxToast({ intent: 'is-danger', message: result.error?.message ?? 'Error creating pair' });
       console.log({ methods, result });
     }
   };

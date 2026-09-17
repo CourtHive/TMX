@@ -28,8 +28,9 @@ describe('segmentRank', () => {
   });
 
   it('ranks unknown statuses last', () => {
-    expect(segmentRank(MAIN, REGISTERED)).toBe(5);
-    expect(segmentRank(MAIN, 'NOT_A_STATUS')).toBe(5);
+    // 5 is Grouped — assigned to virtual rotating-partners rows, never derived from an entry status
+    expect(segmentRank(MAIN, REGISTERED)).toBe(6);
+    expect(segmentRank(MAIN, 'NOT_A_STATUS')).toBe(6);
   });
 
   it('does not treat non-accepted statuses as qualifying at QUALIFYING stage', () => {

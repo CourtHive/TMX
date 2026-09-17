@@ -2884,7 +2884,9 @@
     "createPairAs": "Create pair as",
     "pairAsAccepted": "Accepted",
     "pairAsQualifying": "Qualifying",
-    "pairAsAlternate": "Alternate"
+    "pairAsAlternate": "Alternate",
+    "rotatingPartnersOff": "Rotating partners: OFF",
+    "rotatingPartnersOn": "Rotating partners: ON"
   },
   "swissStandings": {
     "losses": "Losses",
@@ -3080,6 +3082,8 @@
   },
   "entries": {
     "alreadyInDraw": "All selected participants are already in this draw",
+    "alreadyPartners": "These players are already partners in this event",
+    "pairedWith": "with",
     "addToDraw": "Add to draw",
     "changeStatus": "Change status",
     "addFlight": "Add flight",

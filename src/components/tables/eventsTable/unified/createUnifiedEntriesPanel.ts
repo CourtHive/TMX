@@ -4,6 +4,7 @@
  * available behind the `legacyEntriesTable` setting as a power-user fallback.
  */
 import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
+import type { PairingContext, PairingMode, RotatingPartnersMode } from './segmentOverlay';
 import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../../common/sorters/headerSortElement';
@@ -17,13 +18,24 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { getUnifiedColumns } from './unifiedColumns';
 import { inheritedEntryStage } from './pairSegment';
 import { pairFromUnified } from './pairFromUnified';
-import type { PairingMode } from './segmentOverlay';
 import type { SortState } from './segmentSorter';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
+import {
+  getEventOnlyUngroupedEntries,
+  isRotatingPartnersEligible,
+  drawHasSharedIndividuals,
+  getGroupedIndividuals,
+  getPairIndividualsMap,
+  pairOverlapsEntries,
+  getPairability,
+  UNGROUPED_RANK,
+  GROUPED_RANK,
+} from './rotatingPartners';
 
 // constants
 import { ACCEPTED, CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
@@ -42,6 +54,7 @@ const SCOPE_QUALIFYING = 'QUALIFYING';
 const SCOPE_ALTERNATES = 'ALTERNATES';
 const SCOPE_UNGROUPED = 'UNGROUPED';
 const SCOPE_WITHDRAWN = 'WITHDRAWN';
+const SCOPE_GROUPED = 'GROUPED';
 
 const SCOPE_RANK_MAP: Record<string, number | undefined> = {
   [SCOPE_ACCEPTED]: 0,
@@ -49,7 +62,64 @@ const SCOPE_RANK_MAP: Record<string, number | undefined> = {
   [SCOPE_ALTERNATES]: 2,
   [SCOPE_UNGROUPED]: 3,
   [SCOPE_WITHDRAWN]: 4,
+  [SCOPE_GROUPED]: GROUPED_RANK,
 };
+
+/**
+ * Rotating partners rows: the event's UNGROUPED individuals not yet in the draw, and a virtual
+ * [Grouped] row for each individual of the draw's PAIR entries. Neither is a draw entry, so each is
+ * flagged (`_eventOnly` / `_grouped`) for the overlay to offer pairing and nothing else.
+ */
+function buildRotatingRows({
+  pairIndividuals,
+  drawDefinition,
+  participants,
+  existingIds,
+  mapParams,
+  event,
+}: {
+  pairIndividuals: Record<string, string[]>;
+  existingIds: Set<string>;
+  participants: any[];
+  drawDefinition: any;
+  mapParams: any;
+  event: any;
+}): any[] {
+  const individualsById = new Map<string, any>();
+  for (const participant of participants) {
+    for (const individual of participant.individualParticipants ?? []) {
+      individualsById.set(individual.participantId, individual);
+    }
+  }
+  const nameOf = (id: string) => individualsById.get(id)?.participantName;
+
+  const eventOnlyRows = getEventOnlyUngroupedEntries({
+    eventEntries: event.entries,
+    drawEntries: drawDefinition.entries,
+  })
+    .filter((entry) => !existingIds.has(entry.participantId))
+    .map((entry) => ({ ...mapEntry({ ...mapParams, entry }), _segmentRank: UNGROUPED_RANK, _eventOnly: true }));
+
+  const groupedRows = getGroupedIndividuals({ drawEntries: drawDefinition.entries, pairIndividuals })
+    .filter(({ individualId }) => !existingIds.has(individualId))
+    .map(({ individualId, pairIds, entryStage }) => {
+      const partnerNames = pairIds
+        .flatMap((pairId) => pairIndividuals[pairId].filter((id) => id !== individualId))
+        .map(nameOf)
+        .filter(Boolean)
+        .join(', ');
+      const entry = { participantId: individualId, entryStage };
+      const participant = individualsById.get(individualId);
+      return {
+        ...mapEntry({ ...mapParams, participant, entry }),
+        _segmentRank: GROUPED_RANK,
+        _partnerNames: partnerNames,
+        _grouped: true,
+      };
+    });
+
+  return [...eventOnlyRows, ...groupedRows];
+}
 
 export function createUnifiedEntriesPanel({
   headerElement,
@@ -68,6 +138,32 @@ export function createUnifiedEntriesPanel({
   // being paired are draw entries, so their replacement should be an accepted one — pairing must
   // not shrink the field. On the all-entries view ALTERNATE preserves the historical default.
   const pairingMode: PairingMode = { enabled: false, segment: drawId ? ACCEPTED : ALTERNATE };
+  // Not persisted (CA): starts ON when the draw already holds pairs sharing an individual, decided once
+  // per render of the view so the TD's own toggle is not overridden on every refresh.
+  const rotatingMode: RotatingPartnersMode = { eligible: false, enabled: false };
+  let rotatingInitialized = false;
+  let pairingContext = {
+    rotatingEnabled: false,
+    eventEntries: [] as any[],
+    pairIndividuals: {} as Record<string, string[]>,
+  };
+  const getPairingContext: PairingContext = () => pairingContext;
+
+  // Refreshes the rotating-partners state from the current data and returns the rows the mode adds.
+  const getRotatingRows = ({ entries, event, drawDefinition, participants, mapParams }: any): any[] => {
+    const pairIndividuals = getPairIndividualsMap(participants);
+    rotatingMode.eligible = !!drawId && isRotatingPartnersEligible({ event, drawDefinition });
+    if (rotatingMode.eligible && !rotatingInitialized) {
+      rotatingMode.enabled = drawHasSharedIndividuals({ drawEntries: drawDefinition.entries, pairIndividuals });
+      rotatingInitialized = true;
+    }
+    const rotatingEnabled = rotatingMode.eligible && rotatingMode.enabled;
+    pairingContext = { rotatingEnabled, eventEntries: event.entries ?? [], pairIndividuals };
+    if (!rotatingEnabled) return [];
+
+    const existingIds = new Set<string>(entries.map((entry: any) => entry.participantId));
+    return buildRotatingRows({ event, drawDefinition, participants, pairIndividuals, existingIds, mapParams });
+  };
 
   // ── Data loading ──
   const getTableData = () => {
@@ -121,17 +217,17 @@ export function createUnifiedEntriesPanel({
       }
     }
 
+    const mapParams = {
+      eventType: event.eventType,
+      participantDrawsMap,
+      drawPositionMap,
+      derivedDrawInfo,
+      categoryName,
+      participants,
+      eventId,
+    };
     const entries = (drawDefinition?.entries || event?.entries || []).map((entry: any) =>
-      mapEntry({
-        eventType: event.eventType,
-        participantDrawsMap,
-        drawPositionMap,
-        derivedDrawInfo,
-        categoryName,
-        participants,
-        eventId,
-        entry,
-      }),
+      mapEntry({ ...mapParams, entry }),
     );
 
     // Add segment rank to each entry
@@ -139,6 +235,8 @@ export function createUnifiedEntriesPanel({
       const stage = entry.entryStage || MAIN;
       entry._segmentRank = segmentRank(stage, entry.entryStatus);
     }
+
+    entries.push(...getRotatingRows({ entries, event, drawDefinition, participants: participants ?? [], mapParams }));
 
     // Filter out ungrouped for singles events
     const filteredEntries = isDoubles ? entries : entries.filter((e: any) => e.entryStatus !== UNGROUPED);
@@ -152,8 +250,10 @@ export function createUnifiedEntriesPanel({
   };
 
   const refresh = () => {
+    // a mutation callback can land after the view has moved on; the stale panel must not re-render
+    if (!table || !tableContainer?.isConnected) return;
     const result = getTableData();
-    if (result.error || !table) return;
+    if (result.error) return;
 
     // Rebuild columns so newly relevant columns appear (ratings, ranking, seeding, etc.)
     const freshColumns = getUnifiedColumns({
@@ -186,12 +286,8 @@ export function createUnifiedEntriesPanel({
 
     if (pairingMode.enabled) {
       const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      if (
-        selected.length === 1 &&
-        selected[0]._segmentRank === 3 &&
-        matchData._segmentRank === 3 &&
-        selected[0].participantId !== matchData.participantId
-      ) {
+      const rows = [selected[0], matchData];
+      if (selected.length === 1 && getPairability({ rows, ...getPairingContext() }).pairable) {
         const ids: [string, string] = [selected[0].participantId, matchData.participantId];
         table.deselectRow();
         inputElement.value = '';
@@ -200,7 +296,8 @@ export function createUnifiedEntriesPanel({
           event,
           participantIds: ids,
           segment: pairingMode.segment,
-          entryStage: inheritedEntryStage([selected[0], matchData], pairingMode.segment),
+          entryStage: inheritedEntryStage(rows, pairingMode.segment),
+          overlaps: pairOverlapsEntries(rows),
           drawId,
           callback: () => refresh(),
         });
@@ -245,7 +342,7 @@ export function createUnifiedEntriesPanel({
   const getSegmentCounts = (entries: any[]): Record<number, number> => {
     const counts: Record<number, number> = {};
     for (const entry of entries) {
-      const rank = entry._segmentRank ?? 5;
+      const rank = entry._segmentRank ?? 6;
       counts[rank] = (counts[rank] || 0) + 1;
     }
     return counts;
@@ -340,8 +437,14 @@ export function createUnifiedEntriesPanel({
     table.on('rowSelected', () => {
       if (!pairingMode.enabled) return;
       const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      // Only auto-pair when both selected are ungrouped
-      if (selected.length === 2 && selected.every((r: any) => r._segmentRank === 3)) {
+      // Auto-pair two ungrouped rows — or, in Rotating partners mode, any two ungrouped/grouped rows
+      const { pairable, reason } = getPairability({ rows: selected, ...getPairingContext() });
+      if (reason === 'ALREADY_PARTNERS') {
+        table.deselectRow();
+        tmxToast({ message: t('entries.alreadyPartners'), intent: 'is-warning' });
+        return;
+      }
+      if (pairable) {
         const ids: [string, string] = [selected[0].participantId, selected[1].participantId];
         table.deselectRow();
         pairFromUnified({
@@ -349,6 +452,7 @@ export function createUnifiedEntriesPanel({
           participantIds: ids,
           segment: pairingMode.segment,
           entryStage: inheritedEntryStage(selected, pairingMode.segment),
+          overlaps: pairOverlapsEntries(selected),
           drawId,
           callback: () => refresh(),
         });
@@ -362,6 +466,10 @@ export function createUnifiedEntriesPanel({
 
   // ── Table built → apply sort + render control bars ──
   table.on('tableBuilt', () => {
+    // Tabulator builds asynchronously. If the view was re-rendered in the meantime (navigating between
+    // entries views), this panel's container is detached: rendering its control bars would throw on
+    // `insertBefore` and overwrite the current panel's EVENT_CONTROL with this stale one's items.
+    if (!tableContainer.isConnected) return;
     applySort();
     renderEventControlBar();
     renderTableControlBar();
@@ -403,6 +511,11 @@ export function createUnifiedEntriesPanel({
       counts[4] && {
         label: `Withdrawn (${counts[4]})`,
         onClick: () => updateSearchScope(SCOPE_WITHDRAWN),
+        close: true,
+      },
+      counts[GROUPED_RANK] && {
+        label: `Grouped (${counts[GROUPED_RANK]})`,
+        onClick: () => updateSearchScope(SCOPE_GROUPED),
         close: true,
       },
     ].filter(Boolean);
@@ -490,6 +603,7 @@ export function createUnifiedEntriesPanel({
       drawId,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
+      getPairingContext,
       pairingMode,
       onRefresh: refresh,
     });
@@ -499,6 +613,7 @@ export function createUnifiedEntriesPanel({
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
       onRefresh: refresh,
+      rotatingMode,
       pairingMode,
     });
 
