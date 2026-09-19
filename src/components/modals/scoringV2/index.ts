@@ -34,6 +34,11 @@ function getScoringLabels() {
     tiebreaks: t('modals.scoring.tiebreaks'),
     matchTiebreaks: t('modals.scoring.matchTiebreaks'),
     irregularEndings: t('modals.scoring.irregularEndings'),
+    abandoned: t('modals.scoring.abandoned'),
+    cancelled: t('modals.scoring.cancelled'),
+    incomplete: t('modals.scoring.incomplete'),
+    reasonCode: t('modals.scoring.reasonCode'),
+    noReasonCode: t('modals.scoring.noReasonCode'),
   };
 }
 
