@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.26.1](https://github.com/CourtHive/TMX/compare/v8.26.0...v8.26.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **schedule:** the readiness all-clear rendered a raw {{time}} placeholder ([#1473](https://github.com/CourtHive/TMX/issues/1473)) ([487b0c4](https://github.com/CourtHive/TMX/commit/487b0c4f14de28c60a10dc27ccc44ed5b5abc530))
+* **tournaments:** page the PUBLIC calendar too ([#1468](https://github.com/CourtHive/TMX/issues/1468)) ([ef4d138](https://github.com/CourtHive/TMX/commit/ef4d13863aebd3632c354e5788fe07a9ce13c01e))
+
 ## [8.26.0](https://github.com/CourtHive/TMX/compare/v8.25.0...v8.26.0) (2026-09-17)
 
 
