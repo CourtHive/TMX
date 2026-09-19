@@ -39,11 +39,39 @@ export function venueCalendarDay(value: string | Date): string {
   return venueCalendarDate(value);
 }
 
-/** Sign-in entries stamped on a given local day, oldest first. */
-function entriesOn(participant: any, date: string): any[] {
+/**
+ * The sign-in log, normalised to `{ state, occurredAt }`, from whichever shape the record holds.
+ *
+ * CODES 7.0.0 promoted sign-in from `SIGN_IN_STATUS` timeItems to a first-class `participant.presence`
+ * collection, and NATIVE mode writes no timeItem at all. A reader that walked only `timeItems` saw an
+ * empty history against a 7.x record and reported **everybody absent** — silently, on the one surface
+ * whose whole job is answering "is this person here today". `signInPresenceFactory.test.ts` pins that
+ * against real factory output rather than a hand-built fixture, because a fixture of the old shape
+ * keeps passing through exactly the change that breaks the feature.
+ *
+ * Both shapes are read, so a record written before the promotion still answers correctly.
+ */
+function presenceLog(participant: any): { state: string; occurredAt: string }[] {
+  if (Array.isArray(participant?.presence)) {
+    return participant.presence
+      .filter((attestation: any) => attestation?.state && attestation?.occurredAt)
+      .map((attestation: any) => ({ state: attestation.state, occurredAt: attestation.occurredAt }));
+  }
+
   return (participant?.timeItems ?? [])
     .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
-    .filter((timeItem: any) => venueCalendarDay(timeItem.createdAt) === date);
+    .map((timeItem: any) => ({ state: timeItem.itemValue, occurredAt: timeItem.createdAt }));
+}
+
+/**
+ * Sign-in entries stamped on a given local day, oldest first.
+ *
+ * Deliberately NOT `engine.getParticipantSignedInOnDate`, which would answer this in the FACTORY's
+ * frame. Only TMX knows what to fall back to when a record names no zone (the browser's, announced on
+ * screen), which is why the factory exposes a frame-free history at all. The day boundary stays here.
+ */
+function entriesOn(participant: any, date: string): any[] {
+  return presenceLog(participant).filter((entry) => venueCalendarDay(entry.occurredAt) === date);
 }
 
 /**
@@ -56,10 +84,10 @@ export function signedInOnDate(participant: any, date: string): boolean {
   const entries = entriesOn(participant, date);
   if (!entries.length) return false;
 
-  const latest = entries.reduce((acc: any, timeItem: any) =>
-    String(timeItem.createdAt) > String(acc.createdAt) ? timeItem : acc,
+  const latest = entries.reduce((acc: any, entry: any) =>
+    String(entry.occurredAt) > String(acc.occurredAt) ? entry : acc,
   );
-  return latest?.itemValue === SIGNED_IN;
+  return latest?.state === SIGNED_IN;
 }
 
 /**
