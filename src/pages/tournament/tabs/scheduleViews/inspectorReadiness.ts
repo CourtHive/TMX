@@ -20,10 +20,10 @@
  * the moment the director is deciding whether to call it).
  */
 
+import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { applyRelatedHighlight } from 'courthive-components';
-import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderTimingSection } from './inspectorTiming';
@@ -143,7 +143,10 @@ function buildFindingRow(finding: ReadinessFinding): HTMLElement {
     line(t('schedule.inspector.readiness.finishes', { time: finding.notBefore }), 'tmx-readiness-court'),
   );
   times.appendChild(line('\u2192', 'tmx-readiness-arrow'));
-  times.appendChild(line(t('schedule.inspector.readiness.ready', { time: finding.readyAt }), 'tmx-readiness-ready'));
+  // `readyAt`, not `ready` — the two were one key until the duplicate was found. `ready` is the
+  // all-clear SENTENCE ("No readiness issues for this time."); this is the FRAGMENT that pairs with
+  // `finishes` inside a dependency row, and it is named for the field it renders.
+  times.appendChild(line(t('schedule.inspector.readiness.readyAt', { time: finding.readyAt }), 'tmx-readiness-ready'));
   row.appendChild(times);
 
   // The sentence form on the row itself, so the distinction survives a hover and

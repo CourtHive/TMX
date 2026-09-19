@@ -48,9 +48,9 @@
 //
 // Exit codes: 0 ok · 1 new findings (with --ci) · 2 internal error.
 
-import fs from 'node:fs';
-import path from 'node:path';
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import fs from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -271,6 +271,91 @@ function writeBaseline(findings) {
 
 // ---------------------------------------------------------------- main
 
+/**
+ * Duplicate keys within one object in `en.json`.
+ *
+ * `JSON.parse` accepts them and keeps the LAST, so the earlier string is unreachable while still
+ * sitting in the file looking correct. Nothing else catches it: key-parity compares parsed objects,
+ * so both sides already agree; the ratchet above only looks at source, not at the bundle.
+ *
+ * It shipped once. `schedule.inspector.readiness.ready` was both the all-clear sentence ("No
+ * readiness issues for this time.") and a dependency-row fragment ("ready ~{{time}}"). The fragment
+ * won, so the inspector's all-clear line rendered a raw `{{time}}` placeholder to operators — the
+ * call site passes no `time`, because its string never had one.
+ *
+ * Parsed with a hand-rolled scan rather than `JSON.parse`, because by the time JSON.parse has run the
+ * evidence is gone.
+ */
+function findDuplicateKeys() {
+  const source = fs.readFileSync(path.join(ROOT, 'src', 'i18n', 'locales', 'en.json'), 'utf8');
+  const duplicates = [];
+  const stack = [{ keys: new Map(), name: '', lastKey: '' }];
+
+  const KEY_AT_DEPTH = /"((?:[^"\\]|\\.)*)"\s*:/y;
+  let line = 1;
+
+  for (let i = 0; i < source.length; i += 1) {
+    const ch = source[i];
+
+    if (ch === '\n') {
+      line += 1;
+      continue;
+    }
+
+    if (ch === '{') {
+      // The new object is named by the key that INTRODUCED it — the parent's most recent key — not
+      // by whatever key is seen next inside it.
+      stack.push({ keys: new Map(), name: stack[stack.length - 1].lastKey ?? '' });
+      continue;
+    }
+
+    if (ch === '}') {
+      if (stack.length > 1) stack.pop();
+      continue;
+    }
+
+    if (ch !== '"') continue;
+
+    KEY_AT_DEPTH.lastIndex = i;
+    const match = KEY_AT_DEPTH.exec(source);
+    if (!match) {
+      // a string VALUE, not a key — skip past it so its contents cannot be misread as structure
+      i = skipString(source, i);
+      const consumed = source.slice(0, i + 1);
+      line = 1 + (consumed.match(/\n/g)?.length ?? 0);
+      continue;
+    }
+
+    const frame = stack[stack.length - 1];
+    const key = match[1];
+    if (frame.keys.has(key)) {
+      duplicates.push({ path: dottedPath(stack, key), line });
+    } else {
+      frame.keys.set(key, line);
+    }
+    frame.lastKey = key;
+    i = match.index + match[0].length - 1;
+  }
+
+  return duplicates;
+}
+
+/** Index of the closing quote of the string starting at `start`, honouring escapes. */
+function skipString(source, start) {
+  for (let i = start + 1; i < source.length; i += 1) {
+    if (source[i] === '\\') {
+      i += 1;
+      continue;
+    }
+    if (source[i] === '"') return i;
+  }
+  return source.length - 1;
+}
+
+function dottedPath(stack, key) {
+  return [...stack.slice(1).map((frame) => frame.name), key].filter(Boolean).join('.');
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const ci = argv.includes('--ci');
@@ -281,6 +366,16 @@ function main() {
   if (!fs.existsSync(SRC)) {
     console.error('i18n-audit: no src/ directory — run from the repo root');
     return 2;
+  }
+
+  // Runs unconditionally, and before the ratchet: a duplicate key is not a "new offender" to be
+  // baselined, it is a string that has ALREADY been lost. See findDuplicateKeys.
+  const duplicates = findDuplicateKeys();
+  if (duplicates.length) {
+    console.error(`\ni18n-audit: ${duplicates.length} duplicate key(s) in en.json — the LAST one silently wins:\n`);
+    for (const { path: dotted, line } of duplicates) console.error(`  ${dotted}   (line ${line})`);
+    console.error('\nRename one of them. Both were written on purpose; only one is reachable.\n');
+    return 1;
   }
 
   const findings = [];

@@ -1023,7 +1023,7 @@
         "dependencyBoth": "Waiting on {{labels}} — finishes ~{{finishes}}, its winner ready ~{{ready}}",
         "dependencyWaiting": "Waiting on {{labels}}",
         "finishes": "finishes ~{{time}}",
-        "ready": "ready ~{{time}}",
+        "readyAt": "ready ~{{time}}",
         "dependencyUnscheduled": "Waiting on {{labels}}, which is not scheduled",
         "undetermined": "Participants not yet determined — waiting on {{labels}}",
         "skip": {
