@@ -2773,6 +2773,23 @@
     "badgePartial_other": "{{count}} participants have not checked in yet",
     "callOnDropBeforeCheckIn_one": "{{count}} participant has not checked in. Call this match to court anyway?",
     "callOnDropBeforeCheckIn_other": "{{count}} participants have not checked in. Call this match to court anyway?",
+    "attester": {
+      "action": "Check in as\u2026",
+      "self": "Themselves",
+      "parent": "Parent",
+      "guardian": "Guardian",
+      "chaperone": "Chaperone",
+      "other": "Someone else",
+      "namePrompt": "Who is checking {{name}} in?",
+      "namePlaceholder": "Name",
+      "telephonePlaceholder": "Telephone (optional)",
+      "cancel": "Cancel",
+      "confirm": "Check in",
+      "bySelf": "Checked in by themselves",
+      "byRelationship": "Checked in by {{name}} ({{relationship}})",
+      "byOperator": "Checked in by {{name}}",
+      "at": "at {{time}}"
+    },
     "promptMode": {
       "label": "Check-in prompts",
       "off": "Off",
