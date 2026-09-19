@@ -48,9 +48,9 @@
 //
 // Exit codes: 0 ok · 1 new findings (with --ci) · 2 internal error.
 
-import fs from 'node:fs';
-import path from 'node:path';
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import fs from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');

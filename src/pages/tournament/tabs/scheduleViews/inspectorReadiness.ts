@@ -20,10 +20,10 @@
  * the moment the director is deciding whether to call it).
  */
 
+import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { applyRelatedHighlight } from 'courthive-components';
-import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderTimingSection } from './inspectorTiming';
