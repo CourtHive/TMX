@@ -2,11 +2,17 @@
  * Mock tournament generation for testing and demo purposes.
  * Creates sample tournaments with various draw types and categories.
  */
-import { factoryConstants, drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
+import {
+  factoryConstants,
+  drawDefinitionConstants,
+  policyConstants,
+  mocksEngine,
+  fixtures,
+} from 'tods-competition-factory';
 
 import { SUCCESS } from 'constants/tmxConstants';
 
@@ -58,6 +64,16 @@ export function mockTournaments(table?: any, onComplete?: () => void, indices?: 
 
   return { ...SUCCESS };
 }
+
+/**
+ * A governing body's reason-code vocabulary, attached to the mock below so the scoring modal's
+ * reason control has something to offer. Taken from the factory fixture rather than restated here —
+ * a hand-copied vocabulary is how the scoring editor and the factory drifted apart while both
+ * looked correct.
+ */
+const REASON_CODE_SCORING_POLICY = {
+  [policyConstants.POLICY_TYPE_SCORING]: fixtures.policies.POLICY_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING],
+};
 
 const clubCourts = {
   venueName: 'Super Fast Courts',
@@ -576,6 +592,30 @@ const mockProfiles = [
       },
     ],
     venueProfiles: [wiffleballPark],
+  },
+  // Tournament 12: Reason Codes Invitational.
+  //
+  // The only mock carrying a scoring policy with `matchUpStatusCodes`, and the reason it exists:
+  // TMX ships no built-in reason vocabulary by design, so the scoring modal's reason control is
+  // invisible on every other tournament here. Attaching a governing body's policy is what turns it
+  // on. Score any matchUp, choose Retired, and the reason list appears with "Ret [inj]" and friends.
+  //
+  // `completeAllMatchUps` is deliberately OFF — a tournament with everything already scored has
+  // nothing to demonstrate the control on.
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-rc-01' },
+    participantsProfile: { scaledParticipantsCount: 32, idPrefix: 'rc' },
+    tournamentName: 'Reason Codes Invitational',
+    policyDefinitions: REASON_CODE_SCORING_POLICY,
+    drawProfiles: [
+      {
+        eventName: 'Open Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles: [clubCourts],
   },
 ];
 
