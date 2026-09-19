@@ -9,6 +9,7 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -153,6 +154,14 @@ export function setDev(): void {
 
   addDev({
     openTeamProfile: (participantId: string) => teamProfileModal({ participantId }),
+  });
+
+  // The real entry point, not a test-only stand-in — same reasoning as fetchUserContext above.
+  // A journey asserting what the scoring modal offers has to open the modal the app opens,
+  // including the policy lookup that decides whether the reason control exists at all.
+  addDev({
+    enterMatchUpScore: (params: { matchUpId: string; matchUp?: any; callback?: (result: any) => void }) =>
+      enterMatchUpScore(params),
   });
 
   addDev({ completeMatchUps, forceStaleness, isStale, triggerStalenessCheck });

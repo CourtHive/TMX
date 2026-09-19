@@ -12,13 +12,35 @@ import {
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
+import type { StatusCodeGroups } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { scoringModal } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'services/factory/engine';
+import { policyConstants } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
+
+const { POLICY_TYPE_SCORING } = policyConstants;
+
+/**
+ * The reason-code vocabulary for this matchUp's event, or undefined when the tournament has no
+ * scoring policy carrying one.
+ *
+ * TMX ships no built-in vocabulary by design (CA, 2026-09-20): the reason field appears only where
+ * a governing body's policy is attached. `undefined` here is therefore the ordinary case, and the
+ * modal draws no control for it — not a degraded state to defend against.
+ *
+ * Event-scoped, because a scoring policy can be attached per event.
+ */
+function resolveStatusCodeGroups(matchUp: any): StatusCodeGroups | undefined {
+  const eventId = matchUp?.eventId;
+  if (!eventId) return undefined;
+
+  const scoringPolicy: any = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
+  return scoringPolicy?.policy?.matchUpStatusCodes;
+}
 
 export function enterMatchUpScore(params: {
   matchUpId: string;
@@ -45,7 +67,7 @@ export function enterMatchUpScore(params: {
   };
 
   const scoreSubmitted = (outcome: any) => {
-    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets } = outcome;
+    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets, matchUpStatusCodes } = outcome;
 
     // Use sets directly from outcome if available (e.g., from dialPad/dynamicSets with irregular endings)
     // Otherwise parse the score string (e.g., from freeScore)
@@ -66,6 +88,10 @@ export function enterMatchUpScore(params: {
             matchUpFormat,
             matchUpStatus,
             winningSide,
+            // Only when a reason was actually chosen. The factory reads an EMPTY array as an
+            // instruction to blank the codes, so sending `[]` for "no reason given" would erase
+            // whatever a previous edit recorded.
+            ...(matchUpStatusCodes?.length ? { matchUpStatusCodes } : {}),
           },
           matchUpId,
         },
@@ -113,7 +139,12 @@ export function enterMatchUpScore(params: {
     applyScore();
   };
 
-  scoringModal({ matchUp, callback: scoreSubmitted, onRelayCleanup });
+  scoringModal({
+    matchUp,
+    callback: scoreSubmitted,
+    onRelayCleanup,
+    matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
+  });
 }
 
 /**

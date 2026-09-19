@@ -1694,7 +1694,12 @@
       "setScores": "Set Scores:",
       "tiebreaks": "Tiebreaks:",
       "matchTiebreaks": "Match Tiebreaks:",
-      "irregularEndings": "Irregular Endings:"
+      "irregularEndings": "Irregular Endings:",
+      "abandoned": "Abandoned",
+      "cancelled": "Cancelled",
+      "incomplete": "Incomplete",
+      "reasonCode": "Reason",
+      "noReasonCode": "No reason given"
     },
     "generateTeams": {
       "title": "Generate mock teams",
