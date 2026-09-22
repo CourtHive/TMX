@@ -263,7 +263,7 @@ function ensureStyles(): void {
 
 export function isAnythingPublished(): boolean {
   const data = getTournamentPublishData();
-  if (data.participantsPublished || data.oopPublished) return true;
+  if (data.infoPublished || data.participantsPublished || data.oopPublished) return true;
   return getPublishingTableData().some((row) => row.published);
 }
 

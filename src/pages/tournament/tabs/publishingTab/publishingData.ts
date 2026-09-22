@@ -49,6 +49,8 @@ export type EmbargoEntry = {
 };
 
 export type TournamentPublishData = {
+  infoPublished: boolean;
+  infoEventIds?: string[];
   oopPublished: boolean;
   oopEmbargo?: string;
   oopEmbargoActive: boolean;
@@ -72,6 +74,10 @@ export function getTournamentPublishData(): TournamentPublishData {
   const participantsEmbargo = tournamentPubState?.participants?.embargo;
 
   return {
+    // The information publish (factory 7.0.0) — the tournament itself, before anything inside it.
+    // `eventIds` scopes which events the public information page lists; absent means every event.
+    infoPublished: !!tournamentPubState?.info?.published,
+    infoEventIds: tournamentPubState?.info?.eventIds,
     oopPublished: !!tournamentPubState?.orderOfPlay?.published,
     oopEmbargo,
     oopEmbargoActive: publishingGovernor.isEmbargoed(tournamentPubState?.orderOfPlay),
@@ -85,6 +91,19 @@ export function getTournamentPublishData(): TournamentPublishData {
     startDate: startDate ?? '',
     endDate: endDate ?? '',
   };
+}
+
+/**
+ * The `eventIds` to send with a tournament-information publish.
+ *
+ * Every event selected means "list them all", which is the factory's own default — so send NO
+ * `eventIds` rather than the full list. The distinction is not cosmetic: an explicit list freezes the
+ * scope, and an event added tomorrow would silently stay off the information page. An empty selection
+ * is treated the same way, because publishing information that lists nothing is never the intent.
+ */
+export function infoScopeParams(selectedEventIds: string[], allEventIds: string[]): { eventIds?: string[] } {
+  const allSelected = allEventIds.length > 0 && selectedEventIds.length === allEventIds.length;
+  return allSelected || !selectedEventIds.length ? {} : { eventIds: selectedEventIds };
 }
 
 export function resolvePublishState(published: boolean, embargo?: string): 'live' | 'embargoed' | 'off' {
