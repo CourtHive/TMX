@@ -9,6 +9,11 @@ vi.mock('services/context', () => ({ context: { columns: {} } }));
 // Nothing it provides is called here — formatters and editors are values in a
 // definition, never invoked — so any export can stand in as a no-op.
 vi.mock('courthive-components', () => ({ renderParticipant: vi.fn() }));
+// Same shape, different library: tabulator-tables 6.5.3 moved row-template creation into a STATIC
+// initializer on `Row`, so `document.createElement` runs at module-import time rather than on first
+// render. `unifiedColumns` reaches it through `participantProfileModal`, and nothing here mounts a
+// table — the columns are definitions, never rendered — so a bare stand-in is enough.
+vi.mock('tabulator-tables', () => ({ TabulatorFull: class {} }));
 
 import { LOCK_VISIBLE_CLASS, applyColumnVisibility, isLockedVisible } from './columnIsVisible';
 import { getUnifiedColumns } from '../eventsTable/unified/unifiedColumns';
