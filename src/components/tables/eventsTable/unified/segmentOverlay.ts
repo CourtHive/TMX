@@ -5,6 +5,7 @@
  * Provides segment-scoped seeding controls.
  */
 import { drawDefinitionConstants, entryStatusConstants, participantConstants } from 'tods-competition-factory';
+import { getPairability, pairOverlapsEntries, selectionHasNonDrawEntries } from './rotatingPartners';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/cancelManualSeeding';
@@ -31,6 +32,8 @@ const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { PAIR } = participantConstants;
 
 const pairingLabel = (enabled: boolean) => (enabled ? t('segmentOverlay.pairingOn') : t('segmentOverlay.pairingOff'));
+const rotatingLabel = (enabled: boolean) =>
+  enabled ? t('segmentOverlay.rotatingPartnersOn') : t('segmentOverlay.rotatingPartnersOff');
 
 const PAIR_SEGMENT_LABEL_KEYS: Record<string, string> = {
   [ALTERNATE]: 'segmentOverlay.pairAsAlternate',
@@ -141,12 +144,20 @@ export type PairingMode = {
   segment: string;
 };
 
+/** Fresh inputs for `getPairability`, read at selection time rather than captured at render. */
+export type PairingContext = () => {
+  rotatingEnabled: boolean;
+  eventEntries: any[];
+  pairIndividuals: Record<string, string[]>;
+};
+
 type OverlayParams = {
   event: any;
   drawId?: string;
   drawCreated: boolean;
   isDoubles: boolean;
   pairingMode: PairingMode;
+  getPairingContext: PairingContext;
   onRefresh: () => void;
 };
 
@@ -156,6 +167,7 @@ export function getOverlayItems({
   drawCreated,
   isDoubles,
   pairingMode,
+  getPairingContext,
   onRefresh,
 }: OverlayParams): any[] {
   const eventId = event?.eventId;
@@ -163,6 +175,8 @@ export function getOverlayItems({
 
   // Move participants — intersection of valid targets for selected segments
   const moveHandler = (table: any): any => {
+    // virtual Grouped rows and event-only Ungrouped rows are not draw entries: nothing to move
+    if (selectionHasNonDrawEntries(table.getSelectedData())) return { location: OVERLAY, hide: true };
     const segments = getSelectedSegments(table);
     const targets = intersectMoveTargets(segments, isDoubles);
 
@@ -224,12 +238,12 @@ export function getOverlayItems({
     });
   }
 
-  // Create pair button — doubles, ungrouped only, exactly 2 selected
+  // Create pair button — doubles, exactly 2 selected: Ungrouped, or (in Rotating partners mode)
+  // Ungrouped/Grouped, and never two individuals who are already partners
   if (isDoubles) {
     items.push((table: any) => {
       const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      const segments = getSelectedSegments(table);
-      if (segments.size !== 1 || !segments.has(UNGROUPED_RANK) || selected.length !== 2) {
+      if (!getPairability({ rows: selected, ...getPairingContext() }).pairable) {
         return { location: OVERLAY, hide: true };
       }
 
@@ -242,6 +256,7 @@ export function getOverlayItems({
             participantIds: ids,
             segment: pairingMode.segment,
             entryStage: inheritedEntryStage(selected, pairingMode.segment),
+            overlaps: pairOverlapsEntries(selected),
             drawId,
             callback: () => onRefresh(),
           });
@@ -265,7 +280,7 @@ export function getOverlayItems({
   if (drawId) {
     items.push((table: any) => {
       const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-      if (!selected.length) return { location: OVERLAY, hide: true };
+      if (!selected.length || selectionHasNonDrawEntries(selected)) return { location: OVERLAY, hide: true };
       const removable = selected.filter((r: any) => !r.drawPosition);
       if (!removable.length) return { location: OVERLAY, hide: true };
 
@@ -329,15 +344,29 @@ export function getOverlayItems({
   return items;
 }
 
+export type RotatingPartnersMode = {
+  /** the draw-entries view of an AD_HOC doubles draw (see `isRotatingPartnersEligible`) */
+  eligible: boolean;
+  enabled: boolean;
+};
+
 type RightItemsParams = {
   event: any;
   drawCreated: boolean;
   isDoubles: boolean;
   pairingMode: PairingMode;
+  rotatingMode?: RotatingPartnersMode;
   onRefresh: () => void;
 };
 
-export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRefresh }: RightItemsParams): any[] {
+export function getRightItems({
+  event,
+  drawCreated,
+  isDoubles,
+  pairingMode,
+  rotatingMode,
+  onRefresh,
+}: RightItemsParams): any[] {
   const items: any[] = [];
 
   // Seeding — split into two compact dropdowns (Accepted + Qualifying).
@@ -436,6 +465,22 @@ export function getRightItems({ event, drawCreated, isDoubles, pairingMode, onRe
       label: pairSegmentLabel(pairingMode.segment),
       intent: 'is-light',
       id: 'pair-segment-toggle',
+      location: LEFT,
+    });
+  }
+
+  // Rotating partners — AD_HOC doubles draw view only. Shows already-paired individuals as [Grouped]
+  // rows (and the event's ungrouped individuals not yet in the draw) so they can be paired again.
+  // Changes the rows, so it refreshes the table rather than restyling the button in place.
+  if (isDoubles && rotatingMode?.eligible) {
+    items.push({
+      onClick: () => {
+        rotatingMode.enabled = !rotatingMode.enabled;
+        onRefresh();
+      },
+      label: rotatingLabel(rotatingMode.enabled),
+      intent: rotatingMode.enabled ? 'is-info' : 'is-light',
+      id: 'rotating-partners-toggle',
       location: LEFT,
     });
   }

@@ -16,6 +16,7 @@ import { navigateToEvent } from '../../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { headerMenu } from '../../common/headerMenu';
+import { GROUPED_RANK } from './rotatingPartners';
 import type { SortState } from './segmentSorter';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -51,8 +52,21 @@ function segmentFormatter(cell: any) {
   const el = document.createElement('span');
   el.className = 'tag';
   el.style.cssText = `background:${colors.bg};color:${colors.text};font-size:0.7rem;padding:2px 6px;border-radius:4px`;
+  // Grouped rows are virtual (never entries): an outline in the cell's own colour, not a filled chip,
+  // sets them apart from the real segments in both light and dark themes
+  if (rank === GROUPED_RANK) el.style.cssText = 'font-size:0.7rem;padding:1px 5px;border-radius:4px;border:1px dashed';
   el.textContent = label;
   return el;
+}
+
+// A Grouped row is an individual who is already partnered: say with whom, under the name.
+function withPartnerNote(element: any, data: any) {
+  if (!data._grouped || !data._partnerNames || !(element instanceof HTMLElement)) return element;
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:0.75rem;opacity:0.7';
+  note.textContent = `${t('entries.pairedWith')} ${data._partnerNames}`;
+  element.appendChild(note);
+  return element;
 }
 
 function statusFormatter(cell: any) {
@@ -134,7 +148,12 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
             .filter(Boolean);
           participantProfileModal({ participantId, participantIds, readOnly: true });
         };
-        return (formatParticipant(onClick, { participantDetail: 'ADDRESS' }) as any)(cell, undefined, 'sideBySide');
+        const element = (formatParticipant(onClick, { participantDetail: 'ADDRESS' }) as any)(
+          cell,
+          undefined,
+          'sideBySide',
+        );
+        return withPartnerNote(element, cell.getRow().getData());
       },
       sorter: (a: any, b: any) =>
         (a?.participantName ?? '').localeCompare(b?.participantName ?? '', undefined, { numeric: true }),
