@@ -338,6 +338,65 @@ test.describe('Journey 29 — Schedule2 active courts strip', () => {
     await expect(cell.locator(STATE_PILL_SELECTOR)).toHaveText('LIVE');
   });
 
+  test('blocking from an empty strip cell books by CLOCK, and shows up on the strip that made it', async ({ page }) => {
+    // The defect this closes: the strip reused the grid's block options, which
+    // book by `courtOrder` + `rowCount` and carry no times. `AvailabilityEngine`
+    // skips a booking with no start/end, so the block was invisible on the very
+    // strip that made it — and a free strip cell has no rowIndex, so it blocked
+    // grid row 1 rather than "now".
+    await page.clock.setFixedTime(new Date(`${SCHEDULE_DATE}T14:00:00`));
+
+    const tournamentId = await seedTournament(page, PROFILE_STRIP);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+
+    const courtId = await page.evaluate(() => {
+      const cell = document.querySelector('.spl-active-strip-cell') as HTMLElement;
+      return cell?.dataset.courtId as string;
+    });
+
+    await page.locator(`${CELL_SELECTOR}[data-court-id="${courtId}"]`).click();
+    const popover = page.locator('.tippy-content[data-state="visible"]');
+    await expect(popover).toBeVisible();
+    // The grid's row vocabulary is gone from this surface.
+    await expect(popover.getByText('1 row', { exact: true })).toHaveCount(0);
+
+    await popover.getByText('Block time', { exact: true }).click();
+
+    // One period to start with, defaulted to now (14:00) — the whole reason to
+    // block from the strip rather than from the Availability tab.
+    const rows = page.locator('.tmx-timeblock-row');
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first().locator('.tmx-timeblock-time').first()).toHaveValue('14:00');
+
+    await page.locator('.tmx-timeblock-type').first().selectOption('MAINTENANCE');
+    await page.getByRole('button', { name: 'Block', exact: true }).click();
+
+    // Written as a real time booking, which is what makes it legible everywhere.
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          ({ id, date }) => {
+            const { tournamentRecord } = dev.factory.tournamentEngine.getTournament() || {};
+            const court = (tournamentRecord?.venues || [])
+              .flatMap((v: any) => v.courts || [])
+              .find((c: any) => c.courtId === id);
+            const entry = (court?.dateAvailability || []).find((e: any) => e.date === date);
+            return entry?.bookings?.[0] ?? null;
+          },
+          { id: courtId, date: SCHEDULE_DATE },
+        ),
+      )
+      .toMatchObject({ startTime: '14:00', endTime: '15:00', bookingType: 'MAINTENANCE' });
+
+    // And the payoff: the strip that made the block now shows it.
+    await expect(
+      page.locator(`${CELL_SELECTOR}[data-court-id="${courtId}"] .spl-active-strip-block-banner`),
+    ).toBeVisible();
+  });
+
   test('clicking a strip cell opens the same popover as a grid cell', async ({ page }) => {
     const { tournamentId, target } = await seedAndScheduleFirstMatchUp(page);
 
