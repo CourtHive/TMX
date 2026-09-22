@@ -91,10 +91,12 @@ test.describe('Journey 127 — publishing tournament information', () => {
     await expect(page.locator(INFO_BADGE)).toHaveClass(/pub-state-off/);
     await expect(page.locator(UNPUBLISH_BUTTON)).toBeDisabled();
 
-    // The scope selector lists the tournament's events, so a director can choose which are listed.
-    const scopeOptions = await page.locator(INFO_PANEL).locator('xpath=..').locator('option').allTextContents();
-    expect(scopeOptions).toContain('Open Singles');
-    expect(scopeOptions).toContain('Open Doubles');
+    // The scope selector lists the tournament's events, so a director can choose which are listed. The
+    // multi-select is a tag widget rather than a <select>, so read what it renders: every event is
+    // selected by default, and each selection shows as a tag.
+    const panel = page.locator(INFO_PANEL).locator('xpath=..');
+    await expect(panel).toContainText('Open Singles');
+    await expect(panel).toContainText('Open Doubles');
 
     // Publish information alone — no draw, no schedule, no participant list.
     const published = await page.evaluate(() => {
