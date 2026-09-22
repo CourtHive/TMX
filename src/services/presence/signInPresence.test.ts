@@ -111,3 +111,65 @@ describe('stillSignedInOnDate', () => {
     expect(stillSignedInOnDate([], DAY)).toEqual([]);
   });
 });
+
+/**
+ * factory 7.0.0 moved sign-in from `SIGN_IN_STATUS` timeItems to `participant.presence[]`
+ * attestations, and in the default NATIVE write mode it STRIPS the timeItems once it writes an
+ * attestation. A timeItem-only reader therefore reads an empty history and reports everybody as
+ * never having arrived — measured as e2e Journey 106 failing on 7.0.0 and passing on 6.38.0, with
+ * every official rendering `available` instead of `waiting`.
+ *
+ * Both surfaces are pinned here because both exist in the wild: records written before the migration
+ * still carry timeItems, and nothing rewrites them until something signs that person in again.
+ */
+describe('presence attestations (factory 7.0.0) and legacy timeItems', () => {
+  /** The 7.0.0 shape: `occurredAt` is when it HAPPENED, and `state` replaces `itemValue`. */
+  const attestation = (date: string, hour = 12, state = 'SIGNED_IN') => {
+    const [y, m, d] = date.split('-').map(Number);
+    return {
+      attestationId: `${date}-${hour}-${state}`,
+      occurredAt: new Date(y, m - 1, d, hour).toISOString(),
+      participantId: 'p1',
+      state,
+    };
+  };
+  const attested = (participantId: string, presence: any[]) => ({ participantId, presence });
+
+  it('reads a sign-in recorded as an attestation', () => {
+    expect(signedInOnDate(attested('p1', [attestation(DAY)]), DAY)).toBe(true);
+  });
+
+  it('still reads a sign-in recorded as a legacy timeItem', () => {
+    expect(signedInOnDate(person('p1', [at(DAY)]), DAY)).toBe(true);
+  });
+
+  it('honours the last action of the day in attestations, as it does in timeItems', () => {
+    const signedOutLater = attested('p1', [attestation(DAY, 9), attestation(DAY, 17, 'SIGNED_OUT')]);
+    expect(signedInOnDate(signedOutLater, DAY)).toBe(false);
+  });
+
+  it('does not carry a prior day forward when the record uses attestations', () => {
+    expect(signedInOnDate(attested('p1', [attestation(PRIOR)]), DAY)).toBe(false);
+  });
+
+  /**
+   * The preference mirrors the factory's `getParticipantPresence`: the collection when the record has
+   * one, the promoted timeItem log otherwise. A PREFERENCE, not a merge — otherwise a half-migrated
+   * record counts one arrival from two surfaces, and a stale timeItem could outvote a current
+   * attestation.
+   */
+  it('prefers the attestation collection over stale timeItems rather than merging them', () => {
+    const migrated = { participantId: 'p1', presence: [attestation(DAY, 17, 'SIGNED_OUT')], timeItems: [at(DAY, 9)] };
+    expect(signedInOnDate(migrated, DAY)).toBe(false);
+  });
+
+  it('closes the day over attestation-held records too', () => {
+    const here = attested('here', [attestation(DAY)]);
+    const gone = { participantId: 'gone', presence: [attestation(DAY, 17, 'SIGNED_OUT')] };
+    expect(stillSignedInOnDate([here, gone], DAY)).toEqual(['here']);
+  });
+
+  it('an empty presence array is not treated as a missing one', () => {
+    expect(signedInOnDate({ participantId: 'p1', presence: [], timeItems: [at(DAY)] }, DAY)).toBe(false);
+  });
+});

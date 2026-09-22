@@ -3,12 +3,23 @@
  *
  * Phase (c) of TMX_PRESENCE_AND_CHECK_IN, decision **D4b — "close the day, and read as-of"**.
  *
- * **Why this cannot be `participant.signedIn`.** That field is derived by the factory's
- * `getParticipantMap` through `getTimeItem`, which returns the **latest** `SIGN_IN_STATUS` by
- * `createdAt`. Since nothing signs anybody out at the end of a day, a volunteer who signed in on
- * Thursday still reads `SIGNED_IN` on Sunday. The history is faithful; it is a history of a thing
- * whose end nobody records. Reading the history and filtering by date is what makes "here today"
- * mean what it says — and the companion half is the end-of-day action that writes the sign-out.
+ * **Why this cannot be `participant.signedIn`.** That field folds to the **latest** recorded state.
+ * Since nothing signs anybody out at the end of a day, a volunteer who signed in on Thursday still
+ * reads `SIGNED_IN` on Sunday. The history is faithful; it is a history of a thing whose end nobody
+ * records. Reading the history and filtering by date is what makes "here today" mean what it says —
+ * and the companion half is the end-of-day action that writes the sign-out.
+ *
+ * **Where the history lives changed in factory 7.0.0.** Sign-in was promoted from `SIGN_IN_STATUS`
+ * timeItems to first-class `participant.presence[]` attestations. In the default NATIVE write mode
+ * the factory does not merely stop writing the timeItem — `appendFirstClassOrTimeItem` STRIPS the
+ * existing `SIGN_IN_STATUS` entries once it writes an attestation. So a reader that knows only about
+ * timeItems does not degrade gracefully; it reads an empty history and reports everybody as never
+ * having arrived. Measured on 7.0.0: after `modifyParticipantsSignInStatus`, `participant.presence`
+ * holds one attestation and the `SIGN_IN_STATUS` timeItem count is zero.
+ *
+ * The preference order below mirrors the factory's own `getParticipantPresence`: **the attestation
+ * collection when the record has one, the promoted timeItem log otherwise.** It is a preference, not
+ * a merge — a half-migrated record must not have the same arrival counted from both surfaces.
  *
  * **A day with no entry is `false`, and that is deliberate.** It renders as "not signed in today",
  * never as present. An inferred presence shown as a recorded one is the trap this whole surface keeps
@@ -39,11 +50,30 @@ export function venueCalendarDay(value: string | Date): string {
   return venueCalendarDate(value);
 }
 
-/** Sign-in entries stamped on a given local day, oldest first. */
-function entriesOn(participant: any, date: string): any[] {
+/** One presence fact, flattened from whichever surface the record holds. */
+type PresenceEntry = { occurredAt: string; state: string };
+
+/**
+ * The participant's whole sign-in history, newest-surface-first.
+ *
+ * `occurredAt` on an attestation is when the arrival HAPPENED; a timeItem's `createdAt` was doing
+ * that job and the sync-time job at once. Resolution uses the former in both cases.
+ */
+function presenceLog(participant: any): PresenceEntry[] {
+  if (Array.isArray(participant?.presence)) {
+    return participant.presence
+      .filter((attestation: any) => attestation?.occurredAt && attestation?.state)
+      .map((attestation: any) => ({ occurredAt: attestation.occurredAt, state: attestation.state }));
+  }
+
   return (participant?.timeItems ?? [])
     .filter((timeItem: any) => timeItem?.itemType === SIGN_IN_STATUS && timeItem?.createdAt)
-    .filter((timeItem: any) => venueCalendarDay(timeItem.createdAt) === date);
+    .map((timeItem: any) => ({ occurredAt: timeItem.createdAt, state: timeItem.itemValue }));
+}
+
+/** Sign-in entries stamped on a given local day, oldest first. */
+function entriesOn(participant: any, date: string): PresenceEntry[] {
+  return presenceLog(participant).filter((entry) => venueCalendarDay(entry.occurredAt) === date);
 }
 
 /**
@@ -56,10 +86,8 @@ export function signedInOnDate(participant: any, date: string): boolean {
   const entries = entriesOn(participant, date);
   if (!entries.length) return false;
 
-  const latest = entries.reduce((acc: any, timeItem: any) =>
-    String(timeItem.createdAt) > String(acc.createdAt) ? timeItem : acc,
-  );
-  return latest?.itemValue === SIGNED_IN;
+  const latest = entries.reduce((acc, entry) => (String(entry.occurredAt) > String(acc.occurredAt) ? entry : acc));
+  return latest?.state === SIGNED_IN;
 }
 
 /**
