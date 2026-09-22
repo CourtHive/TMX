@@ -2555,6 +2555,8 @@
   },
   "publishing": {
     "tournamentPublishing": "Tournament Publishing",
+    "tournamentInformation": "Tournament Information",
+    "informationEvents": "Events listed publicly",
     "participants": "Participants",
     "orderOfPlay": "Order of Play",
     "eventsAndDraws": "Events & Draws",

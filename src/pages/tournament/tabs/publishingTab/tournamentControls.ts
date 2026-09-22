@@ -1,10 +1,10 @@
 /**
- * Tournament-level publishing controls: Participants + Order of Play.
+ * Tournament-level publishing controls: Information + Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
-import { getTournamentPublishData, getPublishingTableData } from './publishingData';
-import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
+import { getTournamentPublishData, getPublishingTableData, infoScopeParams } from './publishingData';
 import { buildOrderOfPlayDateToggleMethods } from 'services/publishing/orderOfPlayPublish';
+import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { eventConstants, fixtures } from 'tods-competition-factory';
@@ -18,15 +18,19 @@ import dayjs from 'dayjs';
 import { t } from 'i18n';
 
 import {
-  PUBLISH_ORDER_OF_PLAY,
+  UNPUBLISH_TOURNAMENT_INFO,
+  PUBLISH_TOURNAMENT_INFO,
   UNPUBLISH_ORDER_OF_PLAY,
-  PUBLISH_PARTICIPANTS,
   UNPUBLISH_PARTICIPANTS,
+  PUBLISH_ORDER_OF_PLAY,
+  PUBLISH_PARTICIPANTS,
   UNPUBLISH_EVENT,
 } from 'constants/mutationConstants';
 
 const { ratingsParameters } = fixtures;
 const PUB_PANEL_YELLOW = 'pub-panel pub-panel-yellow';
+const PUB_TOGGLE_ROW = 'pub-toggle-row';
+const PUB_CONFIG_SECTION = 'width:100%; margin-top:8px;';
 const { SINGLES } = eventConstants;
 
 const SUPPORTED_LANGUAGES = [
@@ -175,6 +179,9 @@ export function renderTournamentControls(grid: HTMLElement): void {
       const methods: { method: string; params?: any }[] = [];
 
       const pubData = getTournamentPublishData();
+      if (pubData.infoPublished) {
+        methods.push({ method: UNPUBLISH_TOURNAMENT_INFO });
+      }
       if (pubData.participantsPublished) {
         methods.push({ method: UNPUBLISH_PARTICIPANTS });
       }
@@ -239,11 +246,109 @@ export function renderTournamentControls(grid: HTMLElement): void {
 
   wrapper.appendChild(topPanel);
 
+  wrapper.appendChild(buildInformationPanel(data, publicUrl));
+
   wrapper.appendChild(buildOopPanel(data, publicUrl));
 
   wrapper.appendChild(buildParticipantsPanel(data, publicUrl));
 
   grid.appendChild(wrapper);
+}
+
+/**
+ * Tournament INFORMATION — the tournament itself, published before anything inside it.
+ *
+ * Every other publish needs something to exist first: an event needs a draw, the order of play a
+ * schedule, the participant list entries. This is what makes a tournament public during its
+ * registration phase — listed, with an information page and its event list — and it is why the panel
+ * sits above the others rather than beside them.
+ *
+ * Publishing information does NOT open registration: that is `registrationProfile.entriesOpen` /
+ * `entriesClose`, edited on the overview tab, and this never touches them.
+ */
+function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLElement {
+  const infoPanel = document.createElement('div');
+  infoPanel.className = PUB_PANEL_YELLOW;
+
+  const infoHeader = document.createElement('h3');
+  infoHeader.innerHTML = `<i class="fa fa-circle-info"></i> ${t('publishing.tournamentInformation')}`;
+  infoPanel.appendChild(infoHeader);
+
+  const infoRow = document.createElement('div');
+  infoRow.className = PUB_TOGGLE_ROW;
+  infoRow.style.flexWrap = 'wrap';
+
+  // No embargo on the information publish: a tournament listed before its embargo lifted would BE the
+  // announcement. Read-time embargo evaluation is a decided follow-up (P23 D4b), not an omission.
+  infoRow.appendChild(
+    createStateBadge(data.infoPublished ? 'live' : 'off', data.infoPublished ? publicUrl : undefined),
+  );
+
+  let eventInputs: any;
+
+  infoRow.appendChild(
+    createToggle(data.infoPublished, (checked) => {
+      if (checked) {
+        const selected: string[] = eventInputs?.infoEvents?.selectedValues ?? [];
+        mutationRequest({
+          methods: [{ method: PUBLISH_TOURNAMENT_INFO, params: infoScopeParams(selected, allEventIds()) }],
+          callback: () => renderPublishingTab(),
+        });
+      } else {
+        mutationRequest({ methods: [{ method: UNPUBLISH_TOURNAMENT_INFO }], callback: () => renderPublishingTab() });
+      }
+    }),
+  );
+
+  const { eventFormContainer, inputs } = buildInformationEventSelector(data);
+  eventInputs = inputs;
+  if (eventFormContainer) {
+    const scopeSection = document.createElement('div');
+    scopeSection.style.cssText = PUB_CONFIG_SECTION;
+    scopeSection.appendChild(eventFormContainer);
+    infoRow.appendChild(scopeSection);
+  }
+
+  infoPanel.appendChild(infoRow);
+  return infoPanel;
+}
+
+function allEventIds(): string[] {
+  return ((tournamentEngine.q.events() ?? []) as any[]).map((event) => event.eventId);
+}
+
+function buildInformationEventSelector(data: any): { eventFormContainer?: HTMLElement; inputs: any } {
+  const events = (tournamentEngine.q.events() ?? []) as any[];
+  if (!events.length) return { inputs: undefined };
+
+  // No stored scope means every event, which is what the factory does with an absent `eventIds`.
+  const scoped: string[] | undefined = data.infoEventIds;
+  const options = events.map((event) => ({
+    label: event.eventName ?? event.eventId,
+    value: event.eventId,
+    selected: !scoped || scoped.includes(event.eventId),
+  }));
+
+  const eventFormContainer = document.createElement('div');
+  const inputs = renderForm(eventFormContainer, [
+    {
+      label: t('publishing.informationEvents'),
+      field: 'infoEvents',
+      multiple: true,
+      options,
+      onChange: () => {
+        if (!data.infoPublished) return undefined;
+        const selected: string[] = inputs.infoEvents?.selectedValues ?? [];
+        mutationRequest({
+          methods: [{ method: PUBLISH_TOURNAMENT_INFO, params: infoScopeParams(selected, allEventIds()) }],
+        });
+      },
+    },
+  ]);
+  const eventField = eventFormContainer.querySelector('.field') as HTMLElement;
+  if (eventField) eventField.style.marginBottom = '0';
+
+  return { eventFormContainer, inputs };
 }
 
 function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
@@ -255,7 +360,7 @@ function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
   oopPanel.appendChild(oopHeader);
 
   const oopRow = document.createElement('div');
-  oopRow.className = 'pub-toggle-row';
+  oopRow.className = PUB_TOGGLE_ROW;
   oopRow.style.flexWrap = 'wrap';
 
   const oopState = data.oopPublished ? (data.oopEmbargoActive ? 'embargoed' : 'live') : 'off';
@@ -281,7 +386,7 @@ function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
 
 function buildOopDateChips(data: any): HTMLElement {
   const dateSection = document.createElement('div');
-  dateSection.style.cssText = 'width:100%; margin-top:8px;';
+  dateSection.style.cssText = PUB_CONFIG_SECTION;
 
   const dateLabel = document.createElement('div');
   dateLabel.style.cssText = 'font-size:0.8rem; color:var(--tmx-text-secondary); margin-bottom:4px;';
@@ -335,7 +440,7 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   partPanel.appendChild(partHeader);
 
   const partRow = document.createElement('div');
-  partRow.className = 'pub-toggle-row';
+  partRow.className = PUB_TOGGLE_ROW;
   partRow.style.flexWrap = 'wrap';
 
   const partState = data.participantsPublished ? (data.participantsEmbargoActive ? 'embargoed' : 'live') : 'off';
@@ -368,7 +473,7 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   const { columnFormContainer, inputs } = buildColumnSelector(data);
   columnInputs = inputs;
   const configSection = document.createElement('div');
-  configSection.style.cssText = 'width:100%; margin-top:8px;';
+  configSection.style.cssText = PUB_CONFIG_SECTION;
   configSection.appendChild(columnFormContainer);
   partRow.appendChild(configSection);
 
