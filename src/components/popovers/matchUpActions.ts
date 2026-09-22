@@ -3,30 +3,27 @@
  * Provides options for start/end time, official selection, and schedule clearing.
  */
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
-import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
-import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
-import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
-import { fetchOfficialRecords } from 'services/apis/officiatingApi';
-import {
-  buildScheduleLockMethod,
-  canToggleScheduleLock,
-  isScheduleLocked,
-} from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
-import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { resolveTimeSeed, validateTimeValue } from 'components/tables/matchUpsTable/scheduleTimeFields';
+import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
+import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
+import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
+import { buildAttester, describeAttester } from 'services/checkIn/checkInAttribution';
 import { getCourtTimeBounds } from 'components/tables/matchUpsTable/courtTimeBounds';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
+import { buildAttesterChooser } from 'components/popovers/checkInAttesterChooser';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
+import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
+import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
 import { datePicker } from 'components/modals/datePicker';
@@ -34,6 +31,11 @@ import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 import { t } from 'i18n';
+import {
+  buildScheduleLockMethod,
+  canToggleScheduleLock,
+  isScheduleLocked,
+} from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 
 // constants
 import type { ScheduleTimeField } from 'components/tables/matchUpsTable/scheduleTimeFields';
@@ -361,9 +363,10 @@ export function matchUpActions({
   const openCheckInPanel = () => {
     // A sibling of `render`, not nested inside its row loop: the mutation callback would otherwise be
     // a fifth level of nested function and trip `sonarjs/no-nested-functions` (threshold 4).
-    const handleToggle = (participantId: string) =>
+    const handleToggle = (participantId: string, attributedTo?: Record<string, any>) =>
       toggleCheckIn({
         participantId,
+        attributedTo,
         matchUpId: matchUp.matchUpId,
         drawId: matchUp.drawId,
         callback: (result: any) => onToggled(result),
@@ -380,12 +383,41 @@ export function matchUpActions({
       updateRow({});
     };
 
+    const openAttesterChooser = (participant: any) => {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'padding:8px; min-width:200px;';
+      wrapper.appendChild(
+        buildAttesterChooser({
+          participantName: participant.participantName,
+          onChoose: (attester) => {
+            handleToggle(
+              participant.participantId,
+              buildAttester({ participantId: participant.participantId, attester }),
+            );
+          },
+          onCancel: () => render(),
+        }),
+      );
+      checkInTip?.setContent(wrapper);
+    };
+
     const render = () => {
       // Re-read from the engine so the panel reflects what was actually stored, including a toggle
       // made from another surface. `findMatchUp` returns it hydrated, which is what carries
       // `checkedInParticipantIds` (attached by `addMatchUpContext`).
       const stored = tournamentEngine.findMatchUp({ drawId: matchUp.drawId, matchUpId: matchUp.matchUpId })?.matchUp;
       const state = getMatchUpCheckInState(stored ?? matchUp);
+
+      // The attester is stripped from every bulk emission and from the hydrated matchUp above, so it
+      // takes its own deliberate call — one per popover open, not per render of a card.
+      const attesters = new Map<string, any>();
+      for (const attestation of tournamentEngine.getMatchUpCheckInHistory({
+        matchUpId: matchUp.matchUpId,
+        drawId: matchUp.drawId,
+      })?.checkIns ?? []) {
+        // ordered oldest-first, so the last write for a participant wins
+        if (attestation?.participantId) attesters.set(attestation.participantId, attestation);
+      }
 
       const wrapper = document.createElement('div');
       wrapper.style.cssText = 'position:relative; padding:8px; padding-top:22px; min-width:200px;';
@@ -411,7 +443,12 @@ export function matchUpActions({
       for (const participant of state.participants) {
         const li = document.createElement('li');
         li.className = participant.checkedIn ? 'tmx-checkin-row is-checked-in' : 'tmx-checkin-row';
-        li.title = participant.checkedIn ? t('checkIn.clickToCheckOut') : t('checkIn.clickToCheckIn');
+
+        // Who vouched for this, when anybody did. A one-click check-in states nobody, so the plain
+        // toggle hint stands rather than an empty "checked in by".
+        const attestation = participant.checkedIn ? attesters.get(participant.participantId) : undefined;
+        const attesterText = describeAttester(attestation?.attributedTo, t);
+        li.title = attesterText ?? (participant.checkedIn ? t('checkIn.clickToCheckOut') : t('checkIn.clickToCheckIn'));
 
         const mark = document.createElement('span');
         mark.className = 'tmx-checkin-mark';
@@ -427,6 +464,21 @@ export function matchUpActions({
           e.stopPropagation();
           handleToggle(participant.participantId);
         };
+
+        // The exception path. Offered only when checking IN — that is when who presented the player is
+        // a live question — and kept off the row's own click so the common case stays one click.
+        if (!participant.checkedIn) {
+          const more = document.createElement('span');
+          more.className = 'tmx-checkin-attester-open';
+          more.textContent = '\u22ef';
+          more.title = t('checkIn.attester.action');
+          more.onclick = (e) => {
+            e.stopPropagation();
+            openAttesterChooser(participant);
+          };
+          li.appendChild(more);
+        }
+
         list.appendChild(li);
       }
 
