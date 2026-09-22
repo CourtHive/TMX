@@ -35,6 +35,28 @@ const STRIP_SELECTOR = '.spl-active-strip';
 const ISSUES_BUTTON = 'button:has(i.fa-triangle-exclamation)';
 const PLACED_TIME = '07:45';
 
+/**
+ * A grid cell, and ONLY a grid cell.
+ *
+ * The Now strip renders its cells with the same `buildScheduleGridCell` component the grid uses, so
+ * a strip cell carries `.spl-grid-cell` and the same `data-matchup-id` as its grid twin. A bare
+ * `.spl-grid-cell[data-matchup-id=...]` therefore matches BOTH and trips Playwright's strict mode.
+ *
+ * That became true after this journey was written: #1451 (2026-09-13) made a court idle with an
+ * OVERDUE matchUp read DUE on the strip, and these matchUps are placed at 07:45, so by the time the
+ * suite runs they qualify. It is the feature working, not a defect — asked of a live tournament as
+ * "why isn't this 14:30 match on the Now strip at 16:02?".
+ *
+ * The BYE never showed the problem because a BYE is never due: there is nothing to call to court, so
+ * it appears in the grid alone. Measured in the DOM: 5 cells for 3 matchUps — 3 in the grid, 2 on the
+ * strip, both `state-due`, the BYE absent from the strip.
+ *
+ * `data-court-order` is the discriminator: gridView stamps it on every cell wrapper it builds
+ * (alongside `data-court-id`), and the strip never emits it.
+ */
+const gridCell = (page: Page, matchUpId: string) =>
+  page.locator(`[data-court-order] .spl-grid-cell[data-matchup-id="${matchUpId}"]`);
+
 type Seed = {
   tournamentId: string;
   byeMatchUpId: string;
@@ -126,7 +148,7 @@ test.describe('Journey 102 — a BYE that holds a court is shown, not hidden', (
     const seed = await seedCourtHoldingBye(page);
     await openGrid(page, seed.tournamentId);
 
-    const byeCell = page.locator(`.spl-grid-cell[data-matchup-id="${seed.byeMatchUpId}"]`);
+    const byeCell = gridCell(page, seed.byeMatchUpId);
     await expect(byeCell).toBeVisible({ timeout: 10_000 });
     await expect(byeCell).toContainText('BYE');
     await expect(byeCell).toContainText(PLACED_TIME);
@@ -142,15 +164,15 @@ test.describe('Journey 102 — a BYE that holds a court is shown, not hidden', (
 
     // CONTROL: the neighbouring real matchUp is drawn too, so a passing
     // assertion above cannot be "the grid renders everything regardless".
-    await expect(page.locator(`.spl-grid-cell[data-matchup-id="${seed.peerMatchUpId}"]`)).toBeVisible();
+    await expect(gridCell(page, seed.peerMatchUpId)).toBeVisible();
   });
 
   test('the cell is visually distinct but as interactive as an ordinary one', async ({ page }) => {
     const seed = await seedCourtHoldingBye(page);
     await openGrid(page, seed.tournamentId);
 
-    const byeCell = page.locator(`.spl-grid-cell[data-matchup-id="${seed.byeMatchUpId}"]`);
-    const peerCell = page.locator(`.spl-grid-cell[data-matchup-id="${seed.peerMatchUpId}"]`);
+    const byeCell = gridCell(page, seed.byeMatchUpId);
+    const peerCell = gridCell(page, seed.peerMatchUpId);
     await expect(byeCell).toBeVisible({ timeout: 10_000 });
 
     // Distinct: the BYE carries the warning modifier, the peer does not.
@@ -171,8 +193,8 @@ test.describe('Journey 102 — a BYE that holds a court is shown, not hidden', (
         };
       }, selector);
 
-    const byeAffordance = await affordance(`.spl-grid-cell[data-matchup-id="${seed.byeMatchUpId}"]`);
-    const peerAffordance = await affordance(`.spl-grid-cell[data-matchup-id="${seed.peerMatchUpId}"]`);
+    const byeAffordance = await affordance(`[data-court-order] .spl-grid-cell[data-matchup-id="${seed.byeMatchUpId}"]`);
+    const peerAffordance = await affordance(`[data-court-order] .spl-grid-cell[data-matchup-id="${seed.peerMatchUpId}"]`);
     expect(byeAffordance).toEqual(peerAffordance);
     expect(byeAffordance?.hasDrawId).toBe(true);
   });
@@ -251,7 +273,7 @@ test.describe('Journey 102 — a BYE that holds a court is shown, not hidden', (
 
     // The court-holding peer is drawn, proving the grid rendered at all.
     await expect(page.locator('.spl-grid-cell[data-matchup-id]').first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator(`.spl-grid-cell[data-matchup-id="${seed.byeMatchUpId}"]`)).toHaveCount(0);
+    await expect(gridCell(page, seed.byeMatchUpId)).toHaveCount(0);
     await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
   });
 });
