@@ -12,7 +12,10 @@
 import { currentSessionScope, sessionScopeUnchanged } from 'services/authentication/sessionScope';
 import { renderTournamentsGrid, renderTournamentsSkeleton } from 'pages/tournaments/createTournamentsGrid';
 import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/mockTournaments';
+import { createOnlineSearchController } from 'pages/tournaments/onlineSearchController';
+import { searchRowToTournamentRow } from 'pages/tournaments/searchRowToTournamentRow';
 import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournamentRecord';
+import { searchTournaments } from 'services/apis/searchTournaments';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
 import { getUserContext } from 'services/authentication/getUserContext';
@@ -54,9 +57,20 @@ export interface TournamentsView {
    * with the current count). Used by the banner header to keep its title in
    * sync with what's actually visible. */
   subscribeCount(listener: (count: number) => void): void;
+  /**
+   * Render a SERVER result set in place of the loaded rows, reporting the server's own total.
+   * `total` is the honest denominator: it can exceed what was rendered, and saying so is the
+   * whole point of searching the corpus instead of the page.
+   */
+  setRows(rows: TournamentRow[], total: number): void;
+  /** Back to the rows the calendar walk loaded, filtered locally as before. */
+  restoreRows(): void;
+  /** Fires on every search-box change, so an online search can be driven from it. */
+  subscribeQuery(listener: (query: string) => void): void;
 }
 
 const IS_SUCCESS = 'is-success';
+const IS_WARNING = 'is-warning';
 
 function getAnchor(): HTMLElement | null {
   return document.getElementById(TOURNAMENTS_TABLE);
@@ -149,10 +163,15 @@ interface RenderInput {
   anchor: HTMLElement;
   rows: TournamentRow[];
   state: TournamentsViewState;
+  /** True when `rows` came from the search endpoint rather than the calendar walk. */
+  serverActive?: boolean;
 }
 
-function applyView({ anchor, rows, state }: RenderInput): number {
-  const filtered = filterTournaments(rows, state.statusFilter, state.searchQuery);
+function applyView({ anchor, rows, state, serverActive }: RenderInput): number {
+  // The server ALREADY applied the text query, across the whole published corpus. Re-applying it
+  // here would re-filter the answer against the local haystack and silently drop hits whose match
+  // the client cannot see. The status filter still applies: it is not part of the query.
+  const filtered = filterTournaments(rows, state.statusFilter, serverActive ? '' : state.searchQuery);
   const sorted = sortTournaments(filtered, state.sortField, state.sortDir);
 
   if (state.viewMode === 'grid') {
@@ -175,17 +194,29 @@ function applyView({ anchor, rows, state }: RenderInput): number {
 function createView(anchor: HTMLElement, rows: TournamentRow[]): TournamentsView {
   const state = initialTournamentsViewState();
   const countListeners: Array<(count: number) => void> = [];
+  const queryListeners: Array<(query: string) => void> = [];
+  const localRows = rows;
+  let activeRows = rows;
+  /** Set only while a SERVER result set is on screen; carries the total the server reported. */
+  let serverTotal: number | undefined;
   let lastCount = 0;
   const rerender = () => {
-    lastCount = applyView({ anchor, rows, state });
-    for (const cb of countListeners) cb(lastCount);
+    lastCount = applyView({ anchor, rows: activeRows, state, serverActive: serverTotal !== undefined });
+    // With server results the banner reports the SERVER's total, which may exceed what is
+    // rendered. The rendered length would be the same comfortable lie the old client-side
+    // filter told.
+    const reported = serverTotal ?? lastCount;
+    for (const cb of countListeners) cb(reported);
   };
 
   return {
     getState: () => ({ ...state }),
     setSearchQuery: (q) => {
       state.searchQuery = q;
+      // Filter what is loaded immediately — instant, and the only answer available offline — then
+      // let the online search replace it when the server answers.
       rerender();
+      for (const cb of queryListeners) cb(q);
     },
     setStatusFilter: (s) => {
       state.statusFilter = s;
@@ -204,8 +235,19 @@ function createView(anchor: HTMLElement, rows: TournamentRow[]): TournamentsView
     refresh: rerender,
     subscribeCount: (cb) => {
       countListeners.push(cb);
-      cb(lastCount);
+      cb(serverTotal ?? lastCount);
     },
+    setRows: (next, total) => {
+      activeRows = next;
+      serverTotal = total;
+      rerender();
+    },
+    restoreRows: () => {
+      activeRows = localRows;
+      serverTotal = undefined;
+      rerender();
+    },
+    subscribeQuery: (cb) => queryListeners.push(cb),
   };
 }
 
@@ -251,11 +293,37 @@ function fromMyCalendars(
   // quietly missing rows is worse than a short one the user knows is short.
   if (result.truncated) {
     tmxToast({
-      intent: 'is-warning',
+      intent: IS_WARNING,
       message: t('toasts.tournamentsTruncated', { loaded: result.loaded, total: result.total }),
     });
   }
   return fromCalendarTournaments(anchor, calendars, onCreated);
+}
+
+/**
+ * Point the search box at the SEARCH ENDPOINT instead of the rows already loaded.
+ *
+ * Only on the PUBLIC path, and deliberately: the authenticated list is read from CFS because a
+ * director must see their own writes, and the projection feeding this endpoint is asynchronous.
+ *
+ * Scoped to the provider whose calendar is on screen — `organisationId`, which the calendar
+ * response carries, NOT the abbreviation the URL uses. Searching a provider's listing must stay
+ * inside that provider; the endpoint would happily search all 49,749 published tournaments.
+ */
+function attachOnlineSearch(view: TournamentsView, providerId?: string): void {
+  if (!providerId) return; // no id, no scope — leave the local filter alone rather than widen it
+  const controller = createOnlineSearchController({
+    search: (query) => searchTournaments({ q: query, providerId }),
+    onResults: (result) => view.setRows(result.tournaments.map(searchRowToTournamentRow), result.total),
+    onLocal: () => view.restoreRows(),
+    onError: () => {
+      // Say the search failed. Falling back silently would render the local subset under a
+      // count the user reads as the whole corpus — the exact lie this work removes.
+      tmxToast({ intent: IS_WARNING, message: t('toasts.tournamentSearchFailed') });
+      view.restoreRows();
+    },
+  });
+  view.subscribeQuery((query) => controller.setQuery(query));
 }
 
 function fromPublicCalendar(
@@ -270,11 +338,13 @@ function fromPublicCalendar(
   // worse than a short one the user knows is short.
   if (result.truncated) {
     tmxToast({
-      intent: 'is-warning',
+      intent: IS_WARNING,
       message: t('toasts.tournamentsTruncated', { loaded: calendar.tournaments.length, total: result.total }),
     });
   }
-  return fromCalendarTournaments(anchor, [calendar], onCreated);
+  const view = fromCalendarTournaments(anchor, [calendar], onCreated);
+  attachOnlineSearch(view, calendar.provider?.organisationId);
+  return view;
 }
 
 export function createTournamentsTable(): { ready: Promise<TournamentsView | undefined> } {

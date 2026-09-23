@@ -157,3 +157,17 @@ export async function removeTournament({ providerId, tournamentId }: { providerI
   // map errorCode to a localized message and decide whether to run localDelete.
   return await baseApi.post('/factory/remove', { providerId, tournamentId }, { silenceErrors: true });
 }
+
+/**
+ * PUBLIC tournament SEARCH — one page, from the READ MODEL (courthive-query), not from CFS.
+ *
+ * `search` is a pre-built query string (`?q=…&limit=…&offset=…`) because its encoding — which
+ * facets are present, how arrays become CSV — is a contract worth testing on its own; it is built
+ * by `buildSearchQueryString` in `searchTournaments.ts`, which also walks the pages.
+ *
+ * Unauthenticated by design: the published gate is a SQL predicate on the endpoint, not a guard on
+ * the caller, so this route can never serve an unpublished tournament and needs no token.
+ */
+export async function getTournamentSearch(search: string) {
+  return await baseApi.get(queryServiceUrl(`/tournaments/search${search}`));
+}

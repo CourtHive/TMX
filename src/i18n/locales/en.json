@@ -2004,6 +2004,7 @@
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
     "tournamentNotFound": "Tournament not found",
     "tournamentsTruncated": "Showing the first {{loaded}} of {{total}} tournaments. Filter or search to narrow the list.",
+    "tournamentSearchFailed": "Tournament search is unavailable right now. Showing only the tournaments already loaded.",
     "activeDatesPrompt": "Set active dates so the public schedule shows only the days you play.",
     "activeDatesPromptAction": "Set active dates",
     "connectionError": "Connection error",
