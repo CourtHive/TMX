@@ -63,6 +63,8 @@
     "participantNames",
     "scheduler",
     "scope",
-    "personIds"
+    "personIds",
+    "genders",
+    "setRows"
   ]
 }
