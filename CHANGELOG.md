@@ -1,5 +1,25 @@
 # Changelog
 
+## [8.27.0](https://github.com/CourtHive/TMX/compare/v8.26.0...v8.27.0) (2026-09-22)
+
+
+### Features
+
+* **checkIn:** capture and show who presented the player ([#1478](https://github.com/CourtHive/TMX/issues/1478)) ([7833b4c](https://github.com/CourtHive/TMX/commit/7833b4cd2033c3617f5b7468bc044a340b18ed5c))
+* **entries:** rotating partners — pair individuals who are already paired, in an AD_HOC draw ([#1470](https://github.com/CourtHive/TMX/issues/1470)) ([fba2414](https://github.com/CourtHive/TMX/commit/fba2414295b84e5ef25c1d1fb1558af4085d761c))
+* **publishing:** a Tournament Information panel for the registration phase ([#1482](https://github.com/CourtHive/TMX/issues/1482)) ([0d4e7e7](https://github.com/CourtHive/TMX/commit/0d4e7e7cb412d90b25a28aba9299b31103735788))
+* **schedule2:** block a Now-strip court by time, not by grid row ([#1456](https://github.com/CourtHive/TMX/issues/1456)) ([f5f0a90](https://github.com/CourtHive/TMX/commit/f5f0a90229518563c95b33c73d875d9810fdc744))
+* **scoring:** carry the reason for a result through to the record ([#1474](https://github.com/CourtHive/TMX/issues/1474)) ([56d9fa3](https://github.com/CourtHive/TMX/commit/56d9fa3e5cbca2abd1e6b80fb5626c4fb2714bd4))
+
+
+### Bug Fixes
+
+* **deps:** update dependency tabulator-tables to v6.5.3 ([#1472](https://github.com/CourtHive/TMX/issues/1472)) ([30e43dc](https://github.com/CourtHive/TMX/commit/30e43dc9c13273dfb01ef9adc431ee83477e8385))
+* **presence:** read sign-in from attestations, which 7.0.0 moved it to ([#1477](https://github.com/CourtHive/TMX/issues/1477)) ([418ef8f](https://github.com/CourtHive/TMX/commit/418ef8f67897643b4cf704153cfac18957eeb76f))
+* **reports:** keep the factory's pre-stage floor when re-localizing variance ([#1457](https://github.com/CourtHive/TMX/issues/1457)) ([d1fca72](https://github.com/CourtHive/TMX/commit/d1fca72c8b9fc0eed489a9e253502cc2593168a7))
+* **schedule:** the readiness all-clear rendered a raw {{time}} placeholder ([#1473](https://github.com/CourtHive/TMX/issues/1473)) ([487b0c4](https://github.com/CourtHive/TMX/commit/487b0c4f14de28c60a10dc27ccc44ed5b5abc530))
+* **tournaments:** page the PUBLIC calendar too ([#1468](https://github.com/CourtHive/TMX/issues/1468)) ([ef4d138](https://github.com/CourtHive/TMX/commit/ef4d13863aebd3632c354e5788fe07a9ce13c01e))
+
 ## [8.26.0](https://github.com/CourtHive/TMX/compare/v8.25.0...v8.26.0) (2026-09-17)
 
 
