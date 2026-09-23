@@ -94,6 +94,7 @@ export const SET_MATCHUP_CALLED_AT = 'setMatchUpCalledAt';
 export const TOGGLE_PARTICIPANT_CHECK_IN_STATE = 'toggleParticipantCheckInState';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_SCHEDULE_LOCK = 'setMatchUpScheduleLock';
+export const COMPLETE_DRAW_MATCHUPS = 'completeDrawMatchUps';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
 export const SET_DELEGATED_OUTCOME = 'setDelegatedOutcome';
 export const SET_DRAW_POSITION_PREFERENCES = 'setDrawPositionPreferences';
