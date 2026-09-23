@@ -9,9 +9,9 @@ import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { resolveSideDrawPosition } from './resolveSideDrawPosition';
 import { InlineScoringManager } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
-import { resolveSideDrawPosition } from './resolveSideDrawPosition';
 
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
