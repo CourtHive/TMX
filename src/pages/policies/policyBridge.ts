@@ -20,8 +20,8 @@ const {
 
 // Federation-specific ranking policies (USTA Junior, Tennis Europe, LTA,
 // Tennis Canada, Tennis Australia, CTS) used to live here as built-in
-// presets. They've moved to CFS-served delivery (POLICY_DELIVERY phase 3)
-// and surface via the catalog browser (phase 4). Anything user-saved
+// presets. They've moved to AMS-served delivery (hosting moved off CFS
+// 2026-09-23) and surface via the catalog browser. Anything user-saved
 // before the cutover stays in IndexedDB and still loads via
 // loadUserPolicies.
 

@@ -1,8 +1,14 @@
 /**
- * Public policy catalog browser. Fetches GET /policies/catalog from the
- * configured CFS instance and renders a read-only structured view of
- * each policy. Works without auth — the catalog endpoint returns
- * SHARED_DEMO + TEMPLATE_REF policies that are explicitly public.
+ * Policy catalog browser, served by courthive-ams since 2026-09-23 (policy hosting
+ * moved there, where sanctioning attaches a provider's policies on approval; CFS no
+ * longer serves /policies at all).
+ *
+ * WHAT IS SHOWN DEPENDS ON WHO IS ASKING:
+ *  - not logged in (demo) — the public catalog: SHARED_DEMO + TEMPLATE_REF. No token is
+ *    sent, so the demo path behaves the same for everyone it serves.
+ *  - logged in with a provider — the same catalog PLUS that provider's own
+ *    PROVIDER_PRIVATE policies, so a director can see the ranking-points policy their
+ *    live derivations actually run under. AMS merges and de-duplicates the two.
  *
  * Click a policy → modal with a structured summary (NOT raw JSON — end
  * users should never see JSON here). The primary action is "Save to my
@@ -20,21 +26,11 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { homeNavigation } from 'homeNavigation';
 import { TMX_POLICIES, POLICIES } from 'constants/tmxConstants';
-import { serverConfig } from 'config/serverConfig';
+import { fetchMyPolicies, fetchPolicyCatalog, type CatalogPolicy } from 'services/apis/policiesApi';
+import { getLoginState } from 'services/authentication/loginState';
 import { context } from 'services/context';
 import { saveUserPolicy } from './policyBridge';
 import { t } from 'i18n';
-
-interface CatalogPolicy {
-  policyId: string;
-  providerId: string | null;
-  policyType: string;
-  name: string;
-  version: string;
-  visibility: 'SHARED_DEMO' | 'TEMPLATE_REF' | string;
-  definition: Record<string, any>;
-  publishedAt: string;
-}
 
 export async function renderPolicyCatalogPage(): Promise<void> {
   showTMXpolicies();
@@ -209,14 +205,12 @@ function groupByType(policies: CatalogPolicy[]): Map<string, CatalogPolicy[]> {
   return grouped;
 }
 
-async function fetchCatalog(): Promise<CatalogPolicy[]> {
-  const baseUrl = serverConfig.get().socketPath?.replace(/\/$/, '') ?? '';
-  const response = await fetch(`${baseUrl}/policies/catalog`);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-  const body = (await response.json()) as { policies?: CatalogPolicy[] };
-  return Array.isArray(body?.policies) ? body.policies : [];
+/**
+ * A signed-in session asks for everything it may see — its provider's policies and the public
+ * catalog, merged by AMS. A demo session asks for the catalog alone, with no Authorization header.
+ */
+function fetchCatalog(): Promise<CatalogPolicy[]> {
+  return getLoginState() ? fetchMyPolicies() : fetchPolicyCatalog();
 }
 
 function openDetailModal(policy: CatalogPolicy): void {
