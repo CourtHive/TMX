@@ -88,6 +88,15 @@ function searchBody() {
   });
 }
 
+/** One hit the query does not literally appear in — the server matched it, the client cannot. */
+function umlautBody() {
+  const hit = JSON.parse(searchBody()).tournaments[0];
+  return JSON.stringify({
+    tournaments: [{ ...hit, tournamentId: 'hit-umlaut', tournamentName: 'Müller Open' }],
+    paging: { total: 1, returned: 1, limit: 100, offset: 0, hasMore: false },
+  });
+}
+
 test.describe('Journey 128 — tournament search asks the server, not the loaded page', () => {
   test('a query renders server hits and reports the server total; clearing it restores the list', async ({ page }) => {
     const searchUrls: string[] = [];
@@ -106,8 +115,11 @@ test.describe('Journey 128 — tournament search asks the server, not the loaded
     //     "#dnav never appeared". Ask me how I know.
     const isSearchRequest = (url: URL) => /(^|\/)(query\/)?tournaments\/search$/.test(url.pathname);
     await page.route(isSearchRequest, (route) => {
-      searchUrls.push(route.request().url());
-      return route.fulfill({ status: 200, contentType: 'application/json', body: searchBody() });
+      const url = route.request().url();
+      searchUrls.push(url);
+      // The umlaut case gets its own answer: one hit whose name does NOT contain the query.
+      const body = new URL(url).searchParams.get('q') === 'muller' ? umlautBody() : searchBody();
+      return route.fulfill({ status: 200, contentType: 'application/json', body });
     });
 
     await page.goto('/');
@@ -155,6 +167,17 @@ test.describe('Journey 128 — tournament search asks the server, not the loaded
 
     // Typing is debounced: one request for the whole phrase, not one per character.
     expect(searchUrls.length, 'the search box is not debounced').toBe(1);
+
+
+    // A hit the CLIENT could not have matched. The server decides what matches and knows things
+    // the rendered row does not — the name predicate is a trigram ILIKE, so "muller" legitimately
+    // matches "Müller Open". Re-applying the query locally (the obvious-looking thing, since the
+    // box still holds the text) would drop this row and show "no results" for a search that HAD
+    // results. Proven separately because the assertions above cannot see it: their hits all
+    // contain the literal query, so a double filter is a no-op on them.
+    await page.locator(SEARCH_INPUT).press('ControlOrMeta+a');
+    await page.locator(SEARCH_INPUT).pressSequentially('muller', { delay: 20 });
+    await expect(page.locator(ROW).filter({ hasText: 'Müller Open' })).toHaveCount(1);
 
     // Clearing the box goes back to the rows the calendar loaded.
     await page.locator(SEARCH_INPUT).press('ControlOrMeta+a');
