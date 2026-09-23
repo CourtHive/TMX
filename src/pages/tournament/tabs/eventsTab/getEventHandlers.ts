@@ -9,6 +9,7 @@ import { handleRoundHeaderClick } from './options/handleRoundHeaderClick';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { resolveSideDrawPosition } from './resolveSideDrawPosition';
 import { InlineScoringManager } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 
@@ -57,7 +58,15 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
     const sideNumber = getSideNumber(props);
 
     const side = props.side || matchUp.sides?.find((side: any) => side.sideNumber === sideNumber);
-    const drawPosition = side?.drawPosition || (sideNumber && matchUp.drawPositions?.[sideNumber - 1]);
+    // by sideNumber, never by array index — see resolveSideDrawPosition for the measurement that
+    // retired the index fallback this line used to carry
+    const { drawPosition, unresolved } = resolveSideDrawPosition({ matchUp, sideNumber, side });
+    if (unresolved) {
+      console.warn('[TMX] side click could not resolve a side', {
+        matchUpId: matchUp.matchUpId,
+        sideNumber,
+      });
+    }
 
     const { validActions: actions } =
       (matchUp.drawId &&
