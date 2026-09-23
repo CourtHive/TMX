@@ -38,11 +38,30 @@ describe('resolveSideDrawPosition', () => {
     });
   });
 
-  it('reports unresolved when the sideNumber names no side', () => {
-    // measured in the instrumented build: a click whose sideNumber parses to NaN reached this code
-    expect(resolveSideDrawPosition({ matchUp: { sides }, sideNumber: NaN }).unresolved).toEqual(true);
+  it('an empty future-round side resolves to nothing, quietly', () => {
+    // getEventData returns these for rounds nobody has reached: sides are empty objects and the
+    // matchUp carries no drawPositions at all. Measured: 3 of 7 matchUps in an 8 draw.
+    const futureRound = { sides: [{}, {}] };
+    expect(resolveSideDrawPosition({ matchUp: futureRound, sideNumber: 2 })).toEqual({
+      drawPosition: undefined,
+      unresolved: false,
+    });
+  });
+
+  it('reports unresolved only when there is no side there at all', () => {
     expect(resolveSideDrawPosition({ matchUp: { sides: [] }, sideNumber: 1 }).unresolved).toEqual(true);
     expect(resolveSideDrawPosition({ matchUp: undefined, sideNumber: 1 }).unresolved).toEqual(true);
+    // an unparsable sideNumber names no ordinal either
+    expect(resolveSideDrawPosition({ matchUp: { sides }, sideNumber: NaN }).unresolved).toEqual(true);
+  });
+
+  it('prefers the side that names itself over the one at that ordinal', () => {
+    // the array is reversed: ordinal 1 holds sideNumber 2
+    const reversed = [
+      { sideNumber: 2, drawPosition: 4 },
+      { sideNumber: 1, drawPosition: 3 },
+    ];
+    expect(resolveSideDrawPosition({ matchUp: { sides: reversed }, sideNumber: 1 }).drawPosition).toEqual(3);
   });
 
   it('CONTROL — never consults drawPositions, whatever the array holds', () => {
