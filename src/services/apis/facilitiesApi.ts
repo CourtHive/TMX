@@ -50,7 +50,10 @@ export function getAmsBaseUrl(): string {
   return local ? 'http://localhost:3130' : `${loc?.origin ?? ''}/ams`;
 }
 
-function authHeaders(): Record<string, string> {
+/**
+ * AMS auth headers, shared by every AMS caller in TMX so the token convention has one definition.
+ */
+export function authHeaders(): Record<string, string> {
   const token = localStorage.getItem(getJwtTokenStorageKey());
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
