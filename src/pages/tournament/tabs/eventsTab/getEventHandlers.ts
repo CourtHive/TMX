@@ -2,6 +2,7 @@
  * Event handlers for draw view interactions.
  * Handles clicks on participants, scores, schedules, venues, and round headers.
  */
+import { getAdditionalSeedContext } from 'components/popovers/additionalSeedContext';
 import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { fixtures, participantConstants, tools } from 'tods-competition-factory';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
@@ -90,11 +91,28 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       eventData,
       matchUps,
     });
+    // Offered only where the seeding policy's `additionalSeeds` allowance has room and this
+    // participant is not already seeded. It creates a seat rather than filling one, so it is
+    // appended here alongside the other locally-derived actions rather than coming back from
+    // `positionActions`, which enumerates what can be done with the seats the draw already has.
+    const { action: additionalSeed, basisLabel } = participantId
+      ? getAdditionalSeedContext({
+          structureId: matchUp?.structureId,
+          drawId: matchUp?.drawId,
+          participantId,
+        })
+      : {};
+
     const augmentedActions = participantId
-      ? [...(actions || []), ...followActions, { type: 'VIEW_PLAYER_CARD', payload: { participantId } }]
+      ? [
+          ...(actions || []),
+          ...followActions,
+          ...(additionalSeed ? [additionalSeed] : []),
+          { type: 'VIEW_PLAYER_CARD', payload: { participantId } },
+        ]
       : actions;
 
-    selectPositionAction({ ...props, actions: augmentedActions, callback });
+    selectPositionAction({ ...props, actions: augmentedActions, title: basisLabel, callback });
   };
   const scoreClick = (props: any) => {
     const sideNumber = getSideNumber(props);
