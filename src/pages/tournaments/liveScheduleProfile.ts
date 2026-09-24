@@ -38,6 +38,36 @@ const hhmm = (date: Date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`
 const isoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
 /**
+ * The earliest and latest hour the day can be ANCHORED to.
+ *
+ * The schedule runs five rounds in sequence from 150 minutes before the anchor, so the anchor
+ * decides whether the whole day fits between the venue opening (06:00) and closing (23:00):
+ *   - earlier than 09:00 and the first matchUp lands before the courts open — and near midnight the
+ *     anchor runs BACKWARD past the tournament's own start date, which the factory refuses
+ *     ("anchoring would move a matchUp to <yesterday>, outside the tournament's dates");
+ *   - later than 16:00 and the tail runs past closing, and then past midnight, which it also
+ *     refuses.
+ *
+ * Measured under `nonRandom` on 2026-09-24: generation succeeded at 07:00-16:00 and failed at 19:00
+ * and 22:00, and at 00:30 in the other direction. Trimming rounds only moved the evening cliff from
+ * 19:00 to 22:00 rather than removing it.
+ *
+ * So the example clamps: opened outside the band it still generates a full, believable day — the
+ * demo simply shows a day already finished (late evening) or not yet started (small hours) rather
+ * than failing to open at all. Inside the band, which is when anyone demonstrates anything, it
+ * straddles the current time exactly as intended.
+ */
+export const ANCHOR_EARLIEST_HOUR = 9;
+export const ANCHOR_LATEST_HOUR = 16;
+
+function clampAnchor(now: Date): Date {
+  const clamped = new Date(now);
+  if (now.getHours() < ANCHOR_EARLIEST_HOUR) clamped.setHours(ANCHOR_EARLIEST_HOUR, 0, 0, 0);
+  else if (now.getHours() >= ANCHOR_LATEST_HOUR) clamped.setHours(ANCHOR_LATEST_HOUR, 0, 0, 0);
+  return clamped;
+}
+
+/**
  * The complete profile, built at generation rather than at import.
  *
  * `mockProfiles` is a module-level constant, so anything clock-based written inline would be fixed
@@ -47,6 +77,7 @@ const isoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1
  */
 export function buildLiveScheduleProfile(now: Date = new Date()) {
   const scheduleDate = isoDate(now);
+  const anchor = clampAnchor(now);
 
   // A court goes down shortly after NOW, long enough to overlap matchUps already placed on it.
   const blockStart = new Date(now.getTime() + 40 * 60_000);
@@ -123,10 +154,23 @@ export function buildLiveScheduleProfile(now: Date = new Date()) {
     ],
     autoSchedule: true,
 
+    // Deterministic layout. The draw shape decides how long the day's schedule runs, so with random
+    // data the anchored span varied run to run and the example failed roughly one generation in
+    // five at midday — a demo that sometimes does not open, and a test that was a dice roll.
+    nonRandom: 1,
+
     // The whole point: place the first matchUp well before now, so the day has matchUps behind the
     // current time, around it, and ahead of it. A schedule entirely in the future leaves the
     // now-strip, auto-call and due badges with nothing to act on.
-    scenarioProfile: { anchor: 'NOW', minutesBeforeAnchor: MINUTES_BEFORE_ANCHOR, assignCourts: true },
+    scenarioProfile: {
+      // An explicit instant, not `'NOW'`. Two reasons, and the second is the bug:
+      //   - `'NOW'` reads the FACTORY's clock, so the profile's own `now` argument did not
+      //     determine the output and a test could only reach it through fake timers;
+      //   - unclamped, the anchor put the schedule where it could not fit (see `clampAnchor`).
+      anchor: anchor.toISOString(),
+      minutesBeforeAnchor: MINUTES_BEFORE_ANCHOR,
+      assignCourts: true,
+    },
   };
 }
 
