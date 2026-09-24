@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.28.0](https://github.com/CourtHive/TMX/compare/v8.27.0...v8.28.0) (2026-09-24)
+
+
+### Features
+
+* read policies from AMS instead of CFS ([#1487](https://github.com/CourtHive/TMX/issues/1487)) ([8dcfca2](https://github.com/CourtHive/TMX/commit/8dcfca25171053ac27b90d27dba2145cfcd09dce))
+* **seeding:** additional seeds — offer them, grant them, say why they exist ([#1489](https://github.com/CourtHive/TMX/issues/1489)) ([06e2097](https://github.com/CourtHive/TMX/commit/06e209757a680bed48623c140cf421f63eb6e084))
+* **tournaments:** the public search box searches the corpus, not the page it loaded ([#1486](https://github.com/CourtHive/TMX/issues/1486)) ([3817e74](https://github.com/CourtHive/TMX/commit/3817e74010d15f99c27064c595b259ef8f51af0f))
+
+
+### Bug Fixes
+
+* **draws:** a clicked side resolves its drawPosition by sideNumber, never by index ([#1484](https://github.com/CourtHive/TMX/issues/1484)) ([7c1004f](https://github.com/CourtHive/TMX/commit/7c1004f4e37efd84a17c09af1c461f195031d9d8))
+
 ## [8.27.0](https://github.com/CourtHive/TMX/compare/v8.26.0...v8.27.0) (2026-09-22)
 
 
