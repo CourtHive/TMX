@@ -2560,6 +2560,7 @@
     "tournamentPublishing": "Tournament Publishing",
     "tournamentInformation": "Tournament Information",
     "informationEvents": "Events listed publicly",
+    "informationEmbargoNote": "Published, but not listed publicly until {{when}}.",
     "participants": "Participants",
     "orderOfPlay": "Order of Play",
     "eventsAndDraws": "Events & Draws",

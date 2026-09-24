@@ -2,7 +2,6 @@
  * Tournament-level publishing controls: Information + Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
-import { getTournamentPublishData, getPublishingTableData, infoScopeParams } from './publishingData';
 import { buildOrderOfPlayDateToggleMethods } from 'services/publishing/orderOfPlayPublish';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
@@ -16,6 +15,12 @@ import { providerConfig } from 'config/providerConfig';
 import { openEmbargoModal } from './embargoModal';
 import dayjs from 'dayjs';
 import { t } from 'i18n';
+import {
+  getTournamentPublishData,
+  getPublishingTableData,
+  infoScopeParams,
+  resolvePublishState,
+} from './publishingData';
 
 import {
   UNPUBLISH_TOURNAMENT_INFO,
@@ -91,10 +96,19 @@ function formatEmbargoDisplay(isoString?: string): string {
   });
 }
 
+/**
+ * `clearParams` exists because clearing an embargo is a RE-PUBLISH, and what else rides on that call
+ * differs by surface. Order of play and participants clear with `removePriorValues`, which is safe
+ * because the embargo is the only thing they carry. The information publish also carries its EVENT
+ * SCOPE, and the write replaces `info` wholesale rather than merging — so clearing with
+ * `removePriorValues` would silently widen the information page to every event. It passes its
+ * current scope instead.
+ */
 function createEmbargoButton(
   currentEmbargo: string | undefined,
   publishMethod: string,
   onRefresh: () => void,
+  params?: { setParams?: () => Record<string, any>; clearParams?: () => Record<string, any> },
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'display:flex; align-items:center; gap:6px; margin-left:auto;';
@@ -123,14 +137,14 @@ function createEmbargoButton(
       currentEmbargo,
       onSet: (isoString) => {
         mutationRequest({
-          methods: [{ method: publishMethod, params: { embargo: isoString } }],
+          methods: [{ method: publishMethod, params: { ...(params?.setParams?.() ?? {}), embargo: isoString } }],
           callback: onRefresh,
         });
       },
       onClear: currentEmbargo
         ? () => {
             mutationRequest({
-              methods: [{ method: publishMethod, params: { removePriorValues: true } }],
+              methods: [{ method: publishMethod, params: params?.clearParams?.() ?? { removePriorValues: true } }],
               callback: onRefresh,
             });
           }
@@ -278,11 +292,16 @@ function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLEl
   infoRow.className = PUB_TOGGLE_ROW;
   infoRow.style.flexWrap = 'wrap';
 
-  // No embargo on the information publish: a tournament listed before its embargo lifted would BE the
-  // announcement. Read-time embargo evaluation is a decided follow-up (P23 D4b), not an omission.
-  infoRow.appendChild(
-    createStateBadge(data.infoPublished ? 'live' : 'off', data.infoPublished ? publicUrl : undefined),
-  );
+  // The badge distinguishes three states, not two, because since P23 D4b "published" and "visible"
+  // can differ: an information publish carrying a future embargo is PUBLISHED — the toggle is on —
+  // and absent from every public listing until the date arrives. Showing it as `live` would be a
+  // lie the director acts on; showing it as `off` would be a different one.
+  // `resolvePublishState` is the SAME three-way decision the event rows already use — reached for
+  // rather than restated, because a second copy of "published vs withheld vs off" is how the publish
+  // model grew three definitions in the first place (P23).
+  const infoState = resolvePublishState(data.infoPublished, data.infoEmbargo);
+  const infoEmbargoPending = infoState === 'embargoed';
+  infoRow.appendChild(createStateBadge(infoState, infoState === 'live' ? publicUrl : undefined));
 
   let eventInputs: any;
 
@@ -302,6 +321,23 @@ function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLEl
 
   const { eventFormContainer, inputs } = buildInformationEventSelector(data);
   eventInputs = inputs;
+
+  // Offered whether or not information is published yet, like the order-of-play panel — and that is
+  // the whole point rather than a cosmetic consistency. Setting an embargo PUBLISHES with it, in one
+  // mutation, so the tournament goes from unpublished straight to published-and-withheld. Gating the
+  // control on `infoPublished` (as this panel first did, and as the participants panel did) forces a
+  // director to publish FIRST and embargo second, which makes the tournament briefly visible to the
+  // public — precisely what the embargo exists to prevent.
+  const currentScope = () => infoScopeParams(eventInputs?.infoEvents?.selectedValues ?? [], allEventIds());
+  infoRow.appendChild(
+    createEmbargoButton(data.infoEmbargo, PUBLISH_TOURNAMENT_INFO, () => renderPublishingTab(), {
+      setParams: currentScope,
+      // NOT `removePriorValues`: the information publish replaces `info` wholesale, so clearing the
+      // embargo without restating the scope would widen the page to every event.
+      clearParams: currentScope,
+    }),
+  );
+
   if (eventFormContainer) {
     const scopeSection = document.createElement('div');
     scopeSection.style.cssText = PUB_CONFIG_SECTION;
@@ -310,7 +346,25 @@ function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLEl
   }
 
   infoPanel.appendChild(infoRow);
+  // AFTER the control row: the note explains what the badge and toggle above it mean, and inserting
+  // it between the header and the row would also displace the row every other panel keeps first.
+  if (infoEmbargoPending) infoPanel.appendChild(buildEmbargoExplainer(data.infoEmbargo));
+
   return infoPanel;
+}
+
+/**
+ * One line telling the director what the panel would otherwise leave them to infer: the tournament is
+ * published and still not listed anywhere, and when that changes. Without it the panel reads as broken
+ * — the toggle is on, and the public site shows nothing.
+ */
+function buildEmbargoExplainer(embargo: string): HTMLElement {
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:0.8rem; color:var(--tmx-text-secondary); margin-top:6px;';
+  note.innerHTML = `<i class="fa fa-eye-slash"></i> ${t('publishing.informationEmbargoNote', {
+    when: formatEmbargoDisplay(embargo),
+  })}`;
+  return note;
 }
 
 function allEventIds(): string[] {
@@ -464,11 +518,9 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   });
   partRow.appendChild(partToggle);
 
-  if (data.participantsPublished) {
-    partRow.appendChild(
-      createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()),
-    );
-  }
+  // Unconditional, for the same reason as information above: publishing first in order to embargo
+  // second exposes the participant list in the window between the two.
+  partRow.appendChild(createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()));
 
   const { columnFormContainer, inputs } = buildColumnSelector(data);
   columnInputs = inputs;
