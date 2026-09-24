@@ -3,6 +3,7 @@
  * Manages form field dependencies and dynamic updates for draw creation.
  */
 import { drawDefinitionConstants, tools } from 'tods-competition-factory';
+import { buildSeedCountOptions, isSeedableDrawType } from './seedCount';
 import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { renderOptions, validators } from 'courthive-components';
@@ -11,9 +12,8 @@ import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
-import { drawFormModel } from './drawFormModel';
-import { buildSeedCountOptions, isSeedableDrawType } from './seedCount';
 import { getSeedingAllowance } from './seedingPolicies';
+import { drawFormModel } from './drawFormModel';
 
 // Constants
 const {

@@ -2,19 +2,18 @@
  * Submit draw parameters and generate draw structure.
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
+import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-competition-factory';
+import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import type { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { validators } from 'courthive-components';
+import { resolveSeedsCount } from './seedCount';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
-import { resolveSeedsCount } from './seedCount';
 import { t } from 'i18n';
-
-import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
-import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-competition-factory';
 
 // constants
 import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';

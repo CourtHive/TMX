@@ -17,13 +17,13 @@
  * @see src/components/drawers/addDraw/seedCount.ts, src/components/popovers/additionalSeedContext.ts
  * @see factory documentation/docs/concepts/additional-seeds.md
  */
-import { test, expect } from '@playwright/test';
 import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
-import { TournamentPage } from '../pages/TournamentPage';
-import { S } from '../helpers/selectors';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
+import { TournamentPage } from '../pages/TournamentPage';
+import { test, expect } from '@playwright/test';
+import { S } from '../helpers/selectors';
 
 /* ─── Seed profiles ─────────────────────────────────────────────────────── */
 

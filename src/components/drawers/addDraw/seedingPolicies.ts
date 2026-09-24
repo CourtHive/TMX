@@ -10,8 +10,8 @@
 import { factoryConstants, policyComposer, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 
 import { tournamentEngine } from 'services/factory/engine';
-import { providerConfig } from 'config/providerConfig';
 import POLICY_SEEDING from 'assets/policies/seedingPolicy';
+import { providerConfig } from 'config/providerConfig';
 
 const { POLICY_TYPE_SEEDING } = policyConstants;
 const { ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SEPARATE, CLUSTER } = drawDefinitionConstants;

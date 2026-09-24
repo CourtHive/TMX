@@ -2,8 +2,8 @@
  * Select position action popover for draw assignments.
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
-import { additionalSeedAction } from 'components/popovers/additionalSeedAction';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { additionalSeedAction } from 'components/popovers/additionalSeedAction';
 import { promptByeScheduling } from 'components/popovers/byeSchedulingPrompt';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { isSchedulingAmbiguity } from 'functions/isSchedulingAmbiguity';

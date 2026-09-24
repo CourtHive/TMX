@@ -11,11 +11,11 @@ import {
 } from 'tods-competition-factory';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
-import { getSeedingAllowance } from './seedingPolicies';
-import { buildSeedCountOptions } from './seedCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { getSeedingAllowance } from './seedingPolicies';
 import { providerConfig } from 'config/providerConfig';
+import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
 

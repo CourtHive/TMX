@@ -11,8 +11,8 @@
  * i18n, so that the rule can be tested without a DOM. The popover module imports tipster and the
  * toast service, which drag in the whole modal stack.
  */
-import { tournamentEngine } from 'services/factory/engine';
 import { factoryConstants } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
 
 import { ADD_ADDITIONAL_SEED } from 'constants/mutationConstants';

@@ -1,3 +1,6 @@
+import { drawDefinitionConstants } from 'tods-competition-factory';
+import { describe, expect, it } from 'vitest';
+
 import {
   buildSeedCountOptions,
   getAdditionalSeedCountChoices,
@@ -5,8 +8,6 @@ import {
   isSeedableDrawType,
   resolveSeedsCount,
 } from './seedCount';
-import { drawDefinitionConstants } from 'tods-competition-factory';
-import { describe, expect, it } from 'vitest';
 
 import { DRAW_MATIC } from 'constants/tmxConstants';
 
