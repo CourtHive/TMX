@@ -18,9 +18,9 @@ import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournam
 import { searchTournaments } from 'services/apis/searchTournaments';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
-import { getUserContext } from 'services/authentication/getUserContext';
 import { fetchMyCalendars, type MyCalendarsResult } from 'services/apis/fetchMyCalendars';
 import { fetchPublicCalendar, type PublicCalendarResult } from 'services/apis/fetchPublicCalendar';
+import { resolveCalendarSource } from './calendarSource';
 import { getLoginState } from 'services/authentication/loginState';
 import { renderWelcomeView } from 'pages/tournaments/welcomeView';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -359,14 +359,25 @@ export function createTournamentsTable(): { ready: Promise<TournamentsView | und
   const loginState = getLoginState();
   const provider = context?.provider || loginState?.provider;
   const impersonatedAbbr = context?.provider?.organisationAbbreviation;
-  const userContext = getUserContext();
+  const providerAbbr = provider?.organisationAbbreviation;
+  const source = resolveCalendarSource({
+    // `getLoginState()`, NOT `getUserContext()`. Both answer "is someone logged in", but the latter
+    // is a synchronous read of a cache that only `/auth/me` fills, and `fetchUserContext()` is
+    // fire-and-forget at login and at boot — so on a COLD LOAD it is undefined, this page took the
+    // logged-out branch, and a director's own UNPUBLISHED tournaments silently vanished behind the
+    // published-only public feed until they navigated in-app. `getLoginState()` validates the JWT
+    // locally: synchronous, no network, no race. `settingsGrid` reached the same conclusion after
+    // #1218/#1370; this is that lesson applied to the page where it is most visible.
+    authenticated: !!loginState,
+    providerAbbr,
+  });
 
   const onCreated = () => createTournamentsTable();
   const fallback = () => fromLocalDb(anchor, onCreated);
 
   let ready: Promise<TournamentsView | undefined>;
 
-  if (userContext) {
+  if (source === 'my-calendars') {
     // Capture who is asking. The calendar walk is the longest read on this page,
     // and on 2026-09-15 one of them resolved after the user had stopped
     // impersonating AND logged out — painting 49,000+ provider tournaments into
@@ -380,10 +391,10 @@ export function createTournamentsTable(): { ready: Promise<TournamentsView | und
           : undefined,
       () => (sessionScopeUnchanged(scope) ? fallback() : undefined),
     );
-  } else if (provider?.organisationAbbreviation) {
+  } else if (source === 'public' && providerAbbr) {
     // Paged, like the authenticated path above: a single request returns at most the
     // server's default page, which silently truncated providers larger than that.
-    ready = fetchPublicCalendar({ providerAbbr: provider.organisationAbbreviation }).then(
+    ready = fetchPublicCalendar({ providerAbbr }).then(
       (result: PublicCalendarResult) => Promise.resolve(fromPublicCalendar(anchor, result, fallback, onCreated)),
       () => fallback(),
     );
