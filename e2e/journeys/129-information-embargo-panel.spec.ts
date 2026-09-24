@@ -38,6 +38,7 @@ const INFO_PANEL = 'xpath=//h3[contains(., "Tournament Information")]';
 // reader (row first, then the explanatory note), and a selector pinned to `following-sibling::div[1]`
 // silently stops finding the badge the moment that order changes — which it did, mid-build.
 const INFO_BADGE = `${INFO_PANEL}/parent::div//span[contains(@class,"pub-state")]`;
+const INFO_EMBARGO_BUTTON = `${INFO_PANEL}/parent::div//button[contains(@class,"pub-embargo-remove")]`;
 const FUTURE = '2099-01-01T09:00:00Z';
 
 const DRAWLESS_TOURNAMENT = {
@@ -81,6 +82,12 @@ test.describe('Journey 129 — the information embargo says so on the panel', ()
 
     // Nothing published: off.
     await expect(page.locator(INFO_BADGE)).toHaveClass(/pub-state-off/);
+
+    // The embargo control is offered WHILE UNPUBLISHED. Gating it on "published" would force a
+    // director to publish first and embargo second, and the tournament is publicly visible in the
+    // window between those two actions — which is the one thing an embargo exists to prevent.
+    // Setting it publishes WITH the embargo, in one mutation.
+    await expect(page.locator(INFO_EMBARGO_BUTTON)).toBeVisible();
 
     // Publish information WITH an embargo, then re-render the tab.
     const published = await page.evaluate((embargo) => {

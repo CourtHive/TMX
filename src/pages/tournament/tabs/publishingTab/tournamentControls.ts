@@ -322,19 +322,21 @@ function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLEl
   const { eventFormContainer, inputs } = buildInformationEventSelector(data);
   eventInputs = inputs;
 
-  // Only offered once information is published: an embargo on nothing is not a state the factory
-  // has, and the button would publish as a side effect of setting a date.
-  if (data.infoPublished) {
-    const currentScope = () => infoScopeParams(eventInputs?.infoEvents?.selectedValues ?? [], allEventIds());
-    infoRow.appendChild(
-      createEmbargoButton(data.infoEmbargo, PUBLISH_TOURNAMENT_INFO, () => renderPublishingTab(), {
-        setParams: currentScope,
-        // NOT `removePriorValues`: the information publish replaces `info` wholesale, so clearing
-        // the embargo without restating the scope would widen the page to every event.
-        clearParams: currentScope,
-      }),
-    );
-  }
+  // Offered whether or not information is published yet, like the order-of-play panel — and that is
+  // the whole point rather than a cosmetic consistency. Setting an embargo PUBLISHES with it, in one
+  // mutation, so the tournament goes from unpublished straight to published-and-withheld. Gating the
+  // control on `infoPublished` (as this panel first did, and as the participants panel did) forces a
+  // director to publish FIRST and embargo second, which makes the tournament briefly visible to the
+  // public — precisely what the embargo exists to prevent.
+  const currentScope = () => infoScopeParams(eventInputs?.infoEvents?.selectedValues ?? [], allEventIds());
+  infoRow.appendChild(
+    createEmbargoButton(data.infoEmbargo, PUBLISH_TOURNAMENT_INFO, () => renderPublishingTab(), {
+      setParams: currentScope,
+      // NOT `removePriorValues`: the information publish replaces `info` wholesale, so clearing the
+      // embargo without restating the scope would widen the page to every event.
+      clearParams: currentScope,
+    }),
+  );
 
   if (eventFormContainer) {
     const scopeSection = document.createElement('div');
@@ -516,11 +518,9 @@ function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLE
   });
   partRow.appendChild(partToggle);
 
-  if (data.participantsPublished) {
-    partRow.appendChild(
-      createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()),
-    );
-  }
+  // Unconditional, for the same reason as information above: publishing first in order to embargo
+  // second exposes the participant list in the window between the two.
+  partRow.appendChild(createEmbargoButton(data.participantsEmbargo, PUBLISH_PARTICIPANTS, () => renderPublishingTab()));
 
   const { columnFormContainer, inputs } = buildColumnSelector(data);
   columnInputs = inputs;
