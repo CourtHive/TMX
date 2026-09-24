@@ -3,6 +3,7 @@
  * Creates sample tournaments with various draw types and categories.
  */
 import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
+import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
@@ -617,6 +618,7 @@ const mockProfiles = [
     ],
     venueProfiles: [clubCourts],
   },
+  LIVE_SCHEDULE_PROFILE,
 ];
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({
@@ -645,8 +647,13 @@ function addAutoCourtImage(tournamentRecord: any, drawProfiles: any[]): void {
 function generateTournamentRecords(indices?: number[]): any[] {
   const profiles = indices ? indices.map((i) => mockProfiles[i]).filter(Boolean) : mockProfiles;
   return profiles.map((profile) => {
-    const { tournamentRecord } = mocksEngine.generateTournamentRecord(profile);
-    addAutoCourtImage(tournamentRecord, profile.drawProfiles);
+    // A profile may compute time-relative parts (schedule dates, a maintenance window) when the
+    // tournament is generated rather than when this module was imported. `build` is stripped before
+    // the profile reaches the factory.
+    const { build, ...rest }: any = profile;
+    const resolved = build ? { ...rest, ...build() } : rest;
+    const { tournamentRecord } = mocksEngine.generateTournamentRecord(resolved);
+    addAutoCourtImage(tournamentRecord, resolved.drawProfiles);
     return tournamentRecord;
   });
 }
