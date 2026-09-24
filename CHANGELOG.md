@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.28.1](https://github.com/CourtHive/TMX/compare/v8.28.0...v8.28.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **dev:** complete-all no longer overwrites a DOUBLE_WALKOVER ([#1488](https://github.com/CourtHive/TMX/issues/1488)) ([c31ebaf](https://github.com/CourtHive/TMX/commit/c31ebafa73fa9e93729236ee55b3c479a64a38a0))
+
 ## [8.28.0](https://github.com/CourtHive/TMX/compare/v8.27.0...v8.28.0) (2026-09-24)
 
 
