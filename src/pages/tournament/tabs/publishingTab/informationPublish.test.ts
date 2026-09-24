@@ -30,7 +30,7 @@ vi.mock('tods-competition-factory', () => ({
 }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 
-import { getTournamentPublishData, infoScopeParams } from './publishingData';
+import { getTournamentPublishData, infoScopeParams, resolvePublishState } from './publishingData';
 
 beforeEach(() => {
   publishState = {};
@@ -74,5 +74,45 @@ describe('infoScopeParams', () => {
 
   it('sends no scope for a tournament with no events at all', () => {
     expect(infoScopeParams([], [])).toEqual({});
+  });
+});
+
+describe('getTournamentPublishData — the information embargo (P23 D4b)', () => {
+  const FUTURE = '2099-01-01T00:00:00Z';
+
+  it('carries the embargo through to the panel', () => {
+    publishState = { tournament: { info: { published: true, embargo: FUTURE } } };
+    expect(getTournamentPublishData().infoEmbargo).toEqual(FUTURE);
+  });
+
+  it('is undefined when no embargo was set — the ordinary case', () => {
+    publishState = { tournament: { info: { published: true } } };
+    expect(getTournamentPublishData().infoEmbargo).toBeUndefined();
+  });
+
+  it('still reports the tournament as PUBLISHED while the embargo is pending', () => {
+    // Intent and visibility differ, and the toggle reflects intent. A panel that showed this as
+    // unpublished would invite the director to publish something already published.
+    publishState = { tournament: { info: { published: true, embargo: FUTURE } } };
+    expect(getTournamentPublishData().infoPublished).toBe(true);
+  });
+});
+
+describe('resolvePublishState — the badge the information panel renders', () => {
+  const FUTURE = '2099-01-01T00:00:00Z';
+  const PAST = '2020-01-01T00:00:00Z';
+
+  it('distinguishes withheld from live, which is the whole point of the embargo', () => {
+    expect(resolvePublishState(true, FUTURE)).toBe('embargoed');
+    expect(resolvePublishState(true, undefined)).toBe('live');
+  });
+
+  it('treats a past embargo as live, matching what the factory and the read model do', () => {
+    expect(resolvePublishState(true, PAST)).toBe('live');
+  });
+
+  it('never reports an embargo on something unpublished', () => {
+    // The factory cannot produce that state; rendering it would invent a status.
+    expect(resolvePublishState(false, FUTURE)).toBe('off');
   });
 });

@@ -51,6 +51,8 @@ export type EmbargoEntry = {
 export type TournamentPublishData = {
   infoPublished: boolean;
   infoEventIds?: string[];
+  /** ISO instant the information publish is withheld until, when one was set (P23 D4b). */
+  infoEmbargo?: string;
   oopPublished: boolean;
   oopEmbargo?: string;
   oopEmbargoActive: boolean;
@@ -78,6 +80,7 @@ export function getTournamentPublishData(): TournamentPublishData {
     // `eventIds` scopes which events the public information page lists; absent means every event.
     infoPublished: !!tournamentPubState?.info?.published,
     infoEventIds: tournamentPubState?.info?.eventIds,
+    infoEmbargo: tournamentPubState?.info?.embargo,
     oopPublished: !!tournamentPubState?.orderOfPlay?.published,
     oopEmbargo,
     oopEmbargoActive: publishingGovernor.isEmbargoed(tournamentPubState?.orderOfPlay),
