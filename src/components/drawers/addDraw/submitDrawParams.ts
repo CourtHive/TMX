@@ -2,29 +2,21 @@
  * Submit draw parameters and generate draw structure.
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
+import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-competition-factory';
+import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import type { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
-import { providerConfig } from 'config/providerConfig';
 import { validators } from 'courthive-components';
+import { resolveSeedsCount } from './seedCount';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';
-import { resolveSeedsCount } from './seedCount';
 import { t } from 'i18n';
-import {
-  drawDefinitionConstants,
-  entryStatusConstants,
-  factoryConstants,
-  policyComposer,
-  policyConstants,
-  tools,
-} from 'tods-competition-factory';
 
 // constants
 import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
-import POLICY_SEEDING from 'assets/policies/seedingPolicy';
 import {
   AUTOMATED,
   BEST_FINISHERS,
@@ -70,56 +62,11 @@ const {
   FEED_IN_CHAMPIONSHIP_TO_SF,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
-  SEPARATE,
   SWISS,
-  CLUSTER,
 } = drawDefinitionConstants;
 const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-const { POLICY_TYPE_SEEDING } = policyConstants;
-
-// Seeding policy constants
-const INHERIT = 'INHERIT';
 
 const IS_WARNING = 'is-warning';
-
-// Seeding policy definitions matching factory defaults.
-//
-// USTA is the base — written as a plain object literal so the
-// shape reads as "this is the stock policy". ITF derives from USTA
-// via `policyComposer` so the delta is explicit and discoverable:
-// change positioning, drop the draw-type overrides, bump one
-// threshold's minimumParticipantCount.
-const POLICY_SEEDING_DEFAULT = {
-  [POLICY_TYPE_SEEDING]: {
-    validSeedPositions: { ignore: true },
-    duplicateSeedNumbers: true,
-    drawSizeProgression: true,
-    seedingProfile: {
-      drawTypes: {
-        [ROUND_ROBIN_WITH_PLAYOFF]: { positioning: factoryConstants.drawDefinitionConstants.WATERFALL },
-        [ROUND_ROBIN]: { positioning: factoryConstants.drawDefinitionConstants.WATERFALL },
-      },
-      positioning: SEPARATE,
-    },
-    policyName: 'USTA SEEDING',
-    seedsCountThresholds: [
-      { drawSize: 4, minimumParticipantCount: 3, seedsCount: 2 },
-      { drawSize: 16, minimumParticipantCount: 12, seedsCount: 4 },
-      { drawSize: 32, minimumParticipantCount: 24, seedsCount: 8 },
-      { drawSize: 64, minimumParticipantCount: 48, seedsCount: 16 },
-      { drawSize: 128, minimumParticipantCount: 96, seedsCount: 32 },
-      { drawSize: 256, minimumParticipantCount: 192, seedsCount: 64 },
-    ],
-  },
-};
-
-const POLICY_SEEDING_ITF = policyComposer(POLICY_TYPE_SEEDING)
-  .extend(POLICY_SEEDING_DEFAULT)
-  .set('policyName', 'ITF SEEDING')
-  .set('seedingProfile.positioning', CLUSTER)
-  .unset('seedingProfile.drawTypes')
-  .set('seedsCountThresholds.4.minimumParticipantCount', 97)
-  .build();
 
 /**
  * Apply draw-type-specific options into the in-progress drawOptions object.
@@ -348,25 +295,6 @@ function getStructureOptions(drawType: string, inputs: any): any {
   }
 
   return undefined;
-}
-
-function getSeedingPolicyDefinition(selectedSeedingPolicy: string): any {
-  // A locked provider policy is passed explicitly rather than left to INHERIT. Inheriting requires
-  // someone to have attached it on the settings tab first, and a draw created before anyone did
-  // would generate silently non-compliant — the one failure mode a locked policy exists to prevent.
-  // Attaching it as well is not a conflict: same policy, same seeding.
-  if (providerConfig.isSeedingPolicyLocked()) {
-    const providerPolicy = providerConfig.getSeedingPolicy();
-    if (providerPolicy) return { [POLICY_TYPE_SEEDING]: providerPolicy };
-  }
-  if (selectedSeedingPolicy === SEPARATE) {
-    return POLICY_SEEDING_DEFAULT;
-  } else if (selectedSeedingPolicy === CLUSTER) {
-    return POLICY_SEEDING_ITF;
-  } else if (selectedSeedingPolicy === INHERIT) {
-    return undefined;
-  }
-  return POLICY_SEEDING_DEFAULT;
 }
 
 function handleQualifyingStructure(params: {
@@ -711,31 +639,38 @@ export function submitDrawParams({
 
   const seedingPolicyDefinition = getSeedingPolicyDefinition(selectedSeedingPolicy);
 
-  // Pass the operator's drawSize. Without it getSeedsCount derives one from participantsCount, so
-  // the number previewed here is answering a slightly different question than the one the factory
-  // asks when it clamps during generation.
-  const automaticSeedsCount =
-    tournamentEngine.getSeedsCount({
-      policyDefinitions: seedingPolicyDefinition || POLICY_SEEDING,
-      participantsCount: stageEntries.length,
-      drawSizeProgression: true,
-      drawSize,
-    })?.seedsCount ?? 0;
+  // `getSeedingAllowance` passes the operator's drawSize for the same reason the option list does:
+  // without it getSeedsCount derives one from participantsCount, so the number resolved here would
+  // answer a slightly different question than the one the factory asks when it clamps during
+  // generation. It is the same call the `<select>` was built from, so the count submitted and the
+  // count offered cannot disagree.
+  const { thresholdSeedsCount, additionalSeedsAllowed } = getSeedingAllowance({
+    selectedSeedingPolicy: selectedSeedingPolicy || INHERIT,
+    participantsCount: stageEntries.length,
+    drawSize,
+    eventId,
+  });
 
   const { seedsCount, isOverride } = resolveSeedsCount({
     requestedValue: inputs[SEEDS_COUNT]?.value,
     groupSize: inputs[GROUP_SIZE]?.value,
     participantsCount: stageEntries.length,
-    automaticSeedsCount,
+    automaticSeedsCount: thresholdSeedsCount,
+    additionalSeedsAllowed,
+    thresholdSeedsCount,
     drawSize,
     drawType,
   });
 
   if (isOverride) {
-    // The factory otherwise clamps seedsCount back to the active seeding policy's threshold. An
-    // explicit operator choice is precisely an override of that threshold — it is how a national
-    // rule that seeds more deeply than ITF/USTA gets expressed. Structural limits are untouched:
-    // the factory still caps at the stage entry count and at drawSize.
+    // The factory otherwise clamps seedsCount back to the active seeding policy's ceiling. This is
+    // an override of that ceiling — how a national rule that seeds more deeply than ITF/USTA gets
+    // expressed. Structural limits are untouched: the factory still caps at the stage entry count
+    // and at drawSize.
+    //
+    // A count WITHIN the policy's `additionalSeeds` allowance does not come through here, and must
+    // not: the policy is granting those seeds, so disabling policy limits to obtain them would lift
+    // the ceiling the allowance exists to define. See `resolveSeedsCount`.
     drawOptions.enforcePolicyLimits = false;
   }
 

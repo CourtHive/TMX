@@ -11,10 +11,11 @@ import {
 } from 'tods-competition-factory';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
-import { getSeedCountChoices } from './seedCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { getSeedingAllowance } from './seedingPolicies';
 import { providerConfig } from 'config/providerConfig';
+import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -134,14 +135,21 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   // interaction. Rendering from a different notion of "how many entries" (drawEntries includes
   // cross-stage entries that never occupy a position) made the initial list disagree with itself
   // the moment anything on the form was touched.
-  const seedCountOptions = [
-    { label: t('drawers.addDraw.automaticSeedsCount'), value: '', selected: true },
-    ...getSeedCountChoices({
-      participantsCount: acceptedEntriesCount({ drawId, event, stage: isQualifyingMode ? QUALIFYING : MAIN }),
-      drawType,
+  const seedCountParticipantsCount = acceptedEntriesCount({
+    drawId,
+    event,
+    stage: isQualifyingMode ? QUALIFYING : MAIN,
+  });
+  const seedCountOptions = buildSeedCountOptions({
+    ...getSeedingAllowance({
+      participantsCount: seedCountParticipantsCount,
+      eventId: event.eventId,
       drawSize,
-    }).map((count) => ({ label: count ? String(count) : t('none'), value: count })),
-  ];
+    }),
+    participantsCount: seedCountParticipantsCount,
+    drawType,
+    drawSize,
+  }).map((option, index) => (index ? option : { ...option, selected: true }));
 
   const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize: 32, groupSizeLimit: 8 });
   const roundRobinOptions = validGroupSizes.map((size: number) => ({ label: size, value: size }));

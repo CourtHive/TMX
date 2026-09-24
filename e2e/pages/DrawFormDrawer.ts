@@ -123,6 +123,13 @@ export class DrawFormDrawer {
       .evaluateAll((options: any[]) => options.map((o) => o.value));
   }
 
+  /** The visible TEXT of every <option>, in document order — what the operator actually reads. */
+  async getSelectOptionLabels(labelText: string): Promise<string[]> {
+    return this.fieldSelect(labelText)
+      .locator('option')
+      .evaluateAll((options: any[]) => options.map((o) => o.textContent?.trim() ?? ''));
+  }
+
   /* ─── Actions ──────────────────────────────────────────────────────── */
 
   /** Select a draw type by its value (e.g. 'ROUND_ROBIN'). */

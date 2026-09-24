@@ -3,6 +3,7 @@
  * Provides actions for assigning, withdrawing, seeding, swapping participants.
  */
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { additionalSeedAction } from 'components/popovers/additionalSeedAction';
 import { promptByeScheduling } from 'components/popovers/byeSchedulingPrompt';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { isSchedulingAmbiguity } from 'functions/isSchedulingAmbiguity';
@@ -14,6 +15,7 @@ import { tools } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 const actionLabels: Record<string, string> = {
+  ADDITIONAL_SEED: 'Seed as additional',
   ALTERNATE: 'Assign alternate',
   ASSIGN: 'Assign participant',
   BYE: 'Assign BYE',
@@ -33,10 +35,13 @@ export function selectPositionAction({
   pointerEvent,
   actions,
   callback,
+  title,
 }: {
   pointerEvent: PointerEvent;
   actions: any[];
   callback: () => void;
+  /** Displayed above the actions — used to say WHY a seed exists where the basis is not the usual one. */
+  title?: string;
 }): void {
   const target = pointerEvent.target as HTMLElement;
   const handleClick = (action: any) => {
@@ -45,6 +50,7 @@ export function selectPositionAction({
       assignParticipant({ action, callback });
     if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
     if (['SEED_VALUE'].includes(action.type)) assignSeed({ target, action, callback });
+    if (['ADDITIONAL_SEED'].includes(action.type)) additionalSeedAction({ target, action, callback });
     if (['NICKNAME'].includes(action.type)) assignNickname({ target, action, callback });
     if (['VIEW_PLAYER_CARD'].includes(action.type)) viewPlayerCard({ action });
     if (action.type === 'FOLLOW_TO_STRUCTURE') followToStructure({ action });
@@ -56,7 +62,7 @@ export function selectPositionAction({
       onClick: () => handleClick(action),
     }));
 
-  if (options?.length) tipster({ options, target, config: { arrow: false, offset: [0, 0] } });
+  if (options?.length) tipster({ options, target, title, config: { arrow: false, offset: [0, 0] } });
 }
 
 function noChoiceAction({ action, callback }: { action: any; callback: () => void }) {
