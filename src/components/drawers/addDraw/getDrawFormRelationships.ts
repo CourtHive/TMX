@@ -12,8 +12,8 @@ import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { drawFormModel } from './drawFormModel';
-import { getSeedCountChoices, isSeedableDrawType } from './seedCount';
-import { t } from 'i18n';
+import { buildSeedCountOptions, isSeedableDrawType } from './seedCount';
+import { getSeedingAllowance } from './seedingPolicies';
 
 // Constants
 const {
@@ -184,18 +184,19 @@ export function getDrawFormRelationships({
     if (!select) return;
 
     const currentValue = select.value;
-    const options = [
-      { label: t('drawers.addDraw.automaticSeedsCount'), value: '' },
-      ...getSeedCountChoices({
-        participantsCount: seedableEntriesCount(inputs),
-        groupSize: inputs[GROUP_SIZE]?.value,
-        drawType: drawType ?? inputs[DRAW_TYPE]?.value,
+    const participantsCount = seedableEntriesCount(inputs);
+    const options = buildSeedCountOptions({
+      ...getSeedingAllowance({
+        selectedSeedingPolicy: inputs[SEEDING_POLICY]?.value,
+        eventId: event?.eventId,
+        participantsCount,
         drawSize,
-      }).map((count) => ({
-        label: count ? String(count) : t('none'),
-        value: count,
-      })),
-    ];
+      }),
+      drawType: drawType ?? inputs[DRAW_TYPE]?.value,
+      groupSize: inputs[GROUP_SIZE]?.value,
+      participantsCount,
+      drawSize,
+    });
     const selectedValue = options.some((option) => String(option.value) === String(currentValue)) ? currentValue : '';
     removeAllChildNodes(select);
     renderOptions(select, { options, value: selectedValue });

@@ -1932,6 +1932,8 @@
       "providerSeedingPolicy": "Provider policy",
       "seedsCount": "Seed count",
       "automaticSeedsCount": "Automatic (policy)",
+      "additionalSeedsCount_one": "{{seeds}} (+{{count}} additional seed)",
+      "additionalSeedsCount_other": "{{seeds}} (+{{count}} additional seeds)",
       "scorecard": "Scorecard",
       "qualifiers": "Qualifiers",
       "qualifyingFirst": "Start with qualifying",
@@ -3297,5 +3299,17 @@
   },
   "tournamentActions": {
     "send": "Send??"
+  },
+  "additionalSeeds": {
+    "chooseBasis": "On what basis?",
+    "seededOn": "Seeded on {{basis}}",
+    "added": "Added as seed {{seedNumber}}",
+    "refused": "The seeding policy allows no further additional seeds",
+    "basis": {
+      "organiserDiscretion": "Organiser discretion",
+      "protectedRanking": "Protected ranking",
+      "ranking": "Ranking",
+      "rating": "Rating"
+    }
   }
 }
