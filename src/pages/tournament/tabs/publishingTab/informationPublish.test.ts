@@ -1,5 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 /**
  * The tournament-INFORMATION publish (factory 7.0.0, punch list P23).
  *
@@ -31,6 +29,7 @@ vi.mock('tods-competition-factory', () => ({
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 
 import { getTournamentPublishData, infoScopeParams, resolvePublishState } from './publishingData';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 beforeEach(() => {
   publishState = {};
