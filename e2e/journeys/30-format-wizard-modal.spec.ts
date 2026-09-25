@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   initDevBridge,
+  isolateFromCfs,
   resetState,
   seedFeatureFlagInitScript,
   seedSuperAdminTokenInitScript,
@@ -58,6 +59,11 @@ async function seedRatedWithDraw(page: any) {
 
 test.describe('Journey 30 — Format Wizard modal', () => {
   test.beforeEach(async ({ page }) => {
+    // The injected super-admin token is unsigned, so a real CFS 401s it and
+    // `baseApi` logs the session out — taking the admin gating, and every
+    // assertion in this file, with it. This journey is client-only, so cut the
+    // server off rather than let its presence decide the outcome.
+    await isolateFromCfs(page);
     // Format wizard is admin-gated AND beta-flagged; inject the
     // super-admin token + enable the formatWizard flag BEFORE the
     // first navigation so the Actions panel and overview launcher
@@ -142,9 +148,7 @@ test.describe('Journey 30 — Format Wizard modal', () => {
       await expect
         .poll(
           () =>
-            page.evaluate(
-              () => ((globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? []).length,
-            ),
+            page.evaluate(() => ((globalThis as any).dev.factory.tournamentEngine.getEvents()?.events ?? []).length),
           { timeout: 10_000 },
         )
         .toBeGreaterThan(0);

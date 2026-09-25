@@ -168,6 +168,33 @@ export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
 }
 
 /**
+ * Cut the page off from CFS for the rest of the test.
+ *
+ * The synthetic tokens above are UNSIGNED. The client accepts them because
+ * `validateToken` only decodes — but a real CFS on :8383 rejects them with 401,
+ * and `baseApi`'s response interceptor answers a 401 by attempting one silent
+ * refresh and, finding no refresh token in localStorage, calling `logOut()`.
+ * A journey whose UI is role-gated then loses the role it just injected: with
+ * CFS running, journey 30's `#formatWizardActionButton` never renders and every
+ * test in the file times out, while with CFS stopped the same file passes.
+ *
+ * Whether a server happens to be running locally must not decide whether a
+ * client-only journey passes. Aborting the requests is what makes it hermetic:
+ * a network error does not log anyone out (`baseApi` only logs out on 401), so
+ * this reproduces the no-server environment deterministically in both.
+ *
+ * Scope is the CFS ORIGIN, deliberately. A bare path glob such as
+ * `**\/tournaments/search*` also matches the app's own source modules served by
+ * the dev server, which breaks boot instead of isolating anything.
+ *
+ * Override the origin with `E2E_API_BASE`, as `role-fixtures.ts` does.
+ */
+export async function isolateFromCfs(page: Page): Promise<void> {
+  const cfs = process.env.E2E_API_BASE ?? 'http://localhost:8383';
+  await page.route(`${cfs}/**`, (route) => route.abort());
+}
+
+/**
  * Seed a NON-super-admin JWT whose `providerAssociations` tie the user to a
  * specific provider, so provider-member-gated behaviour fires in e2e. The
  * schedule "Now" strip auto-call (isTournamentProviderMember → runAutoCallPass)
