@@ -54,12 +54,20 @@ describe('Live Schedule example', () => {
     expect(courted.length).toEqual(scheduled().length);
   });
 
-  it('straddles NOW — matchUps behind, and matchUps ahead', () => {
-    generate();
-    const now = Date.now();
+  it('straddles the anchor — matchUps behind it, and matchUps ahead', () => {
+    // Asserted against a FIXED in-band instant, not `Date.now()`. Since the anchor is clamped to
+    // 09:00-16:00, a run late in the day anchors at 16:00, the day's schedule ends before the
+    // current time, and "matchUps ahead of now" is legitimately zero — which is the example
+    // behaving as designed, not a regression. This test used the wall clock and so failed on CI at
+    // 23:35 UTC while passing at 18:48; the property it means to check is about the ANCHOR.
+    const now = new Date(2026, 8, 24, 14, 0);
+    const result: any = mocksEngine.generateTournamentRecord(buildLiveScheduleProfile(now) as any);
+    expect(result.error).toBeUndefined();
+    tournamentEngine.setState(result.tournamentRecord);
+
     const times = scheduled().map(instantOf);
-    expect(times.filter((t) => t < now).length).toBeGreaterThan(0);
-    expect(times.filter((t) => t > now).length).toBeGreaterThan(0);
+    expect(times.filter((t) => t < now.getTime()).length).toBeGreaterThan(0);
+    expect(times.filter((t) => t > now.getTime()).length).toBeGreaterThan(0);
   });
 
   it('starts the day the requested distance before the anchor', () => {
