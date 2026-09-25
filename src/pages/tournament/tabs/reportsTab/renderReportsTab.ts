@@ -68,7 +68,23 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
 
   const result: any = tournamentEngine.getAvailableReports();
   const reports = (result?.availableReports ?? []).filter((r: any) => r.computableNow);
-  const canAudit = isActiveProviderAdmin();
+  /**
+   * DEV-SERVER ESCAPE HATCH for the structure audit.
+   *
+   * `isActiveProviderAdmin()` opens with `if (!state) return false`, so with no login state at all —
+   * the ordinary case when running the dev server without signing in — the launcher never renders
+   * and the audit is unreachable. That made a director-facing integrity check impossible to exercise
+   * locally, which is how it was found.
+   *
+   * `import.meta.env.DEV` is a BUILD-TIME constant. Vite inlines it as `false` in every production
+   * build, so this cannot widen access to a deployed client; it is not a runtime role check that
+   * could be flipped.
+   *
+   * Deliberately NOT `isDev()`. That reads `globalThis.dev`, which `setDev()` populates
+   * UNCONDITIONALLY in `tmxReady()` (`initialState.ts`) — so it is true in production too, and
+   * gating on it would expose the audit to every user. Measured before writing this.
+   */
+  const canAudit = isActiveProviderAdmin() || import.meta.env.DEV;
 
   if (!reports.length) {
     // admins/directors can still run the structure audit even when no data reports compute
