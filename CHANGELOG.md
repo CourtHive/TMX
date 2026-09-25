@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.29.0](https://github.com/CourtHive/TMX/compare/v8.28.1...v8.29.0) (2026-09-25)
+
+
+### Features
+
+* **examples:** a demo tournament whose schedule is actually live ([#1491](https://github.com/CourtHive/TMX/issues/1491)) ([4680bf6](https://github.com/CourtHive/TMX/commit/4680bf6dbc1b6a29cf8961bb251771bf243c29f1))
+* **publishing:** set an information embargo, and say plainly that it withholds ([#1494](https://github.com/CourtHive/TMX/issues/1494)) ([699f3f0](https://github.com/CourtHive/TMX/commit/699f3f01c4d8fb1f571aa86687af38b82ac4d625))
+
+
+### Bug Fixes
+
+* **auth:** the stale-calendar guard reads the token, not a cache that may never fill ([#1499](https://github.com/CourtHive/TMX/issues/1499)) ([7fae21d](https://github.com/CourtHive/TMX/commit/7fae21d12ecf832299f04d7c85f8bac04a2407be))
+* **deps:** update courthive-components to 6.0.1 ([#1497](https://github.com/CourtHive/TMX/issues/1497)) ([9e528ec](https://github.com/CourtHive/TMX/commit/9e528ecd3e45127dee8f3ea0613799bff4fcc136))
+* **deps:** update tods-competition-factory to 7.1.1 ([#1496](https://github.com/CourtHive/TMX/issues/1496)) ([a94e05f](https://github.com/CourtHive/TMX/commit/a94e05f2614e6ec01a62854492ac1f79dec41601))
+* **examples:** the Live Schedule example opens at any hour, and opens the same way twice ([#1495](https://github.com/CourtHive/TMX/issues/1495)) ([2a33575](https://github.com/CourtHive/TMX/commit/2a33575e888a0d364e1f74894780fab9373d0324))
+* **test:** the straddle assertion belongs against the anchor, not the wall clock ([#1498](https://github.com/CourtHive/TMX/issues/1498)) ([89eca35](https://github.com/CourtHive/TMX/commit/89eca35ef825f1275e4018b0eec17d4cdaaa8e31))
+* **tournaments:** a refresh no longer hides a director's unpublished tournaments ([#1493](https://github.com/CourtHive/TMX/issues/1493)) ([08df825](https://github.com/CourtHive/TMX/commit/08df825db51e9415eb88c6142e519997dad321d0))
+
 ## [8.28.1](https://github.com/CourtHive/TMX/compare/v8.28.0...v8.28.1) (2026-09-24)
 
 
