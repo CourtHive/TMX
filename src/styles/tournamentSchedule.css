@@ -518,19 +518,26 @@
   border-left-color: var(--tmx-accent-green);
 }
 
-/* A rest row that can drive the grid search. Only rows rendered while the court
-   grid (and therefore its search box) is on screen carry this class — the plan
-   and profile views have no search box, so their rows stay inert and look it. */
-.tmx-rest-row.is-searchable {
+/* A rest row that responds to a click. `is-searchable` drives the grid search
+   with a participant's name; `is-locatable` points at the matchUp that decides an
+   undecided side. Only rows rendered while the court grid is on screen carry
+   either class — the plan and profile views have no grid to point at, so their
+   rows stay inert and look it. Styled identically on purpose: both are "click me
+   and I will show you something on the grid", and the difference is in what the
+   row says, not in how it invites the click. */
+.tmx-rest-row.is-searchable,
+.tmx-rest-row.is-locatable {
   cursor: pointer;
   border-radius: 3px;
 }
 
-.tmx-rest-row.is-searchable:hover {
+.tmx-rest-row.is-searchable:hover,
+.tmx-rest-row.is-locatable:hover {
   background: var(--tmx-tab-row-hover-bg);
 }
 
-.tmx-rest-row.is-searchable:focus-visible {
+.tmx-rest-row.is-searchable:focus-visible,
+.tmx-rest-row.is-locatable:focus-visible {
   outline: 2px solid var(--tmx-border-focus);
   outline-offset: 1px;
 }

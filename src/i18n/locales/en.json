@@ -1085,6 +1085,8 @@
         "ordinalLimit": "match #{{ordinal}} today, limit {{limit}}",
         "atLimit": "At the daily match limit",
         "searchFor": "Highlight {{name}}'s matches on the grid",
+        "locateFeeder": "Show {{label}} on the grid",
+        "feederNotDrawn": "That match is not on this day's grid",
         "source": {
           "endTime": "from recorded end time",
           "scoredTime": "from score entry (est.)",

@@ -65,7 +65,10 @@ import { applyGridSearch, gridSearchAvailable } from './gridSearchControl';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { analyzeParticipantRest } from './participantRest';
+import { restRowActivation } from './restRowActivation';
+import { locateMatchUp } from './locateMatchUp';
 import { t } from 'i18n';
 
 // constants and types
@@ -400,6 +403,49 @@ function line(text: string, className: string): HTMLElement {
   return element;
 }
 
+/**
+ * Make the row respond to a click, when there is somewhere for the click to land.
+ *
+ * Two gestures, one for each kind of row, each answering the question its own row
+ * raises. A row for a person drives the court grid's search box, which highlights
+ * every cell that player appears in on the viewed day — "when DID they play?"
+ * answered without retyping a name. A row for an undecided side points at the
+ * matchUp that decides it: its name is a matchUp label, so a name search would
+ * highlight nothing while looking like it should, and the honest target is the
+ * feeder the row was built from. `restRowActivation` holds that rule; this wires it.
+ *
+ * Offered only when the court grid is actually on screen — the plan and profile
+ * views have none, and an affordance that silently does nothing is worse than no
+ * affordance. `gridSearchAvailable()` is what knows: the search box is mounted with
+ * the grid and its registration is dropped once the input detaches. It gates BOTH
+ * activations, not only the search one.
+ *
+ * `dataset` rather than re-reading `.tmx-rest-name` text so the seed/ranking
+ * suffixes a future display config might add cannot leak into the query — and, for
+ * a pending row, so the feeder is named by id rather than by a label that has been
+ * through `pendingName` interpolation.
+ */
+function attachActivation(element: HTMLElement, row: RestRow): void {
+  const activation = restRowActivation(row, gridSearchAvailable());
+  if (!activation) return;
+
+  if (activation.kind === 'search') {
+    element.dataset.participantName = activation.participantName;
+    element.classList.add('is-searchable');
+    element.setAttribute('aria-label', t('schedule.inspector.rest.searchFor', { name: activation.participantName }));
+  } else {
+    element.dataset.locateMatchUpId = activation.matchUpId;
+    element.classList.add('is-locatable');
+    // The row's own `participantName` — a pending row's is the feeder's label, the
+    // same words the row prints — so what is announced names what the operator is
+    // looking at rather than an opaque id.
+    element.setAttribute('aria-label', t('schedule.inspector.rest.locateFeeder', { label: row.participantName }));
+  }
+
+  element.tabIndex = 0;
+  element.setAttribute('role', 'button');
+}
+
 function buildRow(row: RestRow): HTMLElement {
   const element = document.createElement('div');
   element.className = `tmx-rest-row is-${row.status.toLowerCase()}`;
@@ -407,24 +453,7 @@ function buildRow(row: RestRow): HTMLElement {
   if (row.pendingUpstream) element.dataset.pendingUpstream = 'true';
   element.dataset.participantId = row.participantId;
 
-  // Clicking the row drives the court grid's search box, which highlights every
-  // cell this player appears in on the viewed day — the question a rest figure
-  // immediately raises ("when DID they play?") answered without retyping a name.
-  // Offered only when a search box is actually mounted: the plan and profile
-  // views have none, and an affordance that silently does nothing is worse than
-  // no affordance. `dataset` rather than re-reading `.tmx-rest-name` text so the
-  // seed/ranking suffixes a future display config might add cannot leak into the
-  // query.
-  // The search affordance is offered only for real people: a pending row's name
-  // is a matchUp label, and driving the grid search with it would highlight
-  // nothing while looking like it should.
-  if (gridSearchAvailable() && !row.pendingUpstream) {
-    element.dataset.participantName = row.participantName;
-    element.classList.add('is-searchable');
-    element.tabIndex = 0;
-    element.setAttribute('role', 'button');
-    element.setAttribute('aria-label', t('schedule.inspector.rest.searchFor', { name: row.participantName }));
-  }
+  attachActivation(element, row);
 
   const name = row.pendingUpstream
     ? t('schedule.inspector.rest.pendingName', { label: row.participantName })
@@ -460,15 +489,17 @@ function buildRow(row: RestRow): HTMLElement {
   return element;
 }
 
+/** Rows that respond to activation — either gesture. See `attachActivation`. */
+const ACTIVATABLE_ROW = '.tmx-rest-row.is-searchable, .tmx-rest-row.is-locatable';
+
 /**
  * Delegated so it survives `paint()` replacing every row on the 30-second tick —
  * bound once to the section, which outlives its children.
  */
 function onSectionActivate(event: Event): void {
   const target = event.target as HTMLElement | null;
-  const row = target?.closest?.('.tmx-rest-row.is-searchable') as HTMLElement | null;
-  const participantName = row?.dataset.participantName;
-  if (!participantName) return;
+  const row = target?.closest?.(ACTIVATABLE_ROW) as HTMLElement | null;
+  if (!row) return;
   // `event.type`, not `instanceof KeyboardEvent`: the constructor is realm-bound,
   // so an event crossing a frame boundary would fail the check and fall through
   // to activating on every keystroke.
@@ -479,7 +510,20 @@ function onSectionActivate(event: Event): void {
     // the operator at the moment they act on it.
     event.preventDefault();
   }
-  applyGridSearch(participantName);
+
+  const { locateMatchUpId, participantName } = row.dataset;
+  // Exactly one of the two is ever set, so the order is not a precedence rule —
+  // but the locate branch is read first because it is the one that can fail.
+  if (locateMatchUpId) {
+    // A feeder need not be drawn: it may be unscheduled, or scheduled on a day
+    // the operator is not looking at. Say so rather than leaving a dead click —
+    // the row looks identical either way, and silence reads as a broken feature.
+    if (!locateMatchUp(locateMatchUpId)) {
+      tmxToast({ message: t('schedule.inspector.rest.feederNotDrawn'), intent: 'is-info' });
+    }
+    return;
+  }
+  if (participantName) applyGridSearch(participantName);
 }
 
 function skipMessage(reason: string): string {
