@@ -105,8 +105,9 @@ const TRUTHY_WHEELCHAIR_VALUES = new Set(['true', 'yes', 'y', '1', 'wheelchair']
 
 const REASON_UNKNOWN_COUNTRY = 'unknown country code';
 
+// `headers` stays on `CommitImportArgs` — callers pass it and it is reserved for the preview /
+// debug surfaces described there — but is not destructured here, because nothing reads it yet.
 export function commitParticipantImport({
-  headers,
   rows,
   mapping,
   additionalMethods = [],
@@ -116,8 +117,6 @@ export function commitParticipantImport({
   updateExisting = false,
   callback,
 }: CommitImportArgs): void {
-  void headers; // headers are reserved for future preview / debug surfaces
-
   const validNationalityCodes = new Set<string>(fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean));
 
   const existingParticipants = tournamentEngine.q.participants() ?? [];

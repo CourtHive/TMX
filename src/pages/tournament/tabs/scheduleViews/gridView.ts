@@ -1321,12 +1321,14 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // Hook into refresh to update scheduled panel when visible. The badge
   // updates regardless of which tab is active so operators can see the
   // count grow after running the scheduler without switching tabs.
-  const origRefresh = activeControl?.getStore().subscribe(() => {
+  // The unsubscribe is deliberately not kept: `destroyGridView` disposes the whole control
+  // via `activeControl.destroy()`, which drops its subscribers with it, so there is nothing
+  // for this scope to clean up. Binding the handle only to discard it is what the `void` was
+  // hiding — and a bound-but-unused handle reads as an unsubscribe someone forgot to call.
+  activeControl?.getStore().subscribe(() => {
     updateBadge();
     if (activeTab === 'scheduled') updateScheduledPanel();
   });
-  // Store unsubscribe for cleanup (will be handled by destroyGridView → activeControl.destroy)
-  void origRefresh; //NOSONAR
 }
 
 function attachUnscheduleDropTarget(el: HTMLElement, refresh: () => void): void {

@@ -10,7 +10,7 @@
  * as a unified "panel + bottom strip" pair.
  */
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
-import tippy, { Instance as TippyInstance } from 'tippy.js';
+import tippy from 'tippy.js';
 import { preferredCellFor } from './scheduleCellLookup';
 import { providerConfig } from 'config/providerConfig';
 import { buildLegendButton } from './scheduleLegend';
@@ -307,9 +307,11 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
   badge.textContent = String(issues.length);
   btn.appendChild(badge);
 
-  let inst: TippyInstance | undefined;
+  // Built on the next frame so the button is in the document when tippy measures it.
+  // The instance is not bound: nothing here reads it, and tippy keeps its own reference
+  // on the element, so binding it only to discard it was what the `void` was hiding.
   requestAnimationFrame(() => {
-    inst = tippy(btn, {
+    tippy(btn, {
       content: buildIssuesPopover(issues),
       trigger: 'click',
       interactive: true,
@@ -318,7 +320,6 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
       appendTo: () => document.body,
       maxWidth: 400,
     });
-    void inst; //NOSONAR
   });
 
   return btn;
@@ -441,7 +442,10 @@ function scrollToMatchUp(matchUpIds: string[]): void {
   cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
   cell.classList.remove(PULSE);
-  void cell.offsetWidth; //NOSONAR — force reflow so the pulse animation restarts
+  // Reading a layout property flushes the class removal above, so re-adding it starts a
+  // NEW animation instead of continuing the old one. The read is the point; the value is
+  // not. `no-unused-expressions` is off in this repo, so it needs no `void` to sit here.
+  cell.offsetWidth; //NOSONAR — forces the reflow that restarts the pulse
   cell.classList.add(PULSE);
   cell.addEventListener('animationend', () => cell.classList.remove(PULSE), { once: true });
 }

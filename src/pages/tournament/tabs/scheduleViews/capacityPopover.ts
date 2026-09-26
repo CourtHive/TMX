@@ -331,7 +331,9 @@ function clamp(n: number, lo: number, hi: number): number {
 async function applyChanges(
   rows: CourtRow[],
   scheduledDate: string,
-  tournamentRecord: any,
+  // Kept for signature compatibility with the call site, which still has the record in hand;
+  // nothing in here reads it. `_`-prefixed per the standards rather than `void`-ed in the body.
+  _tournamentRecord: any,
   onApplied?: () => void,
 ): Promise<void> {
   const methods: { method: string; params: any }[] = [];
@@ -354,6 +356,9 @@ async function applyChanges(
     return;
   }
 
+  // We don't await — executeMethods is fire-and-forget. The toast inside
+  // queueService handles success / failure user feedback consistently with
+  // the Grid / Profile mutation paths.
   executeMethods({
     mode: 'availability',
     methods,
@@ -370,11 +375,6 @@ async function applyChanges(
       }
     },
   });
-
-  // We don't await — executeMethods is fire-and-forget. The toast inside
-  // queueService handles success / failure user feedback consistently with
-  // the Grid / Profile mutation paths.
-  void tournamentRecord;
 }
 
 function buildUpdatedDateAvailability(row: CourtRow, scheduledDate: string): any[] {
