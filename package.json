@@ -1,6 +1,6 @@
 {
   "name": "tmx",
-  "packageManager": "pnpm@12.5.1",
+  "packageManager": "pnpm@12.6.0",
   "license": "MIT",
   "private": true,
   "version": "8.29.0",
