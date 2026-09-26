@@ -19,7 +19,7 @@
  * truth for the word, and drifts the first time either side is reworded. The
  * explanation beside each is the only new copy here.
  */
-import tippy, { Instance as TippyInstance } from 'tippy.js';
+import tippy from 'tippy.js';
 import { t } from 'i18n';
 
 const LEGEND_ROW_GAP = '8px';
@@ -175,9 +175,11 @@ export function buildLegendButton(): HTMLElement {
   ].join('; ');
   btn.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
 
-  let instance: TippyInstance | undefined;
+  // Built on the next frame so the button is in the document when tippy measures it.
+  // The instance is not bound: nothing here reads it, and tippy keeps its own reference
+  // on the element, so binding it only to discard it was what the `void` was hiding.
   requestAnimationFrame(() => {
-    instance = tippy(btn, {
+    tippy(btn, {
       // Built per open: the rows are `t()` calls, so a language change between
       // opens must be picked up rather than baked in at construction.
       content: () => buildSchedulePopoverLegend(),
@@ -188,7 +190,6 @@ export function buildLegendButton(): HTMLElement {
       appendTo: () => document.body,
       maxWidth: 400,
     });
-    void instance; //NOSONAR
   });
 
   return btn;

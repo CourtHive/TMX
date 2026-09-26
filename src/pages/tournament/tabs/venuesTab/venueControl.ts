@@ -19,7 +19,9 @@ type VenueControlParams = {
   controlAnchor?: HTMLElement;
 };
 
-export function venueControl({ table, updateVenueRow, onToggleGrid, controlAnchor }: VenueControlParams = {} as any): {
+// `onToggleGrid` stays in `VenueControlParams` — callers still pass it — but is not destructured
+// here, because nothing in this function reads it. See the note below the delete handler.
+export function venueControl({ table, updateVenueRow, controlAnchor }: VenueControlParams = {} as any): {
   elements: Record<string, HTMLElement>;
 } {
   if (!controlAnchor) return { elements: {} };
@@ -34,9 +36,8 @@ export function venueControl({ table, updateVenueRow, onToggleGrid, controlAncho
 
   // [View Availability] removed: availability is now part of the unified
   // /scheduling/ workspace; /venues/availability 301-redirects there. The
-  // onToggleGrid callback is retained for now but unused; the venuesTab
-  // availability-toggle code path is dead code awaiting cleanup.
-  void onToggleGrid;
+  // onToggleGrid callback is retained on the params TYPE for now but unused; the
+  // venuesTab availability-toggle code path is dead code awaiting cleanup.
   const items = [
     {
       onClick: deleteVenues,
