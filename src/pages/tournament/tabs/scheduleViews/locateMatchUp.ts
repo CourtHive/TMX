@@ -21,6 +21,11 @@
  * `gridSearchControl`, for the same reason: a module neither side imports from the
  * other keeps the dependency a straight line.
  *
+ * Which of the drawn copies is the grid's own is `scheduleCellLookup`'s question,
+ * not this module's — the active strip draws a duplicate cell with the same class and
+ * id, and the rule that tells them apart is shared with `gridActionBar` so a class
+ * rename in `courthive-components` has one site to follow rather than two.
+ *
  * ── Why the RELATED paint and not the issue pulse ──
  *
  * `gridActionBar` has a near-identical gesture for the issues panel, and it pulses
@@ -38,13 +43,10 @@
  * leave a click that looks broken, so the caller gets to say why instead.
  */
 
+import { drawnFor, isGridCopy, GRID_CELL } from './scheduleCellLookup';
+
 /** Lights up every element drawn for the given matchUps. `applyRelatedHighlight`, injected. */
 type MatchUpHighlighter = (matchUpIds: string[]) => void;
-
-/** The court-grid cell, preferred as the scroll target when the matchUp has one. */
-const GRID_CELL = '.spl-grid-cell';
-/** The due/on-court band above the grid, which draws a SECOND copy of the same cell. */
-const ACTIVE_STRIP = '.spl-active-strip';
 
 let highlighter: MatchUpHighlighter | null = null;
 
@@ -56,11 +58,6 @@ export function registerMatchUpHighlighter(next: MatchUpHighlighter): void {
 /** Test seam — drop any registration so one spec cannot leak into the next. */
 export function resetMatchUpHighlighter(): void {
   highlighter = null;
-}
-
-/** Every element the page currently draws for `matchUpId`, on any surface. */
-function drawnFor(matchUpId: string): HTMLElement[] {
-  return [...document.querySelectorAll<HTMLElement>(`[data-matchup-id="${CSS.escape(matchUpId)}"]`)];
 }
 
 /**
@@ -88,21 +85,21 @@ export function locateMatchUp(matchUpId: string): boolean {
  *
  * A matchUp is drawn up to three times and only one of them is worth scrolling to:
  *
- *   - the **court-grid cell** — the answer to "where is it on the grid", and the
- *     only one that can actually be off screen;
+ *   - the **court-grid cell** — the answer to "where is it on the grid", and the only
+ *     one that can actually be off screen;
  *   - the **active-strip cell**, for anything due or on court. It carries the same
  *     `.spl-grid-cell` class, and it is a sticky band that is already in view — so
- *     scrolling to it moves nothing while the grid cell it stands for stays hidden.
- *     Measured: a feeder scheduled at the next hour is drawn in BOTH, and the strip
- *     copy comes first in document order, so "first cell" picked exactly the one
- *     that does nothing;
+ *     scrolling to it moves nothing while the grid cell it stands for stays hidden;
  *   - a **catalog card**, which lives in a separate scroller — scrolling the sidebar
  *     is not an answer to a question about the grid.
  *
- * Both of the first two still get the highlight, which is right: the operator may
- * be looking at either. Only the scroll has to choose.
+ * All of them still get the highlight, which is right: the operator may be looking at
+ * any of them. Only the scroll has to choose.
+ *
+ * Falls back through the strip copy to any drawn element rather than returning
+ * nothing: a matchUp the grid does not draw still has somewhere to point, and inert
+ * would be the wrong answer.
  */
 function scrollTarget(drawn: HTMLElement[]): HTMLElement {
-  const cells = drawn.filter((element) => element.matches(GRID_CELL));
-  return cells.find((element) => !element.closest(ACTIVE_STRIP)) ?? cells[0] ?? drawn[0];
+  return drawn.find(isGridCopy) ?? drawn.find((element) => element.matches(GRID_CELL)) ?? drawn[0];
 }

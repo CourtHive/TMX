@@ -11,6 +11,7 @@
  */
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { preferredCellFor } from './scheduleCellLookup';
 import { providerConfig } from 'config/providerConfig';
 import { buildLegendButton } from './scheduleLegend';
 import { t } from 'i18n';
@@ -350,6 +351,11 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
     if (issue.matchUpId) {
       row.style.cursor = 'pointer';
       const candidates = issue.conflictMatchUpIds || [issue.matchUpId];
+      // Deliberately NOT `data-matchup-id`. That attribute is the page's "a matchUp
+      // is DRAWN here" vocabulary — `applyRelatedHighlight` and `locateMatchUp` both
+      // query it document-wide — and a row in a popover is not a surface a highlight
+      // should land on. This one only identifies the row.
+      row.dataset.issueMatchUpId = issue.matchUpId;
       row.addEventListener('click', () => scrollToMatchUp(candidates));
     }
 
@@ -416,12 +422,20 @@ function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
   return container;
 }
 
+/**
+ * Scroll the best cell for `matchUpIds` into view and pulse it. An issue names a
+ * conflict rather than one matchUp, so several candidates arrive and only some may be
+ * drawn on the viewed day; `preferredCellFor` picks among them.
+ *
+ * `preferredCellFor` rather than a `querySelector` over `.spl-grid-cell`: that selector
+ * matches the active strip's duplicate copy too, and the strip comes FIRST in
+ * document order. The old form therefore pulsed a sticky band that was already on
+ * screen and scrolled nowhere, while the grid cell the operator had just been sent
+ * to stayed wherever it was — on every issue click for a match still to be played,
+ * which is most of them. Pinned by Journey 132.
+ */
 function scrollToMatchUp(matchUpIds: string[]): void {
-  let cell: HTMLElement | null = null;
-  for (const mid of matchUpIds) {
-    cell = document.querySelector(`.spl-grid-cell[data-matchup-id="${mid}"]`);
-    if (cell) break;
-  }
+  const cell = preferredCellFor(matchUpIds);
   if (!cell) return;
 
   cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
