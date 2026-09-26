@@ -144,7 +144,10 @@ describe('Live Schedule example', () => {
  * only input: these tests need no fake timers, because the argument fully determines the output.
  */
 describe('Live Schedule example — at any hour of the day', () => {
-  const HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 23];
+  // 22 is in this list because it was NOT, and that is exactly how the midnight-wrap defect
+  // survived: the grid sampled 21:30 and 23:30 and stepped straight over a dead zone that ran
+  // 22:05-22:59. A sampled grid is evidence about the samples. The sweep below is the real guard.
+  const HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 22, 23];
 
   it.each(HOURS)('generates without error at %i:30', (hour) => {
     const result: any = mocksEngine.generateTournamentRecord(
@@ -197,5 +200,76 @@ describe('Live Schedule example — at any hour of the day', () => {
     const instants = scheduled().map(instantOf);
     expect(instants.filter((t) => t < now.getTime()).length).toBeGreaterThan(0);
     expect(instants.filter((t) => t > now.getTime()).length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The maintenance window, swept minute-coarse across the whole day.
+ *
+ * This is the guard the hour grid above could not be. The window is built by adding 115 minutes to
+ * a base instant and formatting both ends with `hhmm()`, which has no notion of a date — so any
+ * base late enough pushes `endTime` past midnight, where it formats as `00:xx` and reads as
+ * EARLIER than its own `startTime`. The factory refuses that with ERR_INVALID_DATE, and the whole
+ * example stops generating.
+ *
+ * Measured by reverting the fix and running this sweep — the loud failure is not the bigger one:
+ *
+ *   - **22:05-23:19** the window ran backwards and the factory refused the entire generation with
+ *     ERR_INVALID_DATE. The example could not open at all, and TMX CI could not go green, for those
+ *     ~75 minutes a day. This is how the defect was found: PR CI failed at 22:08 UTC having passed
+ *     at 22:00;
+ *   - **00:00-05:15 and 21:15-23:45 — 28 of these 96 cases** — the window lay outside the venue's
+ *     own 06:00-23:00 and nothing complained. Generation succeeded with the maintenance block on
+ *     closed courts, or on the following day. That half was invisible to every existing assertion.
+ *
+ * So this asserts the property rather than sampling outcomes: at every quarter hour of the day the
+ * window must run forwards and lie inside the venue's own hours. 96 cases, and no generation — it
+ * is pure profile construction, so it costs nothing.
+ */
+describe('Live Schedule example — the maintenance window never leaves the day', () => {
+  const VENUE_OPEN = '06:00';
+  const VENUE_CLOSE = '23:00';
+
+  /** Every quarter hour of a day, as `[hour, minute]`. */
+  const QUARTER_HOURS: [number, number][] = Array.from({ length: 96 }, (_, i) => [Math.floor(i / 4), (i % 4) * 15]);
+
+  function maintenanceWindow(hour: number, minute: number) {
+    const profile: any = buildLiveScheduleProfile(new Date(2026, 8, 24, hour, minute));
+    const timings = profile.venueProfiles[0].courtTimings;
+    const booking = timings.find((timing: any) => timing?.bookings?.length)?.bookings[0];
+    return { booking, venue: profile.venueProfiles[0] };
+  }
+
+  it('is a forward interval at every quarter hour — never wrapped past midnight', () => {
+    // Collected and asserted in one go so a failure names every offending time rather than only
+    // the first, which is what makes the shape of the dead zone readable from the output.
+    const wrapped = QUARTER_HOURS.filter(([hour, minute]) => {
+      const { booking } = maintenanceWindow(hour, minute);
+      return booking.endTime <= booking.startTime;
+    }).map(([hour, minute]) => `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
+
+    expect(wrapped, `window runs backwards when opened at: ${wrapped.join(', ')}`).toEqual([]);
+  });
+
+  it('lies inside the venue hours at every quarter hour', () => {
+    // `HH:MM` strings compare lexicographically in the same order as the clock, which is the whole
+    // reason the codebase stores them this way — so no parsing is needed here.
+    const outside = QUARTER_HOURS.filter(([hour, minute]) => {
+      const { booking, venue } = maintenanceWindow(hour, minute);
+      expect(venue.startTime).toEqual(VENUE_OPEN);
+      expect(venue.endTime).toEqual(VENUE_CLOSE);
+      return booking.startTime < VENUE_OPEN || booking.endTime > VENUE_CLOSE;
+    }).map(([hour, minute]) => `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
+
+    expect(outside, `window outside venue hours when opened at: ${outside.join(', ')}`).toEqual([]);
+  });
+
+  it('still overlaps the day where the demo is actually run, so a court really does go down', () => {
+    // The fix moved the window from `now` to the clamped anchor. Inside the demonstrating band the
+    // two are the same instant, so this pins that the change is a no-op exactly where it matters —
+    // without it, "never leaves the day" would be satisfied by a window pinned at 06:00 forever.
+    const { booking } = maintenanceWindow(14, 0);
+    expect(booking.startTime).toEqual('14:40');
+    expect(booking.endTime).toEqual('15:55');
   });
 });

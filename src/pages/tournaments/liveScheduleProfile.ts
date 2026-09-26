@@ -79,8 +79,24 @@ export function buildLiveScheduleProfile(now: Date = new Date()) {
   const scheduleDate = isoDate(now);
   const anchor = clampAnchor(now);
 
-  // A court goes down shortly after NOW, long enough to overlap matchUps already placed on it.
-  const blockStart = new Date(now.getTime() + 40 * 60_000);
+  // A court goes down shortly after the ANCHOR, long enough to overlap matchUps already placed on
+  // it. Measured from the anchor rather than from `now`, and that is the whole fix: the schedule
+  // sits against the anchor, so outside the clamp band `now` is not where the day is.
+  //
+  // `hhmm()` has no notion of a date, so a base instant late enough formatted an `endTime` past
+  // midnight as `00:xx` — earlier than its own `startTime`. Two failures came out of that, and the
+  // loud one is not the bigger one:
+  //   - 22:05-23:19: `endTime` wrapped but `startTime` had not, so the window ran BACKWARDS and the
+  //     factory refused the whole generation with ERR_INVALID_DATE. The example could not open at
+  //     all, and TMX CI could not go green, for those ~75 minutes a day;
+  //   - 00:00-05:15 and 21:15-23:45: the window lay outside the venue's own 06:00-23:00 — silently.
+  //     Generation succeeded and the maintenance block sat where no court was open, or on the
+  //     following day. 28 of 96 quarter hours, measured by the sweep in the test file.
+  //
+  // The anchor is clamped to ANCHOR_LATEST_HOUR at the latest, so the window now ends by 17:55 and
+  // is always inside venue hours. Inside the demonstrating band the anchor IS `now`, so nothing
+  // changes for the hours anyone actually runs the demo in — pinned at 14:00 by the test.
+  const blockStart = new Date(anchor.getTime() + 40 * 60_000);
   const blockEnd = new Date(blockStart.getTime() + 75 * 60_000);
 
   return {
