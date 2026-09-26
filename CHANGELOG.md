@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.30.0](https://github.com/CourtHive/TMX/compare/v8.29.0...v8.30.0) (2026-09-26)
+
+
+### Features
+
+* **schedule:** a pending rest row points at the matchUp that decides the side ([#1502](https://github.com/CourtHive/TMX/issues/1502)) ([efe284e](https://github.com/CourtHive/TMX/commit/efe284eaac90c06f68feff0368b0855327d81e71))
+
+
+### Bug Fixes
+
+* **examples:** the Live Schedule maintenance window stays inside the day ([#1505](https://github.com/CourtHive/TMX/issues/1505)) ([2946a81](https://github.com/CourtHive/TMX/commit/2946a81d58426069e58f0e5013d09de2d33e8e85))
+* **reports:** let the dev server reach the structure audit ([#1500](https://github.com/CourtHive/TMX/issues/1500)) ([c04a8a8](https://github.com/CourtHive/TMX/commit/c04a8a8e3101c7ce78f0366950b4a9c3a27fc7e9))
+* **schedule:** clicking an issue points at the grid cell, not the sticky strip ([#1504](https://github.com/CourtHive/TMX/issues/1504)) ([492f74a](https://github.com/CourtHive/TMX/commit/492f74a74e0c44554ce795ac20a5711837235338))
+
 ## [8.29.0](https://github.com/CourtHive/TMX/compare/v8.28.1...v8.29.0) (2026-09-25)
 
 
