@@ -24,6 +24,7 @@ import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { describeFinding, skipMessage } from './readinessDescribe';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { applyRelatedHighlight } from 'courthive-components';
+import { registerMatchUpHighlighter } from './locateMatchUp';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderTimingSection } from './inspectorTiming';
@@ -210,6 +211,15 @@ export interface CatalogSelection {
  * because the Inspector rebuilds its body on every state change.
  */
 export function renderInspectorSections(selection: CatalogSelection, viewedDate: string | null): HTMLElement | null {
+  // The rest section's pending rows point at the matchUp that decides an undecided
+  // side, and the paint they point with is this module's import. `inspectorRest`
+  // cannot reach it: the `courthive-components` barrel evaluates a datepicker that
+  // calls `document.createRange()` at load, and TMX runs vitest without a DOM — so
+  // importing it there takes four unit-test files down with it. Registered here on
+  // every render, last-writer-wins, which is `registerGridSearchControl`'s pattern
+  // and is what makes this the only place the barrel has to be reached from.
+  registerMatchUpHighlighter(applyRelatedHighlight);
+
   const matchUpId = selection.matchUpId;
   if (!matchUpId) return null;
 
