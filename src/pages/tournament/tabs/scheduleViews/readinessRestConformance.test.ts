@@ -166,3 +166,94 @@ describe('the divergence that must NOT be "fixed"', () => {
     expect(readinessReadyAt(schedule)).toBe('17:10');
   });
 });
+
+/**
+ * ── The part that must agree, second kind: WHICH matchUps count as prior ──
+ *
+ * Both analyses reason about a third matchUp that a participant has to come out
+ * of before this one. Rest counts only matchUps already begun
+ * (`collectPriorMatchUps` drops anything neither finished nor under way) and its
+ * comment names readiness as where a not-yet-started neighbour belongs — as
+ * `overlap` or `dependency`.
+ *
+ * Readiness did not hold up its end. Ordering was consulted only by its overlap
+ * test, so a neighbour scheduled LATER fell through to the recovery arithmetic
+ * and had its projected finish charged against a matchUp hours earlier. The two
+ * sections then contradicted each other four lines apart in one panel: "needs
+ * recovery time — not before 16:30" directly under "No prior match today".
+ *
+ * Reproduced here with the figures off the tournament it was reported on
+ * (`Battle of Boca`, prod, 2026-09-27).
+ */
+describe('both analyses agree on which matchUps can be prior', () => {
+  const LATER_DATE = '2026-09-27';
+  const SINGLES_AT_0930: ReadinessMatchUp = {
+    matchUpId: 'r16',
+    matchUpType: 'SINGLES',
+    roundName: 'R16',
+    sides: [{ participantId: 'sofiia' }, { participantId: 'maria' }],
+    schedule: { scheduledDate: LATER_DATE, scheduledTime: '09:30' },
+  };
+  const DOUBLES_AT_1430: ReadinessMatchUp = {
+    matchUpId: 'dsf',
+    matchUpType: 'DOUBLES',
+    roundName: 'Semifinal',
+    sides: [{ participantId: 'pair', participant: { participantId: 'pair', individualParticipantIds: ['sofiia'] } }],
+    schedule: { scheduledDate: LATER_DATE, scheduledTime: '14:30' },
+  };
+  const DOUBLES_TIMING: RestTiming = { averageMinutes: 90, recoveryMinutes: 30, typeChangeRecoveryMinutes: 0 };
+  const both = [SINGLES_AT_0930, DOUBLES_AT_1430];
+
+  it('rest reports no prior match for the 09:30 singles', () => {
+    const result = analyzeParticipantRest({
+      matchUpId: 'r16',
+      matchUps: both,
+      scheduledDate: LATER_DATE,
+      asOfMinutes: 9 * 60, // before either match
+      timingFor: () => DOUBLES_TIMING,
+      timesFor: (matchUp) => (matchUp.matchUpId === 'dsf' ? { scheduledMinutes: 14 * 60 + 30 } : {}),
+      dailyLimits: undefined,
+    }) as any;
+    const sofiia = result.rows.find((row: any) => row.participantId === 'sofiia');
+    expect(sofiia.status).toBe('none');
+    expect(sofiia.load.ordinal).toBe(1);
+  });
+
+  it('readiness does not charge the 09:30 singles for the 14:30 doubles either', () => {
+    // 14:30 + 90 average + 30 recovery is 16:30 — the figure the panel showed.
+    const result = analyzeMatchUpReadiness({
+      matchUpId: 'r16',
+      matchUps: both,
+      timingFor: () => DOUBLES_TIMING,
+    }) as any;
+    expect(result.findings).toEqual([]);
+  });
+
+  it('and both still charge the 14:30 doubles for a singles it really does follow', () => {
+    // The control: move the singles to 13:45 so it finishes 15:15 and frees at
+    // 15:45, past the doubles' 14:30 start. Neither analysis may go quiet here.
+    const singles = { ...SINGLES_AT_0930, schedule: { scheduledDate: LATER_DATE, scheduledTime: '13:45' } };
+    const matchUps = [singles, DOUBLES_AT_1430];
+
+    const readiness = analyzeMatchUpReadiness({
+      matchUpId: 'dsf',
+      matchUps,
+      timingFor: () => DOUBLES_TIMING,
+    }) as any;
+    expect(readiness.findings.map((finding: any) => finding.kind)).toEqual(['overlap']);
+
+    const rest = analyzeParticipantRest({
+      matchUpId: 'dsf',
+      matchUps,
+      scheduledDate: LATER_DATE,
+      asOfMinutes: 14 * 60, // the singles is under way
+      timingFor: () => DOUBLES_TIMING,
+      timesFor: (matchUp) =>
+        matchUp.matchUpId === 'r16' ? { scheduledMinutes: 13 * 60 + 45 } : { scheduledMinutes: 14 * 60 + 30 },
+      dailyLimits: undefined,
+    }) as any;
+    const sofiia = rest.rows.find((row: any) => row.participantId === 'sofiia');
+    expect(sofiia.status).toBe('onCourt');
+    expect(sofiia.load.ordinal).toBe(2);
+  });
+});
