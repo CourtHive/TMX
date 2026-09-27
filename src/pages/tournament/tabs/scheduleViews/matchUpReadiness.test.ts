@@ -248,6 +248,122 @@ describe('analyzeMatchUpReadiness — recovery', () => {
   });
 });
 
+/**
+ * Recovery is time owed for a match ALREADY BEGUN, and the rule is therefore
+ * DIRECTIONAL. Nothing enforced that: ordering was consulted only by the overlap
+ * test, so every same-day neighbour scheduled later fell through to the recovery
+ * arithmetic and had its projected finish read as a floor for a matchUp hours
+ * earlier.
+ *
+ * The first pair is the shape that matters — one fixture, graded from both ends.
+ * A test that only asserted silence for a later neighbour would also pass with
+ * the recovery branch deleted outright.
+ */
+describe('analyzeMatchUpReadiness — recovery is directional', () => {
+  // Alice plays at 09:30 and again at 11:15. 09:30 + 90 = 11:00, + 30 recovery
+  // = 11:30, so the pair straddles the 11:15 start: the LATER matchUp is short
+  // of recovery, the earlier one owes nothing to a match it precedes.
+  const early = matchUp({ matchUpId: 'EARLY', schedule: scheduled('09:30'), sides: [player('p1', 'Alice')] });
+  const late = matchUp({ matchUpId: 'LATE', schedule: scheduled('11:15'), sides: [player('p1', 'Alice')] });
+
+  it('fires when grading the later matchUp', () => {
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'LATE', matchUps: [early, late], timingFor: timing() });
+    expect(kinds(result)).toEqual(['recovery']);
+    expect(result.findings[0].notBefore).toBe('11:30');
+  });
+
+  it('stays silent for the same pair when grading the earlier one', () => {
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'EARLY', matchUps: [early, late], timingFor: timing() });
+    expect(result.findings).toEqual([]);
+  });
+
+  /**
+   * Prod 2026-09-27, `Battle of Boca` — the report this rule came from. The
+   * Inspector graded a 09:30 R16 singles and reported "needs recovery time — not
+   * before 16:30" off the player's 14:30 doubles semifinal, which she had not
+   * walked on court for. 14:30 + 90 average + 30 recovery is exactly 16:30, four
+   * lines under a rest section correctly reading "No prior match today".
+   */
+  it('does not charge a 09:30 singles for a 14:30 doubles the player has not played', () => {
+    const singles = matchUp({ matchUpId: 'R16', schedule: scheduled('09:30'), sides: [player('p1', 'Alice')] });
+    const doubles = matchUp({
+      matchUpId: 'SF',
+      matchUpType: 'DOUBLES',
+      schedule: scheduled('14:30'),
+      sides: [{ participantId: 'pair1', participant: { participantId: 'pair1', individualParticipantIds: ['p1'] } }],
+    });
+    let result: any = analyzeMatchUpReadiness({
+      matchUpId: 'R16',
+      matchUps: [singles, doubles],
+      timingFor: timing(),
+    });
+    expect(result.findings).toEqual([]);
+  });
+
+  /**
+   * The gate reads `startTime` before `scheduledTime` — the same order of
+   * authority `finishOf` reads them in — so it cannot excuse a neighbour that
+   * went on EARLY. Suppressing by the plan would have hidden a live clash, which
+   * is a worse failure than the one being fixed.
+   */
+  it('still fires for a neighbour scheduled later that in fact started earlier', () => {
+    const target = matchUp({ matchUpId: 'T', schedule: scheduled('09:30') });
+    // Planned 10:00, actually on court at 08:00 → finishes 09:30, free 10:00.
+    const early = matchUp({
+      matchUpId: 'E',
+      sides: [player('p1', 'Alice')],
+      schedule: { scheduledDate: DATE, scheduledTime: '10:00', startTime: '08:00' },
+    });
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'T', matchUps: [target, early], timingFor: timing() });
+    expect(kinds(result)).toEqual(['recovery']);
+    expect(result.findings[0].notBefore).toBe('10:00');
+  });
+
+  /**
+   * A recorded `endTime` is the last rung of the gate, and the only one that can
+   * date a matchUp scheduled for the day with no time on it. Without it such a
+   * neighbour has no anchor, falls through, and is charged for exactly as before.
+   */
+  it('reads a recorded endTime as the neighbour date of last resort', () => {
+    const target = matchUp({ matchUpId: 'T', schedule: scheduled('09:30') });
+    const later = matchUp({
+      matchUpId: 'L',
+      matchUpStatus: 'COMPLETED',
+      winningSide: 1,
+      sides: [player('p1', 'Alice')],
+      schedule: { scheduledDate: DATE, endTime: '14:00' },
+    });
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'T', matchUps: [target, later], timingFor: timing() });
+    expect(result.findings).toEqual([]);
+  });
+
+  /**
+   * Scheduled for the day and nothing else. Nothing dates it, so the gate cannot
+   * place it and the projection cannot price it — reported by neither branch
+   * rather than guessed at.
+   */
+  it('stays silent for a neighbour with a date but no clock at all', () => {
+    const target = matchUp({ matchUpId: 'T', schedule: scheduled('09:30') });
+    const undated = matchUp({ matchUpId: 'U', sides: [player('p1', 'Alice')], schedule: { scheduledDate: DATE } });
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'T', matchUps: [target, undated], timingFor: timing() });
+    expect(result.findings).toEqual([]);
+  });
+
+  it('charges a neighbour whose recorded endTime is behind the start time — the control', () => {
+    const target = matchUp({ matchUpId: 'T', schedule: scheduled('09:30') });
+    const earlier = matchUp({
+      matchUpId: 'L',
+      matchUpStatus: 'COMPLETED',
+      winningSide: 1,
+      sides: [player('p1', 'Alice')],
+      schedule: { scheduledDate: DATE, endTime: '09:15' },
+    });
+    let result: any = analyzeMatchUpReadiness({ matchUpId: 'T', matchUps: [target, earlier], timingFor: timing() });
+    expect(kinds(result)).toEqual(['recovery']);
+    expect(result.findings[0].notBefore).toBe('09:45');
+  });
+});
+
 describe('analyzeMatchUpReadiness — dependency', () => {
   // S feeds T: S.winnerMatchUpId === 'T'.
   const source = (overrides: Partial<ReadinessMatchUp> = {}) =>
