@@ -54,12 +54,16 @@ export interface InspectorActionModel {
  * The individuals one side contributes.
  *
  * A hydrated pair or team carries `individualParticipants`, and those are the
- * people a director wants to open — `nameFor` deliberately returns the *side*
- * label, which would list one doubles pair's name twice and offer neither
- * player. A side with no members falls back to the side participant itself
- * (a singles player, or a pair whose members were not hydrated); a side with
- * no participant at all is still TBD and contributes nothing, because there is
- * no card to open.
+ * people a director wants to open. A side with no members falls back to the side
+ * participant itself (a singles player, or a pair whose members were not
+ * hydrated); a side with no participant at all is still TBD and contributes
+ * nothing, because there is no card to open.
+ *
+ * This walks the side itself rather than going through `matchUpReadiness.nameFor`,
+ * which answers a different question: one name for one participantId. Opening
+ * cards needs the id AND the name for EVERY member, which is a different shape,
+ * not a different naming rule — `nameFor` now returns a pair member's own name
+ * too, so the two no longer disagree about what a person is called.
  */
 function sideParticipants(side: ReadinessSide): InspectorActionParticipant[] {
   const members = side.participant?.individualParticipants ?? [];

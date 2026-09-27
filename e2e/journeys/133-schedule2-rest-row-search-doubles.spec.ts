@@ -27,13 +27,17 @@ import { TournamentPage } from '../pages/TournamentPage';
  *
  * ── Why the row is located by data-participant-id, not by its text ──
  *
- * `matchUpReadiness.nameFor()` labels a row with the first SIDE it finds the
- * participant on, so a player in two events is labelled from whichever event's
- * matchUps `allTournamentMatchUps` happens to return first. That ordering is not
- * this journey's subject and pinning a test to it would make the test about the
- * order. The row carries `data-participant-id`, which is the identity the click
- * actually resolves, so the assertions anchor on that and then say separately what
- * the row displays.
+ * The row's label is `matchUpReadiness.nameFor()`'s answer, and what it is called is
+ * not what this journey is about — the click resolves an IDENTITY, and
+ * `data-participant-id` is that identity. Anchoring there keeps the journey pointed
+ * at the behaviour under test rather than at a label a display config could change.
+ *
+ * It mattered more than style when this was written: `nameFor` labelled a pair
+ * member from the first SIDE it found them on, so a player in two events was named
+ * from whichever event `allTournamentMatchUps` returned first — their own name from
+ * the singles side, their pair's from the doubles side. That is fixed in the same
+ * arc as this journey (`nameFor` now returns the member's own name), so the label is
+ * deterministic today. The id is still the honest anchor.
  *
  * ── Why the premise is asserted ──
  *

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { analyzeMatchUpReadiness, earliestStart, individualIds, minutesToClock } from './matchUpReadiness';
+import { analyzeMatchUpReadiness, earliestStart, individualIds, minutesToClock, nameFor } from './matchUpReadiness';
 
 // constants and types
 import type { ReadinessMatchUp, ReadinessTiming } from './matchUpReadiness';
@@ -67,6 +67,85 @@ describe('individualIds', () => {
   it('falls back to the side participantId when members are unknown', () => {
     const ids = individualIds(matchUp({ matchUpId: 'M', sides: [{ participantId: 'solo' }] }));
     expect(ids).toEqual(['solo']);
+  });
+});
+
+/**
+ * `nameFor` answers about a PERSON — a rest row measures one player's recovery, a
+ * clash finding names who is in two places at once. It used to fall through to the
+ * side label for anyone inside a pair, so a doubles entrant was named after their
+ * pair.
+ */
+describe('nameFor', () => {
+  const AIDEN = 'p-aiden';
+  const AIDEN_NAME = 'Aiden Phoebus';
+  const PAIR_NAME = 'Phoebus/Smith';
+
+  const hydratedPair = (): any => ({
+    participantId: 'pair1',
+    participant: {
+      participantId: 'pair1',
+      participantName: PAIR_NAME,
+      individualParticipantIds: [AIDEN, 'p-ravi'],
+      individualParticipants: [
+        { participantId: AIDEN, participantName: AIDEN_NAME },
+        { participantId: 'p-ravi', participantName: 'Ravi Smith' },
+      ],
+    },
+  });
+
+  it('names a singles player from their own side', () => {
+    const singles = matchUp({ matchUpId: 'S', sides: [player(AIDEN, AIDEN_NAME), player('p2', 'Bob')] });
+    expect(nameFor(AIDEN, [singles])).toBe(AIDEN_NAME);
+  });
+
+  it('names a PAIR MEMBER by their own name, not by the pair', () => {
+    // The fix. A row standing for one person was labelled with two.
+    const doubles = matchUp({ matchUpId: 'D', sides: [hydratedPair(), player('p2', 'Bob')] });
+    expect(nameFor(AIDEN, [doubles])).toBe(AIDEN_NAME);
+    expect(nameFor(AIDEN, [doubles])).not.toBe(PAIR_NAME);
+  });
+
+  it('gives the same answer whichever event comes first', () => {
+    // It used to depend on the order `allTournamentMatchUps` returned events in: a
+    // player entered in both got their own name from the singles side or their
+    // pair's from the doubles side, whichever the walk reached first.
+    const singles = matchUp({ matchUpId: 'S', sides: [player(AIDEN, AIDEN_NAME), player('p2', 'Bob')] });
+    const doubles = matchUp({ matchUpId: 'D', sides: [hydratedPair(), player('p3', 'Cass')] });
+    expect(nameFor(AIDEN, [singles, doubles])).toBe(AIDEN_NAME);
+    expect(nameFor(AIDEN, [doubles, singles])).toBe(AIDEN_NAME);
+  });
+
+  it('falls back to the pair label when the members were not hydrated', () => {
+    // A worse answer than the person's name, a much better one than a raw id.
+    const unhydrated = matchUp({
+      matchUpId: 'D',
+      sides: [
+        {
+          participantId: 'pair1',
+          participant: { participantId: 'pair1', participantName: PAIR_NAME, individualParticipantIds: [AIDEN] },
+        },
+      ],
+    });
+    expect(nameFor(AIDEN, [unhydrated])).toBe(PAIR_NAME);
+  });
+
+  it('falls back to the participantId when no side carries the participant', () => {
+    expect(nameFor('p-nobody', [matchUp({ matchUpId: 'M' })])).toBe('p-nobody');
+  });
+
+  it('names BOTH members when a pair clashes with itself, rather than deduping to one', () => {
+    // `toFinding` dedupes `participantNames` through a Set. Two members named after
+    // the same pair collapsed to a single entry, so a finding affecting two people
+    // reported one.
+    const target = matchUp({ matchUpId: 'T', schedule: scheduled('10:00'), sides: [hydratedPair()] });
+    const neighbour = matchUp({ matchUpId: 'N', schedule: scheduled('09:30'), sides: [hydratedPair()] });
+    let result: any = analyzeMatchUpReadiness({
+      matchUpId: 'T',
+      matchUps: [target, neighbour],
+      timingFor: timing(),
+    });
+    expect(result.findings[0].participantNames).toEqual([AIDEN_NAME, 'Ravi Smith']);
   });
 });
 

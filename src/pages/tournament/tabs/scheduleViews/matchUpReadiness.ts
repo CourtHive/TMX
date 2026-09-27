@@ -435,11 +435,39 @@ type ParticipantClash = {
   notBefore?: string;
 };
 
-/** Name for a participantId, taken from whichever matchUp side carries it. */
+/**
+ * Name for a participantId — the PERSON's own name, not the side they played on.
+ *
+ * Both consumers ask about a person. A rest row measures one player's recovery; a
+ * clash finding names who is in two matchUps at once. This used to fall through to
+ * the side label for anyone inside a pair, so a doubles entrant's rest row read
+ * `Jensen/Nearing` — a row standing for one person, labelled with two — and a clash
+ * between both members of a pair deduped to a single name, hiding that two people
+ * were affected.
+ *
+ * It also made the answer depend on ARRAY ORDER: a player entered in singles and
+ * doubles got whichever event `allTournamentMatchUps` happened to return first,
+ * their own name from the singles side or their pair's from the doubles side. Now
+ * every path yields the same name.
+ *
+ * ── Why this could not be fixed before the search became identity-based ──
+ *
+ * The rest row drives the court grid's search, and the search matched CELL TEXT. A
+ * doubles cell prints the pair name, so labelling the row with the individual would
+ * have handed the search a string no cell carried — trading a row that reads wrong
+ * for a click that does nothing. `gridSearchIndex.ts` resolves a name to
+ * participantIds instead, so the label and the match no longer have to agree.
+ *
+ * The pair label survives as a FALLBACK, for a side whose members were not
+ * hydrated: it is a worse answer than the person's name and a much better one than
+ * a raw id.
+ */
 export function nameFor(participantId: string, matchUps: ReadinessMatchUp[]): string {
   for (const matchUp of matchUps) {
     for (const side of matchUp.sides ?? []) {
       if ((side.participantId ?? side.participant?.participantId) === participantId) return sideLabel(side);
+      const member = side.participant?.individualParticipants?.find((m) => m.participantId === participantId);
+      if (member?.participantName) return member.participantName;
       if (side.participant?.individualParticipantIds?.includes(participantId)) return sideLabel(side);
     }
   }
