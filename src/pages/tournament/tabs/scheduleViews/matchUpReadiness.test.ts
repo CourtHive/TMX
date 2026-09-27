@@ -364,6 +364,84 @@ describe('analyzeMatchUpReadiness — recovery is directional', () => {
   });
 });
 
+/**
+ * The directional gate skips ONE neighbour, and every case above grades a target
+ * that has only the one. The arrangement reported on prod is both at once: a
+ * player's day is earlier match → this match → later match, so the target sits
+ * BETWEEN a neighbour that can owe recovery and a neighbour that cannot.
+ *
+ * Nothing pinned that. A gate written as an early exit from the pass rather than
+ * from the iteration would satisfy every case above and go silent here on the
+ * neighbour that really does owe — which is the failure mode that matters, since
+ * suppressing a true recovery finding is worse than the false one being fixed.
+ *
+ * `Battle of Boca`, prod 2026-09-27, the second report off this defect: a 13:30
+ * singles quarterfinal read "needs recovery time — not before 16:30" off the
+ * player's 14:30 doubles, directly under a rest section correctly reading
+ * "1h 54m rested — 1h 0m required" from her 09:30 R16. Her partner's opponent,
+ * entered in no doubles draw, drew no finding from the identical singles day —
+ * which is what identified the later matchUp as the source.
+ */
+describe('analyzeMatchUpReadiness — a target between an earlier and a later neighbour', () => {
+  const target = matchUp({ matchUpId: 'T', roundName: 'Quarterfinal', schedule: scheduled('13:30') });
+  /** Finished, and far enough back that its recovery has expired: 09:30 + 90 + 30 = 11:30. */
+  const earlierSpent = matchUp({
+    matchUpId: 'EARLIER',
+    matchUpStatus: 'COMPLETED',
+    winningSide: 1,
+    sides: [player('p1', 'Alice')],
+    schedule: scheduled('09:30'),
+  });
+  /** Finished, and recent enough to still owe: 12:30 + 90 + 30 = 14:30. */
+  const earlierOwing = matchUp({
+    matchUpId: 'EARLIER',
+    matchUpStatus: 'COMPLETED',
+    winningSide: 1,
+    sides: [player('p1', 'Alice')],
+    schedule: scheduled('12:30'),
+  });
+  /** Not played, and after the target — the neighbour the gate exists for. */
+  const later = matchUp({
+    matchUpId: 'LATER',
+    matchUpType: 'DOUBLES',
+    roundName: 'Quarterfinal',
+    sides: [{ participantId: 'pair1', participant: { participantId: 'pair1', individualParticipantIds: ['p1'] } }],
+    schedule: scheduled('14:30'),
+  });
+
+  it('reports nothing when the earlier neighbour is spent and the later one is only planned', () => {
+    const result: any = analyzeMatchUpReadiness({
+      matchUpId: 'T',
+      matchUps: [target, earlierSpent, later],
+      timingFor: timing(),
+    });
+    expect(result.findings).toEqual([]);
+  });
+
+  it('still charges the earlier neighbour that owes, and names only it', () => {
+    const result: any = analyzeMatchUpReadiness({
+      matchUpId: 'T',
+      matchUps: [target, earlierOwing, later],
+      timingFor: timing(),
+    });
+    expect(kinds(result)).toEqual(['recovery']);
+    expect(result.findings[0].matchUpIds).toEqual(['EARLIER']);
+    expect(result.findings[0].notBefore).toBe('14:30');
+  });
+
+  it('puts the clash on the later matchUp, where the target is the thing in the way', () => {
+    // 13:30 + 90 = 15:00, so the target's playing window contains the 14:30 start.
+    const result: any = analyzeMatchUpReadiness({
+      matchUpId: 'LATER',
+      matchUps: [target, earlierSpent, later],
+      timingFor: timing(),
+    });
+    expect(kinds(result)).toEqual(['overlap']);
+    expect(result.findings[0].matchUpIds).toEqual(['T']);
+    expect(result.findings[0].participantNames).toEqual(['Alice']);
+  });
+});
+
 describe('analyzeMatchUpReadiness — dependency', () => {
   // S feeds T: S.winnerMatchUpId === 'T'.
   const source = (overrides: Partial<ReadinessMatchUp> = {}) =>
