@@ -288,6 +288,7 @@ import { registerScheduleMutationControl, resetScheduleMutationControl } from '.
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
+import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
@@ -1507,7 +1508,47 @@ function ensureSearchHighlightStyle(): void {
   document.head.appendChild(style);
 }
 
-/** Highlight grid cells matching search text; scroll first match into view. */
+/**
+ * The identity index, rebuilt only when the matchUps behind it are replaced.
+ *
+ * `getCachedAllMatchUps()` is mutation-invalidated, so a new `matchUps` array IS the
+ * signal that the index is stale — keying the memo on the array's identity means a
+ * keystroke costs a Map lookup rather than a walk over every matchUp in the
+ * tournament, and a score entry or a drag still gets a fresh index on the next
+ * search without this module subscribing to anything.
+ */
+let searchIndexSource: any = null;
+let searchIndexCache: GridSearchIndex | null = null;
+
+/** MatchUps the query resolves to by participant identity. Empty for a non-name query. */
+function identityMatchUpIds(query: string): Set<string> {
+  const { matchUps } = getCachedAllMatchUps() || {};
+  if (searchIndexSource !== matchUps || !searchIndexCache) {
+    searchIndexSource = matchUps;
+    searchIndexCache = buildGridSearchIndex(matchUps);
+  }
+  return new Set(matchUpIdsForQuery(searchIndexCache, query));
+}
+
+/**
+ * Highlight grid cells matching the search; scroll the first match into view.
+ *
+ * Two matchers, unioned, because they answer different questions and neither
+ * subsumes the other:
+ *
+ *   - **identity** — `matchUpIdsForQuery` resolves a name to participantIds and those
+ *     to matchUps. This is what finds a player in DOUBLES: the cell displays the pair
+ *     participant's name, which the factory composes from family names alone, so
+ *     "Aiden Phoebus" is not in that cell's text and never can be. Clicking his rest
+ *     row used to highlight his singles and silently miss his doubles;
+ *   - **text** — `cellSearchText`, unchanged. Cells render an event name, a round
+ *     label, an umpire, a score and a court annotation, none of which is in the index.
+ *     Replacing the text walk would have fixed doubles and broken "find the cell with
+ *     the umpire I need to move".
+ *
+ * So identity only ever ADDS cells, which is also what makes it safe for the index to
+ * fold diacritics when the text path does not.
+ */
 export function searchGridCells(text: string): void {
   if (!gridRootElement) return;
   ensureSearchHighlightStyle();
@@ -1519,12 +1560,15 @@ export function searchGridCells(text: string): void {
   const needle = searchNormalize(text);
   if (!needle) return;
 
+  const identityMatches = identityMatchUpIds(text);
   const cells = gridRootElement.querySelectorAll(`[${DATA_MATCHUP_ID}]`);
   let firstMatch: HTMLElement | null = null;
 
   for (const cell of cells) {
     const el = cell as HTMLElement;
-    if (cellSearchText(el).includes(needle)) {
+    const matchUpId = el.dataset.matchupId;
+    const matched = (!!matchUpId && identityMatches.has(matchUpId)) || cellSearchText(el).includes(needle);
+    if (matched) {
       el.classList.add(SEARCH_HIGHLIGHT_CLASS);
       firstMatch ??= el;
     }
@@ -3549,6 +3593,7 @@ function scheduledMatchUpToCatalogItem(m: any): CatalogMatchUpItem {
       participantName: s.participant?.participantName ?? s.participantName,
       participantId: s.participantId ?? s.participant?.participantId,
       seedNumber: s.seedValue ?? s.seedNumber,
+      individualParticipants: s.participant?.individualParticipants,
     })),
     isScheduled: false,
     scheduledTime: m.schedule?.scheduledTime,
@@ -3624,6 +3669,7 @@ function buildCatalog(selectedDate: string): CatalogMatchUpItem[] {
           participantName: s.participant?.participantName ?? s.participantName,
           participantId: s.participantId ?? s.participant?.participantId,
           seedNumber: s.seedValue ?? s.seedNumber,
+          individualParticipants: s.participant?.individualParticipants,
         })),
         isScheduled,
         scheduledTime: isScheduled ? schedule?.scheduledTime : undefined,
