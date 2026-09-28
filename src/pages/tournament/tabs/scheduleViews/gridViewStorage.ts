@@ -6,7 +6,7 @@ import type { CheckInPromptMode } from 'services/checkIn/checkInPromptMode';
 const CHECK_IN_PROMPT_MODE_KEY = 'tmx.schedule.checkInPromptMode';
 
 /**
- * `gridView.ts` persists five pieces of view state across page reloads via
+ * `gridView.ts` persists six pieces of view state across page reloads via
  * `localStorage`:
  *
  *   - which sidebar tab the operator was last on (Unscheduled / Scheduled)
@@ -16,8 +16,9 @@ const CHECK_IN_PROMPT_MODE_KEY = 'tmx.schedule.checkInPromptMode';
  *   - whether the Inspector panel is shown (global to the matchUp catalog —
  *     one flag for BOTH the Unscheduled and Scheduled views, because it is a
  *     property of the catalog surface rather than of either tab)
+ *   - whether warning-severity scheduling issues decorate their grid cells
  *
- * All five read / write pairs share a common contract: writes wrap
+ * All six read / write pairs share a common contract: writes wrap
  * `localStorage` in a `try { … } catch {}` so a sandboxed iframe (or
  * Storage-blocked browser) silently no-ops; reads return a sane default on
  * the same exception path so the UI always boots into a valid state.
@@ -37,6 +38,7 @@ const SCHEDULED_SEARCH_KEY = 'schedule2:scheduled-search';
 const SCHEDULED_GROUPBY_KEY = 'schedule2:scheduled-groupby';
 const SCHEDULED_FILTERS_KEY = 'schedule2:scheduled-filters';
 const INSPECTOR_VISIBLE_KEY = 'schedule2:inspector-visible';
+const GRID_WARNING_BARS_KEY = 'schedule2:grid-warning-bars';
 
 const VALID_GROUPBY: MatchUpCatalogGroupBy[] = ['event', 'draw', 'round', 'structure', 'time'];
 
@@ -140,6 +142,39 @@ export function writeInspectorVisible(visible: boolean): void {
   try {
     if (visible) localStorage.removeItem(INSPECTOR_VISIBLE_KEY);
     else localStorage.setItem(INSPECTOR_VISIBLE_KEY, 'false');
+  } catch {
+    // storage unavailable
+  }
+}
+
+// ── Grid warning bars ──
+
+/**
+ * Whether warning-severity scheduling issues decorate their grid cells.
+ *
+ * Defaults to VISIBLE, which is the behaviour that existed before the toggle: an
+ * operator who has never opened the Issues popover must not silently lose a cue they
+ * were relying on. Only an explicit `'false'` suppresses them — a missing, malformed or
+ * unreadable value falls back to showing them, because the failure direction that hides
+ * information from a director is the worse one.
+ *
+ * ERROR-severity decoration is not governed by this at all; see `decoratesCell`.
+ *
+ * Same shape as `readInspectorVisible` above, deliberately: two view preferences that
+ * behave differently for no reason are two things to remember instead of one.
+ */
+export function readGridWarningBars(): boolean {
+  try {
+    return localStorage.getItem(GRID_WARNING_BARS_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+export function writeGridWarningBars(visible: boolean): void {
+  try {
+    if (visible) localStorage.removeItem(GRID_WARNING_BARS_KEY);
+    else localStorage.setItem(GRID_WARNING_BARS_KEY, 'false');
   } catch {
     // storage unavailable
   }

@@ -4,7 +4,9 @@ import {
   readScheduledFilters,
   readScheduledGroupBy,
   readScheduledSearch,
+  readGridWarningBars,
   readSidebarTab,
+  writeGridWarningBars,
   writeInspectorVisible,
   writeScheduledFilters,
   writeScheduledGroupBy,
@@ -195,5 +197,61 @@ describe('inspector visibility', () => {
   it('does not throw when storage throws on write', () => {
     installThrowingStorage();
     expect(() => writeInspectorVisible(false)).not.toThrow();
+  });
+});
+
+/**
+ * The warning-bars preference governs whether warning-severity scheduling issues
+ * decorate their grid cells. The failure direction that matters is asymmetric: losing
+ * the preference must restore the bars, never remove them, because an operator who never
+ * touched the toggle must not silently stop being shown warnings.
+ */
+const WARNING_BARS_KEY = 'schedule2:grid-warning-bars';
+
+describe('grid warning bars', () => {
+  beforeEach(installMemoryStorage);
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('defaults to visible when nothing is stored', () => {
+    expect(readGridWarningBars()).toBe(true);
+  });
+
+  it('round-trips suppressed and back', () => {
+    writeGridWarningBars(false);
+    expect(readGridWarningBars()).toBe(false);
+    writeGridWarningBars(true);
+    expect(readGridWarningBars()).toBe(true);
+  });
+
+  it('stores nothing for the default — visible removes the key rather than writing "true"', () => {
+    writeGridWarningBars(false);
+    expect(localStorage.getItem(WARNING_BARS_KEY)).toBe('false');
+    writeGridWarningBars(true);
+    expect(localStorage.getItem(WARNING_BARS_KEY)).toBeNull();
+  });
+
+  it('treats any value other than "false" as visible, so malformed storage cannot hide the bars', () => {
+    localStorage.setItem(WARNING_BARS_KEY, 'nonsense');
+    expect(readGridWarningBars()).toBe(true);
+    localStorage.setItem(WARNING_BARS_KEY, 'FALSE');
+    expect(readGridWarningBars()).toBe(true);
+  });
+
+  it('falls back to visible when storage throws on read', () => {
+    installThrowingStorage();
+    expect(readGridWarningBars()).toBe(true);
+  });
+
+  it('does not throw when storage throws on write', () => {
+    installThrowingStorage();
+    expect(() => writeGridWarningBars(false)).not.toThrow();
+  });
+
+  it('does not share a key with the Inspector preference', () => {
+    // Two booleans in one namespace with adjacent semantics: a copy-paste that reused
+    // the Inspector key would pass every test above while hiding the Inspector.
+    writeGridWarningBars(false);
+    expect(localStorage.getItem(INSPECTOR_KEY)).toBeNull();
+    expect(readInspectorVisible()).toBe(true);
   });
 });

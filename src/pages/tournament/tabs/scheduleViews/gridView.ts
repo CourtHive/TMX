@@ -29,6 +29,7 @@ import {
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
 import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
+import { decoratesCell, severityOf } from './scheduleIssueSeverity';
 import {
   handleActiveStripNowClick,
   handleSchedule2CellClick,
@@ -282,6 +283,8 @@ import {
   readCheckInPromptMode,
   readInspectorVisible,
   writeInspectorVisible,
+  readGridWarningBars,
+  writeGridWarningBars,
   type SidebarTab,
 } from './gridViewStorage';
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
@@ -601,6 +604,16 @@ export function renderGridView(
     },
     onBulkModeChange: options?.onBulkModeChange ?? (() => undefined),
     onClearSchedule: options?.onClearSchedule,
+    warningBarsVisible: readGridWarningBars(),
+    // `grid.rebuild` rather than `refresh()`: refresh re-renders the issues cluster,
+    // which destroys the popover the operator just clicked in. Re-annotating the cells
+    // is the whole of the change, and it leaves the list open beside the grid it is
+    // explaining. The issue SET is unchanged either way — this hides decoration, not
+    // issues — so nothing in the popover goes stale.
+    onWarningBarsChange: (visible: boolean) => {
+      writeGridWarningBars(visible);
+      grid?.rebuild(currentDate);
+    },
     // Bulk pin/unpin for the viewed date. Refreshes rather than mutating cells
     // in place: a lock changes the affordance on every affected cell.
     onScheduleLock: (target: HTMLElement) =>
@@ -3705,6 +3718,11 @@ export function buildScheduleDates(selectedDate: string): ScheduleDate[] {
 /**
  * Apply issue severity indicators to court column headers and row number labels.
  * Uses a left border accent matching the cell issue colors.
+ *
+ * Gated on the same warning-bars preference as the cells. Leaving the headers out of it
+ * would be half a feature: the cells would go quiet while every court column kept a
+ * yellow underline, which is the same noise the operator turned off, drawn one row
+ * higher. Errors are never filtered, so a red header survives regardless.
  */
 function applyHeaderRowIssueIndicators(
   courtHeaders: HTMLElement[],
@@ -3722,6 +3740,10 @@ function applyHeaderRowIssueIndicators(
   const result = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
   if (!result) return;
 
+  const warningBarsVisible = readGridWarningBars();
+  /** Drops the issues whose decoration the operator has turned off. Errors always survive. */
+  const decorated = (issues: any[] | undefined): any[] =>
+    (issues ?? []).filter((issue) => decoratesCell(issue?.issue, warningBarsVisible));
   const conflicts = { courtIssues: result.courtIssues || {}, rowIssues: result.rowIssues || {} };
 
   const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING } = scheduleConstants;
@@ -3767,8 +3789,8 @@ function applyHeaderRowIssueIndicators(
   for (let ci = 0; ci < courtHeaders.length; ci++) {
     const courtId = courtsData[ci]?.courtId;
     if (!courtId) continue;
-    const issues = conflicts.courtIssues[courtId];
-    if (!issues?.length) continue;
+    const issues = decorated(conflicts.courtIssues[courtId]);
+    if (!issues.length) continue;
     const topIssue = topSeverity(issues);
     courtHeaders[ci].style.borderBottom = `3px solid ${severityColor(topIssue)}`;
     courtHeaders[ci].style.background = severityBgOpaque(topIssue);
@@ -3776,18 +3798,60 @@ function applyHeaderRowIssueIndicators(
 
   // Row labels: rowIssues keyed by row index
   const rowIssueEntries = conflicts.rowIssues || {};
-  for (const [rowIdx, issues] of Object.entries(rowIssueEntries)) {
+  for (const [rowIdx, rawIssues] of Object.entries(rowIssueEntries)) {
     const ri = Number.parseInt(rowIdx);
-    if (Number.isNaN(ri) || ri >= rowLabels.length || !(issues as any[])?.length) continue;
-    const topIssue = topSeverity(issues as any[]);
+    const issues = decorated(rawIssues as any[]);
+    if (Number.isNaN(ri) || ri >= rowLabels.length || !issues.length) continue;
+    const topIssue = topSeverity(issues);
     rowLabels[ri].style.borderRight = `3px solid ${severityColor(topIssue)}`;
     rowLabels[ri].style.background = severityBgOpaque(topIssue);
   }
 }
 
 /**
+ * `matchUpId` -> the one issue that decides its cell, from a `proConflicts` result.
+ *
+ * Row issues win over court issues on a tie: a row issue is about the matchUp's place in
+ * the order of play, which is what the cell's own decoration is saying. Extracted to
+ * module level rather than inlined — `annotateConflicts` sits right against the
+ * cognitive-complexity ceiling, and a nested builder is what pushes it over.
+ */
+function buildMatchUpIssueMap(courtIssues: any, rowIssues: any): Map<string, any> {
+  const matchUpIssueMap = new Map<string, any>();
+
+  if (rowIssues) {
+    const flatIssues = Array.isArray(rowIssues) ? rowIssues.flat() : Object.values(rowIssues).flat();
+    for (const issue of flatIssues as any[]) {
+      if (issue.matchUpId) matchUpIssueMap.set(issue.matchUpId, issue);
+    }
+  }
+
+  if (courtIssues) {
+    for (const issues of Object.values(courtIssues)) {
+      for (const issue of issues as any[]) {
+        if (issue.matchUpId && !matchUpIssueMap.has(issue.matchUpId)) matchUpIssueMap.set(issue.matchUpId, issue);
+      }
+    }
+  }
+
+  return matchUpIssueMap;
+}
+
+/**
  * Run proConflicts and annotate cellData objects with scheduleState, issueType,
  * and issueIds so that buildScheduleGridCell applies the correct CSS classes.
+ *
+ * **Warning-severity decoration is suppressible, and this is the only place it can be
+ * done from.** `courthive-components` derives `.spl-cell--warning` from `scheduleState`
+ * alone (`scheduleGridCell.ts` -> `applyStatusClasses`), so withholding the annotation
+ * here removes the bar with no change to that library and no publish cascade. Filtering
+ * downstream of the annotation would mean teaching the component a preference it has no
+ * business knowing about.
+ *
+ * `delete` rather than "annotate nothing": these cellData objects are shallow clones of
+ * a CACHED row, so a stale annotation from a previous render survives into this one
+ * unless it is removed. That is why the else-branch already existed, and it is why a
+ * suppressed warning must take the same branch rather than simply being skipped.
  */
 function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string): void {
   // Collect all matchUp cellData objects from the grid
@@ -3806,32 +3870,13 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
     rowIssues: {},
   });
 
-  // Build a map of matchUpId → issue details
-  const matchUpIssueMap = new Map<string, any>();
-
-  if (rowIssues) {
-    const flatIssues = Array.isArray(rowIssues) ? rowIssues.flat() : Object.values(rowIssues).flat();
-    for (const issue of flatIssues) {
-      if (issue.matchUpId) {
-        matchUpIssueMap.set(issue.matchUpId, issue);
-      }
-    }
-  }
-
-  if (courtIssues) {
-    for (const issues of Object.values(courtIssues)) {
-      for (const issue of issues as any[]) {
-        if (issue.matchUpId && !matchUpIssueMap.has(issue.matchUpId)) {
-          matchUpIssueMap.set(issue.matchUpId, issue);
-        }
-      }
-    }
-  }
+  const matchUpIssueMap = buildMatchUpIssueMap(courtIssues, rowIssues);
 
   // Annotate each cellData with the issue info that mapMatchUpToCellData reads
+  const warningBarsVisible = readGridWarningBars();
   for (const cellData of allCellData) {
     const issue = matchUpIssueMap.get(cellData.matchUpId);
-    if (issue) {
+    if (issue && decoratesCell(issue.issue, warningBarsVisible)) {
       cellData.scheduleState = issue.issue;
       cellData.issueType = issue.issueType;
       cellData.issueIds = issue.issueIds;
@@ -3879,15 +3924,10 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   if (!conflictResult) return [];
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
-  const { SCHEDULE_ERROR, SCHEDULE_CONFLICT, SCHEDULE_WARNING, SCHEDULE_ISSUE } = scheduleConstants;
-
-  const mapSeverity = (issue: string): ScheduleIssueSeverity => {
-    if (issue === SCHEDULE_ERROR) return 'ERROR';
-    if (issue === SCHEDULE_CONFLICT) return 'ERROR';
-    if (issue === SCHEDULE_WARNING) return 'WARN';
-    if (issue === SCHEDULE_ISSUE) return 'INFO';
-    return 'WARN';
-  };
+  // `severityOf` rather than a local copy: the action bar's count badge and the grid's
+  // cell decoration now read the same mapping, and three private copies of it is how the
+  // badge came to be red for a page of warnings in the first place.
+  const mapSeverity = severityOf;
 
   // Build lookup from matchUpId to participant display string
   const matchUpLabel = (id: string): string => {
