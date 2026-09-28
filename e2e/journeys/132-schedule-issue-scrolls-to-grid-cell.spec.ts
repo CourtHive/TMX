@@ -1,7 +1,7 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { minutesAgoLocalTime, todayLocal } from '../helpers/dates';
 import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
-import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 132 — clicking a scheduling issue points at the GRID cell.
@@ -35,6 +35,17 @@ import { todayLocal } from '../helpers/dates';
  */
 
 const DATE = todayLocal();
+/**
+ * Under way, not merely scheduled — and that is load-bearing for this spec.
+ *
+ * This was the literal `'09:00'`, which reads as "this morning" and is not: it is in the
+ * FUTURE for anyone running the suite before 09:00. The strip only draws a matchUp once it
+ * has been called to court, and the auto-call pass correctly refuses to call one whose
+ * scheduledTime has not arrived — so before 09:00 the strip was empty and the premise test
+ * below waited for a cell that was never going to appear. Green all afternoon, red every
+ * early morning. Measured 2026-09-28 at 08:02.
+ */
+const SCHEDULED_TIME = minutesAgoLocalTime(5);
 
 const STRIP = '.spl-active-strip';
 const ISSUES_BUTTON = 'button:has(i.fa-triangle-exclamation)';
@@ -67,7 +78,7 @@ const stripCell = (matchUpId: string) => `${STRIP} [data-matchup-id="${matchUpId
  */
 async function seedConflict(page: Page): Promise<{ tournamentId: string; matchUpIds: [string, string] }> {
   return page.evaluate(
-    async ({ date }) => {
+    async ({ date, time }) => {
       try {
         await dev.tmx2db.initDB();
         const te = dev.factory.tournamentEngine;
@@ -116,7 +127,7 @@ async function seedConflict(page: Page): Promise<{ tournamentId: string; matchUp
               courtId: court.courtId,
               venueId: court.venueId,
               courtOrder: 1,
-              scheduledTime: '09:00',
+              scheduledTime: time,
             },
           });
         place(aMatch.matchUpId, aMatch.drawId, courts[0]);
@@ -147,7 +158,7 @@ async function seedConflict(page: Page): Promise<{ tournamentId: string; matchUp
         );
       }
     },
-    { date: DATE },
+    { date: DATE, time: SCHEDULED_TIME },
   );
 }
 
@@ -175,7 +186,9 @@ test.describe('Journey 132 — a scheduling issue points at the grid cell, not t
 
   test('the conflicting matchUp is drawn in BOTH the grid and the strip — the premise', async ({ page }) => {
     // Without this the journey would pass against the defect whenever the strip
-    // happened to be empty, which is exactly when the bug cannot fire.
+    // happened to be empty, which is exactly when the bug cannot fire. The strip is
+    // only populated because the seed schedules in the recent past — see
+    // SCHEDULED_TIME.
     await expect(page.locator(gridCell(aId))).toHaveCount(1);
     await expect(page.locator(stripCell(aId)).first()).toBeVisible();
     // …and the two copies really are distinct elements carrying the same id.

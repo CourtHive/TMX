@@ -36,3 +36,34 @@ export function daysFromTodayLocal(offset: number): string {
   date.setDate(date.getDate() + offset);
   return toLocalCalendarDay(date);
 }
+
+/**
+ * A local `HH:MM` wall clock a few minutes in the **past** — for any spec that needs a
+ * seeded matchUp to be *under way*, not merely scheduled.
+ *
+ * The same class of bug as `todayLocal()` above, one unit down. A literal
+ * `scheduledTime: '09:00'` is not "this morning"; it is a time that is in the future for
+ * everyone running the suite before 09:00 and in the past for everyone after — so a spec
+ * seeded with it passes all afternoon and fails every early morning.
+ *
+ * That matters because the active strip only draws a matchUp once it has been **called to
+ * court**, and `runAutoCallPass` deliberately refuses to call one whose `scheduledTime` is
+ * still ahead of the venue clock. Before 09:00 the strip is therefore empty, and a spec
+ * asserting a cell there waits for something that was never going to appear — the same
+ * "renders perfectly, reports nothing" signature the header above describes.
+ *
+ * Found on 2026-09-28, when journey 132's premise assertion failed at 08:02 and passed on
+ * the identical code with the seed shifted back two minutes.
+ *
+ * Clamped at `00:00` so a run just after midnight cannot hand back a time belonging to
+ * yesterday, which would reintroduce the calendar-day mismatch this module exists to
+ * prevent.
+ */
+export function minutesAgoLocalTime(minutes: number): string {
+  const now = new Date();
+  const sinceMidnight = now.getHours() * 60 + now.getMinutes();
+  const target = Math.max(0, sinceMidnight - minutes);
+  const hh = String(Math.floor(target / 60)).padStart(2, '0');
+  const mm = String(target % 60).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
