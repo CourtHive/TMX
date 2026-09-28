@@ -57,6 +57,13 @@ const WARNING_BARS_TOGGLE = '[data-warning-bars-toggle]';
 const warningBars = '[data-court-order] .spl-grid-cell.spl-cell--warning';
 const errorBars = '[data-court-order] .spl-grid-cell.spl-cell--conflict';
 
+/** The court-grid copy of one specific cell — for asserting WHERE a click landed. */
+const gridCell = (matchUpId: string) => `[data-court-order][data-matchup-id="${matchUpId}"] .spl-grid-cell`;
+/** The pulse `scrollToMatchUp` paints. Self-clearing on `animationend` (~1.5s). */
+const PULSE = 'spl-cell--issue-pulse';
+/** The sticky band above the grid, which draws a SECOND cell with the same matchUp id. */
+const STRIP = '.spl-active-strip';
+
 interface Seed {
   tournamentId: string;
   matchUpIds: [string, string];
@@ -302,6 +309,45 @@ test.describe('Journey 134 — issue severity reads honestly, and warning bars a
       // …and back, because a preference that only travels one way is half a control.
       await toggle.check();
       await expect(page.locator(warningBars)).toHaveCount(1);
+    });
+
+    test('a warning row still navigates to its cell once the bars are off', async ({ page }) => {
+      /*
+       * The one thing suppression could plausibly break, and the reason it gets its own
+       * test rather than a line in the toggle test above.
+       *
+       * Hiding a warning bar is NOT a CSS change: `annotateConflicts` deletes three fields
+       * from the cell data — `scheduleState`, `issueType`, `issueIds`. Anything downstream
+       * that had quietly come to depend on one of them stops working for exactly the cells
+       * an operator has chosen to quieten, and the popover row is the surface where that
+       * would be felt: the operator turned the paint off precisely BECAUSE they intend to
+       * navigate from the list instead.
+       *
+       * Journey 132 covers click-to-navigate, but only for an ERROR — whose fields are
+       * never withheld — so nothing else exercises the stripped-cell path.
+       *
+       * It holds today because `scrollToMatchUp` resolves through `preferredCellFor`, which
+       * keys off `data-matchup-id`. That attribute is not one of the three, and this test
+       * is what keeps it that way.
+       */
+      await page.locator(ISSUES_BUTTON).click();
+      await page.locator(WARNING_BARS_TOGGLE).uncheck();
+      // The premise: the cell really has been stripped. Without this the test passes
+      // against decoration that was never suppressed, which is the case it exists to cover.
+      await expect(page.locator(warningBars)).toHaveCount(0);
+
+      const row = page.locator(ISSUE_ROW).first();
+      await expect(row).toBeVisible({ timeout: 5_000 });
+      const targeted = await row.getAttribute('data-issue-match-up-id');
+      expect(targeted).toBeTruthy();
+
+      await row.click();
+
+      // The operator is sent to the court grid...
+      await expect(page.locator(gridCell(targeted as string))).toHaveClass(new RegExp(PULSE));
+      // ...and not to the strip's duplicate, which comes first in document order and is
+      // already on screen. Journey 132's defect, re-asserted on the suppressed path.
+      await expect(page.locator(`${STRIP} .${PULSE}`)).toHaveCount(0);
     });
 
     test('the preference survives a reload', async ({ page }) => {
