@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "baseBranches": [
+    "dev"
+  ],
   "minimumReleaseAge": "3 days",
   "rebaseWhen": "behind-base-branch",
   "prConcurrentLimit": 5,
