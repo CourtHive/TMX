@@ -3234,7 +3234,12 @@
     "minWidth": "Min Width",
     "minWidthHint": "Minimum court column width — cells grow wider when there is room",
     "conflictsWith": " conflicts with ",
-    "minRowsHint": "Minimum number of time rows in the schedule grid"
+    "minRowsHint": "Minimum number of time rows in the schedule grid",
+    "issuesTitle": "Scheduling Issues ({{total}})",
+    "issuesWithErrors": "Scheduling issues \u2014 at least one is an error",
+    "issuesWarningsOnly": "Scheduling issues \u2014 warnings only, no errors",
+    "warningBars": "Warning bars",
+    "warningBarsHint": "Show warning-severity issues on grid cells. Errors are always shown."
   },
   "scheduleResults": {
     "title": "Scheduling Results",

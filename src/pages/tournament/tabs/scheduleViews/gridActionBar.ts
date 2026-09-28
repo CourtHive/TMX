@@ -11,6 +11,7 @@
  */
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
 import tippy from 'tippy.js';
+import { badgeSeverity } from './scheduleIssueSeverity';
 import { preferredCellFor } from './scheduleCellLookup';
 import { providerConfig } from 'config/providerConfig';
 import { buildLegendButton } from './scheduleLegend';
@@ -45,6 +46,14 @@ export interface GridActionBarParams {
   timingAvailable?: boolean;
   /** Open the Call Timing Variance report. When omitted, the shortcut never renders. */
   onOpenTimingReport?: () => void;
+  /** Whether warning-severity issues currently decorate their grid cells. */
+  warningBarsVisible?: boolean;
+  /**
+   * Persist and apply a new warning-bars preference. Omitted ⇒ the toggle never
+   * renders, so a caller that cannot redraw the grid cannot offer a control that
+   * would appear to do nothing.
+   */
+  onWarningBarsChange?: (visible: boolean) => void;
   /** Whether the currently-viewed date's order of play is published. */
   datePublished?: boolean;
   /** Toggle publication of the viewed date. When omitted, the publish pill never renders. */
@@ -90,6 +99,7 @@ export interface GridActionBar {
 export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   const { issues, bulkMode, minCourtWidth, onMinCourtWidthChange, onBulkModeChange, onClearSchedule } = params;
   const { timingAvailable, onOpenTimingReport, datePublished, onTogglePublish, onScheduleLock } = params;
+  const { warningBarsVisible, onWarningBarsChange } = params;
 
   const bar = document.createElement('div');
   bar.style.cssText =
@@ -103,9 +113,23 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   // so neighbouring controls don't shift when a slot is empty.
   const issuesSlot = document.createElement('div');
   issuesSlot.style.display = 'contents';
+  // Built fresh on every `setIssues` rather than captured once. A redraw rebuilds the
+  // button and its popover, and a checkbox built from the ORIGINAL prop would flip back
+  // to the old state the first time conflicts changed — silently disagreeing with the
+  // grid it governs. Undefined without a handler: a control that cannot act must not be
+  // offered.
+  let barsVisible = warningBarsVisible !== false;
+  const warningBarsControl = (): WarningBarsControl | undefined =>
+    onWarningBarsChange && {
+      visible: barsVisible,
+      onChange: (visible: boolean) => {
+        barsVisible = visible;
+        onWarningBarsChange(visible);
+      },
+    };
   const setIssues = (next: ScheduleIssue[]): void => {
     issuesSlot.replaceChildren();
-    if (next.length > 0) issuesSlot.appendChild(buildIssuesButton(next));
+    if (next.length > 0) issuesSlot.appendChild(buildIssuesButton(next, warningBarsControl()));
   };
   bar.appendChild(issuesSlot);
   setIssues(issues);
@@ -284,8 +308,48 @@ function buildMinCourtWidthStepper(initial: number, onChange: (width: number) =>
 
 // ── Issues ──
 
-function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
+/** The grid-decoration preference, as the issues popover needs to see it. */
+interface WarningBarsControl {
+  visible: boolean;
+  onChange: (visible: boolean) => void;
+}
+
+/**
+ * The count badge, coloured by what the issues actually ARE.
+ *
+ * It used to be `--tmx-fill-warning` unconditionally, which is a burnt orange-red that
+ * reads as a fault — so a date carrying eighteen ordinary adjacency warnings looked
+ * exactly like a date carrying eighteen faults, and the operator had to open the popover
+ * to find out which. The severity was already in hand at this call site (the popover
+ * below has painted per-row severity off `issue.severity` all along); nothing new is
+ * queried.
+ *
+ * The two fills are `--tmx-fill-error` / `--tmx-fill-caution`, which exist to be told
+ * apart and carry their own ink because a caution fill bright enough to read as amber
+ * cannot carry white text at AA. Both are theme-invariant by design — see theme.css.
+ */
+function buildIssuesBadge(issues: ScheduleIssue[]): HTMLElement {
+  const badge = document.createElement('span');
+  const isError = badgeSeverity(issues) === 'ERROR';
+  const fill = isError ? 'var(--tmx-fill-error, #b91c1c)' : 'var(--tmx-fill-caution, #f59e0b)';
+  const ink = isError ? 'var(--tmx-text-inverse, #fff)' : 'var(--tmx-fill-caution-ink, #1c1917)';
+  badge.style.cssText = `font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: ${fill}; color: ${ink};`;
+  // The colour is the message, and colour alone is not an accessible signal. The dataset
+  // entry is what a screen reader's label and Journey 134 both read.
+  badge.dataset.issueSeverity = isError ? 'ERROR' : 'WARN';
+  badge.textContent = String(issues.length);
+  return badge;
+}
+
+function buildIssuesButton(issues: ScheduleIssue[], warningBars?: WarningBarsControl): HTMLElement {
   const btn = document.createElement('button');
+  // The icon follows the same rule as the badge. `--tmx-accent-*` rather than a fill:
+  // this is a glyph on the bar's own background, not a filled chip, and the accent
+  // family is the one tuned per theme for exactly that.
+  const iconColor =
+    badgeSeverity(issues) === 'ERROR'
+      ? 'color: var(--tmx-accent-red, #ff6b6b)'
+      : 'color: var(--tmx-accent-orange, #f59e0b)';
   btn.style.cssText = [
     'position: relative',
     'font-size: 0.875rem',
@@ -294,25 +358,23 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
     BORDER_PRIMARY,
     BG_PRIMARY,
     CURSOR_POINTER,
-    'color: var(--tmx-accent-orange, #f59e0b)',
+    iconColor,
     DISPLAY_INLINE_FLEX,
     ALIGN_ITEMS_CENTER,
     'gap: 4px',
   ].join('; ');
   btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+  btn.title =
+    badgeSeverity(issues) === 'ERROR' ? t('gridActions.issuesWithErrors') : t('gridActions.issuesWarningsOnly');
 
-  const badge = document.createElement('span');
-  badge.style.cssText =
-    'font-size: 0.625rem; font-weight: 700; padding: 1px 5px; border-radius: 10px; background: var(--tmx-fill-warning, #c2410c); color: #fff;';
-  badge.textContent = String(issues.length);
-  btn.appendChild(badge);
+  btn.appendChild(buildIssuesBadge(issues));
 
   // Built on the next frame so the button is in the document when tippy measures it.
   // The instance is not bound: nothing here reads it, and tippy keeps its own reference
   // on the element, so binding it only to discard it was what the `void` was hiding.
   requestAnimationFrame(() => {
     tippy(btn, {
-      content: buildIssuesPopover(issues),
+      content: buildIssuesPopover(issues, warningBars),
       trigger: 'click',
       interactive: true,
       placement: 'top-start',
@@ -325,14 +387,48 @@ function buildIssuesButton(issues: ScheduleIssue[]): HTMLElement {
   return btn;
 }
 
-function buildIssuesPopover(issues: ScheduleIssue[]): HTMLElement {
+/**
+ * The warning-bars toggle, in the popover header beside the count.
+ *
+ * It lives here rather than in the bar because this is where an operator is already
+ * asking "what are these?" — and because the answer to "why is every cell yellow?" is
+ * the list underneath it. Turning it off hides grid DECORATION only: every warning stays
+ * in this list, because the operator still needs to be able to read them.
+ */
+function buildWarningBarsToggle(control: WarningBarsControl): HTMLElement {
+  const label = document.createElement('label');
+  label.style.cssText = `font-size: 0.6875rem; ${COLOR_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_ITEMS_CENTER}; gap: 5px; font-weight: 500;`;
+  label.title = t('gridActions.warningBarsHint');
+
+  const toggle = document.createElement('input');
+  toggle.type = 'checkbox';
+  toggle.checked = control.visible;
+  toggle.style.cssText = 'cursor: pointer; accent-color: var(--tmx-accent-blue); margin: 0;';
+  toggle.dataset.warningBarsToggle = 'true';
+  toggle.addEventListener('change', () => control.onChange(toggle.checked));
+
+  label.appendChild(toggle);
+  label.appendChild(document.createTextNode(t('gridActions.warningBars')));
+  return label;
+}
+
+function buildIssuesPopover(issues: ScheduleIssue[], warningBars?: WarningBarsControl): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'padding: 8px; max-height: 360px; overflow-y: auto; min-width: 280px;';
 
+  const header = document.createElement('div');
+  header.style.cssText = `display: flex; ${ALIGN_ITEMS_CENTER}; justify-content: space-between; gap: 12px; margin-bottom: 8px; width: 100%;`;
+
   const title = document.createElement('div');
-  title.style.cssText = `font-weight: 700; font-size: 0.75rem; margin-bottom: 8px; ${COLOR_PRIMARY};`;
-  title.textContent = `Scheduling Issues (${issues.length})`;
-  container.appendChild(title);
+  title.style.cssText = `font-weight: 700; font-size: 0.75rem; ${COLOR_PRIMARY};`;
+  // `total`, not `count`: i18next treats `count` as the plural selector and would then
+  // look for `issuesTitle_one` / `_other`, which do not exist — the key would resolve to
+  // its own name in front of the operator.
+  title.textContent = t('gridActions.issuesTitle', { total: issues.length });
+  header.appendChild(title);
+
+  if (warningBars) header.appendChild(buildWarningBarsToggle(warningBars));
+  container.appendChild(header);
 
   const severityColors: Record<string, { bg: string; color: string }> = {
     ERROR: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444' },

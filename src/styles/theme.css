@@ -47,6 +47,18 @@ html {
   --tmx-fill-accent: #2563eb; /* 4.69 vs white — AA */
   --tmx-fill-warning: #c2410c; /* 5.30 vs white — AA */
 
+  /* Severity fills for count badges. `--tmx-fill-warning` above reads as an
+   * error at a glance (it is a burnt orange-red), so it cannot also stand for
+   * "there is nothing wrong here, only advisories" — these two exist to be told
+   * apart. Same hex in light and dark, like the fills above, because a severity
+   * that changed colour with the theme would not be learnable.
+   *   error   — white ink,  6.47:1 — AA
+   *   caution — dark ink,   8.14:1 — AAA. A caution fill bright enough to READ
+   *             as amber cannot carry white text at AA, so it carries ink. */
+  --tmx-fill-error: #b91c1c;
+  --tmx-fill-caution: #f59e0b;
+  --tmx-fill-caution-ink: #1c1917;
+
   /* Status */
   --tmx-status-success: #48c774;
   --tmx-status-warning: #ffdd57;
@@ -182,6 +194,9 @@ html {
    * pass WCAG AA against the page bg as well. */
   --tmx-fill-accent: #2563eb;
   --tmx-fill-warning: #c2410c;
+  --tmx-fill-error: #b91c1c;
+  --tmx-fill-caution: #f59e0b;
+  --tmx-fill-caution-ink: #1c1917;
 
   /* Status */
   --tmx-status-success: #5cb878;
