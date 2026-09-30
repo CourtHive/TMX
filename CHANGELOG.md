@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.30.0](https://github.com/CourtHive/TMX/compare/v8.29.0...v8.30.0) (2026-09-30)
+
+
+### Features
+
+* **schedule:** a pending rest row points at the matchUp that decides the side ([#1502](https://github.com/CourtHive/TMX/issues/1502)) ([efe284e](https://github.com/CourtHive/TMX/commit/efe284eaac90c06f68feff0368b0855327d81e71))
+* **schedule:** colour the issues badge by severity and make warning bars optional ([#1513](https://github.com/CourtHive/TMX/issues/1513)) ([5122543](https://github.com/CourtHive/TMX/commit/51225434cd336247b1f3aa676c94e2a11328b88c))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.1.0 ([#1511](https://github.com/CourtHive/TMX/issues/1511)) ([c0882bb](https://github.com/CourtHive/TMX/commit/c0882bb3368691738cfc889439d22e0824638922))
+* **deps:** update dependency socket.io-client to v4.8.4 ([#1515](https://github.com/CourtHive/TMX/issues/1515)) ([eadb99b](https://github.com/CourtHive/TMX/commit/eadb99bf34bd5d29cfb9e4218cdf9acaba6ae586))
+* **deps:** update tods-competition-factory to 7.2.0 ([#1510](https://github.com/CourtHive/TMX/issues/1510)) ([901a223](https://github.com/CourtHive/TMX/commit/901a223fec9f50da533f2ee070bd198d2b390a1a))
+* **deps:** update tods-competition-factory to 7.3.1 ([#1520](https://github.com/CourtHive/TMX/issues/1520)) ([bfe88d8](https://github.com/CourtHive/TMX/commit/bfe88d835dede6ee1d1c03015375d40292d6aa4f))
+* **e2e:** seed journey 132 in the recent past so it does not depend on the clock ([#1514](https://github.com/CourtHive/TMX/issues/1514)) ([497df18](https://github.com/CourtHive/TMX/commit/497df187d74379d41fd00702efdec98680db61fe))
+* **examples:** the Live Schedule maintenance window stays inside the day ([#1505](https://github.com/CourtHive/TMX/issues/1505)) ([2946a81](https://github.com/CourtHive/TMX/commit/2946a81d58426069e58f0e5013d09de2d33e8e85))
+* **reports:** let the dev server reach the structure audit ([#1500](https://github.com/CourtHive/TMX/issues/1500)) ([c04a8a8](https://github.com/CourtHive/TMX/commit/c04a8a8e3101c7ce78f0366950b4a9c3a27fc7e9))
+* **schedule:** clicking an issue points at the grid cell, not the sticky strip ([#1504](https://github.com/CourtHive/TMX/issues/1504)) ([492f74a](https://github.com/CourtHive/TMX/commit/492f74a74e0c44554ce795ac20a5711837235338))
+* **schedule:** recovery is owed only by a match already begun ([#1507](https://github.com/CourtHive/TMX/issues/1507)) ([7a0f2f9](https://github.com/CourtHive/TMX/commit/7a0f2f9d855039637a5c1280e6600b3baf247bb5))
+* **schedule:** the grid search finds a player in doubles, not just in singles ([#1509](https://github.com/CourtHive/TMX/issues/1509)) ([75aa37e](https://github.com/CourtHive/TMX/commit/75aa37ec7a6a7caed6f065c85471ef60cbc2ba01))
+
 ## [8.29.0](https://github.com/CourtHive/TMX/compare/v8.28.1...v8.29.0) (2026-09-25)
 
 
