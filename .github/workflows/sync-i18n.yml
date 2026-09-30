@@ -1,7 +1,7 @@
 name: sync-i18n
 
-# When TMX's bundled en.json changes on main, propagate the additions /
-# updates upstream to CourtHive/courthive-i18n so all i18n consumers
+# When TMX's bundled en.json changes on `dev` or `main`, propagate the
+# additions / updates upstream to CourtHive/courthive-i18n so all i18n consumers
 # (CFS-served runtime locales for TMX, courthive-public, and any future
 # consumer) stay in sync.
 #
@@ -15,10 +15,21 @@ name: sync-i18n
 #
 # To skip propagation for a particular push, leave en.json untouched
 # (the path filter below means the workflow only fires on en.json edits).
+#
+# WHY BOTH BRANCHES, since 2026-09-28. `dev` is the integration branch, so new
+# strings land there first and only reach `main` at a checkpoint — firing on
+# `main` alone held every new string back from translators until then. `main`
+# is kept as the safety net for anything that reaches the release branch by
+# another route (a hotfix, a revert). The duplicate run a checkpoint causes is
+# free: the merge script exits 2 for "no changes" and the job skips, because
+# `dev`'s run already propagated the same keys. `create-pull-request` reuses
+# the one `chore/sync-i18n-from-tmx` branch, so a revised string updates the
+# existing upstream PR rather than opening a second one.
 
 on:
   push:
     branches:
+      - dev
       - main
     paths:
       - src/i18n/locales/en.json
