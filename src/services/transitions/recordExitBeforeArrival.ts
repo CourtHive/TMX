@@ -76,27 +76,10 @@ export function recordExitBeforeArrival({
     return renderForm(formHolder, [{ value, label: '', field: 'exit', options }]);
   };
 
-  const submit = ({ content }: any) => {
-    const [matchUpStatus, matchUpStatusCode] = String(content?.exit?.value ?? '').split(SEPARATOR);
-    if (!matchUpStatus) return;
-    const methods = [
-      {
-        method: SET_MATCHUP_STATUS,
-        params: {
-          ...payload,
-          outcome: {
-            ...payload.outcome,
-            matchUpStatus,
-            ...(matchUpStatusCode ? { matchUpStatusCodes: [matchUpStatusCode] } : {}),
-          },
-        },
-      },
-    ];
+  const send = (outcome: any) => {
     // only the fields setMatchUpStatus reads travel; the action's descriptive fields stay behind
-    delete methods[0].params.exitingParticipantId;
-    delete methods[0].params.exitingSideNumber;
-    delete methods[0].params.matchUpStatuses;
-    delete methods[0].params.recorded;
+    const params = { drawId: payload.drawId, matchUpId: payload.matchUpId, outcome };
+    const methods = [{ method: SET_MATCHUP_STATUS, params }];
     mutationRequest({
       methods,
       callback: (result: any) => {
@@ -107,11 +90,27 @@ export function recordExitBeforeArrival({
     });
   };
 
+  const submit = ({ content }: any) => {
+    const [matchUpStatus, matchUpStatusCode] = String(content?.exit?.value ?? '').split(SEPARATOR);
+    if (!matchUpStatus) return;
+    send({
+      ...payload.outcome,
+      matchUpStatus,
+      ...(matchUpStatusCode ? { matchUpStatusCodes: [matchUpStatusCode] } : {}),
+    });
+  };
+
+  // until the opponent arrives a recorded exit can also be cleared — the outcome CLEAR_SCORE carries
+  const clear = () => send({ matchUpStatus: 'TO_BE_PLAYED', score: { scoreStringSide1: '', scoreStringSide2: '' } });
+
   openModal({
     title: t('modals.exitBeforeArrival.title'),
     content,
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
+      ...(payload.recorded
+        ? [{ label: t('modals.exitBeforeArrival.clear'), intent: 'is-warning', onClick: clear }]
+        : []),
       { label: t('modals.exitBeforeArrival.exit'), intent: 'is-danger', onClick: submit as any },
     ],
   });

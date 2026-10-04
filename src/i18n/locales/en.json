@@ -1654,7 +1654,8 @@
     "exitBeforeArrival": {
       "title": "Walkover or default",
       "prompt": "{{name}} cannot play: record the exit now, before the opponent arrives. Whoever arrives takes the walkover.",
-      "exit": "Exit"
+      "exit": "Exit",
+      "clear": "Clear"
     },
     "createTeam": {
       "title": "Create Team",

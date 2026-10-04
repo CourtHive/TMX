@@ -98,6 +98,21 @@ describe('recordExitBeforeArrival', () => {
     expect(formItems[0].value).toEqual(DEFAULTED_DM);
   });
 
+  it('offers Clear only for an exit already recorded, and clears it', () => {
+    recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
+    expect(modalParams.buttons.some((button: any) => button.intent === 'is-warning')).toEqual(false);
+
+    const action = { ...EXIT_ACTION, payload: { ...EXIT_ACTION.payload, recorded: { matchUpStatus: DEFAULTED } } };
+    recordExitBeforeArrival({ action, matchUp: MATCHUP });
+    modalParams.buttons.find((button: any) => button.intent === 'is-warning').onClick();
+    const [{ methods }] = mutationRequestMock.mock.calls[0];
+    expect(methods[0].params).toEqual({
+      drawId: 'd1',
+      matchUpId: 'm1',
+      outcome: { matchUpStatus: 'TO_BE_PLAYED', score: { scoreStringSide1: '', scoreStringSide2: '' } },
+    });
+  });
+
   it('submits the payload with the chosen status and reason, awarding the empty side', () => {
     recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
     choose(DEFAULTED_DM);
