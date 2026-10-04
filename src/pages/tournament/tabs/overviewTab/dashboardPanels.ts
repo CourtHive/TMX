@@ -548,7 +548,7 @@ export function createActionsPanel(): HTMLElement {
     );
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.exportTods'), 'fa-download', () => {
-        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+        downloadJSON(`${tournamentRecord.tournamentId}.codes.json`, tournamentRecord);
       }),
     );
   }

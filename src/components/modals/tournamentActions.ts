@@ -114,7 +114,7 @@ export function tournamentActions(): void {
     if (inputs.action.value === 'utrExport') downloadUTRmatches();
     if (inputs.action.value === 'todsExport') {
       if (tournamentRecord) {
-        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+        downloadJSON(`${tournamentRecord.tournamentId}.codes.json`, tournamentRecord);
       } else {
         tmxToast({ message: t('common.error') });
       }
