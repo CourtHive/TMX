@@ -67,7 +67,13 @@ export function recordExitBeforeArrival({
     elem.appendChild(prompt);
     const formHolder = document.createElement('div');
     elem.appendChild(formHolder);
-    return renderForm(formHolder, [{ value: options[0]?.value, label: '', field: 'exit', options }]);
+    // until the opponent arrives a recorded exit can be changed (CA, 2026-10-04): start from what stands
+    const recorded = payload.recorded;
+    const current = recorded?.matchUpStatusCode
+      ? `${recorded.matchUpStatus}${SEPARATOR}${recorded.matchUpStatusCode}`
+      : recorded?.matchUpStatus;
+    const value = options.some((option) => option.value === current) ? current : options[0]?.value;
+    return renderForm(formHolder, [{ value, label: '', field: 'exit', options }]);
   };
 
   const submit = ({ content }: any) => {
@@ -90,6 +96,7 @@ export function recordExitBeforeArrival({
     delete methods[0].params.exitingParticipantId;
     delete methods[0].params.exitingSideNumber;
     delete methods[0].params.matchUpStatuses;
+    delete methods[0].params.recorded;
     mutationRequest({
       methods,
       callback: (result: any) => {

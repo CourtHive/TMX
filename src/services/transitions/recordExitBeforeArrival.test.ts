@@ -29,6 +29,8 @@ vi.mock('services/factory/engine', () => ({
 }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 
+const DEFAULTED = 'DEFAULTED';
+const DEFAULTED_DM = 'DEFAULTED|DM';
 const EXIT_ACTION = {
   type: 'EXIT',
   method: 'setMatchUpStatus',
@@ -37,7 +39,7 @@ const EXIT_ACTION = {
     matchUpId: 'm1',
     exitingParticipantId: 'p1',
     exitingSideNumber: 1,
-    matchUpStatuses: ['WALKOVER', 'DEFAULTED'],
+    matchUpStatuses: ['WALKOVER', DEFAULTED],
     outcome: { matchUpStatus: undefined, winningSide: 2 },
   },
 };
@@ -83,12 +85,22 @@ describe('recordExitBeforeArrival', () => {
   it('offers each status, then each reason code the event policy gives it', () => {
     recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
     modalParams.content(fakeElement());
-    expect(formItems[0].options.map((option: any) => option.value)).toEqual(['WALKOVER', 'DEFAULTED', 'DEFAULTED|DM']);
+    expect(formItems[0].options.map((option: any) => option.value)).toEqual(['WALKOVER', DEFAULTED, DEFAULTED_DM]);
+  });
+
+  it('starts from the exit already recorded, while the opponent has not arrived', () => {
+    const action = {
+      ...EXIT_ACTION,
+      payload: { ...EXIT_ACTION.payload, recorded: { matchUpStatus: DEFAULTED, matchUpStatusCode: 'DM' } },
+    };
+    recordExitBeforeArrival({ action, matchUp: MATCHUP });
+    modalParams.content(fakeElement());
+    expect(formItems[0].value).toEqual(DEFAULTED_DM);
   });
 
   it('submits the payload with the chosen status and reason, awarding the empty side', () => {
     recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
-    choose('DEFAULTED|DM');
+    choose(DEFAULTED_DM);
     const [{ methods }] = mutationRequestMock.mock.calls[0];
     expect(methods).toEqual([
       {
@@ -96,7 +108,7 @@ describe('recordExitBeforeArrival', () => {
         params: {
           drawId: 'd1',
           matchUpId: 'm1',
-          outcome: { matchUpStatus: 'DEFAULTED', winningSide: 2, matchUpStatusCodes: ['DM'] },
+          outcome: { matchUpStatus: DEFAULTED, winningSide: 2, matchUpStatusCodes: ['DM'] },
         },
       },
     ]);
