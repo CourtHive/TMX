@@ -2,6 +2,7 @@
  * Event handlers for draw view interactions.
  * Handles clicks on participants, scores, schedules, venues, and round headers.
  */
+import { recordExitBeforeArrival } from 'services/transitions/recordExitBeforeArrival';
 import { getAdditionalSeedContext } from 'components/popovers/additionalSeedContext';
 import { handleRoundVisibilityClick } from './options/handleRoundVisibilityClick';
 import { fixtures, participantConstants, tools } from 'tods-competition-factory';
@@ -127,6 +128,8 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       }) || {};
 
     const readyToScore = validActions?.find(({ type }: any) => type === 'SCORE');
+    // one participant here and the other not yet arrived: a walkover or default can be recorded now
+    const exitAction = validActions?.find(({ type }: any) => type === 'EXIT');
 
     if (readyToScore) {
       if (matchUp.matchUpType === TEAM) {
@@ -138,6 +141,8 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       } else {
         enterMatchUpScore({ matchUpId: readyToScore.payload.matchUpId, callback });
       }
+    } else if (exitAction) {
+      recordExitBeforeArrival({ action: exitAction, matchUp, callback });
     } else if (matchUp.matchUpStatus && !['TO_BE_PLAYED', 'COMPLETED', 'BYE'].includes(matchUp.matchUpStatus)) {
       // For non-terminal statuses (SUSPENDED, IN_PROGRESS, etc.) that don't have a SCORE action,
       // still allow opening the scoring modal to edit/clear the score
