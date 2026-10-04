@@ -101,6 +101,18 @@ draw-container
                            └─ tmx-i  (id=participantId)  ← POSITIONAL
 ```
 
+## Handlers Survive a Morph Only If Carried
+
+morphdom patches attributes and children onto the node already in the page and never copies
+properties. courthive-components binds its click handlers as properties (`el.onclick = …`), so a
+reused node would keep the closure of the render that created it, bound to that render's matchUp
+and side. `onBeforeElUpdated` therefore carries `onclick`, `onmouseenter` and `onmouseleave` from
+the new render onto the reused node (`carryHandlerProperties`). Listeners bound with
+`addEventListener` cannot be read back and are not carried.
+
+The handlers themselves read the draw through `getEventData()` on every click rather than the
+eventData of the first render, which an in-place refresh would leave behind.
+
 ## When morphdom Is Bypassed
 
 morphdom is only used for incremental updates. A full `removeAllChildNodes` + fresh render happens when:
