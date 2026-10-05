@@ -61,7 +61,7 @@ export function buildDelegatedOutcome(args: {
   };
 }
 
-/** Map a relay crowd snapshot's sets to the TODS score `sets` shape. */
+/** Map a relay crowd snapshot's sets to the CODES score `sets` shape. */
 export function snapshotToSets(snapshot: any): any[] {
   const sets = snapshot?.sets ?? [];
   return sets.map((s: any) => ({

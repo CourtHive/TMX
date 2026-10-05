@@ -46,7 +46,7 @@ commits of built site output from one afternoon. `docs` continues that same line
 
 ## Project Overview
 
-TMX is a Progressive Web App for tennis tournament management built on the [TODS](https://itftennis.atlassian.net/wiki/spaces/TODS/overview) (Tennis Open Data Standards) data standard. It is a **vanilla TypeScript** application — no React, Vue, or Angular. All UI is direct DOM manipulation via `document.createElement`, `innerHTML`, and `morphdom`.
+TMX is a Progressive Web App for tennis tournament management built on CODES, CourtHive's competition data standard. It is a **vanilla TypeScript** application — no React, Vue, or Angular. All UI is direct DOM manipulation via `document.createElement`, `innerHTML`, and `morphdom`.
 
 ## Commands
 

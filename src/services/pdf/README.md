@@ -24,4 +24,4 @@ This dir is for TMX-specific composition: font choice, export semantics (open vs
 ## Related
 
 - [`pdf-factory`](https://github.com/CourtHive/pdf-factory) — the underlying generator + parser library
-- [`TODS_DATA_MODEL.md`](./TODS_DATA_MODEL.md) — TODS field-name reference used when mapping tournament data into generator inputs
+- [`CODES_DATA_MODEL.md`](./CODES_DATA_MODEL.md) — CODES field-name reference used when mapping tournament data into generator inputs

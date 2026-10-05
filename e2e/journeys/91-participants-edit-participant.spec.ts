@@ -21,7 +21,7 @@ import { S } from '../helpers/selectors';
  *     discarded while Save reported success;
  *   - the Sex "Unknown" option carried no value attribute, so `select.value` fell
  *     back to the option text and a new participant persisted `person.sex: 'Unknown'`
- *     — a display string where a TODS enum belongs.
+ *     — a display string where a CODES enum belongs.
  *
  * Assertions read the factory record (authoritative) rather than the table DOM.
  */

@@ -95,7 +95,7 @@ export interface OnlineResource {
 /**
  * The value object inside a provider record. Also used for `context.provider`.
  *
- * Extends the canonical TODS `Organisation` (the same shape persisted as
+ * Extends the canonical CODES `Organisation` (the same shape persisted as
  * `tournamentRecord.parentOrganisation`) with TMX-only extension fields used
  * by the external-facility-lookup integration in `addVenue.ts`. See
  * `dev/documentation/external-facility-lookup.md`.

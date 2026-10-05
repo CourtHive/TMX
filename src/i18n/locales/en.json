@@ -556,7 +556,7 @@
     "auth": "Authorized",
     "fetch": "Download",
     "fetchtournament": "Download Tournament Record",
-    "convert": "Convert to TODS / Save",
+    "convert": "Convert to CODES / Save",
     "send": "Upload Tournament Record",
     "export": "Export Tournament Record",
     "renewlist": "Renew List",
@@ -673,7 +673,7 @@
     "noconnection": "No Connection",
     "schedulepriority": "Match Scheduling Priority",
     "send": "Send",
-    "sendTODS": "Send TODS Tournament Record",
+    "sendCODES": "Send CODES Tournament Record",
     "export": "Export",
     "pointsvalidfrom": "Points Valid From",
     "linkcopied": "Link Copied to Clipboard",
@@ -1544,7 +1544,7 @@
       "goOffline": "Go offline - standalone mode",
       "goOnline": "Go online - exit standalone mode",
       "exportUtr": "Export UTR matches",
-      "exportTods": "Export CODES file",
+      "exportCodes": "Export CODES file",
       "noActions": "No actions available",
       "replaceTournament": "Replace tournament on server",
       "go": "Go",
@@ -1684,7 +1684,7 @@
       "invalidUrl": "Invalid URL"
     },
     "exportTournament": {
-      "tods": "CODES"
+      "codes": "CODES"
     },
     "notesEditor": {
       "title": "Edit Overview"
