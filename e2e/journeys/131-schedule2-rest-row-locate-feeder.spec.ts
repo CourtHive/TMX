@@ -38,7 +38,19 @@ import { todayLocal } from '../helpers/dates';
  * work would pass on a feature that does nothing.
  */
 
-const SCHEDULE_DATE = todayLocal();
+/**
+ * The browser clock, pinned to local noon on the seeded day.
+ *
+ * The strip assertion below needs the pending semifinal IN the active strip, and
+ * nothing calls it there: this journey does not log in as a provider member, so
+ * autocall never stamps `calledAt`. It reaches the strip only as a DUE match —
+ * `computeDueMatchUps` (autoCallDueMatches.ts) skips any `scheduledTime` after the
+ * venue clock. Seeded at `10:00` against the wall clock, the journey failed every
+ * run before 10:00 local (proved with `page.clock` at 08:30 and 09:59; passed at
+ * 10:00, 12:00, 21:00 and 23:59). That is the app behaving correctly — a 10:00
+ * match is not due at 09:00 — so the clock is pinned, not the app changed.
+ */
+const PINNED_TIME = '12:00:00';
 
 const INSPECTOR = '[data-panel="inspector"]';
 const CATALOG_PANEL = '[data-panel="catalog"]';
@@ -95,7 +107,7 @@ type Seed = {
  * pending row would leave the central assertions checking an empty rest section
  * and passing.
  */
-async function seedOneSemiPlayed(page: import('@playwright/test').Page): Promise<Seed> {
+async function seedOneSemiPlayed(page: import('@playwright/test').Page, date: string): Promise<Seed> {
   return page.evaluate(
     async ({ date }) => {
       try {
@@ -143,7 +155,8 @@ async function seedOneSemiPlayed(page: import('@playwright/test').Page): Promise
 
         // Both semifinals on court today, on different courts at different times.
         // The played one earlier, so the person row has a real rest interval to
-        // measure; the pending one later, so it is still ahead of the clock.
+        // measure. Both sit before the pinned noon, so the pending one is DUE and
+        // the active strip draws it — see PINNED_TIME.
         [played, pending].forEach((semi: any, index: number) => {
           dev.factory.tournamentEngine.addMatchUpScheduleItems({
             matchUpId: semi.matchUpId,
@@ -187,7 +200,7 @@ async function seedOneSemiPlayed(page: import('@playwright/test').Page): Promise
         );
       }
     },
-    { date: SCHEDULE_DATE },
+    { date },
   );
 }
 
@@ -195,12 +208,17 @@ test.describe('Journey 131 — a pending rest row points at the matchUp that dec
   let seed: Seed;
 
   test.beforeEach(async ({ page }) => {
+    // Read per test, not at module load, so a suite crossing midnight cannot seed yesterday.
+    const date = todayLocal();
+    // No offset → parsed as LOCAL time, the zone the browser runs in. The strip reads the
+    // venue frame, which falls back to the browser zone: the mock carries no localTimeZone.
+    await page.clock.setFixedTime(new Date(`${date}T${PINNED_TIME}`));
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
     await page.evaluate(() => localStorage.clear());
-    seed = await seedOneSemiPlayed(page);
+    seed = await seedOneSemiPlayed(page, date);
 
     const tournament = new TournamentPage(page);
     await tournament.goto(seed.tournamentId);
