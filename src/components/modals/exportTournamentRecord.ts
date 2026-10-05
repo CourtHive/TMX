@@ -1,6 +1,6 @@
 /**
  * Export tournament record modal.
- * Provides options to export as TODS JSON or UTR format.
+ * Provides options to export as CODES JSON or UTR format.
  */
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -14,9 +14,9 @@ export function exportTournamentRecord(): void {
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (!tournamentRecord) return;
 
-  const exportTODS = () => {
+  const exportCODES = () => {
     if (tournamentRecord) {
-      downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+      downloadJSON(`${tournamentRecord.tournamentId}.codes.json`, tournamentRecord);
     } else {
       tmxToast({ message: t('common.error') });
     }
@@ -25,7 +25,7 @@ export function exportTournamentRecord(): void {
   const buttons = [
     { label: t('common.cancel'), intent: 'none' },
     { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
-    { label: t('modals.exportTournament.tods'), intent: 'is-primary', onClick: exportTODS, close: true },
+    { label: t('modals.exportTournament.tods'), intent: 'is-primary', onClick: exportCODES, close: true },
   ];
   const title = `${t('phrases.export')}: ${t('trn')}`;
 
