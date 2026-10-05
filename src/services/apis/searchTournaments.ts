@@ -48,7 +48,7 @@ export interface TournamentSearchParams {
 }
 
 /**
- * One hit. This is the DISCOVERY projection's shape, not a TODS record: flat, and deliberately
+ * One hit. This is the DISCOVERY projection's shape, not a CODES record: flat, and deliberately
  * narrower than a tournament record. `searchRowToTournamentRow` adapts it for the card/table.
  */
 export interface TournamentSearchHit {

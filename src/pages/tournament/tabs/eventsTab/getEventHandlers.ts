@@ -30,10 +30,14 @@ interface EventHandlersParams {
   callback: (params?: any) => void;
   composition?: any;
   drawId: string;
-  eventData: any;
+  /**
+   * Read on every click, never captured. The draw view refreshes in place after a score, and handlers
+   * holding the eventData of the FIRST render answered with matchUps from before it.
+   */
+  getEventData: () => any;
 }
 
-export function getEventHandlers({ callback, composition, drawId, eventData }: EventHandlersParams) {
+function indexMatchUps(eventData: any) {
   const matchUps = eventData?.drawsData?.flatMap(({ structures }: any) =>
     structures
       .flatMap((structure: any) => [
@@ -42,10 +46,19 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       ])
       .filter(Boolean),
   );
-  const matchUpsMap = tools.createMap(matchUps, 'matchUpId');
+  return { eventData, matchUps, matchUpsMap: tools.createMap(matchUps, 'matchUpId') };
+}
+
+export function getEventHandlers({ callback, composition, drawId, getEventData }: EventHandlersParams) {
+  let indexed = indexMatchUps(getEventData());
+  const current = () => {
+    const eventData = getEventData();
+    if (eventData !== indexed.eventData) indexed = indexMatchUps(eventData);
+    return indexed;
+  };
   const getMatchUp = (props: any) => {
     const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
-    return matchUpsMap[matchUpId];
+    return current().matchUpsMap[matchUpId];
   };
 
   const getSideNumber = (props: any) => parseInt(getTargetAttribute(props.pointerEvent.target, 'tmx-sd', 'sideNumber'));
@@ -84,6 +97,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       {};
 
     const participantId = side?.participantId || side?.participant?.participantId;
+    const { eventData, matchUps } = current();
     const followActions = getFollowActions({
       currentStructureId: matchUp?.structureId,
       eventId: eventData?.eventInfo?.eventId,
@@ -134,7 +148,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
     if (readyToScore) {
       if (matchUp.matchUpType === TEAM) {
         const onClose = () => callback();
-        const title = eventData?.eventInfo?.eventName;
+        const title = current().eventData?.eventInfo?.eventName;
 
         const { matchUpId, drawId } = matchUp;
         openScorecard({ title, drawId, matchUpId, onClose });
@@ -195,7 +209,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
     });
 
     // Pre-create engines for all ready-to-score matchUps
-    for (const matchUp of matchUps || []) {
+    for (const matchUp of indexed.matchUps || []) {
       if (matchUp?.readyToScore && !matchUp?.winningSide && matchUp?.matchUpFormat) {
         inlineManager.getOrCreate(matchUp.matchUpId, matchUp.matchUpFormat, matchUp);
       }
@@ -211,7 +225,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
         pointerEvent: props.pointerEvent,
         roundNumber,
         structureId,
-        eventData,
+        eventData: current().eventData,
         callback,
         drawId,
       });
@@ -223,7 +237,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
         pointerEvent: props.pointerEvent,
         roundNumber,
         structureId,
-        eventData,
+        eventData: current().eventData,
         callback,
         drawId,
       });
@@ -232,7 +246,7 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
       if (props?.pointerEvent) {
         props.pointerEvent.stopPropagation();
         const matchUpId = getTargetAttribute(props.pointerEvent.target, 'tmx-m', 'id');
-        const matchUp = matchUpsMap[matchUpId];
+        const matchUp = current().matchUpsMap[matchUpId];
         matchUpActions({ pointerEvent: props.pointerEvent, matchUp, callback });
       }
     },
@@ -274,5 +288,5 @@ export function getEventHandlers({ callback, composition, drawId, eventData }: E
     scoreClick,
   };
 
-  return { eventHandlers, inlineManager, matchUpsMap };
+  return { eventHandlers, inlineManager };
 }

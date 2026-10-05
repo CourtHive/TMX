@@ -556,7 +556,7 @@
     "auth": "Authorized",
     "fetch": "Download",
     "fetchtournament": "Download Tournament Record",
-    "convert": "Convert to TODS / Save",
+    "convert": "Convert to CODES / Save",
     "send": "Upload Tournament Record",
     "export": "Export Tournament Record",
     "renewlist": "Renew List",
@@ -673,7 +673,7 @@
     "noconnection": "No Connection",
     "schedulepriority": "Match Scheduling Priority",
     "send": "Send",
-    "sendTODS": "Send TODS Tournament Record",
+    "sendCODES": "Send CODES Tournament Record",
     "export": "Export",
     "pointsvalidfrom": "Points Valid From",
     "linkcopied": "Link Copied to Clipboard",
@@ -1138,17 +1138,27 @@
     }
   },
   "penalties": {
-    "fail2signout": "Failed to Sign Out",
-    "illegalcoaching": "Illegal Coaching",
-    "ballabuse": "Ball Abuse",
-    "racquetabuse": "Racquet Abuse",
-    "equipmentabuse": "Equipment Abuse",
-    "cursing": "Swearing",
-    "rudegestures": "Rude Gestures",
-    "foullanguage": "Foul Language",
-    "timeviolation": "Time Violation",
-    "latearrival": "Late Arrival",
-    "unsporting": "Unsporting Behavior"
+    "AUDIBLE_OBSCENITY": "Audible Obscenity",
+    "BALL_ABUSE": "Ball Abuse",
+    "COACHING": "Illegal Coaching",
+    "DRESS_CODE_VIOLATION": "Dress Code Violation",
+    "EQUIPMENT_VIOLATION": "Equipment Violation",
+    "FAILURE_TO_COMPLETE": "Failure to Complete",
+    "FAILURE_TO_SIGN_IN": "Failure to Sign In",
+    "FAILURE_TO_SIGN_OUT": "Failed to Sign Out",
+    "INELIGIBILITY": "Ineligibility",
+    "LEAVING_THE_COURT": "Leaving the Court",
+    "NO_SHOW": "No Show",
+    "OTHER": "Other",
+    "PHYSICAL_ABUSE": "Physical Abuse",
+    "PROHIBITED_SUBSTANCE": "Prohibited Substance",
+    "PUNCTUALITY": "Late Arrival",
+    "RACKET_ABUSE": "Racquet Abuse",
+    "REFUSAL_TO_PLAY": "Refusal to Play",
+    "TIME_VIOLATION": "Time Violation",
+    "UNSPORTSMANLIKE_CONDUCT": "Unsporting Behavior",
+    "VERBAL_ABUSE": "Verbal Abuse",
+    "VISIBLE_OBSCENITY": "Visible Obscenity"
   },
   "datelocalization": "en-EN",
   "common": {
@@ -1544,7 +1554,7 @@
       "goOffline": "Go offline - standalone mode",
       "goOnline": "Go online - exit standalone mode",
       "exportUtr": "Export UTR matches",
-      "exportTods": "Export TODS file",
+      "exportCodes": "Export CODES file",
       "noActions": "No actions available",
       "replaceTournament": "Replace tournament on server",
       "go": "Go",
@@ -1690,7 +1700,7 @@
       "invalidUrl": "Invalid URL"
     },
     "exportTournament": {
-      "tods": "TODS"
+      "codes": "CODES"
     },
     "notesEditor": {
       "title": "Edit Overview"

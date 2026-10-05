@@ -1,11 +1,11 @@
-# TODS Data Model Reference for PDF Generation
+# CODES Data Model Reference for PDF Generation
 
 **Status:** 🚧 Work in Progress  
-**Purpose:** Document the TODS (Tournament Organization Data Structures) data model for adapting legacy PDF generators
+**Purpose:** Document the CODES data model (CourtHive's competition data standard) for adapting legacy PDF generators
 
 ## Overview
 
-The legacy TMX-Suite PDF generators were built for an old JSON structure. The current TMX uses the **TODS Competition Factory** format, which has a different structure. This document maps the old structure to the new one.
+The legacy TMX-Suite PDF generators were built for an old JSON structure. The current TMX uses the **CODES** format of the competition factory (`tods-competition-factory`), which has a different structure. This document maps the old structure to the new one.
 
 ## Tournament Engine API
 
@@ -18,7 +18,7 @@ const tournament = tournamentEngine.getTournament()?.tournament;
 // Structure: { tournamentName, startDate, endDate, organizers, ... }
 ```
 
-**TODS (Current TMX):**
+**CODES (Current TMX):**
 
 ```javascript
 const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
@@ -33,7 +33,7 @@ const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
 
 ### Getting Event Data
 
-**Both Legacy and TODS (similar):**
+**Both Legacy and CODES (similar):**
 
 ```javascript
 const event = tournamentEngine.getEvent({ eventId })?.event;
@@ -60,7 +60,7 @@ const event = tournamentEngine.getEvent({ eventId })?.event;
 
 ### Getting Draw Data
 
-**TODS:**
+**CODES:**
 
 ```javascript
 // From event
@@ -75,7 +75,7 @@ const drawDefinition = drawResult?.drawDefinition;
 
 ### Tournament/Event Info
 
-| Legacy Field                | TODS Field                      | Notes                            |
+| Legacy Field                | CODES Field                     | Notes                            |
 | --------------------------- | ------------------------------- | -------------------------------- |
 | `tournament.tournamentName` | `tournamentInfo.tournamentName` | Same name                        |
 | `tournament.startDate`      | `tournamentInfo.startDate`      | ISO date string                  |
@@ -97,7 +97,7 @@ const drawDefinition = drawResult?.drawDefinition;
 }
 ```
 
-**TODS Structure:**
+**CODES Structure:**
 
 ```javascript
 {
@@ -133,7 +133,7 @@ const drawDefinition = drawResult?.drawDefinition;
 
 **Mapping:**
 
-| Legacy               | TODS                        | Access Method |
+| Legacy               | CODES                       | Access Method |
 | -------------------- | --------------------------- | ------------- |
 | `first + ' ' + last` | `participantName`           | Direct        |
 | `first`              | `person.standardGivenName`  | Nested        |
@@ -156,7 +156,7 @@ const drawDefinition = drawResult?.drawDefinition;
 }
 ```
 
-**TODS:**
+**CODES:**
 
 ```javascript
 {
@@ -185,7 +185,7 @@ const drawDefinition = drawResult?.drawDefinition;
 
 ### MatchUp Structure
 
-**TODS MatchUp:**
+**CODES MatchUp:**
 
 ```javascript
 {
@@ -298,7 +298,7 @@ function getEntryStatusCode(participant: any): string {
 
   const entry = participant.entries[0];
 
-  // Map TODS entryStatus to legacy codes
+  // Map CODES entryStatus to legacy codes
   const statusMap: Record<string, string> = {
     WILDCARD: 'WC',
     LUCKY_LOSER: 'LL',
@@ -371,7 +371,7 @@ const header = {
 };
 ```
 
-**TODS:**
+**CODES:**
 
 ```javascript
 const tournamentInfo = tournamentEngine.getTournamentInfo()?.tournamentInfo;
@@ -384,7 +384,6 @@ const header = {
 ## Resources
 
 - [Competition Factory Documentation](https://github.com/CourtHive/tods-competition-factory)
-- [TODS Data Model Spec](https://itftennis.atlassian.net/wiki/spaces/TODS)
 - TMX-Suite-Legacy: `/src/engineFactory/pdfEngine/` (reference only)
 
 ---

@@ -1,4 +1,4 @@
-import { ERR_MATCHUP_HAS_SCHEDULING } from 'constants/tmxConstants';
+import { errorConditionConstants } from 'tods-competition-factory';
 
 /**
  * Whether a failed mutation is the engine asking which way to go on BYE placement.
@@ -16,7 +16,8 @@ import { ERR_MATCHUP_HAS_SCHEDULING } from 'constants/tmxConstants';
  */
 export function isSchedulingAmbiguity(result: any): boolean {
   if (!result || result.success) return false;
-  const isAmbiguity = (code?: string) => code === ERR_MATCHUP_HAS_SCHEDULING;
+  // read when called: the code is the factory's (MATCHUP_HAS_SCHEDULING), not a TMX re-spelling of it
+  const isAmbiguity = (code?: string) => code === errorConditionConstants.MATCHUP_HAS_SCHEDULING.code;
   if (isAmbiguity(result.error?.code)) return true;
   return (result.results ?? []).some((methodResult: any) => isAmbiguity(methodResult?.error?.code));
 }

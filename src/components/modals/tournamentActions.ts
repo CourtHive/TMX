@@ -112,9 +112,9 @@ export function tournamentActions(): void {
     }
 
     if (inputs.action.value === 'utrExport') downloadUTRmatches();
-    if (inputs.action.value === 'todsExport') {
+    if (inputs.action.value === 'codesExport') {
       if (tournamentRecord) {
-        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+        downloadJSON(`${tournamentRecord.tournamentId}.codes.json`, tournamentRecord);
       } else {
         tmxToast({ message: t('common.error') });
       }
@@ -154,7 +154,7 @@ export function tournamentActions(): void {
     providerId && !offline && { label: t('modals.tournamentActions.goOffline'), value: 'goOffline', close: true },
     providerId && offline && { label: t('modals.tournamentActions.goOnline'), value: 'goOnline', close: true },
     tournamentRecord && admin && { label: t('modals.tournamentActions.exportUtr'), value: 'utrExport' },
-    tournamentRecord && admin && { label: t('modals.tournamentActions.exportTods'), value: 'todsExport' },
+    tournamentRecord && admin && { label: t('modals.tournamentActions.exportCodes'), value: 'codesExport' },
   ].filter(Boolean);
 
   if (options.length < 2) return tmxToast({ message: t('modals.tournamentActions.noActions') });

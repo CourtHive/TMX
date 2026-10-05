@@ -26,6 +26,10 @@ import { SUPER_ADMIN, TOURNAMENT_ENGINE } from 'constants/tmxConstants';
 import { isMutationAllowed } from '@courthive/provider-config';
 import { providerConfig } from 'config/providerConfig';
 
+// Read when called, not at module load: the code is the factory's, so a typo cannot drift from it.
+const isMissingTournament = (ack: any): boolean =>
+  ack?.error?.code === factory.errorConditionConstants.MISSING_TOURNAMENT_RECORD.code;
+
 interface MutationParams {
   tournamentRecord?: any;
   methods: MutationMethod[];
@@ -272,7 +276,7 @@ async function makeMutation({
     const ackCallback = (ack: any) => {
       if (timedOut) return;
       ackReceived = true;
-      const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
+      const missingTournament = isMissingTournament(ack);
       if (serverConfig.get().serverFirst && (ack?.success || missingTournament)) {
         (async () => {
           // Replay any methods the server appended (e.g. attachPolicies for the
@@ -350,7 +354,7 @@ export function replayServerMutation({
   warmCache?: boolean;
 }): void {
   const ackCallback = (ack: any) => {
-    const missingTournament = ack?.error?.code === 'ERR_MISSING_TOURNAMENT';
+    const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
     const serverMethods = Array.isArray(ack?.appliedServerMethods) ? ack.appliedServerMethods : [];
     const methodsToApply = serverMethods.length ? [...methods, ...serverMethods] : methods;

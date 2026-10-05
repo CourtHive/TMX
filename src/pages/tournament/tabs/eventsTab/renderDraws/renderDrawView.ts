@@ -3,10 +3,10 @@
  * Handles draw display, participant filtering, and morphdom-based updates.
  */
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
-import { markReadyMatchUpsInProgress } from './markReadyMatchUpsInProgress';
 import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
 import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
+import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
@@ -15,9 +15,9 @@ import { renderSwissChart } from 'components/tables/swissChartView/renderSwissCh
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
 import { maybeRenderGenerateQualifyingBanner } from './generateQualifyingBanner';
+import { markReadyMatchUpsInProgress } from './markReadyMatchUpsInProgress';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
-import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
@@ -152,6 +152,17 @@ function applyInlineScoringWrappers(
   }
 }
 
+// The handler properties courthive-components assigns while rendering a structure. morphdom patches
+// attributes and children onto the node already in the page but never its properties, so a reused
+// node kept the closure of the render that created it — bound to THAT render's matchUp and side. A
+// TBD slot filled by a refresh then answered clicks as if it were still empty, until a reload.
+// Listeners bound with addEventListener cannot be read back and are NOT carried.
+function carryHandlerProperties(fromEl: HTMLElement, toEl: HTMLElement): void {
+  fromEl.onclick = toEl.onclick;
+  fromEl.onmouseenter = toEl.onmouseenter;
+  fromEl.onmouseleave = toEl.onmouseleave;
+}
+
 function applyMorphdomUpdate(
   drawsView: HTMLElement | null,
   content: HTMLElement,
@@ -184,8 +195,10 @@ function applyMorphdomUpdate(
         if (id && id !== 'undefined' && id !== '') return id;
         return undefined;
       },
-      onBeforeElUpdated(fromEl: any, _toEl: any) {
-        return !isActiveInlineScoringEl(fromEl);
+      onBeforeElUpdated(fromEl: any, toEl: any) {
+        if (isActiveInlineScoringEl(fromEl)) return false;
+        carryHandlerProperties(fromEl, toEl);
+        return true;
       },
     });
   } else if (drawsView) {
@@ -326,8 +339,8 @@ export function renderDrawView({
   composition.configuration.roundHeader = true;
 
   const { eventHandlers, inlineManager } = getEventHandlers({
+    getEventData: () => eventData,
     composition,
-    eventData,
     callback,
     drawId,
   });
