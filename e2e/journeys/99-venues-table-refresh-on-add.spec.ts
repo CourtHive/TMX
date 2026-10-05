@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, isolateFromCfs, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedTournament, PROFILE_EMPTY_TOURNAMENT } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 
@@ -60,6 +60,9 @@ async function stubRegistry(page: Page) {
 
 /** The registry lookup button is gated on a signed-in session; an unsigned JWT with a future `exp` clears it. */
 async function stubSignedInSession(page: Page) {
+  // Hand-rolled rather than a dev-bridge login helper, so it does not get their default
+  // isolation — ask for it: a live CFS 401s this unsigned token and `baseApi` logs out.
+  await isolateFromCfs(page);
   await page.evaluate(() => {
     const b64 = (o: any) => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const exp = Math.floor(Date.now() / 1000) + 3600;

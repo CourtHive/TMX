@@ -2,13 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
-import {
-  initDevBridge,
-  isolateFromCfs,
-  loginAsProviderMember,
-  resetState,
-  waitForAppReady,
-} from '../helpers/dev-bridge';
+import { initDevBridge, loginAsProviderMember, resetState, waitForAppReady } from '../helpers/dev-bridge';
 
 /**
  * Journey 61 — Now-strip auto-call due-gating.
@@ -38,6 +32,8 @@ import {
  *   strip before the 401 landed (~100ms), and failed when it did not (seen
  *   2026-10-04). `isolateFromCfs` aborts those requests, so the token stays and the
  *   permission check falls back to the JWT, as it does with no server at all.
+ *   `loginAsProviderMember` now installs it by default, so this journey no longer
+ *   asks for it — and nor does any other journey that logs in through a helper.
  * - **The wall clock.** The second case's `23:59` is strictly future for all but the
  *   last minute of the day, when the match is due and IS called. The browser clock
  *   is pinned to local noon on the seeded day, so "future" is a fact of the fixture.
@@ -125,7 +121,6 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
     // the due-gate read the venue frame, which falls back to the browser zone because the
     // mock tournament carries no localTimeZone.
     await page.clock.setFixedTime(new Date(`${date}T${PINNED_TIME}`));
-    await isolateFromCfs(page);
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);

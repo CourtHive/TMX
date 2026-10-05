@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { BrowserContext, Page } from '@playwright/test';
 
 /**
  * Initialize the dev bridge on a page.
@@ -120,17 +120,41 @@ export async function isDevAvailable(page: Page): Promise<boolean> {
 }
 
 /**
+ * Options shared by every synthetic-login helper in this file.
+ *
+ * Each of those helpers cuts the page off from CFS by default — see
+ * `isolateFromCfs` for why an unsigned token and a live server cannot share a
+ * page. `liveCfs: true` is the explicit, greppable opt-out for a journey that
+ * genuinely wants the server: it leaves the page's traffic alone. Reach for it
+ * rarely. Any real CFS answers these unsigned tokens with 401, so a journey that
+ * needs a live server almost always wants a REAL session (`AuthFlow.login`, which
+ * signs in through `/auth/login` and installs `routeApiToCfs`) rather than one of
+ * these helpers with the isolation turned off.
+ */
+export interface SyntheticLoginOptions {
+  /** Leave the page connected to a real CFS instead of isolating it. Default `false`. */
+  liveCfs?: boolean;
+}
+
+async function isolateUnlessLiveCfs(page: Page, options?: SyntheticLoginOptions): Promise<void> {
+  if (!options?.liveCfs) await isolateFromCfs(page);
+}
+
+/**
  * Inject a synthetic super-admin JWT into localStorage so admin-gated
  * surfaces (Tournament Actions panel, super-admin-only pages) render
  * during e2e runs. The JWT is unsigned — `validateToken` uses
  * `jwtDecode` which does NOT verify the signature, so a base64-encoded
  * payload with the right claims is enough for the client.
  *
- * Must be called via `page.addInitScript` BEFORE the first navigation
- * so the token is in localStorage when TMX boots. Use the helper
- * `seedSuperAdminTokenInitScript` below for that wiring.
+ * Evaluate-based, so it writes to the CURRENT page's localStorage; to have the
+ * token present when TMX first boots, use `seedSuperAdminTokenInitScript`.
+ *
+ * Isolates the page from CFS first, unless `{ liveCfs: true }` — see
+ * `isolateFromCfs`.
  */
-export async function loginAsSuperAdmin(page: Page): Promise<void> {
+export async function loginAsSuperAdmin(page: Page, options?: SyntheticLoginOptions): Promise<void> {
+  await isolateUnlessLiveCfs(page, options);
   await page.evaluate(() => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(
@@ -152,8 +176,12 @@ export async function loginAsSuperAdmin(page: Page): Promise<void> {
  * Call once in `test.beforeAll` (or before your first `page.goto`) —
  * Playwright re-runs init scripts on every navigation, so the token
  * stays present across `page.goto` calls within the same test.
+ *
+ * Isolates the page from CFS first, unless `{ liveCfs: true }` — see
+ * `isolateFromCfs`.
  */
-export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
+export async function seedSuperAdminTokenInitScript(page: Page, options?: SyntheticLoginOptions): Promise<void> {
+  await isolateUnlessLiveCfs(page, options);
   await page.addInitScript(() => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(
@@ -167,21 +195,54 @@ export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
   });
 }
 
+/** Browser contexts already cut off from CFS — see the idempotence note below. */
+const isolatedContexts = new WeakSet<BrowserContext>();
+
 /**
  * Cut the page off from CFS for the rest of the test.
  *
- * The synthetic tokens above are UNSIGNED. The client accepts them because
- * `validateToken` only decodes — but a real CFS on :8383 rejects them with 401,
- * and `baseApi`'s response interceptor answers a 401 by attempting one silent
- * refresh and, finding no refresh token in localStorage, calling `logOut()`.
- * A journey whose UI is role-gated then loses the role it just injected: with
- * CFS running, journey 30's `#formatWizardActionButton` never renders and every
- * test in the file times out, while with CFS stopped the same file passes.
+ * Every synthetic-login helper in this file calls this BY DEFAULT (opt out with
+ * `{ liveCfs: true }`), so a journey that injects a token is hermetic without
+ * having to remember to ask. Calling it yourself as well is harmless.
  *
- * Whether a server happens to be running locally must not decide whether a
- * client-only journey passes. Aborting the requests is what makes it hermetic:
- * a network error does not log anyone out (`baseApi` only logs out on 401), so
- * this reproduces the no-server environment deterministically in both.
+ * ## The cascade it prevents
+ *
+ * The synthetic tokens are UNSIGNED. The client accepts them because
+ * `validateToken` only decodes — but a real CFS on :8383 rejects them with 401.
+ * `baseApi`'s response interceptor answers a 401 by attempting one silent
+ * refresh and, finding no refresh token in localStorage, calls `logOut()`, which
+ * clears the token, resets the tournament engine and navigates to
+ * `#/tournaments/logout`. A journey whose UI is role-gated then loses the role it
+ * just injected, mid-test. Two ways in, both seen:
+ *
+ * - a mutation: `mutationRequest` → `checkPermissions` → `ensureUserContext()`
+ *   fires `GET /auth/me`. Journey 61 passed only while its `waitForSelector` beat
+ *   that 401 (~100ms) and flaked when it did not (2026-10-04, fixed by #1536);
+ * - the tournaments list: with a token present it reads `/provider/my-calendars`
+ *   at boot. Journey 86 logged out at the start of both its tests on every run
+ *   against a live CFS, and passed only because it navigates on afterwards.
+ *
+ * Journey 30 is the deterministic form: with CFS running its
+ * `#formatWizardActionButton` never rendered and every test timed out. CI has no
+ * CFS, so none of this happens there — which is exactly why it must not decide a
+ * local run either. Aborting is what makes it hermetic: a network error does not
+ * log anyone out (`baseApi` only logs out on 401), so this reproduces the
+ * no-server environment deterministically in both.
+ *
+ * ## Why the CONTEXT, not the page
+ *
+ * Playwright gives `page.route` handlers precedence over `context.route` ones,
+ * whatever order they were registered in. Installed at the context, this is the
+ * lowest-priority answer for a CFS URL: a spec's own stub for one endpoint
+ * (`/auth/me`, `/provider/my-calendars`, `/factory/schedule-projection`, …) still
+ * wins even when the spec registered it BEFORE logging in, as journeys 113 and
+ * 124 do. Installed at the page, it would have jumped ahead of those stubs and
+ * aborted the very responses the journeys exist to observe.
+ *
+ * ## Idempotent
+ *
+ * Tracked per context, so the second and later calls install nothing — a spec
+ * that isolates explicitly and then logs in through a helper gets one route.
  *
  * Scope is the CFS ORIGIN, deliberately. A bare path glob such as
  * `**\/tournaments/search*` also matches the app's own source modules served by
@@ -190,8 +251,12 @@ export async function seedSuperAdminTokenInitScript(page: Page): Promise<void> {
  * Override the origin with `E2E_API_BASE`, as `role-fixtures.ts` does.
  */
 export async function isolateFromCfs(page: Page): Promise<void> {
+  const context = page.context();
+  if (isolatedContexts.has(context)) return;
+  isolatedContexts.add(context);
+
   const cfs = process.env.E2E_API_BASE ?? 'http://localhost:8383';
-  await page.route(`${cfs}/**`, (route) => route.abort());
+  await context.route(`${cfs}/**`, (route) => route.abort());
 }
 
 /**
@@ -211,8 +276,16 @@ export async function isolateFromCfs(page: Page): Promise<void> {
  * doesn't reload, so an init script wouldn't re-fire, and the boot-set token
  * would already be wiped by the clear. Roles deliberately exclude 'superadmin' —
  * the gate must pass on genuine provider membership, not the super-admin escape.
+ *
+ * Isolates the page from CFS first, unless `{ liveCfs: true }` — see
+ * `isolateFromCfs`.
  */
-export async function loginAsProviderMember(page: Page, providerId: string): Promise<void> {
+export async function loginAsProviderMember(
+  page: Page,
+  providerId: string,
+  options?: SyntheticLoginOptions,
+): Promise<void> {
+  await isolateUnlessLiveCfs(page, options);
   await page.evaluate((pid: string) => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(
