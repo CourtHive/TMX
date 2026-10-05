@@ -3,7 +3,7 @@
  *
  * Consumes the canonical `{ headers, rows }` shape produced by `parseDelimited`
  * (or by the Google Sheet normalizer) plus an explicit column-index → `TargetField`
- * mapping, builds TODS-shaped INDIVIDUAL participants, and dispatches them via
+ * mapping, builds CODES-shaped INDIVIDUAL participants, and dispatches them via
  * `mutationRequest`.
  *
  * The flow is **parse first, merge after** — every input row is parsed to a

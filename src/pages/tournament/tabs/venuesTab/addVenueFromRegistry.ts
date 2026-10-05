@@ -138,7 +138,7 @@ export function addVenueFromRegistry({ callback }: { callback?: (result: any) =>
       tmxToast({ message: t('pages.venues.registry.selectFirst'), intent: 'is-warning' });
       return;
     }
-    // The registry shapes this as a TODS Venue with its courts inline, and `addVenue` pushes it
+    // The registry shapes this as a CODES Venue with its courts inline, and `addVenue` pushes it
     // whole — so there is no companion addCourts call and no translation step to drift.
     const methods = [{ method: ADD_VENUE, params: { venue: chosen.venue, returnDetails: true } }];
     mutationRequest({

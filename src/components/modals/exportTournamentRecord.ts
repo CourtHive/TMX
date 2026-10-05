@@ -25,7 +25,7 @@ export function exportTournamentRecord(): void {
   const buttons = [
     { label: t('common.cancel'), intent: 'none' },
     { label: UTR, intent: 'is-warning', onClick: downloadUTRmatches, close: true },
-    { label: t('modals.exportTournament.tods'), intent: 'is-primary', onClick: exportCODES, close: true },
+    { label: t('modals.exportTournament.codes'), intent: 'is-primary', onClick: exportCODES, close: true },
   ];
   const title = `${t('phrases.export')}: ${t('trn')}`;
 

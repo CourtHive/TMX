@@ -1,6 +1,6 @@
 /**
  * Import tournament records from file via dropzone modal or native dialog.
- * Parses TODS JSON and adds tournaments to calendar table with conflict handling.
+ * Parses CODES JSON and adds tournaments to calendar table with conflict handling.
  */
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { addOrUpdateTournament } from './addOrUpdateTournament';
@@ -38,7 +38,7 @@ export function importTournaments({ table }: { table: any }): void {
     platform
       .showOpenDialog({
         title: t('storage.importTournament'),
-        filters: [{ name: 'TODS JSON', extensions: ['json'] }],
+        filters: [{ name: 'CODES JSON', extensions: ['json'] }],
         multiple: true,
       })
       .then(async (filePaths) => {
