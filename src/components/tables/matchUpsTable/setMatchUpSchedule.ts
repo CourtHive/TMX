@@ -3,8 +3,9 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-// constants
+// constants and types
 import { BULK_SCHEDULE_MATCHUPS } from 'constants/mutationConstants';
+import type { ErrorCode } from 'tods-competition-factory';
 
 type SetMatchUpScheduleParams = {
   callback?: () => void;
@@ -15,8 +16,9 @@ type SetMatchUpScheduleParams = {
 /**
  * Engine rejections that have a better explanation than their raw message. Anything absent falls
  * through to the engine's own text, which is still preferable to the silence this map replaced.
+ * Keyed by `ErrorCode`, so a key the factory does not define fails to compile.
  */
-const ERROR_MESSAGE_KEYS: Record<string, string> = {
+const ERROR_MESSAGE_KEYS: Partial<Record<ErrorCode, string>> = {
   ERR_INVALID_END_TIME: 'toasts.schedule.invalidEndTime',
   ERR_INVALID_START_TIME: 'toasts.schedule.invalidStartTime',
   ERR_NOT_FOUND_COURT: 'toasts.schedule.courtNotFound',
@@ -25,7 +27,7 @@ const ERROR_MESSAGE_KEYS: Record<string, string> = {
 
 export function scheduleErrorMessage(error: any): string {
   const code = typeof error === 'object' ? error?.code : undefined;
-  const key = code && ERROR_MESSAGE_KEYS[code];
+  const key = code && ERROR_MESSAGE_KEYS[code as ErrorCode];
   if (key) return t(key);
 
   const reason = (typeof error === 'object' ? error?.message : error) || t('common.error');
