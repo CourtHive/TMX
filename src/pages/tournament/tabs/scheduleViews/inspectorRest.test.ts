@@ -63,14 +63,20 @@ describe('restAsOf — the projection runs backwards in time, never forwards', (
 });
 
 /**
- * The scenario that was reported: a backdraw final at 12:00, its semifinal at 09:00 with the score
- * entered from the operator's real clock four days later — and a schedule open on a tournament date
- * that is not that clock's calendar today, which `resolveScheduleDate()` produces for any tournament
- * whose dates have all passed. Measured against a real `now`, the semifinal sits days in the past
- * and the player reads as rested for thousands of minutes; against the projected instant the score
- * entry reads 33 minutes ago.
+ * A past-dated tournament run in real time: a backdraw final at 12:00 on 08-20, its semifinal at
+ * 09:00 with the score entered from the operator's real clock on 08-24.
+ *
+ * CA, 2026-10-07: *"I don't think it makes sense, really, to run a past-dated tournament in real
+ * time. That is a demo scenario and while we want rich support for demoing the capabilities, we
+ * don't need to change core logic to accommodate that!"* So the factory's reading stands: a score
+ * stamped days away from its own match is not a finish, rest is projected from the schedule, and the
+ * stamp is reported as discarded rather than silently used. (TMX's own copy read the stamp by its
+ * time of day; that copy is gone.)
+ *
+ * What `restAsOf` still buys on a past day: the figure stays on the viewed day's clock instead of
+ * counting the days since.
  */
-describe('end to end: a real score entry against a past-dated schedule day', () => {
+describe('a past-dated tournament run in real time — a demo scenario, not core logic', () => {
   const VIEWED = '2026-08-20';
   const NOW = venueInstant('2026-08-24', '11:11');
 
@@ -97,8 +103,9 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
       (row: RestRow) => row.participantId === 'p-alice',
     );
 
-  it('measures rest from the score entry rather than reporting it unmeasurable', () => {
-    expect(alice()).toMatchObject({ restMinutes: 33, source: 'scoredTime' });
+  it('projects rest from the schedule and names the score stamp it discarded', () => {
+    // 09:00 + 90 average = 10:30, measured at 11:11 on the viewed day
+    expect(alice()).toMatchObject({ restMinutes: 41, source: 'scheduledTime', discardedSources: ['scoredTime'] });
     expect(alice()?.anchorUnreliable).toBeUndefined();
   });
 
@@ -106,11 +113,11 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
     expect(alice()?.load.ordinal).toBe(2);
   });
 
-  it('would report thousands of minutes against the real instant — the defect, pinned', () => {
+  it('stays on the viewed day: against the real instant the same row reads days of rest', () => {
     const real = restFor([final, semi], 'm-final', NOW.toISOString(), VIEWED).rows.find(
       (row: RestRow) => row.participantId === 'p-alice',
     );
-    expect(real?.source).not.toEqual('scoredTime');
+    expect(real?.restMinutes).toBeGreaterThan(4 * 24 * 60);
   });
 });
 
