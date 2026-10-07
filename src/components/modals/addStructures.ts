@@ -3,6 +3,7 @@
  * Configures playoff rounds for finishing position ranges with custom naming.
  * Includes Page Playoff toggle for 4-participant hybrid knockout format.
  */
+import { collectRoundLimits, roundOptions, roundsField } from './addStructuresRounds';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -43,18 +44,29 @@ export function addStructures({
   // Positions 1-2 are always available from the main SE final (not in playoffRoundsRanges)
   const pagePlayoffAvailable = has34;
 
-  const fields = sortedRanges.map(({ finishingPositionRange }: any) => ({
-    label: finishingPositionRange,
-    field: finishingPositionRange,
-    id: finishingPositionRange,
-    checkbox: true,
-    fieldPair: {
-      field: `${finishingPositionRange}-name`,
-      placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
-      id: `${finishingPositionRange}-name`,
-      width: '350px',
+  // each range: its checkbox and name, then a rounds cap that shows only once the range is checked
+  // (a consolation that plays one or two rounds rather than the full tree; factory #5282 roundLimits)
+  const fields = sortedRanges.flatMap(({ finishingPositionRange, finishingPositions }: any) => [
+    {
+      label: finishingPositionRange,
+      field: finishingPositionRange,
+      id: finishingPositionRange,
+      checkbox: true,
+      fieldPair: {
+        field: `${finishingPositionRange}-name`,
+        placeholder: `${PLAYOFF_NAME_BASE} ${finishingPositionRange}`,
+        id: `${finishingPositionRange}-name`,
+        width: '350px',
+      },
     },
-  }));
+    {
+      options: roundOptions(finishingPositions?.length ?? 0, t('modals.addStructures.allRounds')),
+      label: t('modals.addStructures.rounds'),
+      field: roundsField(finishingPositionRange),
+      id: roundsField(finishingPositionRange),
+      visible: false,
+    },
+  ]);
 
   if (!fields || fields.length < 1) {
     tmxToast({ message: t('modals.addStructures.noPlayoffPositions'), intent: 'is-danger' });
@@ -137,10 +149,12 @@ export function addStructures({
       return { [roundNumber]: 1 };
     });
 
+    const roundLimits = collectRoundLimits(checkedRanges, (field) => inputs[field]?.value);
     const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
       playoffStructureNameBase,
       playoffAttributes,
       roundProfiles,
+      roundLimits,
       structureId,
       drawId,
     });
@@ -197,11 +211,23 @@ export function addStructures({
     checkValid();
   };
 
+  // a range's rounds cap is offered only while that range is checked
+  const syncRoundsVisibility = ({ fields }: any) => {
+    for (const { finishingPositionRange } of result.playoffRoundsRanges) {
+      const wrapper = fields?.[roundsField(finishingPositionRange)] as HTMLElement | undefined;
+      if (wrapper) wrapper.style.display = inputs[finishingPositionRange]?.checked ? '' : NONE;
+    }
+  };
+  const onRangeChange = (params: any) => {
+    syncRoundsVisibility(params);
+    checkValid();
+  };
+
   const relationships = [
     ...(pagePlayoffAvailable ? [{ control: PAGE_PLAYOFF_FIELD, onChange: onPagePlayoffChange }] : []),
     ...result.playoffRoundsRanges.map(({ finishingPositionRange }: any) => ({
       control: finishingPositionRange,
-      onChange: checkValid,
+      onChange: onRangeChange,
     })),
   ];
   const content = (elem: HTMLElement) => (inputs = renderForm(elem, options, relationships));
