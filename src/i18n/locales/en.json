@@ -265,13 +265,13 @@
   "settings": {
     "seedingPolicy": {
       "title": "Seeding policy",
-      "intro": "Applies to every draw in this tournament. Draws created with \u201cInherited\u201d seeding use it, including draws regenerated later.",
+      "intro": "Applies to every draw in this tournament. Draws created with “Inherited” seeding use it, including draws regenerated later.",
       "locked": "Your provider sets the seeding policy for this tournament. It applies to every draw and cannot be changed here.",
-      "thresholds": "Draw size \u2192 seeds:",
+      "thresholds": "Draw size → seeds:",
       "providerPolicy": "Provider policy",
-      "none": "None \u2014 factory default",
+      "none": "None — factory default",
       "custom": "Custom policy",
-      "attached": "Attached \u2014 {{name}}"
+      "attached": "Attached — {{name}}"
     },
     "help": "Help",
     "pagesize": "Page Size",
@@ -1031,7 +1031,7 @@
         "source": {
           "event": "from this event's scheduling policy",
           "tournament": "from the tournament's scheduling policy",
-          "default": "factory default \u2014 no scheduling policy attached"
+          "default": "factory default — no scheduling policy attached"
         }
       },
       "readiness": {
@@ -2019,7 +2019,13 @@
         "PLAY_OFF": "Playoff bracket used as a secondary structure.",
         "ROUND_ROBIN_WITH_PLAYOFF": "Round robin group stage followed by single elimination playoffs.",
         "FEED_IN": "Staggered entry draw where participants enter the bracket at different rounds."
-      }
+      },
+      "targetRound": "Target round",
+      "targetRoundOption": "Round {{round}} — {{open}} of {{total}} positions open",
+      "targetCapacity": "Round {{round}} can still take {{open}} of its {{total}} positions.",
+      "alreadyFed": "Round {{round}} is already fed by {{feederNames}}: {{count}} qualifiers promised.",
+      "noFeeders": "No qualifying structure feeds round {{round}} yet.",
+      "qualifying": "Qualifying"
     }
   },
   "toasts": {
@@ -2832,7 +2838,7 @@
     "callOnDropBeforeCheckIn_one": "{{count}} participant has not checked in. Call this match to court anyway?",
     "callOnDropBeforeCheckIn_other": "{{count}} participants have not checked in. Call this match to court anyway?",
     "attester": {
-      "action": "Check in as\u2026",
+      "action": "Check in as…",
       "self": "Themselves",
       "parent": "Parent",
       "guardian": "Guardian",
@@ -3261,8 +3267,8 @@
     "conflictsWith": " conflicts with ",
     "minRowsHint": "Minimum number of time rows in the schedule grid",
     "issuesTitle": "Scheduling Issues ({{total}})",
-    "issuesWithErrors": "Scheduling issues \u2014 at least one is an error",
-    "issuesWarningsOnly": "Scheduling issues \u2014 warnings only, no errors",
+    "issuesWithErrors": "Scheduling issues — at least one is an error",
+    "issuesWarningsOnly": "Scheduling issues — warnings only, no errors",
     "warningBars": "Warning bars",
     "warningBarsHint": "Show warning-severity issues on grid cells. Errors are always shown."
   },
