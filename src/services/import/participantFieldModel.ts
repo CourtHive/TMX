@@ -11,7 +11,7 @@ import { t } from 'i18n';
  * `targetFieldGroups()` is the source of truth for the grouped dropdown rendered in
  *   the import view (Milestone 3).
  *
- * The kinds and their semantics deliberately mirror the TODS Person / Participant /
+ * The kinds and their semantics deliberately mirror the CODES Person / Participant /
  * Contact / Address types from `factory/src/types/tournamentTypes.ts`, but the model
  * is kept here in TMX so the import UI vocabulary can evolve independently of the
  * factory schema.

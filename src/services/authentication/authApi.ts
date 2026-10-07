@@ -89,3 +89,12 @@ export async function setContactEmail(contactEmail: string) {
 export async function resendVerification() {
   return baseApi.post('/account/contact-email/resend-verification', {});
 }
+
+/**
+ * POST /auth/select-provider — the session for a chosen provider. `bearer` is the selection token a
+ * multi-provider login answers with, or the current session token when SWITCHING provider. The answer is an
+ * ordinary session ({ token, refreshToken }) for `logIn()`.
+ */
+export async function selectProvider(providerId: string, bearer: string) {
+  return baseApi.post('/auth/select-provider', { providerId }, { headers: { Authorization: `Bearer ${bearer}` } });
+}

@@ -11,12 +11,12 @@ import { contactFormatter } from '../common/formatters/contactFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
+import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { teamsFormatter } from '../common/formatters/teamsFormatter';
 import { roleBadgeFormatter } from '../common/formatters/roleBadge';
 import { applyColumnVisibility } from '../common/columnIsVisible';
 import { getRatingColumns } from '../common/getRatingColumns';
 import { navigateToEvent } from '../common/navigateToEvent';
-import { tournamentEngine } from 'services/factory/engine';
 import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { idEditor } from '../common/editors/idEditor';
@@ -24,8 +24,7 @@ import { headerMenu } from '../common/headerMenu';
 import { t } from 'i18n';
 
 // constants
-import { CENTER, LEFT, PARTICIPANTS, RIGHT, STAFF } from 'constants/tmxConstants';
-import { context } from 'services/context';
+import { CENTER, LEFT, RIGHT, STAFF } from 'constants/tmxConstants';
 
 const { FEMALE, MALE } = genderConstants;
 const { OFFICIAL } = participantRoles;
@@ -309,9 +308,11 @@ export function getParticipantColumns({
     },
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
-      formatter: teamsFormatter(() => {
-        const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
-        if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
+      // The pill names one team, so it opens that team's card — the same profile a TEAM name opens in
+      // the TEAM view — rather than navigating away to the whole TEAM list and leaving the operator to
+      // find it there.
+      formatter: teamsFormatter(({ participantId }) => {
+        if (participantId) teamProfileModal({ participantId });
       }),
       title: t('tables.participants.teams'),
       field: 'teams',

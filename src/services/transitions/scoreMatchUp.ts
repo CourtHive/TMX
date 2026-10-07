@@ -103,7 +103,10 @@ export function enterMatchUpScore(params: {
         // downstream matchUps are active) instead of silently swallowing it.
         // Keep the modal open so the entered score isn't lost and the user
         // can adjust or cancel.
-        tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
+        // A refused score says WHICH set is wrong in `info` ("Set 1: …"), and the operator needs that
+        // more than the generic "Invalid score" — the factory refuses unfinished sets since #5096.
+        const message = result.info ?? result.error.message ?? t('common.error');
+        tmxToast({ message, intent: 'is-danger' });
       } else {
         closeModal();
       }

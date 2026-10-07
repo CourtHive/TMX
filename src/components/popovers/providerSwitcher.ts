@@ -13,7 +13,9 @@
  * the new context.provider.
  */
 import { selectProviderModal } from 'components/modals/selectProviderModal';
-import { getLoginState } from 'services/authentication/loginState';
+import { exchangeForProviderSession } from 'services/authentication/providerSelection';
+import { getLoginState, logIn } from 'services/authentication/loginState';
+import { getToken } from 'services/authentication/tokenManagement';
 import { context } from 'services/context';
 import { tipster } from './tipster';
 import { t } from 'i18n';
@@ -32,6 +34,30 @@ import type { ProviderValue } from 'types/tmx';
 type OpenProviderSwitcherParams = {
   target: HTMLElement;
 };
+
+/**
+ * Switch the SESSION to another provider (CA, 2026-10-06): the server issues a session for it, and the token's
+ * `providerId` claim — which the server enforces — moves with it. A super-admin's pick stays client-side
+ * (impersonation): the server lets a super-admin act for any provider.
+ */
+function switchSessionProvider(
+  provider: ProviderValue,
+  isSuperAdmin: boolean,
+  options?: { persistServer?: boolean },
+): void {
+  const token = getToken();
+  if (isSuperAdmin || !token) {
+    setActiveProvider(provider, options);
+    refreshAfterSwitch();
+    return;
+  }
+  exchangeForProviderSession(provider.organisationId, token).then((session) => {
+    if (!session) return;
+    // logIn re-resolves the active provider from the new token, wipes the previous provider's local copies and
+    // reloads the tournaments list for the new one
+    logIn({ data: session });
+  });
+}
 
 function refreshAfterSwitch(): void {
   // Append a unique suffix so Navigo re-resolves the route even when
@@ -54,12 +80,14 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
       hide: false,
       onClick: () => {
         if (isActive) return;
-        setActiveProvider({
-          organisationId: assoc.providerId,
-          organisationName: assoc.organisationName,
-          organisationAbbreviation: assoc.organisationAbbreviation,
-        } as ProviderValue);
-        refreshAfterSwitch();
+        switchSessionProvider(
+          {
+            organisationId: assoc.providerId,
+            organisationName: assoc.organisationName,
+            organisationAbbreviation: assoc.organisationAbbreviation,
+          } as ProviderValue,
+          isSuperAdmin,
+        );
       },
     };
   });
@@ -77,15 +105,15 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
         hide: false,
         onClick: () => {
           if (isActive) return;
-          setActiveProvider(
+          switchSessionProvider(
             {
               organisationId: prov.providerId,
               organisationName: prov.organisationName,
               organisationAbbreviation: prov.organisationAbbreviation,
             } as ProviderValue,
+            isSuperAdmin,
             { persistServer: false },
           );
-          refreshAfterSwitch();
         },
       };
     });

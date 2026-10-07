@@ -2,7 +2,10 @@ import { badgeModel, badgeText, badgeTooltip, headlineRow, shouldRender } from '
 import { describe, expect, it } from 'vitest';
 
 // constants and types
-import type { RestResult, RestRow } from './participantRest';
+import type { RestResult, RestRow } from 'tods-competition-factory';
+
+/** When and on which day a hand-built rest result says it was measured. */
+const MEASURED = { asOf: '2026-08-22T14:00:00.000Z', scheduledDate: '2026-08-22' };
 
 const LOAD = { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] };
 
@@ -41,7 +44,7 @@ describe('headlineRow — worst status decides the badge', () => {
 });
 
 describe('shouldRender — silence when there is nothing to say', () => {
-  const asResult = (rows: RestRow[]): RestResult => ({ evaluated: true, asOfMinutes: 860, rows });
+  const asResult = (rows: RestRow[]): RestResult => ({ evaluated: true, ...MEASURED, rows });
 
   it('does not badge a card where nobody has played today', () => {
     expect(shouldRender(asResult([row({ status: 'none' }), row({ status: 'none', participantId: 'p2' })]))).toBe(false);
@@ -137,7 +140,7 @@ describe('badge honesty for states that carry no measurable interval', () => {
  */
 describe('badgeModel — one derivation for the first paint and every repaint', () => {
   function result(rows: RestRow[]): RestResult {
-    return { evaluated: true, asOfMinutes: 700, rows };
+    return { evaluated: true, ...MEASURED, rows };
   }
 
   it('returns null when there is nothing worth drawing', () => {
@@ -218,7 +221,7 @@ describe('badge for a side that has not been decided yet', () => {
   });
 
   it('carries the pending flag on the model so the DOM can say which zero this is', () => {
-    const model = badgeModel({ evaluated: true, asOfMinutes: 810, rows: [pending] });
+    const model = badgeModel({ evaluated: true, ...MEASURED, rows: [pending] });
     expect(model?.pendingUpstream).toBe(true);
     expect(model?.text).toBe('0m');
   });

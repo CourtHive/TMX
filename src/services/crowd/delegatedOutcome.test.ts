@@ -61,7 +61,7 @@ describe('buildDelegatedOutcome', () => {
 });
 
 describe('snapshotToSets', () => {
-  it('maps a relay snapshot to TODS sets', () => {
+  it('maps a relay snapshot to CODES sets', () => {
     const sets = snapshotToSets({
       sets: [{ setNumber: 1, side1Score: 6, side2Score: 4, side1TiebreakScore: undefined, winningSide: 1 }],
     });

@@ -31,7 +31,7 @@ import { t } from 'i18n';
 
 // constants and types
 import type { ReadinessMatchUp } from './matchUpReadiness';
-import type { RestTiming } from './participantRest';
+import type { RestTiming } from './scheduleTimingResolver';
 
 const { POLICY_TYPE_SCHEDULING } = policyConstants;
 

@@ -32,7 +32,7 @@ export interface FacilitySearchResult {
   nextCursor?: string;
 }
 
-/** A TODS `Venue`, shaped by the registry so factory's `addVenue` accepts it untranslated. */
+/** A CODES `Venue`, shaped by the registry so factory's `addVenue` accepts it untranslated. */
 export interface RegistryVenue {
   venueId: string;
   facilityId: string;

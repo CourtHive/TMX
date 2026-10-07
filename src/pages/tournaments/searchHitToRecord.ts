@@ -3,7 +3,7 @@ import { TournamentSearchHit } from 'services/apis/searchTournaments';
 /**
  * Translate a SEARCH hit into the parts of a tournament record that the shared card mapper reads.
  *
- * A hit is a row of the DISCOVERY projection, not a TODS record: flat, and deliberately narrower
+ * A hit is a row of the DISCOVERY projection, not a CODES record: flat, and deliberately narrower
  * than what the calendar returns. Rather than teach the card a second shape, this rebuilds the
  * small part of a record `mapTournamentToCardData` actually consumes — venue address, entry fees,
  * registration dates, tier — so one mapper serves both sources.

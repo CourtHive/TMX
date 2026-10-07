@@ -1,5 +1,5 @@
 /**
- * Normalize a TODS tournament record into the row shape consumed by the
+ * Normalize a CODES tournament record into the row shape consumed by the
  * tournaments page (both card grid and Tabulator table).
  *
  * Delegates field extraction to {@link mapTournamentToCardData} in

@@ -2,8 +2,8 @@
  * Schedule2 — how the court grid decides whether a cell matches a search.
  *
  * Pure, and separate from `gridView.ts` so the rule can be tested without
- * rendering a grid: the same split `participantRest.ts` / `inspectorRest.ts`
- * already uses in this directory. Nothing here touches a DOM global — the walk
+ * rendering a grid: the same split `restBadge.ts` makes between its model and its
+ * renderer. Nothing here touches a DOM global — the walk
  * reads only the node it is handed — so the unit suite (which runs in node, with
  * no jsdom) can exercise it.
  */

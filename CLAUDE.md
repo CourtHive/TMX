@@ -39,6 +39,22 @@ gh pr list --repo CourtHive/TMX --state merged --head <branch>
 The checkpoint merge itself must be a **merge commit**, not a squash — squashing collapses every
 conventional commit into one and guts the release-please changelog.
 
+### After a release: the back-merge (CA, 2026-10-05)
+
+release-please's `chore(main): release X.Y.Z` commit (version, CHANGELOG, manifest) lands on `main` only,
+so every release is followed by merging `main` back into `dev`. **`back-merge.yml` opens that PR** on
+`release: published` (`chore: merge main back into dev after vX.Y.Z`), with the `courthive-release-bot`
+App token so CI runs on it (a PR opened by `GITHUB_TOKEN` gets no workflow runs). **Merge it with a merge
+commit, never a squash.** It is not auto-merged. If a release's run was missed:
+`gh workflow run back-merge.yml -R CourtHive/TMX`.
+
+**The release path takes the light path in CI**, as the factory's release PRs do (#5169(factory)).
+`.github/scripts/release-scope.sh` marks a PR light when it is the release-please PR into `main` or the
+back-merge PR (`main` -> `dev`) AND its diff is only the version files: `package.json`'s `"version"`
+line, `CHANGELOG.md`, `.release-please-manifest.json`. `ci.yml`'s `lint` (the required check) and
+`electron.yml`'s `build + smoke` then skip their gates but still report. Any other change gets the full
+run.
+
 **`staging` was deleted on 2026-09-28** (CA authorised). It was an ORPHAN history — no merge base with
 `main` — last touched March 2024, and the only thing it held that the live `docs` branch does not was six
 commits of built site output from one afternoon. `docs` continues that same line. Restore, if ever needed:
@@ -46,7 +62,7 @@ commits of built site output from one afternoon. `docs` continues that same line
 
 ## Project Overview
 
-TMX is a Progressive Web App for tennis tournament management built on the [TODS](https://itftennis.atlassian.net/wiki/spaces/TODS/overview) (Tennis Open Data Standards) data standard. It is a **vanilla TypeScript** application — no React, Vue, or Angular. All UI is direct DOM manipulation via `document.createElement`, `innerHTML`, and `morphdom`.
+TMX is a Progressive Web App for tennis tournament management built on CODES, CourtHive's competition data standard. It is a **vanilla TypeScript** application — no React, Vue, or Angular. All UI is direct DOM manipulation via `document.createElement`, `innerHTML`, and `morphdom`.
 
 ## Commands
 

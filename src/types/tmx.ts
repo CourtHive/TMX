@@ -44,6 +44,8 @@ export interface LoginState {
   }>;
   /** Caller's last explicitly-selected provider; null until they pick one. */
   lastSelectedProviderId?: string | null;
+  /** The session has not chosen its provider yet (the user belongs to several); see providerSelection.ts. */
+  providerSelectionRequired?: boolean;
   /**
    * Providers managed by the user's provisioner(s), populated server-side at
    * login for PROVISIONER-role users. Drives the provider switcher and grants
@@ -95,7 +97,7 @@ export interface OnlineResource {
 /**
  * The value object inside a provider record. Also used for `context.provider`.
  *
- * Extends the canonical TODS `Organisation` (the same shape persisted as
+ * Extends the canonical CODES `Organisation` (the same shape persisted as
  * `tournamentRecord.parentOrganisation`) with TMX-only extension fields used
  * by the external-facility-lookup integration in `addVenue.ts`. See
  * `dev/documentation/external-facility-lookup.md`.

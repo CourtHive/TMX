@@ -1,6 +1,10 @@
 /**
  * Schedule2 — engine-backed matchUp timing, resolved once per render pass.
  *
+ * Used by the Inspector's Timing section, which DISPLAYS the figures. Readiness and rest are the
+ * factory's queries now and resolve timing themselves; measured 2026-10-07 on a 307-matchUp
+ * production record, this resolver and the factory's agree on every matchUp.
+ *
  * `getMatchUpFormatTiming` is what the auto-scheduler itself resolves against,
  * including its scheduling-policy fallback, so unpoliced tournaments still get
  * per-format averages rather than a flat 90/0.
@@ -38,7 +42,14 @@ import { tournamentEngine } from 'services/factory/engine';
 
 // constants and types
 import type { ReadinessMatchUp } from './matchUpReadiness';
-import type { RestTiming } from './participantRest';
+
+/** A matchUp's format timing, as the factory resolves it. */
+export interface RestTiming {
+  averageMinutes: number;
+  recoveryMinutes: number;
+  /** Recovery required when the participant changes matchUpType (singles ↔ doubles). */
+  typeChangeRecoveryMinutes?: number;
+}
 
 /** Used when a matchUp carries no format at all — keeps the arithmetic running rather than dropping findings. */
 export const FALLBACK_TIMING: RestTiming = { averageMinutes: 90, recoveryMinutes: 0, typeChangeRecoveryMinutes: 0 };

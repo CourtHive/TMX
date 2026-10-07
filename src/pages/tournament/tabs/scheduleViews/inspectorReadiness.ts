@@ -2,16 +2,11 @@
  * Schedule2 — Inspector readiness section, and the composition of everything
  * TMX contributes to the courthive-components Inspector.
  *
- * The impure half of the readiness feature: gathers factory data, resolves
- * timing through the engine, and renders the result into the Inspector via its
- * `renderInspectorExtra` hook. All rules live in the pure `matchUpReadiness.ts`;
- * this file decides nothing.
- *
- * Timing comes from the shared `scheduleTimingResolver`, which is what the
- * auto-scheduler itself resolves against (including its scheduling-policy
- * fallback, so unpoliced tournaments still get per-format averages rather than a
- * flat 90/0). Sharing the resolver with the rest section is what keeps the two
- * from disagreeing about what a format costs.
+ * Readiness is the factory's `getMatchUpReadiness` (scheduleGovernor); this file asks it and
+ * renders the answer into the Inspector via its `renderInspectorExtra` hook. It decides nothing.
+ * The factory resolves format timing itself, through the same scheduling-policy resolution the
+ * auto-scheduler uses, and the rest section's query does the same, so the two cannot disagree about
+ * what a format costs.
  *
  * Readiness and rest answer *different* questions and are both rendered:
  * readiness asks "can this placement happen at the time it is scheduled for"
@@ -20,35 +15,36 @@
  * the moment the director is deciding whether to call it).
  */
 
-import { analyzeMatchUpReadiness, earliestStart } from './matchUpReadiness';
 import { describeFinding, skipMessage } from './readinessDescribe';
-import { makeTimingResolver } from './scheduleTimingResolver';
 import { applyRelatedHighlight } from 'courthive-components';
+import { tournamentEngine } from 'services/factory/engine';
 import { registerMatchUpHighlighter } from './locateMatchUp';
 import { renderInspectorActions } from './inspectorActions';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { renderTimingSection } from './inspectorTiming';
 import { renderRestSection } from './inspectorRest';
+import { earliestStart } from './matchUpReadiness';
 import { t } from 'i18n';
 
 // constants and types
-import type { ReadinessFinding, ReadinessMatchUp, ReadinessResult } from './matchUpReadiness';
+import type { ReadinessFinding, ReadinessResult } from './matchUpReadiness';
 
 /**
  * A readiness evaluator valid for one pass, sharing the engine work across every
  * matchUp it is asked about.
  *
- * `makeTimingResolver()` walks the tournament's events, which costs a
- * `getTournament()`. Paying for that once is fine for the Inspector's single
- * matchUp and wrong for the Scheduled panel, which now grades the time header of
- * every card it draws — that would be one tournament walk per card, the same
- * trap `restBadge.ts` documents measuring at ~235ms of a ~300ms render.
+ * The hydrated matchUps are read once and handed to the factory, which would otherwise hydrate the
+ * tournament again per call. That is fine for the Inspector's single matchUp and wrong for the
+ * Scheduled panel, which grades the time header of every card it draws — the same trap
+ * `restBadge.ts` documents measuring at ~235ms of a ~300ms render.
  */
 export function makeReadinessEvaluator(): (matchUpId: string) => ReadinessResult {
-  const { matchUps } = getCachedAllMatchUps();
-  const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
-  const timingFor = makeTimingResolver();
-  return (matchUpId) => analyzeMatchUpReadiness({ matchUpId, matchUps: hydrated, timingFor });
+  // `inContext` matchUps, straight from the cache: the factory types them as `HydratedMatchUp`.
+  const matchUps = getCachedAllMatchUps().matchUps ?? [];
+  return (matchUpId) => {
+    const result: any = tournamentEngine.getMatchUpReadiness({ matchUpId, matchUps });
+    return result?.readiness ?? { evaluated: false, reason: 'unknownMatchUp' };
+  };
 }
 
 /**

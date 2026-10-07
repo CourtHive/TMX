@@ -6,6 +6,11 @@ import {
   setRefreshToken,
   removeRefreshToken,
 } from './tokenManagement';
+import {
+  isProviderSelectionResponse,
+  promptProviderSelection,
+  type ProviderSelectionResponse,
+} from './providerSelection';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
@@ -150,9 +155,34 @@ export function logIn({
   data,
   callback,
 }: {
-  data: { token: string; refreshToken?: string };
+  data: { token: string; refreshToken?: string } | ProviderSelectionResponse;
   callback?: () => void;
 }): void {
+  // An account with several providers is never placed in one automatically (CA, 2026-10-06): the login
+  // answers with the providers and a selection token, and the session comes from the one the user chooses.
+  if (isProviderSelectionResponse(data)) {
+    promptProviderSelection({
+      lastSelectedProviderId: data.lastSelectedProviderId,
+      onSession: (session) => logIn({ data: session, callback }),
+      providers: data.providers,
+      bearer: data.selectionToken,
+      onSignOut: logOut,
+    });
+    return;
+  }
+  // A session that has not chosen yet (e.g. issued by HiveID account verification) is exchanged the same way.
+  const unchosen = validateToken(data.token);
+  if (unchosen?.providerSelectionRequired) {
+    promptProviderSelection({
+      lastSelectedProviderId: unchosen.lastSelectedProviderId,
+      onSession: (session) => logIn({ data: session, callback }),
+      providers: unchosen.providerAssociations ?? [],
+      bearer: data.token,
+      onSignOut: logOut,
+    });
+    return;
+  }
+
   // A demo posture must never outlive an identity change.
   clearDemoOverlay();
   const valid = validateToken(data.token);

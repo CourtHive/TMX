@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 // constants and types
 import type { ReadinessMatchUp } from './matchUpReadiness';
-import type { RestTiming } from './participantRest';
+import type { RestTiming } from './scheduleTimingResolver';
 
 const FORMAT = 'SET1-S:6NOAD/TB7';
 const matchUp = (over: Partial<ReadinessMatchUp> = {}): ReadinessMatchUp =>

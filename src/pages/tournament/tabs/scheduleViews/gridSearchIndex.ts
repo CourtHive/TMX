@@ -34,8 +34,8 @@
  *
  * ── Pure on purpose ──
  *
- * No DOM, no engine, no clock — the same split `participantRest.ts` /
- * `inspectorRest.ts` uses in this directory. TMX runs vitest **without jsdom**, so a
+ * No DOM, no engine, no clock — the same split `relatedMatchUps.ts` /
+ * `inspectorReadiness.ts` uses in this directory. TMX runs vitest **without jsdom**, so a
  * rule that touches `document` can only be tested through an e2e journey. This one
  * is a decision about strings and ids, which is exactly the shape that belongs in
  * the unit suite.

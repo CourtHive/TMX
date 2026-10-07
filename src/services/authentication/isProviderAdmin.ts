@@ -6,9 +6,11 @@
  *   1. super-admin (global role) — admin everywhere
  *   2. PROVISIONER managing the active provider (login `provisionerProviders`)
  *   3. PROVIDER_ADMIN at the active provider (login `providerAssociations`)
- *   4. legacy global `admin` role — deprecated, honored only until the role is
- *      retired fleet-wide; scoped to "some provider is active" to match the
- *      prior behavior so removing the role is the only change users notice.
+ *
+ * The deprecated global `admin` role no longer grants provider admin. The
+ * server retired the same shim (competition-factory-server#1015, 2026-10-07)
+ * and decides from user_providers rows alone, so honoring it here would offer
+ * controls the server refuses.
  *
  * The active provider is the impersonated one (`context.provider`) when set,
  * otherwise the JWT home provider (`state.provider`).
@@ -18,7 +20,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { context } from 'services/context';
 
 // constants and types
-import { SUPER_ADMIN, PROVIDER_ADMIN, ADMIN } from 'constants/tmxConstants';
+import { SUPER_ADMIN, PROVIDER_ADMIN } from 'constants/tmxConstants';
 
 export function isActiveProviderAdmin(): boolean {
   const state = getLoginState();
@@ -26,12 +28,8 @@ export function isActiveProviderAdmin(): boolean {
   if (state.roles?.includes(SUPER_ADMIN)) return true;
 
   const activeId = resolveActiveProvider(state, context.provider)?.organisationId;
-  if (activeId) {
-    if (state.provisionerProviders?.some((p) => p.providerId === activeId)) return true;
-    const association = state.providerAssociations?.find((a) => a.providerId === activeId);
-    if (association?.providerRole === PROVIDER_ADMIN) return true;
-  }
-
-  // Deprecated global `admin` role — remove once the legacy role is retired.
-  return !!(state.roles?.includes(ADMIN) && activeId);
+  if (!activeId) return false;
+  if (state.provisionerProviders?.some((p) => p.providerId === activeId)) return true;
+  const association = state.providerAssociations?.find((a) => a.providerId === activeId);
+  return association?.providerRole === PROVIDER_ADMIN;
 }

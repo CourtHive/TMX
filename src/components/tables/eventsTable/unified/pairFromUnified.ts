@@ -12,12 +12,13 @@
  * `segment` is TMX's Accepted/Qualifying/Alternate vocabulary, not a raw entryStatus — it resolves
  * to an (entryStatus, entryStage) pair through the same mapping `modifyEntriesStatus` uses.
  */
-import { entryStatusConstants, tools } from 'tods-competition-factory';
+import { entryStatusConstants, errorConditionConstants, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { buildPairMethods } from './rotatingPartners';
 import { segmentToEntry } from './pairSegment';
 
+const { INVALID_PARTICIPANT_IDS } = errorConditionConstants;
 const { ALTERNATE } = entryStatusConstants;
 
 type PairFromUnifiedParams = {
@@ -60,7 +61,7 @@ export function pairFromUnified({
   const postMutation = (result: any) => {
     if (result.success) {
       callback(result);
-    } else if (result.error?.code === 'ERR_INVALID_PARTICIPANT_IDS') {
+    } else if (result.error?.code === INVALID_PARTICIPANT_IDS.code) {
       const message = gender === 'MIXED' ? 'Genders must be mixed' : 'Invalid pairing';
       tmxToast({ intent: 'is-danger', message });
     } else {

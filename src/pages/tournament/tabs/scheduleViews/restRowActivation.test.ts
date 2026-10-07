@@ -20,7 +20,7 @@ import { restRowActivation } from './restRowActivation';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
-import type { RestDailyLoad, RestRow } from './participantRest';
+import type { RestDailyLoad, RestRow } from 'tods-competition-factory';
 
 const FEEDER_ID = 'mu-r16-brik-michel';
 const FEEDER_LABEL = "R16: Brik/Michel vs Carrasco/De L' Herbe";

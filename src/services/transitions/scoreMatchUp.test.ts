@@ -86,3 +86,40 @@ describe('scoreMatchUp — remote scoring collision', () => {
     expect(toastMock).not.toHaveBeenCalled();
   });
 });
+
+const INVALID_SCORE_MESSAGE = 'Invalid score';
+
+describe('scoreMatchUp — a refused score', () => {
+  beforeEach(() => {
+    toastMock.mockClear();
+    mutationRequestMock.mockClear();
+    closeModalMock.mockClear();
+  });
+
+  it("toasts the refusal's info, which names the set, and keeps the modal open", () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    capturedScoreSubmitted!(OUTCOME);
+    const { callback } = mutationRequestMock.mock.calls[0][0];
+    callback({
+      error: { message: INVALID_SCORE_MESSAGE, code: 'ERR_INVALID_SCORE' },
+      info: 'Set 1: Set winner must reach 6 games, got 4',
+    });
+
+    expect(toastMock).toHaveBeenCalledWith({
+      message: 'Set 1: Set winner must reach 6 games, got 4',
+      intent: 'is-danger',
+    });
+    expect(closeModalMock).not.toHaveBeenCalled();
+    capturedOnRelayCleanup!();
+  });
+
+  it('falls back to the error message when no info comes back', () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    capturedScoreSubmitted!(OUTCOME);
+    const { callback } = mutationRequestMock.mock.calls[0][0];
+    callback({ error: { message: INVALID_SCORE_MESSAGE } });
+
+    expect(toastMock).toHaveBeenCalledWith({ message: INVALID_SCORE_MESSAGE, intent: 'is-danger' });
+    capturedOnRelayCleanup!();
+  });
+});

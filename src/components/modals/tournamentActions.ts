@@ -28,6 +28,9 @@ export function tournamentActions(): void {
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
   const state = getLoginState();
+  // The provider a claim goes to: the one this session acts for, by the SAME rule tournament creation uses
+  // (`context.provider` first: a super-admin's impersonation; otherwise it is the token's provider).
+  const claimProvider = context.provider ?? state?.provider;
   const canDelete = state?.permissions?.includes('deleteTournament');
   const admin = state?.roles?.includes(ADMIN);
 
@@ -46,10 +49,10 @@ export function tournamentActions(): void {
       });
     }
 
-    if (inputs.action.value === 'claim' && state?.provider) {
+    if (inputs.action.value === 'claim' && claimProvider) {
       const tournamentRecord = tournamentEngine.q.tournament();
       if (tournamentRecord && !tournamentRecord.parentOrganisation) {
-        tournamentRecord.parentOrganisation = state.provider;
+        tournamentRecord.parentOrganisation = claimProvider;
         tournamentEngine.setState(tournamentRecord);
         const successClaim = (result: any) => {
           // baseApi resolves to `undefined` on non-2xx (the danger toast is
@@ -112,9 +115,9 @@ export function tournamentActions(): void {
     }
 
     if (inputs.action.value === 'utrExport') downloadUTRmatches();
-    if (inputs.action.value === 'todsExport') {
+    if (inputs.action.value === 'codesExport') {
       if (tournamentRecord) {
-        downloadJSON(`${tournamentRecord.tournamentId}.tods.json`, tournamentRecord);
+        downloadJSON(`${tournamentRecord.tournamentId}.codes.json`, tournamentRecord);
       } else {
         tmxToast({ message: t('common.error') });
       }
@@ -150,11 +153,11 @@ export function tournamentActions(): void {
     },
     tournamentRecord &&
       !providerId &&
-      state?.provider && { label: t('modals.tournamentActions.claimTournament'), value: 'claim', close: true },
+      claimProvider && { label: t('modals.tournamentActions.claimTournament'), value: 'claim', close: true },
     providerId && !offline && { label: t('modals.tournamentActions.goOffline'), value: 'goOffline', close: true },
     providerId && offline && { label: t('modals.tournamentActions.goOnline'), value: 'goOnline', close: true },
     tournamentRecord && admin && { label: t('modals.tournamentActions.exportUtr'), value: 'utrExport' },
-    tournamentRecord && admin && { label: t('modals.tournamentActions.exportTods'), value: 'todsExport' },
+    tournamentRecord && admin && { label: t('modals.tournamentActions.exportCodes'), value: 'codesExport' },
   ].filter(Boolean);
 
   if (options.length < 2) return tmxToast({ message: t('modals.tournamentActions.noActions') });

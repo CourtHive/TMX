@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
-import { initDevBridge, loginAsProviderMember, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
+import { initDevBridge, loginAsProviderMember, resetState, waitForAppReady } from '../helpers/dev-bridge';
 
 /**
  * Journey 61 — Now-strip auto-call due-gating.
@@ -21,9 +21,26 @@ import { TournamentPage } from '../pages/TournamentPage';
  * provider member via `loginAsProviderMember`. Without that, the auth gate — not
  * the due-gate under test — would suppress the call and the second case would
  * pass for the wrong reason.
+ *
+ * Two things outside the app used to decide this journey, and both are now pinned:
+ *
+ * - **A running CFS.** The provider-member token is unsigned. The auto-call goes
+ *   through `mutationRequest` → `checkPermissions` → `ensureUserContext()`, which
+ *   fires `GET /auth/me`; a real CFS on :8383 answers 401, and with no refresh token
+ *   `baseApi` calls `logOut()` and routes to `#/tournaments/logout`. Every run
+ *   against a live CFS logged out — it passed only when `waitForSelector` saw the
+ *   strip before the 401 landed (~100ms), and failed when it did not (seen
+ *   2026-10-04). `isolateFromCfs` aborts those requests, so the token stays and the
+ *   permission check falls back to the JWT, as it does with no server at all.
+ *   `loginAsProviderMember` now installs it by default, so this journey no longer
+ *   asks for it — and nor does any other journey that logs in through a helper.
+ * - **The wall clock.** The second case's `23:59` is strictly future for all but the
+ *   last minute of the day, when the match is due and IS called. The browser clock
+ *   is pinned to local noon on the seeded day, so "future" is a fact of the fixture.
  */
 
-const DATE = todayLocal();
+/** Local noon — every `HH:MM` the cases use sits unambiguously before or after it. */
+const PINNED_TIME = '12:00:00';
 const STRIP = '.spl-active-strip';
 const PROVIDER_ID = 'e2e-provider-1';
 
@@ -38,7 +55,11 @@ async function forceLocalExecution(page: Page): Promise<void> {
 }
 
 /** Seed a single-court venue and schedule one pending R1 matchUp on today with the given time. */
-async function seedOnePlaced(page: Page, scheduledTime?: string): Promise<{ tournamentId: string; matchUpId: string }> {
+async function seedOnePlaced(
+  page: Page,
+  date: string,
+  scheduledTime?: string,
+): Promise<{ tournamentId: string; matchUpId: string }> {
   return page.evaluate(
     async ({ date, scheduledTime, providerId }) => {
       await dev.tmx2db.initDB();
@@ -86,12 +107,20 @@ async function seedOnePlaced(page: Page, scheduledTime?: string): Promise<{ tour
       await dev.tmx2db.addTournament(rec);
       return { tournamentId: tournamentRecord.tournamentId as string, matchUpId: match.matchUpId as string };
     },
-    { date: DATE, scheduledTime, providerId: PROVIDER_ID },
+    { date, scheduledTime, providerId: PROVIDER_ID },
   );
 }
 
 test.describe('Journey 61 — now-strip auto-call due-gating', () => {
+  // Read per test, not at module load, so a suite crossing midnight cannot seed yesterday.
+  let date: string;
+
   test.beforeEach(async ({ page }) => {
+    date = todayLocal();
+    // No offset → parsed as LOCAL time, the same zone the browser runs in. The strip and
+    // the due-gate read the venue frame, which falls back to the browser zone because the
+    // mock tournament carries no localTimeZone.
+    await page.clock.setFixedTime(new Date(`${date}T${PINNED_TIME}`));
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);
@@ -101,7 +130,7 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
 
   test('a due pending match on a free court is auto-called on strip render', async ({ page }) => {
     // No scheduledTime → due now → should be called.
-    const seed = await seedOnePlaced(page);
+    const seed = await seedOnePlaced(page, date);
     const collector = createMutationCollector(page);
 
     const tournament = new TournamentPage(page);
@@ -119,8 +148,8 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
   });
 
   test('a match with a future scheduledTime is NOT auto-called', async ({ page }) => {
-    // Strictly-future time → keep waiting → no call.
-    await seedOnePlaced(page, '23:59');
+    // Strictly after the pinned noon → keep waiting → no call.
+    await seedOnePlaced(page, date, '23:59');
     const collector = createMutationCollector(page);
 
     const tournament = new TournamentPage(page);

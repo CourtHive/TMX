@@ -135,50 +135,25 @@ export function getProvisionerProviders() {
 }
 
 /**
- * Resolve the initial active provider for a multi-provider user. Precedence:
- *   1. tmx_impersonated_provider in localStorage with full identity fields
- *      (impersonation handoff from /admin — super-admins and provisioner
- *      admins may not have a direct user_providers row for the impersonated
- *      provider, so we honor the persisted value without an association
- *      lookup). For a multi-provider user picking their own provider the
- *      persisted value still represents a valid pick.
- *   2. JWT `lastSelectedProviderId` (server-persisted last pick — survives
- *      cross-device / cache clears, populated by the PATCH endpoint)
- *   3. Legacy `users.provider_id` from the JWT (today's default for users
- *      with no explicit pick yet)
- *   4. First association alphabetically (last-resort default)
+ * The active provider at boot (Mentat/planning/MULTI_PROVIDER_CONTEXT_COMPLETION.md).
  *
- * Tiers 2–4 validate against the current associations array — drops stale
- * picks where the user's role was revoked between sessions. Tier 1 cannot
- * validate that way (impersonation is by design out-of-band of the user's
- * own associations) — server-side guards on each API call are the safety
- * net there; a no-longer-authorized impersonation manifests as 403s.
+ * For everyone but a super-admin it is the provider the SESSION was issued for: the token's `providerId`
+ * claim, chosen at login by a user with several providers (CA, 2026-10-06) and enforced by the server. There
+ * is no fallback to a home provider or to the first association: an account that has not chosen gets the
+ * provider picker at login instead (`providerSelection.ts`), never a provider picked for it.
+ *
+ * A super-admin's pick is client-side impersonation, persisted in localStorage; honoured only for a
+ * super-admin (`canUsePersistedProvider`), otherwise cleared as a stale handoff from a previous user.
  */
 export function resolveInitialProvider(): ProviderValue | undefined {
   const login = getLoginState();
   if (!login) return undefined;
   const associations = login.providerAssociations ?? [];
+  const isSuperAdmin = !!login.roles?.includes(SUPER_ADMIN);
 
   const persisted = readPersistedProvider();
   if (persisted?.organisationId && persisted.organisationName && persisted.organisationAbbreviation) {
-    // Validate against the *current* login before honoring. Defense in
-    // depth: logIn() clears the persisted value on every active sign-in,
-    // but a cross-tab session or any code path that establishes a session
-    // without going through logIn() (e.g. silent refresh on a freshly
-    // opened tab where the previous user's localStorage survived) could
-    // still leak a stale impersonation. Accept only when the current user
-    // could legitimately have picked this provider themselves:
-    //   - super-admin (can impersonate any provider),
-    //   - provisioner-admin for the persisted provider (out-of-band
-    //     impersonation is a provisioner privilege; same exemption applies
-    //     here as in admin-side flows), or
-    //   - has a direct user_providers association with it.
-    // Anything else is a stale-handoff leak; drop the value (clearing
-    // localStorage so subsequent loads don't keep tripping) and fall
-    // through to the JWT-driven precedence chain below.
-    if (canUsePersistedProvider(login, persisted.organisationId, associations)) {
-      return persisted;
-    }
+    if (isSuperAdmin && canUsePersistedProvider(login, persisted.organisationId, associations)) return persisted;
     try {
       globalThis.localStorage?.removeItem(IMPERSONATED_PROVIDER_KEY);
     } catch {
@@ -186,32 +161,26 @@ export function resolveInitialProvider(): ProviderValue | undefined {
     }
   }
 
-  if (associations.length === 0) return undefined;
-
-  const lookup = (providerId: string | null | undefined): ProviderValue | undefined => {
-    if (!providerId) return undefined;
-    const hit = associations.find((a) => a.providerId === providerId);
-    if (!hit) return undefined;
+  const providerId = login.providerId;
+  if (!providerId) return undefined;
+  const association = associations.find((a) => a.providerId === providerId);
+  if (association) {
     return {
-      organisationId: hit.providerId,
-      organisationName: hit.organisationName,
-      organisationAbbreviation: hit.organisationAbbreviation,
+      organisationId: association.providerId,
+      organisationName: association.organisationName,
+      organisationAbbreviation: association.organisationAbbreviation,
     } as ProviderValue;
-  };
-
-  return (
-    lookup(login.lastSelectedProviderId) ?? // 2
-    lookup(login.providerId) ?? // 3
-    (() => {
-      // 4
-      const first = [...associations].sort((a, b) => a.organisationName.localeCompare(b.organisationName))[0];
-      return {
-        organisationId: first.providerId,
-        organisationName: first.organisationName,
-        organisationAbbreviation: first.organisationAbbreviation,
-      } as ProviderValue;
-    })()
-  );
+  }
+  const managed = (login.provisionerProviders ?? []).find((p: any) => p.providerId === providerId);
+  if (managed) {
+    return {
+      organisationId: managed.providerId,
+      organisationName: managed.organisationName,
+      organisationAbbreviation: managed.organisationAbbreviation,
+    } as ProviderValue;
+  }
+  // a single-provider or legacy session whose token carries the provider object itself
+  return (login.provider as ProviderValue | undefined) ?? undefined;
 }
 
 /**
