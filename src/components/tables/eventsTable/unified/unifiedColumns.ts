@@ -5,6 +5,7 @@
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../../common/formatters/participantFormatter';
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
+import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { teamsFormatter } from '../../common/formatters/teamsFormatter';
 import { createGroupedSorter, SEGMENT_LABELS } from './segmentSorter';
 import { LOCK_VISIBLE_CLASS, applyColumnVisibility } from '../../common/columnIsVisible';
@@ -13,16 +14,14 @@ import { getRatingColumns } from '../../common/getRatingColumns';
 import { cellBorder } from '../../common/formatters/cellBorder';
 import { entryStatusConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../../common/navigateToEvent';
-import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { headerMenu } from '../../common/headerMenu';
 import { GROUPED_RANK } from './rotatingPartners';
 import type { SortState } from './segmentSorter';
-import { context } from 'services/context';
 import { t } from 'i18n';
 
 // Constants
-import { CENTER, LEFT, PARTICIPANTS } from 'constants/tmxConstants';
+import { CENTER, LEFT } from 'constants/tmxConstants';
 
 const { WILDCARD, SPECIAL_EXEMPT, JUNIOR_EXEMPT, ORGANISER_ACCEPTANCE } = entryStatusConstants;
 
@@ -177,9 +176,10 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
     ...ratingColumns,
     {
       sorter: (a: any, b: any) => a?.[0]?.participantName?.localeCompare(b?.[0]?.participantName),
-      formatter: teamsFormatter(() => {
-        const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
-        if (tournamentId) context.router?.navigate(`/tournament/${tournamentId}/${PARTICIPANTS}/TEAM`);
+      // The pill names one team, so it opens that team's card, as on the participants page,
+      // rather than navigating away to the whole TEAM list.
+      formatter: teamsFormatter(({ participantId }) => {
+        if (participantId) teamProfileModal({ participantId });
       }),
       field: 'participant.teams',
       visible: !!teams,
