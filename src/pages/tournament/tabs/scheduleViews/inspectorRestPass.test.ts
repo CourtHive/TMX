@@ -6,8 +6,6 @@ const VIEWED_DATE = vi.hoisted(() => '2026-08-27');
 
 const engineWork = vi.hoisted(() => ({
   allMatchUps: vi.fn(),
-  timingResolver: vi.fn(),
-  dailyLimits: vi.fn(),
   venueFrame: vi.fn(),
   analyze: vi.fn(),
 }));
@@ -18,17 +16,13 @@ vi.mock('./schedule2DataCache', () => ({
     return { matchUps: [{ matchUpId: 'm1' }, { matchUpId: 'm2' }, { matchUpId: 'm3' }] };
   },
 }));
-vi.mock('./scheduleTimingResolver', () => ({
-  makeTimingResolver: (...args: any[]) => {
-    engineWork.timingResolver(...args);
-    return () => undefined;
-  },
-}));
+// Rest is the factory query now; what the pass shares is the hydrated matchUps, the venue frame
+// and the clock. The query itself is still asked once per matchUp.
 vi.mock('services/factory/engine', () => ({
-  competitionEngine: {
-    getMatchUpDailyLimits: (...args: any[]) => {
-      engineWork.dailyLimits(...args);
-      return { matchUpDailyLimits: { total: 3 } };
+  tournamentEngine: {
+    getParticipantRest: (params: any) => {
+      engineWork.analyze(params);
+      return { rest: { state: 'ok', matchUpId: params.matchUpId } };
     },
   },
 }));
@@ -37,14 +31,9 @@ vi.mock('functions/venueTimeFrame', () => ({
     engineWork.venueFrame(...args);
     return { timeZone: 'UTC' };
   },
-  venueDayMinutes: () => 600,
   venueCalendarDate: () => VIEWED_DATE,
-}));
-vi.mock('./participantRest', () => ({
-  analyzeParticipantRest: (params: any) => {
-    engineWork.analyze(params);
-    return { state: 'ok', matchUpId: params.matchUpId };
-  },
+  venueClock: () => '10:00',
+  venueWallClockToMs: () => Date.parse(`${VIEWED_DATE}T10:00:00Z`),
 }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
@@ -52,8 +41,9 @@ import { evaluateRest, makeRestEvaluator } from './inspectorRest';
 
 /**
  * `makeRestEvaluator` is documented as being worth building once per pass — it
- * walks the tournament's events, reads daily limits from the engine and resolves
- * the venue frame, none of which vary per matchUp.
+ * reads the hydrated matchUps and resolves the venue frame, neither of which
+ * varies per matchUp. (Before the factory query it also walked the tournament's
+ * events and read daily limits; the query does that now.)
  *
  * The 30-second badge ticker honoured that. The RENDER did not: `renderRestBadge`
  * is `renderCardExtra`, called once per card, and it reached `evaluateRest`, which
@@ -75,8 +65,6 @@ describe('the rest evaluator is built once per pass', () => {
   it('shares one evaluator across every call in a synchronous pass', () => {
     for (const id of ['m1', 'm2', 'm3']) evaluateRest(id, VIEWED_DATE);
 
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(1);
-    expect(engineWork.dailyLimits).toHaveBeenCalledTimes(1);
     expect(engineWork.venueFrame).toHaveBeenCalledTimes(1);
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
 
@@ -84,6 +72,9 @@ describe('the rest evaluator is built once per pass', () => {
     // is still evaluated on its own, which a cache keyed too coarsely would break.
     expect(engineWork.analyze).toHaveBeenCalledTimes(3);
     expect(engineWork.analyze.mock.calls.map(([p]: any[]) => p.matchUpId)).toEqual(['m1', 'm2', 'm3']);
+    // The pass's hydrated matchUps are handed over, so the factory never hydrates the tournament
+    // again per card — which is the whole cost the shared pass exists to avoid.
+    expect(engineWork.analyze.mock.calls.every(([p]: any[]) => p.matchUps?.length === 3)).toBe(true);
   });
 
   it('scales: the engine work does not grow with the number of matchUps', () => {
@@ -91,20 +82,20 @@ describe('the rest evaluator is built once per pass', () => {
     // walks; a test that only ever asks for three could pass while still being linear.
     for (let i = 0; i < 100; i++) evaluateRest('m1', VIEWED_DATE);
 
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(1);
+    expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
     expect(engineWork.analyze).toHaveBeenCalledTimes(100);
   });
 
   it('releases at the end of the task, so the next pass re-reads the engine', async () => {
     evaluateRest('m1', VIEWED_DATE);
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(1);
+    expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
 
     await flushMicrotasks();
 
     // A cache that outlived its pass would freeze both the clock and the factory
     // state — the badge counts up, and a mutation between renders must be seen.
     evaluateRest('m1', VIEWED_DATE);
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(2);
+    expect(engineWork.allMatchUps).toHaveBeenCalledTimes(2);
   });
 
   it('leaves makeRestEvaluator itself unshared, which the ticker relies on', () => {
@@ -115,9 +106,9 @@ describe('the rest evaluator is built once per pass', () => {
     // `evaluateRest` line, it passed against a `makeRestEvaluator` that returned
     // the shared evaluator whenever one existed — because none ever did.
     evaluateRest('m1', VIEWED_DATE);
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(1);
+    expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
 
     makeRestEvaluator();
-    expect(engineWork.timingResolver).toHaveBeenCalledTimes(2);
+    expect(engineWork.allMatchUps).toHaveBeenCalledTimes(2);
   });
 });

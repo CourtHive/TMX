@@ -30,7 +30,7 @@
  * An INFO-only result stays green on purpose. `undetermined` alone means the
  * sides are not known yet *and the upstream still finishes in time* — which is
  * the normal state of a well-built schedule, not a problem. When the upstream
- * does not finish in time, `analyzeMatchUpReadiness` emits the `dependency`
+ * does not finish in time, the factory `getMatchUpReadiness` emits the `dependency`
  * finding alongside it, and that is what turns the time red.
  *
  * Pure: takes a `ReadinessResult`, returns a model. Everything factory-backed
@@ -82,7 +82,7 @@ export function scheduledTimeModel(result: ReadinessResult): ScheduledTimeModel 
   const heading = t(`schedule.card.time.${status}`);
   // Every finding is listed, not just the one that set the tier: the tier answers
   // "how bad", the lines answer "why", and an operator hovering a red time needs
-  // the second. Order is `analyzeMatchUpReadiness`'s, which is strongest-first.
+  // the second. Order is the factory `getMatchUpReadiness`'s, which is strongest-first.
   const lines = result.findings.map(describeFinding);
   return { status, title: [heading, ...lines].join('\n') };
 }

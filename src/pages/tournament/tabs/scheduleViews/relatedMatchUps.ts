@@ -29,8 +29,8 @@
  */
 
 // constants and types
+import type { RestResult } from 'tods-competition-factory';
 import type { ReadinessResult } from './matchUpReadiness';
-import type { RestResult } from './participantRest';
 
 /**
  * MatchUps related to the one these results describe, strongest relation first

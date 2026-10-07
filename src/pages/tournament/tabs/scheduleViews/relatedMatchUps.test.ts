@@ -2,7 +2,7 @@ import { relatedMatchUpIds } from './relatedMatchUps';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
-import type { RestResult, RestRow } from './participantRest';
+import type { RestResult, RestRow } from 'tods-competition-factory';
 import type { ReadinessResult } from './matchUpReadiness';
 
 const LOAD = { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] };
@@ -19,8 +19,13 @@ function restRow(overrides: Partial<RestRow>): RestRow {
   } as RestRow;
 }
 
-const rest = (rows: RestRow[]): RestResult => ({ evaluated: true, asOfMinutes: 800, rows });
-const readiness = (findings: any[]): ReadinessResult => ({ evaluated: true, findings });
+const rest = (rows: RestRow[]): RestResult => ({
+  evaluated: true,
+  asOf: '2026-08-22T14:00:00.000Z',
+  scheduledDate: '2026-08-22',
+  rows,
+});
+const readiness = (findings: any[]): ReadinessResult => ({ evaluated: true, findings, commitment: 'firm' });
 
 const NO_READINESS: ReadinessResult = { evaluated: false, reason: 'noTime' };
 const NO_REST: RestResult = { evaluated: false, reason: 'noParticipants' };

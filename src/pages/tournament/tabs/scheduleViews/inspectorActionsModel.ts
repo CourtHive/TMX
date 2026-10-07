@@ -1,7 +1,7 @@
 /**
  * Schedule2 — what the Inspector's actions popover can offer, as data.
  *
- * Pure and DOM-free, for the same reason `participantRest.ts` is: TMX runs its
+ * Pure and DOM-free, for the same reason `restRowActivation.ts` is: TMX runs its
  * unit suite without a DOM, so a decision embedded in element construction gets
  * no coverage at all. The rules about *which* participants are offerable — and
  * what a side contributes when its players are not yet known — live here; the

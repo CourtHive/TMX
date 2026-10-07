@@ -14,7 +14,11 @@ function finding(overrides: Partial<ReadinessFinding>): ReadinessFinding {
   } as ReadinessFinding;
 }
 
-const evaluated = (findings: ReadinessFinding[]): ReadinessResult => ({ evaluated: true, findings });
+const evaluated = (findings: ReadinessFinding[]): ReadinessResult => ({
+  evaluated: true,
+  findings,
+  commitment: 'firm',
+});
 
 describe('statusFor — severity follows the kind of blocker', () => {
   it('is ok with no findings at all', () => {
