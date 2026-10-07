@@ -15,7 +15,10 @@ import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
 import { initSessionGuard } from 'services/session/sessionGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
-import { initLoginToggle } from 'services/authentication/loginState';
+import { watchSessionAcrossTabs } from 'services/authentication/watchSessionAcrossTabs';
+import { promptProviderSelection } from 'services/authentication/providerSelection';
+import { getLoginState, initLoginToggle, logIn, logOut } from 'services/authentication/loginState';
+import { getToken } from 'services/authentication/tokenManagement';
 import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
 import { courthiveComponentsVersion } from 'courthive-components';
 import { hydrateDemoOverlay } from 'services/demoMode/demoState';
@@ -150,6 +153,19 @@ export function setupTMX(): void {
   initLoginToggle('burger');
   initThemeToggle('themeToggle');
   initProviderSwitcher();
+  watchSessionAcrossTabs();
+  // A stored session that has not chosen its provider (a user with several) works for none until it does.
+  const boot = getLoginState();
+  const bootToken = getToken();
+  if (boot?.providerSelectionRequired && bootToken) {
+    promptProviderSelection({
+      lastSelectedProviderId: boot.lastSelectedProviderId,
+      providers: boot.providerAssociations ?? [],
+      onSession: (session) => logIn({ data: session }),
+      bearer: bootToken,
+      onSignOut: logOut,
+    });
+  }
 
   // Warm the PDF font catalog + apply the resolved font (user → provider →
   // helvetica) so all generated PDFs embed it. Re-applied after login in

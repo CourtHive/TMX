@@ -44,6 +44,8 @@ export interface LoginState {
   }>;
   /** Caller's last explicitly-selected provider; null until they pick one. */
   lastSelectedProviderId?: string | null;
+  /** The session has not chosen its provider yet (the user belongs to several); see providerSelection.ts. */
+  providerSelectionRequired?: boolean;
   /**
    * Providers managed by the user's provisioner(s), populated server-side at
    * login for PROVISIONER-role users. Drives the provider switcher and grants
