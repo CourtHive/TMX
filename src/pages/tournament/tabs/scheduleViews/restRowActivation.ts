@@ -22,7 +22,7 @@
  */
 
 // constants and types
-import type { RestRow } from './participantRest';
+import type { RestRow } from 'tods-competition-factory';
 
 /**
  * What clicking a row should do. `null` is a real answer and the common one on the

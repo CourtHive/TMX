@@ -360,7 +360,7 @@ export function venueWallClockToMs(date?: string, clock?: string, timeZone?: str
  * block painted on tomorrow before 22:51 reads as in effect *right now*, and a
  * match dropped onto tomorrow's Now strip is warned about a block that has not
  * happened. The same assumption, one module over, badged a player "on court" in
- * a tournament with no courts — see `nowDayMinutes()` in
+ * a tournament with no courts — see `restAsOf()` in
  * `pages/tournament/tabs/scheduleViews/inspectorRest.ts`, which takes the
  * matching position for rest.
  *

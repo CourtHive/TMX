@@ -2,7 +2,7 @@ import { collectStartAllRestWarning, isBlocker } from './startAllRestGuard';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
-import type { RestResult, RestRow } from './participantRest';
+import type { RestResult, RestRow } from 'tods-competition-factory';
 
 const LOAD = { singles: 1, doubles: 0, total: 1, ordinal: 2, atLimit: [] };
 
@@ -18,7 +18,12 @@ function row(overrides: Partial<RestRow>): RestRow {
   } as RestRow;
 }
 
-const evaluated = (rows: RestRow[]): RestResult => ({ evaluated: true, asOfMinutes: 860, rows });
+const evaluated = (rows: RestRow[]): RestResult => ({
+  evaluated: true,
+  asOf: '2026-08-22T14:00:00.000Z',
+  scheduledDate: '2026-08-22',
+  rows,
+});
 
 describe('isBlocker', () => {
   it('treats onCourt and resting as blockers, rested and none as clear', () => {

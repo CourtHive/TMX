@@ -18,7 +18,7 @@
  */
 
 // constants and types
-import type { RestResult, RestRow } from './participantRest';
+import type { RestResult, RestRow } from 'tods-competition-factory';
 
 export interface StartAllCandidate {
   matchUpId: string;

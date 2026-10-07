@@ -1,278 +1,105 @@
 /**
  * Schedule2 — Inspector rest section.
  *
- * The impure half of the rest feature: reads the clock, converts every stored
- * time into one frame, pulls timing and daily limits from the engine, and
- * renders the result. All rules live in the pure `participantRest.ts`; this file
- * decides nothing except what "now" means.
+ * Rest itself is the factory's `getParticipantRest` (scheduleGovernor). TMX carried its own copy of
+ * the analysis, and the zone arithmetic it needed, until 2026-10-07; the factory does the instant
+ * and venue-zone work now, so what is left here is the one decision the factory cannot make — what
+ * "now" means for the day on screen — and the rendering.
  *
- * ── The single time-conversion site ──
+ * ── `asOf` is the PROJECTED instant, not the real one ──
  *
- * `toDayMinutes*` below is the ONLY place in the rest feature where a stored
- * value is interpreted as an instant or a wall clock. That concentration is
- * deliberate: the planned Temporal-spec standardization has one function to
- * replace rather than a scatter of `new Date()` calls.
+ * The factory holds no clock, so the caller supplies `asOf`. Passing the real `now` unconditionally
+ * fails open: `resolveScheduleDate()` opens the schedule on a tournament's LAST date once its dates
+ * are past, so anyone running a past-dated event in real time lives there permanently, and against
+ * a real `now` three days later every anchor on that day sits hours in the past. Rest figures in the
+ * thousands, everybody "rested" — the one direction this feature must never fail in.
  *
- * Two frames arrive from the factory and must not be confused:
- *
- *   - `endTime` / `startTime` / `scheduledTime` — bare military `HH:MM` (or an
- *     ISO string whose time portion is a naive wall clock; the factory's
- *     `extractTime` slices it rather than converting, and so do we);
- *   - `calledAt` / `scoredTime` — full UTC ISO **instants**, which must be
- *     converted to local wall clock before they can be compared with the above.
- *
- * Treating `scoredTime` as a wall clock — or `endTime` as an instant — produces
- * a rest figure wrong by the UTC offset, which is worse than showing nothing.
- *
- * ── The frame every value ends up in: the VIEWED DAY'S wall clock ──
- *
- * `nowDayMinutes()` projects today's time-of-day onto whichever day is on
- * screen — forward onto a past day only, never back onto a future one — and the
- * three wall-clock fields are already read against that day. So the instants
- * have to land in the same frame, and `toDayMinutesFromInstant` puts them there:
- * local time-of-day, plus a full day for a genuine midnight crossing, and NOT
- * the raw elapsed interval from the viewed day's midnight.
- *
- * The distinction is invisible while the viewed day is the operator's own
- * calendar today, and decisive the moment it isn't — which is not an exotic
- * case. `resolveScheduleDate()` opens the schedule on the tournament's LAST
- * date once all of its dates are past, so anyone operating a past-dated
- * tournament in real time is in it permanently. Under the elapsed-interval
- * reading a score entered minutes ago normalized to `+1440·n` and therefore sat
- * in the "future" against a projected now, which `latestAnchor` can only report
- * as unmeasurable: the whole rest feature went dark, on every row, for exactly
- * the operator who is running matches right now.
+ * So `restAsOf` projects the venue's current time-of-day onto the day being measured, as
+ * `venueNowOnDate()` does for the Now strip. The projection runs BACKWARDS only. Onto a future day
+ * it would invent a clock: at 22:51 the evening before, every matchUp on tomorrow's card before
+ * 22:51 would read as already under way, and a player badged "on court" in a tournament with no
+ * courts — reported from production on BOBOCA `a4e439fa-…`. For a future day `asOf` is therefore
+ * the real instant, which lies before that day's midnight, so every anchor on it is in the future
+ * and the rows report `none`.
  *
  * ── The zone: the VENUE's, not the operator's ──
  *
- * Every instant here is read in the tournament's own zone, resolved through
- * `resolveVenueFrame()` — the convention the whole schedule surface moved to
- * together, recorded in `Mentat/planning/DECISION_VENUE_TIME_FRAME.md`. It used
- * to be the browser's, which read every figure on this page off by the offset
- * between the operator's laptop and the venue, silently and plausibly.
- *
- * The frame is captured **once** per evaluator pass, alongside the instant that
- * "now" is read from, and for the same reason: every badge in a tick must agree
- * about what time it is, and re-resolving per row would let them disagree.
- *
- * The pure functions take the zone as a trailing argument rather than reaching
- * for it, so they stay testable without an engine — and so this file's one
- * impure half remains the only thing that decides what "now" and "where" mean.
+ * Resolved once per evaluator pass through `resolveVenueFrame()` and handed to the factory as
+ * `timeZone` — the convention the whole schedule surface shares
+ * (`Mentat/planning/DECISION_VENUE_TIME_FRAME.md`).
  */
 
-import { resolveVenueFrame, venueCalendarDate, venueDayMinutes } from 'functions/venueTimeFrame';
+import { resolveVenueFrame, venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { applyGridSearch, gridSearchAvailable } from './gridSearchControl';
-import { makeTimingResolver } from './scheduleTimingResolver';
 import { getCachedAllMatchUps } from './schedule2DataCache';
-import { competitionEngine } from 'services/factory/engine';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { analyzeParticipantRest } from './participantRest';
 import { restRowActivation } from './restRowActivation';
 import { locateMatchUp } from './locateMatchUp';
 import { t } from 'i18n';
 
 // constants and types
-import type { NormalizedTimes, RestDailyLimits, RestRow, RestResult } from './participantRest';
+import type { RestResult, RestRow } from 'tods-competition-factory';
 import type { ReadinessMatchUp } from './matchUpReadiness';
 
-const MINUTES_PER_DAY = 1440;
 /** Rest is a minutes-granularity quantity; matches the Now strip's own cadence. */
 const REFRESH_MS = 30_000;
-
-/** `'14:20'` → `860`. Accepts an ISO string by slicing its naive wall-clock portion, as the factory does. */
-export function toDayMinutesFromClock(value?: string): number | undefined {
-  if (!value) return undefined;
-  const clock = value.includes('T') ? value.split('T').at(-1) : value;
-  const matched = /^(\d{1,2}):(\d{2})/.exec((clock ?? '').trim());
-  if (!matched) return undefined;
-  const hours = Number(matched[1]);
-  const minutes = Number(matched[2]);
-  if (hours > 23 || minutes > 59) return undefined;
-  return hours * 60 + minutes;
-}
+const MS_PER_MINUTE = 60_000;
 
 /**
- * An instant → its LOCAL calendar date, `YYYY-MM-DD`. Deliberately not
- * `toISOString().slice(0, 10)`, which reports the UTC day and so names the wrong
- * date for every evening stamp west of Greenwich and every early-morning one
- * east of it. This is what dates a matchUp that carries no `scheduledDate`.
+ * The instant rest is measured "as of", for a matchUp measured on `restDate`. See the header note.
+ *
+ * Today or a past day: that day at the venue's current wall clock, seconds included (a whole-minute
+ * offset cannot move them). A future day, a missing day, or a clock the venue frame cannot place:
+ * the real instant.
+ *
+ * `now` is a parameter so a whole evaluator pass shares one reading of the clock, and so this stays
+ * testable without mocking the global clock.
  */
-export function instantLocalDate(iso?: string, timeZone?: string): string | undefined {
-  if (!iso) return undefined;
-  return venueCalendarDate(iso, timeZone) || undefined;
-}
-
-/** Whole calendar days from `fromDate` to `toDate`. Both parsed as UTC, so no DST transition can shorten a day. */
-function dayDelta(fromDate: string, toDate: string): number | undefined {
-  const from = Date.parse(`${fromDate}T00:00:00Z`);
-  const to = Date.parse(`${toDate}T00:00:00Z`);
-  if (Number.isNaN(from) || Number.isNaN(to)) return undefined;
-  return Math.round((to - from) / 86_400_000);
-}
-
-/**
- * A UTC ISO instant → minutes on the **viewed day's wall clock**.
- *
- * Local time-of-day, offset by a whole day when the stamp genuinely crossed
- * midnight relative to the viewed day — so a match that finished at 00:40 the
- * following morning still reads as `1480` and orders after one that finished at
- * 23:50, which is the single reason the offset exists at all.
- *
- * The offset is applied for a **±1 day gap only**, and that limit is the
- * load-bearing part.
- * A stamp further away than that is not a midnight crossing; it is a score
- * entered on a different calendar date from the day it is filed under — a late
- * entry, or an operator running a past-dated tournament in real time. Its
- * elapsed distance from the viewed midnight says nothing about how long a player
- * has been off court, while its time-of-day says exactly that, read against the
- * same projected clock `nowDayMinutes()` supplies. Carrying the full `n·1440`
- * instead parked the anchor in the future and cost the row its rest figure
- * entirely.
- *
- * Reading time-of-day can only ever place an anchor LATER in the day than the
- * true finish (a score filed hours after the match), which understates rest and
- * so holds a player back — the direction this module is required to fail in.
- *
- * Day membership is not this function's job precisely because of that limit:
- * `instantLocalDate` answers it, exactly and without arithmetic.
- */
-export function toDayMinutesFromInstant(
-  iso?: string,
-  viewedDate?: string | null,
-  timeZone?: string,
-): number | undefined {
-  if (!iso || !viewedDate) return undefined;
-
-  const timeOfDay = venueDayMinutes(iso, timeZone);
-  if (timeOfDay === undefined) return undefined;
-
-  const localDate = instantLocalDate(iso, timeZone);
-  const delta = localDate === undefined ? undefined : dayDelta(viewedDate, localDate);
-  if (delta === undefined) return undefined;
-
-  const crossedMidnight = Math.abs(delta) === 1;
-  return timeOfDay + (crossedMidnight ? MINUTES_PER_DAY * delta : 0);
-}
-
-/** Every time on a matchUp, normalized into minutes from local midnight of the day being viewed. */
-export function normalizeTimes(
-  matchUp: ReadinessMatchUp,
-  viewedDate: string | null,
-  timeZone?: string,
-): NormalizedTimes {
-  const schedule = matchUp.schedule ?? {};
-  // END_DATE is written only when the match crossed midnight, so its presence
-  // is exactly the signal that the bare endTime belongs to the following day.
-  const endDayOffset = schedule.endDate && schedule.endDate !== schedule.scheduledDate ? MINUTES_PER_DAY : 0;
-  const endMinutes = toDayMinutesFromClock(schedule.endTime);
-
-  return {
-    ...(endMinutes !== undefined && { endMinutes: endMinutes + endDayOffset }),
-    scoredMinutes: toDayMinutesFromInstant(schedule.scoredTime, viewedDate, timeZone),
-    scoredDate: instantLocalDate(schedule.scoredTime, timeZone),
-    startMinutes: toDayMinutesFromClock(schedule.startTime),
-    calledMinutes: toDayMinutesFromInstant(schedule.calledAt, viewedDate, timeZone),
-    scheduledMinutes: toDayMinutesFromClock(schedule.scheduledTime),
-  };
-}
-
-/**
- * "Now" as minutes from midnight of the viewed day, in the venue's zone.
- *
- * For today and for any day already past, today's time-of-day is projected onto
- * the viewed day — the same thing `venueNowOnDate()` does for the Now strip, so
- * the two agree. That projection is what keeps the feature working for an
- * operator running a past-dated tournament in real time, which is the permanent
- * state of anyone whose tournament dates have gone by (see the header note).
- *
- * A **future** day is the one direction the projection must not be applied to.
- * Nothing on tomorrow has happened yet, and projecting this evening's clock onto
- * it asserts the opposite: every matchUp scheduled before the current
- * time-of-day reads as already under way, so `analyzeParticipantRest` reports a
- * player entered in two of tomorrow's matches as *on court now* — in a
- * tournament with no courts and no results. Reported from production on
- * BOBOCA `a4e439fa-…`, whose 07:45 singles card was badged "on court" the
- * evening before play, because the same player's 15:00 doubles read as started.
- *
- * So a day ahead of today is offset by the whole days between them, putting
- * "now" *before* that day's midnight. Every anchor on it is then in the future,
- * which is exactly what it is; `collectPriorMatchUps` admits nothing, and the
- * rest rows report `none` rather than a fiction. The asymmetry is the point: a
- * past day is one the operator may genuinely be working through, a future day is
- * one nobody can have played on yet.
- *
- * `now` is a parameter so a whole evaluator pass can share one reading of the
- * clock — and so this stays testable without mocking the global clock.
- */
-export function nowDayMinutes(timeZone?: string, viewedDate?: string | null, now: Date = new Date()): number {
-  const timeOfDay = venueDayMinutes(now, timeZone) ?? 0;
-  if (!viewedDate) return timeOfDay;
+export function restAsOf(restDate: string | null, timeZone?: string, now: Date = new Date()): string {
+  const real = now.toISOString();
+  if (!restDate) return real;
   const today = venueCalendarDate(now, timeZone);
-  const daysAhead = today ? dayDelta(today, viewedDate) : undefined;
-  if (daysAhead === undefined || daysAhead <= 0) return timeOfDay;
-  return timeOfDay - daysAhead * MINUTES_PER_DAY;
-}
-
-/** Tournament daily limits, or undefined when no scheduling policy is attached — never a substituted default. */
-function readDailyLimits(): RestDailyLimits | undefined {
-  const result: any = competitionEngine.getMatchUpDailyLimits();
-  if (result?.error) return undefined;
-  return result?.matchUpDailyLimits;
+  // `YYYY-MM-DD` orders lexicographically, so a string comparison is the calendar one.
+  if (!today || restDate > today) return real;
+  const projected = venueWallClockToMs(restDate, venueClock(now, timeZone), timeZone);
+  if (projected === undefined) return real;
+  return new Date(projected + (now.getTime() % MS_PER_MINUTE)).toISOString();
 }
 
 /**
  * The day a matchUp's rest should be measured on.
  *
- * A **scheduled** matchUp carries its own answer, and that answer cannot drift:
- * it is a property of the thing being inspected rather than a second variable
- * that has to be kept in step with the page. The ambient date is the fallback,
- * for a catalog card that has not been scheduled yet and genuinely has no day of
- * its own.
+ * A **scheduled** matchUp carries its own answer, and that answer cannot drift: it is a property of
+ * the thing being inspected rather than a second variable that has to be kept in step with the page.
+ * The ambient date is the fallback, for a catalog card that has not been scheduled yet and genuinely
+ * has no day of its own.
  *
- * This ordering exists because the two disagreed in production. The Inspector
- * took its date from the schedule-page store's `selectedDate`, which seeded from
- * the tournament's FIRST date and was never synced — TMX drives the date itself
- * and collapses the component's date strip, so nothing ever wrote to it. The card
- * badge, on the same matchUp, took gridView's `currentDate` and was correct. One
- * final, two surfaces, two different days, and rest that read "cannot be
- * measured" beside a badge reading "41m". The store is fixed (courthive-components
- * 3.15.1), but a fix that only synchronises two variables leaves the next
- * consumer free to desynchronise them again. Reading the date off the matchUp
- * makes that class of bug unrepresentable.
+ * This ordering exists because the two disagreed in production: the Inspector took its date from a
+ * store `selectedDate` that was never synced, while the card badge on the same matchUp took
+ * gridView's `currentDate` and was correct — two surfaces, two days, and rest that read "cannot be
+ * measured" beside a badge reading "41m". Reading the date off the matchUp makes that class of bug
+ * unrepresentable.
  */
 export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: string | null): string | null {
   return matchUp?.schedule?.scheduledDate ?? viewedDate;
 }
 
 /**
- * A rest evaluator valid for one pass, sharing the engine work across every
- * matchUp it is asked about.
+ * A rest evaluator valid for one pass, sharing the engine work across every matchUp it is asked
+ * about.
  *
- * `makeTimingResolver()` walks the tournament's events and
- * `getMatchUpDailyLimits()` reaches the engine. Paying for both once is fine for
- * the Inspector's single matchUp and wrong for the catalog, where the badge
- * ticker re-reads every visible card on a timer — that is N engine passes every
- * 30 seconds for a screen that has not changed.
- *
- * The clock is read once too, so every badge in a tick agrees about what time it
- * is. Reading it per badge would let a pass that straddles a minute boundary
- * render two cards a minute apart. The *minutes* figure is still derived per
- * matchUp, because it is measured from the midnight of whichever day that
- * matchUp is being rested against, and `restDateFor` may name a different one
- * for each.
+ * The hydrated matchUps are read once and handed to the factory, which would otherwise hydrate the
+ * tournament again on every call — the catalog's badge ticker re-reads every visible card on a
+ * timer. The clock and the venue frame are read once too, so every badge in a tick agrees about what
+ * time it is.
  */
 export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | null) => RestResult {
-  const { matchUps } = getCachedAllMatchUps();
-  const hydrated = (matchUps ?? []) as ReadinessMatchUp[];
-  const timingFor = makeTimingResolver();
-  const dailyLimits = readDailyLimits();
-  // One frame for the whole pass — see the header note on why this is captured
-  // here rather than read per row.
+  // `inContext` matchUps, straight from the cache: the factory types them as `HydratedMatchUp`,
+  // and the local lookup below reads them through the narrower `ReadinessMatchUp` shape.
+  const matchUps = getCachedAllMatchUps().matchUps ?? [];
+  const hydrated = matchUps as ReadinessMatchUp[];
   const { timeZone } = resolveVenueFrame();
-  // One reading of the clock for the whole pass — see the note above. The
-  // minutes figure is derived per matchUp because it is relative to the day that
-  // matchUp is being measured on, and `restDateFor` can name a different day for
-  // each; the instant it is derived from does not move.
   const now = new Date();
 
   return (matchUpId, viewedDate) => {
@@ -280,15 +107,14 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
       hydrated.find((matchUp) => matchUp.matchUpId === matchUpId),
       viewedDate,
     );
-    return analyzeParticipantRest({
+    const result: any = tournamentEngine.getParticipantRest({
       matchUpId,
-      matchUps: hydrated,
-      scheduledDate: restDate ?? '',
-      asOfMinutes: nowDayMinutes(timeZone, restDate, now),
-      timesFor: (matchUp) => normalizeTimes(matchUp, restDate, timeZone),
-      dailyLimits,
-      timingFor,
+      matchUps,
+      asOf: restAsOf(restDate, timeZone, now),
+      ...(restDate && { scheduledDate: restDate }),
+      timeZone,
     });
+    return result?.rest ?? { evaluated: false, reason: 'unknownMatchUp' };
   };
 }
 

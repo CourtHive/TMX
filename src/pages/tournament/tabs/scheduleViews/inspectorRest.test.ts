@@ -1,203 +1,84 @@
-import {
-  describeDiscarded,
-  describeRest,
-  instantLocalDate,
-  normalizeTimes,
-  nowDayMinutes,
-  restDateFor,
-  toDayMinutesFromClock,
-  toDayMinutesFromInstant,
-} from './inspectorRest';
-import { analyzeParticipantRest } from './participantRest';
+import { describeDiscarded, describeRest, restAsOf, restDateFor } from './inspectorRest';
+import { scheduleGovernor } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
 import type { ReadinessMatchUp } from './matchUpReadiness';
-import type { RestRow } from './participantRest';
+import type { RestRow } from 'tods-competition-factory';
 
 const DATE = '2026-08-22';
-const NEXT_DAY = '2026-08-23';
-const UNPARSEABLE = 'not-a-date';
+const ZONE = 'America/New_York';
+const REPORT_EVENING = '2026-09-11';
+const PAST_DAY = '2026-09-08';
+const EVENING_CLOCK = '22:51';
 
 /**
- * `pnpm test` pins `TZ=UTC`, but these assertions are deliberately written to
- * hold in ANY zone: every instant is built by parsing a naive local datetime and
- * re-serialising it, so the expected minute figure is a statement about local
- * wall clock rather than about UTC. Running `vitest` directly (no `TZ=UTC`) must
- * produce the same result — that was not true of the first draft of this file,
- * and the difference is exactly the offset bug the feature has to avoid.
+ * Rest itself is the factory's query; what TMX decides is `asOf`. These run the two together,
+ * `restAsOf` feeding `getParticipantRest`, because the defects they pin lived in the frame the
+ * caller handed over, never in the analysis on its own. Every instant here is built in a NAMED
+ * venue zone, so the assertions hold in any runner zone.
  */
+const venueInstant = (date: string, clock: string, offset = '-04:00') => new Date(`${date}T${clock}:00${offset}`);
 
-/** An ISO instant that IS `hh:mm` in the runner's local zone on `date`. */
-function localInstant(date: string, hhmm: string): string {
-  return new Date(`${date}T${hhmm}:00`).toISOString();
+function restFor(matchUps: ReadinessMatchUp[], matchUpId: string, asOf: string, scheduledDate: string) {
+  const result: any = scheduleGovernor.getParticipantRest({
+    tournamentRecord: { tournamentId: 'rest-adapter', localTimeZone: ZONE } as any,
+    matchUps: matchUps as any,
+    matchUpId,
+    asOf,
+    scheduledDate,
+    timeZone: ZONE,
+  });
+  if (!result.rest?.evaluated) throw new Error(`expected evaluation, got ${JSON.stringify(result)}`);
+  return result.rest;
 }
-describe('toDayMinutesFromClock — bare wall clock, sliced never converted', () => {
-  it('parses military HH:MM', () => {
-    expect(toDayMinutesFromClock('00:00')).toBe(0);
-    expect(toDayMinutesFromClock('09:05')).toBe(545);
-    expect(toDayMinutesFromClock('14:20')).toBe(860);
-    expect(toDayMinutesFromClock('23:59')).toBe(1439);
+
+describe('restAsOf — the projection runs backwards in time, never forwards', () => {
+  /** 22:51 at the venue on 2026-09-11 — the evening the production report came from. */
+  const EVENING = venueInstant(REPORT_EVENING, EVENING_CLOCK);
+
+  it('is the real instant for today', () => {
+    expect(restAsOf(REPORT_EVENING, ZONE, EVENING)).toEqual(EVENING.toISOString());
   });
 
-  it('slices the naive wall-clock portion of an ISO string, matching the factory extractTime', () => {
-    expect(toDayMinutesFromClock('2026-08-22T14:20:00.000Z')).toBe(860);
-    expect(toDayMinutesFromClock('2026-08-22T14:20')).toBe(860);
+  it("projects the venue's time of day onto a past day, which a past-dated tournament needs", () => {
+    expect(restAsOf(PAST_DAY, ZONE, EVENING)).toEqual(venueInstant(PAST_DAY, EVENING_CLOCK).toISOString());
   });
 
-  it('rejects unparseable and out-of-range values rather than guessing', () => {
-    for (const value of [undefined, '', 'later', '24:00', '12:60', 'TBD']) {
-      expect(toDayMinutesFromClock(value)).toBeUndefined();
-    }
-  });
-});
-
-describe('toDayMinutesFromInstant — UTC instant against local midnight of the viewed day', () => {
-  it('converts an instant on the viewed day to its local wall-clock minute', () => {
-    expect(toDayMinutesFromInstant(localInstant(DATE, '13:48'), DATE)).toBe(828);
-    expect(toDayMinutesFromInstant(localInstant(DATE, '00:00'), DATE)).toBe(0);
+  it('keeps the seconds: a whole-minute zone offset cannot move them', () => {
+    const now = new Date(EVENING.getTime() + 42_500);
+    expect(restAsOf(PAST_DAY, ZONE, now)).toEqual(
+      new Date(venueInstant(PAST_DAY, EVENING_CLOCK).getTime() + 42_500).toISOString(),
+    );
   });
 
-  it('is a conversion, not a string slice — a UTC stamp is NOT read as wall clock', () => {
-    // In a zone offset from UTC these two disagree; asserting they agree only
-    // when the offset is zero is what makes this a real falsifier rather than a
-    // restatement of the implementation.
-    const utcNoon = '2026-08-22T12:00:00.000Z';
-    const offsetMinutes = -new Date(`${DATE}T00:00:00`).getTimezoneOffset();
-    expect(toDayMinutesFromInstant(utcNoon, DATE)).toBe(720 + offsetMinutes);
+  it('is the real instant for a FUTURE day, which lies before that day began', () => {
+    expect(restAsOf('2026-09-12', ZONE, EVENING)).toEqual(EVENING.toISOString());
+    expect(restAsOf('2026-09-14', ZONE, EVENING)).toEqual(EVENING.toISOString());
   });
 
-  it('returns a NEGATIVE value for an instant on the previous day', () => {
-    // A string slice could never produce this; it is the falsifier for the
-    // instant-vs-wall-clock distinction the whole feature depends on.
-    expect(toDayMinutesFromInstant(localInstant('2026-08-21', '22:30'), DATE)).toBe(-90);
-  });
-
-  it('returns a value ABOVE 1439 for an instant on the following day', () => {
-    expect(toDayMinutesFromInstant(localInstant(NEXT_DAY, '00:30'), DATE)).toBe(1470);
-  });
-
-  it('returns undefined for a missing instant, a missing date, or an unparseable stamp', () => {
-    expect(toDayMinutesFromInstant(undefined, DATE)).toBeUndefined();
-    expect(toDayMinutesFromInstant(localInstant(DATE, '13:48'), null)).toBeUndefined();
-    expect(toDayMinutesFromInstant(UNPARSEABLE, DATE)).toBeUndefined();
-    expect(toDayMinutesFromInstant(localInstant(DATE, '13:48'), UNPARSEABLE)).toBeUndefined();
-  });
-});
-
-describe('instantLocalDate — the LOCAL calendar day of an instant', () => {
-  it('names the local day, not the UTC one', () => {
-    expect(instantLocalDate(localInstant(DATE, '00:05'))).toBe(DATE);
-    expect(instantLocalDate(localInstant(DATE, '23:55'))).toBe(DATE);
-    expect(instantLocalDate(localInstant(NEXT_DAY, '12:00'))).toBe(NEXT_DAY);
-  });
-
-  it('zero-pads single-digit months and days', () => {
-    expect(instantLocalDate(localInstant('2026-01-05', '12:00'))).toBe('2026-01-05');
-  });
-
-  it('returns undefined rather than a guess for a missing or unparseable stamp', () => {
-    expect(instantLocalDate(undefined)).toBeUndefined();
-    expect(instantLocalDate(UNPARSEABLE)).toBeUndefined();
+  it('is the real instant when no day is named', () => {
+    expect(restAsOf(null, ZONE, EVENING)).toEqual(EVENING.toISOString());
   });
 });
 
 /**
- * The regression that took the whole feature dark for anyone operating a
- * tournament whose scheduled dates are not the operator's calendar today —
- * which `resolveScheduleDate()` produces automatically once every tournament
- * date is in the past.
- */
-describe('toDayMinutesFromInstant — a stamp more than a day away reads as its time of day', () => {
-  it('reports the time of day, NOT the elapsed interval, for a stamp days after the viewed date', () => {
-    // Four days on from the viewed day. The elapsed reading was 4 * 1440 + 638.
-    expect(toDayMinutesFromInstant(localInstant('2026-08-26', '10:38'), DATE)).toBe(638);
-  });
-
-  it('does the same for a stamp days BEFORE the viewed date', () => {
-    expect(toDayMinutesFromInstant(localInstant('2026-08-18', '10:38'), DATE)).toBe(638);
-  });
-
-  it('leaves a score entered minutes ago BEHIND a now projected onto the viewed day', () => {
-    // The defect in one line: today 10:38, schedule open on a past tournament
-    // date, operator looking at 11:19. Rest is 41 minutes and must be readable.
-    const scored = toDayMinutesFromInstant(localInstant('2026-08-26', '10:38'), DATE);
-    const projectedNow = 11 * 60 + 19;
-    expect(scored).toBeLessThan(projectedNow);
-    expect(projectedNow - (scored ?? 0)).toBe(41);
-  });
-});
-
-describe('normalizeTimes', () => {
-  function matchUp(schedule: ReadinessMatchUp['schedule']): ReadinessMatchUp {
-    return { matchUpId: 'm1', schedule };
-  }
-
-  it('normalizes each field from its own frame', () => {
-    const result = normalizeTimes(
-      matchUp({
-        scheduledDate: DATE,
-        scheduledTime: '10:00',
-        startTime: '10:07',
-        endTime: '12:06',
-        calledAt: localInstant(DATE, '09:55'),
-        scoredTime: localInstant(DATE, '12:11'),
-      }),
-      DATE,
-    );
-
-    expect(result).toEqual({
-      endMinutes: 726,
-      scoredMinutes: 731,
-      scoredDate: DATE,
-      startMinutes: 607,
-      calledMinutes: 595,
-      scheduledMinutes: 600,
-    });
-  });
-
-  it('rolls endTime onto the next day when END_DATE says the match crossed midnight', () => {
-    const result = normalizeTimes(
-      matchUp({ scheduledDate: DATE, scheduledTime: '22:30', endTime: '00:40', endDate: NEXT_DAY }),
-      DATE,
-    );
-    expect(result.endMinutes).toBe(1480);
-    expect(result.scheduledMinutes).toBe(1350);
-  });
-
-  it('does not roll endTime when END_DATE equals the scheduled date', () => {
-    const result = normalizeTimes(matchUp({ scheduledDate: DATE, endTime: '12:06', endDate: DATE }), DATE);
-    expect(result.endMinutes).toBe(726);
-  });
-
-  it('omits endMinutes entirely when no END_TIME was recorded — the common case', () => {
-    const result = normalizeTimes(matchUp({ scheduledDate: DATE, scoredTime: localInstant(DATE, '12:11') }), DATE);
-    expect(result.endMinutes).toBeUndefined();
-    expect(result.scoredMinutes).toBe(731);
-  });
-
-  it('yields nothing usable for a matchUp with no schedule at all', () => {
-    const result = normalizeTimes({ matchUpId: 'm1', schedule: null }, DATE);
-    expect(Object.values(result).every((value) => value === undefined)).toBe(true);
-  });
-});
-
-/**
- * The two halves joined, on the scenario that was reported: a backdraw final at
- * 12:00, its semifinals at 09:00 with scores entered from the operator's real
- * clock — and a schedule open on a tournament date that is not that clock's
- * calendar today, which `resolveScheduleDate()` produces for any tournament
- * whose dates have all passed.
+ * A past-dated tournament run in real time: a backdraw final at 12:00 on 08-20, its semifinal at
+ * 09:00 with the score entered from the operator's real clock on 08-24.
  *
- * Neither module could catch this alone. `normalizeTimes` looked right in
- * isolation and `analyzeParticipantRest` behaved correctly on the numbers it was
- * handed; the defect lived entirely in the frame they exchanged.
+ * CA, 2026-10-07: *"I don't think it makes sense, really, to run a past-dated tournament in real
+ * time. That is a demo scenario and while we want rich support for demoing the capabilities, we
+ * don't need to change core logic to accommodate that!"* So the factory's reading stands: a score
+ * stamped days away from its own match is not a finish, rest is projected from the schedule, and the
+ * stamp is reported as discarded rather than silently used. (TMX's own copy read the stamp by its
+ * time of day; that copy is gone.)
+ *
+ * What `restAsOf` still buys on a past day: the figure stays on the viewed day's clock instead of
+ * counting the days since.
  */
-describe('end to end: a real score entry against a past-dated schedule day', () => {
+describe('a past-dated tournament run in real time — a demo scenario, not core logic', () => {
   const VIEWED = '2026-08-20';
-  const TODAY = '2026-08-24';
-  const TIMING = { averageMinutes: 90, recoveryMinutes: 60, typeChangeRecoveryMinutes: 30 };
-  const NOW = 11 * 60 + 11; // 11:11, projected onto the viewed day
+  const NOW = venueInstant('2026-08-24', '11:11');
 
   const semi: ReadinessMatchUp = {
     matchUpId: 'm-semi',
@@ -205,7 +86,11 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
     matchUpStatus: 'COMPLETED',
     winningSide: 1,
     sides: [{ participantId: 'p-alice', participantName: 'Alice' }, { participantId: 'p-chen' }],
-    schedule: { scheduledDate: VIEWED, scheduledTime: '09:00', scoredTime: localInstant(TODAY, '10:38') },
+    schedule: {
+      scheduledDate: VIEWED,
+      scheduledTime: '09:00',
+      scoredTime: venueInstant('2026-08-24', '10:38').toISOString(),
+    },
   };
   const final: ReadinessMatchUp = {
     matchUpId: 'm-final',
@@ -213,79 +98,38 @@ describe('end to end: a real score entry against a past-dated schedule day', () 
     sides: [{ participantId: 'p-alice', participantName: 'Alice' }, { participantId: 'p-bob' }],
     schedule: { scheduledDate: VIEWED, scheduledTime: '12:00' },
   };
+  const alice = () =>
+    restFor([final, semi], 'm-final', restAsOf(VIEWED, ZONE, NOW), VIEWED).rows.find(
+      (row: RestRow) => row.participantId === 'p-alice',
+    );
 
-  function analyze() {
-    const result = analyzeParticipantRest({
-      matchUpId: 'm-final',
-      matchUps: [final, semi],
-      scheduledDate: VIEWED,
-      asOfMinutes: NOW,
-      timingFor: () => TIMING,
-      timesFor: (matchUp) => normalizeTimes(matchUp, VIEWED),
-    });
-    if (!result.evaluated) throw new Error('expected evaluation');
-    return result;
-  }
-
-  it('measures rest from the score entry rather than reporting it unmeasurable', () => {
-    const alice = analyze().rows.find((row) => row.participantId === 'p-alice');
-    expect(alice).toMatchObject({ status: 'resting', restMinutes: 33, source: 'scoredTime' });
-    expect(alice?.anchorUnreliable).toBeUndefined();
+  it('projects rest from the schedule and names the score stamp it discarded', () => {
+    // 09:00 + 90 average = 10:30, measured at 11:11 on the viewed day
+    expect(alice()).toMatchObject({ restMinutes: 41, source: 'scheduledTime', discardedSources: ['scoredTime'] });
+    expect(alice()?.anchorUnreliable).toBeUndefined();
   });
 
   it('counts the semifinal as load, so the final is the second match of the day', () => {
-    expect(analyze().rows.find((row) => row.participantId === 'p-alice')?.load.ordinal).toBe(2);
+    expect(alice()?.load.ordinal).toBe(2);
   });
 
-  it('projects a readyAt from the anchor it actually used', () => {
-    // 10:38 + 60 minutes of recovery.
-    expect(analyze().rows.find((row) => row.participantId === 'p-alice')?.readyAt).toBe('11:38');
-  });
-});
-
-/**
- * The future-day half of the projection rule. Reported from production on BOBOCA
- * `a4e439fa-…`: the schedule page for the next day, opened the evening before,
- * badged a 07:45 singles card "on court" in a tournament that had no courts and
- * no results — because the same player's 15:00 doubles read as already under way
- * against a clock projected from the operator's evening.
- *
- * Written against the runner's own zone rather than a named one, like the rest of
- * this file: the assertion is about the DAY offset, which no zone changes.
- */
-describe('nowDayMinutes — the projection runs backwards in time, never forwards', () => {
-  /** 22:51 local on 2026-09-11 — the evening the production report came from. */
-  const EVENING = new Date('2026-09-11T22:51:00');
-  const EVENING_MINUTES = 22 * 60 + 51;
-
-  it('projects onto today unchanged', () => {
-    expect(nowDayMinutes(undefined, '2026-09-11', EVENING)).toBe(EVENING_MINUTES);
-  });
-
-  it('projects onto a past day unchanged, which is what a past-dated tournament needs', () => {
-    expect(nowDayMinutes(undefined, '2026-09-08', EVENING)).toBe(EVENING_MINUTES);
-  });
-
-  it('places "now" before midnight of a future day, by a whole day per day ahead', () => {
-    expect(nowDayMinutes(undefined, '2026-09-12', EVENING)).toBe(EVENING_MINUTES - 1440);
-    expect(nowDayMinutes(undefined, '2026-09-14', EVENING)).toBe(EVENING_MINUTES - 3 * 1440);
-  });
-
-  it('falls back to the bare time of day when no day is named or the day is unparseable', () => {
-    expect(nowDayMinutes(undefined, null, EVENING)).toBe(EVENING_MINUTES);
-    expect(nowDayMinutes(undefined, UNPARSEABLE, EVENING)).toBe(EVENING_MINUTES);
+  it('stays on the viewed day: against the real instant the same row reads days of rest', () => {
+    const real = restFor([final, semi], 'm-final', NOW.toISOString(), VIEWED).rows.find(
+      (row: RestRow) => row.participantId === 'p-alice',
+    );
+    expect(real?.restMinutes).toBeGreaterThan(4 * 24 * 60);
   });
 });
 
 /**
- * The defect end to end: two matchUps on tomorrow's card sharing one player, no
- * scores, no courts. Before the fix the earlier one reported its shared player
- * `onCourt`, because the later one's scheduledTime sat behind a projected clock.
+ * The future-day half. Reported from production on BOBOCA `a4e439fa-…`: tomorrow's schedule, opened
+ * the evening before, badged a 07:45 singles card "on court" in a tournament with no courts and no
+ * results, because the same player's 15:00 doubles read as under way against a clock projected from
+ * the operator's evening.
  */
 describe('a future schedule day: nobody is on court yet', () => {
   const TOMORROW = '2026-09-12';
-  const EVENING = new Date('2026-09-11T22:51:00');
-  const TIMING = { averageMinutes: 90, recoveryMinutes: 60 };
+  const EVENING = venueInstant('2026-09-11', '22:51');
 
   const singles: ReadinessMatchUp = {
     matchUpId: 'm-singles',
@@ -305,29 +149,17 @@ describe('a future schedule day: nobody is on court yet', () => {
     schedule: { scheduledDate: TOMORROW, scheduledTime: '15:00' },
   };
 
-  function analyze(asOfMinutes: number) {
-    const result = analyzeParticipantRest({
-      matchUpId: 'm-singles',
-      matchUps: [singles, doubles],
-      scheduledDate: TOMORROW,
-      asOfMinutes,
-      timingFor: () => TIMING,
-      timesFor: (matchUp) => normalizeTimes(matchUp, TOMORROW),
-    });
-    if (!result.evaluated) throw new Error('expected evaluation');
-    return result;
-  }
-
   it('reports no prior match for every player', () => {
-    const rows = analyze(nowDayMinutes(undefined, TOMORROW, EVENING)).rows;
-    expect(rows.every((row) => row.status === 'none')).toBe(true);
+    const { rows } = restFor([singles, doubles], 'm-singles', restAsOf(TOMORROW, ZONE, EVENING), TOMORROW);
+    expect(rows.every((row: RestRow) => row.status === 'none')).toBe(true);
   });
 
   it('would badge the shared player "on court" under the projected evening clock', () => {
-    // The defect, pinned: the same data with today's time-of-day projected onto
-    // tomorrow puts the 15:00 doubles behind the clock and the player on court.
-    const rows = analyze(22 * 60 + 51).rows;
-    expect(rows.find((row) => row.participantId === 'p-nassar')?.status).toBe('onCourt');
+    // The defect, pinned: the same data with the evening's time-of-day projected onto tomorrow puts
+    // the 15:00 doubles behind the clock and the player on court.
+    const projected = venueInstant(TOMORROW, '22:51').toISOString();
+    const { rows } = restFor([singles, doubles], 'm-singles', projected, TOMORROW);
+    expect(rows.find((row: RestRow) => row.participantId === 'p-nassar')?.status).toBe('onCourt');
   });
 });
 
