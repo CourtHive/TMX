@@ -94,9 +94,18 @@ describe('isActiveProviderAdmin', () => {
     expect(isActiveProviderAdmin()).toBe(false);
   });
 
-  it('honors the deprecated global admin role when a provider is active', () => {
+  // The server decides provider admin from user_providers rows alone (shim retired 2026-10-07); so must the client.
+  it('does NOT grant provider admin for the deprecated global admin role, even with a provider active', () => {
     context.provider = provider(ION);
     mockedGetLoginState.mockReturnValue(login({ roles: ['client', 'admin'] }));
+    expect(isActiveProviderAdmin()).toBe(false);
+  });
+
+  it('a legacy admin is provider admin only where they hold a PROVIDER_ADMIN row', () => {
+    context.provider = provider(ION);
+    mockedGetLoginState.mockReturnValue(
+      login({ roles: ['client', 'admin'], providerAssociations: [providerAdminAt(ION)] }),
+    );
     expect(isActiveProviderAdmin()).toBe(true);
   });
 
