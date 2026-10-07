@@ -1,5 +1,43 @@
 # Changelog
 
+## [8.30.0](https://github.com/CourtHive/TMX/compare/v8.29.0...v8.30.0) (2026-10-07)
+
+
+### Features
+
+* **auth:** a user with several providers chooses one at login, and switching issues a new session ([#1541](https://github.com/CourtHive/TMX/issues/1541)) ([3b8e027](https://github.com/CourtHive/TMX/commit/3b8e02758f398d59492ac6818c35e57f4db09caf))
+* **export:** export the tournament record as a CODES file ([#1529](https://github.com/CourtHive/TMX/issues/1529)) ([38d593e](https://github.com/CourtHive/TMX/commit/38d593ed9f75447946e18d77a660c98924d29b89))
+* **i18n:** penalty labels are keyed by PenaltyTypeEnum code ([#1533](https://github.com/CourtHive/TMX/issues/1533)) ([a632836](https://github.com/CourtHive/TMX/commit/a632836b7e5c6940d4d115c67a7993b3909111a5))
+* **i18n:** say CODES everywhere TMX said TODS ([#1532](https://github.com/CourtHive/TMX/issues/1532)) ([c243875](https://github.com/CourtHive/TMX/commit/c243875103d2ca9d393587976058c2d8fac9a5fe))
+* **schedule:** a pending rest row points at the matchUp that decides the side ([#1502](https://github.com/CourtHive/TMX/issues/1502)) ([efe284e](https://github.com/CourtHive/TMX/commit/efe284eaac90c06f68feff0368b0855327d81e71))
+* **schedule:** colour the issues badge by severity and make warning bars optional ([#1513](https://github.com/CourtHive/TMX/issues/1513)) ([5122543](https://github.com/CourtHive/TMX/commit/51225434cd336247b1f3aa676c94e2a11328b88c))
+* **scoring:** record a walkover or default before the second opponent arrives ([#1535](https://github.com/CourtHive/TMX/issues/1535)) ([94df625](https://github.com/CourtHive/TMX/commit/94df6256cd28875af8d8879a88c40bd46d563876))
+
+
+### Bug Fixes
+
+* **auth:** the deprecated admin role no longer makes a user provider admin in the client ([#1544](https://github.com/CourtHive/TMX/issues/1544)) ([511564b](https://github.com/CourtHive/TMX/commit/511564bf0ef33810d9599ec1424af0e9f3c13e71))
+* **deps:** update courthive-components to 6.1.0 ([#1511](https://github.com/CourtHive/TMX/issues/1511)) ([c0882bb](https://github.com/CourtHive/TMX/commit/c0882bb3368691738cfc889439d22e0824638922))
+* **deps:** update courthive-components to 6.2.1 and pdf-factory to 1.1.1 ([#1551](https://github.com/CourtHive/TMX/issues/1551)) ([616ffee](https://github.com/CourtHive/TMX/commit/616ffee4f1f8804af3c02f531f2f46cb2e34e117))
+* **deps:** update dependency socket.io-client to v4.8.4 ([#1515](https://github.com/CourtHive/TMX/issues/1515)) ([eadb99b](https://github.com/CourtHive/TMX/commit/eadb99bf34bd5d29cfb9e4218cdf9acaba6ae586))
+* **deps:** update dependency tabulator-tables to v6.6.1 ([#1524](https://github.com/CourtHive/TMX/issues/1524)) ([cf2e509](https://github.com/CourtHive/TMX/commit/cf2e5098689f43ea690aaa404d86923e09793d65))
+* **deps:** update tods-competition-factory to 7.2.0 ([#1510](https://github.com/CourtHive/TMX/issues/1510)) ([901a223](https://github.com/CourtHive/TMX/commit/901a223fec9f50da533f2ee070bd198d2b390a1a))
+* **deps:** update tods-competition-factory to 7.3.1 ([#1520](https://github.com/CourtHive/TMX/issues/1520)) ([bfe88d8](https://github.com/CourtHive/TMX/commit/bfe88d835dede6ee1d1c03015375d40292d6aa4f))
+* **deps:** update tods-competition-factory to 7.4.0 ([#1522](https://github.com/CourtHive/TMX/issues/1522)) ([b26694e](https://github.com/CourtHive/TMX/commit/b26694e5e351d5e7918e42fa97978fe99a3dcaa3))
+* **deps:** update tods-competition-factory to 7.6.0 ([#1539](https://github.com/CourtHive/TMX/issues/1539)) ([21278fc](https://github.com/CourtHive/TMX/commit/21278fc233874b6cb326ef4fe4110054182fa14c))
+* **deps:** update tods-competition-factory to 7.7.0 ([#1549](https://github.com/CourtHive/TMX/issues/1549)) ([a8fe32a](https://github.com/CourtHive/TMX/commit/a8fe32a1f9cd2cfdda0c3148ec80b4f468de5526))
+* **draws:** an advanced participant answers clicks without a page reload ([#1526](https://github.com/CourtHive/TMX/issues/1526)) ([b956ee7](https://github.com/CourtHive/TMX/commit/b956ee7dafc7639056887da06d7485d69c208d6a))
+* **e2e:** seed journey 132 in the recent past so it does not depend on the clock ([#1514](https://github.com/CourtHive/TMX/issues/1514)) ([497df18](https://github.com/CourtHive/TMX/commit/497df187d74379d41fd00702efdec98680db61fe))
+* **entries:** a team pill on an event's entries opens that team's card ([#1548](https://github.com/CourtHive/TMX/issues/1548)) ([7613e4e](https://github.com/CourtHive/TMX/commit/7613e4e94a6af97ea771984b92407227bd0644a2))
+* **examples:** the Live Schedule maintenance window stays inside the day ([#1505](https://github.com/CourtHive/TMX/issues/1505)) ([2946a81](https://github.com/CourtHive/TMX/commit/2946a81d58426069e58f0e5013d09de2d33e8e85))
+* **participants:** a team pill on the individuals table opens that team's card ([#1547](https://github.com/CourtHive/TMX/issues/1547)) ([9f27b5c](https://github.com/CourtHive/TMX/commit/9f27b5c50dc1dab7cf12cee559c088afc32620a4))
+* **reports:** let the dev server reach the structure audit ([#1500](https://github.com/CourtHive/TMX/issues/1500)) ([c04a8a8](https://github.com/CourtHive/TMX/commit/c04a8a8e3101c7ce78f0366950b4a9c3a27fc7e9))
+* **schedule:** clicking an issue points at the grid cell, not the sticky strip ([#1504](https://github.com/CourtHive/TMX/issues/1504)) ([492f74a](https://github.com/CourtHive/TMX/commit/492f74a74e0c44554ce795ac20a5711837235338))
+* **schedule:** readiness and rest are the factory's queries; TMX's copies are gone ([#1545](https://github.com/CourtHive/TMX/issues/1545)) ([6c3b2fb](https://github.com/CourtHive/TMX/commit/6c3b2fbf15af1c540ad9a8cdd6a41d5171af5c81))
+* **schedule:** recovery is owed only by a match already begun ([#1507](https://github.com/CourtHive/TMX/issues/1507)) ([7a0f2f9](https://github.com/CourtHive/TMX/commit/7a0f2f9d855039637a5c1280e6600b3baf247bb5))
+* **schedule:** the grid search finds a player in doubles, not just in singles ([#1509](https://github.com/CourtHive/TMX/issues/1509)) ([75aa37e](https://github.com/CourtHive/TMX/commit/75aa37ec7a6a7caed6f065c85471ef60cbc2ba01))
+* **scoring:** a refused score's toast names the set the engine refused ([#1523](https://github.com/CourtHive/TMX/issues/1523)) ([5df35ad](https://github.com/CourtHive/TMX/commit/5df35ad3eeb79201ab6710380b6efde0ea956852))
+
 ## [8.29.0](https://github.com/CourtHive/TMX/compare/v8.28.1...v8.29.0) (2026-09-25)
 
 
