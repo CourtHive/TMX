@@ -30,14 +30,11 @@ export class TMXDatabase {
         const compositions = namedSource;
         this.dex.version(6).stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions });
         const pdfFonts = '&fontId, cachedAt';
-        this.dex
-          .version(7)
-          .stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts });
+        const v7 = { tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts };
+        this.dex.version(7).stores(v7);
         // Messages queued while offline that must survive a reload (services/messaging/outboxStore.ts).
         const outbox = '&id, userId, queuedAt';
-        this.dex
-          .version(8)
-          .stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts, outbox });
+        this.dex.version(8).stores({ ...v7, outbox });
         resolve();
       } catch (err) {
         reject(err);
