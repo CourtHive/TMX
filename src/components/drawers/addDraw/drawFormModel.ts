@@ -23,8 +23,10 @@
  */
 
 // constants and types
+import { selectTarget, targetsWithCapacity, type QualifyingTarget } from './qualifyingTargets';
 import { entryStatusConstants } from 'tods-competition-factory';
 import { isSeedableDrawType } from './seedCount';
+import { t } from 'i18n';
 import {
   ADVANCE_PER_GROUP,
   AUTOMATED,
@@ -42,6 +44,7 @@ import {
   QUALIFIERS_COUNT,
   QUALIFYING_FIRST,
   QUALIFYING_POSITIONS,
+  QUALIFYING_TARGET_ROUND,
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
@@ -49,7 +52,6 @@ import {
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
 } from 'constants/tmxConstants';
-import { t } from 'i18n';
 
 /** Canonical entry-status whitelist for structure selection. Mirrors the
  *  factory's `STRUCTURE_SELECTED_STATUSES` so the model never drifts from
@@ -80,7 +82,17 @@ export type DrawFormMode =
    *  position-assignment count. The model clamps `inputs[QUALIFIERS_COUNT]`
    *  into `[1, maxQualifiers]` so the adapter does not have to reproduce the
    *  clamp at `getDrawFormRelationships.ts:167-177`. */
-  | { kind: 'ATTACH_QUALIFYING'; event: any; draw: any; structure: any; maxQualifiers?: number };
+  | {
+      kind: 'ATTACH_QUALIFYING';
+      event: any;
+      draw: any;
+      structure: any;
+      maxQualifiers?: number;
+      /** `getAvailableQualifyingTargets().targets` for the structure: the rounds qualifiers can
+       *  enter, what already feeds each and its capacity. When present, `maxQualifiers` defaults to
+       *  the chosen round's `structuralCapacity` instead of the whole structure's size. */
+      qualifyingTargets?: QualifyingTarget[];
+    };
 
 export type DrawFormModeKind = DrawFormMode['kind'];
 
@@ -106,6 +118,7 @@ export type DrawFormInputs = {
   [DRAW_TYPE]?: string;
   [DRAW_SIZE]?: number | string;
   [QUALIFIERS_COUNT]?: number | string;
+  [QUALIFYING_TARGET_ROUND]?: number | string;
   [QUALIFYING_POSITIONS]?: number | string;
   [QUALIFYING_FIRST]?: boolean;
   [GROUP_SIZE]?: number | string;
@@ -154,6 +167,9 @@ export type DerivedValues = {
   /** Upper bound on `qualifiersCount`. Only set in `ATTACH_QUALIFYING` flows.
    *  The adapter should reject any user input above this value. */
   maxQualifiers?: number;
+  /** ATTACH_QUALIFYING with targets: the round the qualifiers will enter, and every round still open. */
+  qualifyingTarget?: QualifyingTarget;
+  qualifyingTargets?: QualifyingTarget[];
   /** True when this mode produces a placeholder main draw alongside the
    *  qualifying generation (the qualifying-first flow). */
   qualifyingOnly: boolean;
@@ -245,18 +261,20 @@ export function resolveDrawFormMode({
   isQualifying,
   isPopulateMain,
   structureId,
+  qualifyingTargets,
 }: {
   event: any;
   drawId?: string;
   isQualifying?: boolean;
   isPopulateMain?: boolean;
   structureId?: string;
+  qualifyingTargets?: QualifyingTarget[];
 }): DrawFormMode {
   const draw = drawId ? event.drawDefinitions?.find((d: any) => d.drawId === drawId) : undefined;
   if (isPopulateMain && draw) return { kind: 'POPULATE_MAIN', event, draw };
   if (isQualifying && structureId && draw) {
     const structure = draw.structures?.find((s: any) => s.structureId === structureId);
-    if (structure) return { kind: 'ATTACH_QUALIFYING', event, draw, structure };
+    if (structure) return { kind: 'ATTACH_QUALIFYING', event, draw, structure, qualifyingTargets };
   }
   if (isQualifying && drawId && draw) return { kind: 'GENERATE_QUALIFYING', event, draw };
   if (isQualifying) return { kind: 'NEW_QUALIFYING', event };
@@ -500,10 +518,14 @@ function computeAttachQualifying(
   const positionAssignments = mode.structure?.positionAssignments ?? [];
   // Draw size for an attaching flow comes from the existing structure.
   const drawSize = positionAssignments.length || 0;
-  // Upper bound on qualifiersCount: explicit override on the mode payload, or
-  // the position-assignment count of the target structure (today's behavior
-  // at addDraw.ts:73). Mirrors `getDrawFormRelationships.ts:167-177`.
-  const maxQualifiers = mode.maxQualifiers ?? drawSize;
+  // The rounds qualifiers can enter, from the factory's getAvailableQualifyingTargets: the chosen
+  // round (or the first still open) bounds the qualifiers count by what the round can structurally
+  // take, so a second qualifying into a round another already feeds cannot overfill it.
+  const qualifyingTargets = targetsWithCapacity(mode.qualifyingTargets);
+  const qualifyingTarget = selectTarget(qualifyingTargets, inputs[QUALIFYING_TARGET_ROUND]);
+  // Upper bound on qualifiersCount: explicit override on the mode payload, else the chosen
+  // round's structural capacity, else the position-assignment count of the target structure.
+  const maxQualifiers = mode.maxQualifiers ?? qualifyingTarget?.structuralCapacity ?? drawSize;
   // Existing qualifier count from the structure being attached to.
   const qualifierPositionCount = positionAssignments.filter((p: any) => p.qualifier).length;
   const qualifiersCount = clampQualifiersCount(inputs[QUALIFIERS_COUNT], qualifierPositionCount || 1, maxQualifiers);
@@ -516,6 +538,12 @@ function computeAttachQualifying(
       [STRUCTURE_NAME]: { visible: true, disabled: false, value: 'Qualifying' },
       [QUALIFYING_FIRST]: { visible: false, disabled: true },
       [QUALIFIERS_COUNT]: { visible: true, disabled: false, value: qualifiersCount },
+      // one open round needs no choice; several (a FEED_IN main's feed rounds) do
+      [QUALIFYING_TARGET_ROUND]: {
+        visible: qualifyingTargets.length > 1,
+        disabled: false,
+        value: qualifyingTarget?.roundNumber ?? 1,
+      },
       [QUALIFYING_POSITIONS]: { visible: false, disabled: true },
       // Seeding policy is not configurable in the attach flow — the
       // qualifying structure inherits the existing draw's policy.
@@ -531,6 +559,8 @@ function computeAttachQualifying(
       drawEntries: mainEntries,
       structurePositionAssignments: positionAssignments,
       maxQualifiers,
+      qualifyingTarget,
+      qualifyingTargets,
       qualifyingOnly: false,
     },
     validationErrors: validateAttachQualifying(drawSize, qualifiersCount),

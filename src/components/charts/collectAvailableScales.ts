@@ -8,10 +8,9 @@
  * enter the rating distribution.
  */
 
-import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
+import { factoryConstants, fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 
 // constants and types
-import { factoryConstants, fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;

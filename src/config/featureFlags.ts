@@ -14,6 +14,15 @@ export interface FeatureFlags {
   usePublishState: boolean;
   /** Demo-mode lockdown simulator (avatar menu). Off by default. */
   demoMode: boolean;
+  /**
+   * Score a matchUp with courthive-components' `openScoreEntryDialog` (one model under Dynamic Sets,
+   * Dial Pad and Free Score; reports an engine-ready outcome) instead of the shipped scoring modal.
+   *
+   * ON by default — CA, 2026-10-08: *"just make the beta for score entry modal automatically checked by
+   * default for now."* The old modal stays in the build: unticking the box in Settings → Beta features is
+   * the fallback, and an operator's stored choice (either way) still wins over this default.
+   */
+  scoreEntryDialog: boolean;
 }
 
 const defaults: FeatureFlags = {
@@ -23,6 +32,7 @@ const defaults: FeatureFlags = {
   linkedTournaments: false,
   usePublishState: false,
   demoMode: false,
+  scoreEntryDialog: true,
 };
 
 let current: FeatureFlags = { ...defaults };
