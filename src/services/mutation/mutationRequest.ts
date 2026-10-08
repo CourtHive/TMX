@@ -279,13 +279,7 @@ async function makeMutation({
       const missingTournament = isMissingTournament(ack);
       if (serverConfig.get().serverFirst && (ack?.success || missingTournament)) {
         (async () => {
-          // Replay any methods the server appended (e.g. attachPolicies for the
-          // provider's participant-privacy policy on tournament creation) so the
-          // local factory state matches what the server persisted. General
-          // mechanism — the client does not need to know what the methods do.
-          const serverMethods = Array.isArray(ack?.appliedServerMethods) ? ack.appliedServerMethods : [];
-          const methodsToApply = serverMethods.length ? [...resolvedMethods, ...serverMethods] : resolvedMethods;
-          factoryResult = engineExecution({ factoryEngine, methods: methodsToApply });
+          factoryResult = engineExecution({ factoryEngine, methods: resolvedMethods });
           if (factoryResult.error) return completion(factoryResult);
           await localSave(saveLocal || missingTournament);
           return completion(factoryResult);
@@ -360,9 +354,7 @@ export function replayServerMutation({
   const ackCallback = (ack: any) => {
     const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
-    const serverMethods = Array.isArray(ack?.appliedServerMethods) ? ack.appliedServerMethods : [];
-    const methodsToApply = serverMethods.length ? [...methods, ...serverMethods] : methods;
-    const result = engineExecution({ factoryEngine, methods: methodsToApply });
+    const result = engineExecution({ factoryEngine, methods });
     if (result.error) return;
     void localSave(saveLocal || missingTournament);
   };
