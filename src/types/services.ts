@@ -29,6 +29,8 @@ export interface RemoteMutationPayload {
   tournamentIds: string[];
   userId?: string;
   timestamp?: number;
+  /** The originating tab's marker (see services/messaging/clientIdentity.ts). */
+  originClientId?: string;
 }
 
 /** Acknowledgement received from the server after an emitTmx call. */
