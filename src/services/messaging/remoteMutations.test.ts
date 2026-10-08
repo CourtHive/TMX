@@ -52,6 +52,7 @@ vi.mock('services/context', () => ({
 // handleRemoteMutation fires the same central notification local mutations do.
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { initRemoteMutationHandler } from './remoteMutations';
+import { getOriginClientId } from './clientIdentity';
 
 const REMOTE_METHODS = [{ method: 'setMatchUpStatus', params: {} }];
 const remotePayload = (overrides: Record<string, any> = {}) => ({
@@ -133,5 +134,30 @@ describe('remoteMutations — cache invalidation + refresh ordering', () => {
     } finally {
       (globalThis as any).document = originalDocument;
     }
+  });
+});
+
+describe('remoteMutations — own-mutation echo', () => {
+  beforeEach(() => {
+    executionQueueMock.mockClear().mockReturnValue({ success: true });
+    getStateMock.mockClear().mockReturnValue({ tournamentRecords: { t1: {} } });
+    saveTournamentRecordMock.mockClear();
+    registeredListener = null;
+    initRemoteMutationHandler();
+  });
+
+  // A transport that cannot exclude the sender delivers our own mutation back to us; it has
+  // already been applied locally, so applying it again would double it.
+  it("skips a broadcast carrying this tab's originClientId", async () => {
+    await registeredListener!(remotePayload({ originClientId: getOriginClientId() }));
+
+    expect(executionQueueMock).not.toHaveBeenCalled();
+    expect(saveTournamentRecordMock).not.toHaveBeenCalled();
+  });
+
+  it("applies a broadcast carrying another tab's originClientId", async () => {
+    await registeredListener!(remotePayload({ originClientId: 'some-other-tab' }));
+
+    expect(executionQueueMock).toHaveBeenCalledTimes(1);
   });
 });
