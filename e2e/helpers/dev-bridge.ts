@@ -315,7 +315,7 @@ export async function loginAsProviderMember(
  */
 export async function seedFeatureFlagInitScript(
   page: Page,
-  flag: 'formatWizard' | 'assistant' | 'reports' | 'schedulePlan',
+  flag: 'formatWizard' | 'assistant' | 'reports' | 'schedulePlan' | 'scoreEntryDialog',
 ): Promise<void> {
   await page.addInitScript((flagName: string) => {
     const KEY = 'tmx_settings';

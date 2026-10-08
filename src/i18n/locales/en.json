@@ -2030,6 +2030,7 @@
     "userRemoved": "User removed",
     "matchUpScoredElsewhere": "Another user just scored this match ({{score}}). Review before saving.",
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
+    "scoreDiscardedByFormat": "Changing the format to {{matchUpFormat}} discarded {{count}} set(s): {{sets}}",
     "tournamentNotFound": "Tournament not found",
     "tournamentsTruncated": "Showing the first {{loaded}} of {{total}} tournaments. Filter or search to narrow the list.",
     "tournamentSearchFailed": "Tournament search is unavailable right now. Showing only the tournaments already loaded.",
@@ -3285,6 +3286,7 @@
   "settingsGrid": {
     "askAssistant": "Ask TMX assistant",
     "schedulePlan": "Schedule Plan",
+    "scoreEntryDialog": "New score entry dialog",
     "desktopNotifications": " Desktop Notifications",
     "serverUrl": "Server URL",
     "workOffline": " Work Offline"
