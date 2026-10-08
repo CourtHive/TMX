@@ -15,6 +15,7 @@ import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
+import { advanceServerSync } from 'services/staleness/serverSync';
 import { processDirective } from 'services/processDirective';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tools, version } from 'tods-competition-factory';
@@ -726,6 +727,9 @@ function requestAcknowledgement({
 }
 
 function receiveAcknowledgement(ack: ServerAck): void {
+  // This tab's own mutation moved the server from one write to the next (P49). Here, not in each
+  // caller: every ack passes through, on either transport, including replays after a reload.
+  if (ack?.serverUpdatedAt) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
   // Prefer ackId; fall back to uuid. Only fire once.
   const key = (ack.ackId && ackRequests[ack.ackId] && ack.ackId) || (ack.uuid && ackRequests[ack.uuid] && ack.uuid);
   if (key) ackRequests[key](ack);

@@ -181,6 +181,24 @@ describe('socketIo over a MessageTransport', () => {
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
   });
 
+  // P49: every ack passes through here, on either transport — this tab's own mutation moves its sync point.
+  it('an ack with write times moves the sync point', async () => {
+    const sync = await import('services/staleness/serverSync');
+    sync.setServerSync('t1', '2026-10-08T19:29:00.000Z');
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
+    const { ackId } = mutations()[0].data.payload;
+
+    fake.handlers.ack({
+      ackId,
+      success: true,
+      previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
+      serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
+    });
+    expect(sync.serverIsAhead('t1', '2026-10-08T19:30:00.000Z')).toBe(false);
+  });
+
   // D1 (CA, 2026-10-08): nothing is sent while offline; it is queued and replayed on connect.
   it('queues messages sent while offline and replays them in order on reconnect', () => {
     socketIo.connectSocket();

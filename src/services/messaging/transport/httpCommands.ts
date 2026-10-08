@@ -53,8 +53,12 @@ export function toCommandOutcome(ackId: string | undefined, response: any): Comm
   const unreachable = unreachableReason(response);
   if (unreachable) return { unreachable };
   const { status, data } = response;
-  if (status >= 200 && status < 300 && data?.success)
-    return { deliver: { event: 'ack', payload: { ackId, success: true } } };
+  if (status >= 200 && status < 300 && data?.success) {
+    // The write times ride the ack as they do on the socket (P49): the sender's sync point moves with them.
+    const { serverUpdatedAt, previousServerUpdatedAt } = data;
+    const payload = { ackId, success: true, ...(serverUpdatedAt && { serverUpdatedAt, previousServerUpdatedAt }) };
+    return { deliver: { event: 'ack', payload } };
+  }
 
   // A refusal: the engine's (checkEngineError: { message, code, context, info }), the mutation
   // gate's (403: { message }), or a 2xx body that carries an error.
