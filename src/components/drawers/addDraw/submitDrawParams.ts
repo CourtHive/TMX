@@ -35,9 +35,10 @@ import {
   PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   POSITIONS,
+  QUALIFIERS_COUNT,
   QUALIFYING_FIRST,
   QUALIFYING_POSITIONS,
-  QUALIFIERS_COUNT,
+  QUALIFYING_TARGET_ROUND,
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
@@ -300,6 +301,7 @@ function getStructureOptions(drawType: string, inputs: any): any {
 function handleQualifyingStructure(params: {
   structureId: string;
   qualifiersCount: number;
+  roundTarget?: number;
   structureOptions: any;
   matchUpFormat: string;
   structureName: string;
@@ -316,6 +318,7 @@ function handleQualifyingStructure(params: {
     structureOptions,
     matchUpFormat,
     structureName,
+    roundTarget,
     automated,
     drawSize,
     drawType,
@@ -330,6 +333,7 @@ function handleQualifyingStructure(params: {
     structureOptions,
     matchUpFormat,
     structureName,
+    roundTarget,
     drawSize,
     drawType: drawType as any,
     drawId,
@@ -368,6 +372,9 @@ function handleQualifyingStructure(params: {
     }
 
     const postMutation = (result: any) => {
+      // the factory refuses a qualifying that would overfill its round (QUALIFYING_CAPACITY_EXCEEDED)
+      const failure = result?.error ?? result?.results?.find((r: any) => r?.error)?.error;
+      if (failure) tmxToast({ message: failure.message ?? t('common.error'), intent: 'is-danger' });
       if (result.success && automated && qualifyingStructureId) {
         const positionResult = tournamentEngine.automatedPositioning({
           structureId: qualifyingStructureId,
@@ -398,6 +405,9 @@ function handleQualifyingStructure(params: {
       if (isFunction(callback)) callback({ ...generationResult, ...result.results?.[0] });
     };
     mutationRequest({ methods, callback: postMutation });
+  } else {
+    tmxToast({ message: generationResult.error?.message ?? t('common.error'), intent: 'is-danger' });
+    if (isFunction(callback)) callback(generationResult);
   }
 }
 
@@ -683,9 +693,12 @@ export function submitDrawParams({
       0;
 
   if (structureId && drawId) {
+    // the round the qualifiers enter; absent (one open round) the factory's link targets round 1
+    const roundTarget = Number.parseInt(inputs[QUALIFYING_TARGET_ROUND]?.value, 10) || undefined;
     handleQualifyingStructure({
       structureId,
       qualifiersCount,
+      roundTarget,
       structureOptions,
       matchUpFormat,
       structureName,

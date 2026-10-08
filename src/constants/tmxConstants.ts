@@ -243,6 +243,7 @@ export const ADVANCE_PER_GROUP = 'advancePerGroup';
 export const QUALIFYING_FIRST = 'qualifyingFirst';
 export const QUALIFYING_POSITIONS = 'qualifyingPositions';
 export const QUALIFIERS_COUNT = 'qualifiersCount';
+export const QUALIFYING_TARGET_ROUND = 'qualifyingTargetRound';
 export const GROUP_REMAINING = 'groupRemaining';
 export const MATCHUP_FORMAT = 'matchUpFormat';
 export const SEEDING_POLICY = 'seedingPolicy';

@@ -39,17 +39,17 @@ export function getStructureOptions({
   };
   const profiles = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const canAddPlayoffs = profiles?.playoffRounds?.length || profiles?.playoffFinishingPositionRanges?.length;
-  const canAddQualifying = (() => {
-    if (!tournamentEngine.isValidForQualifying({ drawId, structureId })?.valid) return false;
-    // Hide when all positions are already filled (participants or byes)
-    const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-    const mainStructure = drawDefinition?.structures?.find((s: any) => s.structureId === structureId);
-    const positions = mainStructure?.positionAssignments || [];
-    return positions.some((p: any) => !p.participantId && !p.bye);
-  })();
+  // The rounds this structure can be fed in, what already feeds each, and how much room is left.
+  // Offered while some round can still take a qualifier (CA, 2026-10-07: several qualifying
+  // structures may feed one round up to its drawPositions); the drawer shows the rest.
+  const qualifyingTargetsResult = tournamentEngine.getAvailableQualifyingTargets({ drawId, structureId });
+  const qualifyingTargets = qualifyingTargetsResult?.targets ?? [];
+  const canAddQualifying =
+    !!qualifyingTargetsResult?.valid && qualifyingTargets.some((target: any) => target.structuralCapacity > 0);
 
   const addNewQualifying = () => {
     addDraw({
+      qualifyingTargets,
       callback: (result: any) => {
         if (result.success) {
           const structureId = result.structure.structureId;
