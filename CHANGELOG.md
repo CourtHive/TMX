@@ -1,5 +1,26 @@
 # Changelog
 
+## [8.31.0](https://github.com/CourtHive/TMX/compare/v8.30.0...v8.31.0) (2026-10-08)
+
+
+### Features
+
+* **draws:** add playoffs can cap the rounds of the structure it adds ([#1555](https://github.com/CourtHive/TMX/issues/1555)) ([4643582](https://github.com/CourtHive/TMX/commit/46435823993897252b68374eb41c42590adc0683))
+* **draws:** add qualifying knows what already feeds the main and how much room is left ([#1550](https://github.com/CourtHive/TMX/issues/1550)) ([cd2f97f](https://github.com/CourtHive/TMX/commit/cd2f97fc48a2c7713813f667bd7fa24fdb15a3c4))
+* **messaging:** chat send over HTTP under commandsOverHttp ([#1566](https://github.com/CourtHive/TMX/issues/1566)) ([e2e49db](https://github.com/CourtHive/TMX/commit/e2e49db24728060cc59875f5eb5ac9e6fcd8943c))
+* **messaging:** send mutations as POST /factory behind commandsOverHttp ([#1564](https://github.com/CourtHive/TMX/issues/1564)) ([2afa907](https://github.com/CourtHive/TMX/commit/2afa9073df2f59334d3752fe97b453f59410f5c4))
+* **scoring:** the new score entry dialog, on by default, with the shipped modal as fallback ([#1558](https://github.com/CourtHive/TMX/issues/1558)) ([7772665](https://github.com/CourtHive/TMX/commit/7772665e132f4970e6d55eb95e0ae77e0fb3f803))
+* **topology:** a deferred consolation attaches to the structure its source node names ([#1557](https://github.com/CourtHive/TMX/issues/1557)) ([b884795](https://github.com/CourtHive/TMX/commit/b884795a7a87bf6ecd4e9ad43eb17c50c34eae3a))
+
+
+### Bug Fixes
+
+* **deps:** update dependency focus-trap to v8.2.3 ([#1553](https://github.com/CourtHive/TMX/issues/1553)) ([273162a](https://github.com/CourtHive/TMX/commit/273162a4c969b03ea69811e5691a4ccd794c0c76))
+* **deps:** update tods-competition-factory to 7.8.0 ([#1560](https://github.com/CourtHive/TMX/issues/1560)) ([d3db951](https://github.com/CourtHive/TMX/commit/d3db95139b392324dd3f2c2822e9db1d7c4f1031))
+* **messaging:** /tmx socket behind a message transport; queue while offline, replay on connect ([#1559](https://github.com/CourtHive/TMX/issues/1559)) ([97a6b66](https://github.com/CourtHive/TMX/commit/97a6b667dea3ecd65ca047fb17e7c4bc200b7076))
+* **messaging:** the offline queue survives a reload for messages already acted on ([#1562](https://github.com/CourtHive/TMX/issues/1562)) ([2c5f4ee](https://github.com/CourtHive/TMX/commit/2c5f4ee42e72f41a8ff2aa39d67b8598a4e609ef))
+* **staleness:** the probe compares the server's write time with this tab's sync point ([#1567](https://github.com/CourtHive/TMX/issues/1567)) ([7ad1988](https://github.com/CourtHive/TMX/commit/7ad198839125bd1816fa06724bb373a4f82f84da))
+
 ## [8.30.0](https://github.com/CourtHive/TMX/compare/v8.29.0...v8.30.0) (2026-10-07)
 
 
