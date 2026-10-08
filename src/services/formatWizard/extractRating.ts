@@ -1,5 +1,4 @@
-import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
-import { fixtures } from 'tods-competition-factory';
+import { fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
 
