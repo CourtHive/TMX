@@ -209,7 +209,9 @@ test.describe('Journey 16 — Topology templates', () => {
     const tournamentPage = new TournamentPage(page);
     await tournamentPage.goto(tournamentId);
 
-    // Seed the same template as the generation test
+    // Seed the same template as the generation test, sized for the event's 32 entries: the factory
+    // refuses a template smaller than the entries it is handed (ERR_INSUFFICIENT_DRAW_POSITIONS), and
+    // a 16 here produced no draw at all — which the tolerant generation test above never noticed.
     await page.evaluate(() => {
       const event = dev.getTournament().events?.[0];
       if (!event) return;
@@ -221,7 +223,7 @@ test.describe('Journey 16 — Topology templates', () => {
               name: 'E2E Structure Test',
               state: {
                 drawName: 'Structure Test',
-                nodes: [{ id: 'main', stage: 'MAIN', structureType: 'SINGLE_ELIMINATION', drawSize: 16 }],
+                nodes: [{ id: 'main', stage: 'MAIN', structureType: 'SINGLE_ELIMINATION', drawSize: 32 }],
                 edges: [],
               },
             },
@@ -257,7 +259,7 @@ test.describe('Journey 16 — Topology templates', () => {
     console.log('Generated structures:', JSON.stringify(structures));
     const main = structures.find((s: any) => s.stage === 'MAIN');
     expect(main).toBeDefined();
-    expect(main!.positions).toBe(16);
+    expect(main!.positions).toBe(32);
 
     collector.detach();
   });

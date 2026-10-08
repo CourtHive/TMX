@@ -1,6 +1,5 @@
 export const confidenceBands = { high: [80, 100], medium: [60, 80], low: [40, 60] };
-import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
-import { fixtures } from 'tods-competition-factory';
+import { fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
 

@@ -3,17 +3,15 @@
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
 import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
+import { attachTopologyStructures, topologyDrawEntries } from './topologyPostGeneration';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { informModal } from 'components/modals/baseModal/baseModal';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import { entryStatusConstants } from 'tods-competition-factory';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
 import { tournamentEngine } from 'services/factory/engine';
-import { getTopologyTemplates } from './topologyTemplates';
+import { findTopologyTemplate } from './topologyTemplates';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { resolveDrawFormMode } from './drawFormModel';
 import { getDrawFormItems } from './getDrawFormItems';
@@ -22,7 +20,7 @@ import { generateDraw } from './generateDraw';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-const { LUCKY_DRAW } = drawDefinitionConstants;
+const { LUCKY_DRAW, MAIN } = drawDefinitionConstants;
 import {
   getMatchUpFormatModal,
   renderButtons,
@@ -32,7 +30,6 @@ import {
 } from 'courthive-components';
 
 // constants
-import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import {
   CUSTOM,
   DRAW_NAME,
@@ -222,17 +219,7 @@ function generateFromTopologyTemplate({
   drawId?: string;
   callback?: (result: any) => void;
 }): void {
-  // Resolve the template from tournament extensions or user catalog
-  const tournamentTemplates = getTopologyTemplates();
-  let template = tournamentTemplates.find((t) => t.name === templateName);
-
-  if (!template) {
-    const userTopo = getUserTopologiesSync().find((t) => t.name === templateName);
-    if (userTopo) {
-      template = { name: userTopo.name, description: userTopo.description, state: userTopo.state };
-    }
-  }
-
+  const template = findTopologyTemplate(templateName);
   if (!template) {
     tmxToast({ message: `Template "${templateName}" not found`, intent: 'is-danger' });
     return;
@@ -261,13 +248,7 @@ function generateFromTopologyTemplate({
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
-  const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-  const drawEntries =
-    event.entries?.filter(
-      ({ entryStage, entryStatus }: any) =>
-        (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-    ) || [];
-  drawOptions.drawEntries = drawEntries;
+  drawOptions.drawEntries = topologyDrawEntries({ event, state });
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
@@ -276,63 +257,24 @@ function generateFromTopologyTemplate({
     }
 
     const generatedDrawId = result.drawDefinition.drawId;
-    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
+    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === MAIN)?.structureId;
 
-    if (postGenerationMethods.length > 0 && mainStructureId) {
-      const methods = postGenerationMethods.flatMap((pgm) => {
-        if (pgm.method === ATTACH_CONSOLATION_STRUCTURES) {
-          // Generate structure locally, then attach via server-first mutation
-          const genResult = tournamentEngine.generateConsolationStructure(pgm.params);
-          if (!genResult?.structures?.length) return [];
-          const consolationStructure = genResult.structures[0];
-
-          // Build LOSER links from main to consolation
-          const links = (pgm.params.links || []).map((link: any) => ({
-            linkType: 'LOSER',
-            source: { roundNumber: link.sourceRoundNumber, structureId: mainStructureId },
-            target: {
-              roundNumber: link.targetRoundNumber,
-              feedProfile: 'TOP_DOWN',
-              structureId: consolationStructure.structureId,
-            },
-          }));
-
-          return {
-            method: ATTACH_CONSOLATION_STRUCTURES,
-            params: { drawId: generatedDrawId, structures: [consolationStructure], links },
-          };
-        }
-        // Generate playoff structures locally, then attach via server-first mutation
-        const playoffResult = tournamentEngine.generateAndPopulatePlayoffStructures({
-          ...pgm.params,
-          drawId: generatedDrawId,
-          structureId: mainStructureId,
-        });
-        if (playoffResult.error || !playoffResult.structures?.length) return [];
-        return {
-          method: ATTACH_PLAYOFF_STRUCTURES,
-          params: {
-            matchUpModifications: playoffResult.matchUpModifications,
-            structures: playoffResult.structures,
-            links: playoffResult.links,
-            drawId: generatedDrawId,
-          },
-        };
-      });
-
-      mutationRequest({
-        methods,
-        callback: () => {
+    attachTopologyStructures({
+      drawDefinition: result.drawDefinition,
+      postGenerationMethods,
+      onDone: ({ unresolved }) => {
+        if (unresolved.length) {
+          tmxToast({
+            message: t('topology.structuresNotAttached', { unattached: unresolved.join(', ') }),
+            intent: 'is-warning',
+          });
+        } else {
           tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
-          navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
-          if (callback) callback(result);
-        },
-      });
-    } else {
-      tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
-      navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
-      if (callback) callback(result);
-    }
+        }
+        navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
+        if (callback) callback(result);
+      },
+    });
   };
 
   generateDraw({ drawOptions, eventId, callback: postGeneration });

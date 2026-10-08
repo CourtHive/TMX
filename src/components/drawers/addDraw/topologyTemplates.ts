@@ -2,6 +2,7 @@
  * Topology Templates — Save/load/delete templates via tournament extensions.
  * Extension name: topologyTemplates
  */
+import { getBuiltinTopologies, getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -15,6 +16,21 @@ const TopologyTemplates = 'topologyTemplates';
 export function getTopologyTemplates(): TopologyTemplate[] {
   const { extension } = tournamentEngine.findExtension({ discover: true, name: TopologyTemplates }) || {};
   return extension?.value || [];
+}
+
+/**
+ * The template a name in the draw-type select refers to: a template saved on the tournament first, then
+ * the operator's own catalog, then the built-in catalog that ships with courthive-components.
+ *
+ * One resolver for every consumer. The drawer and the topology page each resolved the first two sources
+ * and neither looked at the built-ins, so a shipped template (the ITA regional's "SE + Qualifying with
+ * consolation") could be browsed on the Templates page but never chosen when adding a draw.
+ */
+export function findTopologyTemplate(name: string): TopologyTemplate | undefined {
+  const saved = getTopologyTemplates().find((template) => template.name === name);
+  if (saved) return saved;
+  const catalogued = [...getUserTopologiesSync(), ...getBuiltinTopologies()].find((item) => item.name === name);
+  return catalogued && { name: catalogued.name, description: catalogued.description, state: catalogued.state };
 }
 
 export function saveTopologyTemplate({
