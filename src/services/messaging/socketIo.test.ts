@@ -33,6 +33,22 @@ const fake = vi.hoisted(() => {
       state.status('connected');
     };
     state.authException = vi.fn(() => false);
+    state.login = { email: 'td@x.com' };
+    state.toast = vi.fn();
+    // IndexedDB, as outboxStore.ts presents it.
+    state.rows = new Map<string, any>();
+    state.persistFails = false;
+    state.store = {
+      persistMessage: vi.fn(async (row: any) => {
+        if (state.persistFails) throw new Error('quota');
+        state.rows.set(row.id, structuredClone(row));
+      }),
+      forgetMessage: vi.fn(async (id: string) => state.rows.delete(id)),
+      loadMessages: vi.fn(async (userId: string) =>
+        [...state.rows.values()].filter((row) => row.userId === userId).sort((a, b) => a.queuedAt - b.queuedAt),
+      ),
+      claimMessage: vi.fn(async (id: string) => state.rows.delete(id)),
+    };
     state.down = () => {
       state.connected = false;
       state.status('disconnected', 'transport close');
@@ -50,10 +66,16 @@ vi.mock('services/version/checkFactoryVersion', () => ({
 }));
 vi.mock('services/notifications/osNotification', () => ({ showOSNotification: vi.fn() }));
 vi.mock('services/session/sessionGuard', () => ({ handleSocketException: (d: any) => fake.authException(d) }));
-vi.mock('services/authentication/loginState', () => ({ getLoginState: () => ({ email: 'td@x.com' }) }));
+vi.mock('services/authentication/loginState', () => ({ getLoginState: () => fake.login }));
 vi.mock('services/authentication/tokenManagement', () => ({ getToken: () => 'tok' }));
 vi.mock('services/processDirective', () => ({ processDirective: vi.fn() }));
-vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
+vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...args: any[]) => fake.toast(...args) }));
+vi.mock('services/messaging/outboxStore', () => ({
+  persistMessage: (row: any) => fake.store.persistMessage(row),
+  forgetMessage: (id: string) => fake.store.forgetMessage(id),
+  loadMessages: (userId: string) => fake.store.loadMessages(userId),
+  claimMessage: (id: string) => fake.store.claimMessage(id),
+}));
 vi.mock('services/chat/chatService', () => ({
   setChatSendFn: vi.fn(),
   setChatGapFn: vi.fn(),
@@ -73,15 +95,19 @@ vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({ socketPath
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({ socketLog: false }) } }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
+// A fresh copy of the module after vi.resetModules().
+type SocketIo = Awaited<ReturnType<typeof importSocketIo>>;
+const importSocketIo = () => import('./socketIo');
+
 describe('socketIo over a MessageTransport', () => {
-  let socketIo: typeof import('./socketIo');
+  let socketIo: SocketIo;
   let clientIdentity: typeof import('./clientIdentity');
   let warn: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     fake.reset();
     vi.resetModules();
-    socketIo = await import('./socketIo');
+    socketIo = await importSocketIo();
     clientIdentity = await import('./clientIdentity');
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
@@ -249,14 +275,220 @@ describe('socketIo over a MessageTransport', () => {
   });
 });
 
+// The D1 queue persisted (CA, 2026-10-08): a durable message (one the client has already acted on)
+// also waits in IndexedDB, so a reload does not lose it.
+describe('socketIo offline queue across a reload', () => {
+  let socketIo: SocketIo;
+  let warn: ReturnType<typeof vi.spyOn>;
+  let info: ReturnType<typeof vi.spyOn>;
+
+  // Resolves once every pending IndexedDB promise (and what it chains) has run.
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const methodsSent = () =>
+    fake.sent.filter((m: any) => m.event === 'executionQueue').map((m: any) => m.data.payload.methods[0].method);
+  const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
+  // A fresh page: the module state is gone, IndexedDB (fake.rows) is not.
+  const reload = async () => {
+    const rows = fake.rows;
+    fake.reset();
+    fake.rows = rows;
+    vi.resetModules();
+    socketIo = await importSocketIo();
+  };
+  const goOffline = () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+  };
+
+  beforeEach(async () => {
+    fake.reset();
+    vi.resetModules();
+    socketIo = await importSocketIo();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    info.mockRestore();
+  });
+
+  it('writes a durable message to IndexedDB while it waits, and nothing else', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('durable'), durable: true });
+    socketIo.emitTmx({ data: mutation('memoryOnly') });
+    await settle();
+
+    const rows = [...fake.rows.values()];
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ event: 'executionQueue', userId: 'td@x.com' });
+    expect(rows[0].data.payload.methods[0].method).toBe('durable');
+  });
+
+  it('sends a durable message straight away when connected, without touching IndexedDB', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+    expect(methodsSent()).toEqual(['a']);
+    expect(fake.store.persistMessage).not.toHaveBeenCalled();
+  });
+
+  it('replays a durable message on reconnect and removes it from IndexedDB', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual(['a']);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('replays what a reload would have lost once the same user connects again', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('beforeReload'), durable: true });
+    socketIo.emitTmx({ data: mutation('chatty') }); // memory only: lost with the page
+    await settle();
+
+    await reload();
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual(['beforeReload']);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('replays the earlier page before what this page queued', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('first'), durable: true });
+    await settle();
+
+    await reload();
+    socketIo.connectSocket(); // the restore starts here, still offline
+    await settle();
+    socketIo.emitTmx({ data: mutation('second'), durable: true });
+    await settle();
+
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual(['first', 'second']);
+  });
+
+  it("leaves another user's messages in IndexedDB for that user", async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('theirs'), durable: true });
+    await settle();
+
+    await reload();
+    fake.login = { email: 'someone-else@x.com' };
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual([]);
+    expect(fake.rows.size).toBe(1);
+  });
+
+  it('does not send a message another tab has already claimed', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    fake.rows.clear(); // the other tab took it
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual([]);
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('cancel() removes a durable message from IndexedDB too', async () => {
+    goOffline();
+    const handle = socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    expect(handle.cancel()).toBe(true);
+    await settle();
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('still sends from memory when IndexedDB would not take the message, and says a reload would lose it', async () => {
+    fake.persistFails = true;
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+    expect(String(warn.mock.calls[0][0])).toContain('a reload would lose it');
+
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual(['a']);
+  });
+
+  it('puts a claimed message back when the connection drops before it is sent', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    const send = fake.connection.send;
+    fake.connection.send = (event: string, data: any) => (event === 'executionQueue' ? false : send(event, data));
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual([]);
+    expect(socketIo.queuedMessageCount()).toBe(1);
+    expect(fake.rows.size).toBe(1);
+  });
+
+  it('holds a message sent during a replay behind it, so the server sees them in order', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('queued'), durable: true });
+    await settle();
+
+    fake.up(); // the replay is now waiting on its IndexedDB claim
+    socketIo.emitTmx({ data: mutation('fresh') });
+    await settle();
+    expect(methodsSent()).toEqual(['queued', 'fresh']);
+  });
+
+  it('forgets a durable message dropped from a full queue', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('oldest'), durable: true });
+    for (let i = 0; i < 500; i++) socketIo.emitTmx({ data: mutation('filler') });
+    await settle();
+    expect(fake.store.forgetMessage).toHaveBeenCalledTimes(1);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('says so when the server rejects a message replayed after a reload', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback: vi.fn(), durable: true });
+    await settle();
+
+    await reload();
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    const { ackId } = fake.sent.find((m: any) => m.event === 'executionQueue').data.payload;
+    fake.handlers.ack({ ackId, error: { message: 'no such draw' } });
+    expect(fake.toast).toHaveBeenCalledWith({ message: 'toasts.offlineChangeRejected', intent: 'is-danger' });
+
+    fake.handlers.ack({ ackId, success: true }); // a success needs nothing: the edit was applied locally
+    expect(fake.toast).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('socketIo connection lifecycle over a MessageTransport', () => {
-  let socketIo: typeof import('./socketIo');
+  let socketIo: SocketIo;
   let warn: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     fake.reset();
     vi.resetModules();
-    socketIo = await import('./socketIo');
+    socketIo = await importSocketIo();
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 

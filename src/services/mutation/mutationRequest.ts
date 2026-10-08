@@ -301,6 +301,8 @@ async function makeMutation({
         payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true, warmCache },
       },
       ackCallback,
+      // Local-first has already applied the edit here, so it must reach the server even across a reload.
+      durable: strategy === LOCAL_FIRST,
     });
     if (strategy === LOCAL_FIRST) {
       await localSave(saveLocal || false);
@@ -369,6 +371,8 @@ export function replayServerMutation({
   emitTmx({
     data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true, warmCache } },
     ackCallback,
+    // The edit the user was told was preserved: a reload must not lose it.
+    durable: true,
   });
 }
 

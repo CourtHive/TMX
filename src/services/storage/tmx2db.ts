@@ -33,6 +33,11 @@ export class TMXDatabase {
         this.dex
           .version(7)
           .stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts });
+        // Messages queued while offline that must survive a reload (services/messaging/outboxStore.ts).
+        const outbox = '&id, userId, queuedAt';
+        this.dex
+          .version(8)
+          .stores({ tournaments, providers, idioms, policies, topologies, tieFormats, compositions, pdfFonts, outbox });
         resolve();
       } catch (err) {
         reject(err);
