@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The application protocol in socketIo.ts, driven through a fake
@@ -33,6 +33,31 @@ const fake = vi.hoisted(() => {
       state.status('connected');
     };
     state.authException = vi.fn(() => false);
+    state.login = { email: 'td@x.com' };
+    state.toast = vi.fn();
+    // IndexedDB, as outboxStore.ts presents it.
+    state.rows = new Map<string, any>();
+    state.persistFails = false;
+    // Commands over HTTP (Phase 1): off unless a test turns it on.
+    state.http = false;
+    state.posted = [] as any[];
+    state.answer = (data: any): any => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
+    });
+    state.chatSend = undefined as undefined | ((data: any) => void);
+    state.chatAccepted = vi.fn();
+    state.resumed = 0;
+    state.store = {
+      persistMessage: vi.fn(async (row: any) => {
+        if (state.persistFails) throw new Error('quota');
+        state.rows.set(row.id, structuredClone(row));
+      }),
+      forgetMessage: vi.fn(async (id: string) => state.rows.delete(id)),
+      loadMessages: vi.fn(async (userId: string) =>
+        [...state.rows.values()].filter((row) => row.userId === userId).sort((a, b) => a.queuedAt - b.queuedAt),
+      ),
+      claimMessage: vi.fn(async (id: string) => state.rows.delete(id)),
+    };
     state.down = () => {
       state.connected = false;
       state.status('disconnected', 'transport close');
@@ -50,15 +75,21 @@ vi.mock('services/version/checkFactoryVersion', () => ({
 }));
 vi.mock('services/notifications/osNotification', () => ({ showOSNotification: vi.fn() }));
 vi.mock('services/session/sessionGuard', () => ({ handleSocketException: (d: any) => fake.authException(d) }));
-vi.mock('services/authentication/loginState', () => ({ getLoginState: () => ({ email: 'td@x.com' }) }));
+vi.mock('services/authentication/loginState', () => ({ getLoginState: () => fake.login }));
 vi.mock('services/authentication/tokenManagement', () => ({ getToken: () => 'tok' }));
 vi.mock('services/processDirective', () => ({ processDirective: vi.fn() }));
-vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
+vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...args: any[]) => fake.toast(...args) }));
+vi.mock('services/messaging/outboxStore', () => ({
+  persistMessage: (row: any) => fake.store.persistMessage(row),
+  forgetMessage: (id: string) => fake.store.forgetMessage(id),
+  loadMessages: (userId: string) => fake.store.loadMessages(userId),
+  claimMessage: (id: string) => fake.store.claimMessage(id),
+}));
 vi.mock('services/chat/chatService', () => ({
-  setChatSendFn: vi.fn(),
+  setChatSendFn: (fn: any) => (fake.chatSend = fn),
   setChatGapFn: vi.fn(),
   receiveMessage: vi.fn(),
-  receiveAccepted: vi.fn(),
+  receiveAccepted: (data: any) => fake.chatAccepted(data),
   receiveRejected: vi.fn(),
   receiveHistory: vi.fn(),
   setOnlineCount: vi.fn(),
@@ -69,19 +100,38 @@ vi.mock('services/chat/adminChatService', () => ({
   receiveAdminChatHistory: vi.fn(),
   rejoinChatMonitorIfActive: vi.fn(),
 }));
-vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({ socketPath: 'http://server' }) } }));
+vi.mock('config/serverConfig', () => ({
+  serverConfig: { get: () => ({ socketPath: 'http://server', commandsOverHttp: fake.http }) },
+}));
+vi.mock('services/messaging/transport/httpCommands', () => ({
+  HTTP_COMMANDS: new Set(['executionQueue', 'chatMessage']),
+  postCommand: async (event: string, data: any) => {
+    fake.posted.push({ event, data });
+    return fake.answer(data);
+  },
+  resumeCommands: () => (fake.resumed += 1),
+}));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({ socketLog: false }) } }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
+// A fresh copy of the module after vi.resetModules().
+type SocketIo = Awaited<ReturnType<typeof importSocketIo>>;
+const importSocketIo = () => import('./socketIo');
+
+// The first import transforms the whole module graph; on a loaded machine that alone outran the
+// 10s hook timeout of the first beforeEach. Pay it once, here, with room to spare: the transform
+// cache survives vi.resetModules(), so every later import is quick.
+beforeAll(() => importSocketIo(), 60_000);
+
 describe('socketIo over a MessageTransport', () => {
-  let socketIo: typeof import('./socketIo');
+  let socketIo: SocketIo;
   let clientIdentity: typeof import('./clientIdentity');
   let warn: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     fake.reset();
     vi.resetModules();
-    socketIo = await import('./socketIo');
+    socketIo = await importSocketIo();
     clientIdentity = await import('./clientIdentity');
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
@@ -129,6 +179,24 @@ describe('socketIo over a MessageTransport', () => {
 
     fake.handlers.ack({ ackId, success: true });
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
+  });
+
+  // P49: every ack passes through here, on either transport — this tab's own mutation moves its sync point.
+  it('an ack with write times moves the sync point', async () => {
+    const sync = await import('services/staleness/serverSync');
+    sync.setServerSync('t1', '2026-10-08T19:29:00.000Z');
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
+    const { ackId } = mutations()[0].data.payload;
+
+    fake.handlers.ack({
+      ackId,
+      success: true,
+      previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
+      serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
+    });
+    expect(sync.serverIsAhead('t1', '2026-10-08T19:30:00.000Z')).toBe(false);
   });
 
   // D1 (CA, 2026-10-08): nothing is sent while offline; it is queued and replayed on connect.
@@ -249,14 +317,341 @@ describe('socketIo over a MessageTransport', () => {
   });
 });
 
+// The D1 queue persisted (CA, 2026-10-08): a durable message (one the client has already acted on)
+// also waits in IndexedDB, so a reload does not lose it.
+describe('socketIo offline queue across a reload', () => {
+  let socketIo: SocketIo;
+  let warn: ReturnType<typeof vi.spyOn>;
+  let info: ReturnType<typeof vi.spyOn>;
+
+  // Resolves once every pending IndexedDB promise (and what it chains) has run.
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const methodsSent = () =>
+    fake.sent.filter((m: any) => m.event === 'executionQueue').map((m: any) => m.data.payload.methods[0].method);
+  const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
+  // A fresh page: the module state is gone, IndexedDB (fake.rows) is not.
+  const reload = async () => {
+    const rows = fake.rows;
+    fake.reset();
+    fake.rows = rows;
+    vi.resetModules();
+    socketIo = await importSocketIo();
+  };
+  const goOffline = () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+  };
+
+  beforeEach(async () => {
+    fake.reset();
+    vi.resetModules();
+    socketIo = await importSocketIo();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    info.mockRestore();
+  });
+
+  it('writes a durable message to IndexedDB while it waits, and nothing else', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('durable'), durable: true });
+    socketIo.emitTmx({ data: mutation('memoryOnly') });
+    await settle();
+
+    const rows = [...fake.rows.values()];
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ event: 'executionQueue', userId: 'td@x.com' });
+    expect(rows[0].data.payload.methods[0].method).toBe('durable');
+  });
+
+  it('sends a durable message straight away when connected, without touching IndexedDB', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+    expect(methodsSent()).toEqual(['a']);
+    expect(fake.store.persistMessage).not.toHaveBeenCalled();
+  });
+
+  it('replays a durable message on reconnect and removes it from IndexedDB', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual(['a']);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('replays what a reload would have lost once the same user connects again', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('beforeReload'), durable: true });
+    socketIo.emitTmx({ data: mutation('chatty') }); // memory only: lost with the page
+    await settle();
+
+    await reload();
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual(['beforeReload']);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('replays the earlier page before what this page queued', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('first'), durable: true });
+    await settle();
+
+    await reload();
+    socketIo.connectSocket(); // the restore starts here, still offline
+    await settle();
+    socketIo.emitTmx({ data: mutation('second'), durable: true });
+    await settle();
+
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual(['first', 'second']);
+  });
+
+  it("leaves another user's messages in IndexedDB for that user", async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('theirs'), durable: true });
+    await settle();
+
+    await reload();
+    fake.login = { email: 'someone-else@x.com' };
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual([]);
+    expect(fake.rows.size).toBe(1);
+  });
+
+  it('does not send a message another tab has already claimed', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    fake.rows.clear(); // the other tab took it
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual([]);
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('cancel() removes a durable message from IndexedDB too', async () => {
+    goOffline();
+    const handle = socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    expect(handle.cancel()).toBe(true);
+    await settle();
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('still sends from memory when IndexedDB would not take the message, and says a reload would lose it', async () => {
+    fake.persistFails = true;
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+    expect(String(warn.mock.calls[0][0])).toContain('a reload would lose it');
+
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual(['a']);
+  });
+
+  it('puts a claimed message back when the connection drops before it is sent', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    await settle();
+
+    const send = fake.connection.send;
+    fake.connection.send = (event: string, data: any) => (event === 'executionQueue' ? false : send(event, data));
+    fake.up();
+    await settle();
+
+    expect(methodsSent()).toEqual([]);
+    expect(socketIo.queuedMessageCount()).toBe(1);
+    expect(fake.rows.size).toBe(1);
+  });
+
+  it('holds a message sent during a replay behind it, so the server sees them in order', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('queued'), durable: true });
+    await settle();
+
+    fake.up(); // the replay is now waiting on its IndexedDB claim
+    socketIo.emitTmx({ data: mutation('fresh') });
+    await settle();
+    expect(methodsSent()).toEqual(['queued', 'fresh']);
+  });
+
+  it('forgets a durable message dropped from a full queue', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('oldest'), durable: true });
+    for (let i = 0; i < 500; i++) socketIo.emitTmx({ data: mutation('filler') });
+    await settle();
+    expect(fake.store.forgetMessage).toHaveBeenCalledTimes(1);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('says so when the server rejects a message replayed after a reload', async () => {
+    goOffline();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback: vi.fn(), durable: true });
+    await settle();
+
+    await reload();
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+
+    const { ackId } = fake.sent.find((m: any) => m.event === 'executionQueue').data.payload;
+    fake.handlers.ack({ ackId, error: { message: 'no such draw' } });
+    expect(fake.toast).toHaveBeenCalledWith({ message: 'toasts.offlineChangeRejected', intent: 'is-danger' });
+
+    fake.handlers.ack({ ackId, success: true }); // a success needs nothing: the edit was applied locally
+    expect(fake.toast).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Realtime transport Phase 1: with commandsOverHttp, executionQueue goes as POST /factory and the
+// HTTP answer is its ack. Queueing, order and persistence are unchanged.
+describe('socketIo with commands over HTTP', () => {
+  let socketIo: SocketIo;
+  let warn: ReturnType<typeof vi.spyOn>;
+  let info: ReturnType<typeof vi.spyOn>;
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
+  const postedMethods = () => fake.posted.map((p: any) => p.data.payload.methods[0].method);
+  const socketMutations = () => fake.sent.filter((m: any) => m.event === 'executionQueue');
+
+  beforeEach(async () => {
+    fake.reset();
+    fake.http = true;
+    vi.resetModules();
+    socketIo = await importSocketIo();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    info.mockRestore();
+  });
+
+  it('sends a mutation over HTTP and routes the answer to its ack callback', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+
+    expect(socketMutations()).toHaveLength(0);
+    expect(postedMethods()).toEqual(['a']);
+    const { ackId } = fake.posted[0].data.payload;
+    expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
+  });
+
+  it('sends a chat message over HTTP and hands the answer to the chat service as chatAccepted', async () => {
+    const accepted = { clientMsgId: 'c1', seq: 3, timestamp: 5 };
+    fake.answer = () => ({ deliver: { event: 'chatAccepted', payload: accepted } });
+    socketIo.connectSocket();
+    fake.up();
+    fake.chatSend?.({ tournamentId: 't1', message: 'hi', clientMsgId: 'c1' });
+    await settle();
+
+    expect(fake.posted.map((p: any) => p.event)).toEqual(['chatMessage']);
+    expect(fake.sent.some((m: any) => m.event === 'chatMessage')).toBe(false);
+    expect(fake.chatAccepted).toHaveBeenCalledWith(accepted);
+  });
+
+  it("keeps everything else on the socket — the room, the server's clock", async () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.joinTournamentRoom('t1');
+    await settle();
+    expect(fake.sent.map((m: any) => m.event)).toEqual(expect.arrayContaining(['timestamp', 'joinTournament']));
+    expect(fake.posted).toHaveLength(0);
+  });
+
+  it('still queues while offline and replays over HTTP, in order, on connect', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    socketIo.emitTmx({ data: mutation('a') });
+    socketIo.emitTmx({ data: mutation('b') });
+    await settle();
+    expect(fake.posted).toHaveLength(0);
+
+    fake.up();
+    await settle();
+    expect(postedMethods()).toEqual(['a', 'b']);
+  });
+
+  it('a refusal is an ack like any other', async () => {
+    fake.answer = (data: any) => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, error: { message: 'no', code: 'ERR_X' } } },
+    });
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+    expect(ackCallback.mock.calls[0][0].error).toEqual({ message: 'no', code: 'ERR_X' });
+  });
+
+  it('leaves an unanswered non-durable command to its sender, unacked and not re-queued', async () => {
+    fake.answer = () => ({ unreachable: 'no response' });
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+    expect(ackCallback).not.toHaveBeenCalled();
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('re-queues unanswered durable commands in the order they were sent, and replays them on the next connect', async () => {
+    fake.answer = () => ({ unreachable: 'no response' });
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    socketIo.emitTmx({ data: mutation('b'), durable: true });
+    await settle();
+    fake.answer = (data: any) => ({ deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } } });
+    socketIo.emitTmx({ data: mutation('c'), durable: true }); // answered: not queued
+    await settle();
+
+    expect(socketIo.queuedMessageCount()).toBe(2);
+    expect(fake.rows.size).toBe(2); // and a reload would keep them
+
+    fake.posted.length = 0;
+    fake.down();
+    fake.up();
+    await settle();
+    expect(postedMethods()).toEqual(['a', 'b']);
+    expect(fake.resumed).toBeGreaterThan(0);
+  });
+});
+
 describe('socketIo connection lifecycle over a MessageTransport', () => {
-  let socketIo: typeof import('./socketIo');
+  let socketIo: SocketIo;
   let warn: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     fake.reset();
     vi.resetModules();
-    socketIo = await import('./socketIo');
+    socketIo = await importSocketIo();
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 

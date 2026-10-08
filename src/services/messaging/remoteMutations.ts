@@ -10,6 +10,7 @@
  */
 import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
+import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
@@ -124,6 +125,7 @@ async function refreshTournamentFromServer(tournamentId: string): Promise<void> 
 
     const factoryEngine: any = factory[TOURNAMENT_ENGINE];
     factoryEngine.setState(serverRecord);
+    setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
     notifyMutationApplied();
     await saveTournamentRecord();
     joinTournamentRoom(tournamentId);
@@ -194,6 +196,10 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
     tmxToast({ message: t('remoteMutations.updateFailed'), intent: 'is-warning' });
     return;
   }
+
+  // Applied: this copy now holds the server's write. If it had missed an earlier one, its sync point
+  // does not move, and the staleness probe will say so (P49).
+  advanceServerSync(data.previousServerUpdatedAt, data.serverUpdatedAt);
 
   // A remote mutation just changed local engine state — drop page-level
   // factory-read caches (e.g. the schedule2 matchUp cache) BEFORE the

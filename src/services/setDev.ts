@@ -2,20 +2,21 @@
  * Development mode utilities and debugging tools.
  * Exposes factory methods and utilities on globalThis.dev for debugging.
  */
+import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
+import { fetchUserContext, getUserContext } from './authentication/getUserContext';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
-import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
-import { fetchUserContext, getUserContext } from './authentication/getUserContext';
 import { getLoginState } from './authentication/loginState';
 import { setScoreRelayURL } from './apis/scoreRelayApi';
+import * as outboxStore from './messaging/outboxStore';
 import { providerConfig } from 'config/providerConfig';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
@@ -137,7 +138,7 @@ export function setDev(): void {
   // fetch, rather than a test-only setter, keeps the journey on the production
   // path: stub `/auth/me`, call this, and the cache fills the way it does live.
   addDev({ fetchUserContext, getUserContext });
-  addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged });
+  addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
 

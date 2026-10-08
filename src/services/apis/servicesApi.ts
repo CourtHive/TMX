@@ -1,3 +1,4 @@
+import { setServerSyncFrom } from 'services/staleness/serverSync';
 import { baseApi } from './baseApi';
 
 import type { ProvidersResponse, UsersResponse } from 'types/tmx';
@@ -133,7 +134,10 @@ export async function removeUser({ email }: { email: string }) {
 }
 
 export async function sendTournament({ tournamentRecord }: { tournamentRecord: any }) {
-  return await baseApi.post('/factory/save', { tournamentRecord });
+  const response = await baseApi.post('/factory/save', { tournamentRecord });
+  // The saved record replaced the server's: this copy is the server's as of that write (P49).
+  setServerSyncFrom(response?.data?.serverUpdatedAt);
+  return response;
 }
 
 export async function removeTournament({ providerId, tournamentId }: { providerId: string; tournamentId: string }) {
