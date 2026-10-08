@@ -41,6 +41,7 @@ import {
 
 // types
 import type { MessageTransport, TransportStatus } from 'services/messaging/transport/messageTransport';
+import type { Delivery } from 'services/messaging/transport/httpCommands';
 import type { ServerAck } from 'types/services';
 
 // constants
@@ -445,8 +446,8 @@ function dispatch(event: string, data: any, durableUserId?: string): boolean {
   if (!oi.connection?.isConnected()) return false;
   postCommand(event, data)
     .then((outcome) => {
-      if ('ack' in outcome) return receiveAcknowledgement(outcome.ack);
-      if (!durableUserId) return;
+      if (outcome.deliver) receiveOverHttp(outcome.deliver);
+      if (!('unreachable' in outcome) || !durableUserId) return;
       enqueue(event, data, durableUserId, { requeued: true });
       console.warn(`[socket] '${event}' got no answer over HTTP — kept for the next connect`);
     })
@@ -459,6 +460,20 @@ function dispatch(event: string, data: any, durableUserId?: string): boolean {
  * and ahead of everything queued since, so the queue keeps the order they were sent in.
  */
 let requeueCursor = 0;
+
+/** An HTTP answer, delivered to the handler the same event gets when it arrives on the socket. */
+function receiveOverHttp({ event, payload }: Delivery): void {
+  const handler: ((data: any) => void) | undefined = {
+    ack: receiveAcknowledgement,
+    chatAccepted: receiveAccepted,
+    chatRejected: receiveRejected,
+  }[event];
+  if (handler) {
+    handler(payload);
+  } else {
+    console.warn(`[socket] no handler for '${event}' answered over HTTP`);
+  }
+}
 
 function enqueue(event: string, data: any, durableUserId?: string, { requeued = false } = {}): OutboxEntry {
   const entry: OutboxEntry = { event, data };

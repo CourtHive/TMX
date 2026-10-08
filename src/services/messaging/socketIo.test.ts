@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The application protocol in socketIo.ts, driven through a fake
@@ -41,7 +41,11 @@ const fake = vi.hoisted(() => {
     // Commands over HTTP (Phase 1): off unless a test turns it on.
     state.http = false;
     state.posted = [] as any[];
-    state.answer = (_data: any): any => ({ ack: { ackId: _data.payload.ackId, success: true } });
+    state.answer = (data: any): any => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
+    });
+    state.chatSend = undefined as undefined | ((data: any) => void);
+    state.chatAccepted = vi.fn();
     state.resumed = 0;
     state.store = {
       persistMessage: vi.fn(async (row: any) => {
@@ -82,10 +86,10 @@ vi.mock('services/messaging/outboxStore', () => ({
   claimMessage: (id: string) => fake.store.claimMessage(id),
 }));
 vi.mock('services/chat/chatService', () => ({
-  setChatSendFn: vi.fn(),
+  setChatSendFn: (fn: any) => (fake.chatSend = fn),
   setChatGapFn: vi.fn(),
   receiveMessage: vi.fn(),
-  receiveAccepted: vi.fn(),
+  receiveAccepted: (data: any) => fake.chatAccepted(data),
   receiveRejected: vi.fn(),
   receiveHistory: vi.fn(),
   setOnlineCount: vi.fn(),
@@ -100,7 +104,7 @@ vi.mock('config/serverConfig', () => ({
   serverConfig: { get: () => ({ socketPath: 'http://server', commandsOverHttp: fake.http }) },
 }));
 vi.mock('services/messaging/transport/httpCommands', () => ({
-  HTTP_COMMANDS: new Set(['executionQueue']),
+  HTTP_COMMANDS: new Set(['executionQueue', 'chatMessage']),
   postCommand: async (event: string, data: any) => {
     fake.posted.push({ event, data });
     return fake.answer(data);
@@ -113,6 +117,11 @@ vi.mock('i18n', () => ({ t: (key: string) => key }));
 // A fresh copy of the module after vi.resetModules().
 type SocketIo = Awaited<ReturnType<typeof importSocketIo>>;
 const importSocketIo = () => import('./socketIo');
+
+// The first import transforms the whole module graph; on a loaded machine that alone outran the
+// 10s hook timeout of the first beforeEach. Pay it once, here, with room to spare: the transform
+// cache survives vi.resetModules(), so every later import is quick.
+beforeAll(() => importSocketIo(), 60_000);
 
 describe('socketIo over a MessageTransport', () => {
   let socketIo: SocketIo;
@@ -535,7 +544,20 @@ describe('socketIo with commands over HTTP', () => {
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
   });
 
-  it("keeps everything else on the socket — chat, the room, the server's clock", async () => {
+  it('sends a chat message over HTTP and hands the answer to the chat service as chatAccepted', async () => {
+    const accepted = { clientMsgId: 'c1', seq: 3, timestamp: 5 };
+    fake.answer = () => ({ deliver: { event: 'chatAccepted', payload: accepted } });
+    socketIo.connectSocket();
+    fake.up();
+    fake.chatSend?.({ tournamentId: 't1', message: 'hi', clientMsgId: 'c1' });
+    await settle();
+
+    expect(fake.posted.map((p: any) => p.event)).toEqual(['chatMessage']);
+    expect(fake.sent.some((m: any) => m.event === 'chatMessage')).toBe(false);
+    expect(fake.chatAccepted).toHaveBeenCalledWith(accepted);
+  });
+
+  it("keeps everything else on the socket — the room, the server's clock", async () => {
     socketIo.connectSocket();
     fake.up();
     socketIo.joinTournamentRoom('t1');
@@ -559,7 +581,9 @@ describe('socketIo with commands over HTTP', () => {
   });
 
   it('a refusal is an ack like any other', async () => {
-    fake.answer = (data: any) => ({ ack: { ackId: data.payload.ackId, error: { message: 'no', code: 'ERR_X' } } });
+    fake.answer = (data: any) => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, error: { message: 'no', code: 'ERR_X' } } },
+    });
     socketIo.connectSocket();
     fake.up();
     const ackCallback = vi.fn();
@@ -586,7 +610,7 @@ describe('socketIo with commands over HTTP', () => {
     socketIo.emitTmx({ data: mutation('a'), durable: true });
     socketIo.emitTmx({ data: mutation('b'), durable: true });
     await settle();
-    fake.answer = (data: any) => ({ ack: { ackId: data.payload.ackId, success: true } });
+    fake.answer = (data: any) => ({ deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } } });
     socketIo.emitTmx({ data: mutation('c'), durable: true }); // answered: not queued
     await settle();
 
