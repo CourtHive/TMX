@@ -69,7 +69,7 @@ async function persistAll(
     formatWizard: displayInputs.formatWizard?.checked || false,
     schedulePlan: displayInputs.schedulePlan?.checked || false,
     linkedTournaments: displayInputs.linkedTournaments?.checked || false,
-    scoreEntryDialog: displayInputs.scoreEntryDialog?.checked || false,
+    scoreEntryDialog: displayInputs.scoreEntryDialog?.checked ?? true,
   });
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
@@ -418,7 +418,7 @@ export async function renderSettingsGrid(
     },
     {
       label: t('settingsGrid.scoreEntryDialog'),
-      checked: featureFlags.get().scoreEntryDialog || false,
+      checked: featureFlags.get().scoreEntryDialog,
       field: 'scoreEntryDialog',
       id: 'scoreEntryDialog',
       onChange: persist,

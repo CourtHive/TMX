@@ -316,14 +316,20 @@ export async function loginAsProviderMember(
 export async function seedFeatureFlagInitScript(
   page: Page,
   flag: 'formatWizard' | 'assistant' | 'reports' | 'schedulePlan' | 'scoreEntryDialog',
+  value = true,
 ): Promise<void> {
-  await page.addInitScript((flagName: string) => {
-    const KEY = 'tmx_settings';
-    const existing = localStorage.getItem(KEY);
-    const parsed = existing ? JSON.parse(existing) : {};
-    parsed[flagName] = true;
-    localStorage.setItem(KEY, JSON.stringify(parsed));
-  }, flag);
+  // `value` so a flag that is ON by default (scoreEntryDialog) can be turned off for a journey that tests
+  // the path it replaced.
+  await page.addInitScript(
+    ({ flagName, flagValue }: { flagName: string; flagValue: boolean }) => {
+      const KEY = 'tmx_settings';
+      const existing = localStorage.getItem(KEY);
+      const parsed = existing ? JSON.parse(existing) : {};
+      parsed[flagName] = flagValue;
+      localStorage.setItem(KEY, JSON.stringify(parsed));
+    },
+    { flagName: flag, flagValue: value },
+  );
 }
 
 /**

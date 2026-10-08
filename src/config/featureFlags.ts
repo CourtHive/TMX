@@ -17,7 +17,10 @@ export interface FeatureFlags {
   /**
    * Score a matchUp with courthive-components' `openScoreEntryDialog` (one model under Dynamic Sets,
    * Dial Pad and Free Score; reports an engine-ready outcome) instead of the shipped scoring modal.
-   * CA, 2026-10-08: offered behind a flag until it has been used in anger. Off by default.
+   *
+   * ON by default — CA, 2026-10-08: *"just make the beta for score entry modal automatically checked by
+   * default for now."* The old modal stays in the build: unticking the box in Settings → Beta features is
+   * the fallback, and an operator's stored choice (either way) still wins over this default.
    */
   scoreEntryDialog: boolean;
 }
@@ -29,7 +32,7 @@ const defaults: FeatureFlags = {
   linkedTournaments: false,
   usePublishState: false,
   demoMode: false,
-  scoreEntryDialog: false,
+  scoreEntryDialog: true,
 };
 
 let current: FeatureFlags = { ...defaults };

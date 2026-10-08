@@ -48,6 +48,8 @@ const OUTCOME = { score: '6-1 6-1', winningSide: 1, matchUpStatus: 'COMPLETED' }
 
 describe('scoreMatchUp — remote scoring collision', () => {
   beforeEach(() => {
+    // The shipped modal's path; the new dialog is on by default, so these suites turn it off.
+    featureFlags.set({ scoreEntryDialog: false });
     toastMock.mockClear();
     mutationRequestMock.mockClear();
     closeModalMock.mockClear();
@@ -102,6 +104,8 @@ const INVALID_SCORE_MESSAGE = 'Invalid score';
 
 describe('scoreMatchUp — a refused score', () => {
   beforeEach(() => {
+    // The shipped modal's path; the new dialog is on by default, so these suites turn it off.
+    featureFlags.set({ scoreEntryDialog: false });
     toastMock.mockClear();
     mutationRequestMock.mockClear();
     closeModalMock.mockClear();
@@ -154,7 +158,7 @@ const MATCHUP = {
   ],
 };
 
-describe('scoreMatchUp — the score entry dialog behind the beta flag', () => {
+describe('scoreMatchUp — the score entry dialog (beta flag, on by default)', () => {
   beforeEach(() => {
     featureFlags.reset();
     preferencesConfig.set({ scoringApproach: 'dynamicSets' });
@@ -165,7 +169,15 @@ describe('scoreMatchUp — the score entry dialog behind the beta flag', () => {
     capturedScoreSubmitted = undefined;
   });
 
-  it('is not opened while the flag is off: the shipped modal is', () => {
+  it('is ON by default — CA, 2026-10-08: "make the beta for score entry modal automatically checked"', () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    expect(capturedDialogParams, 'the new dialog opened with no flag set').toBeTruthy();
+    expect(capturedScoreSubmitted, 'the shipped modal did not').toBeUndefined();
+    capturedDialogParams.onClose();
+  });
+
+  it('falls back to the shipped modal when the flag is turned off', () => {
+    featureFlags.set({ scoreEntryDialog: false });
     enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
     expect(capturedDialogParams).toBeUndefined();
     expect(capturedScoreSubmitted).toBeTypeOf('function');

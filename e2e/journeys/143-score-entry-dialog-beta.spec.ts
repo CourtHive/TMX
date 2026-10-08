@@ -2,7 +2,7 @@ import { initDevBridge, resetState, seedFeatureFlagInitScript, waitForAppReady }
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * Journey 143 — the new score entry dialog, behind its beta flag, records a result through the engine.
+ * Journey 143 — the new score entry dialog (beta flag, ON by default) records a result through the engine.
  *
  * CA, 2026-10-08: *"is the new score entry exported such that we could add it to TMX with a beta
  * flag?"* It is, and this is the flag. The dialog (courthive-components `openScoreEntryDialog`) reports
@@ -61,7 +61,20 @@ async function boot(page: Page): Promise<void> {
 }
 
 test.describe('journey 143 — score entry dialog behind the beta flag', () => {
-  test('flag off: the shipped scoring modal opens, not the new dialog', async ({ page }) => {
+  test('by default the new dialog opens, with no flag set — CA: "automatically checked by default"', async ({
+    page,
+  }) => {
+    await boot(page);
+    const { matchUpId } = await seedTournament(page, 'e2e-score-entry-default');
+
+    await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), matchUpId);
+
+    await expect(page.locator(NEW_DIALOG)).toBeVisible();
+    await expect(page.locator(OLD_MODAL_SUBMIT)).toHaveCount(0);
+  });
+
+  test('flag off: the shipped scoring modal opens, not the new dialog — the fallback', async ({ page }) => {
+    await seedFeatureFlagInitScript(page, 'scoreEntryDialog', false);
     await boot(page);
     const { matchUpId } = await seedTournament(page, 'e2e-score-entry-flag-off');
 
