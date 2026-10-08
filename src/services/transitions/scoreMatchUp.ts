@@ -2,6 +2,19 @@
  * Enter matchUp score with scoring modal.
  * Handles score submission, parsing, and mutation with callback propagation.
  */
+import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
+import { persistConfigToStorage } from 'services/settings/settingsStorage';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { closeModal } from 'components/modals/baseModal/baseModal';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { openScoreEntryDialog } from 'courthive-components';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { scoringModal } from 'components/modals/scoringV2';
+import { tournamentEngine } from 'services/factory/engine';
+import { policyConstants } from 'tods-competition-factory';
+import { featureFlags } from 'config/featureFlags';
+import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 import {
   setActiveScoring,
   clearActiveScoring,
@@ -9,16 +22,8 @@ import {
   acknowledgeRemoteScoringChange,
   currentScoreString,
 } from 'services/transitions/activeScoringGuard';
-import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { closeModal } from 'components/modals/baseModal/baseModal';
-import type { StatusCodeGroups } from 'courthive-components';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { scoringModal } from 'components/modals/scoringV2';
-import { tournamentEngine } from 'services/factory/engine';
-import { policyConstants } from 'tods-competition-factory';
-import { isFunction } from 'functions/typeOf';
-import { t } from 'i18n';
+
+import type { ScoreEntryApproach, StatusCodeGroups } from 'courthive-components';
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
@@ -66,35 +71,15 @@ export function enterMatchUpScore(params: {
     clearActiveScoring(matchUpId);
   };
 
-  const scoreSubmitted = (outcome: any) => {
-    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets, matchUpStatusCodes } = outcome;
-
-    // Use sets directly from outcome if available (e.g., from dialPad/dynamicSets with irregular endings)
-    // Otherwise parse the score string (e.g., from freeScore)
-    let sets = outcomeSets || [];
-    if (!sets.length && score) {
-      const parsedSets = tournamentEngine.parseScoreString({ scoreString: score });
-      sets = parsedSets || [];
-    }
-
+  /**
+   * Send one `setMatchUpStatus` and report back. Shared by both front ends: the collision guard, the
+   * refusal toast and the caller's callback are about the mutation, not about the dialog that built it.
+   */
+  const dispatch = ({ outcome, onAccepted }: { outcome: any; onAccepted?: () => void }) => {
     const methods = [
       {
         method: SET_MATCHUP_STATUS,
-        params: {
-          allowChangePropagation: true,
-          drawId: matchUp.drawId,
-          outcome: {
-            score: { sets },
-            matchUpFormat,
-            matchUpStatus,
-            winningSide,
-            // Only when a reason was actually chosen. The factory reads an EMPTY array as an
-            // instruction to blank the codes, so sending `[]` for "no reason given" would erase
-            // whatever a previous edit recorded.
-            ...(matchUpStatusCodes?.length ? { matchUpStatusCodes } : {}),
-          },
-          matchUpId,
-        },
+        params: { allowChangePropagation: true, drawId: matchUp.drawId, outcome, matchUpId },
       },
     ];
     const mutationCallback = (result: any) => {
@@ -108,7 +93,7 @@ export function enterMatchUpScore(params: {
         const message = result.info ?? result.error.message ?? t('common.error');
         tmxToast({ message, intent: 'is-danger' });
       } else {
-        closeModal();
+        onAccepted?.();
       }
       isFunction(callback) && callback({ ...result, outcome });
     };
@@ -142,12 +127,101 @@ export function enterMatchUpScore(params: {
     applyScore();
   };
 
+  if (featureFlags.get().scoreEntryDialog) {
+    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup });
+    return;
+  }
+
+  const scoreSubmitted = (outcome: any) => {
+    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets, matchUpStatusCodes } = outcome;
+
+    // Use sets directly from outcome if available (e.g., from dialPad/dynamicSets with irregular endings)
+    // Otherwise parse the score string (e.g., from freeScore)
+    let sets = outcomeSets || [];
+    if (!sets.length && score) {
+      const parsedSets = tournamentEngine.parseScoreString({ scoreString: score });
+      sets = parsedSets || [];
+    }
+
+    dispatch({
+      outcome: {
+        score: { sets },
+        matchUpFormat,
+        matchUpStatus,
+        winningSide,
+        // Only when a reason was actually chosen. The factory reads an EMPTY array as an
+        // instruction to blank the codes, so sending `[]` for "no reason given" would erase
+        // whatever a previous edit recorded.
+        ...(matchUpStatusCodes?.length ? { matchUpStatusCodes } : {}),
+      },
+      onAccepted: closeModal,
+    });
+  };
+
   scoringModal({
     matchUp,
     callback: scoreSubmitted,
     onRelayCleanup,
     matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
   });
+}
+
+const DIALOG_APPROACHES: ScoreEntryApproach[] = ['dynamicSets', 'dialPad', 'freeScore'];
+
+/**
+ * The beta front end: courthive-components' `openScoreEntryDialog`.
+ *
+ * The dialog reports an engine-ready `outcome` (`score.sets`, positional `matchUpStatusCodes`, the clear
+ * shape, a changed `matchUpFormat`), so there is nothing to translate here — it goes to `dispatch` as it
+ * is. A COPY, because `setMatchUpStatus` writes its derived score strings into the outcome it is handed
+ * and the local apply would otherwise alter what the server was sent. Side names come from the
+ * in-context matchUp; the dialog wants display names, not participants.
+ */
+function openNewScoreEntry({
+  matchUp,
+  dispatch,
+  onRelayCleanup,
+}: {
+  matchUp: any;
+  dispatch: (params: { outcome: any; onAccepted?: () => void }) => void;
+  onRelayCleanup: () => void;
+}): void {
+  const preferred = preferencesConfig.get().scoringApproach as ScoreEntryApproach;
+  openScoreEntryDialog({
+    matchUp,
+    sides: dialogSides(matchUp),
+    context: [matchUp?.roundName, matchUp?.schedule?.courtName].filter(Boolean).join(' · ') || undefined,
+    statusCodeGroups: resolveStatusCodeGroups(matchUp),
+    approach: DIALOG_APPROACHES.includes(preferred) ? preferred : undefined,
+    onApproachChange: (scoringApproach) => {
+      preferencesConfig.set({ scoringApproach });
+      persistConfigToStorage();
+    },
+    // Present so the format chip is a control; the chosen format rides on `outcome.matchUpFormat`.
+    onFormatChange: () => undefined,
+    onScoreDiscarded: ({ discarded, matchUpFormat }) => {
+      const sets = discarded.map((set) => `${set.side1Score ?? ''}-${set.side2Score ?? ''}`).join(', ');
+      tmxToast({
+        message: t('toasts.scoreDiscardedByFormat', { matchUpFormat, count: discarded.length, sets }),
+        intent: 'is-warning',
+      });
+    },
+    onClose: onRelayCleanup,
+    onSubmit: ({ outcome }) => dispatch({ outcome: structuredClone(outcome) }),
+  });
+}
+
+/** Display names and seeds for the dialog's two rows, from an in-context matchUp. */
+export function dialogSides(
+  matchUp: any,
+): [{ participantName: string; seed?: string }, { participantName: string; seed?: string }] {
+  const sideFor = (sideNumber: number) => {
+    const side = matchUp?.sides?.find((s: any) => s.sideNumber === sideNumber) ?? matchUp?.sides?.[sideNumber - 1];
+    const participantName = side?.participant?.participantName ?? (side?.bye ? 'BYE' : '');
+    const seed = side?.seedValue ? String(side.seedValue) : undefined;
+    return seed ? { participantName, seed } : { participantName };
+  };
+  return [sideFor(1), sideFor(2)];
 }
 
 /**
