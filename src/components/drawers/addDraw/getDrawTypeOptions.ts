@@ -3,7 +3,7 @@
  * Filters draw types by playoff and qualifying flags.
  * Includes saved topology templates when the topology builder is enabled.
  */
-import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
+import { getBuiltinTopologies, getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { getTopologyTemplates } from './topologyTemplates';
 import { validateTopology } from 'courthive-components';
@@ -74,9 +74,21 @@ export function getDrawTypeOptions({
         }))
     : [];
 
-  // Merge, deduplicate by value
+  // The catalog that ships with courthive-components. Browsable on the Templates page since it
+  // existed, but absent here until 2026-10-08, so a shipped template had to be saved by hand before it
+  // could be chosen when adding a draw.
+  const builtinTemplates = showTopology
+    ? getBuiltinTopologies()
+        .filter(isValidTemplate)
+        .map((tpl) => ({
+          label: `\u2726 ${tpl.name}`,
+          value: `${TOPOLOGY_TEMPLATE_PREFIX}${tpl.name}`,
+        }))
+    : [];
+
+  // Merge, deduplicate by value: a saved template with a built-in's name wins
   const seen = new Set<string>();
-  const templateOptions = [...tournamentTemplates, ...userCatalogTemplates].filter((tpl) => {
+  const templateOptions = [...tournamentTemplates, ...userCatalogTemplates, ...builtinTemplates].filter((tpl) => {
     if (seen.has(tpl.value)) return false;
     seen.add(tpl.value);
     return true;

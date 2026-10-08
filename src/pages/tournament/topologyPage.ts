@@ -3,16 +3,19 @@
  * Renders the topology builder in its own full-page container,
  * separate from the events tab.
  */
+import {
+  findTopologyTemplate,
+  getTopologyTemplates,
+  saveTopologyTemplate,
+} from 'components/drawers/addDraw/topologyTemplates';
+import { attachTopologyStructures, topologyDrawEntries } from 'components/drawers/addDraw/topologyPostGeneration';
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
-import { saveTopologyTemplate, getTopologyTemplates } from 'components/drawers/addDraw/topologyTemplates';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { generateDraw } from 'components/drawers/addDraw/generateDraw';
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { drawDefinitionConstants } from 'tods-competition-factory';
 import { showTopology } from 'services/transitions/screenSlaver';
-import { entryStatusConstants } from 'tods-competition-factory';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -20,13 +23,13 @@ import { context } from 'services/context';
 
 // constants
 import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
-import { ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import { t } from 'i18n';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
 
 const IS_SUCCESS = 'is-success';
+const { MAIN } = drawDefinitionConstants;
 
 export function renderTopologyPage({
   eventId,
@@ -51,16 +54,7 @@ export function renderTopologyPage({
 
   // Load from pending template selection (from Draw Type dropdown)
   if (!initialState && pendingTemplateName) {
-    const templates = getTopologyTemplates();
-    let template = templates.find((t) => t.name === pendingTemplateName);
-
-    // Also check Dexie-stored user topologies
-    if (!template) {
-      const userTopo = getUserTopologiesSync().find((t) => t.name === pendingTemplateName);
-      if (userTopo) {
-        template = { name: userTopo.name, description: userTopo.description, state: userTopo.state };
-      }
-    }
+    const template = findTopologyTemplate(pendingTemplateName);
 
     if (template) {
       initialState = {
@@ -122,13 +116,7 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
-  const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-  const drawEntries =
-    event.entries?.filter(
-      ({ entryStage, entryStatus }: any) =>
-        (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-    ) || [];
-  drawOptions.drawEntries = drawEntries;
+  drawOptions.drawEntries = topologyDrawEntries({ event, state });
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
@@ -137,48 +125,23 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
     }
 
     const generatedDrawId = result.drawDefinition.drawId;
-    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
+    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === MAIN)?.structureId;
 
-    if (postGenerationMethods.length > 0 && mainStructureId) {
-      const methods = postGenerationMethods.flatMap((pgm) => {
-        const playoffResult = tournamentEngine.generateAndPopulatePlayoffStructures({
-          ...pgm.params,
-          drawId: generatedDrawId,
-          structureId: mainStructureId,
-        });
-        if (playoffResult.error || !playoffResult.structures?.length) return [];
-        return {
-          method: ATTACH_PLAYOFF_STRUCTURES,
-          params: {
-            matchUpModifications: playoffResult.matchUpModifications,
-            structures: playoffResult.structures,
-            links: playoffResult.links,
-            drawId: generatedDrawId,
-          },
-        };
-      });
-
-      mutationRequest({
-        methods,
-        callback: () => {
-          tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
-          navigateToEvent({
-            eventId,
-            drawId: generatedDrawId,
-            structureId: mainStructureId,
-            renderDraw: true,
+    attachTopologyStructures({
+      drawDefinition: result.drawDefinition,
+      postGenerationMethods,
+      onDone: ({ unresolved }) => {
+        if (unresolved.length) {
+          tmxToast({
+            message: t('topology.structuresNotAttached', { names: unresolved.join(', ') }),
+            intent: 'is-warning',
           });
-        },
-      });
-    } else {
-      tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
-      navigateToEvent({
-        eventId,
-        drawId: generatedDrawId,
-        structureId: mainStructureId,
-        renderDraw: true,
-      });
-    }
+        } else {
+          tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
+        }
+        navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
+      },
+    });
   };
 
   generateDraw({ drawOptions, eventId, callback: postGeneration });
