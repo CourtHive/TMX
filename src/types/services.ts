@@ -31,6 +31,9 @@ export interface RemoteMutationPayload {
   timestamp?: number;
   /** The originating tab's marker (see services/messaging/clientIdentity.ts). */
   originClientId?: string;
+  /** When the mutated rows were written, and when they had been written before (services/staleness/serverSync.ts). */
+  serverUpdatedAt?: Record<string, string>;
+  previousServerUpdatedAt?: Record<string, string>;
 }
 
 /** Acknowledgement received from the server after an emitTmx call. */
@@ -39,4 +42,7 @@ export interface ServerAck {
   ackId?: string;
   uuid?: string;
   error?: { message: string; code?: string };
+  /** When the mutated rows were written, and when they had been written before (services/staleness/serverSync.ts). */
+  serverUpdatedAt?: Record<string, string>;
+  previousServerUpdatedAt?: Record<string, string>;
 }

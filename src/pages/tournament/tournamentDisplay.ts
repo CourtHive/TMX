@@ -3,16 +3,18 @@
  * Handles tournament loading, navigation, and tab rendering.
  */
 import { renderSchedulingTab, destroySchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
+import { renderOfficialsTab, destroyOfficialsTab } from 'pages/tournament/tabs/officialsTab/officialsTab';
 import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
+import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
-import { renderOfficialsTab, destroyOfficialsTab } from 'pages/tournament/tabs/officialsTab/officialsTab';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
+import { serverIsAhead, setServerSync } from 'services/staleness/serverSync';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
@@ -32,7 +34,6 @@ import { renderTopologyPage } from './topologyPage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
-import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { highlightTab } from 'navigation';
 import { t } from 'i18n';
 
@@ -263,6 +264,8 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
     if (tournamentRecord) {
       tournamentEngine.setState(tournamentRecord);
+      // The copy is the server's as of this write: the staleness probe's reference (P49).
+      setServerSync(config.tournamentId, result?.data?.serverUpdatedAt?.[config.tournamentId]);
       runActiveScaleAutoSwitch();
       renderTournament({ config });
     } else {
@@ -272,6 +275,8 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
 
   if (provider) {
     const tryLocal = () => {
+      // A local copy: nothing says which server write it matches, so the probe must not judge it.
+      setServerSync(config.tournamentId, undefined);
       if (tournamentRecord) {
         tournamentEngine.setState(tournamentRecord);
         runActiveScaleAutoSwitch();
@@ -371,19 +376,22 @@ function checkForStaleData(tournamentId: string): void {
         return;
       }
 
+      // The server's write time against this tab's sync point (P49); the record's own `updatedAt`
+      // only for a server that does not report it. That field is almost never set, so this check
+      // used to pass whatever the tab had missed.
+      const serverWrittenAt = result?.data?.serverUpdatedAt?.[tournamentId];
+      const ahead = serverIsAhead(tournamentId, serverWrittenAt);
       const localRecord = tournamentEngine.q.tournament();
       const serverUpdated = serverRecord.updatedAt ? new Date(serverRecord.updatedAt).getTime() : 0;
       const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
+      const stale = ahead ?? serverUpdated > localUpdated;
 
-      slog(
-        '[tournament] stale check — server updatedAt: %s, local updatedAt: %s',
-        serverRecord.updatedAt,
-        localRecord?.updatedAt,
-      );
+      slog('[tournament] stale check — server written %s, stale=%s', serverWrittenAt ?? serverRecord.updatedAt, stale);
 
-      if (serverUpdated > localUpdated) {
+      if (stale) {
         slog('[tournament] local data is stale — reloading from server');
         tournamentEngine.setState(serverRecord);
+        setServerSync(tournamentId, serverWrittenAt);
         saveTournamentRecord();
 
         // Refresh the active table if one exists, otherwise show sync indicator

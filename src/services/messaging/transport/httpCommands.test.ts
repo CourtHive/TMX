@@ -29,6 +29,15 @@ describe('commands over HTTP', () => {
       );
     });
 
+    // P49: the write times ride the ack, as on the socket.
+    it('carries the write times on a success', () => {
+      const serverUpdatedAt = { t1: '2026-10-08T19:30:00.000Z' };
+      const previousServerUpdatedAt = { t1: '2026-10-08T19:29:00.000Z' };
+      expect(
+        http.toCommandOutcome('a1', { status: 200, data: { success: true, serverUpdatedAt, previousServerUpdatedAt } }),
+      ).toEqual(ack({ ackId: 'a1', success: true, serverUpdatedAt, previousServerUpdatedAt }));
+    });
+
     // checkEngineError: InternalServerErrorException({ message, code, context, info }).
     it("carries the engine's refusal as the socket ack does, code and all", () => {
       const data = { statusCode: 500, message: 'addEvent: missing', code: 'ERR_MISSING_TOURNAMENT', context: { c: 1 } };

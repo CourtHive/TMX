@@ -50,6 +50,7 @@ vi.mock('services/context', () => ({
 
 // Use the REAL observer registry — the contract under test is that
 // handleRemoteMutation fires the same central notification local mutations do.
+import { serverIsAhead, setServerSync } from 'services/staleness/serverSync';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { initRemoteMutationHandler } from './remoteMutations';
 import { getOriginClientId } from './clientIdentity';
@@ -159,5 +160,31 @@ describe('remoteMutations — own-mutation echo', () => {
     await registeredListener!(remotePayload({ originClientId: 'some-other-tab' }));
 
     expect(executionQueueMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// P49: an applied broadcast moves this tab's sync point; a failed one leaves it where it was, so the
+// staleness probe can see the write this tab does not hold.
+describe('remoteMutations — sync point', () => {
+  const at = (minute: number) => `2026-10-08T19:${String(minute).padStart(2, '0')}:00.000Z`;
+  const step = { previousServerUpdatedAt: { t1: at(10) }, serverUpdatedAt: { t1: at(11) } };
+
+  beforeEach(() => {
+    executionQueueMock.mockReset().mockReturnValue({ success: true });
+    getStateMock.mockReset().mockReturnValue({ tournamentRecords: { t1: {} } });
+    registeredListener = null;
+    initRemoteMutationHandler();
+    setServerSync('t1', at(10));
+  });
+
+  it('advances when the broadcast is applied', async () => {
+    await registeredListener!(remotePayload(step));
+    expect(serverIsAhead('t1', at(11))).toBe(false);
+  });
+
+  it('does not advance when applying it failed', async () => {
+    executionQueueMock.mockReturnValue({ error: { message: 'boom' } });
+    await registeredListener!(remotePayload(step));
+    expect(serverIsAhead('t1', at(11))).toBe(true);
   });
 });

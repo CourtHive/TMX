@@ -16,6 +16,7 @@
  */
 import { hadDisconnect, clearDisconnectFlag, onSocketReconnect } from 'services/messaging/socketIo';
 import { markStaleNeedsRefresh, isSyncStale } from 'services/messaging/remoteMutations';
+import { serverIsAhead, serverSyncAt } from 'services/staleness/serverSync';
 import { requestTournamentUpdatedAt } from 'services/apis/servicesApi';
 import { getLoginState } from 'services/authentication/loginState';
 import { tournamentEngine } from 'services/factory/engine';
@@ -120,25 +121,15 @@ export function triggerStalenessCheck(): void {
   if (tournamentRecord?.tournamentId) void probeStaleness(tournamentRecord.tournamentId);
 }
 
-/** Lightweight staleness probe — fetches only the server `updatedAt` and, when
- * the server is ahead, flags the sync indicator stale (no full-record pull). */
+/** Lightweight staleness probe — fetches only the server's write time for the tournament and, when
+ * the server holds a write this tab never applied, flags the sync indicator stale (no full-record pull). */
 async function probeStaleness(tournamentId: string): Promise<void> {
   if (checking || isSyncStale()) return;
   checking = true;
 
-  const debug = isDebugMode();
   try {
     const result: any = await requestTournamentUpdatedAt({ tournamentId, silent: true });
-    const serverUpdatedAt = result?.data?.updatedAt;
-    if (!serverUpdatedAt) return;
-
-    const localRecord = tournamentEngine.q.tournament();
-    const serverUpdated = new Date(serverUpdatedAt).getTime();
-    const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
-
-    if (debug) console.log('[staleness] probe server=%s local=%s', serverUpdatedAt, localRecord?.updatedAt);
-
-    if (serverUpdated > localUpdated) {
+    if (await isBehindServer(tournamentId, result?.data)) {
       markStaleNeedsRefresh(tournamentId);
     } else if (hadDisconnect()) {
       clearDisconnectFlag();
@@ -148,6 +139,35 @@ async function probeStaleness(tournamentId: string): Promise<void> {
   } finally {
     checking = false;
   }
+}
+
+/** How long a probe that finds the server ahead waits before blocking edits: the ack or broadcast
+ * carrying that write may still be on its way (they arrive on different channels). */
+export const STALE_GRACE_MS = 2000;
+
+/**
+ * P49. The server's `serverUpdatedAt` is when the row was last written; the tab's sync point
+ * (serverSync.ts) is the write it is known to be current at. This used to compare the record's own
+ * `updatedAt`, which almost no record carries, so the server answered null and the probe never fired.
+ */
+async function isBehindServer(tournamentId: string, data: any): Promise<boolean> {
+  const serverUpdatedAt = data?.serverUpdatedAt;
+  const ahead = serverIsAhead(tournamentId, serverUpdatedAt);
+  if (isDebugMode()) console.log('[staleness] probe server=%s synced=%s', serverUpdatedAt, serverSyncAt(tournamentId));
+
+  // No sync point (a copy loaded offline) or a server that does not report the field: what this did before.
+  if (ahead === undefined) return legacyBehind(data?.updatedAt);
+  if (!ahead) return false;
+
+  await new Promise((resolve) => setTimeout(resolve, STALE_GRACE_MS));
+  return !!serverIsAhead(tournamentId, serverUpdatedAt);
+}
+
+function legacyBehind(updatedAt?: string): boolean {
+  if (!updatedAt) return false;
+  const localRecord = tournamentEngine.q.tournament();
+  const localUpdated = localRecord?.updatedAt ? new Date(localRecord.updatedAt).getTime() : 0;
+  return new Date(updatedAt).getTime() > localUpdated;
 }
 
 /** Periodic poll — only checks while the tab is visible (avoids background
