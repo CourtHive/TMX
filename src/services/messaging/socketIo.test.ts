@@ -32,6 +32,7 @@ const fake = vi.hoisted(() => {
       state.connected = true;
       state.status('connected');
     };
+    state.authException = vi.fn(() => false);
     state.down = () => {
       state.connected = false;
       state.status('disconnected', 'transport close');
@@ -48,7 +49,7 @@ vi.mock('services/version/checkFactoryVersion', () => ({
   resetFactoryVersionCheck: vi.fn(),
 }));
 vi.mock('services/notifications/osNotification', () => ({ showOSNotification: vi.fn() }));
-vi.mock('services/session/sessionGuard', () => ({ handleSocketException: vi.fn(() => false) }));
+vi.mock('services/session/sessionGuard', () => ({ handleSocketException: (d: any) => fake.authException(d) }));
 vi.mock('services/authentication/loginState', () => ({ getLoginState: () => ({ email: 'td@x.com' }) }));
 vi.mock('services/authentication/tokenManagement', () => ({ getToken: () => 'tok' }));
 vi.mock('services/processDirective', () => ({ processDirective: vi.fn() }));
@@ -245,5 +246,85 @@ describe('socketIo over a MessageTransport', () => {
     fake.down();
     fake.up();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('socketIo connection lifecycle over a MessageTransport', () => {
+  let socketIo: typeof import('./socketIo');
+  let warn: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(async () => {
+    fake.reset();
+    vi.resetModules();
+    socketIo = await import('./socketIo');
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('routes a server exception to the session guard and warns only when it is not an auth failure', () => {
+    socketIo.connectSocket();
+    fake.authException.mockReturnValueOnce(true);
+    fake.handlers.exception({ message: 'token expired' });
+    expect(warn).not.toHaveBeenCalled();
+
+    fake.handlers.exception({ message: 'something else' });
+    expect(fake.authException).toHaveBeenCalledTimes(2);
+    expect(warn).toHaveBeenCalledWith('[socket] server exception:', { message: 'something else' });
+  });
+
+  it('disconnectSocket closes the transport and drops it a second later', () => {
+    vi.useFakeTimers();
+    socketIo.connectSocket();
+    expect(socketIo.socketExists()).toBe(true);
+
+    socketIo.disconnectSocket();
+    expect(fake.connection.disconnect).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1000);
+    expect(socketIo.socketExists()).toBe(false);
+  });
+
+  it('reconnectSocket re-handshakes an existing transport, or opens one', () => {
+    socketIo.reconnectSocket();
+    expect(socketIo.socketExists()).toBe(true);
+    expect(fake.connection.reconnect).not.toHaveBeenCalled();
+
+    socketIo.reconnectSocket();
+    expect(fake.connection.reconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('ensureConnected is a no-op when connected, re-opens a dropped transport, and opens a missing one', () => {
+    expect(socketIo.ensureConnected()).toBe(true); // none yet: opens one
+    expect(socketIo.socketExists()).toBe(true);
+
+    fake.up();
+    expect(socketIo.ensureConnected()).toBe(false);
+
+    fake.down();
+    expect(socketIo.ensureConnected()).toBe(true);
+    expect(fake.connection.connect).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaveTournamentRoom sends a leave, and the room is not re-joined on the next connect', () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.joinTournamentRoom('t1');
+    socketIo.leaveTournamentRoom('t1');
+    expect(fake.sent).toContainEqual({ event: 'leaveTournament', data: { tournamentId: 't1' } });
+
+    fake.down();
+    fake.sent.length = 0;
+    fake.up();
+    expect(fake.sent.some((m: any) => m.event === 'joinTournament')).toBe(false);
+  });
+
+  it('leaveTournamentRoom sends nothing while disconnected (the connect handler owns membership)', () => {
+    socketIo.connectSocket();
+    socketIo.leaveTournamentRoom('t1');
+    expect(fake.sent).toHaveLength(0);
+    expect(socketIo.queuedMessageCount()).toBe(0);
   });
 });
