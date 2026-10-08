@@ -10,6 +10,11 @@ export interface ServerConfig {
   socketPath: string;
   socketIo: { tmx: string };
   assistantUrl: string;
+  /**
+   * Send commands (`executionQueue`) as `POST /factory` instead of over the socket, which then
+   * carries only subscriptions and server push. Realtime transport Phase 1; off by default.
+   */
+  commandsOverHttp: boolean;
 }
 
 const defaults: ServerConfig = {
@@ -19,6 +24,7 @@ const defaults: ServerConfig = {
   socketPath: '',
   socketIo: { tmx: '/tmx' },
   assistantUrl: import.meta.env.VITE_ASSISTANT_URL ?? '',
+  commandsOverHttp: import.meta.env.VITE_COMMANDS_OVER_HTTP === 'true',
 };
 
 let current: ServerConfig | undefined;
