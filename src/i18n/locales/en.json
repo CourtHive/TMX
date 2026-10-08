@@ -2995,7 +2995,7 @@
     "clearCanvas": "Clear Canvas",
     "drawFailed": "Draw generation failed",
     "drawGenerated": "Draw generated successfully",
-    "structuresNotAttached": "Draw generated, but these structures could not be attached: {{names}}",
+    "structuresNotAttached": "Draw generated, but these structures could not be attached: {{unattached}}",
     "templateName": "Template Name",
     "templateSaved": "Template saved"
   },

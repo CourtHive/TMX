@@ -265,7 +265,7 @@ function generateFromTopologyTemplate({
       onDone: ({ unresolved }) => {
         if (unresolved.length) {
           tmxToast({
-            message: t('topology.structuresNotAttached', { names: unresolved.join(', ') }),
+            message: t('topology.structuresNotAttached', { unattached: unresolved.join(', ') }),
             intent: 'is-warning',
           });
         } else {
