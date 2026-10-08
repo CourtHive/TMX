@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.32.0](https://github.com/CourtHive/TMX/compare/v8.31.0...v8.32.0) (2026-10-08)
+
+
+### Features
+
+* **messaging:** commands go over HTTP by default ([#1570](https://github.com/CourtHive/TMX/issues/1570)) ([b5e1c89](https://github.com/CourtHive/TMX/commit/b5e1c8982617de3084ac2386b1b6c6ec197586e3))
+
 ## [8.31.0](https://github.com/CourtHive/TMX/compare/v8.30.0...v8.31.0) (2026-10-08)
 
 
