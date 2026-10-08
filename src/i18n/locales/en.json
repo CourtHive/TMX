@@ -2047,6 +2047,7 @@
     "connectionError": "Connection error",
     "noConnection": "No connection",
     "offlineMustConnect": "Offline: must be connected to internet",
+    "offlineChangeRejected": "A change made while offline was rejected by the server",
     "addedParticipants": "Added {{count}} participant(s)",
     "updatedParticipants": "Updated {{count}} existing participant(s)",
     "addedTeamParticipants": "Generated {{count}} team participant(s) from the team column",
