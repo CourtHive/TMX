@@ -15,6 +15,7 @@ import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
+import { isOwnMutation } from 'services/messaging/clientIdentity';
 import { requestTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import * as factory from 'tods-competition-factory';
@@ -162,6 +163,13 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   slog('[remoteMutation] received — methods:', methods?.length, 'tournaments:', tournamentIds, 'from:', userId);
 
   if (!methods?.length || !tournamentIds?.length) return;
+
+  // Our own mutation coming back. Socket.IO never sends it (the server excludes the sender), but a
+  // transport that cannot exclude a connection would, and applying it twice would double it.
+  if (isOwnMutation(data)) {
+    slog('[remoteMutation] skipped — originated in this tab');
+    return;
+  }
 
   const factoryEngine = factory[TOURNAMENT_ENGINE];
   if (!factoryEngine) return;

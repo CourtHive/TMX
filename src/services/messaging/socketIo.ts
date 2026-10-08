@@ -1,10 +1,16 @@
 /**
- * Socket.IO client for real-time communication.
- * Handles WebSocket connections, message emission, and acknowledgements.
+ * The TMX application protocol over the server connection: ack correlation,
+ * tournament room membership, chat wiring, reconnect recovery.
+ *
+ * Transport-free. Every byte goes through a `MessageTransport`; Socket.IO is
+ * the only implementation today (`transport/socketIoTransport.ts`). The file
+ * keeps its historical name so its importers did not have to change.
  */
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
+import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { handleSocketException } from 'services/session/sessionGuard';
+import { getOriginClientId } from 'services/messaging/clientIdentity';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { processDirective } from 'services/processDirective';
@@ -14,7 +20,6 @@ import { isFunction, isObject } from 'functions/typeOf';
 import { version as tmxVersion } from 'config/version';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
-import { io } from 'socket.io-client';
 import { t } from 'i18n';
 import {
   setChatSendFn,
@@ -33,6 +38,7 @@ import {
 } from 'services/chat/adminChatService';
 
 // types
+import type { MessageTransport, TransportStatus } from 'services/messaging/transport/messageTransport';
 import type { ServerAck } from 'types/services';
 
 // constants
@@ -47,16 +53,9 @@ import {
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
-function getAuthorization(): { authorization: string } | undefined {
-  const token = getToken();
-  if (!token) return undefined;
-  const authorization = `Bearer ${token}`;
-  return { authorization };
-}
-
-const oi: any = {
+const oi: { timestampOffset: number; transport?: MessageTransport } = {
   timestampOffset: 0,
-  socket: undefined,
+  transport: undefined,
 };
 
 /** True after a disconnect event until cleared by `clearDisconnectFlag()`. */
@@ -75,7 +74,6 @@ export function onSocketReconnect(listener: () => void): void {
 
 const ackRequests: Record<string, (ack: ServerAck) => void> = {};
 const ackTimeouts: Record<string, ReturnType<typeof setTimeout>> = {};
-const socketQueue: any[] = [];
 
 let mutationListener: ((data: any) => void) | null = null;
 let currentTournamentRoom: string | undefined;
@@ -126,73 +124,57 @@ function handleTournamentMutation(data: any): void {
 }
 
 export function connectSocket(callback?: () => void): void {
-  const connectionOptions: any = {
-    // `auth` is a function so socket.io-client re-invokes it before every
-    // (re)connect, always presenting the *current* token. The server's
-    // SocketGuard prefers handshake.auth.token over the Authorization header
-    // precisely because the header is baked in at initial connect and goes
-    // stale on the first reconnect after a token refresh — which is what left
-    // an expired-then-refreshed /tmx session silently rejected on every
-    // executionQueue (the /hiveid socket clients got this fix on 2026-06-01;
-    // /tmx did not until now). extraHeaders is kept for the polling handshake.
-    auth: (cb: (data: { token?: string }) => void) => cb({ token: getToken() ?? undefined }),
-    transportOptions: { polling: { extraHeaders: getAuthorization() } },
-    'force new connection': true,
-    reconnectionDelay: 1000,
-    // A NUMBER, not the string 'Infinity'. socket.io compares
-    // `attempts >= reconnectionAttempts`; against a string that comparison is
-    // always false, so the old value never gave up only by accident.
-    reconnectionAttempts: Infinity,
-    timeout: 20000,
-  };
-  if (oi.socket) {
-    slog('[socket] connectSocket called but socket already exists (connected=%s)', oi.socket.connected);
-  } else {
-    const socketPath = serverConfig.get().socketPath || process.env.SERVER || globalThis.location.origin;
-    const connectionString = `${socketPath}/tmx`;
-    slog('[socket] connecting to', connectionString);
-    oi.socket = io(connectionString, connectionOptions);
-    oi.socket.on('ack', receiveAcknowledgement);
-    oi.socket.on(TMX_MESSAGE, tmxMessage);
-    oi.socket.on(TMX_DIRECTIVE, processDirective);
-    oi.socket.on('tournamentMutation', handleTournamentMutation);
-    oi.socket.on('facilityScheduleChanged', handleFacilityScheduleChanged);
-    oi.socket.on('chatMessage', receiveMessage);
-    oi.socket.on('chatAccepted', receiveAccepted);
-    oi.socket.on('chatRejected', receiveRejected);
-    oi.socket.on('chatHistory', receiveHistory);
-    oi.socket.on('roomPresence', setOnlineCount);
-    oi.socket.on('adminChatFeed', receiveAdminChatFeed);
-    oi.socket.on('adminChatHistory', receiveAdminChatHistory);
-    oi.socket.on('connect', () => connectionEvent(callback));
+  if (oi.transport) {
+    slog('[socket] connectSocket called but transport already exists (connected=%s)', oi.transport.isConnected());
+    return;
+  }
+  const socketPath = serverConfig.get().socketPath || process.env.SERVER || globalThis.location.origin;
+  const url = `${socketPath}/tmx`;
+  slog('[socket] connecting to', url);
+  const transport = createSocketIoTransport({ url, getToken: () => getToken() ?? undefined });
+  oi.transport = transport;
 
-    setChatSendFn((data: any) => socketEmit('chatMessage', data));
-    setChatGapFn((data: any) => socketEmit('chatSince', data));
-    setAdminMonitorFns({
-      join: () => socketEmit('joinChatMonitor', {}),
-      leave: () => socketEmit('leaveChatMonitor', {}),
-      reply: (data: any) => socketEmit('adminChatReply', data),
-    });
-    oi.socket.on('disconnect', (reason: string) => {
-      slog('[socket] disconnected — reason:', reason);
+  transport.on('ack', receiveAcknowledgement);
+  transport.on(TMX_MESSAGE, tmxMessage);
+  transport.on(TMX_DIRECTIVE, processDirective);
+  transport.on('tournamentMutation', handleTournamentMutation);
+  transport.on('facilityScheduleChanged', handleFacilityScheduleChanged);
+  transport.on('chatMessage', receiveMessage);
+  transport.on('chatAccepted', receiveAccepted);
+  transport.on('chatRejected', receiveRejected);
+  transport.on('chatHistory', receiveHistory);
+  transport.on('roomPresence', setOnlineCount);
+  transport.on('adminChatFeed', receiveAdminChatFeed);
+  transport.on('adminChatHistory', receiveAdminChatHistory);
+  transport.on('exception', handleException);
+  transport.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
+
+  setChatSendFn((data: any) => socketEmit('chatMessage', data));
+  setChatGapFn((data: any) => socketEmit('chatSince', data));
+  setAdminMonitorFns({
+    join: () => socketEmit('joinChatMonitor', {}),
+    leave: () => socketEmit('leaveChatMonitor', {}),
+    reply: (data: any) => socketEmit('adminChatReply', data),
+  });
+
+  // `callback` belongs to the FIRST connect only. It used to be passed to every `connect`,
+  // reconnects included — and when emitTmx creates the connection lazily, the callback is the
+  // action that emits a mutation, so that mutation was re-sent on every reconnect for the life
+  // of the page.
+  let pendingCallback = callback;
+  transport.onStatus((status: TransportStatus, info?: any) => {
+    if (status === 'connected') {
+      const firstConnectCallback = pendingCallback;
+      pendingCallback = undefined;
+      connectionEvent(firstConnectCallback);
+    } else if (status === 'disconnected') {
+      slog('[socket] disconnected — reason:', info);
       disconnectedSinceLastNav = true;
       resetFactoryVersionCheck();
       showOSNotification({ title: 'TMX', body: 'Server connection lost' });
-    });
-    oi.socket.on('exception', (data: any) => {
-      // The server's SocketGuard emits `exception` when it rejects a message —
-      // most commonly for an expired/absent/wrong-audience token. Route those
-      // to the session guard so the user gets a "log in again" banner and their
-      // edit is preserved, instead of the message silently dying and surfacing
-      // 10s later as a misleading "Server not responding". Non-auth exceptions
-      // still surface here rather than being swallowed (A2).
-      const handledAsAuth = handleSocketException(data);
-      if (!handledAsAuth) console.warn('[socket] server exception:', data);
-    });
-    oi.socket.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
-    oi.socket.on('connect_error', (data: any) => {
-      slog('[socket] connect_error:', data?.message ?? data);
-      // DO NOT tear the socket down here.
+    } else {
+      slog('[socket] connect_error:', info?.message ?? info);
+      // DO NOT tear the connection down here.
       //
       // This handler used to call `disconnectSocket()`. In socket.io-client an
       // explicit `disconnect()` CANCELS automatic reconnection — the manager
@@ -205,10 +187,21 @@ export function connectSocket(callback?: () => void): void {
       //
       // A connect_error is transient by definition — socket.io is already
       // scheduling the next attempt. Auth rejections do NOT arrive here; the
-      // server's SocketGuard emits `exception`, handled above.
+      // server's SocketGuard emits `exception`, handled below.
       notifyConnectionTrouble();
-    });
-  }
+    }
+  });
+}
+
+function handleException(data: any): void {
+  // The server's SocketGuard emits `exception` when it rejects a message —
+  // most commonly for an expired/absent/wrong-audience token. Route those
+  // to the session guard so the user gets a "log in again" banner and their
+  // edit is preserved, instead of the message silently dying and surfacing
+  // 10s later as a misleading "Server not responding". Non-auth exceptions
+  // still surface here rather than being swallowed (A2).
+  const handledAsAuth = handleSocketException(data);
+  if (!handledAsAuth) console.warn('[socket] server exception:', data);
 }
 
 /**
@@ -234,18 +227,18 @@ function notifyConnectionTrouble(): void {
  * callers want live connectivity.
  */
 export function connected(): boolean {
-  return !!oi.socket?.connected;
+  return !!oi.transport?.isConnected();
 }
 
-/** True when a socket object exists at all, connected or not (internal lifecycle checks). */
+/** True when a transport exists at all, connected or not (internal lifecycle checks). */
 export function socketExists(): boolean {
-  return !!oi.socket;
+  return !!oi.transport;
 }
 
 export function disconnectSocket(): void {
   slog('[socket] disconnectSocket called');
-  oi?.socket?.disconnect();
-  setTimeout(() => delete oi.socket, 1000);
+  oi.transport?.disconnect();
+  setTimeout(() => delete oi.transport, 1000);
 }
 
 /**
@@ -256,9 +249,8 @@ export function disconnectSocket(): void {
  * guard replays any preserved edits there).
  */
 export function reconnectSocket(): void {
-  if (oi.socket) {
-    oi.socket.disconnect();
-    oi.socket.connect();
+  if (oi.transport) {
+    oi.transport.reconnect();
   } else {
     connectSocket();
   }
@@ -268,22 +260,22 @@ export function reconnectSocket(): void {
  * Reconnect the socket if the user is logged in but the connection is down.
  * Returns true if a reconnect was initiated.
  *
- * ⚠️ Must reconnect the EXISTING socket when there is one. This used to call
- * `connectSocket()` unconditionally — but `connectSocket` early-returns when
- * `oi.socket` is truthy, so with a disconnected-but-not-deleted socket the whole
+ * ⚠️ Must reconnect the EXISTING transport when there is one. This used to call
+ * `connectSocket()` unconditionally — but `connectSocket` early-returns when a
+ * transport exists, so with a disconnected-but-not-deleted socket the whole
  * call was a silent no-op. That made the one caller (the router) unreliable too:
  * whether navigation recovered the connection depended on whether the socket
  * object happened to have been deleted yet.
  */
 export function ensureConnected(): boolean {
-  if (oi.socket?.connected) return false;
+  if (oi.transport?.isConnected()) return false;
   const state = getLoginState();
   if (!state) return false;
 
-  if (oi.socket) {
-    slog('[socket] ensureConnected — re-opening existing socket (disconnected)');
+  if (oi.transport) {
+    slog('[socket] ensureConnected — re-opening existing transport (disconnected)');
     // Re-arms a manager that an explicit disconnect had stopped.
-    oi.socket.connect();
+    oi.transport.connect();
     return true;
   }
 
@@ -320,49 +312,62 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
       tmxVersion,
       timestamp,
       userId,
+      // Echoed on the server's tournamentMutation broadcast; see clientIdentity.ts.
+      originClientId: getOriginClientId(),
     });
 
     socketEmit(messageType, data);
   };
 
-  if (oi.socket) {
+  if (oi.transport) {
     action();
   } else {
-    try {
-      connectSocket(action);
-    } catch {
-      // Socket action failed - queue message for retry
-      socketQueue.push({ header: messageType, data, ackCallback });
-    }
+    connectSocket(action);
   }
 }
 
-function socketEmit(msg: string, data: any): void {
-  if (oi.socket.connected) {
+/**
+ * Messages sent while there is no live connection are not delivered. That was
+ * logged only behind the `socketLog` debug flag, so a local-first mutation made
+ * during an outage reached neither the server nor any log. It is now counted
+ * and warned (first, then 10/100/1000, then every 50th), with a recovery line
+ * on the next delivered message (A2). Whether such messages should instead be
+ * queued and replayed is an open decision in
+ * Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md.
+ */
+let undeliveredCount = 0;
+
+function socketEmit(msg: string, data: any): boolean {
+  const sent = !!oi.transport?.send(msg, data);
+  if (sent) {
     slog('[socket] emit:', msg, data?.type ?? '');
-    oi.socket.emit(msg, data);
-  } else {
-    slog('[socket] emit skipped (not connected) — msg:', msg);
+    if (undeliveredCount) {
+      console.warn(`[socket] delivering again after ${undeliveredCount} undelivered message(s)`);
+      undeliveredCount = 0;
+    }
+    return true;
   }
+  undeliveredCount += 1;
+  const n = undeliveredCount;
+  if (n === 1 || n === 10 || n === 100 || n === 1000 || n % 50 === 0) {
+    console.warn(`[socket] not connected — '${msg}' not delivered (${n}x since last delivery)`);
+  }
+  return false;
 }
 
 function connectionEvent(callback?: () => void): void {
-  slog('[socket] connected — id:', oi.socket?.id);
+  slog('[socket] connected — id:', oi.transport?.connectionId());
   // Re-arm the trouble toast so the NEXT outage is announced once more.
   connectionTroubleNotified = false;
   // Capture before anything clears the flag: true only when this `connect` is a
   // reconnect after a prior drop (the first connect leaves the flag false).
   const reconnected = disconnectedSinceLastNav;
   emitTmx({ data: { type: 'timestamp' } });
-  while (socketQueue.length) {
-    const message = socketQueue.pop();
-    socketEmit(message.header, message.data);
-  }
 
   // Re-join tournament room after reconnect (room membership is lost on disconnect)
   if (currentTournamentRoom) {
     slog('[socket] re-joining tournament room after reconnect:', currentTournamentRoom);
-    oi.socket.emit(JOIN_TOURNAMENT, { tournamentId: currentTournamentRoom });
+    socketEmit(JOIN_TOURNAMENT, { tournamentId: currentTournamentRoom });
   }
 
   // Re-join the super-admin chat monitor room after reconnect if it was open.
@@ -451,23 +456,23 @@ function receiveAcknowledgement(ack: ServerAck): void {
 /** Join a tournament room to receive mutation broadcasts from other clients. */
 export function joinTournamentRoom(tournamentId: string): void {
   currentTournamentRoom = tournamentId;
-  if (!tournamentId || !oi.socket?.connected) {
-    slog('[socket] joinTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, oi.socket?.connected);
+  if (!tournamentId || !connected()) {
+    slog('[socket] joinTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, connected());
     return;
   }
   slog('[socket] joining room:', tournamentId);
-  oi.socket.emit(JOIN_TOURNAMENT, { tournamentId });
+  socketEmit(JOIN_TOURNAMENT, { tournamentId });
 }
 
 /** Leave a tournament room to stop receiving mutation broadcasts. */
 export function leaveTournamentRoom(tournamentId: string): void {
   if (currentTournamentRoom === tournamentId) currentTournamentRoom = undefined;
-  if (!tournamentId || !oi.socket?.connected) {
-    slog('[socket] leaveTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, oi.socket?.connected);
+  if (!tournamentId || !connected()) {
+    slog('[socket] leaveTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, connected());
     return;
   }
   slog('[socket] leaving room:', tournamentId);
-  oi.socket.emit(LEAVE_TOURNAMENT, { tournamentId });
+  socketEmit(LEAVE_TOURNAMENT, { tournamentId });
 }
 
 export function logError(err: any): void {
