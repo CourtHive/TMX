@@ -1,4 +1,4 @@
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, seedFeatureFlagInitScript, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
@@ -102,6 +102,9 @@ async function readStatusCodes(page: Page, matchUpId: string): Promise<any> {
 }
 
 async function boot(page: Page): Promise<void> {
+  // This is the SHIPPED modal's acceptance test. The new score-entry dialog is on by default (CA,
+  // 2026-10-08), so the flag is turned off here to keep the fallback covered.
+  await seedFeatureFlagInitScript(page, 'scoreEntryDialog', false);
   await page.goto('/');
   await waitForAppReady(page);
   await initDevBridge(page);
