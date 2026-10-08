@@ -22,6 +22,15 @@ vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest: (...a: an
 vi.mock('components/modals/baseModal/baseModal', () => ({ closeModal: () => closeModalMock() }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...a: any[]) => toastMock(...a) }));
 vi.mock('services/messaging/scoreRelay', () => ({ subscribeToMatchUp: vi.fn(), unsubscribeFromMatchUp: vi.fn() }));
+// The components barrel reaches `document` at load (the datepicker), so it cannot be imported under node.
+let capturedDialogParams: any;
+vi.mock('courthive-components', () => ({
+  openScoreEntryDialog: (params: any) => {
+    capturedDialogParams = params;
+    return { close: vi.fn() };
+  },
+}));
+vi.mock('services/settings/settingsStorage', () => ({ persistConfigToStorage: vi.fn() }));
 vi.mock('services/factory/engine', () => ({
   tournamentEngine: {
     q: { matchUp: ({ matchUpId }: any) => ({ matchUpId, drawId: 'd1', score: { scoreStringSide1: '6-2 6-3' } }) },
@@ -31,12 +40,16 @@ vi.mock('services/factory/engine', () => ({
 vi.mock('i18n', () => ({ t: (k: string, o?: any) => o?.defaultValue ?? k }));
 
 import { notifyRemoteScoringCollision } from './activeScoringGuard';
-import { enterMatchUpScore } from './scoreMatchUp';
+import { dialogSides, enterMatchUpScore } from './scoreMatchUp';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { featureFlags } from 'config/featureFlags';
 
 const OUTCOME = { score: '6-1 6-1', winningSide: 1, matchUpStatus: 'COMPLETED' };
 
 describe('scoreMatchUp — remote scoring collision', () => {
   beforeEach(() => {
+    // The shipped modal's path; the new dialog is on by default, so these suites turn it off.
+    featureFlags.set({ scoreEntryDialog: false });
     toastMock.mockClear();
     mutationRequestMock.mockClear();
     closeModalMock.mockClear();
@@ -91,6 +104,8 @@ const INVALID_SCORE_MESSAGE = 'Invalid score';
 
 describe('scoreMatchUp — a refused score', () => {
   beforeEach(() => {
+    // The shipped modal's path; the new dialog is on by default, so these suites turn it off.
+    featureFlags.set({ scoreEntryDialog: false });
     toastMock.mockClear();
     mutationRequestMock.mockClear();
     closeModalMock.mockClear();
@@ -121,5 +136,142 @@ describe('scoreMatchUp — a refused score', () => {
 
     expect(toastMock).toHaveBeenCalledWith({ message: INVALID_SCORE_MESSAGE, intent: 'is-danger' });
     capturedOnRelayCleanup!();
+  });
+});
+
+/**
+ * The beta front end (CA, 2026-10-08: the new score entry dialog behind a flag). The dialog reports an
+ * engine-ready outcome, so what reaches `setMatchUpStatus` is that outcome and nothing TMX rebuilt.
+ */
+const ENGINE_OUTCOME = {
+  matchUpStatus: 'COMPLETED',
+  winningSide: 2,
+  score: { sets: [{ setNumber: 1, side1Score: 3, side2Score: 6, winningSide: 2 }] },
+};
+const MATCHUP = {
+  drawId: 'd1',
+  matchUpFormat: 'SET3-S:6/TB7',
+  roundName: 'R16',
+  sides: [
+    { sideNumber: 1, participant: { participantName: 'Ann' }, seedValue: 1 },
+    { sideNumber: 2, participant: { participantName: 'Bea' } },
+  ],
+};
+
+describe('scoreMatchUp — the score entry dialog (beta flag, on by default)', () => {
+  beforeEach(() => {
+    featureFlags.reset();
+    preferencesConfig.set({ scoringApproach: 'dynamicSets' });
+    toastMock.mockClear();
+    mutationRequestMock.mockClear();
+    closeModalMock.mockClear();
+    capturedDialogParams = undefined;
+    capturedScoreSubmitted = undefined;
+  });
+
+  it('is ON by default — CA, 2026-10-08: "make the beta for score entry modal automatically checked"', () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    expect(capturedDialogParams, 'the new dialog opened with no flag set').toBeTruthy();
+    expect(capturedScoreSubmitted, 'the shipped modal did not').toBeUndefined();
+    capturedDialogParams.onClose();
+  });
+
+  it('falls back to the shipped modal when the flag is turned off', () => {
+    featureFlags.set({ scoreEntryDialog: false });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    expect(capturedDialogParams).toBeUndefined();
+    expect(capturedScoreSubmitted).toBeTypeOf('function');
+    capturedOnRelayCleanup!();
+  });
+
+  it('opens with the display names, the seed, the context and the preferred approach', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    preferencesConfig.set({ scoringApproach: 'dialPad' });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    expect(capturedScoreSubmitted).toBeUndefined();
+    expect(capturedDialogParams.matchUp).toBe(MATCHUP);
+    expect(capturedDialogParams.sides).toEqual([{ participantName: 'Ann', seed: '1' }, { participantName: 'Bea' }]);
+    expect(capturedDialogParams.context).toBe('R16');
+    expect(capturedDialogParams.approach).toBe('dialPad');
+    capturedDialogParams.onClose();
+  });
+
+  it('leaves the approach to the dialog when the preference is one it does not offer', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    preferencesConfig.set({ scoringApproach: 'inlineScoring' });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    expect(capturedDialogParams.approach).toBeUndefined();
+    capturedDialogParams.onClose();
+  });
+
+  it("hands the dialog's engine-ready outcome to setMatchUpStatus as a copy, with propagation allowed", () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    const callback = vi.fn();
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP, callback });
+    capturedDialogParams.onSubmit({ outcome: ENGINE_OUTCOME, sets: ENGINE_OUTCOME.score.sets });
+
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1);
+    const { methods, callback: mutationCallback } = mutationRequestMock.mock.calls[0][0];
+    expect(methods).toEqual([
+      {
+        method: 'setMatchUpStatus',
+        params: { allowChangePropagation: true, drawId: 'd1', matchUpId: 'X', outcome: ENGINE_OUTCOME },
+      },
+    ]);
+    expect(methods[0].params.outcome).not.toBe(ENGINE_OUTCOME);
+
+    mutationCallback({ success: true });
+    // the dialog closes itself on Submit; TMX must not pop whatever modal is on top
+    expect(closeModalMock).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({ success: true, outcome: ENGINE_OUTCOME }));
+    capturedDialogParams.onClose();
+  });
+
+  it('still guards against a colleague scoring the same matchUp meanwhile', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    notifyRemoteScoringCollision(['X']);
+    toastMock.mockClear();
+
+    capturedDialogParams.onSubmit({ outcome: ENGINE_OUTCOME, sets: [] });
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    const confirm = toastMock.mock.calls.map((c) => c[0]).find((a) => a.intent === 'is-danger' && a.action);
+    expect(confirm, 'a danger confirm toast with an Overwrite action').toBeTruthy();
+    confirm.action.onClick();
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1);
+    capturedDialogParams.onClose();
+  });
+
+  it('remembers the approach the operator switched to', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    capturedDialogParams.onApproachChange('freeScore');
+    expect(preferencesConfig.get().scoringApproach).toBe('freeScore');
+    capturedDialogParams.onClose();
+  });
+
+  it('tells the operator what a format change discarded', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    capturedDialogParams.onScoreDiscarded({
+      sets: [],
+      discarded: [{ side1Score: 6, side2Score: 4 }],
+      matchUpFormat: 'SET1-S:6/TB7',
+    });
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    capturedDialogParams.onClose();
+  });
+});
+
+describe('dialogSides', () => {
+  it('names a bye and leaves an empty side blank', () => {
+    expect(dialogSides({ sides: [{ sideNumber: 1, bye: true }, { sideNumber: 2 }] })).toEqual([
+      { participantName: 'BYE' },
+      { participantName: '' },
+    ]);
+  });
+
+  it('copes with a matchUp that has no sides at all', () => {
+    expect(dialogSides({})).toEqual([{ participantName: '' }, { participantName: '' }]);
   });
 });
