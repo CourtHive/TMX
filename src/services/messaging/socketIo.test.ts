@@ -38,6 +38,11 @@ const fake = vi.hoisted(() => {
     // IndexedDB, as outboxStore.ts presents it.
     state.rows = new Map<string, any>();
     state.persistFails = false;
+    // Commands over HTTP (Phase 1): off unless a test turns it on.
+    state.http = false;
+    state.posted = [] as any[];
+    state.answer = (_data: any): any => ({ ack: { ackId: _data.payload.ackId, success: true } });
+    state.resumed = 0;
     state.store = {
       persistMessage: vi.fn(async (row: any) => {
         if (state.persistFails) throw new Error('quota');
@@ -91,7 +96,17 @@ vi.mock('services/chat/adminChatService', () => ({
   receiveAdminChatHistory: vi.fn(),
   rejoinChatMonitorIfActive: vi.fn(),
 }));
-vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({ socketPath: 'http://server' }) } }));
+vi.mock('config/serverConfig', () => ({
+  serverConfig: { get: () => ({ socketPath: 'http://server', commandsOverHttp: fake.http }) },
+}));
+vi.mock('services/messaging/transport/httpCommands', () => ({
+  HTTP_COMMANDS: new Set(['executionQueue']),
+  postCommand: async (event: string, data: any) => {
+    fake.posted.push({ event, data });
+    return fake.answer(data);
+  },
+  resumeCommands: () => (fake.resumed += 1),
+}));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({ socketLog: false }) } }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
@@ -478,6 +493,112 @@ describe('socketIo offline queue across a reload', () => {
 
     fake.handlers.ack({ ackId, success: true }); // a success needs nothing: the edit was applied locally
     expect(fake.toast).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Realtime transport Phase 1: with commandsOverHttp, executionQueue goes as POST /factory and the
+// HTTP answer is its ack. Queueing, order and persistence are unchanged.
+describe('socketIo with commands over HTTP', () => {
+  let socketIo: SocketIo;
+  let warn: ReturnType<typeof vi.spyOn>;
+  let info: ReturnType<typeof vi.spyOn>;
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
+  const postedMethods = () => fake.posted.map((p: any) => p.data.payload.methods[0].method);
+  const socketMutations = () => fake.sent.filter((m: any) => m.event === 'executionQueue');
+
+  beforeEach(async () => {
+    fake.reset();
+    fake.http = true;
+    vi.resetModules();
+    socketIo = await importSocketIo();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    info.mockRestore();
+  });
+
+  it('sends a mutation over HTTP and routes the answer to its ack callback', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+
+    expect(socketMutations()).toHaveLength(0);
+    expect(postedMethods()).toEqual(['a']);
+    const { ackId } = fake.posted[0].data.payload;
+    expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
+  });
+
+  it("keeps everything else on the socket — chat, the room, the server's clock", async () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.joinTournamentRoom('t1');
+    await settle();
+    expect(fake.sent.map((m: any) => m.event)).toEqual(expect.arrayContaining(['timestamp', 'joinTournament']));
+    expect(fake.posted).toHaveLength(0);
+  });
+
+  it('still queues while offline and replays over HTTP, in order, on connect', async () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    socketIo.emitTmx({ data: mutation('a') });
+    socketIo.emitTmx({ data: mutation('b') });
+    await settle();
+    expect(fake.posted).toHaveLength(0);
+
+    fake.up();
+    await settle();
+    expect(postedMethods()).toEqual(['a', 'b']);
+  });
+
+  it('a refusal is an ack like any other', async () => {
+    fake.answer = (data: any) => ({ ack: { ackId: data.payload.ackId, error: { message: 'no', code: 'ERR_X' } } });
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+    expect(ackCallback.mock.calls[0][0].error).toEqual({ message: 'no', code: 'ERR_X' });
+  });
+
+  it('leaves an unanswered non-durable command to its sender, unacked and not re-queued', async () => {
+    fake.answer = () => ({ unreachable: 'no response' });
+    socketIo.connectSocket();
+    fake.up();
+    const ackCallback = vi.fn();
+    socketIo.emitTmx({ data: mutation('a'), ackCallback });
+    await settle();
+    expect(ackCallback).not.toHaveBeenCalled();
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('re-queues unanswered durable commands in the order they were sent, and replays them on the next connect', async () => {
+    fake.answer = () => ({ unreachable: 'no response' });
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('a'), durable: true });
+    socketIo.emitTmx({ data: mutation('b'), durable: true });
+    await settle();
+    fake.answer = (data: any) => ({ ack: { ackId: data.payload.ackId, success: true } });
+    socketIo.emitTmx({ data: mutation('c'), durable: true }); // answered: not queued
+    await settle();
+
+    expect(socketIo.queuedMessageCount()).toBe(2);
+    expect(fake.rows.size).toBe(2); // and a reload would keep them
+
+    fake.posted.length = 0;
+    fake.down();
+    fake.up();
+    await settle();
+    expect(postedMethods()).toEqual(['a', 'b']);
+    expect(fake.resumed).toBeGreaterThan(0);
   });
 });
 

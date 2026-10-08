@@ -7,6 +7,7 @@
  * keeps its historical name so its importers did not have to change.
  */
 import { persistMessage, forgetMessage, loadMessages, claimMessage } from 'services/messaging/outboxStore';
+import { HTTP_COMMANDS, postCommand, resumeCommands } from 'services/messaging/transport/httpCommands';
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
 import { showOSNotification } from 'services/notifications/osNotification';
@@ -433,20 +434,33 @@ function forget(entry: OutboxEntry | undefined): void {
 }
 
 /**
- * Send now, or queue for the next connect. `durableUserId` marks a durable message and names its
- * user. Returns a function that withdraws a still-queued message.
+ * Hand a message to the server; false when there is no live connection and the caller must queue
+ * it. With `commandsOverHttp` a command goes over HTTP (httpCommands.ts), but online is still judged
+ * by the realtime connection, so the offline queue behaves the same either way. A durable command
+ * the server never answered goes back to the head of the queue; any other is left to its sender's
+ * timeout, as an unanswered socket message is.
  */
-function socketEmit(event: string, data: any, durableUserId?: string): () => boolean {
-  // While a flush is replaying, a new message waits behind it so the server sees them in order.
-  if (!(flushing && !REBUILT_ON_CONNECT.has(event)) && oi.connection?.send(event, data)) {
-    slog('[socket] emit:', event, data?.type ?? '');
-    return () => false;
-  }
-  if (REBUILT_ON_CONNECT.has(event)) {
-    slog('[socket] offline — not queueing', event, '(rebuilt on connect)');
-    return () => false;
-  }
+function dispatch(event: string, data: any, durableUserId?: string): boolean {
+  if (!serverConfig.get().commandsOverHttp || !HTTP_COMMANDS.has(event)) return !!oi.connection?.send(event, data);
+  if (!oi.connection?.isConnected()) return false;
+  postCommand(event, data)
+    .then((outcome) => {
+      if ('ack' in outcome) return receiveAcknowledgement(outcome.ack);
+      if (!durableUserId) return;
+      enqueue(event, data, durableUserId, { requeued: true });
+      console.warn(`[socket] '${event}' got no answer over HTTP — kept for the next connect`);
+    })
+    .catch((err) => console.warn(`[socket] '${event}' over HTTP failed:`, err));
+  return true;
+}
 
+/**
+ * Where the next re-queued command goes: after the ones re-queued before it since the last connect,
+ * and ahead of everything queued since, so the queue keeps the order they were sent in.
+ */
+let requeueCursor = 0;
+
+function enqueue(event: string, data: any, durableUserId?: string, { requeued = false } = {}): OutboxEntry {
   const entry: OutboxEntry = { event, data };
   if (durableUserId) {
     entry.durable = {
@@ -457,7 +471,11 @@ function socketEmit(event: string, data: any, durableUserId?: string): () => boo
     };
     persist(entry as DurableEntry);
   }
-  outbox.push(entry);
+  if (requeued) {
+    outbox.splice(Math.min(requeueCursor++, outbox.length), 0, entry);
+  } else {
+    outbox.push(entry);
+  }
   slog('[socket] offline — queued', event, `(${outbox.length} pending)`);
   if (outbox.length > MAX_OUTBOX) {
     // Losing a queued message is a real failure: say so every time (A2).
@@ -465,7 +483,25 @@ function socketEmit(event: string, data: any, durableUserId?: string): () => boo
     forget(dropped);
     console.warn(`[socket] offline queue full (${MAX_OUTBOX}) — dropped oldest '${dropped?.event}'`);
   }
+  return entry;
+}
 
+/**
+ * Send now, or queue for the next connect. `durableUserId` marks a durable message and names its
+ * user. Returns a function that withdraws a still-queued message.
+ */
+function socketEmit(event: string, data: any, durableUserId?: string): () => boolean {
+  // While a flush is replaying, a new message waits behind it so the server sees them in order.
+  if (!(flushing && !REBUILT_ON_CONNECT.has(event)) && dispatch(event, data, durableUserId)) {
+    slog('[socket] emit:', event, data?.type ?? '');
+    return () => false;
+  }
+  if (REBUILT_ON_CONNECT.has(event)) {
+    slog('[socket] offline — not queueing', event, '(rebuilt on connect)');
+    return () => false;
+  }
+
+  const entry = enqueue(event, data, durableUserId);
   return () => {
     const index = outbox.indexOf(entry);
     if (index < 0) return false;
@@ -524,7 +560,7 @@ async function flushOutbox(): Promise<void> {
       // cancel() may have withdrawn it while the claim was in flight.
       if (outbox[0] !== next) continue;
       if (next.durable) watchReplayedAck(next);
-      if (!oi.connection?.send(next.event, next.data)) {
+      if (!dispatch(next.event, next.data, next.durable?.userId)) {
         // Claimed but not sent: put the row back so a reload still has it.
         if (next.durable) persist(next as DurableEntry);
         break;
@@ -596,6 +632,8 @@ function connectionEvent(callback?: () => void): void {
   rejoinChatMonitorIfActive();
 
   // Only now replay what was written while offline: the rooms it was written against are re-joined.
+  requeueCursor = 0;
+  resumeCommands();
   startFlush();
 
   void checkFactoryVersion();
