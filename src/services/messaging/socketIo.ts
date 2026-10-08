@@ -53,9 +53,9 @@ import {
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
-const oi: { timestampOffset: number; transport?: MessageTransport } = {
+const oi: { timestampOffset: number; connection?: MessageTransport } = {
   timestampOffset: 0,
-  transport: undefined,
+  connection: undefined,
 };
 
 /** True after a disconnect event until cleared by `clearDisconnectFlag()`. */
@@ -124,15 +124,15 @@ function handleTournamentMutation(data: any): void {
 }
 
 export function connectSocket(callback?: () => void): void {
-  if (oi.transport) {
-    slog('[socket] connectSocket called but transport already exists (connected=%s)', oi.transport.isConnected());
+  if (oi.connection) {
+    slog('[socket] connectSocket called but transport already exists (connected=%s)', oi.connection.isConnected());
     return;
   }
   const socketPath = serverConfig.get().socketPath || process.env.SERVER || globalThis.location.origin;
   const url = `${socketPath}/tmx`;
   slog('[socket] connecting to', url);
   const transport = createSocketIoTransport({ url, getToken: () => getToken() ?? undefined });
-  oi.transport = transport;
+  oi.connection = transport;
 
   transport.on('ack', receiveAcknowledgement);
   transport.on(TMX_MESSAGE, tmxMessage);
@@ -227,18 +227,18 @@ function notifyConnectionTrouble(): void {
  * callers want live connectivity.
  */
 export function connected(): boolean {
-  return !!oi.transport?.isConnected();
+  return !!oi.connection?.isConnected();
 }
 
 /** True when a transport exists at all, connected or not (internal lifecycle checks). */
 export function socketExists(): boolean {
-  return !!oi.transport;
+  return !!oi.connection;
 }
 
 export function disconnectSocket(): void {
   slog('[socket] disconnectSocket called');
-  oi.transport?.disconnect();
-  setTimeout(() => delete oi.transport, 1000);
+  oi.connection?.disconnect();
+  setTimeout(() => delete oi.connection, 1000);
 }
 
 /**
@@ -249,8 +249,8 @@ export function disconnectSocket(): void {
  * guard replays any preserved edits there).
  */
 export function reconnectSocket(): void {
-  if (oi.transport) {
-    oi.transport.reconnect();
+  if (oi.connection) {
+    oi.connection.reconnect();
   } else {
     connectSocket();
   }
@@ -268,14 +268,14 @@ export function reconnectSocket(): void {
  * object happened to have been deleted yet.
  */
 export function ensureConnected(): boolean {
-  if (oi.transport?.isConnected()) return false;
+  if (oi.connection?.isConnected()) return false;
   const state = getLoginState();
   if (!state) return false;
 
-  if (oi.transport) {
+  if (oi.connection) {
     slog('[socket] ensureConnected — re-opening existing transport (disconnected)');
     // Re-arms a manager that an explicit disconnect had stopped.
-    oi.transport.connect();
+    oi.connection.connect();
     return true;
   }
 
@@ -334,7 +334,7 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
     withdraw = socketEmit(messageType, data);
   };
 
-  if (oi.transport) {
+  if (oi.connection) {
     action();
   } else {
     connectSocket(action);
@@ -385,7 +385,7 @@ const outbox: OutboxEntry[] = [];
 
 /** Send now, or queue for the next connect. Returns a function that withdraws a still-queued message. */
 function socketEmit(event: string, data: any): () => boolean {
-  if (oi.transport?.send(event, data)) {
+  if (oi.connection?.send(event, data)) {
     slog('[socket] emit:', event, data?.type ?? '');
     return () => false;
   }
@@ -417,7 +417,7 @@ function flushOutbox(): void {
   const pending = outbox.length;
   while (outbox.length) {
     const next = outbox[0];
-    if (!oi.transport?.send(next.event, next.data)) break;
+    if (!oi.connection?.send(next.event, next.data)) break;
     outbox.shift();
   }
   const replayed = pending - outbox.length;
@@ -433,7 +433,7 @@ export function queuedMessageCount(): number {
 }
 
 function connectionEvent(callback?: () => void): void {
-  slog('[socket] connected — id:', oi.transport?.connectionId());
+  slog('[socket] connected — id:', oi.connection?.connectionId());
   // Re-arm the trouble toast so the NEXT outage is announced once more.
   connectionTroubleNotified = false;
   // Capture before anything clears the flag: true only when this `connect` is a

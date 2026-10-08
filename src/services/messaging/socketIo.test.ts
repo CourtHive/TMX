@@ -13,7 +13,7 @@ const fake = vi.hoisted(() => {
     state.sent = [] as Array<{ event: string; data: any }>;
     state.handlers = {} as Record<string, (data: any) => void>;
     state.status = undefined as undefined | ((status: string, info?: any) => void);
-    state.transport = {
+    state.connection = {
       connect: vi.fn(),
       disconnect: vi.fn(),
       reconnect: vi.fn(),
@@ -41,7 +41,7 @@ const fake = vi.hoisted(() => {
 });
 
 vi.mock('services/messaging/transport/socketIoTransport', () => ({
-  createSocketIoTransport: () => fake.transport,
+  createSocketIoTransport: () => fake.connection,
 }));
 vi.mock('services/version/checkFactoryVersion', () => ({
   checkFactoryVersion: vi.fn(async () => undefined),
@@ -202,8 +202,8 @@ describe('socketIo over a MessageTransport', () => {
     socketIo.emitTmx({ data: executionQueue() });
     // The connection comes up, carries one message, and drops again.
     let sends = 0;
-    const send = fake.transport.send;
-    fake.transport.send = (event: string, data: any) => {
+    const send = fake.connection.send;
+    fake.connection.send = (event: string, data: any) => {
       if (event === 'executionQueue' && ++sends > 1) return false;
       return send(event, data);
     };
