@@ -11,10 +11,16 @@ export interface ServerConfig {
   socketIo: { tmx: string };
   assistantUrl: string;
   /**
-   * Send commands (`executionQueue`) as `POST /factory` instead of over the socket, which then
-   * carries only subscriptions and server push. Realtime transport Phase 1; off by default.
+   * Send commands (`executionQueue`, chat) over HTTP instead of the socket, which then carries only
+   * subscriptions and server push. Realtime transport Phase 1. On by default since 2026-10-08 (CA);
+   * build with `VITE_COMMANDS_OVER_HTTP=false` to keep everything on the socket.
    */
   commandsOverHttp: boolean;
+}
+
+/** On unless the build says `false`. Exported for its test. */
+export function commandsOverHttpDefault(value: string | undefined): boolean {
+  return value !== 'false';
 }
 
 const defaults: ServerConfig = {
@@ -24,7 +30,7 @@ const defaults: ServerConfig = {
   socketPath: '',
   socketIo: { tmx: '/tmx' },
   assistantUrl: import.meta.env.VITE_ASSISTANT_URL ?? '',
-  commandsOverHttp: import.meta.env.VITE_COMMANDS_OVER_HTTP === 'true',
+  commandsOverHttp: commandsOverHttpDefault(import.meta.env.VITE_COMMANDS_OVER_HTTP),
 };
 
 let current: ServerConfig | undefined;
