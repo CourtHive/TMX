@@ -1613,7 +1613,9 @@
       "title": "Add playoff structures",
       "noPlayoffPositions": "No playoff positions available",
       "nameBase": "Name base",
-      "structuresAdded": "Structure(s) added"
+      "structuresAdded": "Structure(s) added",
+      "rounds": "Rounds",
+      "allRounds": "All"
     },
     "editGroupNames": {
       "title": "Edit group names",
