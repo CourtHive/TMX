@@ -293,12 +293,27 @@ export function clearDisconnectFlag(): void {
   disconnectedSinceLastNav = false;
 }
 
-export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: ServerAck) => void }): void {
+/**
+ * Returned by `emitTmx`. `cancel()` withdraws a message that has not left this tab yet — still
+ * waiting for the first connect, or queued while offline — and reports whether it did. A message
+ * already handed to the transport cannot be withdrawn, and `cancel()` returns false.
+ */
+export interface EmitHandle {
+  cancel: () => boolean;
+}
+
+export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: ServerAck) => void }): EmitHandle {
   const state = getLoginState();
   const { email: userId } = state || {};
   const messageType = data.type ?? 'tmx';
 
+  let ran = false;
+  let cancelled = false;
+  let withdraw: () => boolean = () => false;
+
   const action = () => {
+    if (cancelled) return;
+    ran = true;
     if (ackCallback && isFunction(ackCallback)) {
       const ackId = tools.UUID();
       if (data.payload) Object.assign(data.payload, { ackId });
@@ -316,7 +331,7 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
       originClientId: getOriginClientId(),
     });
 
-    socketEmit(messageType, data);
+    withdraw = socketEmit(messageType, data);
   };
 
   if (oi.transport) {
@@ -324,35 +339,97 @@ export function emitTmx({ data, ackCallback }: { data: any; ackCallback?: (ack: 
   } else {
     connectSocket(action);
   }
+
+  return {
+    cancel: () => {
+      if (ran) return withdraw();
+      cancelled = true;
+      return true;
+    },
+  };
 }
 
 /**
- * Messages sent while there is no live connection are not delivered. That was
- * logged only behind the `socketLog` debug flag, so a local-first mutation made
- * during an outage reached neither the server nor any log. It is now counted
- * and warned (first, then 10/100/1000, then every 50th), with a recovery line
- * on the next delivered message (A2). Whether such messages should instead be
- * queued and replayed is an open decision in
- * Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md.
+ * Messages are never sent while offline (CA, 2026-10-08, decision D1 in
+ * Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md). A message that finds no
+ * live connection is queued here and replayed, in order, once the connection is
+ * back — after the tournament room and chat monitor are re-joined, so a replayed
+ * message lands in the same state it was written against.
+ *
+ * Until then a disconnected send was dropped, with a log only behind the
+ * `socketLog` debug flag: a local-first mutation made during an outage reached
+ * neither the server nor any log.
+ *
+ * In memory only: a reload loses the queue. A server-first mutation withdraws its
+ * entry when its own timeout fires (see mutationRequest.ts), so the server can
+ * never apply an edit the UI has already reported as failed.
  */
-let undeliveredCount = 0;
+const MAX_OUTBOX = 500;
 
-function socketEmit(msg: string, data: any): boolean {
-  const sent = !!oi.transport?.send(msg, data);
-  if (sent) {
-    slog('[socket] emit:', msg, data?.type ?? '');
-    if (undeliveredCount) {
-      console.warn(`[socket] delivering again after ${undeliveredCount} undelivered message(s)`);
-      undeliveredCount = 0;
-    }
+/** Events `connectionEvent` rebuilds on every connect; a queued copy would only repeat it. */
+const REBUILT_ON_CONNECT = new Set([
+  'timestamp',
+  'chatSince',
+  'joinChatMonitor',
+  'leaveChatMonitor',
+  JOIN_TOURNAMENT,
+  LEAVE_TOURNAMENT,
+]);
+
+interface OutboxEntry {
+  event: string;
+  data: any;
+}
+
+const outbox: OutboxEntry[] = [];
+
+/** Send now, or queue for the next connect. Returns a function that withdraws a still-queued message. */
+function socketEmit(event: string, data: any): () => boolean {
+  if (oi.transport?.send(event, data)) {
+    slog('[socket] emit:', event, data?.type ?? '');
+    return () => false;
+  }
+  if (REBUILT_ON_CONNECT.has(event)) {
+    slog('[socket] offline — not queueing', event, '(rebuilt on connect)');
+    return () => false;
+  }
+
+  const entry: OutboxEntry = { event, data };
+  outbox.push(entry);
+  slog('[socket] offline — queued', event, `(${outbox.length} pending)`);
+  if (outbox.length > MAX_OUTBOX) {
+    // Losing a queued message is a real failure: say so every time (A2).
+    const dropped = outbox.shift();
+    console.warn(`[socket] offline queue full (${MAX_OUTBOX}) — dropped oldest '${dropped?.event}'`);
+  }
+
+  return () => {
+    const index = outbox.indexOf(entry);
+    if (index < 0) return false;
+    outbox.splice(index, 1);
     return true;
+  };
+}
+
+/** Replay queued messages in order. Whatever cannot be sent (the connection dropped again) stays queued. */
+function flushOutbox(): void {
+  if (!outbox.length) return;
+  const pending = outbox.length;
+  while (outbox.length) {
+    const next = outbox[0];
+    if (!oi.transport?.send(next.event, next.data)) break;
+    outbox.shift();
   }
-  undeliveredCount += 1;
-  const n = undeliveredCount;
-  if (n === 1 || n === 10 || n === 100 || n === 1000 || n % 50 === 0) {
-    console.warn(`[socket] not connected — '${msg}' not delivered (${n}x since last delivery)`);
-  }
-  return false;
+  const replayed = pending - outbox.length;
+  console.info(
+    `[socket] replayed ${replayed} message(s) queued while offline` +
+      (outbox.length ? `, ${outbox.length} still queued` : ''),
+  );
+}
+
+/** e2e/dev only: how many messages are waiting for a connection. */
+export function queuedMessageCount(): number {
+  return outbox.length;
 }
 
 function connectionEvent(callback?: () => void): void {
@@ -372,6 +449,9 @@ function connectionEvent(callback?: () => void): void {
 
   // Re-join the super-admin chat monitor room after reconnect if it was open.
   rejoinChatMonitorIfActive();
+
+  // Only now replay what was written while offline: the rooms it was written against are re-joined.
+  flushOutbox();
 
   void checkFactoryVersion();
 

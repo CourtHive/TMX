@@ -130,17 +130,97 @@ describe('socketIo over a MessageTransport', () => {
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
   });
 
-  // A2: an undelivered message was logged only behind the socketLog debug flag.
-  it('warns when a message cannot be delivered, and once more when delivery resumes', () => {
+  // D1 (CA, 2026-10-08): nothing is sent while offline; it is queued and replayed on connect.
+  it('queues messages sent while offline and replays them in order on reconnect', () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    socketIo.emitTmx({ data: { type: 'executionQueue', payload: { methods: [{ method: 'a' }] } } });
+    socketIo.emitTmx({ data: { type: 'executionQueue', payload: { methods: [{ method: 'b' }] } } });
+    expect(mutations()).toHaveLength(0);
+    expect(socketIo.queuedMessageCount()).toBe(2);
+
+    fake.up();
+
+    expect(mutations().map((m: any) => m.data.payload.methods[0].method)).toEqual(['a', 'b']);
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('replays only after the tournament room is re-joined', () => {
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.joinTournamentRoom('t1');
+    fake.down();
+    socketIo.emitTmx({ data: executionQueue() });
+    fake.sent.length = 0;
+
+    fake.up();
+
+    const order = fake.sent.map((m: any) => m.event);
+    expect(order.indexOf('joinTournament')).toBeLessThan(order.indexOf('executionQueue'));
+  });
+
+  it('does not queue what a connect rebuilds anyway', () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    socketIo.emitTmx({ data: { type: 'timestamp' } });
+    expect(socketIo.queuedMessageCount()).toBe(0);
+  });
+
+  it('cancel() withdraws a queued message so it is never replayed', () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    const handle = socketIo.emitTmx({ data: executionQueue() });
+
+    expect(handle.cancel()).toBe(true);
+    fake.up();
+    expect(mutations()).toHaveLength(0);
+  });
+
+  it('cancel() reports false once the message has been sent', () => {
+    socketIo.connectSocket();
+    fake.up();
+    const handle = socketIo.emitTmx({ data: executionQueue() });
+    expect(handle.cancel()).toBe(false);
+    expect(mutations()).toHaveLength(1);
+  });
+
+  it('cancel() before the first connect stops a lazily-connected message', () => {
+    const handle = socketIo.emitTmx({ data: executionQueue() });
+    expect(handle.cancel()).toBe(true);
+    fake.up();
+    expect(mutations()).toHaveLength(0);
+  });
+
+  it('keeps what it could not replay when the connection drops mid-flush', () => {
     socketIo.connectSocket();
     fake.up();
     fake.down();
     socketIo.emitTmx({ data: executionQueue() });
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(String(warn.mock.calls[0][0])).toContain("'executionQueue' not delivered (1x");
+    socketIo.emitTmx({ data: executionQueue() });
+    // The connection comes up, carries one message, and drops again.
+    let sends = 0;
+    const send = fake.transport.send;
+    fake.transport.send = (event: string, data: any) => {
+      if (event === 'executionQueue' && ++sends > 1) return false;
+      return send(event, data);
+    };
+    fake.up();
 
-    fake.up(); // the reconnect sends a timestamp, which is a delivery
-    expect(String(warn.mock.calls.at(-1)?.[0])).toContain('delivering again after 1 undelivered message(s)');
+    expect(mutations()).toHaveLength(1);
+    expect(socketIo.queuedMessageCount()).toBe(1);
+  });
+
+  it('warns when the offline queue overflows and drops the oldest', () => {
+    socketIo.connectSocket();
+    fake.up();
+    fake.down();
+    for (let i = 0; i < 501; i++) socketIo.emitTmx({ data: executionQueue() });
+    expect(socketIo.queuedMessageCount()).toBe(500);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0][0])).toContain('offline queue full');
   });
 
   it('rejoins the current tournament room after a reconnect', () => {
