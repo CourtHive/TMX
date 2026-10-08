@@ -2,13 +2,7 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
-import {
-  factoryConstants,
-  drawDefinitionConstants,
-  eventConstants,
-  policyConstants,
-  fixtures,
-} from 'tods-competition-factory';
+import { targetNotice, targetOptionLabel, type QualifyingTarget } from './qualifyingTargets';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { tournamentEngine } from 'services/factory/engine';
@@ -18,6 +12,13 @@ import { providerConfig } from 'config/providerConfig';
 import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
 import { t } from 'i18n';
+import {
+  factoryConstants,
+  drawDefinitionConstants,
+  eventConstants,
+  policyConstants,
+  fixtures,
+} from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {
@@ -39,9 +40,10 @@ import {
   PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
   POSITIONS,
+  QUALIFIERS_COUNT,
   QUALIFYING_FIRST,
   QUALIFYING_POSITIONS,
-  QUALIFIERS_COUNT,
+  QUALIFYING_TARGET_ROUND,
   RATING_SCALE,
   ROUNDS_COUNT,
   SEEDING_POLICY,
@@ -67,14 +69,25 @@ const INHERIT = 'INHERIT';
 /** Qualifying-side mode kinds that drive isQualifying-derived UI flags. */
 const QUALIFYING_KINDS = new Set(['NEW_QUALIFYING', 'GENERATE_QUALIFYING', 'ATTACH_QUALIFYING']);
 
+export const QUALIFYING_TARGET_NOTICE_ID = 'qualifyingTargetNotice';
+
 export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMode }): {
   structurePositionAssignments: any;
+  qualifyingTargets: QualifyingTarget[];
+  maxQualifiers?: number;
   items: any[];
 } {
   const modelView = drawFormModel(mode, {});
   const fs = modelView.fieldStates;
   const qualifiersCount = modelView.derivedValues.qualifiersCount;
   const structurePositionAssignments = modelView.derivedValues.structurePositionAssignments;
+  const { maxQualifiers, qualifyingTarget, qualifyingTargets = [] } = modelView.derivedValues;
+  const targetRoundOptions = qualifyingTargets.map((target) => ({
+    selected: target.roundNumber === qualifyingTarget?.roundNumber,
+    label: targetOptionLabel(target, t),
+    value: target.roundNumber,
+  }));
+  const notice = qualifyingTarget ? targetNotice(qualifyingTarget, t) : '';
   const drawSize = modelView.derivedValues.drawSize;
   const maxDrawSize = Math.max(drawSize, 512);
   const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
@@ -227,6 +240,16 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       selectOnFocus: true,
       visible: fs[STRUCTURE_NAME]?.visible ?? false,
     },
+    // ATTACH_QUALIFYING: which round the qualifiers enter (shown only when more than one is open),
+    // and what already feeds it — so a second qualifying into round 1 is a choice, not a surprise
+    {
+      options: targetRoundOptions,
+      field: QUALIFYING_TARGET_ROUND,
+      label: t('drawers.addDraw.targetRound'),
+      value: fs[QUALIFYING_TARGET_ROUND]?.value,
+      visible: fs[QUALIFYING_TARGET_ROUND]?.visible ?? false,
+    },
+    ...(notice ? [{ text: `<p id="${QUALIFYING_TARGET_NOTICE_ID}" class="help">${notice}</p>` }] : []),
     {
       label: t('drawers.addDraw.qualifyingFirst'),
       field: QUALIFYING_FIRST,
@@ -396,5 +419,5 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
     },
   ];
 
-  return { items, structurePositionAssignments };
+  return { items, structurePositionAssignments, maxQualifiers, qualifyingTargets };
 }

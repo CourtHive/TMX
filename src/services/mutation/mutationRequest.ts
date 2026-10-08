@@ -295,7 +295,7 @@ async function makeMutation({
       }
     };
     if (debugConfig.get().log?.verbose) console.log('%c invoking remote', 'color: lightblue');
-    emitTmx({
+    const emitted = emitTmx({
       data: {
         type: 'executionQueue',
         payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true, warmCache },
@@ -308,6 +308,10 @@ async function makeMutation({
       setTimeout(() => {
         if (ackReceived) return;
         timedOut = true;
+        // Offline, the mutation waits in socketIo's queue. Withdraw it: this edit is about to be
+        // reported as failed (or preserved for the session replay below), and a late replay would
+        // apply on the server what the UI has already said did not happen — or apply it twice.
+        emitted?.cancel();
         // Distinguish an auth failure from a genuine outage. A logged-out /
         // expired session produces the same "no ack" symptom as a down server,
         // but the fix is completely different: the user must log in again, and

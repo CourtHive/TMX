@@ -2,27 +2,26 @@
  * Add draw configuration drawer.
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
+import { clampToTarget, selectTarget, targetNotice, type QualifyingTarget } from './qualifyingTargets';
 import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
+import { attachTopologyStructures, topologyDrawEntries } from './topologyPostGeneration';
+import { getDrawFormItems, QUALIFYING_TARGET_NOTICE_ID } from './getDrawFormItems';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { informModal } from 'components/modals/baseModal/baseModal';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import { entryStatusConstants } from 'tods-competition-factory';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
 import { tournamentEngine } from 'services/factory/engine';
-import { getTopologyTemplates } from './topologyTemplates';
+import { findTopologyTemplate } from './topologyTemplates';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { resolveDrawFormMode } from './drawFormModel';
-import { getDrawFormItems } from './getDrawFormItems';
 import { submitDrawParams } from './submitDrawParams';
 import { generateDraw } from './generateDraw';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-const { LUCKY_DRAW } = drawDefinitionConstants;
+const { LUCKY_DRAW, MAIN } = drawDefinitionConstants;
 import {
   getMatchUpFormatModal,
   renderButtons,
@@ -32,14 +31,15 @@ import {
 } from 'courthive-components';
 
 // constants
-import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 import {
   CUSTOM,
   DRAW_NAME,
   DRAW_SIZE,
   DRAW_TYPE,
   NONE,
+  QUALIFIERS_COUNT,
   QUALIFYING_FIRST,
+  QUALIFYING_TARGET_ROUND,
   RIGHT,
   STRUCTURE_NAME,
   TOPOLOGY_TEMPLATE_PREFIX,
@@ -59,6 +59,10 @@ type AddDrawParams = {
    *  `event.entries` filtered by `DIRECT_ENTRY_STATUSES`. Passed through
    *  from the unified entries panel when rows are selected at click time. */
   selectedParticipantIds?: string[];
+  /** ATTACH_QUALIFYING: `getAvailableQualifyingTargets().targets` for `structureId`, read by the
+   *  caller that offered the action, so the drawer can show what already feeds each round and clamp
+   *  the qualifiers count to the chosen round's capacity. */
+  qualifyingTargets?: QualifyingTarget[];
 };
 
 export function addDraw({
@@ -71,16 +75,22 @@ export function addDraw({
   eventId,
   drawId,
   selectedParticipantIds,
+  qualifyingTargets,
 }: AddDrawParams): void {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
   // Phase D: resolve the flag tuple into a single DrawFormMode at the
   // drawer boundary. Downstream functions receive the mode directly.
-  const mode = resolveDrawFormMode({ event, drawId, isQualifying, isPopulateMain, structureId });
-  const { items, structurePositionAssignments } = getDrawFormItems({ event, mode });
+  const mode = resolveDrawFormMode({ event, drawId, isQualifying, isPopulateMain, structureId, qualifyingTargets });
+  const {
+    items,
+    structurePositionAssignments,
+    maxQualifiers: targetMaxQualifiers,
+    qualifyingTargets: openTargets,
+  } = getDrawFormItems({ event, mode });
   const relationships = getDrawFormRelationships({
-    maxQualifiers: structurePositionAssignments?.length,
+    maxQualifiers: targetMaxQualifiers ?? structurePositionAssignments?.length,
     isQualifying,
     isPopulateMain,
     drawId,
@@ -92,6 +102,7 @@ export function addDraw({
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, items, relationships);
     attachDrawTypeHelp(inputs);
+    attachTargetRoundSync({ inputs, qualifyingTargets: openTargets });
 
     // LUCKY_DRAW: bespoke chained-input round-profile editor mounted after the
     // form. Visible whenever LUCKY_DRAW is selected; if the user touches the
@@ -222,17 +233,7 @@ function generateFromTopologyTemplate({
   drawId?: string;
   callback?: (result: any) => void;
 }): void {
-  // Resolve the template from tournament extensions or user catalog
-  const tournamentTemplates = getTopologyTemplates();
-  let template = tournamentTemplates.find((t) => t.name === templateName);
-
-  if (!template) {
-    const userTopo = getUserTopologiesSync().find((t) => t.name === templateName);
-    if (userTopo) {
-      template = { name: userTopo.name, description: userTopo.description, state: userTopo.state };
-    }
-  }
-
+  const template = findTopologyTemplate(templateName);
   if (!template) {
     tmxToast({ message: `Template "${templateName}" not found`, intent: 'is-danger' });
     return;
@@ -261,13 +262,7 @@ function generateFromTopologyTemplate({
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
-  const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
-  const drawEntries =
-    event.entries?.filter(
-      ({ entryStage, entryStatus }: any) =>
-        (!entryStage || entryStage === 'MAIN') && DIRECT_ENTRY_STATUSES.includes(entryStatus),
-    ) || [];
-  drawOptions.drawEntries = drawEntries;
+  drawOptions.drawEntries = topologyDrawEntries({ event, state });
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
@@ -276,66 +271,50 @@ function generateFromTopologyTemplate({
     }
 
     const generatedDrawId = result.drawDefinition.drawId;
-    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === 'MAIN')?.structureId;
+    const mainStructureId = result.drawDefinition.structures?.find((s: any) => s.stage === MAIN)?.structureId;
 
-    if (postGenerationMethods.length > 0 && mainStructureId) {
-      const methods = postGenerationMethods.flatMap((pgm) => {
-        if (pgm.method === ATTACH_CONSOLATION_STRUCTURES) {
-          // Generate structure locally, then attach via server-first mutation
-          const genResult = tournamentEngine.generateConsolationStructure(pgm.params);
-          if (!genResult?.structures?.length) return [];
-          const consolationStructure = genResult.structures[0];
-
-          // Build LOSER links from main to consolation
-          const links = (pgm.params.links || []).map((link: any) => ({
-            linkType: 'LOSER',
-            source: { roundNumber: link.sourceRoundNumber, structureId: mainStructureId },
-            target: {
-              roundNumber: link.targetRoundNumber,
-              feedProfile: 'TOP_DOWN',
-              structureId: consolationStructure.structureId,
-            },
-          }));
-
-          return {
-            method: ATTACH_CONSOLATION_STRUCTURES,
-            params: { drawId: generatedDrawId, structures: [consolationStructure], links },
-          };
-        }
-        // Generate playoff structures locally, then attach via server-first mutation
-        const playoffResult = tournamentEngine.generateAndPopulatePlayoffStructures({
-          ...pgm.params,
-          drawId: generatedDrawId,
-          structureId: mainStructureId,
-        });
-        if (playoffResult.error || !playoffResult.structures?.length) return [];
-        return {
-          method: ATTACH_PLAYOFF_STRUCTURES,
-          params: {
-            matchUpModifications: playoffResult.matchUpModifications,
-            structures: playoffResult.structures,
-            links: playoffResult.links,
-            drawId: generatedDrawId,
-          },
-        };
-      });
-
-      mutationRequest({
-        methods,
-        callback: () => {
+    attachTopologyStructures({
+      drawDefinition: result.drawDefinition,
+      postGenerationMethods,
+      onDone: ({ unresolved }) => {
+        if (unresolved.length) {
+          tmxToast({
+            message: t('topology.structuresNotAttached', { unattached: unresolved.join(', ') }),
+            intent: 'is-warning',
+          });
+        } else {
           tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
-          navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
-          if (callback) callback(result);
-        },
-      });
-    } else {
-      tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
-      navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
-      if (callback) callback(result);
-    }
+        }
+        navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
+        if (callback) callback(result);
+      },
+    });
   };
 
   generateDraw({ drawOptions, eventId, callback: postGeneration });
+}
+
+/** When the operator changes the target round, the notice and the qualifiers ceiling follow it. */
+function attachTargetRoundSync({
+  qualifyingTargets,
+  inputs,
+}: {
+  qualifyingTargets: QualifyingTarget[];
+  inputs: any;
+}): void {
+  const roundSelect = inputs?.[QUALIFYING_TARGET_ROUND] as HTMLSelectElement | undefined;
+  if (!roundSelect || qualifyingTargets.length < 2) return;
+  roundSelect.addEventListener('change', () => {
+    const target = selectTarget(qualifyingTargets, roundSelect.value);
+    if (!target) return;
+    const notice = document.getElementById(QUALIFYING_TARGET_NOTICE_ID);
+    if (notice) notice.innerHTML = targetNotice(target, t);
+    const qualifiersInput = inputs[QUALIFIERS_COUNT] as HTMLInputElement | undefined;
+    if (qualifiersInput) {
+      const requested = Number.parseInt(qualifiersInput.value, 10);
+      qualifiersInput.value = String(clampToTarget(requested, target));
+    }
+  });
 }
 
 function attachDrawTypeHelp(inputs: any) {
