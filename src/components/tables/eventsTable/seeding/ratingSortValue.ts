@@ -1,4 +1,4 @@
-import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
+import { resolveScaleValueNumber } from 'tods-competition-factory';
 
 /**
  * The sort key for seeding a field by a rating scale.

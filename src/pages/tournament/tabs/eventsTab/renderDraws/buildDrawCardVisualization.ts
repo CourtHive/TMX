@@ -6,8 +6,7 @@
  * back to no-viz behaviour in that case.
  */
 
-import { resolveScaleValueNumber } from 'functions/resolveScaleValueNumber';
-import { computeRatingDistributionStats, fixtures } from 'tods-competition-factory';
+import { computeRatingDistributionStats, fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 import {
   aggregateCompetitiveness,
   buildCompetitivenessDonut,
