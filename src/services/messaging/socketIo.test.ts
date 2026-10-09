@@ -11,6 +11,9 @@ const fake = vi.hoisted(() => {
   state.reset = () => {
     state.connected = false;
     state.sent = [] as Array<{ event: string; data: any }>;
+    // Every outbound message in the order it left, whichever wire it took: socket events and HTTP
+    // commands interleave, and some behaviour is about that order (a room re-joined before a replay).
+    state.log = [] as string[];
     state.handlers = {} as Record<string, (data: any) => void>;
     state.status = undefined as undefined | ((status: string, info?: any) => void);
     state.connection = {
@@ -22,6 +25,7 @@ const fake = vi.hoisted(() => {
       send: (event: string, data: any) => {
         if (!state.connected) return false;
         state.sent.push({ event, data });
+        state.log.push(event);
         return true;
       },
       on: (event: string, handler: any) => (state.handlers[event] = handler),
@@ -38,8 +42,8 @@ const fake = vi.hoisted(() => {
     // IndexedDB, as outboxStore.ts presents it.
     state.rows = new Map<string, any>();
     state.persistFails = false;
-    // Commands over HTTP (Phase 1): off unless a test turns it on.
-    state.http = false;
+    // Commands always go over HTTP (the socket path was retired 2026-10-09). `answer` is what the
+    // server replies to each one; by default it accepts.
     state.posted = [] as any[];
     state.answer = (data: any): any => ({
       deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
@@ -101,12 +105,13 @@ vi.mock('services/chat/adminChatService', () => ({
   rejoinChatMonitorIfActive: vi.fn(),
 }));
 vi.mock('config/serverConfig', () => ({
-  serverConfig: { get: () => ({ socketPath: 'http://server', commandsOverHttp: fake.http }) },
+  serverConfig: { get: () => ({ socketPath: 'http://server' }) },
 }));
 vi.mock('services/messaging/transport/httpCommands', () => ({
   HTTP_COMMANDS: new Set(['executionQueue', 'chatMessage']),
   postCommand: async (event: string, data: any) => {
     fake.posted.push({ event, data });
+    fake.log.push(event);
     return fake.answer(data);
   },
   resumeCommands: () => (fake.resumed += 1),
@@ -140,7 +145,8 @@ describe('socketIo over a MessageTransport', () => {
     warn.mockRestore();
   });
 
-  const mutations = () => fake.sent.filter((m: any) => m.event === 'executionQueue');
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+  const mutations = () => fake.posted.filter((m: any) => m.event === 'executionQueue');
   const executionQueue = () => ({
     type: 'executionQueue',
     payload: { methods: [{ method: 'm' }], tournamentIds: ['t1'] },
@@ -170,32 +176,37 @@ describe('socketIo over a MessageTransport', () => {
     expect(mutations()[0].data.payload.originClientId).toBe(clientIdentity.getOriginClientId());
   });
 
-  it('routes the ack to the callback registered for its ackId', () => {
+  it('routes the ack to the callback registered for its ackId', async () => {
     socketIo.connectSocket();
     fake.up();
     const ackCallback = vi.fn();
     socketIo.emitTmx({ data: executionQueue(), ackCallback });
     const { ackId } = mutations()[0].data.payload;
 
-    fake.handlers.ack({ ackId, success: true });
+    await settle(); // the server's answer is the ack
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
   });
 
-  // P49: every ack passes through here, on either transport — this tab's own mutation moves its sync point.
+  // P49: every ack passes through here — this tab's own mutation moves its sync point.
   it('an ack with write times moves the sync point', async () => {
     const sync = await import('services/staleness/serverSync');
     sync.setServerSync('t1', '2026-10-08T19:29:00.000Z');
+    fake.answer = (data: any) => ({
+      deliver: {
+        event: 'ack',
+        payload: {
+          ackId: data.payload.ackId,
+          success: true,
+          previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
+          serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
+        },
+      },
+    });
     socketIo.connectSocket();
     fake.up();
     socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
-    const { ackId } = mutations()[0].data.payload;
 
-    fake.handlers.ack({
-      ackId,
-      success: true,
-      previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
-      serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
-    });
+    await settle();
     expect(sync.serverIsAhead('t1', '2026-10-08T19:30:00.000Z')).toBe(false);
   });
 
@@ -221,11 +232,12 @@ describe('socketIo over a MessageTransport', () => {
     socketIo.joinTournamentRoom('t1');
     fake.down();
     socketIo.emitTmx({ data: executionQueue() });
-    fake.sent.length = 0;
+    fake.log.length = 0;
 
     fake.up();
 
-    const order = fake.sent.map((m: any) => m.event);
+    const order = fake.log;
+    expect(order.indexOf('joinTournament')).toBeGreaterThanOrEqual(0);
     expect(order.indexOf('joinTournament')).toBeLessThan(order.indexOf('executionQueue'));
   });
 
@@ -270,12 +282,7 @@ describe('socketIo over a MessageTransport', () => {
     socketIo.emitTmx({ data: executionQueue() });
     socketIo.emitTmx({ data: executionQueue() });
     // The connection comes up, carries one message, and drops again.
-    let sends = 0;
-    const send = fake.connection.send;
-    fake.connection.send = (event: string, data: any) => {
-      if (event === 'executionQueue' && ++sends > 1) return false;
-      return send(event, data);
-    };
+    fake.connection.isConnected = () => fake.connected && mutations().length < 1;
     fake.up();
 
     expect(mutations()).toHaveLength(1);
@@ -327,7 +334,7 @@ describe('socketIo offline queue across a reload', () => {
   // Resolves once every pending IndexedDB promise (and what it chains) has run.
   const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
   const methodsSent = () =>
-    fake.sent.filter((m: any) => m.event === 'executionQueue').map((m: any) => m.data.payload.methods[0].method);
+    fake.posted.filter((m: any) => m.event === 'executionQueue').map((m: any) => m.data.payload.methods[0].method);
   const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
   // A fresh page: the module state is gone, IndexedDB (fake.rows) is not.
   const reload = async () => {
@@ -474,9 +481,9 @@ describe('socketIo offline queue across a reload', () => {
     socketIo.emitTmx({ data: mutation('a'), durable: true });
     await settle();
 
-    const send = fake.connection.send;
-    fake.connection.send = (event: string, data: any) => (event === 'executionQueue' ? false : send(event, data));
     fake.up();
+    // The connection drops while the replay waits on its IndexedDB claim.
+    fake.connection.isConnected = () => false;
     await settle();
 
     expect(methodsSent()).toEqual([]);
@@ -504,28 +511,38 @@ describe('socketIo offline queue across a reload', () => {
     expect(fake.rows.size).toBe(0);
   });
 
-  it('says so when the server rejects a message replayed after a reload', async () => {
+  const replayAfterReload = async (answer: (data: any) => any) => {
     goOffline();
     socketIo.emitTmx({ data: mutation('a'), ackCallback: vi.fn(), durable: true });
     await settle();
 
     await reload();
+    fake.answer = answer;
     socketIo.connectSocket();
     fake.up();
     await settle();
+    expect(methodsSent()).toEqual(['a']); // control: the replay happened
+  };
 
-    const { ackId } = fake.sent.find((m: any) => m.event === 'executionQueue').data.payload;
-    fake.handlers.ack({ ackId, error: { message: 'no such draw' } });
-    expect(fake.toast).toHaveBeenCalledWith({ message: 'toasts.offlineChangeRejected', intent: 'is-danger' });
-
-    fake.handlers.ack({ ackId, success: true }); // a success needs nothing: the edit was applied locally
+  it('says so when the server rejects a message replayed after a reload', async () => {
+    await replayAfterReload((data) => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, error: { message: 'no such draw' } } },
+    }));
     expect(fake.toast).toHaveBeenCalledTimes(1);
+    expect(fake.toast).toHaveBeenCalledWith({ message: 'toasts.offlineChangeRejected', intent: 'is-danger' });
+  });
+
+  it('says nothing when a message replayed after a reload succeeds: the edit was applied locally', async () => {
+    await replayAfterReload((data) => ({
+      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
+    }));
+    expect(fake.toast).not.toHaveBeenCalled();
   });
 });
 
-// Realtime transport Phase 1: with commandsOverHttp, executionQueue goes as POST /factory and the
-// HTTP answer is its ack. Queueing, order and persistence are unchanged.
-describe('socketIo with commands over HTTP', () => {
+// Commands go over HTTP: executionQueue as POST /factory, chat as POST /tmx/chat, and the HTTP answer
+// is the ack. The socket carries only subscriptions and server push.
+describe('socketIo commands over HTTP', () => {
   let socketIo: SocketIo;
   let warn: ReturnType<typeof vi.spyOn>;
   let info: ReturnType<typeof vi.spyOn>;
@@ -537,7 +554,6 @@ describe('socketIo with commands over HTTP', () => {
 
   beforeEach(async () => {
     fake.reset();
-    fake.http = true;
     vi.resetModules();
     socketIo = await importSocketIo();
     warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

@@ -70,12 +70,6 @@ export const env: any = {
   set socketIo(v: any) {
     serverConfig.set({ socketIo: v });
   },
-  get commandsOverHttp() {
-    return serverConfig.get().commandsOverHttp;
-  },
-  set commandsOverHttp(v: boolean) {
-    serverConfig.set({ commandsOverHttp: v });
-  },
 
   // Device — delegates to deviceConfig
   get device() {

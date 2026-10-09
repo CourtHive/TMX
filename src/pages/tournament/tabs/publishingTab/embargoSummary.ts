@@ -3,6 +3,7 @@
  * Displays all active embargoes sorted by expiry with remove buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { publishStructureDetails } from './structurePublishing';
 import { publishingGovernor } from 'tods-competition-factory';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
@@ -64,6 +65,16 @@ function removeEmbargo(entry: ReturnType<typeof getActiveEmbargoes>[0]): void {
       ],
       callback: () => renderPublishingTab(),
     });
+  } else if (entry.type === 'structure' && entry.eventId && entry.drawId && entry.structureId) {
+    publishStructureDetails({
+      eventId: entry.eventId,
+      drawId: entry.drawId,
+      update: (structureId, detail) => {
+        if (structureId !== entry.structureId) return detail;
+        const { embargo: _prior, ...rest } = detail;
+        return rest;
+      },
+    });
   } else if (
     entry.type === 'scheduledRound' &&
     entry.eventId &&
@@ -72,7 +83,7 @@ function removeEmbargo(entry: ReturnType<typeof getActiveEmbargoes>[0]): void {
     entry.roundNumber
   ) {
     const { event } = tournamentEngine.getEvent({ drawId: entry.drawId });
-    if (!event) return;
+    if (!event) return undefined;
 
     const pubState = publishingGovernor.getPublishState({ event })?.publishState;
     const drawDetail = pubState?.status?.drawDetails?.[entry.drawId] || {};

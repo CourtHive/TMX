@@ -3,28 +3,24 @@
  * Shows tipster menu with options to toggle round visibility (AD_HOC)
  * and set/clear round schedule embargo (all draw types).
  */
-import { mutationRequest } from 'services/mutation/mutationRequest';
+import { setRoundScheduleEmbargo, setStructureRoundLimit } from '../../publishingTab/structurePublishing';
 import { openEmbargoModal } from '../../publishingTab/embargoModal';
 import { publishingGovernor } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
 
-import { PUBLISH_EVENT } from 'constants/mutationConstants';
 import { BOTTOM } from 'constants/tmxConstants';
-
-const eventDataParams = {
-  participantsProfile: { withScaleValues: true },
-  pressureRating: true,
-  refreshResults: true,
-};
 
 export function handleRoundVisibilityClick(props: any): void {
   const { structureId, drawId, roundNumber, callback } = props;
   const { event } = tournamentEngine.getEvent({ drawId });
-  if (!event) return;
+  if (!event) return undefined;
 
   const eventId = event.eventId;
+  // Every write goes through publishStructureDetails, which sends the draw's FULL structureDetails:
+  // a one-structure map hid every sibling structure (a qualifying draw's MAIN) from the public.
+  const target = { eventId, drawId, structureId, callback: () => callback?.({ refresh: true }) };
   const drawDefinition = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
   const structure = drawDefinition?.structures?.find((s: any) => s.structureId === structureId);
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
@@ -54,33 +50,9 @@ export function handleRoundVisibilityClick(props: any): void {
       icon: isHidden ? 'fa-eye' : 'fa-eye-slash',
       onClick: () => {
         const newLimit = isHidden ? Math.max(roundNumber, currentRoundLimit || 0) : roundNumber - 1;
-        const updatedStructureDetail: any = {
-          ...structureDetail,
-          published: true,
-        };
-        if (newLimit >= 0 && newLimit < maxRound) {
-          updatedStructureDetail.roundLimit = newLimit;
-        } else {
-          delete updatedStructureDetail.roundLimit;
-        }
-
-        mutationRequest({
-          methods: [
-            {
-              method: PUBLISH_EVENT,
-              params: {
-                removePriorValues: true,
-                drawDetails: {
-                  [drawId]: {
-                    structureDetails: { [structureId]: updatedStructureDetail },
-                  },
-                },
-                eventId,
-                eventDataParams,
-              },
-            },
-          ],
-          callback: () => callback?.({ refresh: true }),
+        setStructureRoundLimit({
+          roundLimit: newLimit >= 0 && newLimit < maxRound ? newLimit : undefined,
+          ...target,
         });
       },
     });
@@ -97,55 +69,12 @@ export function handleRoundVisibilityClick(props: any): void {
     icon: 'fa-calendar',
     onClick: () => {
       if (hasEmbargo) {
-        // Clear embargo
-        const scheduledRounds = { ...currentScheduledRounds, [roundNumber]: { published: true } };
-        mutationRequest({
-          methods: [
-            {
-              method: PUBLISH_EVENT,
-              params: {
-                removePriorValues: true,
-                drawDetails: {
-                  [drawId]: {
-                    structureDetails: { [structureId]: { ...structureDetail, scheduledRounds } },
-                  },
-                },
-                eventId,
-                eventDataParams,
-              },
-            },
-          ],
-          callback: () => callback?.({ refresh: true }),
-        });
+        setRoundScheduleEmbargo({ roundNumber, ...target });
       } else {
-        // Open embargo modal
         openEmbargoModal({
           title: t('publishing.embargoRoundSchedule', { roundNumber }),
           currentEmbargo: roundEmbargoDetail?.embargo,
-          onSet: (isoString) => {
-            const scheduledRounds = {
-              ...currentScheduledRounds,
-              [roundNumber]: { published: true, embargo: isoString },
-            };
-            mutationRequest({
-              methods: [
-                {
-                  method: PUBLISH_EVENT,
-                  params: {
-                    removePriorValues: true,
-                    drawDetails: {
-                      [drawId]: {
-                        structureDetails: { [structureId]: { ...structureDetail, scheduledRounds } },
-                      },
-                    },
-                    eventId,
-                    eventDataParams,
-                  },
-                },
-              ],
-              callback: () => callback?.({ refresh: true }),
-            });
-          },
+          onSet: (embargo) => setRoundScheduleEmbargo({ roundNumber, embargo, ...target }),
         });
       }
     },
