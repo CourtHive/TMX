@@ -2,7 +2,7 @@
  * Commands over HTTP — realtime transport Phase 1
  * (Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md).
  *
- * With `serverConfig.commandsOverHttp`, a command goes over HTTP instead of the socket:
+ * A command always goes over HTTP; the server accepts none on the socket (retired 2026-10-09, CA):
  * - an `executionQueue` goes to `POST /factory`;
  * - a `chatMessage` goes to `POST /tmx/chat`.
  *
@@ -96,7 +96,7 @@ const ROUTES: Record<string, Route> = {
   },
 };
 
-/** The events that go over HTTP when the flag is on. */
+/** The events that go over HTTP: every command. */
 export const HTTP_COMMANDS: ReadonlySet<string> = new Set(Object.keys(ROUTES));
 
 /**
