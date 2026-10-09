@@ -143,6 +143,8 @@ export function getDrawFormRelationships({
 }: FormRelationshipParams): any[] {
   const stage = isQualifying ? QUALIFYING : MAIN;
 
+  // set when checkCreationMethod, not the operator, moved Creation to Manual
+  let forcedManual = false;
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
@@ -155,7 +157,17 @@ export function getDrawFormRelationships({
     const manualOnly = effectiveIsQualifying
       ? maxQualifiers || drawSize < entriesCount
       : maxQualifiers || drawSize < entriesCount + qualifiersCount;
-    if (manualOnly) inputs[AUTOMATED].value = MANUAL;
+    // select the Manual OPTION: its value is `false`, so assigning the label matched no option and blanked the field.
+    // The check runs per keystroke ("22" passes through "2"), so a Manual the form forced is undone once allowed.
+    const creation = inputs[AUTOMATED];
+    const manualOption = [...(creation.options ?? [])].find((option: any) => option.label === MANUAL);
+    if (manualOnly && manualOption && creation.value !== manualOption.value) {
+      creation.value = manualOption.value;
+      forcedManual = true;
+    } else if (!manualOnly && forcedManual) {
+      creation.value = AUTOMATED;
+      forcedManual = false;
+    }
     const help = fields && getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
     if (help) help.style.display = manualOnly ? '' : NONE;
     for (const option of inputs[AUTOMATED].options) {
