@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.33.0](https://github.com/CourtHive/TMX/compare/v8.32.0...v8.33.0) (2026-10-09)
+
+
+### Features
+
+* **messaging:** every command goes over HTTP; the socket opt-out is removed ([#1576](https://github.com/CourtHive/TMX/issues/1576)) ([8459bbe](https://github.com/CourtHive/TMX/commit/8459bbeb223ac458d348472e5481b45243e10676))
+* **publishing:** publish and embargo individual structures of a draw ([#1574](https://github.com/CourtHive/TMX/issues/1574)) ([88fd320](https://github.com/CourtHive/TMX/commit/88fd32039f3258e1a0e7745630ec678ee8941e3c))
+
+
+### Bug Fixes
+
+* **publishing:** round writes from the draw view no longer hide sibling structures ([#1575](https://github.com/CourtHive/TMX/issues/1575)) ([758603f](https://github.com/CourtHive/TMX/commit/758603f2635d9b41b0a56278c8c966f4b79a0a27))
+
 ## [8.32.0](https://github.com/CourtHive/TMX/compare/v8.31.0...v8.32.0) (2026-10-08)
 
 
