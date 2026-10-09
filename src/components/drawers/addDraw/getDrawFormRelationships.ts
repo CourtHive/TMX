@@ -12,6 +12,7 @@ import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { feedInQualifierCounts } from './feedInQualifying';
 import { getSeedingAllowance } from './seedingPolicies';
 import { drawFormModel } from './drawFormModel';
 
@@ -323,10 +324,25 @@ export function getDrawFormRelationships({
     }
   };
 
+  /** A FEED_IN qualifying produces only qualifier counts that divide its size twice over (13 positions: 1).
+   *  Moves an impossible count to the largest possible one below it, within the target's capacity. */
+  const fitFeedInQualifiers = (inputs: Record<string, any>) => {
+    const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked;
+    if (inputs[DRAW_TYPE]?.value !== FEED_IN || !(isQualifying || isQualifyingFirst)) return;
+    const drawSize = Number.parseInt(inputs[DRAW_SIZE].value);
+    const counts = (validators.numericValidator(inputs[DRAW_SIZE].value) && feedInQualifierCounts(drawSize)) || [];
+    const input = inputs[isQualifyingFirst ? QUALIFYING_POSITIONS : QUALIFIERS_COUNT];
+    const current = Number.parseInt(input?.value);
+    const allowed = counts.filter((count) => !maxQualifiers || count <= maxQualifiers);
+    if (!input || !allowed.length || allowed.includes(current)) return;
+    input.value = allowed.filter((count) => count <= current).pop() ?? allowed[0];
+  };
+
   const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const drawType = (e!.target as HTMLSelectElement).value;
 
     if (!maxQualifiers) updateDrawSize({ drawId, drawType, fields, inputs });
+    fitFeedInQualifiers(inputs);
     checkCreationMethod({ fields, inputs });
 
     if (fields) {
@@ -349,6 +365,7 @@ export function getDrawFormRelationships({
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
     updateSeedCountOptions({ inputs, drawSize });
+    fitFeedInQualifiers(inputs);
     checkCreationMethod({ fields, inputs });
   };
 
@@ -457,6 +474,7 @@ export function getDrawFormRelationships({
     const toggleView = drawFormModel(toggleMode, {});
     inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
     updateSeedCountOptions({ inputs, drawSize: toggleView.derivedValues.drawSize });
+    fitFeedInQualifiers(inputs);
 
     checkCreationMethod({ fields, inputs });
   };

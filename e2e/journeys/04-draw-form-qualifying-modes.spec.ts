@@ -109,12 +109,13 @@ test.describe('Journey 4 — Draw form qualifying modes', () => {
       (opts: HTMLOptionElement[]) =>
         opts.map((o) => o.value).filter((v) => v && !v.startsWith('─')),
     );
-    const qualifyingTypes = ['SINGLE_ELIMINATION', 'ROUND_ROBIN', 'ROUND_ROBIN_WITH_PLAYOFF'];
+    // FEED_IN (staggered entry) is offered for qualifying where the factory can build one (journey 148)
+    const qualifyingTypes = ['SINGLE_ELIMINATION', 'ROUND_ROBIN', 'ROUND_ROBIN_WITH_PLAYOFF', 'FEED_IN'];
     for (const val of values) {
       expect(qualifyingTypes).toContain(val);
     }
     expect(values.length).toBeGreaterThan(0);
-    expect(values.length).toBeLessThanOrEqual(3);
+    expect(values.length).toBeLessThanOrEqual(4);
 
     await drawer.clickCancel();
   });

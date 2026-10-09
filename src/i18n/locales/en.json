@@ -1938,6 +1938,7 @@
       "configureDraw": "Configure draw",
       "customScorecard": "Custom scorecard",
       "invalidDrawSize": "Invalid draw size",
+      "feedInQualifiersInvalid": "A staggered entry qualifying of {{drawSize}} can produce only these numbers of qualifiers: {{counts}}",
       "roundsCount": "Rounds to generate",
       "ratingScale": "Rating scale",
       "dynamicRatings": "Dynamic ratings",

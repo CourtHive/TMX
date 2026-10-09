@@ -230,8 +230,9 @@ const AD_HOC_FAMILY = new Set<string>([AD_HOC, SWISS, DRAW_MATIC]);
 
 /** Allowed draw types for the qualifying side of any qualifying-related mode.
  *  ROUND_ROBIN_WITH_PLAYOFF is intentionally excluded — qualifying structures
- *  don't use playoffs. Matches getDrawTypeOptions({ isQualifying: true }). */
-const QUALIFYING_DRAW_TYPES: string[] = [SINGLE_ELIMINATION, ROUND_ROBIN];
+ *  don't use playoffs. Matches getDrawTypeOptions({ isQualifying: true }), which
+ *  offers FEED_IN only when the factory can build a FEED_IN qualifying. */
+const QUALIFYING_DRAW_TYPES: string[] = [SINGLE_ELIMINATION, ROUND_ROBIN, FEED_IN];
 
 /** Allowed draw types for new MAIN draws. The full master list is owned by
  *  `getDrawTypeOptions`; this set is the subset the model whitelists per the

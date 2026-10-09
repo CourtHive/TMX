@@ -9,6 +9,7 @@ import type { RoundProfileEditorController } from './roundProfileEditor';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { feedInQualifierCounts } from './feedInQualifying';
 import { validators } from 'courthive-components';
 import { resolveSeedsCount } from './seedCount';
 import { generateDraw } from './generateDraw';
@@ -691,6 +692,17 @@ export function submitDrawParams({
     : (validators.numericValidator(inputs[QUALIFIERS_COUNT].value) &&
         Number.parseInt(inputs[QUALIFIERS_COUNT]?.value)) ||
       0;
+
+  // a FEED_IN qualifying produces only qualifier counts that divide its size twice over (13 positions: 1 qualifier)
+  const feedInCounts = drawType === FEED_IN && effectiveIsQualifying ? feedInQualifierCounts(drawSize) : undefined;
+  if (feedInCounts && !feedInCounts.includes(qualifiersCount)) {
+    tmxToast({
+      message: t('drawers.addDraw.feedInQualifiersInvalid', { drawSize, counts: feedInCounts.join(', ') }),
+      intent: IS_WARNING,
+      pauseOnHover: true,
+    });
+    return;
+  }
 
   if (structureId && drawId) {
     // the round the qualifiers enter; absent (one open round) the factory's link targets round 1
