@@ -2002,7 +2002,7 @@
       "drawTypePlayoff": "Playoff",
       "drawTypeRoundRobinWithPlayoff": "Round robin w/ playoff",
       "drawTypeAdaptive": "Adaptive",
-      "drawTypeStaggeredEntry": "Staggered Entry",
+      "drawTypeStaggeredEntry": "Feed in (staggered entry)",
       "drawTypeDescriptions": {
         "SINGLE_ELIMINATION": "Standard knockout bracket where each loss eliminates a participant from the draw.",
         "ROUND_ROBIN": "All participants play each other within groups; standings determined by win/loss record.",
