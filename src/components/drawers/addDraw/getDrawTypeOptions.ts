@@ -5,6 +5,7 @@
  */
 import { getBuiltinTopologies, getUserTopologiesSync } from 'pages/templates/topologyBridge';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { feedInQualifyingSupported } from './feedInQualifying';
 import { getTopologyTemplates } from './topologyTemplates';
 import { validateTopology } from 'courthive-components';
 import { providerConfig } from 'config/providerConfig';
@@ -112,7 +113,11 @@ export function getDrawTypeOptions({
       value: DOUBLE_ELIMINATION,
       hide: isPlayoff || isQualifying,
     },
-    { label: t('drawers.addDraw.drawTypeStaggeredEntry'), value: FEED_IN, hide: isPlayoff || isQualifying },
+    {
+      label: t('drawers.addDraw.drawTypeStaggeredEntry'),
+      value: FEED_IN,
+      hide: isPlayoff || (isQualifying && !feedInQualifyingSupported()),
+    },
     { label: t('drawers.addDraw.drawTypeFeedInChampionship'), value: FEED_IN_CHAMPIONSHIP, hide: isQualifying },
     { label: t('drawers.addDraw.drawTypeFirstMatchLoser'), value: FIRST_MATCH_LOSER_CONSOLATION, hide: isQualifying },
     { label: t('drawers.addDraw.drawTypeFirstRoundLoser'), value: FIRST_ROUND_LOSER_CONSOLATION, hide: isQualifying },
