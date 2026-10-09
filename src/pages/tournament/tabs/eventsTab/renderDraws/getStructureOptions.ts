@@ -40,12 +40,12 @@ export function getStructureOptions({
   const profiles = tournamentEngine.getAvailablePlayoffProfiles({ drawId, structureId });
   const canAddPlayoffs = profiles?.playoffRounds?.length || profiles?.playoffFinishingPositionRanges?.length;
   // The rounds this structure can be fed in, what already feeds each, and how much room is left.
-  // Offered while some round can still take a qualifier (CA, 2026-10-07: several qualifying
-  // structures may feed one round up to its drawPositions); the drawer shows the rest.
+  // Offered while some round has an open position a new qualifier could take (CA, 2026-10-07:
+  // several qualifying structures may feed one round; 2026-10-09: a filled position is not room).
   const qualifyingTargetsResult = tournamentEngine.getAvailableQualifyingTargets({ drawId, structureId });
   const qualifyingTargets = qualifyingTargetsResult?.targets ?? [];
   const canAddQualifying =
-    !!qualifyingTargetsResult?.valid && qualifyingTargets.some((target: any) => target.structuralCapacity > 0);
+    !!qualifyingTargetsResult?.valid && qualifyingTargets.some((target: any) => target.remainingCapacity > 0);
 
   const addNewQualifying = () => {
     addDraw({
