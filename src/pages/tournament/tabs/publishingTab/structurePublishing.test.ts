@@ -23,8 +23,13 @@ vi.mock('services/mutation/mutationRequest', () => ({
 vi.mock('./renderPublishingTab', () => ({ renderPublishingTab: () => undefined }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 
-import { publishStructureDetails, toggleStructurePublished } from './structurePublishing';
 import { getPublishingTableData } from './publishingData';
+import {
+  publishStructureDetails,
+  setRoundScheduleEmbargo,
+  setStructureRoundLimit,
+  toggleStructurePublished,
+} from './structurePublishing';
 
 const QUALIFYING = 'QUALIFYING';
 const MAIN = 'MAIN';
@@ -149,5 +154,51 @@ describe('structure-level publishing', () => {
     expect(drawRow?._children?.map((row) => row.type)).toEqual(['structure', 'structure']);
     expect(drawRow?._children?.every((row) => row.publishState === 'live')).toBe(true);
     expect(drawRow?.expanded).toBe(false);
+  });
+});
+
+/**
+ * The draw view's round menu (handleRoundVisibilityClick) wrote a ONE-structure map, so embargoing a
+ * qualifying round's schedule hid MAIN from the public. It now goes through these helpers.
+ */
+describe('round-level writes keep sibling structures', () => {
+  const drawDetailOf = (eventId: string, drawId: string) =>
+    tournamentEngine.getPublishState({ eventId }).publishState.status.drawDetails[drawId];
+
+  it('a qualifying round schedule embargo leaves MAIN public', () => {
+    const { eventId, drawId, qualifyingId } = setup();
+    tournamentEngine.publishEvent({ eventId });
+    // control: both structures are public before the write
+    expect(publicStages(eventId).toSorted((a, b) => a.localeCompare(b))).toEqual([MAIN, QUALIFYING]);
+
+    const embargo = new Date(Date.now() + 86_400_000).toISOString();
+    setRoundScheduleEmbargo({
+      eventId,
+      drawId,
+      structureId: qualifyingId,
+      roundNumber: 1,
+      embargo,
+      callback: () => {},
+    });
+
+    expect(publicStages(eventId).toSorted((a, b) => a.localeCompare(b))).toEqual([MAIN, QUALIFYING]);
+    expect(drawDetailOf(eventId, drawId).structureDetails[qualifyingId].scheduledRounds[1].embargo).toBe(embargo);
+
+    setRoundScheduleEmbargo({ eventId, drawId, structureId: qualifyingId, roundNumber: 1, callback: () => {} });
+    expect(drawDetailOf(eventId, drawId).structureDetails[qualifyingId].scheduledRounds[1]).toEqual({
+      published: true,
+    });
+  });
+
+  it('a round limit leaves MAIN public and is removed again', () => {
+    const { eventId, drawId, qualifyingId } = setup();
+    tournamentEngine.publishEvent({ eventId });
+
+    setStructureRoundLimit({ eventId, drawId, structureId: qualifyingId, roundLimit: 1, callback: () => {} });
+    expect(publicStages(eventId).toSorted((a, b) => a.localeCompare(b))).toEqual([MAIN, QUALIFYING]);
+    expect(drawDetailOf(eventId, drawId).structureDetails[qualifyingId].roundLimit).toBe(1);
+
+    setStructureRoundLimit({ eventId, drawId, structureId: qualifyingId, callback: () => {} });
+    expect(drawDetailOf(eventId, drawId).structureDetails[qualifyingId].roundLimit).toBeUndefined();
   });
 });

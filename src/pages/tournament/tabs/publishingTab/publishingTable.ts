@@ -18,6 +18,8 @@ import {
   PUBLISH_EVENT_DATA_PARAMS,
   getStructurePublishContext,
   publishStructureDetails,
+  setRoundScheduleEmbargo,
+  setStructureRoundLimit,
   toggleStructurePublished,
 } from './structurePublishing';
 
@@ -161,20 +163,11 @@ function handlePublishToggle(cell: any): void {
     const maxRound = matchUps.reduce((max: number, m: any) => Math.max(max, m.roundNumber || 0), 0);
     const newLimit = data.roundNumber;
 
-    publishStructureDetails({
+    setStructureRoundLimit({
+      roundLimit: newLimit >= 0 && newLimit < maxRound ? newLimit : undefined,
+      structureId: data.structureId,
       eventId: data.eventId,
       drawId: data.drawId,
-      update: (structureId, detail) => {
-        if (structureId !== data.structureId) return detail;
-        // The round's visibility changes, not the structure's.
-        const updatedDetail: any = { ...detail };
-        if (newLimit >= 0 && newLimit < maxRound) {
-          updatedDetail.roundLimit = newLimit;
-        } else {
-          delete updatedDetail.roundLimit;
-        }
-        return updatedDetail;
-      },
     });
   }
 }
@@ -188,15 +181,12 @@ function handleEmbargoClick(cell: any): void {
   if (data.type === 'round' && data.structureId && data.roundNumber) {
     // Round-level schedule embargo
     const setRoundSchedule = (embargo?: string) =>
-      publishStructureDetails({
+      setRoundScheduleEmbargo({
+        roundNumber: data.roundNumber,
+        structureId: data.structureId,
         eventId: data.eventId,
         drawId: data.drawId,
-        update: (structureId, detail) => {
-          if (structureId !== data.structureId) return detail;
-          const roundDetail = embargo ? { published: true, embargo } : { published: true };
-          const scheduledRounds = { ...detail.scheduledRounds, [data.roundNumber]: roundDetail };
-          return { ...detail, scheduledRounds };
-        },
+        embargo,
       });
 
     openEmbargoModal({
