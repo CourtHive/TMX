@@ -34,10 +34,12 @@ export function getStructurePublishContext(drawId: string) {
 }
 
 export function publishStructureDetails({
+  callback = renderPublishingTab,
   eventId,
   drawId,
   update,
 }: {
+  callback?: () => void;
   eventId: string;
   drawId: string;
   update: UpdateStructure;
@@ -71,7 +73,45 @@ export function publishStructureDetails({
         },
       },
     ],
-    callback: () => renderPublishingTab(),
+    callback: () => callback(),
+  });
+}
+
+type StructureTarget = { eventId: string; drawId: string; structureId: string; callback?: () => void };
+
+/**
+ * Hide the rounds of one structure beyond `roundLimit` (AD_HOC); `undefined` shows every round.
+ * The structure's own visibility is left as it is: a round limit is not a decision to publish it.
+ */
+export function setStructureRoundLimit({
+  roundLimit,
+  structureId,
+  ...target
+}: StructureTarget & { roundLimit?: number }): void {
+  publishStructureDetails({
+    ...target,
+    update: (id, detail) => {
+      if (id !== structureId) return detail;
+      const { roundLimit: _prior, ...rest } = detail;
+      return roundLimit === undefined ? rest : { ...rest, roundLimit };
+    },
+  });
+}
+
+/** Set (or, with no `embargo`, clear) the schedule embargo of one round of one structure. */
+export function setRoundScheduleEmbargo({
+  roundNumber,
+  structureId,
+  embargo,
+  ...target
+}: StructureTarget & { roundNumber: number; embargo?: string }): void {
+  publishStructureDetails({
+    ...target,
+    update: (id, detail) => {
+      if (id !== structureId) return detail;
+      const roundDetail = embargo ? { published: true, embargo } : { published: true };
+      return { ...detail, scheduledRounds: { ...detail.scheduledRounds, [roundNumber]: roundDetail } };
+    },
   });
 }
 
