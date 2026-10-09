@@ -35,12 +35,15 @@ const PROFILE_TEAM: MockProfile = {
 };
 
 /** Draw with automated:false so "Add qualifying" is available via
- *  structure options (empty position assignments). */
+ *  structure options (empty position assignments). 12 entrants into 16:
+ *  room is a position no direct entrant is waiting for (CA, 2026-10-09). */
 const PROFILE_MANUAL_DRAW: MockProfile = {
   tournamentName: 'E2E Attach Qual',
   tournamentAttributes: { tournamentId: 'e2e-attach-qual' },
   participantsProfile: { scaledParticipantsCount: 16 },
-  drawProfiles: [{ eventName: 'Singles', drawSize: 16, drawType: 'SINGLE_ELIMINATION', automated: false }],
+  drawProfiles: [
+    { eventName: 'Singles', drawSize: 16, participantsCount: 12, drawType: 'SINGLE_ELIMINATION', automated: false },
+  ],
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */

@@ -18,6 +18,7 @@ const actionLabels: Record<string, string> = {
   ADDITIONAL_SEED: 'Seed as additional',
   ALTERNATE: 'Assign alternate',
   ASSIGN: 'Assign participant',
+  ASSIGN_QUALIFIER: 'Assign QUALIFIER placeholder',
   BYE: 'Assign BYE',
   NICKNAME: 'Set nickname',
   REMOVE_PARTICIPANT: 'Remove assignment',
@@ -45,7 +46,8 @@ export function selectPositionAction({
 }): void {
   const target = pointerEvent.target as HTMLElement;
   const handleClick = (action: any) => {
-    if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT'].includes(action.type)) noChoiceAction({ action, callback });
+    if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT', 'ASSIGN_QUALIFIER'].includes(action.type))
+      noChoiceAction({ action, callback });
     if (['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type))
       assignParticipant({ action, callback });
     if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
