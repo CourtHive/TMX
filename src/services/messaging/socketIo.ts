@@ -138,7 +138,6 @@ export function connectSocket(callback?: () => void): void {
   const transport = createSocketIoTransport({ url, getToken: () => getToken() ?? undefined });
   oi.connection = transport;
 
-  transport.on('ack', receiveAcknowledgement);
   transport.on(TMX_MESSAGE, tmxMessage);
   transport.on(TMX_DIRECTIVE, processDirective);
   transport.on('tournamentMutation', handleTournamentMutation);
@@ -437,13 +436,14 @@ function forget(entry: OutboxEntry | undefined): void {
 
 /**
  * Hand a message to the server; false when there is no live connection and the caller must queue
- * it. With `commandsOverHttp` a command goes over HTTP (httpCommands.ts), but online is still judged
- * by the realtime connection, so the offline queue behaves the same either way. A durable command
- * the server never answered goes back to the head of the queue; any other is left to its sender's
- * timeout, as an unanswered socket message is.
+ * it. A command (`executionQueue`, `chatMessage`) always goes over HTTP (httpCommands.ts); the
+ * server no longer accepts one on the socket, which carries subscriptions and server push only.
+ * Online is still judged by the realtime connection, so the offline queue behaves as it always has.
+ * A durable command the server never answered goes back to the head of the queue; any other is
+ * left to its sender's timeout.
  */
 function dispatch(event: string, data: any, durableUserId?: string): boolean {
-  if (!serverConfig.get().commandsOverHttp || !HTTP_COMMANDS.has(event)) return !!oi.connection?.send(event, data);
+  if (!HTTP_COMMANDS.has(event)) return !!oi.connection?.send(event, data);
   if (!oi.connection?.isConnected()) return false;
   postCommand(event, data)
     .then((outcome) => {
