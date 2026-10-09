@@ -1,6 +1,6 @@
 /**
  * Events/Draws publishing tree table using Tabulator dataTree.
- * Shows hierarchical event > draw rows with publish toggles, embargo pickers,
+ * Shows hierarchical event > draw > structure rows with publish toggles, embargo pickers,
  * clickable names (navigate to draw), and public URL links.
  */
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
@@ -14,6 +14,12 @@ import { getPublishingTableData } from './publishingData';
 import { venueTimeZone } from 'functions/venueTimeFrame';
 import { openEmbargoModal } from './embargoModal';
 import { t } from 'i18n';
+import {
+  PUBLISH_EVENT_DATA_PARAMS,
+  getStructurePublishContext,
+  publishStructureDetails,
+  toggleStructurePublished,
+} from './structurePublishing';
 
 // constants
 import { PUBLISH_EVENT, UNPUBLISH_EVENT } from 'constants/mutationConstants';
@@ -24,7 +30,7 @@ const TRN_EMBARGO = 'publishing.embargo';
 function getRowPublicUrl(data: any): string | undefined {
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   if (!tournamentId) return undefined;
-  if (data.type === 'draw' && data.drawId) {
+  if ((data.type === 'draw' || data.type === 'structure') && data.drawId) {
     return getPublicDrawUrl({ tournamentId, eventId: data.eventId, drawId: data.drawId });
   }
   if (data.type === 'event') {
@@ -71,7 +77,7 @@ function publicUrlFormatter(cell: any): string {
   if (!tournamentId) return '';
 
   let url: string | undefined;
-  if (data.type === 'draw' && data.drawId) {
+  if ((data.type === 'draw' || data.type === 'structure') && data.drawId) {
     url = getPublicDrawUrl({ tournamentId, eventId: data.eventId, drawId: data.drawId });
   } else if (data.type === 'event') {
     url = getPublicEventUrl({ tournamentId, eventId: data.eventId });
@@ -107,7 +113,9 @@ function embargoFormatter(cell: any): string {
 
 function handleNameClick(cell: any): void {
   const data = cell.getRow().getData();
-  if (data.type === 'draw' && data.drawId) {
+  if (data.type === 'structure' && data.drawId) {
+    navigateToEvent({ eventId: data.eventId, drawId: data.drawId, structureId: data.structureId, renderDraw: true });
+  } else if (data.type === 'draw' && data.drawId) {
     navigateToEvent({ eventId: data.eventId, drawId: data.drawId, renderDraw: true });
   } else if (data.type === 'event') {
     navigateToEvent({ eventId: data.eventId, renderDraw: true });
@@ -118,13 +126,18 @@ function handlePublishToggle(cell: any): void {
   const row = cell.getRow();
   const data = row.getData();
 
-  const eventDataParams = {
-    participantsProfile: { withScaleValues: true },
-    pressureRating: true,
-    refreshResults: true,
-  };
+  const eventDataParams = PUBLISH_EVENT_DATA_PARAMS;
 
-  if (data.type === 'event') {
+  if (data.type === 'structure') {
+    const drawPublished = !!row.getTreeParent()?.getData()?.published;
+    toggleStructurePublished({
+      eventId: data.eventId,
+      drawId: data.drawId,
+      structureId: data.structureId,
+      drawPublished,
+      structurePublished: data.published,
+    });
+  } else if (data.type === 'event') {
     const method = data.published ? UNPUBLISH_EVENT : PUBLISH_EVENT;
     mutationRequest({
       methods: [{ method, params: { eventId: data.eventId, eventDataParams } }],
@@ -140,39 +153,28 @@ function handlePublishToggle(cell: any): void {
       callback: () => renderPublishingTab(),
     });
   } else if (data.type === 'round' && data.structureId && data.roundLimit != null) {
-    // Toggle round visibility via roundLimit
-    const { event } = tournamentEngine.getEvent({ drawId: data.drawId });
-    if (!event) return;
-    const pubState = publishingGovernor.getPublishState({ event })?.publishState;
-    const structureDetail = pubState?.status?.drawDetails?.[data.drawId]?.structureDetails?.[data.structureId] || {};
-
-    // Currently hidden — show it by raising roundLimit to include this round
-    const newLimit = data.roundNumber; // show up to this round
-    const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === data.drawId);
-    const structure = drawDef?.structures?.find((s: any) => s.structureId === data.structureId);
+    // Toggle round visibility via roundLimit: show up to and including this round
+    const ctx = getStructurePublishContext(data.drawId);
+    if (!ctx) return undefined;
+    const structure = ctx.drawDef?.structures?.find((s: any) => s.structureId === data.structureId);
     const matchUps = structure?.matchUps || [];
     const maxRound = matchUps.reduce((max: number, m: any) => Math.max(max, m.roundNumber || 0), 0);
+    const newLimit = data.roundNumber;
 
-    const updatedDetail: any = { ...structureDetail, published: true };
-    if (newLimit >= 0 && newLimit < maxRound) {
-      updatedDetail.roundLimit = newLimit;
-    } else {
-      delete updatedDetail.roundLimit;
-    }
-
-    mutationRequest({
-      methods: [
-        {
-          method: PUBLISH_EVENT,
-          params: {
-            removePriorValues: true,
-            drawDetails: { [data.drawId]: { structureDetails: { [data.structureId]: updatedDetail } } },
-            eventId: data.eventId,
-            eventDataParams,
-          },
-        },
-      ],
-      callback: () => renderPublishingTab(),
+    publishStructureDetails({
+      eventId: data.eventId,
+      drawId: data.drawId,
+      update: (structureId, detail) => {
+        if (structureId !== data.structureId) return detail;
+        // The round's visibility changes, not the structure's.
+        const updatedDetail: any = { ...detail };
+        if (newLimit >= 0 && newLimit < maxRound) {
+          updatedDetail.roundLimit = newLimit;
+        } else {
+          delete updatedDetail.roundLimit;
+        }
+        return updatedDetail;
+      },
     });
   }
 }
@@ -181,73 +183,56 @@ function handleEmbargoClick(cell: any): void {
   const row = cell.getRow();
   const data = row.getData();
 
-  const eventDataParams = {
-    participantsProfile: { withScaleValues: true },
-    pressureRating: true,
-    refreshResults: true,
-  };
+  const eventDataParams = PUBLISH_EVENT_DATA_PARAMS;
 
   if (data.type === 'round' && data.structureId && data.roundNumber) {
     // Round-level schedule embargo
-    const { event } = tournamentEngine.getEvent({ drawId: data.drawId });
-    if (!event) return;
-    const pubState = publishingGovernor.getPublishState({ event })?.publishState;
-    const structureDetail = pubState?.status?.drawDetails?.[data.drawId]?.structureDetails?.[data.structureId] || {};
-    const currentScheduledRounds = structureDetail.scheduledRounds || {};
+    const setRoundSchedule = (embargo?: string) =>
+      publishStructureDetails({
+        eventId: data.eventId,
+        drawId: data.drawId,
+        update: (structureId, detail) => {
+          if (structureId !== data.structureId) return detail;
+          const roundDetail = embargo ? { published: true, embargo } : { published: true };
+          const scheduledRounds = { ...detail.scheduledRounds, [data.roundNumber]: roundDetail };
+          return { ...detail, scheduledRounds };
+        },
+      });
 
     openEmbargoModal({
       title: t('publishing.embargoRoundSchedule', { roundNumber: data.roundNumber }),
       currentEmbargo: data.scheduleEmbargo,
-      onSet: (isoString) => {
-        const scheduledRounds = {
-          ...currentScheduledRounds,
-          [data.roundNumber]: { published: true, embargo: isoString },
-        };
-        mutationRequest({
-          methods: [
-            {
-              method: PUBLISH_EVENT,
-              params: {
-                removePriorValues: true,
-                drawDetails: {
-                  [data.drawId]: { structureDetails: { [data.structureId]: { ...structureDetail, scheduledRounds } } },
-                },
-                eventId: data.eventId,
-                eventDataParams,
-              },
-            },
-          ],
-          callback: () => renderPublishingTab(),
-        });
-      },
-      onClear: data.scheduleEmbargo
-        ? () => {
-            const scheduledRounds = { ...currentScheduledRounds, [data.roundNumber]: { published: true } };
-            mutationRequest({
-              methods: [
-                {
-                  method: PUBLISH_EVENT,
-                  params: {
-                    removePriorValues: true,
-                    drawDetails: {
-                      [data.drawId]: {
-                        structureDetails: { [data.structureId]: { ...structureDetail, scheduledRounds } },
-                      },
-                    },
-                    eventId: data.eventId,
-                    eventDataParams,
-                  },
-                },
-              ],
-              callback: () => renderPublishingTab(),
-            });
-          }
-        : undefined,
+      onSet: (isoString) => setRoundSchedule(isoString),
+      onClear: data.scheduleEmbargo ? () => setRoundSchedule() : undefined,
     });
-    return;
+    return undefined;
   }
 
-  if (data.type !== 'draw') return;
+  if (data.type === 'structure' && data.structureId) {
+    // Structure embargo: e.g. hold MAIN and consolation until qualifying is complete. Setting one
+    // publishes the structure (it goes live when the embargo lifts); clearing it keeps its visibility.
+    const drawPublished = !!row.getTreeParent()?.getData()?.published;
+    const setStructureEmbargo = (embargo?: string) =>
+      publishStructureDetails({
+        eventId: data.eventId,
+        drawId: data.drawId,
+        update: (structureId, detail) => {
+          if (structureId !== data.structureId) return drawPublished ? detail : { ...detail, published: false };
+          const { embargo: _prior, ...rest } = detail;
+          return embargo ? { ...rest, published: true, embargo } : rest;
+        },
+      });
+
+    openEmbargoModal({
+      title: `${t(TRN_EMBARGO)}: ${data.name}`,
+      currentEmbargo: data.embargo,
+      onSet: (isoString) => setStructureEmbargo(isoString),
+      onClear: data.embargo ? () => setStructureEmbargo() : undefined,
+    });
+    return undefined;
+  }
+
+  if (data.type !== 'draw') return undefined;
 
   openEmbargoModal({
     title: `${t(TRN_EMBARGO)}: ${data.name}`,
@@ -293,20 +278,16 @@ function handleScheduleEmbargoClick(cell: any): void {
 
   if (data.type === 'round') {
     handleEmbargoClick(cell);
-    return;
+    return undefined;
   }
 
-  if (data.type !== 'draw') return;
+  if (data.type !== 'draw') return undefined;
 
-  const eventDataParams = {
-    participantsProfile: { withScaleValues: true },
-    pressureRating: true,
-    refreshResults: true,
-  };
+  const eventDataParams = PUBLISH_EVENT_DATA_PARAMS;
 
   // Draw-level schedule embargo: applies to all rounds in all structures
   const { event } = tournamentEngine.getEvent({ drawId: data.drawId });
-  if (!event) return;
+  if (!event) return undefined;
   const pubState = publishingGovernor.getPublishState({ event })?.publishState;
   const drawDetail = pubState?.status?.drawDetails?.[data.drawId] || {};
   const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === data.drawId);
@@ -404,10 +385,11 @@ function getColumns(): any[] {
     {
       title: t('publishing.type'),
       field: 'type',
-      width: 80,
+      width: 90,
       formatter: (cell: any) => {
         const type = cell.getValue();
         if (type === 'event') return t('publishing.event');
+        if (type === 'structure') return t('publishing.structure');
         if (type === 'round') return t('publishing.round');
         return t('publishing.draw');
       },
@@ -487,7 +469,8 @@ export function renderPublishingTable(grid: HTMLElement): void {
 
   new Tabulator(tableEl, {
     dataTree: true,
-    dataTreeStartExpanded: true,
+    // Events open; a draw's structures stay collapsed unless it is already published selectively.
+    dataTreeStartExpanded: (row: any) => !!row.getData().expanded,
     dataTreeChildField: '_children',
     layout: 'fitColumns',
     placeholder: t('publishing.noEvents'),

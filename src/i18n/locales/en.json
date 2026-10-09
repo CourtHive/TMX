@@ -2623,6 +2623,7 @@
     "status": "Status",
     "event": "Event",
     "draw": "Draw",
+    "structure": "Structure",
     "noEvents": "No events",
     "oopLive": "OOP Live",
     "oopOff": "OOP Off",
