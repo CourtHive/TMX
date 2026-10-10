@@ -48,6 +48,7 @@ import {
   buildScheduleDates,
   refreshGridView,
   setGridActiveStripVisible,
+  setGridSidebarVisible,
   shiftCourtsDown,
   resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
@@ -357,6 +358,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
       writeBoolFlag(GRID_CATALOG_VISIBILITY_KEY, next);
       const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
       if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
+      setGridSidebarVisible(next);
     },
     onToggleActiveStrip: (next: boolean) => {
       writeBoolFlag(ACTIVE_STRIP_VISIBILITY_KEY, next);
@@ -385,6 +387,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     titleLeadingActions: gridActions.leading,
     titleSlot: gridActions.titleSlot,
     activeStripVisible,
+    catalogVisible: gridCatalogVisible,
     bulkMode: getGridBulkMode(),
     onBulkModeChange: (enabled: boolean) => {
       if (!enabled && hasUnsavedGridChanges()) {
