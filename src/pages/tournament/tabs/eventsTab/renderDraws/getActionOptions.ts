@@ -16,18 +16,14 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { resetDraws } from 'components/modals/resetDraws';
 import { printDraw } from 'components/modals/printDraw';
+import { positionStructure } from './positionStructure';
 import { removeStructure } from './removeStructure';
 import { renderDrawView } from './renderDrawView';
 import { t } from 'i18n';
 
 // constants
+import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, UPDATE_PARTICIPANT_RESULTS } from 'constants/mutationConstants';
 import { DRAWS_VIEW, QUALIFYING } from 'constants/tmxConstants';
-import {
-  RESET_MATCHUP_LINEUPS,
-  RESET_SCORECARD,
-  SET_POSITION_ASSIGNMENTS,
-  UPDATE_PARTICIPANT_RESULTS,
-} from 'constants/mutationConstants';
 
 const { POLICY_TYPE_SCORING } = policyConstants;
 const { CONTAINER, MAIN } = drawDefinitionConstants;
@@ -101,45 +97,14 @@ export function getActionOptions({
     },
     {
       hide: !isAssignableStage || !isEmptyDraw,
-      onClick: () => {
-        const result = tournamentEngine.automatedPositioning({
-          applyPositioning: false,
+      onClick: () =>
+        positionStructure({
+          onPositioned: () => renderDrawView({ eventId, drawId, structureId }),
+          stage: structure?.stage,
           structureId,
+          eventId,
           drawId,
-        });
-
-        if (!result.success || !result.positionAssignments?.length) {
-          tmxToast({
-            message: result.error?.message || 'No position assignments generated',
-            intent: 'is-warning',
-          });
-          return;
-        }
-
-        const methods = [
-          {
-            method: SET_POSITION_ASSIGNMENTS,
-            params: {
-              structurePositionAssignments: [{ structureId, positionAssignments: result.positionAssignments }],
-              structureId,
-              drawId,
-            },
-          },
-        ];
-
-        const postMutation = (mutationResult: any) => {
-          if (mutationResult.success) {
-            renderDrawView({ eventId, drawId, structureId });
-          } else {
-            tmxToast({
-              message: mutationResult.error?.message || 'Failed to place participants',
-              intent: 'is-danger',
-            });
-          }
-        };
-
-        mutationRequest({ methods, callback: postMutation });
-      },
+        }),
       label: t('pages.events.actionOptions.autoPlaceParticipants'),
       close: true,
     },
