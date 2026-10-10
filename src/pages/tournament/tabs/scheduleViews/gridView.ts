@@ -374,11 +374,17 @@ export function renderGridView(
   // before activeControl exists. The wrapper defers to the real refresh once ready.
   function refresh(): void {
     if (!activeControl || !grid) return;
+    const control = activeControl;
     grid.rebuild(currentDate);
-    activeControl.setMatchUpCatalog(buildCatalog(currentDate));
-    activeControl.setScheduleDates(buildScheduleDates(currentDate));
     const freshIssues = buildIssues(currentDate);
-    activeControl.setIssues(freshIssues);
+    // One store notification for the three pushes. Each write notified on its own (four with the
+    // selection re-point), and every notification re-rendered the Inspector, which grades the
+    // selected matchUp's readiness, rest and timing through the engine, plus the issues and dates.
+    control.batch(() => {
+      control.setMatchUpCatalog(buildCatalog(currentDate));
+      control.setScheduleDates(buildScheduleDates(currentDate));
+      control.setIssues(freshIssues);
+    });
     // Surface new/cleared conflicts (e.g. a drag that puts court times out of
     // order) in the action bar's issues button without rebuilding the bar.
     gridActionBar?.setIssues(freshIssues);
