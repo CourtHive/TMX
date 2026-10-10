@@ -1,5 +1,6 @@
 [
   "accessors",
+  "batch",
   "bookings",
   "segments",
   "targets"

@@ -15,7 +15,8 @@ import { TournamentPage } from '../pages/TournamentPage';
  *     `/scheduling` matches its own route and the `:selectedTab` catch-all.
  *  2. The catalog behind the Scheduled tab is not graded; showing it grades it.
  *  3. Selecting a Scheduled card moves the highlight; it does not rebuild the panel.
- *  4. A collapsed group builds no cards.
+ *  4. A refresh notifies the page once, not once per pushed slice.
+ *  5. A collapsed group builds no cards.
  */
 
 const DATE = todayLocal();
@@ -66,7 +67,26 @@ async function startCounting(page: Page): Promise<void> {
   });
 }
 
+const readCounts = (page: Page): Promise<Record<string, number>> =>
+  page.evaluate(() => ({ ...(globalThis as any).__engineCalls }));
+
+/**
+ * The calls made since the last take, once they have stopped arriving. A fixed wait was too short
+ * on a cold dev server, letting one step's calls land in the next step's count.
+ */
 async function takeCounts(page: Page): Promise<Record<string, number>> {
+  let previous = '';
+  await expect
+    .poll(
+      async () => {
+        const current = JSON.stringify(await readCounts(page));
+        const settled = current === previous;
+        previous = current;
+        return settled;
+      },
+      { intervals: [250], timeout: 15_000 },
+    )
+    .toBe(true);
   return page.evaluate(() => {
     const g = globalThis as any;
     const counts = g.__engineCalls;
@@ -102,7 +122,6 @@ test.describe('Journey 150 — schedule render economy', () => {
     await startCounting(page);
     await tournament.navigateToScheduling();
     await expect(page.locator(SCHEDULED_CARD)).toHaveCount(scheduled);
-    await page.waitForTimeout(500);
     expect(graded(await takeCounts(page))).toEqual([scheduled, scheduled]);
 
     // 3: selection moves the highlight on the same card element. The Inspector's sections and the
@@ -117,7 +136,18 @@ test.describe('Journey 150 — schedule render economy', () => {
     expect(rest).toBeLessThanOrEqual(4);
     expect(readiness).toBeLessThanOrEqual(4);
 
-    // 4: collapsing a group rebuilds the panel without that group's cards.
+    // 4: a refresh (what every schedule mutation ends with) pushes the catalog, the dates and the
+    // issues as one store write. The Scheduled cards are graded once and the Inspector renders once
+    // for the selection (~3 readiness, ~2 rest); written one by one it rendered four times, measured
+    // at 48+9 readiness and 48+5 rest.
+    await page.evaluate(() => (globalThis as any).dev.tournamentContext.refreshActiveTable());
+    const [refreshRest, refreshReadiness] = graded(await takeCounts(page));
+    expect(refreshRest).toBeGreaterThanOrEqual(scheduled);
+    expect(refreshRest).toBeLessThanOrEqual(scheduled + 2);
+    expect(refreshReadiness).toBeGreaterThanOrEqual(scheduled);
+    expect(refreshReadiness).toBeLessThanOrEqual(scheduled + 3);
+
+    // 5: collapsing a group rebuilds the panel without that group's cards.
     const firstGroupHeader = page.locator(`${SCHEDULED_PANEL} .sp-group-header`).first();
     const firstGroupSize = Number((await firstGroupHeader.textContent())?.match(/\((\d+)\)/)?.[1]);
     expect(firstGroupSize).toBeGreaterThan(0);
@@ -127,7 +157,6 @@ test.describe('Journey 150 — schedule render economy', () => {
 
     // 2, the other half: showing the catalog grades its cards.
     await page.locator(UNSCHEDULED_TAB).click();
-    await page.waitForTimeout(500);
     const [catalogRest] = graded(await takeCounts(page));
     expect(catalogRest).toBeGreaterThan(0);
   });
