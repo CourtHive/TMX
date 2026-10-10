@@ -6,10 +6,17 @@ name: electron
 # loads the Electron entry points. Five months of silent breakage is the reason
 # this workflow exists.
 
+# Runs on PRs into `main` (the dev→main checkpoint and release-please's PR) and on pushes to `main`,
+# not on every PR into `dev` (CA, 2026-10-10: fewer runs, as factory). It ran beside `ci.yml` on each
+# dev PR, 75 runs in the week to 2026-10-10. Electron breakage now surfaces at the checkpoint, which
+# still gates `main`, rather than on the PR that caused it; run it by hand (workflow_dispatch) on a
+# dev PR that touches `electron/`.
 on:
   pull_request:
+    branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
