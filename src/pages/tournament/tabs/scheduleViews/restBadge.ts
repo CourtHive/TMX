@@ -211,6 +211,9 @@ function tick(): void {
   for (const badge of badges) {
     const matchUpId = badge.dataset.matchUpId;
     if (!matchUpId) continue;
+    // Under a hidden tab, a collapsed group or a collapsed sidebar: nobody is reading it, and the
+    // repaint that shows it again builds it fresh.
+    if (badge.checkVisibility && !badge.checkVisibility()) continue;
     const model = badgeModel(evaluate(matchUpId, badge.dataset.viewedDate || null));
     // A badge with nothing left to say is removed rather than frozen — this node
     // is ours, appended by `renderCardExtra`, so taking it back is not reaching

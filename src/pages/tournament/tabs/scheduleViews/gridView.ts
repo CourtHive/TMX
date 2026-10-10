@@ -94,6 +94,7 @@ import {
   getCachedScheduleMatchUps,
   getCachedCompetitionDateRange,
   getCachedTournamentInfo,
+  getCachedProConflicts,
   getCachedAllMatchUps,
 } from './schedule2DataCache';
 import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
@@ -267,6 +268,22 @@ let activeStripUnsubscribe: (() => void) | null = null;
 let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
 // Per-court record of which matchUp currently occupies the "Now" strip cell.
 let catalogStateUnsubscribe: (() => void) | null = null;
+
+/**
+ * What the sidebar has on screen. A card's rest and check-in badges cost engine work per card, and
+ * the catalog builds every card whether or not anyone can see it: hidden behind the Scheduled tab,
+ * or with the whole sidebar collapsed. Battle of Boca opened on the Scheduled tab and still graded
+ * every catalog card behind it. `sidebarTab` is null until the mount resolves its initial tab, so
+ * the first catalog render, built before that, carries no badges.
+ */
+let sidebarVisible = true;
+let sidebarTab: SidebarTab | null = null;
+/** Repaints whichever sidebar panel has just come on screen. Assigned per mount. */
+let onSidebarShown: (() => void) | null = null;
+
+function catalogOnScreen(): boolean {
+  return sidebarVisible && sidebarTab === 'unscheduled';
+}
 // Persisted view state (sidebar tab + scheduled-panel search / groupBy /
 // filters) lives in `gridViewStorage.ts` — extracted so the localStorage
 // round-trips + default / malformed paths can be unit-tested without
@@ -331,6 +348,8 @@ export function renderGridView(
     titleLeadingActions?: HTMLElement[];
     titleSlot?: HTMLElement;
     activeStripVisible?: boolean;
+    /** Whether the sidebar (catalog / Scheduled panel) starts expanded. */
+    catalogVisible?: boolean;
     bulkMode?: boolean;
     onBulkModeChange?: (enabled: boolean) => void;
     onClearSchedule?: (target: HTMLElement) => void;
@@ -339,6 +358,8 @@ export function renderGridView(
 ): void {
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
+  sidebarVisible = options?.catalogVisible ?? true;
+  sidebarTab = null;
   planContext = options?.planContext ?? null;
   if (planContext) ensurePlanModeStyles();
   actionBarContainer = container;
@@ -456,7 +477,7 @@ export function renderGridView(
     // next" decision is made while scanning the catalog, before any card is selected
     // and before the drag starts, so the Inspector is one interaction too late.
     // Rest asks whether they are fit to be called, check-in whether they are here.
-    renderCardExtra: (matchUp) => renderCardBadges(matchUp.matchUpId, currentDate),
+    renderCardExtra: (matchUp) => (catalogOnScreen() ? renderCardBadges(matchUp.matchUpId, currentDate) : null),
     // Hovering a card lights up what it is waiting on, wherever the page draws
     // it. The question a red scheduled time raises is "waiting on WHICH match",
     // and pointing at the grid answers it faster than a sentence can.
@@ -1136,6 +1157,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function updateScheduledPanel(): void {
+    // Hidden with the sidebar: built when it is shown again (`onSidebarShown`).
+    if (!sidebarVisible) return;
     scheduledCardsContainer.innerHTML = '';
     const scheduled = getScheduledNotPlacedOnCourt();
     const items = scheduled.map((m) => scheduledMatchUpToCatalogItem(m));
@@ -1219,7 +1242,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       gb.className = 'sp-group-body';
       if (isCollapsed) gb.style.display = 'none';
 
-      for (const item of groupItems) {
+      // A collapsed group's cards are not built: each one grades readiness and rest. Expanding the
+      // group re-runs this function.
+      for (const item of isCollapsed ? [] : groupItems) {
         // isScheduled is forced to false so buildMatchUpCard attaches its
         // dragstart listener — these sidebar cards must be promotable onto a
         // court. The prominent time header (via the option) is what visually
@@ -1248,6 +1273,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
             renderExtra: (m) => renderRestBadge(m.matchUpId, currentDate),
           },
         );
+        card.dataset.matchUpId = item.matchUpId;
         if (!item.scheduledTime) card.classList.add('no-time');
         if (activeControl?.getStore().getState().selectedMatchUp?.matchUpId === item.matchUpId) {
           card.classList.add('selected');
@@ -1276,11 +1302,18 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   function selectFromScheduledPanel(matchUpId: string): void {
     const store = activeControl?.getStore();
     if (!store) return;
-    const fromCatalog = store.getState().matchUpCatalog.find((m) => m.matchUpId === matchUpId);
-    const fallback = buildCatalog(currentDate).find((m) => m.matchUpId === matchUpId);
-    const resolved = fromCatalog ?? fallback;
+    const resolved =
+      store.getState().matchUpCatalog.find((m) => m.matchUpId === matchUpId) ??
+      buildCatalog(currentDate).find((m) => m.matchUpId === matchUpId);
+    // The store's emit moves the highlight (see the subscriber); no rebuild of the panel.
     if (resolved) store.selectMatchUp(resolved);
-    updateScheduledPanel();
+  }
+
+  /** Move the Scheduled panel's highlight without rebuilding its cards. */
+  function markScheduledSelection(selectedId: string | undefined): void {
+    for (const card of scheduledCardsContainer.querySelectorAll<HTMLElement>('[data-match-up-id]')) {
+      card.classList.toggle('selected', card.dataset.matchUpId === selectedId);
+    }
   }
 
   // The default tab reflects the selected date's schedule state; the operator's
@@ -1294,7 +1327,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function setTab(tab: SidebarTab, options?: { persist?: boolean }): void {
+    const catalogWasShown = catalogOnScreen();
     activeTab = tab;
+    sidebarTab = tab;
     // Persist only explicit operator choices, not the auto-resolved default, so
     // `readSidebarTab()` keeps meaning "the last tab the operator clicked".
     if (options?.persist !== false) writeSidebarTab(tab);
@@ -1304,6 +1339,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     if (tab === 'unscheduled') {
       scheduledPanel.style.display = 'none';
       for (const el of catalogContent) (el as HTMLElement).style.display = '';
+      // Its cards were built without badges while it was out of sight.
+      if (!catalogWasShown && catalogOnScreen()) repaintCatalog();
     } else {
       for (const el of catalogContent) (el as HTMLElement).style.display = 'none';
       // Explicit `flex` rather than `''` so the panel's flex-direction:column
@@ -1313,6 +1350,16 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       updateScheduledPanel();
     }
   }
+
+  /** Rebuild the catalog's cards, so ones built while it was hidden get their badges. */
+  function repaintCatalog(): void {
+    activeControl?.setMatchUpCatalog(buildCatalog(currentDate));
+  }
+
+  onSidebarShown = () => {
+    if (activeTab === 'unscheduled') repaintCatalog();
+    else updateScheduledPanel();
+  };
 
   unschedTab.addEventListener('click', () => setTab('unscheduled'));
   schedTab.addEventListener('click', () => setTab('scheduled'));
@@ -1339,9 +1386,18 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // via `activeControl.destroy()`, which drops its subscribers with it, so there is nothing
   // for this scope to clean up. Binding the handle only to discard it is what the `void` was
   // hiding — and a bound-but-unused handle reads as an unsubscribe someone forgot to call.
-  activeControl?.getStore().subscribe(() => {
-    updateBadge();
-    if (activeTab === 'scheduled') updateScheduledPanel();
+  // Only a change of data rebuilds the panel. The store emits on every write, selection included,
+  // and a click on a card used to rebuild every card in the panel to move one highlight.
+  let renderedCatalog: unknown = activeControl?.getStore().getState().matchUpCatalog;
+  let renderedShowCompleted = activeControl?.getStore().getState().showCompleted;
+  activeControl?.getStore().subscribe((state) => {
+    const dataChanged = state.matchUpCatalog !== renderedCatalog || state.showCompleted !== renderedShowCompleted;
+    renderedCatalog = state.matchUpCatalog;
+    renderedShowCompleted = state.showCompleted;
+    if (dataChanged) updateBadge();
+    if (activeTab !== 'scheduled' || !sidebarVisible) return;
+    if (dataChanged) updateScheduledPanel();
+    else markScheduledSelection(state.selectedMatchUp?.matchUpId);
   });
 }
 
@@ -1446,9 +1502,21 @@ export function destroyGridView(): void {
   actionBarContainer = null;
   gridRootElement = null;
   currentRefresh = null;
+  onSidebarShown = null;
+  sidebarTab = null;
   // An Inspector left on screen by another surface must not dispatch into a dead
   // render; the action declines to offer itself instead.
   resetScheduleMutationControl();
+}
+
+/**
+ * The sidebar was collapsed or expanded. Its panels skip their cards while it is collapsed, so
+ * expanding it repaints whichever one is showing.
+ */
+export function setGridSidebarVisible(visible: boolean): void {
+  const wasVisible = sidebarVisible;
+  sidebarVisible = visible;
+  if (visible && !wasVisible) onSidebarShown?.();
 }
 
 /** Toggle visibility of the one-row active courts strip via the store flag. */
@@ -3029,18 +3097,15 @@ export function shiftCourtsDown(): void {
 export function resolveColumnConflicts(): void {
   if (!currentRefresh || !currentDate) return;
 
-  const { matchUps } = getCachedAllMatchUps() || {};
-  const scheduledMatchUps = (matchUps || []).filter(
-    (m: any) => m.schedule?.courtId && m.schedule?.scheduledDate === currentDate,
-  );
+  const conflictResult = getCachedProConflicts(currentDate);
+  const { scheduledMatchUps } = conflictResult;
   if (!scheduledMatchUps.length) {
     scheduleToast({ message: t('gridView.noScheduled'), intent: INTENT_WARNING });
     return;
   }
 
-  const conflictResult = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
   const { CONFLICT_PARTICIPANTS, CONFLICT_POTENTIAL_PARTICIPANTS, SCHEDULE_CONFLICT } = scheduleConstants;
-  const participantConflicts = Object.values(conflictResult?.rowIssues || {})
+  const participantConflicts = Object.values(conflictResult.rowIssues || {})
     .flat()
     .filter(
       (issue: any) =>
@@ -3730,15 +3795,10 @@ function applyHeaderRowIssueIndicators(
   courtsData: any[],
   selectedDate: string,
 ): void {
-  // Use allTournamentMatchUps for conflict detection (grid cell data lacks fields proConflicts needs)
-  const { matchUps } = getCachedAllMatchUps();
-  const scheduledMatchUps = (matchUps || []).filter((m: any) => {
-    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
-  });
-  if (!scheduledMatchUps.length) return;
-
-  const result = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
-  if (!result) return;
+  // Use allTournamentMatchUps for conflict detection (grid cell data lacks fields proConflicts needs).
+  // Shared with `buildIssues` through the cache: same question, same input.
+  const result = getCachedProConflicts(selectedDate);
+  if (!result.evaluated) return;
 
   const warningBarsVisible = readGridWarningBars();
   /** Drops the issues whose decoration the operator has turned off. Errors always survive. */
@@ -3914,14 +3974,9 @@ function buildIssueEntry(
 export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
   // lack fields that proConflicts needs to detect certain conflict types.
-  const { matchUps } = getCachedAllMatchUps();
-  const scheduledMatchUps = (matchUps || []).filter((m: any) => {
-    return m.schedule?.courtId && m.schedule?.scheduledDate === selectedDate;
-  });
-  if (!scheduledMatchUps.length) return [];
-
-  const conflictResult = unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null);
-  if (!conflictResult) return [];
+  const conflictResult = getCachedProConflicts(selectedDate);
+  if (!conflictResult.evaluated) return [];
+  const { scheduledMatchUps } = conflictResult;
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
   // `severityOf` rather than a local copy: the action bar's count badge and the grid's
@@ -3930,8 +3985,9 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   const mapSeverity = severityOf;
 
   // Build lookup from matchUpId to participant display string
+  const scheduledById = new Map(scheduledMatchUps.map((mu: any) => [mu.matchUpId, mu]));
   const matchUpLabel = (id: string): string => {
-    const m = scheduledMatchUps.find((mu: any) => mu.matchUpId === id);
+    const m: any = scheduledById.get(id);
     if (!m) return 'Unknown';
     const names = (m.sides || []).map((s: any) => s.participant?.participantName ?? s.participantName).filter(Boolean);
     return names.length ? names.join(' vs ') : m.roundName || 'TBD vs TBD';

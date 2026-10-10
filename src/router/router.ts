@@ -51,7 +51,12 @@ export function routeTMX() {
   const routerRoot = '/';
 
   const useHash = true;
-  const router = new Navigo(useHash ? '/' : `/${routerRoot}`, { hash: useHash });
+  // `strategy: 'ONE'` must be stated: an options object REPLACES Navigo's defaults rather than merging
+  // into them, and without it Navigo runs every route that matches. `/tournament/:id/scheduling`
+  // matches both its own route and the `:selectedTab` catch-all, so the scheduling workspace —
+  // catalog, Scheduled panel, grid and every per-card readiness/rest evaluation — rendered twice
+  // per navigation. The route table below is ordered for first-match-wins.
+  const router = new Navigo(useHash ? '/' : `/${routerRoot}`, { hash: useHash, strategy: 'ONE' });
 
   // make accessible
   context.router = router;
