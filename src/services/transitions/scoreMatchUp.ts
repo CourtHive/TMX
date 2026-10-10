@@ -137,8 +137,12 @@ export function enterMatchUpScore(params: {
     applyScore();
   };
 
+  // Asked once, as the dialog opens, so it can withhold [Clear] where the engine would refuse it. The
+  // check in `dispatch` stays: it asks again at submit, against whatever was decided in the meantime.
+  const clearable = clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId });
+
   if (featureFlags.get().scoreEntryDialog) {
-    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup });
+    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable });
     return;
   }
 
@@ -173,6 +177,7 @@ export function enterMatchUpScore(params: {
     callback: scoreSubmitted,
     onRelayCleanup,
     matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
+    clearable,
   });
 }
 
@@ -191,10 +196,12 @@ function openNewScoreEntry({
   matchUp,
   dispatch,
   onRelayCleanup,
+  clearable,
 }: {
   matchUp: any;
   dispatch: (params: { outcome: any; onAccepted?: () => void }) => void;
   onRelayCleanup: () => void;
+  clearable: boolean;
 }): void {
   const preferred = preferencesConfig.get().scoringApproach as ScoreEntryApproach;
   openScoreEntryDialog({
@@ -202,6 +209,7 @@ function openNewScoreEntry({
     sides: dialogSides(matchUp),
     context: [matchUp?.roundName, matchUp?.schedule?.courtName].filter(Boolean).join(' · ') || undefined,
     statusCodeGroups: resolveStatusCodeGroups(matchUp),
+    clearable,
     approach: DIALOG_APPROACHES.includes(preferred) ? preferred : undefined,
     onApproachChange: (scoringApproach) => {
       preferencesConfig.set({ scoringApproach });
