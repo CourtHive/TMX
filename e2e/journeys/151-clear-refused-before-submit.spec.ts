@@ -11,8 +11,10 @@ import { enterScore } from '../helpers/enterScore';
  * (#4795(factory)); TMX reads it at submit time and says why instead (Mentat TASKS.md, "the score modal
  * offers [Submit] for a clear the engine will refuse").
  *
- * Both front ends: the score entry dialog (the default) and the score modal it replaced, which is still
- * one Settings checkbox away.
+ * Two layers, both pinned here, in both front ends (the score entry dialog, the default, and the score
+ * modal it replaced, one Settings checkbox away):
+ *  - at OPEN, the dialog is told the clear would be refused (`clearable`), and withholds `[Clear]`;
+ *  - at SUBMIT, TMX asks again, so a later match decided while the dialog was open still stops the clear.
  */
 
 const REFUSED = "This result can't be cleared: a later match depends on it.";
@@ -26,6 +28,11 @@ const DIALOGS = [
     clear: 'button[data-action="clear"]',
     submit: 'button[data-action="submit"]',
     cancel: 'button[data-action="cancel"]',
+    // the dialog disables it and says why
+    withheld: async (page: Page) => {
+      await expect(page.locator('button[data-action="clear"]')).toBeDisabled();
+      await expect(page.locator('button[data-action="clear"]')).toHaveAttribute('title', REFUSED);
+    },
   },
   {
     name: 'score modal',
@@ -33,11 +40,17 @@ const DIALOGS = [
     clear: '#clearScoreV2',
     submit: '#submitScoreV2',
     cancel: '.chc-modal-dialog button:has-text("Cancel")',
+    // the modal does not offer it
+    withheld: async (page: Page) => {
+      await expect(page.locator('#submitScoreV2')).toBeVisible();
+      await expect(page.locator('#clearScoreV2')).toHaveCount(0);
+    },
   },
 ];
 
-type Seeded = { drawId: string; r1m1: string; r1m2: string; r2m1: string };
+type Seeded = { drawId: string; ids: Record<string, string> };
 
+/** An 8-draw; `ids` keys are `r<round>m<position>`. */
 async function seed(page: Page, tournamentId: string): Promise<Seeded> {
   return page.evaluate(async (tournamentId) => {
     await dev.tmx2db.initDB();
@@ -50,14 +63,9 @@ async function seed(page: Page, tournamentId: string): Promise<Seeded> {
     });
     await dev.load({ tournamentRecord });
     const matchUps: any[] = dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
-    const find = (roundNumber: number, roundPosition: number) =>
-      matchUps.find((m) => m.roundNumber === roundNumber && m.roundPosition === roundPosition);
-    return {
-      drawId: find(1, 1).drawId,
-      r1m1: find(1, 1).matchUpId,
-      r1m2: find(1, 2).matchUpId,
-      r2m1: find(2, 1).matchUpId,
-    };
+    const ids: Record<string, string> = {};
+    for (const m of matchUps) ids[`r${m.roundNumber}m${m.roundPosition}`] = m.matchUpId;
+    return { drawId: matchUps[0].drawId, ids };
   }, tournamentId);
 }
 
@@ -69,41 +77,61 @@ const winningSide = (page: Page, matchUpId: string): Promise<number | undefined>
     matchUpId,
   );
 
+const openDialog = (page: Page, matchUpId: string) =>
+  page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), matchUpId);
+
 for (const dialog of DIALOGS) {
-  test.describe(`journey 151 — a refused clear is stopped before it is sent (${dialog.name})`, () => {
-    test('clearing a result a later match depends on says why; clearing the last one goes through', async ({
-      page,
-    }) => {
+  test.describe(`journey 151 — a refused clear is never sent (${dialog.name})`, () => {
+    test.beforeEach(async ({ page }) => {
       await seedFeatureFlagInitScript(page, 'scoreEntryDialog', dialog.flag);
       await page.goto('/');
       await waitForAppReady(page);
       await initDevBridge(page);
       await resetState(page);
-      const { drawId, r1m1, r1m2, r2m1 } = await seed(page, `e2e-clear-refused-${dialog.flag ? 'dialog' : 'modal'}`);
+    });
 
+    test('a result a later match depends on opens with [Clear] withheld; the last one clears', async ({ page }) => {
+      const { drawId, ids } = await seed(page, `e2e-clear-withheld-${dialog.flag ? 'dialog' : 'modal'}`);
       // the two round-1 matches, then the round-2 match they feed
-      await enterScore(page, { drawId, matchUpId: r1m1, scoreString: '6-1 6-1', winningSide: 1 });
-      await enterScore(page, { drawId, matchUpId: r1m2, scoreString: '6-2 6-2', winningSide: 1 });
-      await enterScore(page, { drawId, matchUpId: r2m1, scoreString: '6-3 6-3', winningSide: 1 });
-      await expect.poll(() => winningSide(page, r2m1), { timeout: 10_000 }).toBe(1);
+      await enterScore(page, { drawId, matchUpId: ids.r1m1, scoreString: '6-1 6-1', winningSide: 1 });
+      await enterScore(page, { drawId, matchUpId: ids.r1m2, scoreString: '6-2 6-2', winningSide: 1 });
+      await enterScore(page, { drawId, matchUpId: ids.r2m1, scoreString: '6-3 6-3', winningSide: 1 });
+      await expect.poll(() => winningSide(page, ids.r2m1), { timeout: 10_000 }).toBe(1);
 
-      // 1. round 1: its winner has already played round 2, so the clear is stopped, with the reason
-      await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), r1m1);
+      // 1. round 1: its winner has already played round 2
+      await openDialog(page, ids.r1m1);
+      await dialog.withheld(page);
+      await page.locator(dialog.cancel).click();
+      await expect(page.locator(dialog.submit)).toHaveCount(0);
+
+      // 2. round 2: nothing after it is decided, so it clears
+      await openDialog(page, ids.r2m1);
       await page.locator(dialog.clear).click();
+      await page.locator(dialog.submit).click();
+      await expect.poll(() => winningSide(page, ids.r2m1), { timeout: 10_000 }).toBeUndefined();
+    });
+
+    test('a later match decided while the dialog is open still stops the clear, and says why', async ({ page }) => {
+      const { drawId, ids } = await seed(page, `e2e-clear-raced-${dialog.flag ? 'dialog' : 'modal'}`);
+      // both semifinals decided; the final is not, so a semifinal can be cleared — for now
+      for (const id of ['r1m1', 'r1m2', 'r1m3', 'r1m4']) {
+        await enterScore(page, { drawId, matchUpId: ids[id], scoreString: '6-1 6-1', winningSide: 1 });
+      }
+      await enterScore(page, { drawId, matchUpId: ids.r2m1, scoreString: '6-2 6-2', winningSide: 1 });
+      await enterScore(page, { drawId, matchUpId: ids.r2m2, scoreString: '6-2 6-2', winningSide: 1 });
+
+      await openDialog(page, ids.r2m1);
+      await page.locator(dialog.clear).click();
+
+      // ...then the final is decided, as by a colleague, while the dialog is still open
+      await enterScore(page, { drawId, matchUpId: ids.r3m1, scoreString: '6-4 6-4', winningSide: 1 });
+      await expect.poll(() => winningSide(page, ids.r3m1), { timeout: 10_000 }).toBe(1);
+
       await page.locator(dialog.submit).click();
       await expect(page.locator(TOAST).filter({ hasText: REFUSED })).toBeVisible();
       // the engine's own refusal never fires, because the clear was never sent
       await expect(page.locator(TOAST).filter({ hasText: ENGINE_REFUSAL })).toHaveCount(0);
-      expect(await winningSide(page, r1m1)).toBe(1);
-      // the score entry dialog closes after every submit; the score modal only on success
-      if (await page.locator(dialog.cancel).isVisible()) await page.locator(dialog.cancel).click();
-      await expect(page.locator(dialog.clear)).toHaveCount(0);
-
-      // 2. round 2: nothing after it is decided, so the same gesture clears it
-      await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), r2m1);
-      await page.locator(dialog.clear).click();
-      await page.locator(dialog.submit).click();
-      await expect.poll(() => winningSide(page, r2m1), { timeout: 10_000 }).toBeUndefined();
+      expect(await winningSide(page, ids.r2m1)).toBe(1);
     });
   });
 }
