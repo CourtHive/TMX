@@ -2039,6 +2039,7 @@
     "userRemoved": "User removed",
     "matchUpScoredElsewhere": "Another user just scored this match ({{score}}). Review before saving.",
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
+    "clearRefused": "This result can't be cleared: a later match depends on it. Clear that match first.",
     "scoreDiscardedByFormat": "Changing the format to {{matchUpFormat}} discarded {{count}} set(s): {{sets}}",
     "tournamentNotFound": "Tournament not found",
     "tournamentsTruncated": "Showing the first {{loaded}} of {{total}} tournaments. Filter or search to narrow the list.",
