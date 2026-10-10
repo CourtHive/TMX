@@ -12,6 +12,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { policyConstants } from 'tods-competition-factory';
+import { clearPermitted } from './clearScorePermission';
 import { renderForm } from 'courthive-components';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
@@ -108,7 +109,8 @@ export function recordExitBeforeArrival({
     content,
     buttons: [
       { label: t('common.cancel'), intent: 'none', close: true },
-      ...(payload.recorded
+      // offered only where the factory says the clear would be accepted (CLEAR_SCORE)
+      ...(payload.recorded && clearPermitted({ matchUp, drawId: payload.drawId, matchUpId: payload.matchUpId })
         ? [{ label: t('modals.exitBeforeArrival.clear'), intent: 'is-warning', onClick: clear }]
         : []),
       { label: t('modals.exitBeforeArrival.exit'), intent: 'is-danger', onClick: submit as any },
