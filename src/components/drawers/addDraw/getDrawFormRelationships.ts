@@ -146,6 +146,9 @@ export function getDrawFormRelationships({
 
   // set when checkCreationMethod, not the operator, moved Creation to Manual
   let forcedManual = false;
+  // a draw size the user typed outlives draw type and qualifier changes while it holds the entries and qualifiers:
+  // a draw can be generated before its entries, at any size (CA, 2026-10-09)
+  let typedDrawSize: number | undefined;
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
@@ -228,8 +231,10 @@ export function getDrawFormRelationships({
     const drawSizeInteger =
       effectiveIsQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const effectiveType = resolveEffectiveDrawType(drawType as string);
-    const drawSize =
+    const derivedDrawSize =
       ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
+    const keepTyped = !maxQualifiers && typedDrawSize !== undefined && typedDrawSize >= Number(drawSizeInteger);
+    const drawSize = keepTyped ? (typedDrawSize as number) : derivedDrawSize;
     inputs[DRAW_SIZE].value = drawSize;
 
     updateSeedCountOptions({ inputs, drawSize, drawType });
@@ -354,6 +359,7 @@ export function getDrawFormRelationships({
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
+    typedDrawSize = drawSize || undefined;
     const entriesCount = acceptedEntriesCount({ drawId, event, stage });
     const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
     const valid = validators.numericRange(2, maxDrawSize)(drawSizeValue);
@@ -472,6 +478,8 @@ export function getDrawFormRelationships({
       ? ({ kind: 'NEW_MAIN_WITH_QUALIFYING_FIRST', event } as const)
       : ({ kind: 'NEW_MAIN', event } as const);
     const toggleView = drawFormModel(toggleMode, {});
+    // the size field now sizes the other structure: a size typed for the one before does not carry over
+    typedDrawSize = undefined;
     inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
     updateSeedCountOptions({ inputs, drawSize: toggleView.derivedValues.drawSize });
     fitFeedInQualifiers(inputs);
