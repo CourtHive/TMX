@@ -100,13 +100,13 @@ test('reason and reviewed four-player impact are required; an input change inval
   await page.getByLabel('Points for each player on the winning side', { exact: true }).fill('16');
   await page.getByLabel('Points for each player on the losing side', { exact: true }).fill('8');
   await page.getByRole('button', { name: 'Preview standings' }).click();
-  await expect(page.locator('.cModal td')).toHaveCount(12);
+  await expect(page.locator('.chc-modal-dialog td')).toHaveCount(12);
   await expect(page.getByRole('button', { name: 'Confirm settlement' })).toBeEnabled();
   await page.getByLabel('Reason (required)', { exact: true }).fill('Revised retirement ruling');
   await expect(page.getByRole('button', { name: 'Confirm settlement' })).toBeDisabled();
   await page.getByRole('button', { name: 'Preview standings' }).click();
   await page.getByRole('button', { name: 'Confirm settlement' }).click();
-  await expect(page.locator('.cModal')).toHaveCount(0);
+  await expect(page.locator('.chc-modal-dialog')).toHaveCount(0);
   const saved = await page.evaluate(({ drawId }) => {
     const engine: any = dev.factory.tournamentEngine;
     return engine.getEvent({ drawId }).drawDefinition.competitionSettlements;
@@ -146,7 +146,7 @@ test('a changed result refuses the approved settlement and keeps the dialog open
     if (result.error) throw new Error(result.error.message);
   }, ids);
   await page.getByRole('button', { name: 'Confirm settlement' }).click();
-  await expect(page.locator('.cModal')).toHaveCount(1);
+  await expect(page.locator('.chc-modal-dialog')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Confirm settlement' })).toBeDisabled();
   expect(
     await page.evaluate(({ drawId }) => {
