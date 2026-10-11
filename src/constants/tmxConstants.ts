@@ -40,6 +40,12 @@ export const HOME = 'home';
 export const SYNC_INDICATOR = 'syncIndicator';
 
 export const SUPER_ADMIN = 'superadmin';
+export const ROTATING_SETTLEMENT_TREATMENT = 'rotatingSettlementTreatment';
+export const ROTATING_SETTLEMENT_REASON = 'rotatingSettlementReason';
+export const ROTATING_SETTLEMENT_ACTOR = 'rotatingSettlementActor';
+export const ROTATING_SETTLEMENT_WINNING_POINTS = 'rotatingSettlementWinningPoints';
+export const ROTATING_SETTLEMENT_LOSING_POINTS = 'rotatingSettlementLosingPoints';
+export const ROTATING_SETTLEMENT_CONFIRM = 'rotatingSettlementConfirm';
 export const ADMIN = 'admin';
 // Provider-scoped role (from user_providers.provider_role, present in the JWT's
 // providerAssociations). Distinct from the deprecated global `admin` role above.

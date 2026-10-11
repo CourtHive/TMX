@@ -7,6 +7,7 @@ import { resolveTimeSeed, validateTimeValue } from 'components/tables/matchUpsTa
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
 import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
 import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
+import { openRotatingPartnerSettlement } from 'components/modals/rotatingPartnerSettlement';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { buildAttester, describeAttester } from 'services/checkIn/checkInAttribution';
@@ -14,6 +15,7 @@ import { getCourtTimeBounds } from 'components/tables/matchUpsTable/courtTimeBou
 import { buildAttesterChooser } from 'components/popovers/checkInAttesterChooser';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
+import { getSettlementContext } from 'services/rotatingPartners/settlement';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
@@ -526,6 +528,16 @@ export function matchUpActions({
   const hideScheduleLock = !canToggleScheduleLock(matchUp);
 
   const items = [
+    {
+      text: t('rotatingPartners.settlement.title'),
+      hide: !matchUp?.drawId || !getSettlementContext(matchUp.drawId, matchUp.matchUpId),
+      onClick: () =>
+        openRotatingPartnerSettlement({
+          drawId: matchUp.drawId,
+          matchUpId: matchUp.matchUpId,
+          callback: () => callback?.({ refresh: true }),
+        }),
+    },
     {
       onClick: clearSchedule,
       text: t('pages.schedule.clearSchedule'),
