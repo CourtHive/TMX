@@ -39,7 +39,6 @@ const fake = vi.hoisted(() => {
     state.authException = vi.fn(() => false);
     state.login = { email: 'td@x.com' };
     state.toast = vi.fn();
-    state.reconcileAudit = vi.fn(async () => undefined);
     // IndexedDB, as outboxStore.ts presents it.
     state.rows = new Map<string, any>();
     state.persistFails = false;
@@ -82,9 +81,6 @@ vi.mock('services/notifications/osNotification', () => ({ showOSNotification: vi
 vi.mock('services/session/sessionGuard', () => ({ handleSocketException: (d: any) => fake.authException(d) }));
 vi.mock('services/authentication/loginState', () => ({ getLoginState: () => fake.login }));
 vi.mock('services/authentication/tokenManagement', () => ({ getToken: () => 'tok' }));
-vi.mock('services/mutation/reconcileSettlementAudit', () => ({
-  reconcileSettlementAuditAck: (ack: any) => fake.reconcileAudit(ack),
-}));
 vi.mock('services/processDirective', () => ({ processDirective: vi.fn() }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...args: any[]) => fake.toast(...args) }));
 vi.mock('services/messaging/outboxStore', () => ({
@@ -189,31 +185,6 @@ describe('socketIo over a MessageTransport', () => {
 
     await settle(); // the server's answer is the ack
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
-  });
-
-  it('reconciles settlement confirmations even when no UI acknowledgement callback remains', async () => {
-    const receipts = [
-      {
-        tournamentId: 't1',
-        drawId: 'd',
-        requestId: 'r',
-        matchUpId: 'm',
-        recordedBy: 'server',
-        recordedAt: '2026-10-10T12:00:00Z',
-      },
-    ];
-    fake.answer = (data: any) => ({
-      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true, settlementAudits: receipts } },
-    });
-    socketIo.connectSocket();
-    fake.up();
-    socketIo.emitTmx({ data: executionQueue(), durable: true });
-    await settle();
-    await vi.waitFor(() =>
-      expect(fake.reconcileAudit).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, settlementAudits: receipts }),
-      ),
-    );
   });
 
   // P49: every ack passes through here — this tab's own mutation moves its sync point.

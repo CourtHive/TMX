@@ -727,12 +727,6 @@ function requestAcknowledgement({
 }
 
 function receiveAcknowledgement(ack: ServerAck): void {
-  if (ack?.success && ack.settlementAudits?.length) {
-    void import('services/mutation/reconcileSettlementAudit')
-      .then(({ reconcileSettlementAuditAck }) => reconcileSettlementAuditAck(ack))
-      .catch((error) => console.error('[settlement audit] acknowledgement reconciliation failed:', error));
-  }
-
   // This tab's own mutation moved the server from one write to the next (P49). Here, not in each
   // caller: every ack passes through, on either transport, including replays after a reload.
   if (ack?.serverUpdatedAt) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);

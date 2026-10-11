@@ -1,52 +1,18 @@
 # Rotating-partner settlements
 
-## Operator flow
+## Director workflow
 
-An Americano/Mexicano match belonging to an applied round offers **Settle standings** in
-its actions menu after an irregular terminal result. Pending/live matches and ordinary
-completed matches do not offer it. Provider-owned tournaments require a director/admin
-of that provider; normal mutation authorization remains authoritative.
+“Settle standings” is offered for terminal irregular results in applied Americano/Mexicano rounds, subject to provider permissions. The director selects EXCLUDE, PLAYED_POINTS or explicit CREDIT, records a reason, and previews the factory’s actual four-player standings impact. Editing the decision invalidates approval. Confirmation submits one settleRotatingPartnerResult through the normal mutation pipeline; stale results are refused without a write.
 
-Choose **Exclude from standings**, **Count recorded points**, or **Award points**. Credits
-require an existing winning side; played points require a recorded score. Enter a reason
-and preview the four players' points and resulting standings totals. Editing an input
-invalidates approval. Confirm submits one `settleRotatingPartnerResult` through
-`mutationRequest`; it does not alter the sporting score or winning side.
+## Authentication and replay
 
-The preview uses a factory dry run, including its historical round contracts, rather than
-a second tally implementation. It leaves state unchanged. A stale/refused result keeps
-the dialog open and requires a fresh preview. Replacing a prior settlement explicitly
-names its latest requestId. Separate deciding phases and round regeneration are not
-implemented by this UI.
+CFS replaces recordedBy and recordedAt at its existing verified-identity boundary. Successful acknowledgements return appliedMethods whenever that boundary changed any command parameter, including presence attestations. Server-first execution replays ack.appliedMethods ?? the original methods through the factory. No settlement receipts, direct record edits or settlement-specific reconciliation are used.
 
-## Local-first and server-first
+Server present ⇒ the server’s identity wins. Server absent ⇒ the client’s claim stands.
+Local-first mode still applies immediately and retains local values; server processing uses the syncing operator and server clock. Later convergence of local-first copies is a general synchronization concern, not implemented by this feature.
 
-Execution follows the configured mode. Local-first applies immediately and keeps its
-normal durable synchronization. Server-first waits for acknowledgement and applies the
-server's `appliedMethods`. There is no settlement-specific server-first override.
+## Dependencies and merge gates
 
-Client actor/time are caller-stated. The server stamps authenticated identity/time and
-returns `settlementAudits`, keyed by tournamentId/drawId/requestId/matchUpId. Confirmation
-merges only recordedBy/recordedAt; it never replays the sporting decision. The central
-transport acknowledgement handler covers durable retries after reload, without a UI
-callback. Later local edits and deleted draws are preserved; a missing settlement in an
-existing loaded draw requests refresh. Repeated confirmations can retry failed local
-persistence.
+The package pin is factory 7.11.0, which includes the settlement API and getEvent nested-array fix. Pairing history uses getEvent({ drawId }); getTournament supplies permissions and participant names. The consumer branch remains a draft until published-dependency checks, Playwright journey 153 and HTTP/Postgres integration pass.
 
-## Dependencies and review
-
-Controls are hidden unless the loaded factory exposes settlement and individual-standings
-methods. Package pins remain unchanged; no unpublished sibling is silently substituted.
-This branch remains a draft until the next factory publication includes the getEvent
-nested-array fix. Local verification uses TMX’s existing link to the fixed factory.
-The temporary consumer projections can be replaced with public factory types at that bump.
-
-Unit tests cover permissions, eligibility, snapshots, preview mapping and audit
-reconciliation. Playwright journey 153 covers required inputs, approval invalidation,
-four-player preview, persistence and stale-result refusal against the feature factory.
-It intentionally reports a missing factory capability rather than silently skipping.
-Browser verification remains pending where the sandbox permits Chromium and Vite sockets.
-
-The context adapter reads applied round pairing history through getEvent({ drawId }).
-The getTournament workaround has been removed; getTournament still supplies tournament
-permissions and participant names.
+The separate factory retry change preserves the original actor/time when sporting intent matches a repeated requestId. It requires a subsequent CA-authorized factory release. Until consumers bump to that release, CFS retains its prior-record retry lookup for compatibility with 7.11.0.

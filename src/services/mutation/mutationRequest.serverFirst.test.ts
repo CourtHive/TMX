@@ -105,6 +105,29 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     expect(methods[0].params.recordedBy).toBe('client');
   });
 
+  it('server-first presence attestations replay the canonical server attribution', async () => {
+    h.serverFirst = true;
+    const execution = vi.spyOn(tournamentEngine, 'executionQueue').mockReturnValue({ success: true });
+    const methods = [
+      {
+        method: 'checkInParticipant',
+        params: { participantId: 'p', attributedTo: { attributionType: 'USER', userId: 'client' } },
+      },
+    ];
+    await mutationRequest({ tournamentRecord: tournamentRecord(), methods, callback: vi.fn() });
+    await settle();
+    const appliedMethods = [
+      {
+        method: 'checkInParticipant',
+        params: { participantId: 'p', attributedTo: { attributionType: 'USER', userId: 'verified' } },
+      },
+    ];
+    h.emitTmx.mock.calls[0][0].ackCallback({ success: true, appliedMethods });
+    await settle();
+    expect(execution).toHaveBeenCalledWith(appliedMethods, true);
+    expect(methods[0].params.attributedTo.userId).toBe('client');
+  });
+
   it('session-restored settlement replay uses the server-stamped command', async () => {
     h.serverFirst = true;
     const executionQueue = vi.fn(() => ({ success: true }));

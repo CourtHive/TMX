@@ -39,7 +39,6 @@ export interface RemoteMutationPayload {
 /** Acknowledgement received from the server after an emitTmx call. */
 export interface ServerAck {
   appliedMethods?: MutationMethod[];
-  settlementAudits?: SettlementAuditReceipt[];
   success?: boolean;
   ackId?: string;
   uuid?: string;
@@ -47,14 +46,4 @@ export interface ServerAck {
   /** When the mutated rows were written, and when they had been written before (services/staleness/serverSync.ts). */
   serverUpdatedAt?: Record<string, string>;
   previousServerUpdatedAt?: Record<string, string>;
-}
-
-/** Server confirmation of an existing settlement; no sporting result is carried or replayed. */
-export interface SettlementAuditReceipt {
-  tournamentId: string;
-  drawId: string;
-  requestId: string;
-  matchUpId: string;
-  recordedBy: string;
-  recordedAt: string;
 }
