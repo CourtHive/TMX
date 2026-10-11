@@ -116,7 +116,7 @@ function timeIsSoft(cell: StripCell): boolean {
  * column and, if that one is not due yet, leaves the whole court alone. That is
  * deliberate — court order is the sequence the director stated, and a later row
  * whose time has already passed is a scheduling error that
- * `courtTimeOrderIssues` already detects rather than something autocall should
+ * `proConflicts` already reports (`CONFLICT_COURT_TIME_ORDER`) rather than something autocall should
  * quietly reorder around.
  *
  * The consequence is that such a match is **never** called, however long it

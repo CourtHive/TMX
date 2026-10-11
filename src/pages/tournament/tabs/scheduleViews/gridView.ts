@@ -28,7 +28,6 @@ import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
-import { detectCourtTimeOrderIssues, CONFLICT_COURT_TIME_ORDER } from './courtTimeOrderIssues';
 import { decoratesCell, severityOf } from './scheduleIssueSeverity';
 import {
   handleActiveStripNowClick,
@@ -4026,29 +4025,6 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
       const rowPrefix = `Row ${Number.parseInt(rowIdx) + 1}: `;
       issues.push(buildIssueEntry(ri, mapSeverity, matchUpLabel, selectedDate, rowPrefix));
     }
-  }
-
-  // TMX-only court time/order check. With "time travels with the matchUp", a
-  // drag can leave a court's times out of order (a later courtOrder at an
-  // equal/earlier time). proConflicts only flags same-court/same-ORDER double
-  // booking and ignores scheduledTime, so we surface inversions here as a soft
-  // WARN. Engine-side coverage is tracked in Mentat/TASKS.md.
-  for (const tio of detectCourtTimeOrderIssues(scheduledMatchUps)) {
-    const key = dedupKey(tio.matchUpId, [tio.earlierMatchUpId]);
-    if (seenPairs.has(key)) continue;
-    seenPairs.add(key);
-    const participants = matchUpLabel(tio.matchUpId);
-    const earlier = matchUpLabel(tio.earlierMatchUpId);
-    issues.push({
-      severity: 'WARN',
-      issueType: CONFLICT_COURT_TIME_ORDER,
-      message: `Times out of order on court: ${participants} (${tio.scheduledTime}) is ordered after ${earlier} (${tio.earlierScheduledTime})`,
-      participants,
-      conflictParticipants: [earlier],
-      conflictMatchUpIds: [tio.matchUpId, tio.earlierMatchUpId],
-      matchUpId: tio.matchUpId,
-      date: selectedDate,
-    });
   }
 
   return issues;
