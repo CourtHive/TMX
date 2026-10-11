@@ -112,4 +112,47 @@ describe('detectCourtTimeOrderIssues', () => {
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({ matchUpId: 'b', earlierMatchUpId: 'a' });
   });
+
+  // BOBOCA, 2026-10-11: the 08:00 match on Court 12 was a walkover, so the next 08:00 match was put on
+  // that court. Both read 08:00 and the warning said they conflicted, though only one was ever played.
+  describe('a match that never took the court', () => {
+    const withStatus = (matchUp: TimedMatchUp, matchUpStatus: string): TimedMatchUp => ({ ...matchUp, matchUpStatus });
+
+    it('does not hold its time slot: a walkover at 08:00 and the match after it at 08:00 do not conflict', () => {
+      const issues = detectCourtTimeOrderIssues([
+        withStatus(mu('walkover', 'c12', 1, '08:00'), 'WALKOVER'),
+        mu('next', 'c12', 2, '08:00'),
+      ]);
+      expect(issues).toEqual([]);
+    });
+
+    it.each(['WALKOVER', 'DOUBLE_WALKOVER', 'BYE', 'CANCELLED', 'DEAD_RUBBER'])('%s is skipped', (status) => {
+      const issues = detectCourtTimeOrderIssues([
+        withStatus(mu('a', 'c1', 1, '08:00'), status),
+        mu('b', 'c1', 2, '08:00'),
+      ]);
+      expect(issues).toEqual([]);
+    });
+
+    it('is skipped without breaking the chain around it', () => {
+      // the walkover sits between two played matches that are themselves out of order
+      const issues = detectCourtTimeOrderIssues([
+        mu('first', 'c1', 1, '10:00'),
+        withStatus(mu('walkover', 'c1', 2, '11:00'), 'WALKOVER'),
+        mu('third', 'c1', 3, '09:00'),
+      ]);
+      expect(issues.map((issue) => [issue.earlierMatchUpId, issue.matchUpId])).toEqual([['first', 'third']]);
+    });
+
+    it.each(['COMPLETED', 'TO_BE_PLAYED', 'IN_PROGRESS', 'DEFAULTED', 'DOUBLE_DEFAULT', 'ABANDONED', 'RETIRED'])(
+      '%s still counts, since the court may have been used',
+      (status) => {
+        const issues = detectCourtTimeOrderIssues([
+          withStatus(mu('a', 'c1', 1, '08:00'), status),
+          mu('b', 'c1', 2, '08:00'),
+        ]);
+        expect(issues).toHaveLength(1);
+      },
+    );
+  });
 });

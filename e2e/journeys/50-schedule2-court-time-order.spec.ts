@@ -137,6 +137,39 @@ test.describe('Journey 50 — Schedule2 court time/order issue', () => {
     await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
   });
 
+  // BOBOCA, 2026-10-11: the 08:00 match on Court 12 was a walkover, so the director put the next 08:00
+  // match on that court. Only one was played, so nothing is out of order.
+  test('a walkover holds no time: the match put on its court at the same time raises no issue', async ({ page }) => {
+    const seed = await seedOneCourt(page, ['08:00', '08:00']);
+    await page.evaluate(async (matchUpId) => {
+      const { drawId } = dev.factory.tournamentEngine.findMatchUp({ matchUpId }).matchUp;
+      const result = dev.factory.tournamentEngine.setMatchUpStatus({
+        drawId,
+        matchUpId,
+        outcome: { matchUpStatus: 'WALKOVER', winningSide: 1 },
+      });
+      if (!result.success) throw new Error(`walkover not recorded: ${JSON.stringify(result.error)}`);
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+    }, seed.matchUpIds[0]);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
+  });
+
+  test('CONTROL: two played matches at the same time on one court still raise the issue', async ({ page }) => {
+    const seed = await seedOneCourt(page, ['08:00', '08:00']);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await page.locator(ISSUES_BUTTON).click();
+    await expect(page.getByText(/courtTimeOrderConflict/)).toBeVisible({ timeout: 5_000 });
+  });
+
   test('a swap that puts a court out of order raises the issue live', async ({ page }) => {
     // Monotonic to start: courtOrder 1 @ 09:00, courtOrder 2 @ 10:00 → no issue.
     const seed = await seedOneCourt(page, ['09:00', '10:00']);
