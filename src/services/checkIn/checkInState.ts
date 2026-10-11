@@ -36,17 +36,17 @@ const INDIVIDUAL = 'INDIVIDUAL';
 /**
  * The individuals who may check in to a matchUp.
  *
- * Mirrors the factory's `getMatchUpParticipantIds` **for display only** — that function is not
- * exported from the package root, so TMX cannot call it. That asymmetry is safe in one direction and
- * only one: `checkInParticipant` validates every write against its own `allRelevantParticipantIds`, so
- * if this derivation missed somebody the menu would be short a row, never able to write a bad id.
+ * The same set as the factory's `getMatchUpParticipantIds().individualParticipantIds` (an INDIVIDUAL
+ * side, or the members of a PAIR or TEAM side), which the package does not export, so it is derived
+ * here, with the name and side number the desk menu shows. If this ever missed somebody the menu would
+ * be a row short; it could not write a bad id, because the factory validates every write.
  *
- * **The PAIR itself is deliberately excluded, and this is load-bearing (D4c).** The factory's
- * `allRelevantParticipantIds` also contains `sideParticipantIds`, so it would accept a check-in
- * against the PAIR — and nothing reconciles a PAIR-level check-in with its two individual ones. A desk
- * that checked in the pair and a desk that checked in both players would store different state for the
- * same physical fact. Returning only individuals makes the wrong write unreachable from the UI rather
- * than merely discouraged.
+ * **The PAIR itself is excluded (D4c), and since factory 7.0.0 the factory enforces it too.**
+ * `checkInParticipant` and `checkOutParticipant` refuse any subject that is not an INDIVIDUAL on the
+ * matchUp (`INVALID_ATTESTATION_SUBJECT`, #4933(factory)), so a PAIR-level check-in can no longer be
+ * written by anyone. A side's presence is DERIVED on read (`getCheckedInParticipantIds`): it is checked
+ * in when all its individuals are. Offering only individuals here keeps the menu to what the factory
+ * accepts; it is no longer what prevents the wrong write.
  */
 function individualsOf(matchUp: any): { participantId: string; participantName: string; sideNumber?: number }[] {
   const individuals: { participantId: string; participantName: string; sideNumber?: number }[] = [];
