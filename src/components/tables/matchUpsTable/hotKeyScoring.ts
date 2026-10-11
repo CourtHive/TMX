@@ -1,4 +1,5 @@
 import { focusAdjacentField, focusFieldWhenRendered, hotkeyFields, isHotkeyEntryMode } from './hotkeyScoreField';
+import { clearPermitted, isClearingOutcome } from 'services/transitions/clearScorePermission';
 import { keyValueConstants, scoreGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -124,6 +125,14 @@ function saveOrAdvance(focusData: FocusData, typedMatchUp: any): boolean {
       scoreStringSide2: scoreGovernor.generateScoreString({ sets: typedMatchUp.sets, reversed: true }),
     },
   };
+  // Backspace to empty, then Enter, clears the result. A clear the engine would refuse (a later match depends on it)
+  // is stopped here with the reason, as the score dialogs do, rather than sent to come back "No valid actions".
+  const matchUp = focusData.cell.getRow().getData().matchUp;
+  if (isClearingOutcome(outcome) && !clearPermitted({ matchUp })) {
+    tmxToast({ message: t('toasts.clearRefused'), intent: 'is-warning', pauseOnHover: true });
+    replaceTableData();
+    return true;
+  }
   submitScore({
     callback: () => {
       replaceTableData();
