@@ -17,12 +17,15 @@ import { seedTournament, MockProfile } from '../helpers/seed';
 const PROFILE_MIXED_ENTRIES: MockProfile = {
   tournamentName: 'E2E Selection-aware Add Draw',
   tournamentAttributes: { tournamentId: 'e2e-add-draw-selection' },
-  participantsProfile: { scaledParticipantsCount: 80 },
-  // No drawProfiles — the event has only entries, no draw yet.
+  // `scaledParticipantsCount` only rates participants; without `participantsCount` the tournament had
+  // nobody in it, so the event had no entries and every count below compared 0 with 0.
+  participantsProfile: { participantsCount: 80, scaledParticipantsCount: 80 },
+  // No drawProfiles — the event has only entries, no draw yet. An event's entry count lives in its own
+  // participantsProfile; a bare `participantsCount` on the event profile adds nobody.
   eventProfiles: [
     {
       eventName: 'Singles',
-      participantsCount: 16,
+      participantsProfile: { participantsCount: 16 },
     },
   ] as any,
 };
@@ -63,11 +66,7 @@ async function getEventId(page: any): Promise<string> {
  *  the new draw's drawEntries". The unit test in submitDrawParams covers
  *  the wiring, this one covers the end-to-end factory contract through
  *  generateDrawDefinition. */
-async function submitAddDrawWithSelection(
-  page: any,
-  eventId: string,
-  selectedParticipantIds: string[],
-): Promise<any> {
+async function submitAddDrawWithSelection(page: any, eventId: string, selectedParticipantIds: string[]): Promise<any> {
   return page.evaluate(
     ({ eventId, selectedParticipantIds }: { eventId: string; selectedParticipantIds: string[] }) => {
       const engine = (dev as any).factory.tournamentEngine;
@@ -100,6 +99,8 @@ test.describe('Journey 43 — Add draw uses panel selection', () => {
     await seedTournament(page, PROFILE_MIXED_ENTRIES);
     const eventId = await getEventId(page);
     const qualifyingIds = await addQualifyingEntries(page, eventId, 48);
+    // the scenario, asserted, so the test cannot pass on an event with no entries again
+    expect(qualifyingIds).toHaveLength(48);
 
     // Selection mirrors a user lassoing every entry — both main and qualifying.
     const allEntryIds = await page.evaluate((eventId: string) => {
@@ -115,13 +116,16 @@ test.describe('Journey 43 — Add draw uses panel selection', () => {
     const ddEntries = result.drawDefinition?.entries ?? [];
     const mainOnDraw = ddEntries.filter((e: any) => !e.entryStage || e.entryStage === 'MAIN');
     const qualifyingOnDraw = ddEntries.filter((e: any) => e.entryStage === 'QUALIFYING');
+    expect(mainOnDraw).toHaveLength(16);
 
     // Every selected qualifying participant rode along on drawDefinition.entries.
     expect(qualifyingOnDraw.length).toBe(qualifyingIds.length);
     // The 16 main entries were placed in the main structure.
     const main = result.drawDefinition.structures.find((s: any) => s.stage === 'MAIN');
     expect(main.positionAssignments.filter((p: any) => p.participantId).length).toBe(mainOnDraw.length);
-    // Qualifier slots were still reserved (qualifiersCount + qualifyingPlaceholder).
+    // A main with its entries is positioned as it is generated, qualifier slots included
+    // (qualifiersCount + qualifyingPlaceholder). One generated with no entries reserves nothing until it
+    // is positioned (journeys 147 and 149).
     expect(main.positionAssignments.filter((p: any) => p.qualifier).length).toBe(16);
   });
 });
