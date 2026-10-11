@@ -12,37 +12,8 @@
  */
 import { checkInBadgeModel } from './checkInBadge';
 import { getMatchUpCheckInState } from 'services/checkIn/checkInState';
+import { doublesMatchUp } from 'services/checkIn/checkInTestMatchUps';
 import { describe, expect, it } from 'vitest';
-
-const doublesMatchUp = (checkedInParticipantIds: string[] = []) => ({
-  checkedInParticipantIds,
-  sides: [
-    {
-      sideNumber: 1,
-      participant: {
-        participantId: 'pair1',
-        participantName: 'Rivas/Cole',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p1', participantName: 'Ana Rivas' },
-          { participantId: 'p2', participantName: 'Sam Cole' },
-        ],
-      },
-    },
-    {
-      sideNumber: 2,
-      participant: {
-        participantId: 'pair2',
-        participantName: 'Patel/Nkemelu',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p3', participantName: 'Raj Patel' },
-          { participantId: 'p4', participantName: 'Ike Nkemelu' },
-        ],
-      },
-    },
-  ],
-});
 
 const modelFor = (checkedIn: string[]) => checkInBadgeModel(getMatchUpCheckInState(doublesMatchUp(checkedIn)));
 
@@ -75,10 +46,10 @@ describe('checkInBadgeModel', () => {
     expect(checkInBadgeModel(getMatchUpCheckInState({ sides: [] }))).toBeNull();
   });
 
-  it('counts each half of a pair independently, not the PAIR', () => {
-    // D4c: TMX writes individuals only. A PAIR-level id must not satisfy the count — if it did,
-    // `1/4` and `2/4` would be indistinguishable for a desk that checked in one pair.
-    expect(modelFor(['pair1'])).toBeNull();
+  it('counts each half of a pair, and reads a legacy PAIR check-in as both halves', () => {
+    // D4c: since factory 7.0.0 only an individual can be checked in. A PAIR-level check-in written
+    // before then is read, by the factory's rule, as both of its members being present.
+    expect(modelFor(['pair1'])?.text).toBe('2/4');
     expect(modelFor(['p1', 'p2'])?.text).toBe('2/4');
   });
 });
