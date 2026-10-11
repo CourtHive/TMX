@@ -38,6 +38,7 @@ export interface RemoteMutationPayload {
 
 /** Acknowledgement received from the server after an emitTmx call. */
 export interface ServerAck {
+  appliedMethods?: MutationMethod[];
   success?: boolean;
   ackId?: string;
   uuid?: string;

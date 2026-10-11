@@ -1,4 +1,24 @@
 {
+  "rotatingPartners": {
+    "settlement": {
+      "title": "Settle standings",
+      "explanation": "Choose how this result contributes to individual standings. The match result stays unchanged. Awarded credits are adjudicated points, rather than points played.",
+      "treatment": "Standings treatment",
+      "exclude": "Exclude from standings",
+      "playedPoints": "Count recorded points",
+      "credit": "Award points",
+      "winningPoints": "Points for each player on the winning side",
+      "losingPoints": "Points for each player on the losing side",
+      "reason": "Reason (required)",
+      "recordedBy": "Recorded by",
+      "required": "Enter a reason, an operator identity and any required point credits before previewing.",
+      "player": "Player",
+      "points": "Points from this result",
+      "total": "Standings total",
+      "preview": "Preview standings",
+      "confirm": "Confirm settlement"
+    }
+  },
   "crowd": {
     "trackers": "Crowd trackers",
     "trackersFor": "Crowd trackers — {{label}}",

@@ -2,6 +2,7 @@
   "accessors",
   "batch",
   "bookings",
+  "games",
   "segments",
   "targets"
 ]
