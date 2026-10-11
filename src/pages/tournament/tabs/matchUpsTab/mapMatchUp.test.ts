@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 // divergence the ecosystem's architectural standards call out.
 vi.mock('tods-competition-factory', async (importOriginal) => ({
   scheduleGovernor: ((await importOriginal()) as any).scheduleGovernor,
+  matchUpStatusConstants: ((await importOriginal()) as any).matchUpStatusConstants,
   eventConstants: { TEAM: 'TEAM' },
   factoryConstants: {
     completedMatchUpStatuses: [
@@ -185,5 +186,19 @@ describe('mapMatchUp — schedule lock', () => {
   it('is false when nothing is locked', () => {
     let result: any = mapMatchUp(makeMatchUp({ schedule: { courtId: 'c1' } }));
     expect(result.scheduleLocked).toEqual(false);
+  });
+});
+
+describe('mapMatchUp — a completed points-total tie', () => {
+  it('a completed 16-16 with no winner keeps its score visible, though the factory no longer calls it ready to score', () => {
+    const row: any = mapMatchUp(
+      makeMatchUp({
+        matchUpStatus: 'COMPLETED',
+        readyToScore: false,
+        score: { scoreStringSide1: '16-16' },
+      }),
+    );
+    expect(row.readyToScore).toBe(true);
+    expect(row.score).toBe('16-16');
   });
 });
