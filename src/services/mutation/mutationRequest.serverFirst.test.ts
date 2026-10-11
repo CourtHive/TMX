@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { tournamentEngine } from 'tods-competition-factory';
 
 /**
  * Server-first mutations and the offline queue (D1, 2026-10-08). A mutation made
@@ -12,6 +13,7 @@ const h = vi.hoisted(() => ({
   emitTmx: vi.fn(),
   reportSessionLost: vi.fn(),
   sessionValid: true,
+  serverFirst: true,
 }));
 
 vi.mock('services/messaging/socketIo', () => ({ emitTmx: (...a: any[]) => h.emitTmx(...a) }));
@@ -30,14 +32,16 @@ vi.mock('services/authentication/loginState', () => ({
 }));
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn(async () => undefined) }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
-vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({ serverFirst: true, serverTimeout: 50 }) } }));
+vi.mock('config/serverConfig', () => ({
+  serverConfig: { get: () => ({ serverFirst: h.serverFirst, serverTimeout: 50 }) },
+}));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('config/providerConfig', () => ({ providerConfig: { get: () => ({ permissions: {} }) } }));
 vi.mock('@courthive/provider-config', () => ({ isMutationAllowed: () => true }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
-import { mutationRequest } from './mutationRequest';
+import { mutationRequest, replayServerMutation } from './mutationRequest';
 
 const tournamentRecord = () => ({
   tournamentId: 'tid-1',
@@ -60,9 +64,11 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     h.reportSessionLost.mockClear();
     h.emitTmx.mockReset().mockReturnValue({ cancel: h.cancel });
     h.sessionValid = true;
+    h.serverFirst = true;
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
@@ -73,6 +79,49 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
       methods: [{ method: 'setTournamentName', params: { tournamentName: 'Renamed' } }],
       callback,
     });
+
+  it('settlements execute immediately and stay durable when local-first is configured', async () => {
+    h.serverFirst = false;
+    const execution = vi.spyOn(tournamentEngine, 'executionQueue').mockReturnValue({ success: true });
+    const methods = [
+      {
+        method: 'settleRotatingPartnerResult',
+        params: { drawId: 'd', requestId: 'r', recordedBy: 'client', recordedAt: 'old' },
+      },
+    ];
+    await mutationRequest({ tournamentRecord: tournamentRecord(), methods, callback: vi.fn() });
+    await settle();
+    expect(execution).toHaveBeenCalledWith(methods, true);
+    expect(h.emitTmx.mock.calls[0][0].durable).toBe(true);
+    const appliedMethods = [
+      {
+        ...methods[0],
+        params: { ...methods[0].params, recordedBy: 'verified-server-actor', recordedAt: '2026-10-10T12:00:00Z' },
+      },
+    ];
+    h.emitTmx.mock.calls[0][0].ackCallback({ success: true, appliedMethods });
+    await settle();
+    expect(execution).toHaveBeenCalledTimes(1);
+    expect(methods[0].params.recordedBy).toBe('client');
+  });
+
+  it('session-restored settlement replay uses the server-stamped command', async () => {
+    h.serverFirst = true;
+    const executionQueue = vi.fn(() => ({ success: true }));
+    const methods = [
+      {
+        method: 'settleRotatingPartnerResult',
+        params: { drawId: 'd', requestId: 'r', recordedBy: 'client', recordedAt: 'old' },
+      },
+    ];
+    replayServerMutation({ methods, factoryEngine: { executionQueue }, tournamentIds: ['tid-1'] });
+    const appliedMethods = [
+      { ...methods[0], params: { ...methods[0].params, recordedBy: 'verified', recordedAt: '2026-10-10T12:00:00Z' } },
+    ];
+    h.emitTmx.mock.calls[0][0].ackCallback({ success: true, appliedMethods });
+    await settle();
+    expect(executionQueue).toHaveBeenCalledWith(appliedMethods, true);
+  });
 
   it('withdraws the queued message when the timeout reports the edit as failed', async () => {
     const callback = vi.fn();

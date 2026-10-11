@@ -277,9 +277,12 @@ async function makeMutation({
       if (timedOut) return;
       ackReceived = true;
       const missingTournament = isMissingTournament(ack);
-      if (serverConfig.get().serverFirst && (ack?.success || missingTournament)) {
+      if (strategy === SERVER_FIRST && (ack?.success || missingTournament)) {
         (async () => {
-          factoryResult = engineExecution({ factoryEngine, methods: resolvedMethods });
+          factoryResult = engineExecution({
+            factoryEngine,
+            methods: ack?.success ? (ack.appliedMethods ?? resolvedMethods) : resolvedMethods,
+          });
           if (factoryResult.error) return completion(factoryResult);
           await localSave(saveLocal || missingTournament);
           return completion(factoryResult);
@@ -356,7 +359,10 @@ export function replayServerMutation({
   const ackCallback = (ack: any) => {
     const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
-    const result = engineExecution({ factoryEngine, methods });
+    const result = engineExecution({
+      factoryEngine,
+      methods: ack?.success ? (ack.appliedMethods ?? methods) : methods,
+    });
     if (result.error) return;
     void localSave(saveLocal || missingTournament);
   };
