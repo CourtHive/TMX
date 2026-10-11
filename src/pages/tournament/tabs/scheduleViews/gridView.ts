@@ -417,8 +417,8 @@ export function renderGridView(
     },
     {
       cellHeight: `${STRIP_CELL_HEIGHT_PX}px`,
-      // Small label in the leading spacer cell. TODO i18n via t('schedule.now') when key exists.
-      spacerLabel: 'Now',
+      // Small label in the leading spacer cell.
+      spacerLabel: t('schedule.now'),
       renderCell: (matchUp) => {
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
