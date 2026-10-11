@@ -10,7 +10,12 @@
  *   Manual option's value is `false`, so nothing matched and the field showed blank. It now selects
  *   the Manual option, and puts Automated back once the size allows it.
  * - The factory placed every BYE in round 1, which in a FEED_IN holds only some positions, so the
- *   qualifiers had no room. With no MAIN entries, a MAIN now gets only its qualifier seats.
+ *   qualifiers had no room.
+ *
+ * With no MAIN entries the main is generated with nobody placed, qualifier seats included, and "Auto place participants"
+ * places them (CA, 2026-10-09: "the slots for qualifiers shouldn't be reserved in advance at all, those qualifying
+ * placeholders or the qualifiers themselves get placed when the draw positioning is generated"). This replaced the
+ * morning's "only its qualifier seats".
  */
 import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -81,7 +86,7 @@ test.describe('Journey 147 — FEED_IN main after qualifying-first', () => {
     await ensureDrawsTableMode(page);
   });
 
-  test('Creation never goes blank, and Automated places only the qualifier seats', async ({ page }) => {
+  test('Creation never goes blank; the qualifier seats are placed when the main is positioned', async ({ page }) => {
     const tournamentId = await seedQualifyingFirst(page);
     const tournamentPage = new TournamentPage(page);
     await tournamentPage.goto(tournamentId);
@@ -98,7 +103,10 @@ test.describe('Journey 147 — FEED_IN main after qualifying-first', () => {
     if (!(await generateMain.isVisible().catch(() => false))) {
       const structureMenu = page.locator(S.EVENT_CONTROL).locator('.dropdown:has-text("Qualifying")').first();
       await structureMenu.locator('.dropdown-trigger').first().click();
-      await page.locator('.dropdown-menu .dropdown-item', { hasText: /^Main$/ }).first().click();
+      await page
+        .locator('.dropdown-menu .dropdown-item', { hasText: /^Main$/ })
+        .first()
+        .click();
     }
     await generateMain.click();
     const drawer = new DrawFormDrawer(page);
@@ -121,6 +129,13 @@ test.describe('Journey 147 — FEED_IN main after qualifying-first', () => {
 
     await expect
       .poll(() => mainStructure(page), { timeout: 10_000 })
-      .toEqual({ drawType: 'FEED_IN', positions: DRAW_SIZE, qualifiers: QUALIFIERS, byes: 0 });
+      .toEqual({ drawType: 'FEED_IN', positions: DRAW_SIZE, qualifiers: 0, byes: 0 });
+
+    // positioned with no MAIN entries: the qualifier seats and BYEs for the rest; the qualifiers keep their room
+    await page.locator(S.EVENT_CONTROL).getByRole('button', { name: 'Actions' }).click();
+    await page.locator('.dropdown-menu .dropdown-item:visible', { hasText: 'Auto place participants' }).first().click();
+    await expect
+      .poll(() => mainStructure(page), { timeout: 10_000 })
+      .toEqual({ drawType: 'FEED_IN', positions: DRAW_SIZE, qualifiers: QUALIFIERS, byes: DRAW_SIZE - QUALIFIERS });
   });
 });
