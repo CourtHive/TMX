@@ -2,7 +2,9 @@
   "accessors",
   "batch",
   "bookings",
+  "drawsCount",
   "games",
   "segments",
-  "targets"
+  "targets",
+  "timeItem"
 ]

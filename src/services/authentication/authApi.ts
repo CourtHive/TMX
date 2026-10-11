@@ -73,24 +73,6 @@ export async function consumeMagicLink(code: string) {
 }
 
 /**
- * Set or change the caller's recovery mailbox (`users.contact_email`).
- * Always clears `email_verified_at` server-side and fires a fresh
- * verification email — see IdentityService.setContactEmail.
- */
-export async function setContactEmail(contactEmail: string) {
-  return baseApi.post('/account/contact-email/set', { contactEmail });
-}
-
-/**
- * Re-send the verification email for a pending (unverified) recovery
- * mailbox. Idempotent — server returns status='already_verified' or
- * 'no_contact_email' when there's nothing to send.
- */
-export async function resendVerification() {
-  return baseApi.post('/account/contact-email/resend-verification', {});
-}
-
-/**
  * POST /auth/select-provider — the session for a chosen provider. `bearer` is the selection token a
  * multi-provider login answers with, or the current session token when SWITCHING provider. The answer is an
  * ordinary session ({ token, refreshToken }) for `logIn()`.
