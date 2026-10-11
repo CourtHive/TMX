@@ -14,6 +14,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { resolveSideDrawPosition } from './resolveSideDrawPosition';
 import { InlineScoringManager } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { hasFinalResult } from 'functions/hasFinalResult';
 
 import { matchUpActions } from 'components/popovers/matchUpActions';
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -203,14 +204,16 @@ export function getEventHandlers({ callback, composition, drawId, getEventData }
         ];
         // When a match completes (winningSide set), participants may advance —
         // trigger a full refresh so lucky draw highlighting and structural changes apply.
-        const mutationCallback = (result: any) => callback({ ...result, refresh: !!winningSide });
+        // A completed tie has no winner but still finishes the match (and changes the group's tally).
+        const finished = hasFinalResult({ winningSide, matchUpStatus });
+        const mutationCallback = (result: any) => callback({ ...result, refresh: finished });
         mutationRequest({ methods, callback: mutationCallback });
       },
     });
 
     // Pre-create engines for all ready-to-score matchUps
     for (const matchUp of indexed.matchUps || []) {
-      if (matchUp?.readyToScore && !matchUp?.winningSide && matchUp?.matchUpFormat) {
+      if (matchUp?.readyToScore && !hasFinalResult(matchUp) && matchUp?.matchUpFormat) {
         inlineManager.getOrCreate(matchUp.matchUpId, matchUp.matchUpFormat, matchUp);
       }
     }

@@ -26,6 +26,7 @@ import { destroyTipster } from 'components/popovers/tipster';
 import { competitionEngine } from 'services/factory/engine';
 import { evaluateRest, formatDuration } from './inspectorRest';
 import { timePicker } from 'components/modals/timePicker';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { venueNowClock } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
@@ -785,7 +786,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   // Shotgun start additionally requires ≥2 participants assigned, not already in progress, no winner.
   const startableMatchUps = applicableMatchUps.filter((m: any) => {
     const participantCount = m.sides?.filter((s: any) => s?.participantId || s?.participant?.participantId).length || 0;
-    return participantCount >= 2 && m.matchUpStatus !== IN_PROGRESS && !m.winningSide;
+    return participantCount >= 2 && m.matchUpStatus !== IN_PROGRESS && !hasFinalResult(m);
   });
 
   if (!applicableMatchUps.length) return;
@@ -1017,7 +1018,7 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
   // drag a match to Now intending to start it and never press [Start match], so
   // it still reads NEXT. Treat every occupied strip cell as fair game for the
   // bulk actions; only terminal/decided matchUps are excluded.
-  const actionable = cells.filter((c) => !TERMINAL_MATCHUP_STATUSES.has(c.matchUpStatus ?? '') && !c.winningSide);
+  const actionable = cells.filter((c) => !TERMINAL_MATCHUP_STATUSES.has(c.matchUpStatus ?? '') && !hasFinalResult(c));
 
   const startable = actionable.filter(
     (c) => c.matchUpStatus !== IN_PROGRESS && c.matchUpStatus !== SUSPENDED && c.participantIds.length >= 2,

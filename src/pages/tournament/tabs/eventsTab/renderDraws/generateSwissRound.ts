@@ -1,6 +1,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { hasFinalResult } from 'functions/hasFinalResult';
 
 // constants
 import { ADD_ADHOC_MATCHUPS } from 'constants/mutationConstants';
@@ -9,7 +10,8 @@ import { t } from 'i18n';
 
 function hasIncompleteMatchUps(structure: any): boolean {
   const matchUps = structure?.matchUps ?? [];
-  return matchUps.some((m: any) => m.sides?.some((s: any) => s.participantId) && !m.winningSide);
+  // A completed tie (COMPLETED, no winner) is finished; it does not hold the next round back
+  return matchUps.some((m: any) => m.sides?.some((s: any) => s.participantId) && !hasFinalResult(m));
 }
 
 export function generateSwissRound({

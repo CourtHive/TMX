@@ -11,6 +11,8 @@ type GroupData = {
   groupName: string;
   participants: GroupParticipant[];
   rows: any[];
+  /** A drawn result (a points-total tie) is in the group, so its match record reads W/L/D. */
+  hasDraws: boolean;
 };
 
 type GetBracketDataParams = {
@@ -73,6 +75,9 @@ function buildGroupRow(
     structureId: groupId,
     drawId,
     result: isAssigned ? `${pr.matchUpsWon ?? 0}/${pr.matchUpsLost ?? 0}` : '',
+    matchUpsWon: pr.matchUpsWon ?? 0,
+    matchUpsLost: pr.matchUpsLost ?? 0,
+    matchUpsDrawn: pr.matchUpsDrawn ?? 0,
     setsResult: isAssigned ? `${pr.setsWon ?? 0}/${pr.setsLost ?? 0}` : '',
     gamesResult: isAssigned ? `${pr.gamesWon ?? 0}/${pr.gamesLost ?? 0}` : '',
     matchUpsPct: pr.matchUpsPct ?? pr.result ?? '',
@@ -185,12 +190,21 @@ export function getBracketData({
     const rows = participants.map((rowP) =>
       buildGroupRow(rowP, participants, posMap, groupByePositions, resultsMap, h2hMap, groupId, drawId),
     );
+    // A drawn result (16-16 of SET1-S:P32) counts as neither a win nor a loss, so a group that has one shows
+    // W/L/D for every row (CA, 2026-10-11); a group without one keeps W/L.
+    const hasDraws = rows.some((row) => row.matchUpsDrawn > 0);
+    if (hasDraws) {
+      for (const row of rows) {
+        if (row.result) row.result = `${row.matchUpsWon}/${row.matchUpsLost}/${row.matchUpsDrawn}`;
+      }
+    }
 
     groups.push({
       groupId,
       groupName: groupNames[groupId] || groupId,
       participants,
       rows,
+      hasDraws,
     });
   }
 

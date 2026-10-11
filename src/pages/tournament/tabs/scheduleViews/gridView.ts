@@ -24,6 +24,7 @@ import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } fro
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { openScheduleLockMenu } from './scheduleLockActions';
 import { plainDateRange } from 'functions/plainDateRange';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -2820,7 +2821,7 @@ function occupiedUntil(column: any, averageFor: (cell: any) => number): number |
   const live = column.cells.find(
     (cell: any) => cell && (cell.matchUpStatus === IN_PROGRESS || cell.matchUpStatus === SUSPENDED_STATUS),
   );
-  const showing = live ?? column.cells.find((cell: any) => cell?.calledAt && !cell.winningSide);
+  const showing = live ?? column.cells.find((cell: any) => cell?.calledAt && !hasFinalResult(cell));
   if (!showing) return undefined;
 
   const schedule = showing.payload?.schedule ?? {};

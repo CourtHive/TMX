@@ -23,6 +23,8 @@ type GetBracketColumnsParams = {
   eventId: string;
   drawId: string;
   structureId: string;
+  /** The group has a drawn result, so the match record column reads W/L/D. */
+  hasDraws?: boolean;
 };
 
 const STATS_FIELDS = new Set(['result', 'matchUpsPct', 'setsPct', 'order']);
@@ -106,6 +108,7 @@ export function getBracketColumns({
   eventId,
   drawId,
   structureId,
+  hasDraws,
 }: GetBracketColumnsParams): any[] {
   // Build a name lookup for headerTooltip attachment
   const nameByField: Record<string, string> = {};
@@ -155,7 +158,7 @@ export function getBracketColumns({
     {
       headerHozAlign: CENTER,
       headerWordWrap: true,
-      title: t('tables.bracket.winLoss'),
+      title: hasDraws ? t('tables.bracket.winLossDraw') : t('tables.bracket.winLoss'),
       field: 'result',
       hozAlign: CENTER,
       width: 75,

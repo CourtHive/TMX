@@ -2225,6 +2225,7 @@
     "bracket": {
       "participant": "Participant",
       "winLoss": "W/L",
+      "winLossDraw": "W/L/D",
       "winPct": "Win%",
       "setPct": "Set%",
       "pos": "Pos"
