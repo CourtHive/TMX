@@ -1,3 +1,4 @@
+import { focusAdjacentField, focusFieldWhenRendered, hotkeyFields, isHotkeyEntryMode } from './hotkeyScoreField';
 import { keyValueConstants, scoreGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -8,6 +9,9 @@ import { t } from 'i18n';
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 const { HOTKEYS, SIDE1KEYS, MODIFIERS } = keyValueConstants;
+// The factory's list names several keys twice (tab, shift+tab, enter, the arrows), and hotkeys-js registers each
+// occurrence, so one Tab ran the handler twice and skipped a field. Register each key once.
+const KEYS = [...new Set(HOTKEYS.split(','))].join(',');
 
 type FocusData = {
   cell: any;
@@ -17,13 +21,16 @@ type FocusData = {
 export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
   let focusData: FocusData | undefined;
   let updatedMatchUp: any;
+  // Whether a key has changed the score of the cell in focus since it took focus
+  let typed = false;
 
   const setFocusData = (params: FocusData) => {
     updatedMatchUp = undefined;
+    typed = false;
     focusData = params;
   };
 
-  hotkeys(HOTKEYS + ',esc', (event, handler) => {
+  hotkeys(KEYS + ',esc', (event, handler) => {
     if (focusData) {
       const element = focusData.cell.getElement();
       const targetElement = element.classList?.contains('tabulator-cell') ? element.firstChild : element;
@@ -40,8 +47,10 @@ export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
         focusData = undefined;
       }
 
+      // Hotkey entry mode: Tab / Shift+Tab move between the entry fields
       if (value === 'tab') {
-        // Tab navigation logic commented out in original
+        if (isHotkeyEntryMode()) focusAdjacentField(targetElement, shifted ? -1 : 1);
+        return;
       }
 
       const lowSide = (SIDE1KEYS.some((k) => k === value) && (shifted ? 2 : 1)) || undefined;
@@ -75,35 +84,56 @@ export function hotKeyScoring(): { setFocusData: (params: FocusData) => void } {
             matchUpFormat,
             updated,
           };
+          typed = true;
           targetElement.innerText = updatedScoreString || 'Enter score';
+          targetElement.classList?.remove('is-placeholder');
         }
       }
     }
 
-    if (focusData && handler.key === 'enter') {
-      const scoreStringSide2 = scoreGovernor.generateScoreString({ sets: updatedMatchUp.sets, reversed: true });
-      const scoreStringSide1 = scoreGovernor.generateScoreString({ sets: updatedMatchUp.sets });
-      const outcome = {
-        matchUpStatus: updatedMatchUp.matchUpStatus,
-        winningSide: updatedMatchUp.winningSide,
-        score: {
-          sets: updatedMatchUp.sets,
-          scoreStringSide1,
-          scoreStringSide2,
-        },
-      };
-      submitScore({
-        callback: focusData.replaceTableData,
-        matchUpId: updatedMatchUp.matchUpId,
-        drawId: updatedMatchUp.drawId,
-        outcome,
-      });
-
+    if (focusData && handler.key === 'enter' && saveOrAdvance(focusData, typed ? updatedMatchUp : undefined)) {
       focusData = undefined;
     }
   });
 
   return { setFocusData };
+}
+
+/**
+ * Enter on a score cell. With a typed score, save it and (in entry mode) focus the next field once the table has
+ * re-rendered; returns true. With nothing typed there is nothing to save: in entry mode move to the next field;
+ * returns false, so the cell that now has focus keeps the keypad.
+ */
+function saveOrAdvance(focusData: FocusData, typedMatchUp: any): boolean {
+  const element = focusData.cell.getElement();
+  const current = element.classList?.contains('tabulator-cell') ? element.firstChild : element;
+  if (!typedMatchUp) {
+    if (isHotkeyEntryMode()) focusAdjacentField(current, 1);
+    return false;
+  }
+  // The field after this one, to focus once the table has re-rendered with the saved score
+  const fields = hotkeyFields();
+  const nextMatchUpId = fields[fields.indexOf(current) + 1]?.dataset.matchUpId;
+  const { replaceTableData } = focusData;
+  const outcome = {
+    matchUpStatus: typedMatchUp.matchUpStatus,
+    winningSide: typedMatchUp.winningSide,
+    score: {
+      sets: typedMatchUp.sets,
+      scoreStringSide1: scoreGovernor.generateScoreString({ sets: typedMatchUp.sets }),
+      scoreStringSide2: scoreGovernor.generateScoreString({ sets: typedMatchUp.sets, reversed: true }),
+    },
+  };
+  submitScore({
+    callback: () => {
+      replaceTableData();
+      if (isHotkeyEntryMode()) focusFieldWhenRendered(nextMatchUpId);
+    },
+    matchUpId: typedMatchUp.matchUpId,
+    drawId: typedMatchUp.drawId,
+    outcome,
+  });
+  return true;
 }
 
 function submitScore({

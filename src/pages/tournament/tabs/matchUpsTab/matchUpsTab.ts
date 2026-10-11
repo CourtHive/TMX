@@ -3,6 +3,7 @@
  * Displays all tournament matches with search and popover-based filters for event, flight, team, status, and type.
  * Dynamically creates predictive accuracy buttons for all rating types present in tournament data.
  */
+import { focusFirstFieldWhenRendered, isHotkeyEntryMode } from 'components/tables/matchUpsTable/hotkeyScoreField';
 import { getMatchUpProfileFilter } from 'components/tables/common/filters/matchUpProfileFilter';
 import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUpFlightFilter';
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';
@@ -13,11 +14,13 @@ import { getMatchUpTeamFilter } from 'components/tables/common/filters/matchUpTe
 import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTypeFilter';
 import { getMatchUpDateFilter } from 'components/tables/common/filters/matchUpDateFilter';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
-import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { getActionsItem } from 'pages/tournament/tabs/matchUpsTab/abandonMatchUpsAction';
+import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { mountMatchUpBars } from 'pages/tournament/tabs/matchUpsTab/matchUpBars';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
+import { deviceConfig } from 'config/deviceConfig';
 import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -152,6 +155,8 @@ export function renderMatchUpTab(): void {
     filterButton,
     // Dynamically create predictive accuracy buttons for all rating types present in tournament
     ...getPredictiveAccuracyItems(replaceTableData),
+    // Hotkey score entry: just left of [Actions]
+    getHotkeyEntryToggle(replaceTableData),
     // End-of-tournament actions menu (only present on/past the last date)
     getActionsItem(replaceTableData),
   ].filter(Boolean);
@@ -178,6 +183,36 @@ export function renderMatchUpTab(): void {
     });
     resetBarsToCompetitiveness = bars.resetToCompetitiveness;
   }
+}
+
+const HOTKEY_TOGGLE = 'hotkeyScoringToggle';
+const hotkeyIcon = (on: boolean) =>
+  on
+    ? '<i class="fa-solid fa-table-tennis-paddle-ball" style="color: var(--tmx-accent-blue)"></i>'
+    : '<i class="fa-solid fa-table-tennis-paddle-ball"></i>';
+
+/**
+ * Hotkey score entry (CA, 2026-10-12): the inline-scoring icon, just left of [Actions]. On, every matchUp ready to
+ * score is an entry field; Tab moves between them and Enter saves and moves to the next. Not offered on mobile,
+ * where the keypad is never used.
+ */
+function getHotkeyEntryToggle(replaceTableData: () => void): any | null {
+  if (deviceConfig.get().isMobile) return null;
+  return {
+    id: HOTKEY_TOGGLE,
+    label: hotkeyIcon(isHotkeyEntryMode()),
+    toolTip: { content: t('pages.matchUps.hotkeyScoring'), placement: 'bottom' },
+    location: RIGHT,
+    onClick: () => {
+      const on = !isHotkeyEntryMode();
+      preferencesConfig.set({ hotkeys: on });
+      const toggle = document.getElementById(HOTKEY_TOGGLE);
+      if (toggle) toggle.innerHTML = hotkeyIcon(on);
+      replaceTableData();
+      // The fields exist only once the table has redrawn
+      if (on) focusFirstFieldWhenRendered();
+    },
+  };
 }
 
 const intentColors = ['is-danger', 'is-info', 'is-success', 'is-warning', 'is-link', 'is-primary'];

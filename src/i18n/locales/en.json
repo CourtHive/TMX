@@ -2321,6 +2321,8 @@
       "title": "Matches",
       "schedule": "Schedule",
       "searchMatches": "Search matches",
+      "hotkeyScoring": "Hotkey score entry",
+      "hotkeyPlaceholder": "type score",
       "allEvents": "All events",
       "allFlights": "All flights",
       "allTeams": "All teams",
