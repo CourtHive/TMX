@@ -12,6 +12,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { navigateToEvent } from '../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { displayConfig } from 'config/displayConfig';
 import { getBracketData } from './getBracketData';
 
@@ -24,10 +25,10 @@ function getStructureMatchUps(structure: any): any[] {
   return Object.values(structure?.roundMatchUps ?? {}).flat();
 }
 
-/** True when every matchUp in a group has a winner or is a BYE. */
+/** True when every matchUp in a group has its result (a winner, or a completed tie) or is a BYE. */
 function isGroupComplete(structureMatchUps: any[], groupId: string): boolean {
   const groupMatchUps = structureMatchUps.filter((mu: any) => mu.structureId === groupId);
-  return groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => mu.winningSide || mu.matchUpStatus === 'BYE');
+  return groupMatchUps.length > 0 && groupMatchUps.every((mu: any) => hasFinalResult(mu) || mu.matchUpStatus === 'BYE');
 }
 
 /** Walk the raw drawDefinition's structure tree (CONTAINER -> ITEM groups,
