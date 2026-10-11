@@ -899,6 +899,12 @@
     "callToCourt": "Call to court",
     "startTime": "Start time",
     "endTime": "End time",
+    "completedTimes": {
+      "called": "Called",
+      "started": "Started",
+      "ended": "Ended",
+      "scored": "Scored"
+    },
     "annotations": "Annotations",
     "clearTimeSettings": "Clear",
     "enterScore": "Enter score",
