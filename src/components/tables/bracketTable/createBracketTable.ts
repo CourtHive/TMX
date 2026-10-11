@@ -378,6 +378,7 @@ export async function createBracketTable({
         eventId,
         drawId,
         structureId,
+        hasDraws: group.hasDraws,
       });
       const table = new Tabulator(tableDiv, {
         height:
