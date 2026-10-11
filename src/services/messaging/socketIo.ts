@@ -226,10 +226,8 @@ function notifyConnectionTrouble(): void {
  * True only when there is a LIVE connection.
  *
  * Previously `!!oi.socket`, which is truthy for a socket object that exists and
- * is disconnected — so the main menu offered "Disconnect" on a dead socket, the
- * settings panel displayed "Connected", and `requestTournamentRecord` emitted
- * into the void instead of telling the operator they are offline. All four
- * callers want live connectivity.
+ * is disconnected — so the settings panel displayed "Connected" on a dead socket.
+ * Every caller wants live connectivity.
  */
 export function connected(): boolean {
   return !!oi.connection?.isConnected();
