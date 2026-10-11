@@ -19,8 +19,17 @@
 
 export const CONFLICT_COURT_TIME_ORDER = 'courtTimeOrderConflict';
 
+/**
+ * Outcomes that never put anyone on the court, so the match holds no time there and cannot be out of
+ * order with the one after it. A director whose 08:00 match is a walkover puts the next 08:00 match on
+ * that court (reported on BOBOCA, 2026-10-11), and the two equal times are the schedule working, not a
+ * slip. DEFAULTED, DOUBLE_DEFAULT and ABANDONED stay in: each can come after play has begun.
+ */
+const NEVER_ON_COURT = new Set(['WALKOVER', 'DOUBLE_WALKOVER', 'BYE', 'CANCELLED', 'DEAD_RUBBER']);
+
 export interface TimedMatchUp {
   matchUpId: string;
+  matchUpStatus?: string;
   schedule?: { courtId?: string; courtOrder?: number | string; scheduledTime?: string } | null;
 }
 
@@ -51,15 +60,16 @@ export function parseClockMinutes(value?: string): number | null {
  * issue is reported whenever a matchUp's time is <= the previous (lower-order)
  * matchUp's time. Adjacent comparison detects every break in strict
  * monotonicity while keeping the output low-noise. MatchUps missing a time or
- * order are skipped (they don't break the chain); same-order pairs are left to
- * the engine's double-booking check.
+ * order are skipped (they don't break the chain), as are those that never take
+ * the court (`NEVER_ON_COURT`); same-order pairs are left to the engine's
+ * double-booking check.
  */
 export function detectCourtTimeOrderIssues(matchUps: TimedMatchUp[]): CourtTimeOrderIssue[] {
   const byCourt = new Map<string, { matchUpId: string; order: number; minutes: number; time: string }[]>();
 
   for (const mu of matchUps) {
     const schedule = mu.schedule;
-    if (!schedule?.courtId) continue;
+    if (!schedule?.courtId || (mu.matchUpStatus && NEVER_ON_COURT.has(mu.matchUpStatus))) continue;
     const order =
       typeof schedule.courtOrder === 'string' ? Number.parseInt(schedule.courtOrder, 10) : schedule.courtOrder;
     const minutes = parseClockMinutes(schedule.scheduledTime);
