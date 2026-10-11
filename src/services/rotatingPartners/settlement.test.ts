@@ -54,7 +54,6 @@ beforeEach(() => {
       },
     ],
   });
-  h.engine.getTournament().tournamentRecord.events = [{ drawDefinitions: [h.engine.getEvent().drawDefinition] }];
   h.engine.dryRun.mockReset();
 });
 

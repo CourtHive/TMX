@@ -64,11 +64,7 @@ export function getSettlementContext(drawId: string, matchUpId: string): Settlem
   const record = tournamentEngine.getTournament().tournamentRecord;
   if (!record || !canSettleForProvider(record.parentOrganisation?.organisationId, getLoginState(), getUserContext()))
     return undefined;
-  // getEvent's definedAttributes projection does not preserve nested tuple arrays.
-  // Read persisted pairing history from the copied tournament record instead.
-  const drawDefinition = record.events
-    ?.flatMap((event) => event.drawDefinitions ?? [])
-    .find((draw) => draw.drawId === drawId);
+  const { drawDefinition } = tournamentEngine.getEvent({ drawId });
   const draw = drawDefinition as RotatingDraw | undefined;
   if (!new Set(['AMERICANO', 'MEXICANO']).has(draw?.competitionProfile?.format ?? '')) return undefined;
   const round = draw?.competitionRounds?.find((candidate) => new Set(candidate.matchUpIds).has(matchUpId));

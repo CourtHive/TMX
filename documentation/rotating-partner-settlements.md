@@ -37,7 +37,8 @@ persistence.
 
 Controls are hidden unless the loaded factory exposes settlement and individual-standings
 methods. Package pins remain unchanged; no unpublished sibling is silently substituted.
-This work needs a factory release containing the rotating-partner APIs before rollout.
+This branch remains a draft until the next factory publication includes the getEvent
+nested-array fix. Local verification uses TMX’s existing link to the fixed factory.
 The temporary consumer projections can be replaced with public factory types at that bump.
 
 Unit tests cover permissions, eligibility, snapshots, preview mapping and audit
@@ -46,6 +47,6 @@ four-player preview, persistence and stale-result refusal against the feature fa
 It intentionally reports a missing factory capability rather than silently skipping.
 Browser verification remains pending where the sandbox permits Chromium and Vite sockets.
 
-The context adapter reads round pairing history from the copied tournament record.
-The current factory getEvent projection corrupts nested tuple arrays; that separate
-finding is recorded in Mentat's factory review handoff.
+The context adapter reads applied round pairing history through getEvent({ drawId }).
+The getTournament workaround has been removed; getTournament still supplies tournament
+permissions and participant names.
