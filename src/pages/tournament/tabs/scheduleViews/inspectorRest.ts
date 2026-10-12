@@ -98,15 +98,12 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   // `inContext` matchUps, straight from the cache: the factory types them as `HydratedMatchUp`,
   // and the local lookup below reads them through the narrower `ReadinessMatchUp` shape.
   const matchUps = getCachedAllMatchUps().matchUps ?? [];
-  const hydrated = matchUps as ReadinessMatchUp[];
+  const byId = new Map((matchUps as ReadinessMatchUp[]).map((matchUp) => [matchUp.matchUpId, matchUp]));
   const { timeZone } = resolveVenueFrame();
   const now = new Date();
 
   return (matchUpId, viewedDate) => {
-    const restDate = restDateFor(
-      hydrated.find((matchUp) => matchUp.matchUpId === matchUpId),
-      viewedDate,
-    );
+    const restDate = restDateFor(byId.get(matchUpId), viewedDate);
     const result: any = tournamentEngine.getParticipantRest({
       matchUpId,
       matchUps,

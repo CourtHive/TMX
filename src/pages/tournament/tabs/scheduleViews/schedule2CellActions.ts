@@ -7,38 +7,40 @@
  */
 import { BookingTypeEnum, matchUpStatusConstants, timeItemConstants, tools } from 'tods-competition-factory';
 import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'courthive-components';
-import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
-import { openTimeBlockModal, type TimeBlockCourt } from './timeBlockModal';
-import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
-import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
-import { readCheckInPromptMode } from './gridViewStorage';
-import { getCachedAllMatchUps } from './schedule2DataCache';
-import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
+import { closeModal, confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { collectStartAllRestWarning, type StartAllRestWarning } from './startAllRestGuard';
+import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
+import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
+import { openTimeBlockModal, type TimeBlockCourt } from './timeBlockModal';
+import { cellPanelLayout, type CompletedTime } from './completedCellPanel';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
+import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { closeModal, confirmModal, openModal } from 'components/modals/baseModal/baseModal';
-import { destroyTipster } from 'components/popovers/tipster';
-import { competitionEngine } from 'services/factory/engine';
 import { evaluateRest, formatDuration } from './inspectorRest';
+import { destroyTipster } from 'components/popovers/tipster';
+import { getCachedAllMatchUps } from './schedule2DataCache';
+import { competitionEngine } from 'services/factory/engine';
+import { readCheckInPromptMode } from './gridViewStorage';
 import { timePicker } from 'components/modals/timePicker';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { venueNowClock } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
 
 // constants
+import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
   SET_MATCHUP_CALLED_AT,
   SET_MATCHUP_STATUS,
 } from 'constants/mutationConstants';
-import { timeModifierText, RIGHT } from 'constants/tmxConstants';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 const { IN_PROGRESS, SUSPENDED } = matchUpStatusConstants;
@@ -251,6 +253,32 @@ function makeTimeSectionLabel(): HTMLElement {
   return makeSectionLabel(t('schedule.time'));
 }
 
+const TIME_FACT_LABEL_KEYS: Record<CompletedTime['key'], string> = {
+  calledAt: 'schedule.completedTimes.called',
+  startTime: 'schedule.completedTimes.started',
+  endTime: 'schedule.completedTimes.ended',
+  scoredTime: 'schedule.completedTimes.scored',
+};
+
+/** A completed matchUp's times, read-only: one `Label  HH:MM` line each. */
+function makeTimeFacts(times: CompletedTime[]): HTMLElement {
+  const list = document.createElement('div');
+  list.className = 'cell-panel-time-facts';
+  list.style.cssText = 'display: grid; grid-template-columns: auto auto; justify-content: start; gap: 2px 10px;';
+  list.style.marginBottom = '8px';
+  for (const { key, clock } of times) {
+    const label = document.createElement('span');
+    label.style.color = 'var(--sp-muted)';
+    label.textContent = t(TIME_FACT_LABEL_KEYS[key]);
+    const value = document.createElement('span');
+    value.dataset.timeFact = key;
+    value.style.fontVariantNumeric = 'tabular-nums';
+    value.textContent = clock;
+    list.append(label, value);
+  }
+  return list;
+}
+
 function makeDivider(): HTMLElement {
   const hr = document.createElement('hr');
   hr.style.cssText = 'border: none; border-top: 1px solid var(--sp-border, var(--tmx-border-primary)); margin: 6px 0;';
@@ -432,11 +460,15 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   const isTerminal = terminalStatuses.includes(matchUpStatus);
   const isInProgress = matchUpStatus === IN_PROGRESS;
   const isCalled = !!(matchUp?.schedule?.calledAt || cellData?.schedule?.calledAt);
+  // A completed matchUp (any finished status) drops annotations, Set time, Call and Start,
+  // and states its times instead — see completedCellPanel.
+  const layout = cellPanelLayout({ matchUpStatus, schedule: matchUp?.schedule ?? cellData?.schedule });
   const hideTimeActions = noParticipants || isTerminal;
-  const hideStartMatch = hideTimeActions || isInProgress || matchUp?.winningSide;
+  const hideStartMatch = hideTimeActions || isInProgress || matchUp?.winningSide || !layout.allowCallAndStart;
   // "Call to court" announces a match without starting it; hide once it's called,
   // live, or decided.
-  const hideCallToCourt = hideTimeActions || isInProgress || isCalled || matchUp?.winningSide;
+  const hideCallToCourt =
+    hideTimeActions || isInProgress || isCalled || matchUp?.winningSide || !layout.allowCallAndStart;
 
   const scoreMatchUp = () => enterMatchUpScore({ matchUp, matchUpId, callback: () => onRefresh() });
 
@@ -485,12 +517,14 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   // ── Build popover DOM ──
   const pop = document.createElement('div');
   pop.style.cssText = POPOVER_CSS;
+  pop.dataset.cellPanel = layout.completed ? 'completed' : 'matchUp';
 
   // Section 1: Time
   pop.appendChild(makeTimeSectionLabel());
+  if (layout.times.length) pop.appendChild(makeTimeFacts(layout.times));
   const timeRow = document.createElement('div');
   timeRow.style.cssText = PILL_ROW_CSS;
-  timeRow.appendChild(makePill(t('schedule.setTime'), setMatchUpTime, { icon: 'fa-clock' }));
+  if (layout.showSetTime) timeRow.appendChild(makePill(t('schedule.setTime'), setMatchUpTime, { icon: 'fa-clock' }));
   if (!hideCallToCourt)
     timeRow.appendChild(
       makePill(t('schedule.callToCourt'), callToCourt, {
@@ -511,19 +545,21 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     timeRow.appendChild(makePill(t('schedule.startTime'), setStartTime));
     timeRow.appendChild(makePill(t('schedule.endTime'), setEndTime));
   }
-  pop.appendChild(timeRow);
+  if (timeRow.children.length) pop.appendChild(timeRow);
 
   // Section 2: Schedule annotations
-  pop.appendChild(makeSectionLabel(t('schedule.annotations')));
-  const annoRow = document.createElement('div');
-  annoRow.style.cssText = PILL_ROW_CSS;
-  annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
-  annoRow.appendChild(makePill(timeModifierText[NEXT_AVAILABLE], () => modifyTime(NEXT_AVAILABLE)));
-  annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
-  annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
-  annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
-  annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
-  pop.appendChild(annoRow);
+  if (layout.showAnnotations) {
+    pop.appendChild(makeSectionLabel(t('schedule.annotations')));
+    const annoRow = document.createElement('div');
+    annoRow.style.cssText = PILL_ROW_CSS;
+    annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
+    annoRow.appendChild(makePill(timeModifierText[NEXT_AVAILABLE], () => modifyTime(NEXT_AVAILABLE)));
+    annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
+    annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
+    annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
+    annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
+    pop.appendChild(annoRow);
+  }
 
   const printCard = () => printMatchUpCourtCard({ matchUpId, scheduledDate });
   const sideHasParticipant = (s: any) => !!(s?.participantId || s?.participant?.participantId);
@@ -785,7 +821,7 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   // Shotgun start additionally requires ≥2 participants assigned, not already in progress, no winner.
   const startableMatchUps = applicableMatchUps.filter((m: any) => {
     const participantCount = m.sides?.filter((s: any) => s?.participantId || s?.participant?.participantId).length || 0;
-    return participantCount >= 2 && m.matchUpStatus !== IN_PROGRESS && !m.winningSide;
+    return participantCount >= 2 && m.matchUpStatus !== IN_PROGRESS && !hasFinalResult(m);
   });
 
   if (!applicableMatchUps.length) return;
@@ -1017,7 +1053,7 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
   // drag a match to Now intending to start it and never press [Start match], so
   // it still reads NEXT. Treat every occupied strip cell as fair game for the
   // bulk actions; only terminal/decided matchUps are excluded.
-  const actionable = cells.filter((c) => !TERMINAL_MATCHUP_STATUSES.has(c.matchUpStatus ?? '') && !c.winningSide);
+  const actionable = cells.filter((c) => !TERMINAL_MATCHUP_STATUSES.has(c.matchUpStatus ?? '') && !hasFinalResult(c));
 
   const startable = actionable.filter(
     (c) => c.matchUpStatus !== IN_PROGRESS && c.matchUpStatus !== SUSPENDED && c.participantIds.length >= 2,

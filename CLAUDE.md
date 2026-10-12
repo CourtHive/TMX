@@ -21,7 +21,7 @@ dependency PRs arrive on the integration branch rather than on the release branc
 | workflow | trigger | consequence |
 |---|---|---|
 | `ci.yml` | bare `pull_request:` + `push: [main]` | a PR into `dev` gets the full gate. A direct push to `dev` gets **no** run, so land work by PR |
-| `electron.yml` | bare `pull_request:` + `push: [main]` | same |
+| `electron.yml` | `pull_request: [main]` + `push: [main]` + `workflow_dispatch` | **PRs into `dev` get no Electron run** (CA, 2026-10-10); it runs at the checkpoint. Dispatch it by hand for a dev PR touching `electron/` |
 | `release-please.yml` | `push: [main]` ONLY | a checkpoint merge **refreshes** the release PR. Nothing is tagged or published |
 | `deploy-pages.yml` | `release: published` | unaffected |
 | `sync-i18n.yml` | `push: [main]`, path-filtered on `src/i18n/locales/en.json` | **an i18n change on `dev` does not sync until it reaches `main`** at a checkpoint |

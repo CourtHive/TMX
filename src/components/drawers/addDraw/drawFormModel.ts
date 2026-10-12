@@ -90,7 +90,7 @@ export type DrawFormMode =
       maxQualifiers?: number;
       /** `getAvailableQualifyingTargets().targets` for the structure: the rounds qualifiers can
        *  enter, what already feeds each and its capacity. When present, `maxQualifiers` defaults to
-       *  the chosen round's `structuralCapacity` instead of the whole structure's size. */
+       *  the chosen round's `remainingCapacity` instead of the whole structure's size. */
       qualifyingTargets?: QualifyingTarget[];
     };
 
@@ -230,8 +230,9 @@ const AD_HOC_FAMILY = new Set<string>([AD_HOC, SWISS, DRAW_MATIC]);
 
 /** Allowed draw types for the qualifying side of any qualifying-related mode.
  *  ROUND_ROBIN_WITH_PLAYOFF is intentionally excluded — qualifying structures
- *  don't use playoffs. Matches getDrawTypeOptions({ isQualifying: true }). */
-const QUALIFYING_DRAW_TYPES: string[] = [SINGLE_ELIMINATION, ROUND_ROBIN];
+ *  don't use playoffs. Matches getDrawTypeOptions({ isQualifying: true }), which
+ *  offers FEED_IN only when the factory can build a FEED_IN qualifying. */
+const QUALIFYING_DRAW_TYPES: string[] = [SINGLE_ELIMINATION, ROUND_ROBIN, FEED_IN];
 
 /** Allowed draw types for new MAIN draws. The full master list is owned by
  *  `getDrawTypeOptions`; this set is the subset the model whitelists per the
@@ -519,13 +520,13 @@ function computeAttachQualifying(
   // Draw size for an attaching flow comes from the existing structure.
   const drawSize = positionAssignments.length || 0;
   // The rounds qualifiers can enter, from the factory's getAvailableQualifyingTargets: the chosen
-  // round (or the first still open) bounds the qualifiers count by what the round can structurally
-  // take, so a second qualifying into a round another already feeds cannot overfill it.
+  // round (or the first still open) bounds the qualifiers count by the open positions the round
+  // has left, so a qualifying cannot promise more qualifiers than there are seats for them.
   const qualifyingTargets = targetsWithCapacity(mode.qualifyingTargets);
   const qualifyingTarget = selectTarget(qualifyingTargets, inputs[QUALIFYING_TARGET_ROUND]);
   // Upper bound on qualifiersCount: explicit override on the mode payload, else the chosen
-  // round's structural capacity, else the position-assignment count of the target structure.
-  const maxQualifiers = mode.maxQualifiers ?? qualifyingTarget?.structuralCapacity ?? drawSize;
+  // round's remaining capacity, else the position-assignment count of the target structure.
+  const maxQualifiers = mode.maxQualifiers ?? qualifyingTarget?.remainingCapacity ?? drawSize;
   // Existing qualifier count from the structure being attached to.
   const qualifierPositionCount = positionAssignments.filter((p: any) => p.qualifier).length;
   const qualifiersCount = clampQualifiersCount(inputs[QUALIFIERS_COUNT], qualifierPositionCount || 1, maxQualifiers);

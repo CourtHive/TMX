@@ -7,6 +7,7 @@ const allTournamentMatchUpsMock = vi.fn();
 const competitionScheduleMatchUpsMock = vi.fn();
 const getCompetitionDateRangeMock = vi.fn();
 const getTournamentInfoMock = vi.fn();
+const proConflictsMock = vi.fn();
 
 vi.mock('services/factory/engine', () => ({
   competitionEngine: {
@@ -14,6 +15,7 @@ vi.mock('services/factory/engine', () => ({
     competitionScheduleMatchUps: (...args: any[]) => competitionScheduleMatchUpsMock(...args),
     getCompetitionDateRange: (...args: any[]) => getCompetitionDateRangeMock(...args),
     getTournamentInfo: (...args: any[]) => getTournamentInfoMock(...args),
+    proConflicts: (...args: any[]) => proConflictsMock(...args),
   },
   tournamentEngine: {},
 }));
@@ -25,6 +27,8 @@ import {
   getCachedScheduleMatchUps,
   getCachedCompetitionDateRange,
   getCachedTournamentInfo,
+  getCachedProConflicts,
+  getCachedMatchUpById,
   invalidateMatchUpCaches,
   invalidateAllScheduleCaches,
 } from './schedule2DataCache';
@@ -38,6 +42,7 @@ describe('schedule2DataCache', () => {
     competitionScheduleMatchUpsMock.mockReset().mockReturnValue({ courtsData: [], rows: [] });
     getCompetitionDateRangeMock.mockReset().mockReturnValue({ startDate: DATE_A, endDate: '2026-06-15' });
     getTournamentInfoMock.mockReset().mockReturnValue({ tournamentInfo: { tournamentId: 't1' } });
+    proConflictsMock.mockReset().mockReturnValue({ courtIssues: {}, rowIssues: {} });
     invalidateAllScheduleCaches();
   });
 
@@ -213,6 +218,69 @@ describe('schedule2DataCache', () => {
       expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(1);
       expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(1);
       expect(getTournamentInfoMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getCachedProConflicts', () => {
+    const onCourt = (matchUpId: string, scheduledDate: string) => ({
+      matchUpId,
+      schedule: { courtId: 'c1', scheduledDate },
+    });
+
+    beforeEach(() => {
+      allTournamentMatchUpsMock.mockReturnValue({
+        matchUps: [
+          onCourt('m1', DATE_A),
+          onCourt('m2', DATE_A),
+          onCourt('m3', DATE_B),
+          { matchUpId: 'm4', schedule: { scheduledDate: DATE_A } },
+        ],
+      });
+    });
+
+    // The header indicators, the issues list and the conflict resolver ask the same question of the
+    // same input; a render used to ask it three times.
+    it('runs proConflicts once per date over the court-placed matchUps on that date', () => {
+      const first = getCachedProConflicts(DATE_A);
+      getCachedProConflicts(DATE_A);
+      getCachedProConflicts(DATE_A);
+      expect(proConflictsMock).toHaveBeenCalledTimes(1);
+      expect(proConflictsMock.mock.calls[0][0].matchUps.map((m: any) => m.matchUpId)).toEqual(['m1', 'm2']);
+      expect(first).toMatchObject({ evaluated: true, courtIssues: {}, rowIssues: {} });
+      expect(first.scheduledMatchUps.map((m: any) => m.matchUpId)).toEqual(['m1', 'm2']);
+
+      getCachedProConflicts(DATE_B);
+      expect(proConflictsMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('reruns after a mutation', () => {
+      getCachedProConflicts(DATE_A);
+      notifyMutationApplied();
+      getCachedProConflicts(DATE_A);
+      expect(proConflictsMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('is not evaluated when nothing is on a court that day, or when proConflicts refuses', () => {
+      expect(getCachedProConflicts('2026-01-01')).toMatchObject({ evaluated: false, scheduledMatchUps: [] });
+      expect(proConflictsMock).not.toHaveBeenCalled();
+
+      proConflictsMock.mockReturnValue({ error: { message: 'nope' } });
+      const refused = getCachedProConflicts(DATE_A);
+      expect(refused.evaluated).toBe(false);
+      expect(refused.scheduledMatchUps).toHaveLength(2);
+    });
+  });
+
+  describe('getCachedMatchUpById', () => {
+    it('maps the cached matchUps by id, and drops the map with them', () => {
+      allTournamentMatchUpsMock.mockReturnValue({ matchUps: [{ matchUpId: 'm1' }, { matchUpId: 'm2' }] });
+      expect(getCachedMatchUpById().get('m2')).toEqual({ matchUpId: 'm2' });
+      expect(getCachedMatchUpById()).toBe(getCachedMatchUpById());
+
+      allTournamentMatchUpsMock.mockReturnValue({ matchUps: [{ matchUpId: 'm3' }] });
+      invalidateMatchUpCaches();
+      expect(getCachedMatchUpById().has('m2')).toBe(false);
+      expect(getCachedMatchUpById().get('m3')).toEqual({ matchUpId: 'm3' });
     });
   });
 });

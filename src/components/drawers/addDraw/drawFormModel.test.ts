@@ -22,6 +22,7 @@ import {
 const SINGLE_ELIMINATION = 'SINGLE_ELIMINATION';
 const ROUND_ROBIN = 'ROUND_ROBIN';
 const ROUND_ROBIN_WITH_PLAYOFF = 'ROUND_ROBIN_WITH_PLAYOFF';
+const FEED_IN = 'FEED_IN';
 const AD_HOC = 'AD_HOC';
 const SWISS = 'SWISS';
 const DRAW_MATIC = 'DRAW_MATIC';
@@ -146,7 +147,7 @@ describe('drawFormModel — NEW_MAIN_WITH_QUALIFYING_FIRST', () => {
     expect(view.derivedValues.drawSize).toBe(6);
     expect(view.derivedValues.qualifyingOnly).toBe(true);
     expect(view.derivedValues.drawEntries).toHaveLength(6);
-    expect(view.allowedDrawTypes).toEqual([SINGLE_ELIMINATION, ROUND_ROBIN]);
+    expect(view.allowedDrawTypes).toEqual([SINGLE_ELIMINATION, ROUND_ROBIN, FEED_IN]);
   });
 
   it('defaults draw size to 16 when no qualifying entries exist yet', () => {
@@ -177,7 +178,7 @@ describe('drawFormModel — NEW_QUALIFYING', () => {
     expect(view.derivedValues.drawSize).toBe(8);
     expect(view.derivedValues.drawEntries).toHaveLength(8);
     expect(view.derivedValues.qualifyingOnly).toBe(false);
-    expect(view.allowedDrawTypes).toEqual([SINGLE_ELIMINATION, ROUND_ROBIN]);
+    expect(view.allowedDrawTypes).toEqual([SINGLE_ELIMINATION, ROUND_ROBIN, FEED_IN]);
     expect(view.fieldStates[STRUCTURE_NAME]?.visible).toBe(true);
     expect(view.fieldStates[DRAW_NAME]?.visible).toBe(false);
     expect(view.fieldStates[QUALIFYING_FIRST]?.visible).toBe(false);

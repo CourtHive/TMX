@@ -5,6 +5,7 @@
 import { isScheduleLocked } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { eventConstants, factoryConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { normalizeDiacritics } from 'normalize-text';
 
 const { TEAM } = eventConstants;
@@ -65,7 +66,9 @@ export const mapMatchUp = (matchUp: any): any => {
   const winningSide = (rest.winningSide === 1 && 'side1') || (rest.winningSide === 2 && 'side2') || undefined;
   const complete = completedMatchUpStatuses.includes(matchUp.matchUpStatus);
 
-  const readyToScore = !!(rest.winningSide || rest.readyToScore);
+  // A completed points-total tie (16-16, COMPLETED, no winner) is no longer readyToScore (factory 7.11.0) and has no
+  // winner, but its score is still shown.
+  const readyToScore = !!(rest.winningSide || rest.readyToScore || hasFinalResult(rest));
   const score = rest.score?.scoreStringSide1;
 
   const firstLast = sides

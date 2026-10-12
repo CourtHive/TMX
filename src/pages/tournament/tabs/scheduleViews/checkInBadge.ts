@@ -25,7 +25,7 @@
  */
 
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
-import { getCachedAllMatchUps } from './schedule2DataCache';
+import { getCachedMatchUpById } from './schedule2DataCache';
 import { t } from 'i18n';
 
 // constants and types
@@ -68,8 +68,7 @@ export function checkInBadgeModel(state: MatchUpCheckInState): CheckInBadgeModel
 
 /** Resolve the hydrated matchUp — `checkedInParticipantIds` is attached by `addMatchUpContext`. */
 function hydratedMatchUp(matchUpId: string): any {
-  const matchUps = getCachedAllMatchUps()?.matchUps ?? [];
-  return matchUps.find((matchUp: any) => matchUp?.matchUpId === matchUpId);
+  return getCachedMatchUpById().get(matchUpId);
 }
 
 /**

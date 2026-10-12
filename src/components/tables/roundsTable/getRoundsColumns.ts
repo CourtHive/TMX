@@ -146,6 +146,8 @@ export function getRoundsColumns({ data, replaceTableData }: { data: any[]; repl
     },
     {
       title: `<div class='fa-solid fa-check' style='color: var(--tmx-accent-green)' />`,
+      // Only a finished matchUp carries a mark: an unfinished one renders an empty cell, not a cross.
+      formatterParams: { crossElement: false },
       formatter: 'tickCross',
       field: 'complete',
       hozAlign: LEFT,

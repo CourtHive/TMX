@@ -4,6 +4,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { isFunction } from 'functions/typeOf';
@@ -49,10 +50,11 @@ export function deleteAdHocMatchUps({
     const matchUpIds = matchUps
       .filter((matchUp: any) => {
         if (matchUp.roundNumber !== roundNumber) return;
-        if (matchUp.winningSide && inputs.completed.checked) return true;
+        // A completed tie (COMPLETED, no winner) is completed, not unscored
+        if (hasFinalResult(matchUp) && inputs.completed.checked) return true;
         if (
           matchUp.sides.some(({ participantId }: any) => participantId) &&
-          !matchUp.winningSide &&
+          !hasFinalResult(matchUp) &&
           inputs.unscored.checked
         )
           return true;

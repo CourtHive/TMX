@@ -121,3 +121,6 @@ export const UNPUBLISH_EVENT_SEEDING = 'unPublishEventSeeding';
 export const UNPUBLISH_EVENT = 'unPublishEvent';
 export const LINK_TOURNAMENTS = 'linkTournaments';
 export const UNLINK_TOURNAMENT = 'unlinkTournament';
+
+export const SETTLE_ROTATING_PARTNER_RESULT = 'settleRotatingPartnerResult';
+export const GET_ROTATING_PARTNER_STANDINGS = 'getRotatingPartnerStandings';

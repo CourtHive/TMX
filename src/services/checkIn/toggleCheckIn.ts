@@ -7,10 +7,10 @@
  *
  * `drawId`, never a resolved `drawDefinition`: the execution pipeline resolves it (ecosystem rule).
  *
- * ⚠️ `participantId` must be an **INDIVIDUAL**, never a PAIR (D4c). The factory would accept a PAIR —
- * its `allRelevantParticipantIds` includes `sideParticipantIds` — and nothing reconciles a PAIR-level
- * check-in with its two individual ones. `getMatchUpCheckInState` only ever offers individuals, which
- * is what keeps that unreachable rather than merely discouraged.
+ * ⚠️ `participantId` must be an **INDIVIDUAL**, never a PAIR (D4c). Since factory 7.0.0 the factory
+ * refuses anything else in both directions (`INVALID_ATTESTATION_SUBJECT`, #4933(factory)); a side's
+ * presence is derived from its individuals on read. `getMatchUpCheckInState` only ever offers
+ * individuals, so the desk never asks for a write the factory would refuse.
  *
  * ⚠️ `toggleParticipantCheckInState` also declares `matchUpIds?: string[]` in its args type and never
  * reads it. Do not pass it expecting to check somebody into several matchUps at once.

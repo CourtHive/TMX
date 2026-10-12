@@ -1,4 +1,24 @@
 {
+  "rotatingPartners": {
+    "settlement": {
+      "title": "Settle standings",
+      "explanation": "Choose how this result contributes to individual standings. The match result stays unchanged. Awarded credits are adjudicated points, rather than points played.",
+      "treatment": "Standings treatment",
+      "exclude": "Exclude from standings",
+      "playedPoints": "Count recorded points",
+      "credit": "Award points",
+      "winningPoints": "Points for each player on the winning side",
+      "losingPoints": "Points for each player on the losing side",
+      "reason": "Reason (required)",
+      "recordedBy": "Recorded by",
+      "required": "Enter a reason, an operator identity and any required point credits before previewing.",
+      "player": "Player",
+      "points": "Points from this result",
+      "total": "Standings total",
+      "preview": "Preview standings",
+      "confirm": "Confirm settlement"
+    }
+  },
   "crowd": {
     "trackers": "Crowd trackers",
     "trackersFor": "Crowd trackers — {{label}}",
@@ -879,6 +899,12 @@
     "callToCourt": "Call to court",
     "startTime": "Start time",
     "endTime": "End time",
+    "completedTimes": {
+      "called": "Called",
+      "started": "Started",
+      "ended": "Ended",
+      "scored": "Scored"
+    },
     "annotations": "Annotations",
     "clearTimeSettings": "Clear",
     "enterScore": "Enter score",
@@ -1193,19 +1219,6 @@
       "continue": "Continue",
       "signOut": "Sign out",
       "failed": "Could not open that provider"
-    },
-    "contactEmail": {
-      "title": "Recovery email",
-      "label": "Recovery email",
-      "statusNotSet": "No recovery email set. Add one so you can recover access if you lose your password.",
-      "statusPending": "Pending verification — check {{email}} and click the link.",
-      "statusVerified": "Verified: {{email}}",
-      "save": "Save",
-      "resend": "Resend verification",
-      "savedPending": "Verification email sent to {{email}}.",
-      "resent": "Verification email sent.",
-      "alreadyVerified": "Recovery email is already verified.",
-      "failed": "Could not update recovery email. Please try again."
     },
     "deleteEvents": {
       "titleOne": "Delete Event",
@@ -1800,7 +1813,33 @@
       "goldenPoint": "Golden point",
       "starPoint": "Star point",
       "games": "Games",
-      "points": "Points"
+      "points": "Points",
+      "setPlural": "Sets",
+      "tiebreakPlural": "Tiebreaks",
+      "timedSetPlural": "Timed sets",
+      "outs": "Outs",
+      "pointsTotal": "Points total",
+      "roots": {
+        "set": "Set",
+        "half": "Half",
+        "quarter": "Quarter",
+        "period": "Period",
+        "inning": "Inning",
+        "round": "Round",
+        "frame": "Frame",
+        "map": "Map"
+      },
+      "setTo": "to {n}",
+      "tiebreakTo": "TB to {n}",
+      "winBy": "Win by {n}",
+      "minutesCount": "{n} Minutes",
+      "outsCount": "{n} outs",
+      "maxMinutes": "{n} min",
+      "pointsCount": "{n} points",
+      "consecutive": "{n} consecutive",
+      "tieAllowed": "Tie allowed",
+      "maxTime": "Max time",
+      "readOnly": "This format cannot be edited here. Select keeps it unchanged; choose another format to replace it."
     },
     "courtAvailability": {
       "startTime": "Start Time",
@@ -1938,6 +1977,7 @@
       "configureDraw": "Configure draw",
       "customScorecard": "Custom scorecard",
       "invalidDrawSize": "Invalid draw size",
+      "feedInQualifiersInvalid": "A staggered entry qualifying of {{drawSize}} can produce only these numbers of qualifiers: {{counts}}",
       "roundsCount": "Rounds to generate",
       "ratingScale": "Rating scale",
       "dynamicRatings": "Dynamic ratings",
@@ -2002,7 +2042,7 @@
       "drawTypePlayoff": "Playoff",
       "drawTypeRoundRobinWithPlayoff": "Round robin w/ playoff",
       "drawTypeAdaptive": "Adaptive",
-      "drawTypeStaggeredEntry": "Staggered Entry",
+      "drawTypeStaggeredEntry": "Feed in (staggered entry)",
       "drawTypeDescriptions": {
         "SINGLE_ELIMINATION": "Standard knockout bracket where each loss eliminates a participant from the draw.",
         "ROUND_ROBIN": "All participants play each other within groups; standings determined by win/loss record.",
@@ -2038,6 +2078,7 @@
     "userRemoved": "User removed",
     "matchUpScoredElsewhere": "Another user just scored this match ({{score}}). Review before saving.",
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
+    "clearRefused": "This result can't be cleared: a later match depends on it. Clear that match first.",
     "scoreDiscardedByFormat": "Changing the format to {{matchUpFormat}} discarded {{count}} set(s): {{sets}}",
     "tournamentNotFound": "Tournament not found",
     "tournamentsTruncated": "Showing the first {{loaded}} of {{total}} tournaments. Filter or search to narrow the list.",
@@ -2197,6 +2238,7 @@
     "bracket": {
       "participant": "Participant",
       "winLoss": "W/L",
+      "winLossDraw": "W/L/D",
       "winPct": "Win%",
       "setPct": "Set%",
       "pos": "Pos"
@@ -2272,6 +2314,8 @@
       "title": "Matches",
       "schedule": "Schedule",
       "searchMatches": "Search matches",
+      "hotkeyScoring": "Hotkey score entry",
+      "hotkeyPlaceholder": "type score",
       "allEvents": "All events",
       "allFlights": "All flights",
       "allTeams": "All teams",

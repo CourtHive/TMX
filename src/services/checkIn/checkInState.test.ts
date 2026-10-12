@@ -7,53 +7,9 @@
  * about. The partial state — one of two partners present — is the reason the feature exists.
  */
 import { awaitingCheckIn, getMatchUpCheckInState, checkInSummary } from './checkInState';
+import { doublesMatchUp, singlesMatchUp, IKE } from './checkInTestMatchUps';
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
-
-const IKE = 'Ike Nkemelu';
-
-const singlesMatchUp = (checkedInParticipantIds: string[] = []) => ({
-  checkedInParticipantIds,
-  sides: [
-    {
-      sideNumber: 1,
-      participant: { participantId: 'p1', participantName: 'Ana Rivas', participantType: 'INDIVIDUAL' },
-    },
-    {
-      sideNumber: 2,
-      participant: { participantId: 'p2', participantName: 'Raj Patel', participantType: 'INDIVIDUAL' },
-    },
-  ],
-});
-
-const doublesMatchUp = (checkedInParticipantIds: string[] = []) => ({
-  checkedInParticipantIds,
-  sides: [
-    {
-      sideNumber: 1,
-      participant: {
-        participantId: 'pair1',
-        participantName: 'Rivas/Cole',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p1', participantName: 'Ana Rivas' },
-          { participantId: 'p2', participantName: 'Sam Cole' },
-        ],
-      },
-    },
-    {
-      sideNumber: 2,
-      participant: {
-        participantId: 'pair2',
-        participantName: 'Patel/Nkemelu',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p3', participantName: 'Raj Patel' },
-          { participantId: 'p4', participantName: IKE },
-        ],
-      },
-    },
-  ],
-});
 
 describe('who may check in', () => {
   it('lists both players of a singles matchUp', () => {
@@ -121,7 +77,7 @@ describe('partial state — the reason this is not a boolean', () => {
 
   it('does NOT report allCheckedIn for a matchUp with nobody in it', () => {
     // 0 === 0 would otherwise read as "everyone present" and let the call-to-court gate pass silently.
-    const state = getMatchUpCheckInState({ sides: [], checkedInParticipantIds: [] });
+    const state = getMatchUpCheckInState({ sides: [], hasContext: true });
     expect(state.allCheckedIn).toBe(false);
     expect(state.hasParticipants).toBe(false);
   });
@@ -148,7 +104,31 @@ describe('input guards', () => {
   });
 
   it('skips an empty side of a partially-drawn matchUp', () => {
-    const matchUp = { checkedInParticipantIds: [], sides: [{ sideNumber: 1 }, singlesMatchUp().sides[1]] };
+    const matchUp = { hasContext: true, sides: [{ sideNumber: 1 }, singlesMatchUp().sides[1]] };
     expect(getMatchUpCheckInState(matchUp).participants.map((p) => p.participantId)).toEqual(['p2']);
+  });
+});
+
+describe('against a matchUp the engine produced', () => {
+  it('reads a real doubles matchUp, so the shared fixtures are a shape the factory makes', () => {
+    const {
+      drawIds: [drawId],
+    } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize: 4, eventType: 'DOUBLES' }],
+      setState: true,
+    });
+    const { matchUps } = tournamentEngine.allTournamentMatchUps({ inContext: true });
+    const matchUp: any = matchUps?.find((candidate: any) => candidate.roundNumber === 1);
+    const [first] = matchUp.sides[0].participant.individualParticipantIds;
+
+    const result = tournamentEngine.checkInParticipant({ matchUpId: matchUp.matchUpId, participantId: first, drawId });
+    expect(result.success).toBe(true);
+
+    const stored = tournamentEngine.findMatchUp({ matchUpId: matchUp.matchUpId, drawId }).matchUp;
+    const state = getMatchUpCheckInState(stored);
+    expect(state.total).toEqual(4);
+    expect(state.partial).toBe(true);
+    expect(checkInSummary(state)).toEqual('1/4');
+    expect(state.participants.find((participant) => participant.checkedIn)?.participantId).toEqual(first);
   });
 });

@@ -6,37 +6,8 @@
  * ignored `individualParticipants` entirely — which is the exact mechanism under test.
  */
 import { callToCourtPrompt } from './callToCourtPrompt';
+import { doublesMatchUp } from './checkInTestMatchUps';
 import { describe, expect, it } from 'vitest';
-
-const doublesMatchUp = (checkedInParticipantIds: string[] = []) => ({
-  checkedInParticipantIds,
-  sides: [
-    {
-      sideNumber: 1,
-      participant: {
-        participantId: 'pair1',
-        participantName: 'Rivas/Cole',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p1', participantName: 'Ana Rivas' },
-          { participantId: 'p2', participantName: 'Sam Cole' },
-        ],
-      },
-    },
-    {
-      sideNumber: 2,
-      participant: {
-        participantId: 'pair2',
-        participantName: 'Patel/Nkemelu',
-        participantType: 'PAIR',
-        individualParticipants: [
-          { participantId: 'p3', participantName: 'Raj Patel' },
-          { participantId: 'p4', participantName: 'Ike Nkemelu' },
-        ],
-      },
-    },
-  ],
-});
 
 describe('callToCourtPrompt', () => {
   it('names exactly the participants who are missing', () => {

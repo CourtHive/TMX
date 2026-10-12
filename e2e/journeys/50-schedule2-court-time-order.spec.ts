@@ -7,16 +7,14 @@ import { TournamentPage } from '../pages/TournamentPage';
  * Journey 50 — Schedule2 court time/order issue
  *
  * With "time travels with the matchUp", a court's scheduledTimes can end up out
- * of order (a later courtOrder at an equal/earlier time). proConflicts ignores
- * scheduledTime, so TMX surfaces this as a soft WARN in the grid action bar's
- * issues popover (detectCourtTimeOrderIssues + buildIssues).
+ * of order (a later courtOrder at an equal/earlier time). The factory's
+ * proConflicts reports it as CONFLICT_COURT_TIME_ORDER (a WARNING, since
+ * factory 7.11.0); TMX detected it on its own before that. It reaches the grid
+ * action bar's issues popover through buildIssues like every other issue.
  *
- * These cover the load-time wiring end-to-end: detector → buildIssues → action
- * bar issues button + popover. (The action bar is built at render time; whether
- * it should also live-refresh after a drag is tracked separately — see
- * Mentat/TASKS.md.)
- *
- * The pure detector has dedicated unit coverage in courtTimeOrderIssues.test.ts.
+ * These cover that wiring end-to-end: proConflicts → buildIssues → action bar
+ * issues button + popover. The rule itself is covered in the factory
+ * (courtTimeOrderConflict.test.ts).
  */
 
 const DATE = todayLocal();
@@ -135,6 +133,39 @@ test.describe('Journey 50 — Schedule2 court time/order issue', () => {
     // Two independent first-round matchUps at different courtOrders produce no
     // proConflicts issue, and the times are in order — so no issues button.
     await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
+  });
+
+  // BOBOCA, 2026-10-11: the 08:00 match on Court 12 was a walkover, so the director put the next 08:00
+  // match on that court. Only one was played, so nothing is out of order.
+  test('a walkover holds no time: the match put on its court at the same time raises no issue', async ({ page }) => {
+    const seed = await seedOneCourt(page, ['08:00', '08:00']);
+    await page.evaluate(async (matchUpId) => {
+      const { drawId } = dev.factory.tournamentEngine.findMatchUp({ matchUpId }).matchUp;
+      const result = dev.factory.tournamentEngine.setMatchUpStatus({
+        drawId,
+        matchUpId,
+        outcome: { matchUpStatus: 'WALKOVER', winningSide: 1 },
+      });
+      if (!result.success) throw new Error(`walkover not recorded: ${JSON.stringify(result.error)}`);
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+    }, seed.matchUpIds[0]);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await expect(page.locator(ISSUES_BUTTON)).toHaveCount(0);
+  });
+
+  test('CONTROL: two played matches at the same time on one court still raise the issue', async ({ page }) => {
+    const seed = await seedOneCourt(page, ['08:00', '08:00']);
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seed.tournamentId);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP_SELECTOR, { timeout: 10_000 });
+    await page.locator(ISSUES_BUTTON).click();
+    await expect(page.getByText(/courtTimeOrderConflict/)).toBeVisible({ timeout: 5_000 });
   });
 
   test('a swap that puts a court out of order raises the issue live', async ({ page }) => {

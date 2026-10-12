@@ -249,7 +249,15 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       value: fs[QUALIFYING_TARGET_ROUND]?.value,
       visible: fs[QUALIFYING_TARGET_ROUND]?.visible ?? false,
     },
-    ...(notice ? [{ text: `<p id="${QUALIFYING_TARGET_NOTICE_ID}" class="help">${notice}</p>` }] : []),
+    // a `style` replaces renderForm's fixed-height text row, which a two-line notice overflows
+    ...(notice
+      ? [
+          {
+            text: `<p id="${QUALIFYING_TARGET_NOTICE_ID}" class="help">${notice}</p>`,
+            style: 'padding-right: 1em; margin-bottom: 0.75rem;',
+          },
+        ]
+      : []),
     {
       label: t('drawers.addDraw.qualifyingFirst'),
       field: QUALIFYING_FIRST,

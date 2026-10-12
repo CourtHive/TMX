@@ -32,10 +32,12 @@ function target(overrides: Partial<QualifyingTarget>): QualifyingTarget {
 }
 
 describe('qualifyingTargets', () => {
-  it('keeps only rounds with structural capacity', () => {
-    const open = target({ roundNumber: 1, structuralCapacity: 8 });
-    const full = target({ roundNumber: 2, structuralCapacity: 0 });
-    expect(targetsWithCapacity([full, open])).toEqual([open]);
+  it('keeps only rounds with an open position a new qualifier could take', () => {
+    const open = target({ roundNumber: 1, remainingCapacity: 8 });
+    const full = target({ roundNumber: 2, remainingCapacity: 0 });
+    // CA, 2026-10-09: every position filled, so no room, whatever the structural capacity says
+    const filled = target({ roundNumber: 3, structuralCapacity: 24, remainingCapacity: 0 });
+    expect(targetsWithCapacity([full, open, filled])).toEqual([open]);
     expect(targetsWithCapacity(undefined)).toEqual([]);
   });
 
@@ -49,8 +51,8 @@ describe('qualifyingTargets', () => {
     expect(selectTarget([], 1)).toBeUndefined();
   });
 
-  it('clamps the qualifiers count into [1, structuralCapacity]', () => {
-    const r1 = target({ structuralCapacity: 24 });
+  it('clamps the qualifiers count into [1, remainingCapacity]', () => {
+    const r1 = target({ structuralCapacity: 30, remainingCapacity: 24 });
     expect(clampToTarget(40, r1)).toBe(24);
     expect(clampToTarget(0, r1)).toBe(1);
     expect(clampToTarget(Number.NaN, r1)).toBe(1);
@@ -59,7 +61,7 @@ describe('qualifyingTargets', () => {
   });
 
   it('describes a round nobody feeds yet, and one already fed, without counting placeholders as feeders', () => {
-    const empty = target({ roundNumber: 1, drawPositionsCount: 64, structuralCapacity: 64 });
+    const empty = target({ roundNumber: 1, drawPositionsCount: 64, structuralCapacity: 64, remainingCapacity: 64 });
     expect(targetNotice(empty, t)).toBe('noFeeders:round=1 targetCapacity:open=64,total=64,round=1');
 
     const fed = target({
@@ -70,11 +72,12 @@ describe('qualifyingTargets', () => {
       drawPositionsCount: 64,
       promisedQualifiers: 16,
       structuralCapacity: 48,
+      remainingCapacity: 40,
     });
     expect(feedersOf(fed).map((f) => f.structureId)).toEqual(['q']);
     expect(targetNotice(fed, t)).toBe(
-      'alreadyFed:round=1,feederNames=Qualifying (16),count=16 targetCapacity:open=48,total=64,round=1',
+      'alreadyFed:round=1,feederNames=Qualifying (16),count=16 targetCapacity:open=40,total=64,round=1',
     );
-    expect(targetOptionLabel(fed, t)).toBe('targetRoundOption:total=64,open=48,round=1');
+    expect(targetOptionLabel(fed, t)).toBe('targetRoundOption:total=64,open=40,round=1');
   });
 });

@@ -1,6 +1,7 @@
 import { onTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { competitionEngine } from 'services/factory/engine';
+import { unwrapOr } from 'tods-competition-factory';
 
 /**
  * Page-scoped factory-call cache for the schedule2 surface.
@@ -32,7 +33,9 @@ import { competitionEngine } from 'services/factory/engine';
  */
 
 let allMatchUpsCache: any = null;
+let matchUpByIdCache: Map<string, any> | null = null;
 const scheduleMatchUpsByKey = new Map<string, any>();
+const proConflictsByDate = new Map<string, any>();
 let competitionDateRangeCache: any = null;
 let tournamentInfoCache: any = null;
 
@@ -46,6 +49,33 @@ export function getCachedAllMatchUps(): any {
     nextMatchUps: true,
   });
   return allMatchUpsCache;
+}
+
+/** The cached `inContext` matchUps by id, so a per-card lookup is not a scan of every matchUp. */
+export function getCachedMatchUpById(): Map<string, any> {
+  matchUpByIdCache ??= new Map((getCachedAllMatchUps().matchUps ?? []).map((m: any) => [m.matchUpId, m]));
+  return matchUpByIdCache;
+}
+
+/**
+ * `proConflicts` over the matchUps placed on a court on `scheduledDate`, with those matchUps.
+ * `evaluated` is false when there were none, or when `proConflicts` refused.
+ *
+ * The header/row indicators, the issues list and the column-conflict resolver all asked the same
+ * question of the same input, so a render ran it three times; each run walks every draw's
+ * dependencies. Lives and dies with `allMatchUps`, which is its input.
+ */
+export function getCachedProConflicts(scheduledDate: string): any {
+  if (proConflictsByDate.has(scheduledDate)) return proConflictsByDate.get(scheduledDate);
+  const scheduledMatchUps = (getCachedAllMatchUps().matchUps ?? []).filter(
+    (m: any) => m.schedule?.courtId && m.schedule?.scheduledDate === scheduledDate,
+  );
+  const result = scheduledMatchUps.length
+    ? unwrapOr(competitionEngine.proConflicts({ matchUps: scheduledMatchUps }), null)
+    : null;
+  const entry = { ...result, scheduledMatchUps, evaluated: !!result };
+  proConflictsByDate.set(scheduledDate, entry);
+  return entry;
 }
 
 export function getCachedScheduleMatchUps(scheduledDate: string, params: ScheduleMatchUpsParams = {}): any {
@@ -87,7 +117,9 @@ export function getCachedTournamentInfo(): any {
  */
 export function invalidateMatchUpCaches(): void {
   allMatchUpsCache = null;
+  matchUpByIdCache = null;
   scheduleMatchUpsByKey.clear();
+  proConflictsByDate.clear();
 }
 
 /**

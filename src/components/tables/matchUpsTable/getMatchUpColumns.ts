@@ -2,12 +2,7 @@
  * Column definitions for matchUps table.
  * Displays match details, participants, scores, schedule, and completion status.
  */
-import {
-  scheduleDateFormatter,
-  scheduleLockFormatter,
-  scheduleTimeFormatter,
-  calledAtFormatter,
-} from '../common/formatters/scheduleStatusFormatter';
+import { hotkeyScoreField, isHotkeyEntryMode, takesHotkeyEntry } from './hotkeyScoreField';
 import { matchUpTypeChipFormatter } from '../common/formatters/matchUpTypeChipFormatter';
 import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSorter';
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
@@ -37,6 +32,12 @@ import { headerMenu } from '../common/headerMenu';
 import { tools } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
+import {
+  scheduleDateFormatter,
+  scheduleLockFormatter,
+  scheduleTimeFormatter,
+  calledAtFormatter,
+} from '../common/formatters/scheduleStatusFormatter';
 
 // constants
 import type { ScheduleTimeField, ScheduleTimes, TimeBounds } from './scheduleTimeFields';
@@ -315,7 +316,11 @@ export function getMatchUpColumns({
     },
     {
       cellClick: handleScoreClick(replaceTableData, setFocusData),
-      formatter: scoreFormatter,
+      // In hotkey entry mode a matchUp ready to score is an entry field (Tab between them, Enter saves and moves on)
+      formatter: (cell: any) =>
+        isHotkeyEntryMode() && takesHotkeyEntry(cell.getRow().getData().matchUp)
+          ? hotkeyScoreField(cell, (focused) => setFocusData?.({ cell: focused, replaceTableData }))
+          : scoreFormatter(cell),
       sorter: scoreSorter,
       field: 'scoreDetail',
       responsive: false,
@@ -333,6 +338,8 @@ export function getMatchUpColumns({
     },
     {
       title: `<div class='fa-solid fa-check' style='color: var(--tmx-accent-green)' />`,
+      // Only a finished matchUp carries a mark: an unfinished one renders an empty cell, not a cross.
+      formatterParams: { crossElement: false },
       formatter: 'tickCross',
       field: 'complete',
       hozAlign: LEFT,

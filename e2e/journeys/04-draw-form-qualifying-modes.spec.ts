@@ -18,8 +18,9 @@ import { S } from '../helpers/selectors';
 
 /** Tournament with a main draw whose positions are NOT auto-filled.
  *  `automated: false` creates the draw structure with empty position
- *  assignments — canAddQualifying returns true because some positions
- *  have neither participantId nor bye. */
+ *  assignments. 12 entrants into 16 positions: "Add qualifying" is offered
+ *  only while a round has an open position no direct entrant is waiting
+ *  for (`remainingCapacity`, CA 2026-10-09), so 16 into 16 has no room. */
 const PROFILE_MANUAL_DRAW: MockProfile = {
   tournamentName: 'E2E Qualifying Modes',
   tournamentAttributes: { tournamentId: 'e2e-qualifying' },
@@ -29,6 +30,7 @@ const PROFILE_MANUAL_DRAW: MockProfile = {
       eventName: 'Singles',
       drawSize: 16,
       drawType: 'SINGLE_ELIMINATION',
+      participantsCount: 12,
       automated: false,
     },
   ],
@@ -107,12 +109,13 @@ test.describe('Journey 4 — Draw form qualifying modes', () => {
       (opts: HTMLOptionElement[]) =>
         opts.map((o) => o.value).filter((v) => v && !v.startsWith('─')),
     );
-    const qualifyingTypes = ['SINGLE_ELIMINATION', 'ROUND_ROBIN', 'ROUND_ROBIN_WITH_PLAYOFF'];
+    // FEED_IN (staggered entry) is offered for qualifying where the factory can build one (journey 148)
+    const qualifyingTypes = ['SINGLE_ELIMINATION', 'ROUND_ROBIN', 'ROUND_ROBIN_WITH_PLAYOFF', 'FEED_IN'];
     for (const val of values) {
       expect(qualifyingTypes).toContain(val);
     }
     expect(values.length).toBeGreaterThan(0);
-    expect(values.length).toBeLessThanOrEqual(3);
+    expect(values.length).toBeLessThanOrEqual(4);
 
     await drawer.clickCancel();
   });

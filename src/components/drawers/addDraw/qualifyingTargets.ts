@@ -4,8 +4,11 @@
  * The factory's `getAvailableQualifyingTargets` says, per round a main structure can be fed in, how
  * many drawPositions enter there, which qualifying structures already feed it and what they promise,
  * and two capacities: `structuralCapacity` (drawPositions less promised — the rule the factory's
- * attach enforces) and `remainingCapacity` (what the draw as placed today can still hold). Nothing
- * here touches the DOM or the engine, so the drawer's model and a node test can both use it.
+ * attach enforces) and `remainingCapacity` (open positions less the qualifiers still owed and the
+ * direct entries still unplaced). The offer, the clamp and the notice all read `remainingCapacity`:
+ * a position holding a participant or a BYE is not room (CA, 2026-10-09), so a main whose positions
+ * are all filled offers no qualifying until one is freed. Nothing here touches the DOM or the engine,
+ * so the drawer's model and a node test can both use it.
  */
 export type QualifyingTarget = {
   roundNumber: number;
@@ -13,6 +16,8 @@ export type QualifyingTarget = {
   unfilledPositionsCount: number;
   qualifierPositionsCount: number;
   unplacedDirectEntriesCount: number;
+  placedQualifiersCount?: number;
+  owedQualifiers?: number;
   feedingStructures: { structureId: string; structureName?: string; qualifiersCount: number; placeholder: boolean }[];
   promisedQualifiers: number;
   reservedQualifiers: number;
@@ -22,9 +27,9 @@ export type QualifyingTarget = {
 
 type Translate = (key: string, values?: Record<string, unknown>) => string;
 
-/** Rounds that can still take at least one qualifier. */
+/** Rounds with at least one open position a new qualifier could take. */
 export function targetsWithCapacity(targets?: QualifyingTarget[]): QualifyingTarget[] {
-  return (targets ?? []).filter((target) => target.structuralCapacity > 0);
+  return (targets ?? []).filter((target) => target.remainingCapacity > 0);
 }
 
 /** The target the operator chose, or the first round still open when nothing (valid) was chosen. */
@@ -36,11 +41,11 @@ export function selectTarget(
   return targets.find((target) => target.roundNumber === round) ?? targets[0];
 }
 
-/** Clamp a requested qualifiers count into [1, structuralCapacity]; with no target the request stands (floored at 1). */
+/** Clamp a requested qualifiers count into [1, remainingCapacity]; with no target the request stands (floored at 1). */
 export function clampToTarget(requested: number, target?: QualifyingTarget): number {
   const floor = Math.max(1, Number.isFinite(requested) ? requested : 1);
-  if (!target || target.structuralCapacity <= 0) return floor;
-  return Math.min(floor, target.structuralCapacity);
+  if (!target || target.remainingCapacity <= 0) return floor;
+  return Math.min(floor, target.remainingCapacity);
 }
 
 /** Real (non-placeholder) structures already feeding the target, oldest first as the links list them. */
@@ -52,7 +57,7 @@ export function feedersOf(target: QualifyingTarget): QualifyingTarget['feedingSt
 export function targetOptionLabel(target: QualifyingTarget, t: Translate): string {
   return t('drawers.addDraw.targetRoundOption', {
     total: target.drawPositionsCount,
-    open: target.structuralCapacity,
+    open: target.remainingCapacity,
     round: target.roundNumber,
   });
 }
@@ -61,7 +66,7 @@ export function targetOptionLabel(target: QualifyingTarget, t: Translate): strin
 export function targetNotice(target: QualifyingTarget, t: Translate): string {
   const feeders = feedersOf(target);
   const room = t('drawers.addDraw.targetCapacity', {
-    open: target.structuralCapacity,
+    open: target.remainingCapacity,
     total: target.drawPositionsCount,
     round: target.roundNumber,
   });

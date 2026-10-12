@@ -42,11 +42,13 @@ describe('drawFormModel — ATTACH_QUALIFYING with qualifying targets', () => {
     expect(view.fieldStates[QUALIFYING_TARGET_ROUND]?.visible).toBe(false);
   });
 
-  it("with one open round the ceiling is that round's structural capacity and no round choice is shown", () => {
+  it("with one open round the ceiling is that round's remaining capacity and no round choice is shown", () => {
+    // structurally the round could take 24 more, but only 16 of its positions are open
     const fed = target({
       feedingStructures: [{ structureId: 'Q', structureName: 'Qualifying', qualifiersCount: 8, placeholder: false }],
       promisedQualifiers: 8,
       structuralCapacity: 24,
+      remainingCapacity: 16,
     });
     const mode = resolveDrawFormMode({
       qualifyingTargets: [fed],
@@ -56,16 +58,17 @@ describe('drawFormModel — ATTACH_QUALIFYING with qualifying targets', () => {
       event,
     });
     const view = drawFormModel(mode, { [QUALIFIERS_COUNT]: 40 });
-    expect(view.derivedValues.maxQualifiers).toBe(24);
-    expect(view.derivedValues.qualifiersCount).toBe(24);
+    expect(view.derivedValues.maxQualifiers).toBe(16);
+    expect(view.derivedValues.qualifiersCount).toBe(16);
     expect(view.derivedValues.qualifyingTarget).toBe(fed);
     expect(view.fieldStates[QUALIFYING_TARGET_ROUND]).toEqual({ visible: false, disabled: false, value: 1 });
   });
 
   it('with several open rounds the chosen round bounds the count; a full round is not offered', () => {
-    const r1 = target({ roundNumber: 1, structuralCapacity: 8 });
-    const r2 = target({ roundNumber: 2, drawPositionsCount: 4, structuralCapacity: 4 });
-    const r3 = target({ roundNumber: 3, drawPositionsCount: 2, structuralCapacity: 0 });
+    const r1 = target({ roundNumber: 1, remainingCapacity: 8 });
+    const r2 = target({ roundNumber: 2, drawPositionsCount: 4, structuralCapacity: 4, remainingCapacity: 4 });
+    // structurally open, but every position is filled: not room (CA, 2026-10-09)
+    const r3 = target({ roundNumber: 3, drawPositionsCount: 2, structuralCapacity: 2, remainingCapacity: 0 });
     const mode = resolveDrawFormMode({
       qualifyingTargets: [r1, r2, r3],
       isQualifying: true,
@@ -87,7 +90,7 @@ describe('drawFormModel — ATTACH_QUALIFYING with qualifying targets', () => {
   it('an explicit maxQualifiers on the mode still wins', () => {
     const mode = {
       ...resolveDrawFormMode({
-        qualifyingTargets: [target({ structuralCapacity: 24 })],
+        qualifyingTargets: [target({ remainingCapacity: 24 })],
         isQualifying: true,
         structureId: 'S1',
         drawId: 'D1',

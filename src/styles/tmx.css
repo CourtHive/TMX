@@ -98,6 +98,28 @@ body {
   background-color: var(--tmx-bg-tertiary);
 }
 
+/* Hotkey score entry: a matchUp ready to score as an entry field (matchUps page toggle) */
+.hotkeyScoreField {
+  display: inline-block;
+  min-width: 7em;
+  padding: 2px 8px;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 4px;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+  font-size: smaller;
+  cursor: text;
+}
+
+.hotkeyScoreField.is-placeholder {
+  color: var(--tmx-text-muted);
+}
+
+.hotkeyScoreField:focus {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: 1px;
+}
+
 .activeScoreCell {
   margin: 2px;
   margin-left: 0px;

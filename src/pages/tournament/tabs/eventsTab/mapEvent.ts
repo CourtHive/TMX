@@ -5,6 +5,7 @@
 import { publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { tournamentEngine } from 'services/factory/engine';
+import { hasFinalResult } from 'functions/hasFinalResult';
 import { mapDrawDefinition } from './mapDrawDefinition';
 
 const { MAIN } = drawDefinitionConstants;
@@ -68,9 +69,10 @@ export function mapEvent({
     // along for no reader. Dropping it shrinks the result substantially.
     const matchUps = tournamentEngine.q.eventMatchUps({ inContext: false, eventId });
     matchUpsCount = matchUps?.length || 0;
+    // A completed tie (COMPLETED, no winner) is completed, not scheduled-and-pending
     scheduledMatchUpsCount =
-      matchUps?.filter(({ winningSide, schedule }: any) => !winningSide && schedule?.scheduledTime)?.length || 0;
-    completedMatchUpsCount = matchUps.filter(({ winningSide }: any) => winningSide)?.length || 0;
+      matchUps?.filter((matchUp: any) => !hasFinalResult(matchUp) && matchUp.schedule?.scheduledTime)?.length || 0;
+    completedMatchUpsCount = matchUps.filter((matchUp: any) => hasFinalResult(matchUp))?.length || 0;
     drawDefs = [...drawDefinitions, ...ungeneratedFlights].map((drawDefinition: any) =>
       mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
     );

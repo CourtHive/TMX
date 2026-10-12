@@ -12,6 +12,7 @@ import { acceptedEntriesCount } from './acceptedEntriesCount';
 import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
+import { feedInQualifierCounts } from './feedInQualifying';
 import { getSeedingAllowance } from './seedingPolicies';
 import { drawFormModel } from './drawFormModel';
 
@@ -143,6 +144,11 @@ export function getDrawFormRelationships({
 }: FormRelationshipParams): any[] {
   const stage = isQualifying ? QUALIFYING : MAIN;
 
+  // set when checkCreationMethod, not the operator, moved Creation to Manual
+  let forcedManual = false;
+  // a draw size the user typed outlives draw type and qualifier changes while it holds the entries and qualifiers:
+  // a draw can be generated before its entries, at any size (CA, 2026-10-09)
+  let typedDrawSize: number | undefined;
   const checkCreationMethod = ({ fields, inputs }: FormInteractionParams) => {
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
@@ -155,7 +161,17 @@ export function getDrawFormRelationships({
     const manualOnly = effectiveIsQualifying
       ? maxQualifiers || drawSize < entriesCount
       : maxQualifiers || drawSize < entriesCount + qualifiersCount;
-    if (manualOnly) inputs[AUTOMATED].value = MANUAL;
+    // select the Manual OPTION: its value is `false`, so assigning the label matched no option and blanked the field.
+    // The check runs per keystroke ("22" passes through "2"), so a Manual the form forced is undone once allowed.
+    const creation = inputs[AUTOMATED];
+    const manualOption = [...(creation.options ?? [])].find((option: any) => option.label === MANUAL);
+    if (manualOnly && manualOption && creation.value !== manualOption.value) {
+      creation.value = manualOption.value;
+      forcedManual = true;
+    } else if (!manualOnly && forcedManual) {
+      creation.value = AUTOMATED;
+      forcedManual = false;
+    }
     const help = fields && getChildrenByClassName(fields[AUTOMATED], 'help')?.[0];
     if (help) help.style.display = manualOnly ? '' : NONE;
     for (const option of inputs[AUTOMATED].options) {
@@ -215,8 +231,10 @@ export function getDrawFormRelationships({
     const drawSizeInteger =
       effectiveIsQualifying && !maxQualifiers ? entriesCount : Number.parseInt(entriesCount) + qualifiersCount;
     const effectiveType = resolveEffectiveDrawType(drawType as string);
-    const drawSize =
+    const derivedDrawSize =
       ((maxQualifiers || NON_POW2_TYPES.has(effectiveType)) && drawSizeInteger) || tools.nextPowerOf2(drawSizeInteger);
+    const keepTyped = !maxQualifiers && typedDrawSize !== undefined && typedDrawSize >= Number(drawSizeInteger);
+    const drawSize = keepTyped ? (typedDrawSize as number) : derivedDrawSize;
     inputs[DRAW_SIZE].value = drawSize;
 
     updateSeedCountOptions({ inputs, drawSize, drawType });
@@ -311,10 +329,25 @@ export function getDrawFormRelationships({
     }
   };
 
+  /** A FEED_IN qualifying produces only qualifier counts that divide its size twice over (13 positions: 1).
+   *  Moves an impossible count to the largest possible one below it, within the target's capacity. */
+  const fitFeedInQualifiers = (inputs: Record<string, any>) => {
+    const isQualifyingFirst = inputs[QUALIFYING_FIRST]?.checked;
+    if (inputs[DRAW_TYPE]?.value !== FEED_IN || !(isQualifying || isQualifyingFirst)) return;
+    const drawSize = Number.parseInt(inputs[DRAW_SIZE].value);
+    const counts = (validators.numericValidator(inputs[DRAW_SIZE].value) && feedInQualifierCounts(drawSize)) || [];
+    const input = inputs[isQualifyingFirst ? QUALIFYING_POSITIONS : QUALIFIERS_COUNT];
+    const current = Number.parseInt(input?.value);
+    const allowed = counts.filter((count) => !maxQualifiers || count <= maxQualifiers);
+    if (!input || !allowed.length || allowed.includes(current)) return;
+    input.value = allowed.filter((count) => count <= current).pop() ?? allowed[0];
+  };
+
   const drawTypeChange = ({ e, fields, inputs }: FormInteractionParams) => {
     const drawType = (e!.target as HTMLSelectElement).value;
 
     if (!maxQualifiers) updateDrawSize({ drawId, drawType, fields, inputs });
+    fitFeedInQualifiers(inputs);
     checkCreationMethod({ fields, inputs });
 
     if (fields) {
@@ -326,6 +359,7 @@ export function getDrawFormRelationships({
     const generateButton = document.getElementById('generateDraw') as HTMLButtonElement;
     const drawSizeValue = inputs[DRAW_SIZE].value || 0;
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
+    typedDrawSize = drawSize || undefined;
     const entriesCount = acceptedEntriesCount({ drawId, event, stage });
     const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
     const valid = validators.numericRange(2, maxDrawSize)(drawSizeValue);
@@ -337,6 +371,7 @@ export function getDrawFormRelationships({
     removeAllChildNodes(groupSizeSelect);
     renderOptions(groupSizeSelect, { options, value });
     updateSeedCountOptions({ inputs, drawSize });
+    fitFeedInQualifiers(inputs);
     checkCreationMethod({ fields, inputs });
   };
 
@@ -443,8 +478,11 @@ export function getDrawFormRelationships({
       ? ({ kind: 'NEW_MAIN_WITH_QUALIFYING_FIRST', event } as const)
       : ({ kind: 'NEW_MAIN', event } as const);
     const toggleView = drawFormModel(toggleMode, {});
+    // the size field now sizes the other structure: a size typed for the one before does not carry over
+    typedDrawSize = undefined;
     inputs[DRAW_SIZE].value = toggleView.derivedValues.drawSize;
     updateSeedCountOptions({ inputs, drawSize: toggleView.derivedValues.drawSize });
+    fitFeedInQualifiers(inputs);
 
     checkCreationMethod({ fields, inputs });
   };

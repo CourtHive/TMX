@@ -4,6 +4,7 @@
  */
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
+import { clearPermitted, isClearingOutcome } from './clearScorePermission';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -76,6 +77,15 @@ export function enterMatchUpScore(params: {
    * refusal toast and the caller's callback are about the mutation, not about the dialog that built it.
    */
   const dispatch = ({ outcome, onAccepted }: { outcome: any; onAccepted?: () => void }) => {
+    // A clear the engine would refuse is stopped here, with the reason, rather than sent to be refused
+    // as "No valid actions". Asked at submit time, of the live record, so a later match decided while
+    // the dialog was open still counts. Nothing is sent, so the result stands; the score modal stays
+    // open as it does for a refused score, while the score entry dialog closes after any submit.
+    if (isClearingOutcome(outcome) && !clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId })) {
+      tmxToast({ message: t('toasts.clearRefused'), intent: 'is-warning', pauseOnHover: true });
+      return;
+    }
+
     const methods = [
       {
         method: SET_MATCHUP_STATUS,
@@ -127,8 +137,12 @@ export function enterMatchUpScore(params: {
     applyScore();
   };
 
+  // Asked once, as the dialog opens, so it can withhold [Clear] where the engine would refuse it. The
+  // check in `dispatch` stays: it asks again at submit, against whatever was decided in the meantime.
+  const clearable = clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId });
+
   if (featureFlags.get().scoreEntryDialog) {
-    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup });
+    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable });
     return;
   }
 
@@ -163,6 +177,7 @@ export function enterMatchUpScore(params: {
     callback: scoreSubmitted,
     onRelayCleanup,
     matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
+    clearable,
   });
 }
 
@@ -181,10 +196,12 @@ function openNewScoreEntry({
   matchUp,
   dispatch,
   onRelayCleanup,
+  clearable,
 }: {
   matchUp: any;
   dispatch: (params: { outcome: any; onAccepted?: () => void }) => void;
   onRelayCleanup: () => void;
+  clearable: boolean;
 }): void {
   const preferred = preferencesConfig.get().scoringApproach as ScoreEntryApproach;
   openScoreEntryDialog({
@@ -192,6 +209,7 @@ function openNewScoreEntry({
     sides: dialogSides(matchUp),
     context: [matchUp?.roundName, matchUp?.schedule?.courtName].filter(Boolean).join(' · ') || undefined,
     statusCodeGroups: resolveStatusCodeGroups(matchUp),
+    clearable,
     approach: DIALOG_APPROACHES.includes(preferred) ? preferred : undefined,
     onApproachChange: (scoringApproach) => {
       preferencesConfig.set({ scoringApproach });
