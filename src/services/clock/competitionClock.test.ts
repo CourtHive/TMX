@@ -50,6 +50,20 @@ describe('competitionClock', () => {
     },
   );
 
+  it('gives no instant for a provider that THROWS, rather than letting the throw escape', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    setCompetitionClock({
+      nowMs: () => {
+        throw new Error('demo control offline');
+      },
+    });
+    expect(() => competitionNowMs()).not.toThrow();
+    expect(competitionNowMs()).toBeUndefined();
+    expect(Number.isNaN(competitionNow().getTime())).toBe(true);
+    expect(venueToday(TOKYO)).toBe('');
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
   it("moves the venue's today, clock and Now-strip instant together", () => {
     setCompetitionClock({ nowMs: () => INSTANT });
     expect(venueToday(TOKYO)).toBe(TOKYO_DAY);

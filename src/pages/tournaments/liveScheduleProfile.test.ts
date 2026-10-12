@@ -1,4 +1,5 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { setCompetitionClock } from 'services/clock/competitionClock';
 import { describe, expect, it } from 'vitest';
 import {
   buildLiveScheduleProfile,
@@ -271,5 +272,27 @@ describe('Live Schedule example — the maintenance window never leaves the day'
     const { booking } = maintenanceWindow(14, 0);
     expect(booking.startTime).toEqual('14:40');
     expect(booking.endTime).toEqual('15:55');
+  });
+});
+
+describe('Live Schedule with no usable competition clock', () => {
+  // A failed competition clock gives an invalid "now"; anchoring on it used to throw from toISOString()
+  // instead of refusing. The generator skips the profile and says so (see mockTournaments).
+  it('builds nothing for an invalid instant, rather than throwing', () => {
+    expect(() => buildLiveScheduleProfile(new Date(Number.NaN))).not.toThrow();
+    expect(buildLiveScheduleProfile(new Date(Number.NaN))).toBeUndefined();
+  });
+
+  it('builds nothing when the installed competition clock fails, by default', () => {
+    setCompetitionClock({
+      nowMs: () => {
+        throw new Error('offline');
+      },
+    });
+    try {
+      expect(buildLiveScheduleProfile()).toBeUndefined();
+    } finally {
+      setCompetitionClock();
+    }
   });
 });

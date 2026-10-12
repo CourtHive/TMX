@@ -60,14 +60,20 @@ export function setCompetitionClock(next?: CompetitionTimeProvider): { success?:
 
 /**
  * The competition's current instant in epoch ms, or `undefined` when the installed clock cannot give
- * one (not a number, or not a representable instant). NEVER the device clock in its place: a
+ * one (it threw, or answered something that is not a representable instant). NEVER the device clock in its place: a
  * simulation that silently fell back to real time would schedule, call and stamp on today's date
  * (CA, 2026-10-13). Callers treat `undefined` as "no clock" and refuse the time-dependent action.
  * The failure is logged once per installed clock (A2: surfaced, not a warning per read).
  */
 export function competitionNowMs(): number | undefined {
   if (!provider) return Date.now();
-  const ms = provider.nowMs();
+  let ms: unknown;
+  try {
+    ms = provider.nowMs();
+  } catch {
+    // a provider that throws is a provider that gave no instant: refused the same way, not propagated
+    ms = undefined;
+  }
   if (typeof ms === 'number' && !Number.isNaN(new Date(ms).getTime())) return ms;
   if (!warned) {
     warned = true;

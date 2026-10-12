@@ -586,7 +586,8 @@
     "existing": "Existing Tournament Record",
     "publishtime": "Publish Time",
     "replacelocal": "Replace Local Copy?",
-    "unpublish": "Unpublish Tournament?"
+    "unpublish": "Unpublish Tournament?",
+    "liveDemoClockUnavailable": "The Live Schedule example was not generated: the competition clock is not giving a usable time. Fix or remove the competition clock (dev.setCompetitionClock) and try again."
   },
   "ddlb": {
     "singles": "Singles Tournament Rank:",
