@@ -45,6 +45,12 @@ describe('the publish state follows the competition clock', () => {
     setCompetitionClock();
   });
 
+  it('with no usable competition instant an embargo is never read as lifted', () => {
+    const lapsed = new Date(Date.now() - 60 * 60_000).toISOString(); // lifted an hour ago on the device
+    setCompetitionClock({ nowMs: () => Number.NaN });
+    expect(resolvePublishState(true, lapsed)).toBe('embargoed');
+  });
+
   it('an embargo lifts when the COMPETITION clock passes it, not the device clock', () => {
     const embargo = new Date(Date.now() + 60 * 60_000).toISOString(); // an hour ahead of the device
     expect(resolvePublishState(true, embargo)).toBe('embargoed');

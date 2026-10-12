@@ -3,7 +3,7 @@
  * Displays all active embargoes sorted by expiry with remove buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionNow } from 'services/clock/competitionClock';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { publishStructureDetails } from './structurePublishing';
 import { publishingGovernor } from 'tods-competition-factory';
 import { venueLocaleString } from 'functions/venueTimeFrame';
@@ -26,7 +26,10 @@ function formatEmbargoTime(isoString: string): { display: string; countdown: str
     timeZoneName: 'short',
   });
 
-  const diff = date.getTime() - competitionNow().getTime();
+  // no usable competition instant: the embargo is shown as set, never as lifted
+  const now = competitionNowMs();
+  if (now === undefined) return { display, countdown: '' };
+  const diff = date.getTime() - now;
   if (diff <= 0) return { display, countdown: t('publishing.expired') };
 
   const hours = Math.floor(diff / 3600000);

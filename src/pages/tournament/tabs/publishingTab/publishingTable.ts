@@ -6,7 +6,7 @@
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionNow } from 'services/clock/competitionClock';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { publishingGovernor } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { venueLocaleString } from 'functions/venueTimeFrame';
@@ -106,7 +106,8 @@ function embargoFormatter(cell: any): string {
   const embargo = cell.getValue();
   if (!embargo) return '<span style="color:var(--tmx-text-muted); font-size:0.8rem;">—</span>';
   const date = new Date(embargo);
-  const active = date.getTime() > competitionNow().getTime();
+  const now = competitionNowMs();
+  const active = now === undefined || date.getTime() > now;
   if (!active) return `<span style="color:var(--tmx-text-muted); font-size:0.8rem;">${t('publishing.expired')}</span>`;
   const localStr = formatLocalEmbargo(date);
   return `<span style="color:var(--tmx-accent-orange); font-size:0.8rem;" title="${localStr}"><i class="fa fa-clock"></i> ${localStr}</span>`;

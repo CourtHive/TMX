@@ -37,6 +37,7 @@
  */
 
 import { evaluateRest, formatDuration, makeRestEvaluator } from './inspectorRest';
+import { onCompetitionClockChange } from 'services/clock/competitionClock';
 import { t } from 'i18n';
 
 // constants and types
@@ -193,10 +194,14 @@ function applyBadge(badge: HTMLElement, model: RestBadgeModel): void {
 
 const REFRESH_MS = 30_000;
 let tickHandle: ReturnType<typeof setInterval> | null = null;
+// a moved competition clock repaints at once, not on the next 30s tick
+let clockUnsubscribe: (() => void) | null = null;
 
 function stopTicker(): void {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
+  clockUnsubscribe?.();
+  clockUnsubscribe = null;
 }
 
 function tick(): void {
@@ -242,5 +247,6 @@ export function renderRestBadge(matchUpId: string, viewedDate: string | null): H
   applyBadge(badge, model);
 
   tickHandle ??= setInterval(tick, REFRESH_MS);
+  clockUnsubscribe ??= onCompetitionClockChange(tick);
   return badge;
 }

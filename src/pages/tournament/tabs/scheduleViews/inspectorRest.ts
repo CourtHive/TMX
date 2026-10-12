@@ -30,8 +30,8 @@
  */
 
 import { resolveVenueFrame, venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
+import { competitionNow, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { applyGridSearch, gridSearchAvailable } from './gridSearchControl';
-import { competitionNow } from 'services/clock/competitionClock';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -58,6 +58,8 @@ const MS_PER_MINUTE = 60_000;
  * testable without mocking the global clock.
  */
 export function restAsOf(restDate: string | null, timeZone?: string, now: Date = competitionNow()): string {
+  // no usable competition instant: '' is no as-of, which the factory reads as rest not evaluated
+  if (Number.isNaN(now.getTime())) return '';
   const real = now.toISOString();
   if (!restDate) return real;
   const today = venueCalendarDate(now, timeZone);
@@ -391,6 +393,8 @@ interface RestMount {
 }
 
 let tickHandle: ReturnType<typeof setInterval> | null = null;
+// a moved competition clock repaints at once, not on the next 30s tick
+let clockUnsubscribe: (() => void) | null = null;
 
 /**
  * Every mounted section, not just the latest one.
@@ -410,6 +414,8 @@ const mounts = new Set<RestMount>();
 function stopTicker(): void {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
+  clockUnsubscribe?.();
+  clockUnsubscribe = null;
   mounts.clear();
 }
 
@@ -440,5 +446,6 @@ export function renderRestSection(matchUpId: string, viewedDate: string | null):
 
   mounts.add({ section, matchUpId, viewedDate });
   tickHandle ??= setInterval(tick, REFRESH_MS);
+  clockUnsubscribe ??= onCompetitionClockChange(tick);
   return section;
 }
