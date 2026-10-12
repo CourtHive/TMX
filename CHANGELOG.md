@@ -1,5 +1,49 @@
 # Changelog
 
+## [8.34.0](https://github.com/CourtHive/TMX/compare/v8.33.0...v8.34.0) (2026-10-12)
+
+
+### Features
+
+* **check-in:** read check-in state from the factory's getMatchUpCheckInState ([#1606](https://github.com/CourtHive/TMX/issues/1606)) ([7408c21](https://github.com/CourtHive/TMX/commit/7408c2106aae8bcfd44b75d330f894d8c86580cf))
+* **draws:** a draw generated before its entries keeps its size, and Auto place seeds it ([#1586](https://github.com/CourtHive/TMX/issues/1586)) ([3ae7051](https://github.com/CourtHive/TMX/commit/3ae70514db09a0fb073454f9735e07ca9a1e239a))
+* **draws:** offer Feed in (staggered entry) for qualifying, with only the counts it can produce ([#1583](https://github.com/CourtHive/TMX/issues/1583)) ([4172cd5](https://github.com/CourtHive/TMX/commit/4172cd5a15f09351583639fcc6a0b07092a75767))
+* **draws:** preview and submit rotating-partner settlements ([#1602](https://github.com/CourtHive/TMX/issues/1602)) ([b17519c](https://github.com/CourtHive/TMX/commit/b17519c82588ea5c8b5d171c39cbe7bae15094f9))
+* **schedule:** the cell panel for a completed matchUp shows when it happened ([#1607](https://github.com/CourtHive/TMX/issues/1607)) ([56f1608](https://github.com/CourtHive/TMX/commit/56f1608f071fe342d1548fea68fc1dd1c02fd4ab))
+* **scoring:** hotkey score entry on the matchUps page, toggled from the control bar ([#1603](https://github.com/CourtHive/TMX/issues/1603)) ([fc7fb08](https://github.com/CourtHive/TMX/commit/fc7fb084a554f364b3b5d7b652f3b4bd1973918a))
+* **scoring:** the format picker speaks TMX's language, plurals and numbered labels included ([#1594](https://github.com/CourtHive/TMX/issues/1594)) ([ffb567e](https://github.com/CourtHive/TMX/commit/ffb567e5067cd883b4cb0ecdaca47accf7939e86))
+* **scoring:** the score dialogs withhold [Clear] where the engine would refuse it ([#1591](https://github.com/CourtHive/TMX/issues/1591)) ([71dd76c](https://github.com/CourtHive/TMX/commit/71dd76ca5cd37048ec33cedb223c1a938e837891))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.6.0 ([#1599](https://github.com/CourtHive/TMX/issues/1599)) ([216954a](https://github.com/CourtHive/TMX/commit/216954a99fb6e1d599593d7fd993e72c2dd9ac72))
+* **deps:** update courthive-components to 6.6.1 ([#1612](https://github.com/CourtHive/TMX/issues/1612)) ([7b7da35](https://github.com/CourtHive/TMX/commit/7b7da35c555d31f44d939ca9321d0af77b74a8f4))
+* **deps:** update tods-competition-factory to 7.10.0 ([#1593](https://github.com/CourtHive/TMX/issues/1593)) ([05b6499](https://github.com/CourtHive/TMX/commit/05b649960c79273044655ffe6c0277a7c6b28b95))
+* **deps:** update tods-competition-factory to 7.12.0 ([#1611](https://github.com/CourtHive/TMX/issues/1611)) ([6ec99c9](https://github.com/CourtHive/TMX/commit/6ec99c9b1ff75aaea9f20e25c444159a9e7facc2))
+* **deps:** update tods-competition-factory to 7.9.0 ([#1584](https://github.com/CourtHive/TMX/issues/1584)) ([622e973](https://github.com/CourtHive/TMX/commit/622e9733fbf3dea857d3b8cc254ba93a2599581c))
+* **draws:** add qualifying counts only open positions, and a freed position can be a QUALIFIER ([#1580](https://github.com/CourtHive/TMX/issues/1580)) ([35c4dc0](https://github.com/CourtHive/TMX/commit/35c4dc05f67a60230c1e2d7073e0d57a0030067c))
+* **draws:** the creation method never goes blank while a draw size is typed ([#1582](https://github.com/CourtHive/TMX/issues/1582)) ([3179ab6](https://github.com/CourtHive/TMX/commit/3179ab6094970b80673ae65c98a191e17aa8572b))
+* **draws:** the FEED_IN draw type reads "Feed in (staggered entry)", beside Feed in championship ([#1581](https://github.com/CourtHive/TMX/issues/1581)) ([024990b](https://github.com/CourtHive/TMX/commit/024990b04b35915707e43fce45eb8f7f8acb5fea))
+* **matchUps:** finished matchUps show a green tick again, and unfinished ones no mark ([#1613](https://github.com/CourtHive/TMX/issues/1613)) ([9a8a014](https://github.com/CourtHive/TMX/commit/9a8a014c667ad1bae673fd9f749a5583360b49b0))
+* **modals:** a type-ahead's suggestions are no longer cut off by the modal's footer ([#1604](https://github.com/CourtHive/TMX/issues/1604)) ([44c2705](https://github.com/CourtHive/TMX/commit/44c270537baf2ced8bf9fb2e027513bb48928f1f))
+* **schedule:** a walkover holds no court time, so it is not out of order with the next match ([#1595](https://github.com/CourtHive/TMX/issues/1595)) ([03aa019](https://github.com/CourtHive/TMX/commit/03aa019725de32db4cd1236c102a96e19d257630))
+* **scoring:** a completed points-total tie is finished, not still to play ([#1596](https://github.com/CourtHive/TMX/issues/1596)) ([0a2ff1b](https://github.com/CourtHive/TMX/commit/0a2ff1b0890c161c6147ad036c944d75c93f28e3))
+* **scoring:** stop a clear the engine will refuse, and say why, before it is sent ([#1590](https://github.com/CourtHive/TMX/issues/1590)) ([ee5c0e9](https://github.com/CourtHive/TMX/commit/ee5c0e9d0c812b77f157c54d6c87f420a6b7b0b3))
+* **scoring:** with hotkey scoring on, a points total opens the score dialog ([#1601](https://github.com/CourtHive/TMX/issues/1601)) ([5c02376](https://github.com/CourtHive/TMX/commit/5c0237687cd3f761d9d2050eed6240895ccb6ae5))
+
+
+### Performance
+
+* **schedule:** a refresh pushes catalog, dates and issues as one store write ([#1588](https://github.com/CourtHive/TMX/issues/1588)) ([50d1bed](https://github.com/CourtHive/TMX/commit/50d1bed75065683bf88ff6b7341cccb335ac71e7))
+* **schedule:** render the scheduling workspace once, and grade only cards someone can see ([#1587](https://github.com/CourtHive/TMX/issues/1587)) ([64ff7ef](https://github.com/CourtHive/TMX/commit/64ff7ef143469066237d8d69c41c1598859a7b09))
+
+
+### Documentation
+
+* add AGENTS.md pointing agents that read it at CLAUDE.md ([#1585](https://github.com/CourtHive/TMX/issues/1585)) ([5cc5e89](https://github.com/CourtHive/TMX/commit/5cc5e891e9f5dfa7b8317187a18a5c8c7f62d848))
+* **check-in:** the factory has refused a PAIR check-in since 7.0.0; say so ([#1600](https://github.com/CourtHive/TMX/issues/1600)) ([3b89d99](https://github.com/CourtHive/TMX/commit/3b89d99241a7f6de5705f5cafde9c1e0c7f1944b))
+
 ## [8.33.0](https://github.com/CourtHive/TMX/compare/v8.32.0...v8.33.0) (2026-10-09)
 
 
