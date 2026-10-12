@@ -712,6 +712,17 @@
   color: var(--tmx-status-error);
 }
 
+/* Since Tabulator 6.5.0 the tickCross icons carry a class instead of an inline fill, and their colour
+   lives in Tabulator's own stylesheet, which TMX replaces with this file. Without these rules both
+   icons render black. */
+.tabulator-row .tabulator-cell .tabulator-tick {
+  fill: var(--tmx-accent-green);
+}
+
+.tabulator-row .tabulator-cell .tabulator-cross {
+  fill: var(--tmx-accent-red);
+}
+
 .tabulator-row .tabulator-cell.tabulator-row-handle {
   display: inline-flex;
   align-items: center;
