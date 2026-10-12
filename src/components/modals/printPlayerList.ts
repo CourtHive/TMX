@@ -3,9 +3,9 @@
  */
 import { generatePlayerListPDF, generateSignInSheetPDF } from 'pdf-factory';
 import { openPDF, savePDF } from 'services/pdf/export/pdfExport';
+import { venueLocaleString } from 'functions/venueTimeFrame';
 import { participantRoles } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
-import { venueTimeZone } from 'functions/venueTimeFrame';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
@@ -83,7 +83,7 @@ export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
         // The day the sheet is signed AT THE VENUE — a sheet printed late
         // evening from a laptop west of the venue would otherwise be dated
         // tomorrow, on the one document whose date is its whole point.
-        signInDate: new Date().toLocaleDateString(undefined, { timeZone: venueTimeZone() }),
+        signInDate: venueLocaleString(new Date(), {}, 'date'),
       });
     } else {
       doc = generatePlayerListPDF(players, { header: headerConfig });

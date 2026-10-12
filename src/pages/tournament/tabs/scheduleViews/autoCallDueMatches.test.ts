@@ -270,3 +270,20 @@ describe('computeDueMatchUps', () => {
     expect(computeDueMatchUps(cols, '16:02')).toEqual(['a', 'b']);
   });
 });
+
+describe('no venue clock, no action', () => {
+  // A refused venue frame (conflicting or invalid tournament zone) renders "now" as ''. The unscheduled
+  // case is the one that matters: with no time to wait for, '' used to be as good as any clock to call on.
+  const unscheduled = [column('C1', [ready({ matchUpId: 'M1', matchUpStatus: 'TO_BE_PLAYED' })])];
+  const overdue = [column('C1', [ready({ matchUpId: 'M1', matchUpStatus: 'TO_BE_PLAYED', scheduledTime: PAST })])];
+
+  it('auto-calls nothing, not even a match with no scheduledTime', () => {
+    expect(computeAutoCalls(unscheduled, NOW)).toHaveLength(1);
+    expect(computeAutoCalls(unscheduled, '')).toEqual([]);
+  });
+
+  it('marks nothing as due', () => {
+    expect(computeDueMatchUps(overdue, AFTERNOON)).toEqual(['M1']);
+    expect(computeDueMatchUps(overdue, '')).toEqual([]);
+  });
+});

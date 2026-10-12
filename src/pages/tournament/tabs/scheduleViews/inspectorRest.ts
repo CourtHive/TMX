@@ -101,6 +101,9 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   const byId = new Map((matchUps as ReadinessMatchUp[]).map((matchUp) => [matchUp.matchUpId, matchUp]));
   const { timeZone } = resolveVenueFrame();
   const now = new Date();
+  // Rest is measured against the venue's "now". A refused frame has none, and handing the factory no
+  // zone would have it fall back to the record's own (refused) zone or a fixed offset.
+  if (!timeZone) return () => ({ evaluated: false, reason: 'noAsOf' });
 
   return (matchUpId, viewedDate) => {
     const restDate = restDateFor(byId.get(matchUpId), viewedDate);

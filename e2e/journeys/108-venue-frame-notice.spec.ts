@@ -44,6 +44,28 @@ const MODAL = '.chc-modal-dialog';
 // assertion cannot pass on any modal that happens to be up.
 const EDIT_DATES_MARKER = '#modalActiveDates';
 const VENUE_ZONE = 'America/Denver';
+const FRAME_ERROR = '[data-tmx="venue-frame-error"]';
+
+/**
+ * The zoneless fixture, with its venue addresses then naming `venueZones`. Written straight onto the
+ * record (the engine's copy), as journey 102 does for post-generation changes.
+ */
+async function seedWithVenueZones(page: Page, venueZones: string[]): Promise<string> {
+  const tournamentId = await seedZonelessTournament(page);
+  await page.evaluate(async (zones) => {
+    const engine = dev.factory.tournamentEngine;
+    const record = engine.getTournament().tournamentRecord;
+    const [venue] = record.venues;
+    record.venues = zones.map((timeZone: string, index: number) =>
+      index === 0
+        ? { ...venue, addresses: [{ timeZone }] }
+        : { venueId: `e2e-frame-venue-${index}`, venueName: `Frame Venue ${index}`, addresses: [{ timeZone }] },
+    );
+    engine.setState(record);
+    await dev.tmx2db.addTournament(record);
+  }, venueZones);
+  return tournamentId;
+}
 
 /**
  * A tournament with courts and one scheduled matchUp, and deliberately NO
@@ -65,7 +87,9 @@ async function seedZonelessTournament(page: Page): Promise<string> {
       setState: true,
       tournamentName: 'E2E Venue Frame',
       tournamentAttributes: { tournamentId: 'e2e-venue-frame', startDate: date, endDate: date },
-      drawProfiles: [{ eventName: 'Frame Singles', drawSize: 8, drawType: 'SINGLE_ELIMINATION', drawId: 'e2eFrameDraw' }],
+      drawProfiles: [
+        { eventName: 'Frame Singles', drawSize: 8, drawType: 'SINGLE_ELIMINATION', drawId: 'e2eFrameDraw' },
+      ],
       venueProfiles: [{ courtsCount: 2, venueName: 'Frame Venue' }],
     });
 
@@ -187,5 +211,37 @@ test.describe('Journey 108 — the venue-frame notice says when the clock is a g
     // The grid is present, so the bar has rebuilt — the notice's absence is a
     // decision it made, not a page that has not rendered yet.
     await expect(page.locator(NOTICE)).toHaveCount(0);
+  });
+
+  // Slice 0-a (Mentat/planning/COMPETITION_CLOCK_INSTRUMENTATION.md): the frame is the factory's
+  // `getTournamentTimeZone`, which infers a zone from venue addresses and refuses when they disagree.
+  test('says nothing when the venues agree on a zone, since the factory infers it', async ({ page }) => {
+    const tournamentId = await seedWithVenueZones(page, [VENUE_ZONE]);
+    await openGrid(page, tournamentId);
+
+    await expect(page.locator(NOTICE)).toHaveCount(0);
+    await expect(page.locator(FRAME_ERROR)).toHaveCount(0);
+  });
+
+  test('says venues disagree, in the error notice and not the fallback one, and routes to the fix', async ({
+    page,
+  }) => {
+    const tournamentId = await seedWithVenueZones(page, ['America/New_York', 'America/Los_Angeles']);
+    // Not `openGrid`: it waits for the Now strip, and a refused frame has no "now" for the strip to show.
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToScheduling();
+
+    const error = page.locator(FRAME_ERROR);
+    await expect(error).toBeVisible({ timeout: 10_000 });
+    // withheld, not broken: the strip is the venue-clock surface (due marks, auto-call)
+    await expect(page.locator(STRIP_SELECTOR)).toBeHidden();
+    await expect(error).toHaveAttribute('data-code', 'ERR_CONFLICTING_TIME_ZONES');
+    // the yellow pill would claim times are shown in the device zone, which a refused frame does not do
+    await expect(page.locator(NOTICE)).toHaveCount(0);
+
+    await error.click();
+    await expect(page.locator(MODAL)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(EDIT_DATES_MARKER)).toHaveCount(1);
   });
 });
