@@ -190,7 +190,8 @@ export function browserTimeZone(): string {
  * the **fallback rule** — that is the whole point of there being one function.
  */
 export function resolveVenueFrame(): VenueFrame {
-  let result: any;
+  // the shape `getTournamentTimeZone` returns; an engine refusal (no record loaded) adds only `error`
+  let result: { timeZone?: string; inferred?: boolean; error?: { code?: string; message?: string } } | undefined;
   try {
     result = tournamentEngine.getTournamentTimeZone();
   } catch {
@@ -200,7 +201,7 @@ export function resolveVenueFrame(): VenueFrame {
   // Only the two refusals about the zone itself are refusals of the frame. Anything else (no
   // tournament loaded yet, chiefly) means there is no record to name a zone, which is the browser case.
   if (code === INVALID_TIME_ZONE.code || code === CONFLICTING_TIME_ZONES.code) {
-    return { source: 'error', error: { code, message: result.error.message } };
+    return { source: 'error', error: { code, message: result?.error?.message ?? '' } };
   }
   if (typeof result?.timeZone === 'string') {
     return { timeZone: result.timeZone, source: result.inferred ? 'venue' : 'tournament' };

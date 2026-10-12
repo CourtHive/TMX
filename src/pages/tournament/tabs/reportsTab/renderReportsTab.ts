@@ -191,7 +191,7 @@ async function selectReport(report: any): Promise<void> {
     const parameters = reportParameters();
     if (!parameters) {
       showFrameRefusal();
-      return;
+      return undefined;
     }
     const result: any = tournamentEngine.generateReport({ reportId, parameters });
     if (result.error) return;
@@ -205,7 +205,7 @@ async function selectReport(report: any): Promise<void> {
 function showFrameRefusal(): void {
   activeReport = undefined;
   const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
-  if (!reportContainer) return;
+  if (!reportContainer) return undefined;
   const message = document.createElement('div');
   message.dataset.tmx = 'report-frame-refused';
   message.style.padding = '2em';
