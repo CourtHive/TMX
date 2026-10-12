@@ -1,3 +1,5 @@
+import { tools } from 'tods-competition-factory';
+
 /**
  * "Now" at the competition, for TMX's scheduling decisions: the venue's today and clock, due marks,
  * auto-call, call stamps and rest. Slice 0-d.3 of Mentat/planning/COMPETITION_CLOCK_INSTRUMENTATION.md.
@@ -17,6 +19,7 @@ type CompetitionTimeProvider = { nowMs(): number };
 type ClockListener = () => void;
 
 let provider: CompetitionTimeProvider | undefined;
+let boundRecordTime = false;
 let warned = false;
 
 const listeners = new Set<ClockListener>();
@@ -50,10 +53,39 @@ export function onCompetitionClockChange(listener: ClockListener): () => void {
   };
 }
 
-export function setCompetitionClock(next?: CompetitionTimeProvider): { success?: boolean; error?: string } {
+/**
+ * Install (or, with no argument, remove) the competition clock. It is also installed in the FACTORY,
+ * as ONE clock read once per engine call:
+ *   - by default as the factory's RECORD clock (`setClock`). With no competition provider installed the
+ *     factory's competition time IS the captured record instant, so its competition reads and the
+ *     stamps a mutation writes share one instant: the plan binds both roles to one source in a demo.
+ *   - with `{ recordTime: false }`, as the factory's competition clock alone, record stamps untouched.
+ * Installing both would read a moving source twice per call and could split one operation across two
+ * instants. The factory reads `competitionNow()`, so when this clock gives no instant the factory
+ * gets NaN and refuses the call (`INVALID_DATE`) instead of running on real time.
+ */
+export function setCompetitionClock(
+  next?: CompetitionTimeProvider,
+  { recordTime = true }: { recordTime?: boolean } = {},
+): { success?: boolean; error?: string } {
   if (next !== undefined && typeof next?.nowMs !== 'function') return { error: 'INVALID_VALUES' };
   provider = next;
   warned = false;
+
+  const read = () => competitionNow().getTime();
+  if (boundRecordTime) {
+    // release only a record clock this module installed; never one a test or host set itself
+    tools.setClock();
+    boundRecordTime = false;
+  }
+  if (next && recordTime) {
+    tools.setCompetitionClock();
+    tools.setClock(read);
+    boundRecordTime = true;
+  } else {
+    tools.setCompetitionClock(next ? { nowMs: read } : undefined);
+  }
+
   notifyChange();
   return { success: true };
 }

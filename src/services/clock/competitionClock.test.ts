@@ -1,6 +1,8 @@
 import { competitionNow, competitionNowMs, onCompetitionClockChange, setCompetitionClock } from './competitionClock';
 import { venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mocksEngine, tools } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
 
 // Slice 0-d.3: TMX's scheduling "now" goes through one seam, so a demo can move it as a whole.
 // Every zone below is explicit; the suite runs TZ=UTC.
@@ -107,5 +109,70 @@ describe('competitionClock change notification', () => {
     setCompetitionClock();
     vi.runAllTimers();
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe('competitionClock, bound to the factory', () => {
+  afterEach(() => {
+    setCompetitionClock();
+  });
+
+  it("moves the factory's competition AND record clocks with it, and releases both", () => {
+    setCompetitionClock({ nowMs: () => INSTANT });
+    expect(tools.competitionNow().getTime()).toBe(INSTANT);
+    expect(tools.now().getTime()).toBe(INSTANT);
+
+    // a stamp a mutation writes agrees with the clock the desk is reading
+    mocksEngine.generateTournamentRecord({ setState: true });
+    tournamentEngine.addTournamentTimeItem({ timeItem: { itemType: 'NOTE', itemValue: 'x' } });
+    const note = tournamentEngine
+      .getTournament()
+      .tournamentRecord.timeItems.find((item: any) => item.itemType === 'NOTE');
+    expect(note.createdAt).toBe(new Date(INSTANT).toISOString());
+
+    setCompetitionClock();
+    expect(Math.abs(tools.competitionNow().getTime() - Date.now())).toBeLessThan(5_000);
+    expect(Math.abs(tools.now().getTime() - Date.now())).toBeLessThan(5_000);
+  });
+
+  it('reads the provider ONCE per engine call, so one operation never spans two instants', () => {
+    let reads = 0;
+    let ms = INSTANT;
+    setCompetitionClock({
+      nowMs: () => {
+        reads += 1;
+        ms += 1000; // a moving provider: a second read would answer a different instant
+        return ms;
+      },
+    });
+    mocksEngine.generateTournamentRecord({ setState: true });
+    reads = 0;
+    tournamentEngine.addTournamentTimeItem({ timeItem: { itemType: 'NOTE', itemValue: 'once' } });
+    expect(reads).toBe(1);
+  });
+
+  it('can move competition time alone, leaving record stamps on the factory clock', () => {
+    setCompetitionClock({ nowMs: () => INSTANT }, { recordTime: false });
+    expect(tools.competitionNow().getTime()).toBe(INSTANT);
+    expect(Math.abs(tools.now().getTime() - Date.now())).toBeLessThan(5_000);
+  });
+
+  it('never releases a record clock it did not install', () => {
+    tools.setClock(INSTANT - 1000);
+    setCompetitionClock({ nowMs: () => INSTANT }, { recordTime: false });
+    setCompetitionClock();
+    expect(tools.now().getTime()).toBe(INSTANT - 1000);
+    tools.setClock();
+  });
+
+  it('a clock that gives no instant makes the FACTORY refuse the call, not run on real time', () => {
+    mocksEngine.generateTournamentRecord({ setState: true });
+    const before = JSON.stringify(tournamentEngine.getTournament().tournamentRecord);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    setCompetitionClock({ nowMs: () => Number.NaN });
+    const result: any = tournamentEngine.addTournamentTimeItem({ timeItem: { itemType: 'NOTE', itemValue: 'x' } });
+    expect(result.error?.code).toBe('ERR_INVALID_DATE');
+    setCompetitionClock();
+    expect(JSON.stringify(tournamentEngine.getTournament().tournamentRecord)).toBe(before);
   });
 });
