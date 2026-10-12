@@ -76,7 +76,7 @@ export function openEmbargoModal({ title, currentEmbargo, onSet, onClear }: Emba
       const isoString = venuePartsToGMT(embargoDate, embargoTime);
       if (!isoString) {
         tmxToast({ message: t('publishing.embargoUnreadable'), intent: 'is-danger' });
-        return;
+        return undefined;
       }
       closeModal();
       onSet(isoString);
