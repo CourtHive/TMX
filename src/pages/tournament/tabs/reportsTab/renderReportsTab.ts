@@ -1,6 +1,7 @@
 import { resolveVenueFrame, venueOffsetMinutesAt } from 'functions/venueTimeFrame';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { downloadJSON, downloadText } from 'services/export/download';
+import { competitionNow } from 'services/clock/competitionClock';
 import { localizeReportTimes } from './localizeReportTimes';
 import { resolveAuditBaseUrl } from './resolveAuditBaseUrl';
 import { openStructureAuditModal } from './structureAudit';
@@ -172,10 +173,11 @@ function reportParameters(): Record<string, any> | undefined {
   if (!timeZone) return undefined;
   return {
     timeZone,
-    // The offset of the VENUE zone right now, not the browser's. Only a
+    // The offset of the VENUE zone at the competition's now, not the browser's. Only a
     // fallback: any wrapper that reads it instead of `timeZone` gets an offset
-    // fixed at this moment, which is why `timeZone` is preferred above.
-    utcOffsetMinutes: venueOffsetMinutesAt(new Date(), timeZone) ?? -new Date().getTimezoneOffset(),
+    // fixed at this moment, which is why `timeZone` is preferred above. No browser
+    // offset stands in: the zone is a resolved one, and a guess is worse than none.
+    utcOffsetMinutes: venueOffsetMinutesAt(competitionNow(), timeZone),
   };
 }
 
