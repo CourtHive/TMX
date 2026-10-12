@@ -9,10 +9,12 @@
  * Pure and DOM-free: TMX's unit suite runs in the vitest `node` environment with no jsdom, so the
  * decisions live here and the rendering stays a thin shell.
  *
- * **The read needs no query.** `addMatchUpContext` already attaches `checkedInParticipantIds` and
- * `allParticipantsCheckedIn` to every hydrated matchUp, so this only has to pair those ids with the
- * individuals they belong to.
+ * **The factory answers it.** `getMatchUpCheckInState` (factory, after 7.11.0) pairs the individuals who may
+ * check in with who has, from the same rules the writes enforce, so TMX no longer re-derives who belongs
+ * to a side. This wrapper only reshapes a refusal into an empty state and adds `hasParticipants`.
  */
+
+import { matchUpGovernor } from 'tods-competition-factory';
 
 export interface CheckInParticipant {
   participantName: string;
@@ -23,88 +25,37 @@ export interface CheckInParticipant {
 
 export interface MatchUpCheckInState {
   participants: CheckInParticipant[];
-  /** Some, but not all, are at the desk — the state the whole feature exists to make visible. */
   hasParticipants: boolean;
   checkedInCount: number;
   allCheckedIn: boolean;
+  /** Some, but not all, are at the desk — the state the whole feature exists to make visible. */
   partial: boolean;
   total: number;
 }
 
-const INDIVIDUAL = 'INDIVIDUAL';
-
 /**
- * The individuals who may check in to a matchUp.
+ * Takes a HYDRATED matchUp (`inContext`), which every caller has: the popover re-reads it from the
+ * engine and the schedule surfaces take it from their cache.
  *
- * The same set as the factory's `getMatchUpParticipantIds().individualParticipantIds` (an INDIVIDUAL
- * side, or the members of a PAIR or TEAM side), which the package does not export, so it is derived
- * here, with the name and side number the desk menu shows. If this ever missed somebody the menu would
- * be a row short; it could not write a bad id, because the factory validates every write.
- *
- * **The PAIR itself is excluded (D4c), and since factory 7.0.0 the factory enforces it too.**
- * `checkInParticipant` and `checkOutParticipant` refuse any subject that is not an INDIVIDUAL on the
- * matchUp (`INVALID_ATTESTATION_SUBJECT`, #4933(factory)), so a PAIR-level check-in can no longer be
- * written by anyone. A side's presence is DERIVED on read (`getCheckedInParticipantIds`): it is checked
- * in when all its individuals are. Offering only individuals here keeps the menu to what the factory
- * accepts; it is no longer what prevents the wrong write.
+ * Each person is an INDIVIDUAL: a PAIR or TEAM side contributes its members, never itself (D4c), which
+ * the factory has enforced on writes since 7.0.0 (`INVALID_ATTESTATION_SUBJECT`). `allCheckedIn` is false
+ * for a matchUp with nobody in it, so the call-to-court gate cannot pass silently on an empty matchUp.
  */
-function individualsOf(matchUp: any): { participantId: string; participantName: string; sideNumber?: number }[] {
-  const individuals: { participantId: string; participantName: string; sideNumber?: number }[] = [];
-
-  for (const side of matchUp?.sides ?? []) {
-    const participant = side?.participant;
-    if (!participant) continue;
-    const { sideNumber } = side;
-
-    // A PAIR or TEAM contributes its members, never itself.
-    const nested = participant.individualParticipants;
-    if (Array.isArray(nested) && nested.length) {
-      for (const member of nested) {
-        if (member?.participantId) {
-          individuals.push({
-            participantId: member.participantId,
-            participantName: member.participantName ?? '',
-            sideNumber,
-          });
-        }
-      }
-      continue;
-    }
-
-    if (participant.participantType === INDIVIDUAL && participant.participantId) {
-      individuals.push({
-        participantId: participant.participantId,
-        participantName: participant.participantName ?? '',
-        sideNumber,
-      });
-    }
-  }
-
-  return individuals;
-}
-
 export function getMatchUpCheckInState(matchUp?: any): MatchUpCheckInState {
-  const checkedInIds = new Set<string>(
-    Array.isArray(matchUp?.checkedInParticipantIds) ? matchUp.checkedInParticipantIds : [],
-  );
-
-  const participants: CheckInParticipant[] = individualsOf(matchUp).map((individual) => ({
-    ...individual,
-    checkedIn: checkedInIds.has(individual.participantId),
+  const result: any = matchUp ? matchUpGovernor.getMatchUpCheckInState({ matchUp }) : undefined;
+  const participants: CheckInParticipant[] = (result?.participants ?? []).map((participant: any) => ({
+    ...participant,
+    participantName: participant.participantName ?? '',
   }));
-
   const total = participants.length;
-  const checkedInCount = participants.filter((participant) => participant.checkedIn).length;
 
   return {
     participants,
     total,
-    checkedInCount,
     hasParticipants: total > 0,
-    // `allCheckedIn` is false for a matchUp with nobody in it — "everyone present" is meaningless
-    // when there is no one, and reporting true would let the call-to-court gate pass silently.
-    allCheckedIn: total > 0 && checkedInCount === total,
-    partial: checkedInCount > 0 && checkedInCount < total,
+    checkedInCount: result?.checkedInCount ?? 0,
+    allCheckedIn: !!result?.allCheckedIn,
+    partial: !!result?.partial,
   };
 }
 
