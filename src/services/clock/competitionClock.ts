@@ -29,7 +29,7 @@ const nextFrame = (callback: () => void): void => {
 };
 
 function notifyChange(): void {
-  if (notifyScheduled) return;
+  if (notifyScheduled) return undefined;
   notifyScheduled = true;
   nextFrame(() => {
     notifyScheduled = false;

@@ -445,7 +445,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     const calledAtMs = competitionNowMs();
     if (calledAtMs === undefined) {
       tmxToast({ message: t('schedule.clockUnavailable'), intent: 'is-danger' });
-      return;
+      return undefined;
     }
     executeMethods(
       [
