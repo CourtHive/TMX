@@ -104,6 +104,7 @@
  * need `@js-temporal/polyfill` imported at app boot before anything here runs.
  */
 import { factoryConstants, tools } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
 
 const { offsetMinutesAt, zonedWallClockToMs } = tools.zonedDateTime;
@@ -369,12 +370,12 @@ export function venueDayMinutes(value: string | number | Date, timeZone?: string
  * stamp stop looking identical in the source.
  */
 export function venueToday(timeZone?: string): string {
-  return venueCalendarDate(new Date(), timeZone);
+  return venueCalendarDate(competitionNow(), timeZone);
 }
 
 /** The current venue wall clock, `HH:MM`. The named form of "now" — see `venueToday`. */
 export function venueNowClock(timeZone?: string): string {
-  return venueClock(new Date(), timeZone);
+  return venueClock(competitionNow(), timeZone);
 }
 
 /**
@@ -451,7 +452,7 @@ export function venueWallClockToMs(date?: string, clock?: string, timeZone?: str
  * and every block before it read as already over.
  */
 export function venueNowOnDate(stripDate: string, timeZone?: string): Date | undefined {
-  const parts = venueParts(new Date(), timeZone);
+  const parts = venueParts(competitionNow(), timeZone);
   if (!parts) return undefined;
   // `YYYY-MM-DD` sorts lexicographically, so no parsing is needed to order two
   // of them — and the comparison is made on the venue's today, never the

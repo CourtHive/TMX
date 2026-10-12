@@ -11,6 +11,7 @@ import { exportTournamentRecord } from 'components/modals/exportTournamentRecord
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { setCompetitionClock } from 'services/clock/competitionClock';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
@@ -141,6 +142,8 @@ export function setDev(): void {
   addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   addDev({ env, tournamentContext: context });
+  // drive TMX's competition clock for demos and journeys: dev.setCompetitionClock({ nowMs: () => ms })
+  addDev({ setCompetitionClock });
 
   addDev({
     mutationRequest: (params: any) => {

@@ -21,6 +21,7 @@ import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { competitionNow } from 'services/clock/competitionClock';
 import { evaluateRest, formatDuration } from './inspectorRest';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCachedAllMatchUps } from './schedule2DataCache';
@@ -28,7 +29,7 @@ import { competitionEngine } from 'services/factory/engine';
 import { readCheckInPromptMode } from './gridViewStorage';
 import { timePicker } from 'components/modals/timePicker';
 import { hasFinalResult } from 'functions/hasFinalResult';
-import { venueNowClock } from 'functions/venueTimeFrame';
+import { venueNowClock, venueToday } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
@@ -441,7 +442,7 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
       return;
 
     executeMethods(
-      [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: new Date().toISOString() } }],
+      [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: competitionNow().toISOString() } }],
       onRefresh,
     );
   };
@@ -1261,7 +1262,8 @@ function openRescheduleNowModal(
 ): void {
   const state: { scheduledDate: string; scheduledTime: string } = { scheduledDate: '', scheduledTime: '' };
   const checks: HTMLInputElement[] = [];
-  const today = tools.dateTime.formatDate(new Date());
+  // the VENUE's today: the browser's local date put the cutoff a day out for an operator in another zone
+  const today = venueToday();
   const scheduleDates = getScheduleDateRange();
   // Prefer dates from today onward; fall back to the full tournament range so a
   // past/mock event (all dates behind "today") still gets a usable date field

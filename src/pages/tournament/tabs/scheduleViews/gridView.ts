@@ -42,6 +42,7 @@ import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
+import { competitionNow } from 'services/clock/competitionClock';
 import {
   getOrderOfPlayPublishState,
   isOrderOfPlayDatePublished,
@@ -2778,7 +2779,7 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   // venue's clock — a director west of the tournament would otherwise read the
   // day as running late from the moment they opened it. Every other date is
   // history or plan, where nothing can be overdue.
-  const dueMatchUpIds = date === todayIso() ? computeDueMatchUps(columns as any, venueClock(new Date())) : [];
+  const dueMatchUpIds = date === todayIso() ? computeDueMatchUps(columns as any, venueNowClock()) : [];
 
   return {
     grid: { columns },
@@ -2967,7 +2968,7 @@ function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void
   // a per-provider on/off toggle (default ON for provider staff) + calling roles.
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
   if (!isTournamentProviderMember({ loginState: getLoginState(), tournamentRecord })) return;
-  const now = new Date();
+  const now = competitionNow();
   // Compared against `scheduledTime`, which is a venue wall clock — so "now"
   // has to be one too, or the desk auto-calls on the operator's clock.
   const calls = computeAutoCalls(columns as any, venueClock(now));
@@ -3397,7 +3398,7 @@ function commitActiveStripDrop(
     params: {
       matchUpId: payload.matchUp.matchUpId,
       drawId: payload.matchUp.drawId ?? '',
-      calledAt: new Date().toISOString(),
+      calledAt: competitionNow().toISOString(),
     },
   });
 
