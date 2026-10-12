@@ -7,6 +7,7 @@ import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab'
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { eventConstants, fixtures } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
 import { barButton, renderForm } from 'courthive-components';
 import { venueLocaleString } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -85,7 +86,7 @@ function createStateBadge(state: 'live' | 'embargoed' | 'off', url?: string): HT
 function formatEmbargoDisplay(isoString?: string): string {
   if (!isoString) return '';
   const d = new Date(isoString);
-  if (d.getTime() <= Date.now()) return t('publishing.expired');
+  if (d.getTime() <= competitionNow().getTime()) return t('publishing.expired');
   return venueLocaleString(d, {
     // The embargo is a tournament decision, so it displays on the venue's clock.
     month: 'short',
@@ -117,7 +118,7 @@ function createEmbargoButton(
   label.textContent = `${t('publishing.embargo')}:`;
   wrapper.appendChild(label);
 
-  if (currentEmbargo && new Date(currentEmbargo).getTime() > Date.now()) {
+  if (currentEmbargo && new Date(currentEmbargo).getTime() > competitionNow().getTime()) {
     const display = document.createElement('span');
     display.style.cssText = 'font-size:0.8rem; color:var(--tmx-accent-orange);';
     display.innerHTML = `<i class="fa fa-clock"></i> ${formatEmbargoDisplay(currentEmbargo)}`;

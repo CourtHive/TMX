@@ -2692,7 +2692,8 @@
     "defaultLanguage": "Default Language",
     "publishParticipants": "Publish Participants",
     "country": "Country",
-    "cityState": "City / State"
+    "cityState": "City / State",
+    "embargoUnreadable": "The embargo time could not be read on the venue’s clock, so it was not set. Check the date and time, and the tournament’s time zone."
   },
   "formatWizard": {
     "title": "Format Wizard",
