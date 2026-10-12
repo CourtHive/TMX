@@ -5,6 +5,7 @@
  * respecting tournamentRecord.activeDates when present.
  */
 import { competitionEngine } from 'services/factory/engine';
+import { venueToday } from 'functions/venueTimeFrame';
 import { tools } from 'tods-competition-factory';
 
 /**
@@ -32,7 +33,8 @@ export function resolveScheduleDate(): string {
     return startDate ?? '';
   }
 
-  const today = tools.dateTime.formatDate(new Date());
+  // the venue's today, not the browser's local date
+  const today = venueToday();
 
   if (dates.includes(today)) return today;
 

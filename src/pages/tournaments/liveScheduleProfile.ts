@@ -12,6 +12,7 @@
  * became "it schedules nothing" in the first place.
  */
 import { policyConstants, drawDefinitionConstants, fixtures } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
@@ -75,7 +76,7 @@ function clampAnchor(now: Date): Date {
  * tournament is generated. Those drift apart in a tab left open — which is exactly how a demo is
  * run — and the maintenance window would sit where it was at load while the schedule moved.
  */
-export function buildLiveScheduleProfile(now: Date = new Date()) {
+export function buildLiveScheduleProfile(now: Date = competitionNow()) {
   const scheduleDate = isoDate(now);
   const anchor = clampAnchor(now);
 

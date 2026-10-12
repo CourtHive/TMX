@@ -31,6 +31,7 @@
 
 import { resolveVenueFrame, venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { applyGridSearch, gridSearchAvailable } from './gridSearchControl';
+import { competitionNow } from 'services/clock/competitionClock';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -56,7 +57,7 @@ const MS_PER_MINUTE = 60_000;
  * `now` is a parameter so a whole evaluator pass shares one reading of the clock, and so this stays
  * testable without mocking the global clock.
  */
-export function restAsOf(restDate: string | null, timeZone?: string, now: Date = new Date()): string {
+export function restAsOf(restDate: string | null, timeZone?: string, now: Date = competitionNow()): string {
   const real = now.toISOString();
   if (!restDate) return real;
   const today = venueCalendarDate(now, timeZone);
@@ -100,7 +101,7 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   const matchUps = getCachedAllMatchUps().matchUps ?? [];
   const byId = new Map((matchUps as ReadinessMatchUp[]).map((matchUp) => [matchUp.matchUpId, matchUp]));
   const { timeZone } = resolveVenueFrame();
-  const now = new Date();
+  const now = competitionNow();
   // Rest is measured against the venue's "now". A refused frame has none, and handing the factory no
   // zone would have it fall back to the record's own (refused) zone or a fixed offset.
   if (!timeZone) return () => ({ evaluated: false, reason: 'noAsOf' });

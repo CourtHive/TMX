@@ -1,7 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect } from '@playwright/test';
-import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 157 — the schedule grid cell panel for a COMPLETED matchUp shows when it happened.
@@ -20,8 +19,11 @@ import { todayLocal } from '../helpers/dates';
  * The third matchUp is the control: not completed, so today's panel, annotations and Set time included.
  */
 
-const SCHEDULE_DATE = todayLocal();
 const VENUE_ZONE = 'Asia/Tokyo';
+// The VENUE's today (CA, 2026-10-13): the schedule opens on the venue's day, not the device's. Seeding
+// on the device's date put the matchUps on a day the page did not open from ~11:00 Eastern on, once
+// Tokyo had already moved to tomorrow. `en-CA` formats as YYYY-MM-DD.
+const SCHEDULE_DATE = new Intl.DateTimeFormat('en-CA', { timeZone: VENUE_ZONE }).format(new Date());
 /** 05:02 UTC is 14:02 in Tokyo, with no DST to move it. */
 const CALLED_AT = `${SCHEDULE_DATE}T05:02:00.000Z`;
 const CALLED_CLOCK = '14:02';

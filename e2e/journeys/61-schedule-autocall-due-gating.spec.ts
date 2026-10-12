@@ -165,4 +165,28 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
 
     collector.detach();
   });
+
+  // Clock plan slice 0-d.3: due and auto-call read TMX's competition clock, not the device's. The device
+  // stays pinned at noon while the competition clock reads 19:00, so an 18:00 match is due ONLY on the
+  // competition clock. Reading the device clock (the old behaviour) leaves it waiting, uncalled.
+  test('a match due on the competition clock is auto-called, stamped with that clock', async ({ page }) => {
+    await seedOnePlaced(page, date, '18:00');
+    const collector = createMutationCollector(page);
+    const competitionInstant = new Date(`${date}T19:00:00`).getTime();
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto('e2e-auto-call');
+    await loginAsProviderMember(page, PROVIDER_ID);
+    await forceLocalExecution(page);
+    await page.evaluate((ms) => dev.setCompetitionClock({ nowMs: () => ms }), competitionInstant);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP, { timeout: 10_000 });
+
+    const entry = await collector.waitForMethod('setMatchUpCalledAt', 10_000);
+    const params = entry.methods.find((m) => m.method === 'setMatchUpCalledAt')?.params as any;
+    expect(Date.parse(params?.calledAt)).toBe(competitionInstant);
+
+    await page.evaluate(() => dev.setCompetitionClock());
+    collector.detach();
+  });
 });
