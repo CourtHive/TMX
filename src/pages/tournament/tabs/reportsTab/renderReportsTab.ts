@@ -165,8 +165,11 @@ export function renderReportsTab(options: { reportId?: string } = {}): void {
  * the offset path the factory wrappers already exposed was dead and each report
  * had to localize its own timestamps client-side.
  */
-function reportParameters(): Record<string, any> {
+function reportParameters(): Record<string, any> | undefined {
   const { timeZone } = resolveVenueFrame();
+  // A refused frame has no zone and no offset to fall back on: either fallback would be a guess,
+  // and a report's day boundaries and call variances would come out framed by it.
+  if (!timeZone) return undefined;
   return {
     timeZone,
     // The offset of the VENUE zone right now, not the browser's. Only a
@@ -186,12 +189,28 @@ async function selectReport(report: any): Promise<void> {
     await fetchServerReport(reportId);
   } else {
     const parameters = reportParameters();
+    if (!parameters) {
+      showFrameRefusal();
+      return undefined;
+    }
     const result: any = tournamentEngine.generateReport({ reportId, parameters });
     if (result.error) return;
     localizeReportTimes(result.rows, parameters.timeZone);
     activeReport = { columns: result.columns, rows: result.rows };
     createReportsTable({ columns: result.columns, rows: result.rows });
   }
+}
+
+/** The venue frame is refused (see `resolveVenueFrame`), so a local report would be read in no zone. */
+function showFrameRefusal(): void {
+  activeReport = undefined;
+  const reportContainer = document.getElementById(TOURNAMENT_REPORTS);
+  if (!reportContainer) return undefined;
+  const message = document.createElement('div');
+  message.dataset.tmx = 'report-frame-refused';
+  message.style.padding = '2em';
+  message.textContent = t('reports.frameRefused');
+  reportContainer.replaceChildren(message);
 }
 
 async function fetchServerReport(reportId: string): Promise<void> {

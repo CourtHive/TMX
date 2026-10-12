@@ -103,25 +103,45 @@
  * TMX is the ecosystem's iOS PWA and Safari has no native Temporal, so TMX will
  * need `@js-temporal/polyfill` imported at app boot before anything here runs.
  */
-import { isValidTimeZone } from 'functions/getSupportedTimeZones';
+import { factoryConstants, tools } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
-import { tools } from 'tods-competition-factory';
 
 const { offsetMinutesAt, zonedWallClockToMs } = tools.zonedDateTime;
+const { CONFLICTING_TIME_ZONES, INVALID_TIME_ZONE } = factoryConstants.errorConditionConstants;
 
-export type VenueFrameSource = 'tournament' | 'browser';
+/**
+ * Where a usable frame came from: the record's own `localTimeZone`, the zone the
+ * factory infers from venue addresses when that is unset, or the browser
+ * standing in when neither names one.
+ */
+export type VenueFrameSource = 'tournament' | 'venue' | 'browser';
 
-export type VenueFrame = {
-  /** IANA identifier, e.g. `America/New_York`. Always a usable zone. */
-  timeZone: string;
-  /**
-   * `'tournament'` when the record carries a zone; `'browser'` when it does
-   * not and the runtime's own zone is standing in. Callers that render times
-   * to an operator should surface the `'browser'` case — see
-   * `renderVenueFrameNotice`.
-   */
-  source: VenueFrameSource;
-};
+/** The factory's refusal, kept as it came: `ERR_CONFLICTING_TIME_ZONES` or `ERR_INVALID_TIME_ZONE`. */
+export type VenueFrameError = { code: string; message: string };
+
+export type VenueFrame =
+  | {
+      /** IANA identifier, e.g. `America/New_York`. */
+      timeZone: string;
+      /**
+       * Callers that render times to an operator should surface the `'browser'`
+       * case — see `buildVenueFrameNotice`.
+       */
+      source: VenueFrameSource;
+      error?: undefined;
+    }
+  | {
+      /**
+       * The factory refused the tournament's frame: venue addresses that
+       * disagree with no tournament zone to settle them, or a tournament zone
+       * that is not a zone. There is NO usable zone, and no fallback stands in:
+       * every conversion through this module comes back empty, and the
+       * automatic actions that need a venue clock do not run.
+       */
+      timeZone?: undefined;
+      source: 'error';
+      error: VenueFrameError;
+    };
 
 export type VenueParts = {
   year: number;
@@ -147,12 +167,18 @@ export function browserTimeZone(): string {
 /**
  * The frame every instant→clock conversion in TMX should be read against.
  *
- * `tournamentRecord.localTimeZone` is the authoritative venue zone: it is
- * operator-set through the Edit Dates modal, validated against a supported-zones
- * list, and never silently auto-applied (`getDetectedTimeZone()` is a nudge the
- * TD must confirm).
+ * **The rule is the factory's, not TMX's**: `getTournamentTimeZone` decides.
+ * `tournamentRecord.localTimeZone` wins when it is set (operator-set through the
+ * Edit Dates modal, never silently auto-applied: `getDetectedTimeZone()` is a
+ * nudge the TD must confirm). Unset, the factory infers the zone when every
+ * venue address that names one names the same one. It refuses, and so does
+ * this, when the record's zone is not a zone, or when venue addresses disagree
+ * and nothing settles them: a border-city tournament has to say which clock it
+ * runs on. TMX used to read only `localTimeZone` and fall to the browser for
+ * everything else, which both missed the inferred zone and swallowed both
+ * refusals.
  *
- * When the record carries none, the browser's zone stands in — and the caller is
+ * When neither names a zone, the browser's zone stands in — and the caller is
  * expected to say so on screen. Refusing to render times instead would break the
  * running desk for every zone-less tournament, which is most of them today; a
  * *silent* browser fallback would reproduce, through a different door, exactly
@@ -164,19 +190,53 @@ export function browserTimeZone(): string {
  * the **fallback rule** — that is the whole point of there being one function.
  */
 export function resolveVenueFrame(): VenueFrame {
-  let localTimeZone: string | undefined;
+  // the shape `getTournamentTimeZone` returns; an engine refusal (no record loaded) adds only `error`
+  let result: { timeZone?: string; inferred?: boolean; error?: { code?: string; message?: string } } | undefined;
   try {
-    localTimeZone = tournamentEngine.q.tournament()?.localTimeZone;
+    result = tournamentEngine.getTournamentTimeZone();
   } catch {
-    localTimeZone = undefined;
+    result = undefined;
   }
-  if (isValidTimeZone(localTimeZone)) return { timeZone: localTimeZone, source: 'tournament' };
+  const code = result?.error?.code;
+  // Only the two refusals about the zone itself are refusals of the frame. Anything else (no
+  // tournament loaded yet, chiefly) means there is no record to name a zone, which is the browser case.
+  if (code === INVALID_TIME_ZONE.code || code === CONFLICTING_TIME_ZONES.code) {
+    return { source: 'error', error: { code, message: result?.error?.message ?? '' } };
+  }
+  if (typeof result?.timeZone === 'string') {
+    return { timeZone: result.timeZone, source: result.inferred ? 'venue' : 'tournament' };
+  }
   return { timeZone: browserTimeZone(), source: 'browser' };
 }
 
-/** Convenience for the common case: the zone alone. */
-export function venueTimeZone(): string {
+/**
+ * Convenience for the common case: the zone alone. `undefined` when the frame is
+ * refused — and a caller handing that to `toLocaleString({ timeZone })` gets the
+ * BROWSER's zone back, silently. Check it first.
+ */
+export function venueTimeZone(): string | undefined {
   return resolveVenueFrame().timeZone;
+}
+
+/**
+ * `Date#toLocaleString` (or its date/time halves) **on the venue's clock**, for
+ * the display sites that want the platform's own formatting. `''` when the frame
+ * is refused or the instant unreadable. That check is the reason this exists:
+ * `toLocaleString(undefined, { timeZone: undefined })` does not refuse, it
+ * formats in the BROWSER's zone, which is the fallback a refused frame rules out.
+ */
+export function venueLocaleString(
+  value: string | number | Date,
+  options: Intl.DateTimeFormatOptions = {},
+  part: 'both' | 'date' | 'time' = 'both',
+): string {
+  const timeZone = venueTimeZone();
+  const date = toDate(value);
+  if (!timeZone || !date) return '';
+  const zoned = { ...options, timeZone };
+  if (part === 'date') return date.toLocaleDateString(undefined, zoned);
+  if (part === 'time') return date.toLocaleTimeString(undefined, zoned);
+  return date.toLocaleString(undefined, zoned);
 }
 
 function toDate(value?: string | number | Date): Date | undefined {
@@ -185,8 +245,18 @@ function toDate(value?: string | number | Date): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-function resolveZone(timeZone?: string): string {
-  return isValidTimeZone(timeZone) ? timeZone : browserTimeZone();
+/**
+ * The zone a conversion reads against. **Omitted** means the tournament's frame,
+ * which is what nearly every caller wants and what most of them pass by leaving
+ * the argument off. **Supplied** is used exactly as given: an invalid one is
+ * refused downstream by the factory, never swapped for another zone. Neither
+ * case reaches the browser except through `resolveVenueFrame`'s own no-zone
+ * rule. This used to send both an omitted and an invalid zone to the browser,
+ * so a tournament set to Tokyo rendered every omitted-zone site in the
+ * operator's zone.
+ */
+function resolveZone(timeZone?: string | null): string | undefined {
+  return timeZone ?? resolveVenueFrame().timeZone;
 }
 
 /**
@@ -199,8 +269,10 @@ export function venueParts(value?: string | number | Date, timeZone?: string): V
   const date = toDate(value);
   if (!date) return undefined;
 
+  const zone = resolveZone(timeZone);
+  if (!zone) return undefined;
   const ms = date.getTime();
-  const offsetMinutes = offsetMinutesAt(ms, resolveZone(timeZone));
+  const offsetMinutes = offsetMinutesAt(ms, zone);
   if (offsetMinutes === undefined) return undefined;
 
   // Shift the instant by the zone's offset and read the fields back as UTC. The
@@ -313,8 +385,9 @@ export function venueNowClock(timeZone?: string): string {
  */
 export function venueOffsetMinutesAt(value: string | number | Date, timeZone?: string): number | undefined {
   const date = toDate(value);
-  if (!date) return undefined;
-  return offsetMinutesAt(date.getTime(), resolveZone(timeZone));
+  const zone = resolveZone(timeZone);
+  if (!date || !zone) return undefined;
+  return offsetMinutesAt(date.getTime(), zone);
 }
 
 /**
@@ -332,9 +405,12 @@ export function venueOffsetMinutesAt(value: string | number | Date, timeZone?: s
  * one — there isn't a correct one to settle on.
  */
 export function venueWallClockToMs(date?: string, clock?: string, timeZone?: string): number | undefined {
-  // `resolveZone` guarantees a zone the factory will recognise, so the refusal
-  // path below can only mean a malformed date or clock.
-  return zonedWallClockToMs({ date: date?.trim(), time: clock?.trim(), timeZone: resolveZone(timeZone) })?.ms;
+  // No zone is checked HERE, not left to the factory: handed `timeZone: undefined`
+  // it falls back to a fixed UTC offset and answers, which is a plausible wrong
+  // instant. An invalid zone it does refuse.
+  const zone = resolveZone(timeZone);
+  if (!zone) return undefined;
+  return zonedWallClockToMs({ date: date?.trim(), time: clock?.trim(), timeZone: zone })?.ms;
 }
 
 /**
@@ -369,10 +445,14 @@ export function venueWallClockToMs(date?: string, clock?: string, timeZone?: str
  * accidentally compare against a time nobody has reached yet. A malformed
  * `stripDate` takes the same exit — it sorts after any real date, and an
  * Invalid Date was never a useful answer either.
+ *
+ * So does a refused frame. With no venue clock there is no "now" on any day; this
+ * used to answer with `stripDate` at midnight, a time nobody had reached either,
+ * and every block before it read as already over.
  */
 export function venueNowOnDate(stripDate: string, timeZone?: string): Date | undefined {
   const parts = venueParts(new Date(), timeZone);
-  if (!parts) return new Date(`${stripDate}T00:00:00`);
+  if (!parts) return undefined;
   // `YYYY-MM-DD` sorts lexicographically, so no parsing is needed to order two
   // of them — and the comparison is made on the venue's today, never the
   // browser's, which is the whole point of this module.

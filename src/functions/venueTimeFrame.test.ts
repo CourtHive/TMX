@@ -10,6 +10,7 @@
  */
 import {
   resolveVenueFrame,
+  venueLocaleString,
   venueOffsetMinutesAt,
   venueWallClockToMs,
   venueCalendarDate,
@@ -21,8 +22,8 @@ import {
   venueParts,
   venueClock,
 } from './venueTimeFrame';
+import { factoryConstants, mocksEngine } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
-import { mocksEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
 const NEW_YORK = 'America/New_York';
@@ -315,5 +316,125 @@ describe("the arithmetic is the factory's, and the deltas that moved with it", (
     const midnight = venueWallClockToMs(AUG_25, '00:00', NEW_YORK) as number;
     expect(venueParts(midnight, NEW_YORK)?.hour).toBe(0);
     expect(venueClock(midnight, NEW_YORK)).toBe('00:00');
+  });
+});
+
+describe("the frame is the factory's: inferred venue zones, and refusals that stay refusals", () => {
+  /**
+   * Slice 0-a of Mentat/planning/COMPETITION_CLOCK_INSTRUMENTATION.md. `resolveVenueFrame` used to read
+   * `localTimeZone` alone and fall to the browser for everything else, and every helper sent an OMITTED zone
+   * to the browser too. The suite's TZ=UTC is the browser here, so each case names a zone that is not UTC.
+   */
+  const { CONFLICTING_TIME_ZONES, INVALID_TIME_ZONE } = factoryConstants.errorConditionConstants;
+  const TOKYO = 'Asia/Tokyo'; // +09:00, no DST
+  const NOT_A_ZONE = 'Mars/Olympus_Mons';
+  // 00:30 on Aug 25 in Tokyo, still Aug 24 in UTC: a day boundary only the venue zone gets right.
+  const TOKYO_AFTER_MIDNIGHT = '2026-08-24T15:30:00Z';
+
+  const seed = ({ localTimeZone, venueZones = [] }: { localTimeZone?: string; venueZones?: string[] }) => {
+    const { tournamentRecord } = mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize: 2 }] });
+    tournamentRecord.venues = venueZones.map((timeZone, index) => ({
+      venueId: `venue-${index}`,
+      venueName: `Venue ${index}`,
+      addresses: [{ timeZone }],
+    }));
+    // set on the record directly: the factory's own setter refuses an invalid zone, and this has to hold one
+    if (localTimeZone) tournamentRecord.localTimeZone = localTimeZone;
+    tournamentEngine.setState(tournamentRecord);
+  };
+
+  it('a tournament zone wins even where its venues disagree with it', () => {
+    seed({ localTimeZone: TOKYO, venueZones: [NEW_YORK, LOS_ANGELES] });
+    expect(resolveVenueFrame()).toEqual({ timeZone: TOKYO, source: 'tournament' });
+  });
+
+  it('with no tournament zone, venues that agree name it, and say it was inferred', () => {
+    seed({ venueZones: [TOKYO, TOKYO] });
+    expect(resolveVenueFrame()).toEqual({ timeZone: TOKYO, source: 'venue' });
+  });
+
+  it('venues that disagree, with nothing to settle them, refuse the frame', () => {
+    seed({ venueZones: [NEW_YORK, LOS_ANGELES] });
+    const frame = resolveVenueFrame();
+    expect(frame.source).toBe('error');
+    expect(frame.error?.code).toBe(CONFLICTING_TIME_ZONES.code);
+    expect(frame.timeZone).toBeUndefined();
+  });
+
+  it('an invalid tournament zone refuses, though every venue names a valid one', () => {
+    seed({ localTimeZone: NOT_A_ZONE, venueZones: [TOKYO] });
+    const frame = resolveVenueFrame();
+    expect(frame.source).toBe('error');
+    expect(frame.error?.code).toBe(INVALID_TIME_ZONE.code);
+  });
+
+  it('no zone anywhere is still the browser case, and only that is', () => {
+    seed({});
+    expect(resolveVenueFrame().source).toBe('browser');
+  });
+
+  it("an OMITTED zone reads the tournament's frame, not the browser's", () => {
+    seed({ localTimeZone: TOKYO });
+    expect(venueClock(TOKYO_AFTER_MIDNIGHT)).toBe('00:30');
+    expect(venueCalendarDate(TOKYO_AFTER_MIDNIGHT)).toBe(AUG_25);
+    expect(venueDayMinutes(TOKYO_AFTER_MIDNIGHT)).toBe(30);
+    expect(venueWallClockToMs(AUG_25, '00:30')).toBe(Date.parse(TOKYO_AFTER_MIDNIGHT));
+  });
+
+  it('an omitted zone resolves its offset per instant, across DST, in an inferred frame too', () => {
+    seed({ venueZones: [NEW_YORK] });
+    expect(venueOffsetMinutesAt('2026-03-08T06:00:00Z')).toBe(-300);
+    expect(venueOffsetMinutesAt('2026-03-08T08:00:00Z')).toBe(-240);
+  });
+
+  it('a SUPPLIED invalid zone refuses, rather than falling back to any other zone', () => {
+    seed({ localTimeZone: TOKYO });
+    expect(venueClock(TOKYO_AFTER_MIDNIGHT, NOT_A_ZONE)).toBe('');
+    expect(venueCalendarDate(TOKYO_AFTER_MIDNIGHT, '')).toBe('');
+    expect(venueWallClockToMs(AUG_25, '00:30', NOT_A_ZONE)).toBeUndefined();
+    expect(venueOffsetMinutesAt(TOKYO_AFTER_MIDNIGHT, NOT_A_ZONE)).toBeUndefined();
+  });
+
+  it('a missing calledAt is still missing, never "now", in any frame', () => {
+    seed({ localTimeZone: TOKYO });
+    expect(venueClock(undefined as any)).toBe('');
+    expect(venueCalendarDate(undefined as any)).toBe('');
+  });
+
+  describe('under a refused frame, every conversion comes back empty', () => {
+    const refused = () => seed({ venueZones: [NEW_YORK, LOS_ANGELES] });
+
+    it('instants, days, offsets and wall clocks', () => {
+      refused();
+      expect(venueTimeZone()).toBeUndefined();
+      expect(venueClock(AUG_25_0900Z)).toBe('');
+      expect(venueCalendarDate(AUG_25_0900Z)).toBe('');
+      expect(venueDayMinutes(AUG_25_0900Z)).toBeUndefined();
+      expect(venueParts(AUG_25_0900Z)).toBeUndefined();
+      expect(venueOffsetMinutesAt(AUG_25_0900Z)).toBeUndefined();
+      // handed no zone, the factory would answer this on a fixed UTC offset
+      expect(venueWallClockToMs(AUG_25, '09:00')).toBeUndefined();
+    });
+
+    it('"now" by name: no today, no clock', () => {
+      refused();
+      expect(venueToday()).toBe('');
+      expect(venueNowClock()).toBe('');
+    });
+
+    it('venueNowOnDate has no now on ANY day, rather than inventing midnight', () => {
+      refused();
+      expect(venueNowOnDate(AUG_24)).toBeUndefined();
+      expect(venueNowOnDate('2020-01-01')).toBeUndefined();
+    });
+
+    it('venueLocaleString is empty, where toLocaleString would have used the browser zone', () => {
+      refused();
+      expect(venueLocaleString(AUG_25_0900Z)).toBe('');
+      seed({ localTimeZone: TOKYO });
+      expect(venueLocaleString(AUG_25_0900Z, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }, 'time')).toBe(
+        '18:00',
+      );
+    });
   });
 });

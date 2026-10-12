@@ -14,16 +14,26 @@
  * another zone, with nothing on screen to say which you are looking at. So the
  * one case where the page can be wrong is the one case where it says so.
  *
- * Renders `null` — not an empty box — once a venue zone is set, so the action
- * bar's flex gap does not reserve space for a notice that isn't there.
+ * Renders `null` — not an empty box — once a venue zone is set or inferred from
+ * venue addresses, so the action bar's flex gap does not reserve space for a
+ * notice that isn't there.
+ *
+ * **A refused frame is a different notice, not this one.** When the factory
+ * refuses the tournament's zone (venues disagree, or the record's zone is not a
+ * zone), times are not shown at all and automatic calls stop. That is an error to
+ * fix, so it renders red and says what is wrong; reusing the yellow "shown in
+ * this device's zone" pill would claim a fallback that is not happening.
  */
 import { openEditDatesModal } from 'pages/tournament/tabs/overviewTab/editDatesModal';
 import { resolveVenueFrame } from 'functions/venueTimeFrame';
+import { factoryConstants } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 export function buildVenueFrameNotice(onZoneSet?: () => void): HTMLElement | null {
-  const { timeZone, source } = resolveVenueFrame();
-  if (source === 'tournament') return null;
+  const frame = resolveVenueFrame();
+  if (frame.error) return buildFrameErrorNotice(frame.error.code, onZoneSet);
+  const { timeZone, source } = frame;
+  if (source !== 'browser') return null;
 
   const pill = document.createElement('button');
   pill.type = 'button';
@@ -57,6 +67,41 @@ export function buildVenueFrameNotice(onZoneSet?: () => void): HTMLElement | nul
     defaultValue: 'Times in {{timeZone}} — venue zone not set',
     timeZone,
   });
+  pill.appendChild(label);
+
+  pill.addEventListener('click', () => openEditDatesModal({ onSave: () => onZoneSet?.() }));
+
+  return pill;
+}
+
+function buildFrameErrorNotice(code: string, onZoneSet?: () => void): HTMLElement {
+  const conflicting = code === factoryConstants.errorConditionConstants.CONFLICTING_TIME_ZONES.code;
+  const pill = document.createElement('button');
+  pill.type = 'button';
+  pill.dataset.tmx = 'venue-frame-error';
+  pill.dataset.code = code;
+  pill.title = conflicting ? t('schedule.venueFrame.conflictingTitle') : t('schedule.venueFrame.invalidTitle');
+  pill.style.cssText = [
+    'display: inline-flex',
+    'align-items: center',
+    'gap: 6px',
+    'padding: 3px 9px',
+    'font-size: 0.78rem',
+    'line-height: 1.4',
+    'border-radius: 6px',
+    'cursor: pointer',
+    'background: var(--tmx-panel-red-bg)',
+    'border: 1px solid var(--tmx-panel-red-border)',
+    'color: var(--tmx-text-primary)',
+  ].join('; ');
+
+  const icon = document.createElement('i');
+  icon.className = 'fa fa-triangle-exclamation';
+  icon.style.color = 'var(--tmx-accent-red)';
+  pill.appendChild(icon);
+
+  const label = document.createElement('span');
+  label.textContent = conflicting ? t('schedule.venueFrame.conflicting') : t('schedule.venueFrame.invalid');
   pill.appendChild(label);
 
   pill.addEventListener('click', () => openEditDatesModal({ onSave: () => onZoneSet?.() }));
