@@ -154,12 +154,16 @@ describe('a future schedule day: nobody is on court yet', () => {
     expect(rows.every((row: RestRow) => row.status === 'none')).toBe(true);
   });
 
-  it('would badge the shared player "on court" under the projected evening clock', () => {
-    // The defect, pinned: the same data with the evening's time-of-day projected onto tomorrow puts
-    // the 15:00 doubles behind the clock and the player on court.
+  it('does not badge the shared player "on court" even under the projected evening clock', () => {
+    // This pinned the defect: with the evening's time-of-day projected onto tomorrow, the 15:00 doubles
+    // fell behind the clock and read as under way. Since factory 7.12.0 (#5386(factory), CA 2026-10-11)
+    // the factory refuses that reading on its own: a passed scheduled time puts a player on court only
+    // for a matchUp that holds a court, and an unfinished matchUp counts as prior load only when it is
+    // scheduled BEFORE the inspected one. The doubles does neither, so the row reads 'none' at both
+    // layers — `restAsOf` above keeps the viewed day, and the factory no longer needs it to.
     const projected = venueInstant(TOMORROW, '22:51').toISOString();
     const { rows } = restFor([singles, doubles], 'm-singles', projected, TOMORROW);
-    expect(rows.find((row: RestRow) => row.participantId === 'p-nassar')?.status).toBe('onCourt');
+    expect(rows.find((row: RestRow) => row.participantId === 'p-nassar')?.status).toBe('none');
   });
 });
 
