@@ -20,6 +20,7 @@
  *  - On Discard: factory state reloaded from IndexedDB
  */
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
+import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { openScheduleLockMenu } from './scheduleLockActions';
@@ -42,7 +43,6 @@ import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
-import { competitionNow } from 'services/clock/competitionClock';
 import {
   getOrderOfPlayPublishState,
   isOrderOfPlayDatePublished,
@@ -267,6 +267,8 @@ let currentRefresh: (() => void) | null = null;
 let activeStrip: ActiveStripPanel | null = null;
 let activeStripUnsubscribe: (() => void) | null = null;
 let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
+// a moved competition clock refreshes the strip at once, not on the next 30s tick
+let activeStripClockUnsubscribe: (() => void) | null = null;
 // Per-court record of which matchUp currently occupies the "Now" strip cell.
 let catalogStateUnsubscribe: (() => void) | null = null;
 
@@ -736,6 +738,10 @@ export function renderGridView(
     if (!activeStrip) return;
     refreshActiveStrip(currentDate);
   }, 30000);
+  activeStripClockUnsubscribe?.();
+  activeStripClockUnsubscribe = onCompetitionClockChange(() => {
+    if (activeStrip) refreshActiveStrip(currentDate);
+  });
 
   // Strip cell clicks open the same popover as grid-cell clicks. The leading
   // spacer ("Now") opens the bulk Now-row popover. Delegated listener so both
@@ -1497,6 +1503,8 @@ export function destroyGridView(): void {
     clearInterval(activeStripBlockTicker);
     activeStripBlockTicker = null;
   }
+  activeStripClockUnsubscribe?.();
+  activeStripClockUnsubscribe = null;
   activeStrip = null;
   latestStripSnapshot = null;
   if (activeControl) {
@@ -3393,14 +3401,17 @@ function commitActiveStripDrop(
   // Stamp the "called to court" timestamp — the active-strip drop is the
   // deliberate signal that this matchUp is imminent. Distinct from regular
   // grid drops (which leave calledAt untouched as historical record).
-  methods.push({
-    method: SET_MATCHUP_CALLED_AT,
-    params: {
-      matchUpId: payload.matchUp.matchUpId,
-      drawId: payload.matchUp.drawId ?? '',
-      calledAt: competitionNow().toISOString(),
-    },
-  });
+  // With no usable competition instant there is nothing true to stamp: place it, but do not call it.
+  const calledAtMs = competitionNowMs();
+  if (calledAtMs !== undefined)
+    methods.push({
+      method: SET_MATCHUP_CALLED_AT,
+      params: {
+        matchUpId: payload.matchUp.matchUpId,
+        drawId: payload.matchUp.drawId ?? '',
+        calledAt: new Date(calledAtMs).toISOString(),
+      },
+    });
 
   // Start-on-drop: a TD dragging to Now often intends to START the match, not
   // just call it. The start methods (startTime + IN_PROGRESS) are only produced

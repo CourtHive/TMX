@@ -20,16 +20,17 @@ import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { venueNowClock, venueToday } from 'functions/venueTimeFrame';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionNow } from 'services/clock/competitionClock';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { evaluateRest, formatDuration } from './inspectorRest';
 import { destroyTipster } from 'components/popovers/tipster';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { readCheckInPromptMode } from './gridViewStorage';
 import { timePicker } from 'components/modals/timePicker';
 import { hasFinalResult } from 'functions/hasFinalResult';
-import { venueNowClock, venueToday } from 'functions/venueTimeFrame';
 import { Datepicker } from 'vanillajs-datepicker';
 import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
@@ -441,8 +442,18 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     )
       return;
 
+    const calledAtMs = competitionNowMs();
+    if (calledAtMs === undefined) {
+      tmxToast({ message: t('schedule.clockUnavailable'), intent: 'is-danger' });
+      return;
+    }
     executeMethods(
-      [{ method: SET_MATCHUP_CALLED_AT, params: { matchUpId, drawId, calledAt: competitionNow().toISOString() } }],
+      [
+        {
+          method: SET_MATCHUP_CALLED_AT,
+          params: { matchUpId, drawId, calledAt: new Date(calledAtMs).toISOString() },
+        },
+      ],
       onRefresh,
     );
   };

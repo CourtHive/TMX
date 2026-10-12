@@ -189,4 +189,32 @@ test.describe('Journey 61 — now-strip auto-call due-gating', () => {
     await page.evaluate(() => dev.setCompetitionClock());
     collector.detach();
   });
+
+  // Moving the competition clock while the strip is on screen refreshes it AT ONCE (the strip subscribes
+  // to clock changes), not on its 30s ticker: the call lands well inside that window.
+  test('moving the competition clock while the strip is open auto-calls at once, not on the next tick', async ({
+    page,
+  }) => {
+    await seedOnePlaced(page, date, '18:00');
+    const collector = createMutationCollector(page);
+    const competitionInstant = new Date(`${date}T19:00:00`).getTime();
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto('e2e-auto-call');
+    await loginAsProviderMember(page, PROVIDER_ID);
+    await forceLocalExecution(page);
+    await tournament.navigateToScheduling();
+    await page.waitForSelector(STRIP, { timeout: 10_000 });
+    // the control: at the device's noon the 18:00 match is still in the future, so nothing is called
+    await page.waitForTimeout(1500);
+    expect(collector.hasMethod('setMatchUpCalledAt')).toBe(false);
+
+    await page.evaluate((ms) => dev.setCompetitionClock({ nowMs: () => ms }), competitionInstant);
+    const entry = await collector.waitForMethod('setMatchUpCalledAt', 5_000);
+    const params = entry.methods.find((m) => m.method === 'setMatchUpCalledAt')?.params as any;
+    expect(Date.parse(params?.calledAt)).toBe(competitionInstant);
+
+    await page.evaluate(() => dev.setCompetitionClock());
+    collector.detach();
+  });
 });

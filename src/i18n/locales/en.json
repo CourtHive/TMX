@@ -1166,7 +1166,8 @@
       "conflictingTitle": "This tournament’s venues name different time zones and the tournament sets none, so TMX cannot tell which clock it runs on. Times are hidden and automatic calls are paused until the tournament’s time zone is set.",
       "invalid": "Tournament time zone is not valid — times hidden",
       "invalidTitle": "This tournament’s time zone is not a recognised time zone. Times are hidden and automatic calls are paused until a valid one is set."
-    }
+    },
+    "clockUnavailable": "The competition clock is not giving a usable time, so the match was not called."
   },
   "penalties": {
     "AUDIBLE_OBSCENITY": "Audible Obscenity",
