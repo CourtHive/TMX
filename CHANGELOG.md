@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.35.0](https://github.com/CourtHive/TMX/compare/v8.34.0...v8.35.0) (2026-10-13)
+
+
+### Features
+
+* **clock:** bind the competition clock to ONE factory clock ([#1619](https://github.com/CourtHive/TMX/issues/1619)) ([ac37433](https://github.com/CourtHive/TMX/commit/ac374337f96e15a937579add18ed86a385f62016))
+* **clock:** scheduling reads "now" through one competition clock ([#1618](https://github.com/CourtHive/TMX/issues/1618)) ([36a388c](https://github.com/CourtHive/TMX/commit/36a388c44cc74870c948d30b236884583a0c3e58))
+
+
+### Bug Fixes
+
+* **clock:** a failed competition clock refuses, and a moved one refreshes at once ([#1621](https://github.com/CourtHive/TMX/issues/1621)) ([5f61006](https://github.com/CourtHive/TMX/commit/5f61006016384f325f435b7f1d22ad8836d528f6))
+* **deps:** update courthive-components to 6.6.2 ([#1623](https://github.com/CourtHive/TMX/issues/1623)) ([9ade8a5](https://github.com/CourtHive/TMX/commit/9ade8a587b5fc23286fbb9a2ffb2ec623a42156e))
+* **deps:** update tods-competition-factory to 7.13.0 ([#1622](https://github.com/CourtHive/TMX/issues/1622)) ([71d7cdd](https://github.com/CourtHive/TMX/commit/71d7cdd149e0ff79ce4d1dcc699687c3bc5cd36b))
+* **publishing:** embargoes read the competition clock, and an unreadable one is refused ([#1620](https://github.com/CourtHive/TMX/issues/1620)) ([42c3f71](https://github.com/CourtHive/TMX/commit/42c3f715cf7902d553bdb05e3482bd2c7f88a044))
+* **time-frame:** the venue frame is the factory's, and a refused frame shows no times ([#1617](https://github.com/CourtHive/TMX/issues/1617)) ([7d8432d](https://github.com/CourtHive/TMX/commit/7d8432d8d9408e44b3ed18f332bfd5e909f2f277))
+
 ## [8.34.0](https://github.com/CourtHive/TMX/compare/v8.33.0...v8.34.0) (2026-10-12)
 
 
