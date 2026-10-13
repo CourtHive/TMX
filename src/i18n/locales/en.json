@@ -17,6 +17,26 @@
       "total": "Standings total",
       "preview": "Preview standings",
       "confirm": "Confirm settlement"
+    },
+    "creation": {
+      "format": "Format",
+      "standard": "Standard",
+      "pointTotal": "Combined points per match",
+      "tieResolution": "Tie resolution",
+      "rounds": "Rounds",
+      "players": "Individual players",
+      "americanoHelp": "Select 4–128 players in multiples of four. Every player partners everyone once; the roster is fixed after the first round.",
+      "mexicanoHelp": "Select 4–128 players in multiples of four. Later rounds use settled individual standings; the roster is fixed after the first round.",
+      "ALLOW": "Allow a draw",
+      "DECIDING_POINT": "Deciding point",
+      "WIN_BY_MARGIN": "Win by {{margin}} points",
+      "rosterError": "Select between 4 and 128 individual players, in multiples of four.",
+      "configError": "Choose a valid point total, round count and scoring variant.",
+      "previewTitle": "Preview round {{round}}",
+      "applyRound": "Generate round",
+      "standings": "Individual standings",
+      "unresolved": "Unresolved results: {{count}}",
+      "complete": "All competition rounds have been generated."
     }
   },
   "crowd": {

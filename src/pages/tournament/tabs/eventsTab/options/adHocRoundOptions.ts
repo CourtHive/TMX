@@ -6,6 +6,11 @@ import { deleteAdHocMatchUps } from 'components/modals/deleteAdHocMatchUps';
 import { addAdHocMatchUps } from 'components/modals/addAdHocMatchUps';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 import { tournamentEngine } from 'services/factory/engine';
+import {
+  isConfiguredRotatingDraw,
+  previewRotatingRound,
+  showRotatingStandings,
+} from 'services/rotatingPartners/roundControls';
 
 import { RIGHT } from 'constants/tmxConstants';
 import { t } from 'i18n';
@@ -26,6 +31,21 @@ export function getAdHocRoundOptions({
   if (!tournamentEngine.isAdHoc({ structure })) return {};
   const refreshCallback = () => callback({ refresh: true });
 
+  if (isConfiguredRotatingDraw(drawId)) {
+    return {
+      label: t('roundOptions.roundActions'),
+      selection: false,
+      location: RIGHT,
+      align: RIGHT,
+      options: [
+        {
+          label: t('rotatingPartners.creation.applyRound'),
+          onClick: () => previewRotatingRound({ drawId, structure, callback: refreshCallback }),
+        },
+        { label: t('rotatingPartners.creation.standings'), onClick: () => showRotatingStandings(drawId) },
+      ],
+    };
+  }
   const actionOptions = [
     {
       onClick: () => addAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
