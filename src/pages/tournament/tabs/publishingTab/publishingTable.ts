@@ -6,12 +6,13 @@
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { publishingGovernor } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { venueLocaleString } from 'functions/venueTimeFrame';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
 import { getPublishingTableData } from './publishingData';
-import { venueTimeZone } from 'functions/venueTimeFrame';
 import { openEmbargoModal } from './embargoModal';
 import { t } from 'i18n';
 import {
@@ -92,9 +93,8 @@ function publicUrlFormatter(cell: any): string {
 }
 
 function formatLocalEmbargo(date: Date): string {
-  return date.toLocaleString(undefined, {
+  return venueLocaleString(date, {
     // The embargo is a tournament decision, so it displays on the venue's clock.
-    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -106,8 +106,8 @@ function embargoFormatter(cell: any): string {
   const embargo = cell.getValue();
   if (!embargo) return '<span style="color:var(--tmx-text-muted); font-size:0.8rem;">—</span>';
   const date = new Date(embargo);
-  const now = Date.now();
-  const active = date.getTime() > now;
+  const now = competitionNowMs();
+  const active = now === undefined || date.getTime() > now;
   if (!active) return `<span style="color:var(--tmx-text-muted); font-size:0.8rem;">${t('publishing.expired')}</span>`;
   const localStr = formatLocalEmbargo(date);
   return `<span style="color:var(--tmx-accent-orange); font-size:0.8rem;" title="${localStr}"><i class="fa fa-clock"></i> ${localStr}</span>`;

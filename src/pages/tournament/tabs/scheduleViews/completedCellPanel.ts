@@ -31,11 +31,11 @@ export function isCompletedMatchUp(matchUpStatus?: string): boolean {
 }
 
 /**
- * An instant (`calledAt`, `scoredTime`) on the venue's clock; nothing for an absent stamp. The zone is resolved
- * here because `venueClock` given none reads the BROWSER's zone, not the tournament's.
+ * An instant (`calledAt`, `scoredTime`) on the venue's clock; nothing for an absent stamp, or when the frame is
+ * refused and there is no zone. The zone is resolved once by the caller so both stamps read the same one.
  */
-function instantClock(value: string | undefined, timeZone: string): string {
-  return value ? venueClock(value, timeZone) : '';
+function instantClock(value: string | undefined, timeZone: string | undefined): string {
+  return value && timeZone ? venueClock(value, timeZone) : '';
 }
 
 /** A naive venue wall clock (`startTime`, `endTime`), already in venue terms: only the `HH:MM` is read. */

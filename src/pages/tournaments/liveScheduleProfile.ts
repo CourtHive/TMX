@@ -12,6 +12,7 @@
  * became "it schedules nothing" in the first place.
  */
 import { policyConstants, drawDefinitionConstants, fixtures } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
 
 const { SINGLE_ELIMINATION } = drawDefinitionConstants;
 
@@ -75,7 +76,10 @@ function clampAnchor(now: Date): Date {
  * tournament is generated. Those drift apart in a tab left open — which is exactly how a demo is
  * run — and the maintenance window would sit where it was at load while the schedule moved.
  */
-export function buildLiveScheduleProfile(now: Date = new Date()) {
+export function buildLiveScheduleProfile(now: Date = competitionNow()) {
+  // No usable competition instant: nothing to anchor a live schedule to. `undefined`, so the caller can
+  // say so, instead of the throw `toISOString()` gives an invalid Date further down.
+  if (Number.isNaN(now.getTime())) return undefined;
   const scheduleDate = isoDate(now);
   const anchor = clampAnchor(now);
 
@@ -190,7 +194,10 @@ export function buildLiveScheduleProfile(now: Date = new Date()) {
   };
 }
 
-/** The catalogue entry. `build` is resolved at generation; see `buildLiveScheduleProfile`. */
+/**
+ * The catalogue entry. `build` is resolved at generation; see `buildLiveScheduleProfile`. It answers
+ * `undefined` when the competition clock gives no instant, and the generator skips the profile.
+ */
 export const LIVE_SCHEDULE_PROFILE = {
   tournamentName: LIVE_SCHEDULE_TOURNAMENT_NAME,
   build: buildLiveScheduleProfile,

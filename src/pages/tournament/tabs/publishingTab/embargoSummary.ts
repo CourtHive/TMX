@@ -3,11 +3,12 @@
  * Displays all active embargoes sorted by expiry with remove buttons.
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { publishStructureDetails } from './structurePublishing';
 import { publishingGovernor } from 'tods-competition-factory';
+import { venueLocaleString } from 'functions/venueTimeFrame';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
-import { venueTimeZone } from 'functions/venueTimeFrame';
 import { getActiveEmbargoes } from './publishingData';
 import { t } from 'i18n';
 
@@ -16,9 +17,8 @@ import { PUBLISH_EVENT, PUBLISH_ORDER_OF_PLAY, PUBLISH_PARTICIPANTS } from 'cons
 
 function formatEmbargoTime(isoString: string): { display: string; countdown: string } {
   const date = new Date(isoString);
-  const display = date.toLocaleString(undefined, {
+  const display = venueLocaleString(date, {
     // The embargo is a tournament decision, so it displays on the venue's clock.
-    timeZone: venueTimeZone(),
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -26,7 +26,10 @@ function formatEmbargoTime(isoString: string): { display: string; countdown: str
     timeZoneName: 'short',
   });
 
-  const diff = date.getTime() - Date.now();
+  // no usable competition instant: the embargo is shown as set, never as lifted
+  const now = competitionNowMs();
+  if (now === undefined) return { display, countdown: '' };
+  const diff = date.getTime() - now;
   if (diff <= 0) return { display, countdown: t('publishing.expired') };
 
   const hours = Math.floor(diff / 3600000);

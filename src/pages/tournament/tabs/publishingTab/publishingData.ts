@@ -3,6 +3,7 @@
  * Queries factory publish state and structures it for the UI.
  */
 import { publishingGovernor, tools } from 'tods-competition-factory';
+import { competitionNowMs } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
 
@@ -113,7 +114,9 @@ export function infoScopeParams(selectedEventIds: string[], allEventIds: string[
 
 export function resolvePublishState(published: boolean, embargo?: string): 'live' | 'embargoed' | 'off' {
   if (!published) return 'off';
-  if (embargo && new Date(embargo).getTime() > Date.now()) return 'embargoed';
+  // no usable competition instant: an embargo is never read as lifted
+  const now = competitionNowMs();
+  if (embargo && (now === undefined || new Date(embargo).getTime() > now)) return 'embargoed';
   return 'live';
 }
 

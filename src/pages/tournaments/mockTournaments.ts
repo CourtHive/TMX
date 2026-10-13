@@ -7,6 +7,8 @@ import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 import {
   factoryConstants,
   drawDefinitionConstants,
@@ -646,14 +648,20 @@ function addAutoCourtImage(tournamentRecord: any, drawProfiles: any[]): void {
 
 function generateTournamentRecords(indices?: number[]): any[] {
   const profiles = indices ? indices.map((i) => mockProfiles[i]).filter(Boolean) : mockProfiles;
-  return profiles.map((profile) => {
+  return profiles.flatMap((profile) => {
     // A profile may compute time-relative parts (schedule dates, a maintenance window) when the
     // tournament is generated rather than when this module was imported. `build` is stripped before
     // the profile reaches the factory.
     const { build, ...rest }: any = profile;
-    const resolved = build ? { ...rest, ...build() } : rest;
+    const built = build?.();
+    if (build && !built) {
+      // the live schedule needs a usable competition clock; the other examples do not, so they still generate
+      tmxToast({ message: t('tournaments.liveDemoClockUnavailable'), intent: 'is-danger' });
+      return [];
+    }
+    const resolved = built ? { ...rest, ...built } : rest;
     const { tournamentRecord } = mocksEngine.generateTournamentRecord(resolved);
     addAutoCourtImage(tournamentRecord, resolved.drawProfiles);
-    return tournamentRecord;
+    return [tournamentRecord];
   });
 }

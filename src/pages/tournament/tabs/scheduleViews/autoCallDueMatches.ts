@@ -132,6 +132,8 @@ function timeIsSoft(cell: StripCell): boolean {
  * Pure — the caller supplies the venue-local clock, as autocall does.
  */
 export function computeDueMatchUps(columns: StripColumn[], nowHHMM: string): string[] {
+  // No venue clock (a refused frame reads as '') means nothing can be measured as late.
+  if (!nowHHMM) return [];
   const due: string[] = [];
   for (const column of columns) {
     // A court with something live or already called is not idle; whatever is
@@ -156,6 +158,9 @@ export function computeDueMatchUps(columns: StripColumn[], nowHHMM: string): str
  * scheduledTime is strictly after `nowHHMM` (24h "HH:MM").
  */
 export function computeAutoCalls(columns: StripColumn[], nowHHMM: string): AutoCall[] {
+  // No venue clock means no call. Without this, a matchUp with no scheduledTime is called on ANY
+  // clock, including the '' a refused frame produces.
+  if (!nowHHMM) return [];
   const calls: AutoCall[] = [];
   for (const column of columns) {
     if (courtOccupied(column)) continue;
