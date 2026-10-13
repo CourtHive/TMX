@@ -3,6 +3,7 @@
  * Handles score submission, parsing, and mutation with callback propagation.
  */
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
+import { getScoreEntryLabels } from 'components/modals/scoringV2/scoringLabels';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { clearPermitted, isClearingOutcome } from './clearScorePermission';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -97,8 +98,9 @@ export function enterMatchUpScore(params: {
     const disabledStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
     if (new Set(disabledStatuses).has(outcome?.matchUpStatus)) {
       tmxToast({
-        message: t('toasts.statusOutOfScope', { defaultValue: 'This status is unavailable for this match' }),
+        message: t('toasts.statusOutOfScope'),
         intent: WARNING_INTENT,
+        pauseOnHover: true,
       });
       return undefined;
     }
@@ -230,6 +232,7 @@ function openNewScoreEntry({
     sides: dialogSides(matchUp),
     context: [matchUp?.roundName, matchUp?.schedule?.courtName].filter(Boolean).join(' · ') || undefined,
     statusCodeGroups: resolveStatusCodeGroups(matchUp),
+    labels: getScoreEntryLabels(),
     clearable,
     disabledMatchUpStatuses,
     approach: DIALOG_APPROACHES.includes(preferred) ? preferred : undefined,

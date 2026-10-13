@@ -296,6 +296,11 @@ describe('scoreMatchUp — engine status restrictions', () => {
     enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
     const params = scoreEntryDialog ? capturedDialogParams : capturedModalParams;
     expect(params.disabledMatchUpStatuses).toEqual(['DEAD_RUBBER', 'CHALLENGED']);
+    if (scoreEntryDialog)
+      expect(params.labels).toMatchObject({
+        DEAD_RUBBER: 'modals.scoring.deadRubber',
+        statusUnavailable: 'modals.scoring.statusUnavailable',
+      });
     expect(actionsMock).toHaveBeenCalledWith({ drawId: 'd1', matchUpId: 'X' });
     if (scoreEntryDialog) params.onClose();
     else params.onRelayCleanup();
@@ -309,7 +314,11 @@ describe('scoreMatchUp — engine status restrictions', () => {
     actionsMock.mockReturnValue({ validActions: [{ type: 'SCORE', disabledMatchUpStatuses: ['DEAD_RUBBER'] }] });
     capturedDialogParams.onSubmit({ outcome: { matchUpStatus: 'DEAD_RUBBER' } });
     expect(mutationRequestMock).not.toHaveBeenCalled();
-    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: WARNING_INTENT }));
+    expect(toastMock).toHaveBeenCalledWith({
+      message: 'toasts.statusOutOfScope',
+      intent: WARNING_INTENT,
+      pauseOnHover: true,
+    });
     capturedDialogParams.onSubmit({ outcome: { matchUpStatus: 'CANCELLED' } });
     expect(mutationRequestMock).toHaveBeenCalledTimes(1);
     capturedDialogParams.onClose();
