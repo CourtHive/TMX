@@ -8,12 +8,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const toastMock = vi.fn();
 const mutationRequestMock = vi.fn();
 const closeModalMock = vi.fn();
+const actionsMock = vi.fn((..._args: any[]): any => ({ validActions: [] }));
+let capturedModalParams: any;
 
 let capturedScoreSubmitted: ((outcome: any) => void) | undefined;
 let capturedOnRelayCleanup: (() => void) | undefined;
 
 vi.mock('components/modals/scoringV2', () => ({
   scoringModal: (params: any) => {
+    capturedModalParams = params;
     capturedScoreSubmitted = params.callback;
     capturedOnRelayCleanup = params.onRelayCleanup;
   },
@@ -34,6 +37,7 @@ vi.mock('services/settings/settingsStorage', () => ({ persistConfigToStorage: vi
 vi.mock('services/factory/engine', () => ({
   tournamentEngine: {
     q: { matchUp: ({ matchUpId }: any) => ({ matchUpId, drawId: 'd1', score: { scoreStringSide1: '6-2 6-3' } }) },
+    matchUpActions: (...args: any[]) => actionsMock(...args),
     parseScoreString: () => [{ side1Score: 6, side2Score: 1 }],
   },
 }));
@@ -43,6 +47,8 @@ import { notifyRemoteScoringCollision } from './activeScoringGuard';
 import { dialogSides, enterMatchUpScore } from './scoreMatchUp';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { featureFlags } from 'config/featureFlags';
+
+const WARNING_INTENT = 'is-warning';
 
 const OUTCOME = { score: '6-1 6-1', winningSide: 1, matchUpStatus: 'COMPLETED' };
 
@@ -77,7 +83,7 @@ describe('scoreMatchUp — remote scoring collision', () => {
     enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
 
     notifyRemoteScoringCollision(['X']);
-    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: WARNING_INTENT }));
     toastMock.mockClear();
 
     // Save must NOT apply directly — it surfaces a danger confirm with an action.
@@ -258,7 +264,7 @@ describe('scoreMatchUp — the score entry dialog (beta flag, on by default)', (
       discarded: [{ side1Score: 6, side2Score: 4 }],
       matchUpFormat: 'SET1-S:6/TB7',
     });
-    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-warning' }));
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: WARNING_INTENT }));
     capturedDialogParams.onClose();
   });
 });
@@ -273,5 +279,40 @@ describe('dialogSides', () => {
 
   it('copes with a matchUp that has no sides at all', () => {
     expect(dialogSides({})).toEqual([{ participantName: '' }, { participantName: '' }]);
+  });
+});
+
+describe('scoreMatchUp — engine status restrictions', () => {
+  beforeEach(() => {
+    mutationRequestMock.mockClear();
+    toastMock.mockClear();
+    actionsMock.mockReturnValue({
+      validActions: [{ type: 'SCORE', disabledMatchUpStatuses: ['DEAD_RUBBER', 'CHALLENGED'] }],
+    });
+  });
+
+  it.each([false, true])('forwards restrictions with dialog flag %s', (scoreEntryDialog) => {
+    featureFlags.set({ scoreEntryDialog });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    const params = scoreEntryDialog ? capturedDialogParams : capturedModalParams;
+    expect(params.disabledMatchUpStatuses).toEqual(['DEAD_RUBBER', 'CHALLENGED']);
+    expect(actionsMock).toHaveBeenCalledWith({ drawId: 'd1', matchUpId: 'X' });
+    if (scoreEntryDialog) params.onClose();
+    else params.onRelayCleanup();
+    actionsMock.mockReturnValue({ validActions: [] });
+  });
+
+  it('checks live scope again before submitting', () => {
+    featureFlags.set({ scoreEntryDialog: true });
+    actionsMock.mockReturnValue({ validActions: [{ type: 'SCORE', disabledMatchUpStatuses: [] }] });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
+    actionsMock.mockReturnValue({ validActions: [{ type: 'SCORE', disabledMatchUpStatuses: ['DEAD_RUBBER'] }] });
+    capturedDialogParams.onSubmit({ outcome: { matchUpStatus: 'DEAD_RUBBER' } });
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ intent: WARNING_INTENT }));
+    capturedDialogParams.onSubmit({ outcome: { matchUpStatus: 'CANCELLED' } });
+    expect(mutationRequestMock).toHaveBeenCalledTimes(1);
+    capturedDialogParams.onClose();
+    actionsMock.mockReturnValue({ validActions: [] });
   });
 });
