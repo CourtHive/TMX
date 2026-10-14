@@ -2,6 +2,7 @@
  * Generate ad hoc round UI for draw structures.
  * Creates a button to trigger ad hoc round creation modal.
  */
+import { isConfiguredRotatingDraw, previewRotatingRound } from 'services/rotatingPartners/roundControls';
 import { addAdHocRound } from 'components/modals/addAdHocRound';
 
 import { DRAWS_VIEW } from 'constants/tmxConstants';
@@ -24,6 +25,10 @@ export function generateAdHocRound({
   button.onclick = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    if (isConfiguredRotatingDraw(drawId)) {
+      previewRotatingRound({ drawId, structure, callback });
+      return;
+    }
     addAdHocRound({
       newRound: true,
       structure,

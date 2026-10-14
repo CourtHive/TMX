@@ -1,0 +1,107 @@
+import { GENERATE_ROTATING_PARTNER_ROUND } from 'constants/mutationConstants';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { cModal } from 'courthive-components';
+import { t } from 'i18n';
+
+export function isConfiguredRotatingDraw(drawId: string): boolean {
+  const { drawDefinition } = tournamentEngine.getEvent({ drawId });
+  return ['AMERICANO', 'MEXICANO'].includes(drawDefinition?.competitionProfile?.format ?? '');
+}
+
+export function previewRotatingRound({
+  drawId,
+  structure,
+  callback,
+}: {
+  drawId: string;
+  structure: any;
+  callback?: () => void;
+}): void {
+  const roundNumber = Math.max(0, ...(structure.matchUps ?? []).map((matchUp: any) => matchUp.roundNumber ?? 0)) + 1;
+  const preview = tournamentEngine.getRotatingPartnerRoundPreview({
+    drawId,
+    structureId: structure.structureId,
+    roundNumber,
+  });
+  if (preview.error || !preview.round || !preview.scoringContract) {
+    tmxToast({
+      message: String(preview.info ?? preview.error?.message ?? t('rotatingPartners.creation.configError')),
+      intent: 'is-warning',
+    });
+    return;
+  }
+  const participants = tournamentEngine.getTournament().tournamentRecord?.participants ?? [];
+  const names = new Map(participants.map((participant) => [participant.participantId, participant.participantName]));
+  const content = document.createElement('div');
+  for (const pairings of preview.round) {
+    const row = document.createElement('p');
+    row.textContent = pairings.map((side) => side.map((id) => names.get(id) ?? id).join(' / ')).join(' — ');
+    content.appendChild(row);
+  }
+  const method = {
+    method: GENERATE_ROTATING_PARTNER_ROUND,
+    params: {
+      drawId,
+      structureId: preview.structureId,
+      roundNumber,
+      requestId: crypto.randomUUID(),
+      expectedPairings: preview.round,
+      expectedScoringContract: preview.scoringContract,
+    },
+  };
+  let pending = false;
+  cModal.open({
+    title: t('rotatingPartners.creation.previewTitle', { round: roundNumber }),
+    content,
+    buttons: [
+      { label: t('common.cancel'), close: true },
+      {
+        label: t('rotatingPartners.creation.applyRound'),
+        close: false,
+        intent: 'is-primary',
+        onClick: () => {
+          if (pending) return;
+          pending = true;
+          mutationRequest({
+            methods: [method],
+            callback: (result) => {
+              pending = false;
+              if (result.success) {
+                cModal.close();
+                callback?.();
+              }
+            },
+          });
+        },
+      },
+    ],
+  });
+}
+
+export function showRotatingStandings(drawId: string): void {
+  const result = tournamentEngine.getRotatingPartnerStandings({ drawId });
+  if (result.error) {
+    tmxToast({ message: String(result.info ?? result.error.message), intent: 'is-warning' });
+    return;
+  }
+  const participants = tournamentEngine.getTournament().tournamentRecord?.participants ?? [];
+  const names = new Map(participants.map((participant) => [participant.participantId, participant.participantName]));
+  const content = document.createElement('div');
+  for (const standing of result.standings ?? []) {
+    const row = document.createElement('p');
+    row.textContent = `${names.get(standing.participantId) ?? standing.participantId}: ${standing.pointsScored}`;
+    content.appendChild(row);
+  }
+  if (result.unresolved?.length) {
+    const notice = document.createElement('p');
+    notice.textContent = t('rotatingPartners.creation.unresolved', { count: result.unresolved.length });
+    content.appendChild(notice);
+  }
+  cModal.open({
+    title: t('rotatingPartners.creation.standings'),
+    content,
+    buttons: [{ label: t('common.close'), close: true }],
+  });
+}

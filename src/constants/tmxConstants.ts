@@ -319,3 +319,9 @@ export const FORMAT_WIZARD_EVENT_SELECT = 'formatWizardEventSelect';
 export const FORMAT_WIZARD_CLEAR_STALE = 'formatWizardClearStale';
 export const FORMAT_WIZARD_CONSIDERATION = 'formatWizardConsideration';
 export const FORMAT_WIZARD_HEADER_CONSIDERATION = 'formatWizardHeaderConsideration';
+
+export const ROTATING_FORMAT = 'rotatingFormat';
+export const ROTATING_POINT_TOTAL = 'rotatingPointTotal';
+export const ROTATING_TIE_RESOLUTION = 'rotatingTieResolution';
+export const ROTATING_ROUNDS = 'rotatingRounds';
+export const ROTATING_ROSTER = 'rotatingRoster';

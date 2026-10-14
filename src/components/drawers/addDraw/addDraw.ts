@@ -8,9 +8,12 @@ import { attachTopologyStructures, topologyDrawEntries } from './topologyPostGen
 import { getDrawFormItems, QUALIFYING_TARGET_NOTICE_ID } from './getDrawFormItems';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { prepareRotatingDraw } from 'services/rotatingPartners/creation';
 import { getDrawFormRelationships } from './getDrawFormRelationships';
 import { informModal } from 'components/modals/baseModal/baseModal';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
+import { mountRotatingFormatFields } from './rotatingFormatFields';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
 import { tournamentEngine } from 'services/factory/engine';
 import { findTopologyTemplate } from './topologyTemplates';
@@ -21,6 +24,8 @@ import { generateDraw } from './generateDraw';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+const WARNING_INTENT = 'is-warning';
+const ROTATING_CONFIG_ERROR = 'rotatingPartners.creation.configError';
 const { LUCKY_DRAW, MAIN } = drawDefinitionConstants;
 import {
   getMatchUpFormatModal,
@@ -97,6 +102,7 @@ export function addDraw({
     event,
   });
 
+  let rotatingFields: ReturnType<typeof mountRotatingFormatFields> | undefined;
   let inputs: any;
   let roundProfileEditor: RoundProfileEditorController | undefined;
   const content = (elem: HTMLElement) => {
@@ -135,6 +141,9 @@ export function addDraw({
     drawSizeInput?.addEventListener('input', syncEditorDrawSize);
     drawSizeInput?.addEventListener('change', syncEditorDrawSize);
     syncEditorVisibility();
+    if (event.eventType === 'DOUBLES' && !drawId && !isQualifying && !isPopulateMain) {
+      rotatingFields = mountRotatingFormatFields({ target: elem, inputs, event, selectedParticipantIds });
+    }
   };
 
   const isValid = () => {
@@ -145,7 +154,45 @@ export function addDraw({
     return validators.nameValidator(3)(inputs[DRAW_NAME].value);
   };
 
+  let rotatingCreationPending = false;
+  const createRotating = () => {
+    if (rotatingCreationPending) return;
+    const { config, error } = rotatingFields!.read();
+    if (!config || error) {
+      tmxToast({ message: error || t(ROTATING_CONFIG_ERROR), intent: WARNING_INTENT });
+      return;
+    }
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    const prepared = prepareRotatingDraw(eventId, inputs[DRAW_NAME].value, config, seed);
+    if (!prepared.drawDefinition || prepared.error) {
+      tmxToast({
+        message:
+          prepared.error === 'roster'
+            ? t('rotatingPartners.creation.rosterError')
+            : String(prepared.error || t(ROTATING_CONFIG_ERROR)),
+        intent: WARNING_INTENT,
+      });
+      return;
+    }
+    rotatingCreationPending = true;
+    mutationRequest({
+      methods: prepared.methods,
+      callback: (result) => {
+        rotatingCreationPending = false;
+        if (result.success) {
+          context.drawer.close();
+          callback?.({ ...result, drawDefinition: prepared.drawDefinition });
+        }
+      },
+    });
+  };
+
   const checkParams = () => {
+    if (rotatingFields?.active()) {
+      if (!isValid()) tmxToast({ message: t('drawers.addDraw.missingName'), intent: 'is-danger' });
+      else createRotating();
+      return;
+    }
     const selectedDrawType =
       inputs[DRAW_TYPE]?.options?.[inputs[DRAW_TYPE].selectedIndex]?.getAttribute?.('value') ||
       inputs[DRAW_TYPE]?.value;
@@ -202,13 +249,12 @@ export function addDraw({
   };
 
   const buttons = [
-    { label: t('common.cancel'), intent: NONE, close: true },
+    { label: t('common.cancel'), intent: NONE, onClick: () => context.drawer.close() },
     {
       label: t('drawers.addDraw.generate'),
       id: 'generateDraw',
       intent: 'is-primary',
       onClick: checkParams,
-      close: isValid,
     },
   ];
 
@@ -218,7 +264,10 @@ export function addDraw({
       ? t('drawers.addDraw.generateFlight')
       : t('drawers.addDraw.configureDraw');
 
-  const footer = (elem: HTMLElement, close: () => void) => renderButtons(elem, buttons, close);
+  const footer = (elem: HTMLElement, close: () => void) =>
+    renderButtons(elem, buttons, () => {
+      if (!rotatingFields?.active() && isValid()) close();
+    });
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
 }
 
@@ -280,7 +329,7 @@ function generateFromTopologyTemplate({
         if (unresolved.length) {
           tmxToast({
             message: t('topology.structuresNotAttached', { unattached: unresolved.join(', ') }),
-            intent: 'is-warning',
+            intent: WARNING_INTENT,
           });
         } else {
           tmxToast({ message: t('topology.drawGenerated'), intent: 'is-success' });
