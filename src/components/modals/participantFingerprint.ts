@@ -18,7 +18,6 @@
  * would otherwise imply a completeness it does not have.
  */
 import { fixtures, matchUpGovernor, factoryConstants } from 'tods-competition-factory';
-import { tournamentEngine } from 'services/factory/engine';
 import { buildSegmentedBar } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -160,6 +159,7 @@ type FingerprintArgs = {
   policyDefinitions?: any;
   participantId: string;
   participant: any;
+  matchUps: any[];
 };
 
 /** The DOM shell. All decisions live in `fingerprintData`. */
@@ -167,20 +167,10 @@ export function buildParticipantFingerprint({
   policyDefinitions = POLICY_COMPETITIVE_BANDS_DEFAULT,
   participantId,
   participant,
+  matchUps,
 }: FingerprintArgs): HTMLElement | undefined {
-  // `withScaleValues` must be TOP-LEVEL here, not inside contextProfile: nested,
-  // the matchUp side participants come back with `ratings: {}` and the exposure
-  // axis silently finds nothing to band. Verified in the running app — the unit
-  // tests hand `fingerprintData` its matchUps, so they cannot catch this.
-  //
-  // `withMatchUps` returns the tournament's matchUps, not only this
-  // participant's; `getCompetitiveProfile` does the participant filtering.
-  const { matchUps } = tournamentEngine.getParticipants({
-    participantFilters: { participantIds: [participantId] },
-    withScaleValues: true,
-    withMatchUps: true,
-  });
-
+  // The profile query supplies matchUps with top-level withScaleValues enabled,
+  // so opponent ratings are available without another participant query.
   const data = fingerprintData({ policyDefinitions, participantId, participant, matchUps: matchUps ?? [] });
   if (!data) return undefined;
 
