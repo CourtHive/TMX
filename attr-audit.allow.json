@@ -1,1 +1,11 @@
-["accessors", "batch", "bookings", "drawsCount", "formats", "games", "segments", "targets", "timeItem"]
+[
+  "accessors",
+  "batch",
+  "bookings",
+  "drawsCount",
+  "formats",
+  "games",
+  "segments",
+  "targets",
+  "timeItem"
+]

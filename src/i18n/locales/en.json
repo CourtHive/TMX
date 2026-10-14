@@ -35,8 +35,7 @@
       "previewTitle": "Preview round {{round}}",
       "applyRound": "Generate round",
       "standings": "Individual standings",
-      "unresolved": "Unresolved results: {{count}}",
-      "complete": "All competition rounds have been generated."
+      "unresolved": "Unresolved results: {{count}}"
     }
   },
   "crowd": {
