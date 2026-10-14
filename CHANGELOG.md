@@ -1,5 +1,20 @@
 # Changelog
 
+## [8.36.0](https://github.com/CourtHive/TMX/compare/v8.35.0...v8.36.0) (2026-10-14)
+
+
+### Features
+
+* **draws:** create Americano and Mexicano draws from ad hoc ([#1631](https://github.com/CourtHive/TMX/issues/1631)) ([fb3e563](https://github.com/CourtHive/TMX/commit/fb3e563b81550ce9a32200856781716f01ae0a07))
+
+
+### Bug Fixes
+
+* consolidate participant card data queries ([#1632](https://github.com/CourtHive/TMX/issues/1632)) ([8ec1dbf](https://github.com/CourtHive/TMX/commit/8ec1dbfd66cacbd03e964ffb4086fdf87ea4d551))
+* **deps:** update courthive-components to 6.7.0 ([#1629](https://github.com/CourtHive/TMX/issues/1629)) ([50ddc7e](https://github.com/CourtHive/TMX/commit/50ddc7ec2be20ed108f1a5aaffc45a5d721dcf9d))
+* **deps:** update tods-competition-factory to 7.14.0 ([#1628](https://github.com/CourtHive/TMX/issues/1628)) ([ca7326d](https://github.com/CourtHive/TMX/commit/ca7326dae270eff6142a943d53ee98e73184009b))
+* **scoring:** withhold the statuses the engine refuses for this matchUp ([#1630](https://github.com/CourtHive/TMX/issues/1630)) ([b311e6a](https://github.com/CourtHive/TMX/commit/b311e6af03bca4bdab8474dbcc911189331736bd))
+
 ## [8.35.0](https://github.com/CourtHive/TMX/compare/v8.34.0...v8.35.0) (2026-10-13)
 
 
