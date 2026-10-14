@@ -124,3 +124,6 @@ export const UNLINK_TOURNAMENT = 'unlinkTournament';
 
 export const SETTLE_ROTATING_PARTNER_RESULT = 'settleRotatingPartnerResult';
 export const GET_ROTATING_PARTNER_STANDINGS = 'getRotatingPartnerStandings';
+
+export const SET_COMPETITION_PROFILE = 'setCompetitionProfile';
+export const GENERATE_ROTATING_PARTNER_ROUND = 'generateRotatingPartnerRound';

@@ -5,8 +5,8 @@
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
 import { fixtures, factoryConstants, unwrapOr } from 'tods-competition-factory';
-import { buildParticipantFingerprint } from './participantFingerprint';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { buildParticipantFingerprint } from './participantFingerprint';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar, cModal } from 'courthive-components';
@@ -227,11 +227,10 @@ function buildTeamAffiliationSection(participant: any): HTMLElement | undefined 
   return section;
 }
 
-function buildEventChips(participant: any): HTMLElement | undefined {
+function buildEventChips(participant: any, allEvents: any[]): HTMLElement | undefined {
   const participantEvents = participant.events || [];
   if (!participantEvents.length) return undefined;
 
-  const allEvents = tournamentEngine.q.events() || [];
   const eventMap: Record<string, any> = {};
   for (const e of allEvents) eventMap[e.eventId] = e;
 
@@ -283,6 +282,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   const result = tournamentEngine.getParticipants({
     participantFilters: { participantIds: [participantId] },
     withRankingProfile: true,
+    withMatchUps: true,
     withScaleValues: true,
     withEvents: true,
     withISO2: true,
@@ -350,7 +350,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
 
   // Competitive fingerprint — sits under the ratings it is computed from.
   // Returns undefined when there is nothing honest to show.
-  const fingerprint = buildParticipantFingerprint({ participantId, participant });
+  const fingerprint = buildParticipantFingerprint({ participantId, participant, matchUps: result.matchUps ?? [] });
   if (fingerprint) content.appendChild(fingerprint);
 
   // Team affiliation + jersey number chips (only for individuals carrying
@@ -359,7 +359,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   if (teamAffiliationSection) content.appendChild(teamAffiliationSection);
 
   // Event entry chips
-  const eventChips = buildEventChips(participant);
+  const eventChips = buildEventChips(participant, allEvents);
   if (eventChips) content.appendChild(eventChips);
 
   // Ranking points section (only if policies available)

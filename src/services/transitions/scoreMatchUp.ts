@@ -3,6 +3,7 @@
  * Handles score submission, parsing, and mutation with callback propagation.
  */
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
+import { getScoreEntryLabels } from 'components/modals/scoringV2/scoringLabels';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { clearPermitted, isClearingOutcome } from './clearScorePermission';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -28,6 +29,8 @@ import type { ScoreEntryApproach, StatusCodeGroups } from 'courthive-components'
 
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
+const WARNING_INTENT = 'is-warning';
+
 const { POLICY_TYPE_SCORING } = policyConstants;
 
 /**
@@ -46,6 +49,12 @@ function resolveStatusCodeGroups(matchUp: any): StatusCodeGroups | undefined {
 
   const scoringPolicy: any = tournamentEngine.findPolicy({ policyType: POLICY_TYPE_SCORING, eventId });
   return scoringPolicy?.policy?.matchUpStatusCodes;
+}
+
+/** The engine owns status scope; absence of metadata retains older factory behaviour. */
+function resolveDisabledMatchUpStatuses(matchUp: any, matchUpId: string): string[] | undefined {
+  const actions = tournamentEngine.matchUpActions({ drawId: matchUp.drawId, matchUpId });
+  return actions.validActions?.find(({ type }) => type === 'SCORE')?.disabledMatchUpStatuses;
 }
 
 export function enterMatchUpScore(params: {
@@ -82,8 +91,18 @@ export function enterMatchUpScore(params: {
     // the dialog was open still counts. Nothing is sent, so the result stands; the score modal stays
     // open as it does for a refused score, while the score entry dialog closes after any submit.
     if (isClearingOutcome(outcome) && !clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId })) {
-      tmxToast({ message: t('toasts.clearRefused'), intent: 'is-warning', pauseOnHover: true });
+      tmxToast({ message: t('toasts.clearRefused'), intent: WARNING_INTENT, pauseOnHover: true });
       return;
+    }
+
+    const disabledStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
+    if (new Set(disabledStatuses).has(outcome?.matchUpStatus)) {
+      tmxToast({
+        message: t('toasts.statusOutOfScope'),
+        intent: WARNING_INTENT,
+        pauseOnHover: true,
+      });
+      return undefined;
     }
 
     const methods = [
@@ -140,9 +159,10 @@ export function enterMatchUpScore(params: {
   // Asked once, as the dialog opens, so it can withhold [Clear] where the engine would refuse it. The
   // check in `dispatch` stays: it asks again at submit, against whatever was decided in the meantime.
   const clearable = clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId });
+  const disabledMatchUpStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
 
   if (featureFlags.get().scoreEntryDialog) {
-    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable });
+    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable, disabledMatchUpStatuses });
     return;
   }
 
@@ -178,6 +198,7 @@ export function enterMatchUpScore(params: {
     onRelayCleanup,
     matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
     clearable,
+    disabledMatchUpStatuses,
   });
 }
 
@@ -197,11 +218,13 @@ function openNewScoreEntry({
   dispatch,
   onRelayCleanup,
   clearable,
+  disabledMatchUpStatuses,
 }: {
   matchUp: any;
   dispatch: (params: { outcome: any; onAccepted?: () => void }) => void;
   onRelayCleanup: () => void;
   clearable: boolean;
+  disabledMatchUpStatuses?: string[];
 }): void {
   const preferred = preferencesConfig.get().scoringApproach as ScoreEntryApproach;
   openScoreEntryDialog({
@@ -209,7 +232,9 @@ function openNewScoreEntry({
     sides: dialogSides(matchUp),
     context: [matchUp?.roundName, matchUp?.schedule?.courtName].filter(Boolean).join(' · ') || undefined,
     statusCodeGroups: resolveStatusCodeGroups(matchUp),
+    labels: getScoreEntryLabels(),
     clearable,
+    disabledMatchUpStatuses,
     approach: DIALOG_APPROACHES.includes(preferred) ? preferred : undefined,
     onApproachChange: (scoringApproach) => {
       preferencesConfig.set({ scoringApproach });
@@ -221,7 +246,7 @@ function openNewScoreEntry({
       const sets = discarded.map((set) => `${set.side1Score ?? ''}-${set.side2Score ?? ''}`).join(', ');
       tmxToast({
         message: t('toasts.scoreDiscardedByFormat', { matchUpFormat, count: discarded.length, sets }),
-        intent: 'is-warning',
+        intent: WARNING_INTENT,
       });
     },
     onClose: onRelayCleanup,

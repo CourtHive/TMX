@@ -17,6 +17,25 @@
       "total": "Standings total",
       "preview": "Preview standings",
       "confirm": "Confirm settlement"
+    },
+    "creation": {
+      "format": "Format",
+      "standard": "Standard",
+      "pointTotal": "Combined points per match",
+      "tieResolution": "Tie resolution",
+      "rounds": "Rounds",
+      "players": "Individual players",
+      "americanoHelp": "Select 4–128 players in multiples of four. Every player partners everyone once; the roster is fixed after the first round.",
+      "mexicanoHelp": "Select 4–128 players in multiples of four. Later rounds use settled individual standings; the roster is fixed after the first round.",
+      "ALLOW": "Allow a draw",
+      "DECIDING_POINT": "Deciding point",
+      "WIN_BY_MARGIN": "Win by {{margin}} points",
+      "rosterError": "Select between 4 and 128 individual players, in multiples of four.",
+      "configError": "Choose a valid point total, round count and scoring variant.",
+      "previewTitle": "Preview round {{round}}",
+      "applyRound": "Generate round",
+      "standings": "Individual standings",
+      "unresolved": "Unresolved results: {{count}}"
     }
   },
   "crowd": {
@@ -1768,7 +1787,13 @@
       "cancelled": "Cancelled",
       "incomplete": "Incomplete",
       "reasonCode": "Reason",
-      "noReasonCode": "No reason given"
+      "noReasonCode": "No reason given",
+      "deadRubber": "Dead Rubber",
+      "challenged": "Challenged",
+      "statusUnavailable": "{{status}} is unavailable for this match",
+      "suspended": "Suspended",
+      "inProgress": "In Progress",
+      "awaitingResult": "Awaiting Result"
     },
     "generateTeams": {
       "title": "Generate mock teams",
@@ -2129,7 +2154,8 @@
       "invalidTime": "That time could not be recorded.",
       "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
       "notSaved": "Schedule change was not saved: {{reason}}"
-    }
+    },
+    "statusOutOfScope": "This status is unavailable for this match"
   },
   "loginMenu": {
     "authorization": "Authorization",
