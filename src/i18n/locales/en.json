@@ -1768,7 +1768,13 @@
       "cancelled": "Cancelled",
       "incomplete": "Incomplete",
       "reasonCode": "Reason",
-      "noReasonCode": "No reason given"
+      "noReasonCode": "No reason given",
+      "deadRubber": "Dead Rubber",
+      "challenged": "Challenged",
+      "statusUnavailable": "{{status}} is unavailable for this match",
+      "suspended": "Suspended",
+      "inProgress": "In Progress",
+      "awaitingResult": "Awaiting Result"
     },
     "generateTeams": {
       "title": "Generate mock teams",
@@ -2129,7 +2135,8 @@
       "invalidTime": "That time could not be recorded.",
       "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
       "notSaved": "Schedule change was not saved: {{reason}}"
-    }
+    },
+    "statusOutOfScope": "This status is unavailable for this match"
   },
   "loginMenu": {
     "authorization": "Authorization",

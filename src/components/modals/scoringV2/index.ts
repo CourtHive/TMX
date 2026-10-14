@@ -8,39 +8,11 @@ import { scoringModal as componentsScoringModal, setScoringConfig, getScoringCon
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { resolveComposition } from './resolveComposition';
+import { getScoringLabels } from './scoringLabels';
 import { debugConfig } from 'config/debugConfig';
-import { t } from 'i18n';
 
 // Re-export types from courthive-components
 export type { ScoringModalParams, ScoreOutcome, SetScore } from 'courthive-components';
-
-function getScoringLabels() {
-  return {
-    title: t('modals.scoring.title'),
-    cancel: t('modals.scoring.cancel'),
-    clear: t('modals.scoring.clear'),
-    submit: t('modals.scoring.submit'),
-    format: t('modals.scoring.format'),
-    irregularEnding: t('modals.scoring.irregularEnding'),
-    winner: t('modals.scoring.winner'),
-    retired: t('modals.scoring.retired'),
-    walkover: t('modals.scoring.walkover'),
-    defaulted: t('modals.scoring.defaulted'),
-    validScore: t('modals.scoring.validScore'),
-    scoreIncomplete: t('modals.scoring.scoreIncomplete'),
-    invalidScore: t('modals.scoring.invalidScore'),
-    scoreTips: t('modals.scoring.scoreTips'),
-    setScores: t('modals.scoring.setScores'),
-    tiebreaks: t('modals.scoring.tiebreaks'),
-    matchTiebreaks: t('modals.scoring.matchTiebreaks'),
-    irregularEndings: t('modals.scoring.irregularEndings'),
-    abandoned: t('modals.scoring.abandoned'),
-    cancelled: t('modals.scoring.cancelled'),
-    incomplete: t('modals.scoring.incomplete'),
-    reasonCode: t('modals.scoring.reasonCode'),
-    noReasonCode: t('modals.scoring.noReasonCode'),
-  };
-}
 
 /**
  * Sync the scoring approach from courthive-components config back to
