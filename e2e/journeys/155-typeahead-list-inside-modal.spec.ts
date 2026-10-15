@@ -17,8 +17,9 @@ import {
  *
  * Reported 2026-10-11 on "Select provider": the modal body scrolls (`overflow-y: auto`) and Awesomplete draws
  * its list below the input, so the list ran under the footer and the lower suggestions could not be seen or
- * clicked without scrolling the body. `openModal` now grows the content while a list is open
- * (`keepTypeAheadInView`), for every TMX modal with a type-ahead.
+ * clicked without scrolling the body. courthive-components' cModal now draws the list `position: fixed`,
+ * anchored to its input, so it escapes the body's clipping in every modal. The body is no longer padded to
+ * make room, which TMX's former `keepTypeAheadInView` workaround did.
  *
  * Visibility is judged by what is actually drawn at each suggestion's centre (`elementFromPoint`), not by
  * Playwright's `toBeVisible`, which counts a clipped element as visible; a click would also pass, because it
@@ -78,8 +79,8 @@ test.describe('Journey 155 — type-ahead suggestions inside a modal', () => {
     await page.getByText(/(Select|Switch) provider/).click();
 
     const body = page.locator('.chc-modal-body');
-    const paddingBottom = () => body.evaluate((element) => (element as HTMLElement).style.paddingBottom);
-    const before = await paddingBottom();
+    const bodyHeight = () => body.evaluate((element) => element.getBoundingClientRect().height);
+    const before = await bodyHeight();
 
     const input = page.locator('input[placeholder="Type provider name"]');
     await input.click();
@@ -94,9 +95,9 @@ test.describe('Journey 155 — type-ahead suggestions inside a modal', () => {
     await page.waitForTimeout(400);
     expect(await suggestionsOnTop(page)).toEqual(PROVIDERS.map(() => true));
 
-    // the room is given back when the list closes
+    // the list draws over the dialog rather than growing the body to hold it
+    expect(await bodyHeight()).toBe(before);
     await input.press('Escape');
     await expect(page.locator('ul[role="listbox"]')).toBeHidden();
-    expect(await paddingBottom()).toBe(before);
   });
 });

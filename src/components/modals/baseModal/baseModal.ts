@@ -1,4 +1,3 @@
-import { keepTypeAheadInView } from './keepTypeAheadInView';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -30,16 +29,7 @@ export function openModal(params: OpenModal) {
     content: { padding: noPadding ? '' : '1' },
     maxWidth: 500,
   };
-  // A type-ahead in the content keeps its suggestion list inside the scrolling body (see the helper).
-  const keepInView =
-    typeof content === 'function'
-      ? (elem: HTMLElement) => {
-          const rendered = content(elem);
-          keepTypeAheadInView(elem);
-          return rendered;
-        }
-      : content;
-  return cModal.open({ title, content: keepInView, footer, buttons, config, onClose });
+  return cModal.open({ title, content, footer, buttons, config, onClose });
 }
 
 export function informModal({ message, title, okAction }) {
