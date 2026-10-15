@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.38.0](https://github.com/CourtHive/TMX/compare/v8.37.0...v8.38.0) (2026-10-15)
+
+
+### Features
+
+* **settings:** pipeline features panel for testing exit propagation ([#1643](https://github.com/CourtHive/TMX/issues/1643)) ([4c514d8](https://github.com/CourtHive/TMX/commit/4c514d84cd53951a9fab39f9f78cbe528f3eca11))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.8.1 ([#1652](https://github.com/CourtHive/TMX/issues/1652)) ([bd013ba](https://github.com/CourtHive/TMX/commit/bd013baba2f42b58a86872b2451913b7cc8d95bd))
+* **deps:** update dependency camelcase to v10 ([#1639](https://github.com/CourtHive/TMX/issues/1639)) ([ea615f9](https://github.com/CourtHive/TMX/commit/ea615f97727df7a8a57cd433df739bb727aa3000))
+* **deps:** update dependency pdf-factory to v1.1.2 ([#1648](https://github.com/CourtHive/TMX/issues/1648)) ([14e3162](https://github.com/CourtHive/TMX/commit/14e316272da4bf24e4823227130ab41a362b8dd2))
+* **deps:** update tods-competition-factory to 7.14.1 ([#1651](https://github.com/CourtHive/TMX/issues/1651)) ([a185068](https://github.com/CourtHive/TMX/commit/a1850687ad872ef4b5495f5fde7057836e5e5927))
+* **i18n:** modals.inviteUser.admin reads "Platform admin", as the console's does ([#1650](https://github.com/CourtHive/TMX/issues/1650)) ([6d29910](https://github.com/CourtHive/TMX/commit/6d299106a0438a4a0b7bf8b53c70b4698f7c3810))
+* **settings:** pipeline features panel sits with the full-width panels ([#1646](https://github.com/CourtHive/TMX/issues/1646)) ([0a594f9](https://github.com/CourtHive/TMX/commit/0a594f999f859733233853831a6c73731a64d645))
+
 ## [8.37.0](https://github.com/CourtHive/TMX/compare/v8.36.0...v8.37.0) (2026-10-15)
 
 
