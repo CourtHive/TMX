@@ -11,12 +11,19 @@ import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { emitTmx } from 'services/messaging/socketIo';
 import * as factory from 'tods-competition-factory';
+import { pipelineConfig } from 'config/pipelineConfig';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import dayjs from 'dayjs';
 import { t } from 'i18n';
+import {
+  applyPipelineOverrides,
+  callOverrideParams,
+  isPipelineActive,
+  pipelineForcesLocal,
+} from 'services/pipeline/pipelineFeatures';
 
 // types
 import type { MutationMethod, ExecutionResult } from 'types/services';
@@ -61,6 +68,20 @@ export function checkOfflineState(tournamentRecords: Record<string, any>): {
 export function applyDevOverrides(methods: MutationMethod[], devParams?: Record<string, any>): MutationMethod[] {
   if (!devParams) return methods;
   return methods.map((m) => (devParams[m.method] ? { ...m, params: { ...m.params, ...devParams[m.method] } } : m));
+}
+
+/** What the Pipeline features panel contributes to this mutation: its call params, and whether it forces local. */
+export function resolvePipeline(
+  tournamentRecord: any,
+  methods: MutationMethod[],
+): { params: Record<string, boolean>; forceLocal: boolean } {
+  const active = isPipelineActive(tournamentRecord, !!getLoginState());
+  if (!active) return { params: {}, forceLocal: false };
+  const overrides = pipelineConfig.get();
+  return {
+    params: callOverrideParams(overrides),
+    forceLocal: pipelineForcesLocal(tournamentRecord, overrides, active, methods),
+  };
 }
 
 const LOCAL_ONLY = 'local-only';
@@ -254,8 +275,12 @@ async function makeMutation({
   saveLocal?: boolean;
   warmCache?: boolean;
 }): Promise<void> {
-  const hasProvider = !!factoryEngine.getTournament().tournamentRecord?.parentOrganisation?.organisationId;
-  const resolvedMethods = applyDevOverrides(methods, window['dev']?.params);
+  const tournamentRecord = factoryEngine.getTournament().tournamentRecord;
+  // Pipeline features (Settings): their per-call options ride on every setMatchUpStatus, and a mock tournament
+  // in use under them runs locally — results under modified rules must not reach the server.
+  const pipeline = resolvePipeline(tournamentRecord, methods);
+  const hasProvider = !pipeline.forceLocal && !!tournamentRecord?.parentOrganisation?.organisationId;
+  const resolvedMethods = applyPipelineOverrides(applyDevOverrides(methods, window['dev']?.params), pipeline.params);
   if (window?.['dev']?.getContext().internal) console.log({ methods: resolvedMethods });
 
   const strategy = determineExecutionStrategy(hasProvider, !!offline, serverConfig.get().serverFirst);
