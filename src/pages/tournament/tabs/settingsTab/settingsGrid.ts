@@ -9,7 +9,9 @@ import { preferencesConfig, type PreferencesConfig } from 'config/preferencesCon
 import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
 import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
+import { isPipelineEligible } from 'services/pipeline/pipelineFeatures';
 import { fixtures, factoryConstants } from 'tods-competition-factory';
+import { buildPipelineFeaturesPanel } from './pipelineFeaturesPanel';
 import { getLoginState } from 'services/authentication/loginState';
 import { removeTournament } from 'services/apis/servicesApi';
 import { tournamentEngine } from 'services/factory/engine';
@@ -468,6 +470,12 @@ export async function renderSettingsGrid(
   }
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
+
+  // --- Pipeline features (orange, full width) — follows Beta features ---
+  // Exit-propagation options for testing: tournament-scoped, offered only logged out or on a mock tournament.
+  if (!options?.excludeTournament && isPipelineEligible(tournamentEngine.q.tournament(), !!getLoginState())) {
+    grid.appendChild(buildPipelineFeaturesPanel());
+  }
 
   // --- Options panel (purple, cols 3-4) ---
   // Was "Storage" when it held one saveLocal checkbox. Widened rather than a new

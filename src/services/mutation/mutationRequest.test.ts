@@ -25,6 +25,14 @@ vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('functions/typeOf', () => ({ isFunction: (f: any) => typeof f === 'function' }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
+// Pipeline features read factory policy fixtures at load, which the factory stub above does not carry. Inactive here:
+// their gate and injection are tested in pipelineFeatures.test.ts, and end to end through mutationRequest in journey 150.
+vi.mock('services/pipeline/pipelineFeatures', () => ({
+  isPipelineActive: () => false,
+  callOverrideParams: () => ({}),
+  pipelineForcesLocal: () => false,
+  applyPipelineOverrides: (methods: any[]) => methods,
+}));
 
 import { checkOfflineState, applyDevOverrides, determineExecutionStrategy } from './mutationRequest';
 
