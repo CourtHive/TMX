@@ -312,6 +312,30 @@
       "custom": "Custom policy",
       "attached": "Attached — {{name}}"
     },
+    "pipelineFeatures": {
+      "title": "Pipeline features",
+      "intro": "Testing only. Changes how results propagate through draws in this tournament. Available while logged out, or for a generated (mock) tournament, which then runs locally on this device.",
+      "disabled": "This tournament has its own scoring policy, which decides these options. Pipeline features are off.",
+      "perCall": "Applied to every result entered",
+      "policy": "Attached to this tournament",
+      "progressionLocked": "This tournament has its own progression policy, which decides these options.",
+      "default": "Default",
+      "on": "On",
+      "off": "Off",
+      "badge": "Pipeline features",
+      "badgeTitle": "Results in this tournament are entered under modified pipeline rules (Settings → Pipeline features)",
+      "options": {
+        "propagateExitStatus": "Propagate exit status (walkover/default follows the loser)",
+        "propagateRetirementAsExit": "Carry a retirement like an exit",
+        "allowChangePropagation": "Allow a changed winner to swap downstream",
+        "disableScoreValidation": "Skip score validation",
+        "requireParticipantsForScoring": "Require both participants before scoring",
+        "doubleExitPropagateBye": "Double exit puts a BYE in the loser's next seat",
+        "autoPlaceQualifiers": "Auto-place qualifiers when qualifying completes",
+        "autoReplaceQualifiers": "Auto-replace a qualifier when a qualifying result changes",
+        "autoRemoveQualifiers": "Auto-remove a qualifier when a qualifying result is removed"
+      }
+    },
     "help": "Help",
     "pagesize": "Page Size",
     "schedule": "Schedule",

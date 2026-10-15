@@ -7,8 +7,11 @@
  * existing user data.
  */
 import { preferencesConfig } from 'config/preferencesConfig';
+import { pipelineConfig } from 'config/pipelineConfig';
 import { featureFlags } from 'config/featureFlags';
 import { serverConfig } from 'config/serverConfig';
+
+import type { PipelineCallOverrides } from 'config/pipelineConfig';
 
 const SETTINGS_KEY = 'tmx_settings';
 
@@ -22,6 +25,8 @@ export type TMXSettings = {
   schedulePlan?: boolean;
   linkedTournaments?: boolean;
   scoreEntryDialog?: boolean;
+  /** Settings → Pipeline features: per-call outcome-pipeline overrides (dev/testing; see config/pipelineConfig). */
+  pipelineFeatures?: Partial<PipelineCallOverrides>;
   /**
    * @deprecated — Reports tab has been promoted to production. The icon
    * is always visible; the flag is no longer read. Retained in the type
@@ -163,6 +168,9 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
     featureFlags.set(flagsPatch);
   }
 
+  // Pipeline features
+  if (settings.pipelineFeatures) pipelineConfig.set(settings.pipelineFeatures);
+
   return settings;
 }
 
@@ -192,6 +200,7 @@ export function persistConfigToStorage(
     schedulePlan: flags.schedulePlan,
     linkedTournaments: flags.linkedTournaments,
     scoreEntryDialog: flags.scoreEntryDialog,
+    pipelineFeatures: { ...pipelineConfig.get() },
     ...extras,
   });
 }
