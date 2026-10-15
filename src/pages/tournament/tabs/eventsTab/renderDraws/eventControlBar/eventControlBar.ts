@@ -4,6 +4,7 @@
  */
 import { tournamentEngine } from 'services/factory/engine';
 import { getEventControlItems } from './eventControlItems';
+import { defaultStructureId } from '../defaultStructureId';
 import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 
@@ -23,7 +24,7 @@ export function eventControlBar({
   const eventData = tournamentEngine.q.eventData({ eventId });
   const drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
   const structures = drawData?.structures || [];
-  structureId = structureId || structures?.[0]?.structureId;
+  structureId = structureId || defaultStructureId(structures);
 
   let participantFilter: string | undefined;
 

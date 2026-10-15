@@ -31,6 +31,7 @@ import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { generateAdHocRound } from './generateAdHocRound';
 import { generateQualifying } from './generateQualifying';
+import { defaultStructureId } from './defaultStructureId';
 import { cleanupDrawPanel } from '../cleanupDrawPanel';
 import { getEventHandlers } from '../getEventHandlers';
 import { displayConfig } from 'config/displayConfig';
@@ -106,7 +107,7 @@ function renderEmptyStructure(
   } else if (isAdHoc) {
     generateAdHocRound({ structure, drawId, callback });
   } else {
-    const fallbackStructureId = structures?.[0]?.structureId;
+    const fallbackStructureId = defaultStructureId(structures);
     renderDrawView({ eventId, drawId, structureId: fallbackStructureId, redraw: true });
   }
 }
@@ -259,11 +260,11 @@ export function renderDrawView({
     eventType = eventData?.eventInfo?.eventType;
     drawData = eventData?.drawsData?.find((data: any) => data.drawId === drawId);
     structures = drawData?.structures || [];
-    structureId = structureId || structures?.[0]?.structureId;
+    structureId = structureId || defaultStructureId(structures);
     structure = structures.find((s: any) => s.structureId === structureId);
     if (!structure && structures.length) {
-      structureId = structures[0].structureId;
-      structure = structures[0];
+      structureId = defaultStructureId(structures);
+      structure = structures.find((s: any) => s.structureId === structureId);
     }
     isAdHoc = tournamentEngine.isAdHoc({ structure });
     ({ roundMatchUps, stage } = tools.makeDeepCopy(structure || {}));
@@ -583,7 +584,7 @@ export function renderDrawView({
   }
 
   if (!structureId) {
-    structureId = drawData.structures?.[0]?.structureId;
+    structureId = defaultStructureId(drawData.structures);
   }
   if (!structureId) {
     console.log('structure not found');
