@@ -69,6 +69,14 @@ test.describe('Journey 150 — Pipeline features', () => {
     await page.evaluate(() => globalThis.localStorage.removeItem('tmx_settings'));
   });
 
+  test('sits with the full-width panels, directly after Seeding policy', async ({ page }) => {
+    // CA, 2026-10-15: a full-width panel in the middle of the column grid "looks UGLY" — it goes 2nd or 3rd.
+    const tournamentId = await seed(page);
+    await openSettings(page, tournamentId);
+
+    await expect(page.locator(`#seedingPolicyPanel + ${PANEL}`)).toBeVisible();
+  });
+
   test('default: a main-draw walkover leaves the consolation match to be played', async ({ page }) => {
     const tournamentId = await seed(page);
     await openSettings(page, tournamentId);
