@@ -184,6 +184,13 @@ export async function renderSettingsGrid(
     grid.appendChild(buildSeedingPolicyPanel());
   }
 
+  // --- Pipeline features (orange, full width) — with the other full-width panels, after Seeding policy ---
+  // Exit-propagation options for testing: tournament-scoped, offered only logged out or on a mock tournament.
+  // Placed here, not beside Beta features: a full-width panel in the middle of the column grid splits it.
+  if (!options?.excludeTournament && isPipelineEligible(tournamentEngine.q.tournament(), !!getLoginState())) {
+    grid.appendChild(buildPipelineFeaturesPanel());
+  }
+
   // --- Language panel (blue, 1 col) ---
   // Source the language list from the CFS manifest so newly-added locales
   // (cs, hr, etc.) appear without a TMX rebuild. force:true so a stale
@@ -470,12 +477,6 @@ export async function renderSettingsGrid(
   }
   displayPanel.appendChild(displayForm);
   grid.appendChild(displayPanel);
-
-  // --- Pipeline features (orange, full width) — follows Beta features ---
-  // Exit-propagation options for testing: tournament-scoped, offered only logged out or on a mock tournament.
-  if (!options?.excludeTournament && isPipelineEligible(tournamentEngine.q.tournament(), !!getLoginState())) {
-    grid.appendChild(buildPipelineFeaturesPanel());
-  }
 
   // --- Options panel (purple, cols 3-4) ---
   // Was "Storage" when it held one saveLocal checkbox. Widened rather than a new
