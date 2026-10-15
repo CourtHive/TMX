@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.37.0](https://github.com/CourtHive/TMX/compare/v8.36.0...v8.37.0) (2026-10-15)
+
+
+### Features
+
+* **draws:** open a draw on the structure that still needs scores ([#1637](https://github.com/CourtHive/TMX/issues/1637)) ([f5da4b9](https://github.com/CourtHive/TMX/commit/f5da4b9d20a10695b1f9cf09564bb98e510192a8))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.8.0 ([#1638](https://github.com/CourtHive/TMX/issues/1638)) ([e803aab](https://github.com/CourtHive/TMX/commit/e803aab085cf2438501665a17eef3a84f5170a46))
+
 ## [8.36.0](https://github.com/CourtHive/TMX/compare/v8.35.0...v8.36.0) (2026-10-14)
 
 
