@@ -5,6 +5,7 @@
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
+import { defaultStructureId } from './defaultStructureId';
 import { t } from 'i18n';
 
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
@@ -32,7 +33,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   for (const draw of eventData.drawsData) {
     options.push({
       onClick: () => {
-        const structureId = draw.structures?.[0]?.structureId;
+        const structureId = defaultStructureId(draw.structures);
         const drawId = draw.drawId;
         navigateToEvent({ eventId, drawId, structureId, renderDraw: true });
       },
