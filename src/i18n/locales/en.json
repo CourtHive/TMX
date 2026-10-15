@@ -1653,7 +1653,7 @@
       "roles": "Roles",
       "client": "Client",
       "director": "Director",
-      "admin": "Admin",
+      "admin": "Platform admin",
       "official": "Official",
       "scoring": "Scoring",
       "developer": "Developer",
