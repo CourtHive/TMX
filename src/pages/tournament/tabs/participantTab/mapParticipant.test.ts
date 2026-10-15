@@ -44,6 +44,27 @@ describe('mapParticipant', () => {
     expect(result.sex).toBe('Male');
   });
 
+  // `sex` is the one field that goes through camelcase (pascalCase), so these pin that dependency's output for every
+  // value the factory defines — a camelcase major (v9 -> v10, TMX#1639) is checked here rather than by eye.
+  it.each([
+    ['MALE', 'Male'],
+    ['FEMALE', 'Female'],
+    ['MIXED', 'Mixed'],
+    ['OTHER', 'Other'],
+    ['ANY', 'Any'],
+    ['M', 'M'],
+    ['F', 'F'],
+  ])('formats sex %s as %s', (sex, expected) => {
+    const result = mapParticipant(makeParticipant({ person: { ...makeParticipant().person, sex } }), {});
+    expect(result.sex).toBe(expected);
+  });
+
+  it('formats an absent sex as an empty string', () => {
+    const { sex: _sex, ...person } = makeParticipant().person;
+    expect(mapParticipant(makeParticipant({ person }), {}).sex).toBe('');
+    expect(mapParticipant(makeParticipant({ person: { ...person, sex: '' } }), {}).sex).toBe('');
+  });
+
   it('builds cityState from address', () => {
     let result: any = mapParticipant(makeParticipant(), {});
     expect(result.cityState).toBe('Austin, TX');
