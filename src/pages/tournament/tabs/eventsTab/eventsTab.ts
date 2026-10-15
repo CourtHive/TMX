@@ -20,6 +20,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
+import { defaultStructureId } from './renderDraws/defaultStructureId';
 import { addFlights } from 'components/modals/addFlights/addFlights';
 import { updateDrawNameRows } from 'components/tables/common/updateDrawNameRows';
 import { renderDrawsTable } from './renderDraws/renderDrawsTable';
@@ -73,7 +74,7 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
   if (drawId) {
     const eventData = tournamentEngine.q.eventData({ eventId });
     const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
-    if (!structureId) structureId = drawData?.structures?.[0]?.structureId;
+    if (!structureId) structureId = defaultStructureId(drawData?.structures);
     if (!roundsView) {
       const struct = drawData?.structures?.find((s: any) => s.structureId === structureId);
       roundsView = struct?.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
