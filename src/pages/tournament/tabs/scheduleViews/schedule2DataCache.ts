@@ -112,8 +112,7 @@ export function getCachedTournamentInfo(): any {
 
 /**
  * Invalidate after any matchUp / court / venue mutation. Tournament-level
- * metadata (date range, tournamentInfo) is NOT cleared here because edits
- * to those flow through navigations that re-enter the page.
+ * metadata (date range, tournamentInfo) has a separate full invalidation path.
  */
 export function invalidateMatchUpCaches(): void {
   allMatchUpsCache = null;
@@ -138,10 +137,10 @@ export function invalidateAllScheduleCaches(): void {
 // schedule read pulls fresh truth. This is what makes score entry from the
 // scoring modal — which calls mutationRequest directly rather than the
 // schedule's executeMethods — reflect immediately on the grid. Tournament
-// metadata caches are intentionally left intact (see invalidateMatchUpCaches).
+// metadata caches are also dropped: remote edits and full reloads do not require navigation.
 // A module-scoped subscription is fine: when schedule2 isn't mounted the
 // caches are already empty, so the clear is a cheap no-op.
-onMutationApplied(invalidateMatchUpCaches);
+onMutationApplied(invalidateAllScheduleCaches);
 
 // Self-healing across tournament switches: the loader fires
 // notifyTournamentContextChanged when the active tournament changes (only then,

@@ -3,9 +3,12 @@
 `/tournament/:id/scheduling/:date/:mode` is the unified scheduling surface in
 TMX. It replaces the previously-separate `/schedule2/*` and
 `/venues/availability` routes with one workspace that switches between three
-modes — **Availability**, **Profile**, and **Grid** — sharing one save model.
+modes — **Availability**, **Profile**, **Grid**, and **Plan**.
 
-`queueService.ts` is that save model. The companion
+`queueService.ts` owns the availability painter hook and an optional bulk queue.
+Grid/Profile use gridView.ts and its recoverable BulkScheduleDraft; Plan persists scenario edits.
+No production caller enables queueService bulk mode. The invariants below apply to this service, not every grid drop.
+The companion
 `queueService.test.ts` pins the invariants documented here; if you change
 behavior, those tests are the lock that surfaces it.
 

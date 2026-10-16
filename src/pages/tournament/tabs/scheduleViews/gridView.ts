@@ -14,23 +14,63 @@
  *
  * Bulk mode:
  *  - Mutations run locally on competitionEngine for visual feedback
- *  - Methods are queued in pendingMethods for batch server send
+ *  - Methods are queued in bulkDraft.pending for batch server send
  *  - A floating Save/Discard bar appears when changes are pending
  *  - On Save: all queued methods sent as single mutationRequest
- *  - On Discard: factory state reloaded from IndexedDB
+ *  - On Discard: restore the draft baseline while retaining concurrent changes
  */
+import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
+import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
+import { captureTournamentOperation } from 'services/tournament/operationOwnership';
+import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
+import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
+import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
+import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
+import { buildGridActionBar, type GridActionBar } from './gridActionBar';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { decoratesCell, severityOf } from './scheduleIssueSeverity';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { buildInlineNotice } from 'components/notices/inlineNotice';
+import { getLoginState } from 'services/authentication/loginState';
 import { openScheduleLockMenu } from './scheduleLockActions';
+import { renameCourt } from 'components/modals/renameCourt';
 import { plainDateRange } from 'functions/plainDateRange';
 import { hasFinalResult } from 'functions/hasFinalResult';
+import { BulkScheduleDraft } from './bulkScheduleDraft';
+import { scheduleConfig } from 'config/scheduleConfig';
+import { tipster } from 'components/popovers/tipster';
+import { scheduleToast } from './scheduleToast';
+import tippy, { type Instance } from 'tippy.js';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
 } from 'services/schedulePreferences/scheduleDisplayExtension';
-import { decoratesCell, severityOf } from './scheduleIssueSeverity';
+import {
+  getOrderOfPlayPublishState,
+  isOrderOfPlayDatePublished,
+  buildOrderOfPlayDateToggleMethods,
+} from 'services/publishing/orderOfPlayPublish';
+import {
+  getExistingDrawIds,
+  batchReferencesMissingDraw,
+  partitionBatchesByDrawExistence,
+} from 'services/scheduling/drawExistenceGuard';
+import {
+  matchUpStatusConstants,
+  factoryConstants,
+  scoreGovernor,
+  unwrapOr,
+  AvailabilityEngine,
+} from 'tods-competition-factory';
 import {
   handleActiveStripNowClick,
   handleSchedule2CellClick,
@@ -38,58 +78,6 @@ import {
   openShiftCourtsModal,
   Schedule2NowContext,
 } from './schedule2CellActions';
-import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
-import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
-import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
-import { buildGridActionBar, type GridActionBar } from './gridActionBar';
-import {
-  getOrderOfPlayPublishState,
-  isOrderOfPlayDatePublished,
-  buildOrderOfPlayDateToggleMethods,
-} from 'services/publishing/orderOfPlayPublish';
-import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
-import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
-import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { buildInlineNotice } from 'components/notices/inlineNotice';
-import { renameCourt } from 'components/modals/renameCourt';
-import { scheduleConfig } from 'config/scheduleConfig';
-import { tipster } from 'components/popovers/tipster';
-import { tmx2db } from 'services/storage/tmx2db';
-import { scheduleToast } from './scheduleToast';
-import tippy, { type Instance } from 'tippy.js';
-import { context } from 'services/context';
-import { t } from 'i18n';
-import type {
-  SchedulePageConfig,
-  SchedulePageControl,
-  CatalogMatchUpItem,
-  CatalogFilters,
-  MatchUpCatalogGroupBy,
-  ScheduleDate,
-  ScheduleIssue,
-  ScheduleIssueSeverity,
-  ActiveStripPanel,
-  ActiveStripPanelData,
-  ActiveStripCourtBlock,
-  ActiveStripUpcomingBlock,
-  ActiveStripCell,
-} from 'courthive-components';
-import {
-  matchUpStatusConstants,
-  factoryConstants,
-  scoreGovernor,
-  tools,
-  unwrapOr,
-  AvailabilityEngine,
-} from 'tods-competition-factory';
-import {
-  getExistingDrawIds,
-  batchReferencesMissingDraw,
-  partitionBatchesByDrawExistence,
-} from 'services/scheduling/drawExistenceGuard';
 import {
   invalidateMatchUpCaches,
   getCachedScheduleMatchUps,
@@ -98,9 +86,6 @@ import {
   getCachedProConflicts,
   getCachedAllMatchUps,
 } from './schedule2DataCache';
-import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
-import { getLoginState } from 'services/authentication/loginState';
-import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
 import {
   createSchedulePage,
   buildScheduleGridCell,
@@ -117,8 +102,28 @@ import {
   wrapSearchWithClear,
   computeActiveStrip,
 } from 'courthive-components';
+import type {
+  SchedulePageConfig,
+  SchedulePageControl,
+  CatalogMatchUpItem,
+  CatalogFilters,
+  MatchUpCatalogGroupBy,
+  ScheduleDate,
+  ScheduleIssue,
+  ScheduleIssueSeverity,
+  ActiveStripPanel,
+  ActiveStripPanelData,
+  ActiveStripCourtBlock,
+  ActiveStripUpcomingBlock,
+  ActiveStripCell,
+} from 'courthive-components';
 
 // constants
+import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
+import { mergeReservedCellsIntoRows } from 'services/facilitySchedule/facilityScheduleHelpers';
+import { getReservedCellsForDate } from 'services/facilitySchedule/reservedCells';
+import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
+import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
@@ -126,11 +131,6 @@ import {
   PRO_COLUMN_RESOLVE,
   SET_MATCHUP_STATUS,
 } from 'constants/mutationConstants';
-import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
-import { mergeReservedCellsIntoRows } from 'services/facilitySchedule/facilityScheduleHelpers';
-import { getReservedCellsForDate } from 'services/facilitySchedule/reservedCells';
-import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
-import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 
 const { scheduleConstants } = factoryConstants;
 
@@ -187,7 +187,8 @@ const STRIP_CELL_HEIGHT_PX = 80;
 let activeControl: SchedulePageControl | null = null;
 let currentDate = '';
 let bulkMode = false;
-let pendingMethods: any[][] = []; // Each entry is a methods array from one drop/remove
+const bulkDraft = new BulkScheduleDraft();
+let suppressAutoCall = false;
 // Plan mode: when set, the grid renders a scenario's projected schedule (via the
 // factory `getScenarioScheduleView` — a throwaway deep-copy overlay, so engine
 // state is NEVER mutated) and drops edit the scenario instead of the official
@@ -291,6 +292,20 @@ function catalogOnScreen(): boolean {
 // filters) lives in `gridViewStorage.ts` — extracted so the localStorage
 // round-trips + default / malformed paths can be unit-tested without
 // spinning up this entire module.
+import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
+import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
+import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
+import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
+import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
+import { cellSearchText, searchNormalize } from './gridSearchMatch';
+import { buildCheckInModeToggle } from './checkInModeToggle';
+import { scheduledTimeModel } from './scheduledTimeStatus';
+import { type TimeBlockCourt } from './timeBlockModal';
+import { relatedMatchUpIds } from './relatedMatchUps';
+import { renderCheckInBadge } from './checkInBadge';
+import { evaluateRest } from './inspectorRest';
+import { renderRestBadge } from './restBadge';
 import {
   readSidebarTab,
   writeSidebarTab,
@@ -307,20 +322,6 @@ import {
   writeGridWarningBars,
   type SidebarTab,
 } from './gridViewStorage';
-import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
-import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
-import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
-import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
-import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
-import { cellSearchText, searchNormalize } from './gridSearchMatch';
-import { buildCheckInModeToggle } from './checkInModeToggle';
-import { scheduledTimeModel } from './scheduledTimeStatus';
-import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
-import { type TimeBlockCourt } from './timeBlockModal';
-import { relatedMatchUpIds } from './relatedMatchUps';
-import { renderCheckInBadge } from './checkInBadge';
-import { evaluateRest } from './inspectorRest';
-import { renderRestBadge } from './restBadge';
 
 /** Distinct, sorted, locale-aware values of an accessor across catalog items.
  *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
@@ -1513,7 +1514,7 @@ export function destroyGridView(): void {
   }
   removeActionBar();
   clearStaleDrawBanner();
-  pendingMethods = [];
+  // The draft belongs to the operation, not to the DOM being destroyed.
   actionBarContainer = null;
   gridRootElement = null;
   currentRefresh = null;
@@ -1567,12 +1568,12 @@ export function refreshGridView(): void {
 
 /** Whether there are unsaved bulk scheduling changes. */
 export function hasUnsavedGridChanges(): boolean {
-  return bulkMode && pendingMethods.length > 0;
+  return bulkDraft.pending.length > 0;
 }
 
 /** Number of unsaved bulk scheduling changes — for caller-side confirm copy. */
 export function getUnsavedGridChangeCount(): number {
-  return bulkMode ? pendingMethods.length : 0;
+  return bulkMode ? bulkDraft.pending.length : 0;
 }
 
 /**
@@ -1582,10 +1583,8 @@ export function getUnsavedGridChangeCount(): number {
  * dialog from inside a pure state mutation). Returns the new state.
  */
 export function setGridBulkMode(enabled: boolean): boolean {
-  if (bulkMode === enabled) return bulkMode;
-  if (!enabled && pendingMethods.length > 0) {
-    discardPending();
-  }
+  if (bulkDraft.saving || bulkMode === enabled) return bulkMode;
+  if (!enabled && bulkDraft.pending.length > 0 && !discardPendingGridChanges()) return bulkMode;
   bulkMode = enabled;
   return bulkMode;
 }
@@ -1768,8 +1767,8 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   }
 
   // Bulk mode: execute locally for visual feedback
-  const directives = tools.makeDeepCopy(methods);
-  const result = competitionEngine.executionQueue(directives, true);
+  const ids = competitionEngine.getTournamentIds().tournamentIds;
+  const result = bulkDraft.stage(methods, competitionEngine, captureTournamentOperation(ids));
   if (result?.error) {
     console.error('[schedule2] local execution error', result);
     scheduleToast({ message: t('gridView.localFailed'), intent: INTENT_DANGER });
@@ -1777,7 +1776,6 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   }
 
   // Queue methods for batch server send
-  pendingMethods.push(methods);
   // Bulk mode runs the mutation locally, so the cached matchUp data is
   // already stale relative to the engine — invalidate before the refresh
   // pulls fresh data.
@@ -1788,7 +1786,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
 
 /** Save all pending bulk changes to server. */
 async function savePending(): Promise<void> {
-  if (!pendingMethods.length) return;
+  if (!bulkDraft.pending.length || bulkDraft.saving) return;
 
   // Guard at submission: a draw may have been deleted by another client since
   // these changes were queued. Submitting a schedule method for a missing draw
@@ -1797,8 +1795,7 @@ async function savePending(): Promise<void> {
   // only the valid ones, and tell the user which changes could not be saved
   // and why. The remote-deletion broadcast already pruned the orphaned
   // matchUps from local state, so no extra re-render is needed here.
-  const { valid, stale } = partitionBatchesByDrawExistence(pendingMethods, getExistingDrawIds());
-  pendingMethods = [];
+  const { valid, stale } = partitionBatchesByDrawExistence(bulkDraft.pending, getExistingDrawIds());
 
   if (stale.length) {
     showStaleDrawBanner(stale.length);
@@ -1808,15 +1805,23 @@ async function savePending(): Promise<void> {
   const allMethods = valid.flat();
   if (!allMethods.length) {
     // Everything queued referenced a deleted draw — nothing to send.
+    bulkDraft.clear();
     updateActionBar();
     return;
   }
 
-  mutationRequest({
-    methods: allMethods,
-    engine: COMPETITION_ENGINE,
-    callback: (result: any) => {
-      if (result?.success || !result?.error) {
+  bulkDraft.save(
+    allMethods,
+    (done) => {
+      void mutationRequest({
+        methods: allMethods,
+        engine: COMPETITION_ENGINE,
+        retryAfterLogin: false,
+        callback: done,
+      }).catch((error) => done({ error }));
+    },
+    (result) => {
+      if (result?.success && !result.error) {
         scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: INTENT_SUCCESS });
       } else {
         console.error('[schedule2] bulk save error', result);
@@ -1824,45 +1829,35 @@ async function savePending(): Promise<void> {
       }
       updateActionBar();
     },
-  });
-
+  );
   updateActionBar();
 }
 
-/** Discard pending changes by reloading factory state from IndexedDB. */
-async function discardPending(): Promise<void> {
-  if (!pendingMethods.length) {
-    pendingMethods = [];
-    updateActionBar();
-    return;
+/** Discard the preview against its in-memory baseline, preserving concurrent changes. */
+export function discardPendingGridChanges(): boolean {
+  const result = bulkDraft.discard(competitionEngine);
+  if (!result.success) {
+    console.error('[schedule2] bulk discard error', result);
+    scheduleToast({
+      message: t('gridView.discardFailed', {
+        defaultValue: 'The pending schedule could not be discarded. Please try again.',
+      }),
+      intent: INTENT_DANGER,
+    });
+    return false;
   }
-
-  const tournamentId = getCachedTournamentInfo()?.tournamentInfo?.tournamentId;
-  if (!tournamentId) return;
-
-  try {
-    const record = await tmx2db.findTournament(tournamentId);
-    if (record) {
-      competitionEngine.setState(record);
-      // setState rewrote the engine's tournament store underneath the
-      // cache — drop matchUp caches so the re-render reads fresh data.
-      invalidateMatchUpCaches();
-    }
-  } catch (err) {
-    console.error('[schedule2] failed to reload from IndexedDB', err);
-  }
-
-  pendingMethods = [];
+  invalidateMatchUpCaches();
   scheduleToast({ message: t('gridView.discarded'), intent: INTENT_WARNING });
   updateActionBar();
-
-  // Re-render the grid view to reflect restored state
-  if (activeControl && actionBarContainer) {
-    const container = actionBarContainer;
-    const date = currentDate;
-    destroyGridView();
-    renderGridView(container, date);
+  // Repainting a discarded preview must not immediately queue new automatic calls,
+  // especially when this refresh is part of confirmed navigation away.
+  suppressAutoCall = true;
+  try {
+    currentRefresh?.();
+  } finally {
+    suppressAutoCall = false;
   }
+  return true;
 }
 
 // ============================================================================
@@ -1870,7 +1865,7 @@ async function discardPending(): Promise<void> {
 // ============================================================================
 
 function updateActionBar(): void {
-  if (!bulkMode || !pendingMethods.length) {
+  if (!bulkMode || !bulkDraft.pending.length) {
     removeActionBar();
     return;
   }
@@ -1893,14 +1888,15 @@ function updateActionBar(): void {
     actionBarContainer.appendChild(actionBar);
   }
 
-  const count = pendingMethods.length;
-  const totalMethods = pendingMethods.flat().length;
+  const count = bulkDraft.pending.length;
+  const totalMethods = bulkDraft.pending.flat().length;
 
   actionBar.innerHTML = '';
 
   // Save button
   const saveBtn = document.createElement('button');
   saveBtn.className = 'sp-btn sp-btn--success';
+  saveBtn.disabled = bulkDraft.saving;
   saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Save ${totalMethods} change${totalMethods === 1 ? '' : 's'}`;
   saveBtn.addEventListener('click', () => savePending());
   actionBar.appendChild(saveBtn);
@@ -1908,8 +1904,9 @@ function updateActionBar(): void {
   // Discard button
   const discardBtn = document.createElement('button');
   discardBtn.className = 'sp-btn sp-btn--danger';
+  discardBtn.disabled = bulkDraft.saving;
   discardBtn.innerHTML = '<i class="fa-solid fa-rotate-left" style="margin-right:6px;"></i>Discard';
-  discardBtn.addEventListener('click', () => discardPending());
+  discardBtn.addEventListener('click', () => discardPendingGridChanges());
   actionBar.appendChild(discardBtn);
 
   // Status text
@@ -2969,7 +2966,7 @@ function refreshActiveStrip(date: string): void {
  * FUTURE: notify the called matchUp's participants (email / push) from here.
  */
 function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void {
-  if (!currentRefresh) return;
+  if (suppressAutoCall || !currentRefresh) return;
   // Auto-call is a running-desk action, not a viewer side effect: only users
   // associated with this tournament's provider trigger it. A super-admin (or any
   // cross-provider viewer) merely observing must not stamp calledAt. Deferred:

@@ -1,0 +1,137 @@
+/** A recoverable bulk preview, owned independently of its rendered grid and of IndexedDB. */
+interface Snapshot {
+  tournamentId?: string;
+  tournamentRecords: Record<string, any>;
+}
+interface DraftEngine {
+  getState: () => Snapshot;
+  setState: (records: Record<string, any>) => any;
+  executionQueue: (methods: any[], rollbackOnError: boolean) => any;
+  setTournamentId: (id: string) => any;
+}
+interface Result {
+  success?: boolean;
+  error?: any;
+}
+
+const same = (a: any, b: any): boolean => JSON.stringify(a) === JSON.stringify(b);
+const object = (value: any): boolean => !!value && typeof value === 'object' && !Array.isArray(value);
+const ID_KEYS = [
+  'tournamentId',
+  'eventId',
+  'drawId',
+  'structureId',
+  'matchUpId',
+  'participantId',
+  'venueId',
+  'courtId',
+  'extensionName',
+];
+
+/** Revert only preview-owned fields. Concurrent fields and newly received objects survive discard. */
+function restoreFields(before: any, preview: any, current: any): any {
+  if (same(before, preview)) return current;
+  if (same(current, preview)) return structuredClone(before);
+  if (object(before) && object(preview) && object(current)) return restoreObject(before, preview, current);
+  if (Array.isArray(before) && Array.isArray(preview) && Array.isArray(current)) {
+    const key = ID_KEYS.find((id) =>
+      [...before, ...preview, ...current].every((value) => object(value) && typeof value[id] === 'string'),
+    );
+    if (key)
+      return current.map((value) =>
+        restoreFields(
+          before.find((item) => item[key] === value[key]),
+          preview.find((item) => item[key] === value[key]),
+          value,
+        ),
+      );
+  }
+  // The same field changed remotely. That newer value supersedes the preview.
+  return current;
+}
+
+function restoreObject(before: any, preview: any, current: any): any {
+  const restored = { ...current };
+  for (const key of new Set([...Object.keys(before), ...Object.keys(preview)])) {
+    const value = restoreFields(before[key], preview[key], current[key]);
+    if (value === undefined) delete restored[key];
+    else restored[key] = value;
+  }
+  return restored;
+}
+
+export class BulkScheduleDraft {
+  pending: any[][] = [];
+  saving = false;
+  private baseline?: Snapshot;
+  private preview?: Snapshot;
+  private ownsInstalledRecord: () => boolean = () => true;
+
+  stage(methods: any[], engine: DraftEngine, isCurrent: () => boolean = () => true): Result {
+    if (this.saving) return { error: 'Bulk save in progress' };
+    const before = engine.getState();
+    if (this.baseline && (before.tournamentId !== this.baseline.tournamentId || !this.ownsInstalledRecord()))
+      return { error: 'Bulk draft belongs to another tournament' };
+    const result = engine.executionQueue(structuredClone(methods), true);
+    if (result?.error) return result;
+    if (!this.baseline) this.ownsInstalledRecord = isCurrent;
+    this.baseline ??= before;
+    this.preview = engine.getState();
+    this.pending.push(structuredClone(methods));
+    return result;
+  }
+
+  /** Keep recovery state until the request is explicitly acknowledged as successful. */
+  save(methods: any[], send: (done: (result: Result) => void) => void, complete: (result: Result) => void): void {
+    if (this.saving || !methods.length) return;
+    if (!this.ownsInstalledRecord()) {
+      complete({ error: 'Tournament refreshed; discard the old bulk draft before scheduling again' });
+      return;
+    }
+    this.saving = true;
+    let settled = false;
+    const done = (result: Result) => {
+      if (settled) return;
+      settled = true;
+      this.saving = false;
+      if (result?.success && !result.error) this.clear();
+      complete(result);
+    };
+    try {
+      send(done);
+    } catch (error) {
+      done({ error });
+    }
+  }
+
+  discard(engine: DraftEngine): Result {
+    if (this.saving) return { error: 'Bulk save in progress' };
+    if (!this.pending.length) return { success: true };
+    const current = engine.getState();
+    if (!this.baseline || !this.preview || current.tournamentId !== this.baseline.tournamentId)
+      return { error: 'Bulk draft owner is unavailable' };
+    // A full authoritative reload already replaced the preview. Cancel its intents,
+    // rather than reverting a server record that happens to equal the old preview.
+    if (!this.ownsInstalledRecord()) {
+      this.clear();
+      return { success: true };
+    }
+    const records = restoreFields(
+      this.baseline.tournamentRecords,
+      this.preview.tournamentRecords,
+      current.tournamentRecords,
+    );
+    const result = engine.setState(records);
+    if (result?.error) return result;
+    if (current.tournamentId) engine.setTournamentId(current.tournamentId);
+    this.clear();
+    return { success: true };
+  }
+
+  clear(): void {
+    this.pending = [];
+    this.baseline = undefined;
+    this.preview = undefined;
+    this.ownsInstalledRecord = () => true;
+  }
+}

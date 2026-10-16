@@ -1,4 +1,7 @@
+import { firstPermittedTab, isTabAvailable, tabDenialReason } from 'services/capability/navCapability';
 import { renderProviderSchedulePage } from 'pages/participation/renderProviderSchedulePage';
+import { invalidatePendingTournamentLoads } from 'services/tournament/operationOwnership';
+import { displayTournament, destroyActiveTab } from 'pages/tournament/tournamentDisplay';
 import { ssoLoginWithToken, consumeMagicLink } from 'services/authentication/authApi';
 import { renderPolicyCatalogPage } from 'pages/policies/renderPolicyCatalogPage';
 import { renderTemplatesPage } from 'pages/templates/renderTemplatesPage';
@@ -7,13 +10,12 @@ import { ensureConnected, queueKey } from 'services/messaging/socketIo';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { renderSettingsPage } from 'pages/settings/renderSettingsPage';
 import { renderPoliciesPage } from 'pages/policies/renderPoliciesPage';
-import { displayTournament } from 'pages/tournament/tournamentDisplay';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
-import { firstPermittedTab, isTabAvailable, tabDenialReason } from 'services/capability/navCapability';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import Navigo from 'navigo';
@@ -22,6 +24,11 @@ import {
   forceExitAssignmentMode,
   isAssignmentMode,
 } from 'pages/tournament/tabs/eventsTab/renderDraws/participantAssignmentMode';
+import {
+  hasUnsavedGridChanges,
+  getUnsavedGridChangeCount,
+  discardPendingGridChanges,
+} from 'pages/tournament/tabs/scheduleViews/gridView';
 
 import {
   DRAW,
@@ -64,10 +71,31 @@ export function routeTMX() {
   // Reconnect socket on any navigation if it was lost
   router.hooks({
     before(done) {
-      if (isAssignmentMode()) forceExitAssignmentMode();
-      ensureConnected();
-      resetActivityTimer();
-      done();
+      const proceed = () => {
+        invalidatePendingTournamentLoads();
+        destroyActiveTab();
+        if (isAssignmentMode()) forceExitAssignmentMode();
+        ensureConnected();
+        resetActivityTimer();
+        done();
+      };
+      if (hasUnsavedGridChanges()) {
+        confirmModal({
+          title: t('schedule.unsavedTitle', { defaultValue: 'Unsaved scheduling changes' }),
+          query: t('schedule.discardBeforeLeaving', {
+            n: getUnsavedGridChangeCount(),
+            defaultValue: 'Discard {{n}} scheduling changes and leave?',
+          }),
+          okIntent: 'is-warning',
+          okAction: async () => {
+            if (await discardPendingGridChanges()) proceed();
+            else done(false);
+          },
+          cancelAction: () => done(false),
+        });
+        return;
+      }
+      proceed();
     },
   });
 

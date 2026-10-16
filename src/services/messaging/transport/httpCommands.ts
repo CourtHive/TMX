@@ -55,8 +55,13 @@ export function toCommandOutcome(ackId: string | undefined, response: any): Comm
   const { status, data } = response;
   if (status >= 200 && status < 300 && data?.success) {
     // The write times ride the ack as they do on the socket (P49): the sender's sync point moves with them.
-    const { serverUpdatedAt, previousServerUpdatedAt } = data;
-    const payload = { ackId, success: true, ...(serverUpdatedAt && { serverUpdatedAt, previousServerUpdatedAt }) };
+    const { serverUpdatedAt, previousServerUpdatedAt, appliedMethods } = data;
+    const payload = {
+      ackId,
+      success: true,
+      ...(serverUpdatedAt && { serverUpdatedAt, previousServerUpdatedAt }),
+      ...(appliedMethods && { appliedMethods }),
+    };
     return { deliver: { event: 'ack', payload } };
   }
 

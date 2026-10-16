@@ -130,6 +130,8 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
 
   it('session-restored settlement replay uses the server-stamped command', async () => {
     h.serverFirst = true;
+    // Replay now requires the operation to still own a loaded tournament.
+    tournamentEngine.setState(tournamentRecord());
     const executionQueue = vi.fn(() => ({ success: true }));
     const methods = [
       {

@@ -17,6 +17,7 @@ import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { serverIsAhead, setServerSync } from 'services/staleness/serverSync';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
+import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { loadCallerGrants } from 'services/capability/loadCallerGrants';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
@@ -36,22 +37,27 @@ import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 import { highlightTab } from 'navigation';
 import { t } from 'i18n';
+import {
+  beginTournamentLoad,
+  captureTournamentOperation,
+  markTournamentRecordInstalled,
+} from 'services/tournament/operationOwnership';
 
 // constants
 import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
-import {
-  joinTournamentRoom,
-  leaveTournamentRoom,
-  hadDisconnect,
-  clearDisconnectFlag,
-} from 'services/messaging/socketIo';
 import {
   loadCrowdsourcedScores,
   markMatchUpCrowdsourced,
   pruneCompletedMatchUps,
   clearActiveCrowdsourcedScores,
 } from 'services/messaging/crowdsourcedScores';
+import {
+  joinTournamentRoom,
+  leaveTournamentRoom,
+  hadDisconnect,
+  clearDisconnectFlag,
+} from 'services/messaging/socketIo';
 import {
   MATCHUPS_TAB,
   OFFICIALS_TAB,
@@ -71,6 +77,7 @@ import {
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
 export function displayTournament({ config }: { config?: any } = {}): void {
+  const isCurrent = beginTournamentLoad(config.tournamentId);
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
     // Tournament already loaded — check if we missed updates while disconnected
@@ -86,9 +93,9 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
     disconnectRelay();
     clearActiveCrowdsourcedScores();
-    tmx2db
-      .findTournament(config.tournamentId)
-      .then((tournamentRecord: any) => loadTournament({ tournamentRecord, config }));
+    tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => {
+      if (isCurrent()) loadTournament({ tournamentRecord, config, isCurrent });
+    });
   }
 }
 
@@ -163,7 +170,7 @@ function pruneCompletedCrowdsourcedFromEngine(): void {
 // longer viewing.
 let activeRenderedTab: string | null = null;
 
-function destroyActiveTab(): void {
+export function destroyActiveTab(): void {
   if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
   if (activeRenderedTab === OFFICIALS_TAB) destroyOfficialsTab();
   activeRenderedTab = null;
@@ -218,7 +225,16 @@ export function routeTo(config: any): void {
   }
 }
 
-export function loadTournament({ tournamentRecord, config }: { tournamentRecord?: any; config: any }): void {
+export function loadTournament({
+  tournamentRecord,
+  config,
+  isCurrent = beginTournamentLoad(config.tournamentId),
+}: {
+  tournamentRecord?: any;
+  config: any;
+  isCurrent?: () => boolean;
+}): void {
+  if (!isCurrent()) return;
   // Clear per-tournament transient state
   context.matchUpFilters = {};
   context.scheduleCatalogState = undefined;
@@ -227,7 +243,9 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
   const state = getLoginState();
   const provider = state?.provider || context?.provider;
 
-  const goToTournaments = () => context.router?.navigate('/tournaments');
+  const goToTournaments = () => {
+    if (isCurrent()) context.router?.navigate('/tournaments');
+  };
 
   const notFound = () => {
     const providerId = (context?.provider || state?.provider)?.organisationId;
@@ -261,9 +279,12 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
   };
 
   const showResult = (result: any) => {
+    if (!isCurrent()) return;
     const tournamentRecord = result?.data?.tournamentRecords?.[config.tournamentId];
     if (tournamentRecord) {
       tournamentEngine.setState(tournamentRecord);
+      markTournamentRecordInstalled();
+      notifyMutationApplied();
       // The copy is the server's as of this write: the staleness probe's reference (P49).
       setServerSync(config.tournamentId, result?.data?.serverUpdatedAt?.[config.tournamentId]);
       runActiveScaleAutoSwitch();
@@ -275,10 +296,13 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
 
   if (provider) {
     const tryLocal = () => {
+      if (!isCurrent()) return;
       // A local copy: nothing says which server write it matches, so the probe must not judge it.
       setServerSync(config.tournamentId, undefined);
       if (tournamentRecord) {
         tournamentEngine.setState(tournamentRecord);
+        markTournamentRecordInstalled();
+        notifyMutationApplied();
         runActiveScaleAutoSwitch();
         renderTournament({ config });
       } else {
@@ -295,7 +319,7 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
       // away, which reads as a bug rather than as a restriction.
       Promise.all([
         requestTournament({ tournamentId: config.tournamentId, silent: true }),
-        loadCallerGrants(config.tournamentId),
+        loadCallerGrants(config.tournamentId, isCurrent),
       ]).then(([result]) => showResult(result), tryLocal);
     }
   } else {
@@ -308,6 +332,8 @@ export function loadTournament({ tournamentRecord, config }: { tournamentRecord?
     // previous tournament's would otherwise survive the navigation.
     clearCallerGrants();
     tournamentEngine.setState(tournamentRecord);
+    markTournamentRecordInstalled();
+    notifyMutationApplied();
     runActiveScaleAutoSwitch();
     renderTournament({ config });
   }
@@ -367,9 +393,11 @@ function pulseMatchUpScore(matchUpId: string): void {
  * server copy and show the sync indicator so the user knows data was refreshed.
  */
 function checkForStaleData(tournamentId: string): void {
+  const isCurrent = captureTournamentOperation([tournamentId]);
   slog('[tournament] checking for stale data after reconnect — tournamentId:', tournamentId);
   requestTournament({ tournamentId }).then(
     (result: any) => {
+      if (!isCurrent()) return;
       const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
       if (!serverRecord) {
         slog('[tournament] stale check — server returned no record');
@@ -391,6 +419,8 @@ function checkForStaleData(tournamentId: string): void {
       if (stale) {
         slog('[tournament] local data is stale — reloading from server');
         tournamentEngine.setState(serverRecord);
+        markTournamentRecordInstalled();
+        notifyMutationApplied();
         setServerSync(tournamentId, serverWrittenAt);
         saveTournamentRecord();
 

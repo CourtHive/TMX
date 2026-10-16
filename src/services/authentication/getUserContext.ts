@@ -20,6 +20,7 @@ import { baseApi } from 'services/apis/baseApi';
 import type { UserContext } from 'types/tmx';
 
 let cached: UserContext | undefined;
+let generation = 0;
 
 /** Synchronous read of the cached user context. Returns undefined if not yet fetched. */
 export function getUserContext(): UserContext | undefined {
@@ -28,8 +29,10 @@ export function getUserContext(): UserContext | undefined {
 
 /** Fetch the user context from the server and update the cache. */
 export async function fetchUserContext(): Promise<UserContext | undefined> {
+  const request = ++generation;
   try {
     const response = await baseApi.get('/auth/me');
+    if (request !== generation) return undefined;
     if (response?.data?.userId) {
       cached = response.data as UserContext;
       return cached;
@@ -37,7 +40,7 @@ export async function fetchUserContext(): Promise<UserContext | undefined> {
   } catch {
     // Not logged in, or server unreachable — clear the cache
   }
-  cached = undefined;
+  if (request === generation) cached = undefined;
   return undefined;
 }
 
@@ -49,6 +52,7 @@ export async function ensureUserContext(): Promise<UserContext | undefined> {
 
 /** Clear the cached context. Called on logout and login transitions. */
 export function clearUserContext(): void {
+  generation++;
   cached = undefined;
 }
 

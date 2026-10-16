@@ -2,8 +2,8 @@
  * The TMX application protocol over the server connection: ack correlation,
  * tournament room membership, chat wiring, reconnect recovery.
  *
- * Transport-free. Every byte goes through a `MessageTransport`; Socket.IO is
- * the only implementation today (`transport/socketIoTransport.ts`). The file
+ * Realtime subscriptions and push use `MessageTransport`; commands are posted
+ * directly over HTTP by httpCommands.ts. Socket.IO is the realtime implementation. The file
  * keeps its historical name so its importers did not have to change.
  */
 import { persistMessage, forgetMessage, loadMessages, claimMessage } from 'services/messaging/outboxStore';
@@ -15,7 +15,6 @@ import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
-import { advanceServerSync } from 'services/staleness/serverSync';
 import { processDirective } from 'services/processDirective';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tools, version } from 'tods-competition-factory';
@@ -25,6 +24,12 @@ import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
 import {
+  setAdminMonitorFns,
+  receiveAdminChatFeed,
+  receiveAdminChatHistory,
+  rejoinChatMonitorIfActive,
+} from 'services/chat/adminChatService';
+import {
   setChatSendFn,
   setChatGapFn,
   receiveMessage,
@@ -33,12 +38,6 @@ import {
   receiveHistory,
   setOnlineCount,
 } from 'services/chat/chatService';
-import {
-  setAdminMonitorFns,
-  receiveAdminChatFeed,
-  receiveAdminChatHistory,
-  rejoinChatMonitorIfActive,
-} from 'services/chat/adminChatService';
 
 // types
 import type { MessageTransport, TransportStatus } from 'services/messaging/transport/messageTransport';
@@ -725,9 +724,8 @@ function requestAcknowledgement({
 }
 
 function receiveAcknowledgement(ack: ServerAck): void {
-  // This tab's own mutation moved the server from one write to the next (P49). Here, not in each
-  // caller: every ack passes through, on either transport, including replays after a reload.
-  if (ack?.serverUpdatedAt) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+  // Receiving a server answer is not proof of local application. The operation owner advances
+  // sync only after applying its canonical methods successfully.
   // Prefer ackId; fall back to uuid. Only fire once.
   const key = (ack.ackId && ackRequests[ack.ackId] && ack.ackId) || (ack.uuid && ackRequests[ack.uuid] && ack.uuid);
   if (key) ackRequests[key](ack);

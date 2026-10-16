@@ -1,6 +1,6 @@
 /**
  * IndexedDB backing for the offline outbox in socketIo.ts, so a durable message
- * survives a reload.
+ * survives a reload while queued. It is not yet a durable acknowledgement protocol.
  *
  * Durable means the client has already acted on the message: a local-first
  * mutation that is applied locally before it is sent, or the replay of an edit
@@ -10,7 +10,9 @@
  *
  * Rows are keyed to the user who wrote them and replayed only for that user.
  * A row is claimed (deleted in a transaction) before it is sent, so two tabs of
- * the same user cannot both send it.
+ * the same user cannot both send it. A crash after that deletion and before the
+ * answer can lose the command; online dispatch also bypasses persistence.
+ * Server-side stable-key deduplication must precede a retry-protocol change.
  */
 import { tmx2db } from 'services/storage/tmx2db';
 
