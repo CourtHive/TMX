@@ -1,8 +1,16 @@
 import { clearSyncIndicator, isSyncStale, markStaleNeedsRefresh, initRemoteMutationHandler } from './remoteMutations';
 import { notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 const request = vi.hoisted(() => vi.fn());
+const recovery = vi.hoisted(() => ({ listener: undefined as undefined | ((ids: string[]) => void) }));
 vi.mock('services/apis/servicesApi', () => ({ requestTournament: request }));
-vi.mock('services/messaging/socketIo', () => ({ onTournamentMutation: vi.fn(), joinTournamentRoom: vi.fn() }));
+vi.mock('services/messaging/socketIo', () => ({
+  onTournamentMutation: vi.fn(),
+  joinTournamentRoom: vi.fn(),
+  onDurableRecovery: (listener: (ids: string[]) => void) => {
+    recovery.listener = listener;
+    return () => {};
+  },
+}));
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn() }));
 vi.mock('components/tables/common/navigateToEvent', () => ({ navigateToEvent: vi.fn() }));
 vi.mock('components/notices/inlineNotice', () => ({ buildInlineNotice: vi.fn() }));
@@ -69,6 +77,13 @@ describe('explicit stale refresh ownership', () => {
     notifyAuthoritativeRefreshRequired(['other']);
     expect(isSyncStale()).toBe(false);
     notifyAuthoritativeRefreshRequired([OWNER]);
+    expect(isSyncStale()).toBe(true);
+  });
+  it('requires refresh after recovery only for the currently loaded tournament', () => {
+    initRemoteMutationHandler();
+    recovery.listener?.(['some-other-record']);
+    expect(isSyncStale()).toBe(false);
+    recovery.listener?.([OWNER]);
     expect(isSyncStale()).toBe(true);
   });
 });

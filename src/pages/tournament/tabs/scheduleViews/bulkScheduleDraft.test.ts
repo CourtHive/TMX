@@ -124,4 +124,26 @@ describe('bulk schedule recovery', () => {
     expect(draft.discard(f.engine).success).toBe(true);
     expect(f.read().tournamentRecords.t1.events).toEqual(expect.arrayContaining([original, remote]));
   });
+  it('retains the submitted command key and intent through a failed save, and rotates after resolution', () => {
+    const f = fixture();
+    const draft = new BulkScheduleDraft();
+    draft.stage([{ method: 'move' }], f.engine);
+    const key = draft.commandId;
+    draft.save(
+      draft.pending.flat(),
+      (done) => done({ error: 'uncertain' }),
+      () => {},
+    );
+    expect(draft.commandId).toBe(key);
+    expect(draft.stage([{ method: 'later' }], f.engine).error).toBeTruthy();
+    const send = vi.fn();
+    draft.save([{ method: 'changed' }], send, () => {});
+    expect(send).not.toHaveBeenCalled();
+    draft.save(
+      draft.pending.flat(),
+      (done) => done({ success: true }),
+      () => {},
+    );
+    expect(draft.commandId).not.toBe(key);
+  });
 });

@@ -51,42 +51,6 @@ import tippy, { type Instance } from 'tippy.js';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
-  readScheduleDisplayConfig,
-  writeScheduleDisplayConfig,
-} from 'services/schedulePreferences/scheduleDisplayExtension';
-import {
-  getOrderOfPlayPublishState,
-  isOrderOfPlayDatePublished,
-  buildOrderOfPlayDateToggleMethods,
-} from 'services/publishing/orderOfPlayPublish';
-import {
-  getExistingDrawIds,
-  batchReferencesMissingDraw,
-  partitionBatchesByDrawExistence,
-} from 'services/scheduling/drawExistenceGuard';
-import {
-  matchUpStatusConstants,
-  factoryConstants,
-  scoreGovernor,
-  unwrapOr,
-  AvailabilityEngine,
-} from 'tods-competition-factory';
-import {
-  handleActiveStripNowClick,
-  handleSchedule2CellClick,
-  handleSchedule2RowClick,
-  openShiftCourtsModal,
-  Schedule2NowContext,
-} from './schedule2CellActions';
-import {
-  invalidateMatchUpCaches,
-  getCachedScheduleMatchUps,
-  getCachedCompetitionDateRange,
-  getCachedTournamentInfo,
-  getCachedProConflicts,
-  getCachedAllMatchUps,
-} from './schedule2DataCache';
-import {
   createSchedulePage,
   buildScheduleGridCell,
   mapMatchUpToCellData,
@@ -117,6 +81,42 @@ import type {
   ActiveStripUpcomingBlock,
   ActiveStripCell,
 } from 'courthive-components';
+import {
+  invalidateMatchUpCaches,
+  getCachedScheduleMatchUps,
+  getCachedCompetitionDateRange,
+  getCachedTournamentInfo,
+  getCachedProConflicts,
+  getCachedAllMatchUps,
+} from './schedule2DataCache';
+import {
+  handleActiveStripNowClick,
+  handleSchedule2CellClick,
+  handleSchedule2RowClick,
+  openShiftCourtsModal,
+  Schedule2NowContext,
+} from './schedule2CellActions';
+import {
+  getOrderOfPlayPublishState,
+  isOrderOfPlayDatePublished,
+  buildOrderOfPlayDateToggleMethods,
+} from 'services/publishing/orderOfPlayPublish';
+import {
+  getExistingDrawIds,
+  batchReferencesMissingDraw,
+  partitionBatchesByDrawExistence,
+} from 'services/scheduling/drawExistenceGuard';
+import {
+  matchUpStatusConstants,
+  factoryConstants,
+  scoreGovernor,
+  unwrapOr,
+  AvailabilityEngine,
+} from 'tods-competition-factory';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
 
 // constants
 import { COMPETITION_ENGINE, MINIMUM_SCHEDULE_COLUMNS, REPORTS_TAB, TOURNAMENT } from 'constants/tmxConstants';
@@ -1817,6 +1817,7 @@ async function savePending(): Promise<void> {
         methods: allMethods,
         engine: COMPETITION_ENGINE,
         retryAfterLogin: false,
+        commandId: bulkDraft.commandId,
         callback: done,
       }).catch((error) => done({ error }));
     },
