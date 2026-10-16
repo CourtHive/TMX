@@ -434,7 +434,7 @@ async function makeMutation({
     if (strategy === LOCAL_FIRST) {
       await localSave(saveLocal || false);
       if (emitted?.persisted && !(await emitted.persisted)) {
-        return completion({ error: { message: 'The change could not be queued durably; keep this page open' } });
+        return completion({ error: { message: t('toasts.durableQueueFailed') } });
       }
     } else {
       setTimeout(() => {

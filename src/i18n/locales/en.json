@@ -2180,7 +2180,9 @@
       "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
       "notSaved": "Schedule change was not saved: {{reason}}"
     },
-    "statusOutOfScope": "This status is unavailable for this match"
+    "statusOutOfScope": "This status is unavailable for this match",
+    "durableCommandNotStored": "Durable command could not be stored for this session",
+    "durableQueueFailed": "The change could not be queued durably; keep this page open"
   },
   "loginMenu": {
     "authorization": "Authorization",
