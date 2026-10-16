@@ -2,11 +2,10 @@
  * The TMX application protocol over the server connection: ack correlation,
  * tournament room membership, chat wiring, reconnect recovery.
  *
- * Transport-free. Every byte goes through a `MessageTransport`; Socket.IO is
- * the only implementation today (`transport/socketIoTransport.ts`). The file
+ * Realtime subscriptions and push use `MessageTransport`; commands are posted
+ * directly over HTTP by httpCommands.ts. Socket.IO is the realtime implementation. The file
  * keeps its historical name so its importers did not have to change.
  */
-import { persistMessage, forgetMessage, loadMessages, claimMessage } from 'services/messaging/outboxStore';
 import { HTTP_COMMANDS, postCommand, resumeCommands } from 'services/messaging/transport/httpCommands';
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
@@ -15,7 +14,6 @@ import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
-import { advanceServerSync } from 'services/staleness/serverSync';
 import { processDirective } from 'services/processDirective';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tools, version } from 'tods-competition-factory';
@@ -39,6 +37,13 @@ import {
   receiveAdminChatHistory,
   rejoinChatMonitorIfActive,
 } from 'services/chat/adminChatService';
+import {
+  persistMessage,
+  forgetMessage,
+  loadMessages,
+  claimMessage,
+  releaseMessage,
+} from 'services/messaging/outboxStore';
 
 // types
 import type { MessageTransport, TransportStatus } from 'services/messaging/transport/messageTransport';
@@ -303,12 +308,14 @@ export function clearDisconnectFlag(): void {
  */
 export interface EmitHandle {
   cancel: () => boolean;
+  /** Durable callers can wait until the command is safely stored before reporting completion. */
+  persisted?: Promise<boolean>;
 }
 
 /**
  * `durable`: the caller has already acted on this message (a local-first mutation, a preserved
- * edit's replay), so if it has to wait for a connection it waits in IndexedDB as well and survives
- * a reload. See outboxStore.ts.
+ * edit's replay). It is persisted before any send, with a stable command ID, and kept until a
+ * server receipt confirms acceptance. Rejections remain available for reconciliation. See outboxStore.ts.
  */
 export function emitTmx({
   data,
@@ -326,15 +333,28 @@ export function emitTmx({
   let ran = false;
   let cancelled = false;
   let withdraw: () => boolean = () => false;
+  let persisted: Promise<boolean> | undefined;
 
   const action = () => {
     if (cancelled) return;
     ran = true;
+    if (messageType === 'executionQueue') {
+      data.payload.commandId ??= tools.UUID();
+      data.payload.commandUser = userId;
+    }
     if (ackCallback && isFunction(ackCallback)) {
-      const ackId = tools.UUID();
+      const ackId = data.payload?.ackId ?? tools.UUID();
       if (data.payload) Object.assign(data.payload, { ackId });
 
-      requestAcknowledgement({ ackId, callback: ackCallback });
+      requestAcknowledgement({
+        ackId,
+        callback: (ack) => {
+          if ((ack as any).deduplicated && userId === getLoginState()?.email) {
+            notifyDurableRecovery(data.payload.tournamentIds ?? []);
+          }
+          ackCallback(ack);
+        },
+      });
     }
 
     const timestamp = oi.timestampOffset ? Date.now() + oi.timestampOffset : Date.now();
@@ -347,16 +367,35 @@ export function emitTmx({
       originClientId: getOriginClientId(),
     });
 
-    withdraw = socketEmit(messageType, data, durable ? userId : undefined);
+    if (durable) {
+      if (!userId || messageType !== 'executionQueue') {
+        persisted = Promise.resolve(false);
+        console.error('[socket] durable command requires a signed-in user and executionQueue');
+        tmxToast({ message: t('storage.writeFailed'), intent: 'is-danger' });
+        ackCallback?.({ error: { message: t('toasts.durableCommandNotStored') } } as ServerAck);
+        return;
+      }
+      data.payload.commandId ??= tools.UUID();
+      data.payload.commandUser = userId;
+      data.payload.ackId ??= tools.UUID();
+    }
+    const handle = socketEmit(messageType, data, durable ? userId : undefined);
+    withdraw = handle.cancel;
+    persisted = handle.persisted;
   };
 
-  if (oi.connection) {
+  if (durable) {
+    // Persist while a connection is still being established, not in its eventual callback.
+    action();
+    if (!oi.connection) connectSocket();
+  } else if (oi.connection) {
     action();
   } else {
     connectSocket(action);
   }
 
   return {
+    persisted,
     cancel: () => {
       if (ran) return withdraw();
       cancelled = true;
@@ -379,10 +418,26 @@ export function emitTmx({
  * A durable message (see `emitTmx`) is also written to IndexedDB, and a reload
  * replays it once its user is connected again; everything else is in memory
  * only. A server-first mutation withdraws its entry when its own timeout fires
- * (see mutationRequest.ts), so the server can never apply an edit the UI has
- * already reported as failed.
+ * (see mutationRequest.ts). A dispatched request has an uncertain outcome until answered;
+ * withdrawal only works while it remains queued.
  */
 const MAX_OUTBOX = 500;
+const leaseOwner = tools.UUID();
+let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
+
+function scheduleRecovery(): void {
+  if (recoveryTimer) return;
+  recoveryTimer = setTimeout(() => {
+    recoveryTimer = undefined;
+    if (oi.connection?.isConnected()) {
+      durablePaused = false;
+      resumeCommands();
+      restorePersistedOutbox();
+      startFlush();
+    }
+  }, 30_000);
+  (recoveryTimer as any)?.unref?.();
+}
 
 /** Events `connectionEvent` rebuilds on every connect; a queued copy would only repeat it. */
 const REBUILT_ON_CONNECT = new Set([
@@ -398,7 +453,7 @@ interface DurableRecord {
   id: string;
   userId: string;
   queuedAt: number;
-  /** Settles true once the row is in IndexedDB, false if writing it failed (the entry is then memory-only). */
+  /** Dispatch requires a successful IndexedDB write; failures stay pending in this page. */
   persisted: Promise<boolean>;
 }
 
@@ -406,12 +461,15 @@ interface OutboxEntry {
   event: string;
   data: any;
   durable?: DurableRecord;
+  dispatched?: boolean;
 }
 
 type DurableEntry = OutboxEntry & { durable: DurableRecord };
 
 const outbox: OutboxEntry[] = [];
+let lastQueuedAt = 0;
 let flushing = false;
+let durablePaused = false;
 
 function persist(entry: DurableEntry): void {
   const { id, userId, queuedAt } = entry.durable;
@@ -419,7 +477,8 @@ function persist(entry: DurableEntry): void {
     () => true,
     (err) => {
       // The message still waits in memory; only a reload would lose it now (A2).
-      console.warn(`[socket] could not persist queued '${entry.event}' — a reload would lose it:`, err);
+      console.error(`[socket] could not persist '${entry.event}' — not sent; keep this page open:`, err);
+      tmxToast({ message: t('storage.writeFailed'), intent: 'is-danger' });
       return false;
     },
   );
@@ -440,25 +499,16 @@ function forget(entry: OutboxEntry | undefined): void {
  * A durable command the server never answered goes back to the head of the queue; any other is
  * left to its sender's timeout.
  */
-function dispatch(event: string, data: any, durableUserId?: string): boolean {
+function dispatch(event: string, data: any): boolean {
   if (!HTTP_COMMANDS.has(event)) return !!oi.connection?.send(event, data);
   if (!oi.connection?.isConnected()) return false;
   postCommand(event, data)
     .then((outcome) => {
       if (outcome.deliver) receiveOverHttp(outcome.deliver);
-      if (!('unreachable' in outcome) || !durableUserId) return;
-      enqueue(event, data, durableUserId, { requeued: true });
-      console.warn(`[socket] '${event}' got no answer over HTTP — kept for the next connect`);
     })
     .catch((err) => console.warn(`[socket] '${event}' over HTTP failed:`, err));
   return true;
 }
-
-/**
- * Where the next re-queued command goes: after the ones re-queued before it since the last connect,
- * and ahead of everything queued since, so the queue keeps the order they were sent in.
- */
-let requeueCursor = 0;
 
 /** An HTTP answer, delivered to the handler the same event gets when it arrives on the socket. */
 function receiveOverHttp({ event, payload }: Delivery): void {
@@ -474,69 +524,147 @@ function receiveOverHttp({ event, payload }: Delivery): void {
   }
 }
 
-function enqueue(event: string, data: any, durableUserId?: string, { requeued = false } = {}): OutboxEntry {
-  const entry: OutboxEntry = { event, data };
+function enqueue(event: string, data: any, durableUserId?: string): OutboxEntry {
+  const entry: OutboxEntry = { event, data: durableUserId ? structuredClone(data) : data };
   if (durableUserId) {
     entry.durable = {
-      id: tools.UUID(),
+      id: data.payload.commandId,
       userId: durableUserId,
-      queuedAt: Date.now(),
+      queuedAt: (lastQueuedAt = Math.max(Date.now(), lastQueuedAt + 1)),
       persisted: Promise.resolve(false),
     };
     persist(entry as DurableEntry);
   }
-  if (requeued) {
-    outbox.splice(Math.min(requeueCursor++, outbox.length), 0, entry);
-  } else {
-    outbox.push(entry);
-  }
+  outbox.push(entry);
   slog('[socket] offline — queued', event, `(${outbox.length} pending)`);
   if (outbox.length > MAX_OUTBOX) {
-    // Losing a queued message is a real failure: say so every time (A2).
-    const dropped = outbox.shift();
-    forget(dropped);
-    console.warn(`[socket] offline queue full (${MAX_OUTBOX}) — dropped oldest '${dropped?.event}'`);
+    // Applied local edits must never be sacrificed to an in-memory queue limit.
+    const discardable = outbox.findIndex((item) => !item.durable);
+    if (discardable >= 0) {
+      const [dropped] = outbox.splice(discardable, 1);
+      console.warn(`[socket] offline queue full (${MAX_OUTBOX}) — dropped oldest ephemeral '${dropped.event}'`);
+    } else {
+      console.warn(`[socket] durable backlog exceeds ${MAX_OUTBOX}; retaining pending commands`);
+    }
   }
   return entry;
 }
 
 /**
  * Send now, or queue for the next connect. `durableUserId` marks a durable message and names its
- * user. Returns a function that withdraws a still-queued message.
+ * user. Returns cancellation and, for durable messages, persistence completion.
  */
-function socketEmit(event: string, data: any, durableUserId?: string): () => boolean {
+function socketEmit(event: string, data: any, durableUserId?: string): EmitHandle {
   // While a flush is replaying, a new message waits behind it so the server sees them in order.
-  if (!(flushing && !REBUILT_ON_CONNECT.has(event)) && dispatch(event, data, durableUserId)) {
+  if (
+    !durableUserId &&
+    !durablePaused &&
+    !((flushing || restoring) && !REBUILT_ON_CONNECT.has(event)) &&
+    dispatch(event, data)
+  ) {
     slog('[socket] emit:', event, data?.type ?? '');
-    return () => false;
+    return { cancel: () => false };
   }
   if (REBUILT_ON_CONNECT.has(event)) {
     slog('[socket] offline — not queueing', event, '(rebuilt on connect)');
-    return () => false;
+    return { cancel: () => false };
   }
 
   const entry = enqueue(event, data, durableUserId);
-  return () => {
-    const index = outbox.indexOf(entry);
-    if (index < 0) return false;
-    outbox.splice(index, 1);
-    forget(entry);
-    return true;
+  if (durableUserId && oi.connection?.isConnected()) startFlush();
+  return {
+    persisted: entry.durable?.persisted,
+    cancel: () => {
+      if (entry.dispatched) return false;
+      const index = outbox.indexOf(entry);
+      if (index < 0) return false;
+      outbox.splice(index, 1);
+      forget(entry);
+      return true;
+    },
   };
 }
 
-/**
- * Whether a durable entry is this tab's to send. An entry written by another user stays in
- * IndexedDB for that user's next session; an entry another tab has already claimed is done.
- */
-async function claimDurable(entry: DurableEntry): Promise<boolean> {
-  if (entry.durable.userId !== getLoginState()?.email) return false;
-  // A row that never reached IndexedDB has no other tab to race with.
-  if (!(await entry.durable.persisted)) return true;
-  return claimMessage(entry.durable.id).catch((err) => {
-    console.warn(`[socket] could not claim queued '${entry.event}' from IndexedDB — sending it anyway:`, err);
-    return true;
-  });
+const durableRecoveryListeners = new Set<(ids: string[]) => void>();
+function notifyDurableRecovery(ids: string[]): void {
+  for (const listener of durableRecoveryListeners) {
+    try {
+      listener(ids);
+    } catch (error) {
+      console.error('[socket] durable reconciliation listener failed:', error);
+    }
+  }
+}
+export function onDurableRecovery(listener: (ids: string[]) => void): () => void {
+  durableRecoveryListeners.add(listener);
+  return () => durableRecoveryListeners.delete(listener);
+}
+
+/** Never treat a failed persistence/claim as permission to send anyway. */
+async function dispatchDurable(entry: DurableEntry): Promise<'done' | 'wait'> {
+  if (entry.durable.userId !== getLoginState()?.email) return 'done'; // retained for its owner
+  if (!(await entry.durable.persisted)) {
+    persist(entry);
+    scheduleRecovery();
+    return 'wait';
+  }
+  const claim = await claimMessage(entry.durable.id, entry.durable.userId, leaseOwner);
+  if (claim === 'busy') {
+    scheduleRecovery();
+    return 'wait';
+  }
+  if (claim === 'missing' || claim === 'blocked') return 'done';
+  if (outbox[0] !== entry || entry.durable.userId !== getLoginState()?.email || !oi.connection?.isConnected()) {
+    await releaseMessage(entry.durable.id, leaseOwner);
+    return 'wait';
+  }
+  if (entry.data.payload?.commandId !== entry.durable.id) {
+    await releaseMessage(entry.durable.id, leaseOwner, 'legacy-command');
+    console.error('[socket] legacy durable command retained for reconciliation; retry safety is unknown');
+    tmxToast({ message: t('toasts.durableChangeNeedsReview'), intent: 'is-danger' });
+    return 'done';
+  }
+  const recovered = !ackRequests[entry.data.payload?.ackId];
+  watchReplayedAck(entry);
+  entry.dispatched = true;
+  try {
+    const outcome = await postCommand(entry.event, entry.data, () => entry.durable.userId === getLoginState()?.email);
+    if ('unreachable' in outcome) {
+      await releaseMessage(entry.durable.id, leaseOwner);
+      scheduleRecovery();
+      console.warn(`[socket] '${entry.event}' outcome uncertain — retained with the same command ID`);
+      return 'wait';
+    }
+    const ack = outcome.deliver.payload;
+    const accepted = ack?.success && ack.durableReceipt === true && ack.commandId === entry.durable.id;
+    if (accepted) {
+      await forgetMessage(entry.durable.id);
+      if ((recovered || ack.deduplicated) && entry.durable.userId === getLoginState()?.email) {
+        notifyDurableRecovery(entry.data.payload.tournamentIds ?? []);
+      }
+    } else {
+      // Older servers cannot safely deduplicate a retry; terminal refusals also need reconciliation.
+      await releaseMessage(entry.durable.id, leaseOwner, ack?.error ? 'rejected' : 'receipt-unsupported');
+      console.error(
+        `[socket] '${entry.event}' needs reconciliation:`,
+        ack?.error ?? 'server did not confirm a durable receipt',
+      );
+      if (entry.durable.userId === getLoginState()?.email) {
+        notifyDurableRecovery(entry.data.payload.tournamentIds ?? []);
+        tmxToast({
+          message: t(ack?.error ? 'toasts.offlineChangeRejected' : 'toasts.durableChangeNeedsReview'),
+          intent: 'is-danger',
+        });
+      }
+    }
+    if (entry.durable.userId === getLoginState()?.email) receiveOverHttp(outcome.deliver);
+    return 'done';
+  } catch (error) {
+    console.warn(`[socket] durable '${entry.event}' recovery failed; row retained:`, error);
+    await releaseMessage(entry.durable.id, leaseOwner);
+    scheduleRecovery();
+    return 'wait';
+  }
 }
 
 /**
@@ -551,14 +679,13 @@ function watchReplayedAck(entry: OutboxEntry): void {
     callback: (ack) => {
       if (!ack?.error) return;
       console.warn(`[socket] the server rejected '${entry.event}' queued while offline:`, ack.error);
-      tmxToast({ message: t('toasts.offlineChangeRejected'), intent: 'is-danger' });
     },
   });
 }
 
 /**
  * Replay queued messages in order. Whatever cannot be sent (the connection dropped again) stays
- * queued. Synchronous until it reaches a durable entry, which it must claim from IndexedDB first.
+ * queued. Durable entries await persistence, acquire a temporary lease, then await their receipt.
  */
 async function flushOutbox(): Promise<void> {
   if (flushing || !outbox.length) return;
@@ -567,18 +694,14 @@ async function flushOutbox(): Promise<void> {
   try {
     while (outbox.length) {
       const next = outbox[0];
-      if (next.durable && !(await claimDurable(next as DurableEntry))) {
-        if (outbox[0] === next) outbox.shift();
-        continue;
-      }
-      // cancel() may have withdrawn it while the claim was in flight.
+      if (next.durable) {
+        if ((await dispatchDurable(next as DurableEntry)) === 'wait') {
+          durablePaused = true;
+          break;
+        }
+      } else if (!dispatch(next.event, next.data)) break;
+      // cancel() can withdraw a queued command while its persistence/claim is awaited.
       if (outbox[0] !== next) continue;
-      if (next.durable) watchReplayedAck(next);
-      if (!dispatch(next.event, next.data, next.durable?.userId)) {
-        // Claimed but not sent: put the row back so a reload still has it.
-        if (next.durable) persist(next as DurableEntry);
-        break;
-      }
       outbox.shift();
       replayed += 1;
     }
@@ -593,18 +716,19 @@ async function flushOutbox(): Promise<void> {
   }
 }
 
-let restoreRequested = false;
+let restoring = false;
 
-/** Once per page: put the logged-in user's persisted messages from earlier pages at the head of the queue. */
+/** On connect/recovery: put the logged-in user's persisted messages from earlier pages at the head of the queue. */
 function restorePersistedOutbox(): void {
   const userId = getLoginState()?.email;
-  if (restoreRequested || !userId) return;
-  restoreRequested = true;
+  if (restoring || !userId) return;
+  restoring = true;
   loadMessages(userId)
     .then((rows) => {
+      if (userId !== getLoginState()?.email) return;
       const queued = new Set(outbox.map((entry) => entry.durable?.id));
       const restored: OutboxEntry[] = rows
-        .filter((row) => !queued.has(row.id))
+        .filter((row) => !queued.has(row.id) && !row.blocked)
         .map(({ id, event, data, queuedAt }) => ({
           event,
           data,
@@ -615,11 +739,23 @@ function restorePersistedOutbox(): void {
       console.info(`[socket] restored ${restored.length} message(s) queued while offline before a reload`);
       if (oi.connection?.isConnected()) startFlush();
     })
-    .catch((err) => console.warn('[socket] could not read the offline queue from IndexedDB:', err));
+    .catch((err) => {
+      console.warn('[socket] could not read the offline queue from IndexedDB:', err);
+      scheduleRecovery();
+    })
+    .finally(() => {
+      restoring = false;
+      if (oi.connection?.isConnected()) startFlush();
+    });
 }
 
 function startFlush(): void {
-  flushOutbox().catch((err) => console.warn('[socket] offline queue replay failed:', err));
+  if (durablePaused || restoring) return;
+  flushOutbox().catch((err) => {
+    durablePaused = true;
+    console.warn('[socket] offline queue replay failed; commands retained:', err);
+    scheduleRecovery();
+  });
 }
 
 /** e2e/dev only: how many messages are waiting for a connection. */
@@ -646,7 +782,8 @@ function connectionEvent(callback?: () => void): void {
   rejoinChatMonitorIfActive();
 
   // Only now replay what was written while offline: the rooms it was written against are re-joined.
-  requeueCursor = 0;
+  restorePersistedOutbox();
+  durablePaused = false;
   resumeCommands();
   startFlush();
 
@@ -725,9 +862,8 @@ function requestAcknowledgement({
 }
 
 function receiveAcknowledgement(ack: ServerAck): void {
-  // This tab's own mutation moved the server from one write to the next (P49). Here, not in each
-  // caller: every ack passes through, on either transport, including replays after a reload.
-  if (ack?.serverUpdatedAt) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+  // Receiving a server answer is not proof of local application. The operation owner advances
+  // sync only after applying its canonical methods successfully.
   // Prefer ackId; fall back to uuid. Only fire once.
   const key = (ack.ackId && ackRequests[ack.ackId] && ack.ackId) || (ack.uuid && ackRequests[ack.uuid] && ack.uuid);
   if (key) ackRequests[key](ack);

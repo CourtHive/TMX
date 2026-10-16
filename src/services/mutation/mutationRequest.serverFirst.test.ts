@@ -130,6 +130,8 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
 
   it('session-restored settlement replay uses the server-stamped command', async () => {
     h.serverFirst = true;
+    // Replay now requires the operation to still own a loaded tournament.
+    tournamentEngine.setState(tournamentRecord());
     const executionQueue = vi.fn(() => ({ success: true }));
     const methods = [
       {
@@ -155,7 +157,7 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     vi.advanceTimersByTime(60);
 
     expect(h.cancel).toHaveBeenCalledTimes(1);
-    expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' } });
+    expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' }, notified: true });
   });
 
   it('withdraws it on the session-lost path too, which replays the edit itself', async () => {

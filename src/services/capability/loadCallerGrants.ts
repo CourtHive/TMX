@@ -22,6 +22,8 @@
 import { clearCallerGrants, setCallerGrants } from 'services/capability/scopeState';
 import { baseApi } from 'services/apis/baseApi';
 
+let generation = 0;
+
 /**
  * Fetch the caller's own live grants for `tournamentId`.
  *
@@ -30,7 +32,8 @@ import { baseApi } from 'services/apis/baseApi';
  * mean the same thing to the client as they do to the gate — no scoped
  * restriction to apply.
  */
-export async function loadCallerGrants(tournamentId?: string): Promise<void> {
+export async function loadCallerGrants(tournamentId?: string, isCurrent: () => boolean = () => true): Promise<void> {
+  const request = ++generation;
   clearCallerGrants();
   if (!tournamentId) return;
 
@@ -40,7 +43,7 @@ export async function loadCallerGrants(tournamentId?: string): Promise<void> {
     // a non-array to empty, and a second copy of that rule was measurably dead —
     // neutering it changed no test, which is the definition of code that is not
     // doing anything.
-    setCallerGrants(result?.data?.grants);
+    if (request === generation && isCurrent()) setCallerGrants(result?.data?.grants);
   } catch {
     // Already cleared — unrestricted, matching what the server's own gate
     // concludes when it cannot read the table.

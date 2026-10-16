@@ -74,9 +74,8 @@ jobs:
       # pnpm-workspace.yaml `link:` overrides win over package.json pins,
       # and the GitHub runner has no sibling clones at ../factory etc., so
       # any `link:` override would produce a dangling symlink. Lint
-      # tolerates that today, but check-types / test / build would not —
-      # strip the link: lines defensively so this stays green if those
-      # steps are added later. Mirrors courthive-rankings 340ab59.
+      # tolerates that, but the check-types, test and build steps below need real packages —
+      # strip link overrides so they resolve the published pins. Mirrors courthive-rankings 340ab59.
       - name: 'Strip link: overrides for CI'
         if: steps.scope.outputs.light != 'true'
         run: |

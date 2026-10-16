@@ -1,4 +1,3 @@
-import { keepTypeAheadInView } from './keepTypeAheadInView';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -30,16 +29,7 @@ export function openModal(params: OpenModal) {
     content: { padding: noPadding ? '' : '1' },
     maxWidth: 500,
   };
-  // A type-ahead in the content keeps its suggestion list inside the scrolling body (see the helper).
-  const keepInView =
-    typeof content === 'function'
-      ? (elem: HTMLElement) => {
-          const rendered = content(elem);
-          keepTypeAheadInView(elem);
-          return rendered;
-        }
-      : content;
-  return cModal.open({ title, content: keepInView, footer, buttons, config, onClose });
+  return cModal.open({ title, content, footer, buttons, config, onClose });
 }
 
 export function informModal({ message, title, okAction }) {
@@ -56,22 +46,36 @@ type ConfirmModalOptions = {
 };
 
 export function confirmModal({ title, query, okAction, cancelAction, okIntent }: ConfirmModalOptions) {
-  // cModal handles dismissal automatically when close: true, so we leave
-  // onClick undefined unless the caller wants a side-effect on cancel.
+  // Header, backdrop and Escape dismissal are cancellation too. Settle once even when
+  // a footer action closes the modal synchronously before cModal invokes onClose.
+  let chosen = false;
   const buttons = [
     {
-      onClick: cancelAction,
+      onClick: () => {
+        chosen = true;
+        cancelAction?.();
+      },
       label: t('common.cancel'),
       intent: NONE,
       close: true,
     },
     okAction && {
       intent: okIntent || 'is-warning',
-      onClick: okAction,
+      onClick: () => {
+        chosen = true;
+        return okAction();
+      },
       label: t('ui.ok'),
       close: true,
     },
   ].filter(Boolean);
 
-  return cModal.open({ title: title || t('act'), content: query, buttons });
+  return cModal.open({
+    title: title || t('act'),
+    content: query,
+    buttons,
+    onClose: () => {
+      if (!chosen) cancelAction?.();
+    },
+  });
 }

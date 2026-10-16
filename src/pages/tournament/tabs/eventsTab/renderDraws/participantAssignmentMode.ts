@@ -6,14 +6,10 @@
 import { controlBar, renderStructure, renderContainer, compositions, DrawStateManager } from 'courthive-components';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
-import {
-  ASSIGN_DRAW_POSITION,
-  ASSIGN_DRAW_POSITION_BYE,
-  REMOVE_DRAW_POSITION_ASSIGNMENT,
-} from 'constants/mutationConstants';
 import { DRAWS_VIEW, EVENT_CONTROL } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
@@ -41,22 +37,30 @@ export function enterParticipantAssignmentMode({
 }): void {
   assignmentMode = true;
 
-  // Get tournament record
-  const tournamentRecord = tournamentEngine.q.tournament();
-
-  // Initialize base state manager from courthive-components
-  const baseStateManager = new DrawStateManager({
-    tournamentRecord,
+  // The host queries live state and executes each assignment only through mutationRequest.
+  stateManager = new DrawStateManager({
     drawId,
     structureId,
     eventId,
+    adapter: {
+      getTournamentRecord: () => tournamentEngine.q.tournament(),
+      mutate: (method, params, callback) => {
+        mutationRequest({
+          methods: [{ method, params }],
+          callback: (result) => {
+            callback(result);
+            if (result?.error && !result.notified)
+              tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
+          },
+        });
+      },
+    },
   });
 
-  // Wrap with TMX mutation adapter
-  stateManager = createTMXStateManager(baseStateManager, { drawId, eventId, structureId });
-
   // Set render callback for state updates
-  stateManager.setRenderCallback(() => {
+  const manager = stateManager;
+  manager.setRenderCallback(() => {
+    if (stateManager !== manager || !assignmentMode) return;
     renderAssignmentView({ drawId, eventId, structureId });
   });
 
@@ -83,135 +87,6 @@ export function exitParticipantAssignmentMode({
   renderDrawView({ eventId, drawId, structureId, redraw: true });
 }
 
-/**
- * Create TMX-specific state manager that uses mutationRequest
- */
-function createTMXStateManager(
-  baseManager: DrawStateManager,
-  context: { drawId: string; eventId: string; structureId: string },
-): DrawStateManager {
-  const { drawId, structureId } = context;
-
-  // Override assignParticipant to use TMX mutations
-  const originalAssignParticipant = baseManager.assignParticipant.bind(baseManager);
-  baseManager.assignParticipant = ({ drawPosition, participantId }) => {
-    // Direct assignment - factory handles replacement automatically
-    const methods = [
-      {
-        method: ASSIGN_DRAW_POSITION,
-        params: {
-          drawId,
-          structureId,
-          drawPosition,
-          participantId,
-        },
-      },
-    ];
-
-    mutationRequest({
-      methods,
-      callback: (result: any) => {
-        if (result.success) {
-          // Update local state and trigger re-render
-          originalAssignParticipant({ drawPosition, participantId });
-        }
-        return result;
-      },
-    });
-
-    return { success: true };
-  };
-
-  // Override assignBye to use TMX mutations
-  const originalAssignBye = baseManager.assignBye.bind(baseManager);
-  baseManager.assignBye = ({ drawPosition }) => {
-    // Direct assignment - factory handles replacement automatically
-    const methods = [
-      {
-        method: ASSIGN_DRAW_POSITION_BYE,
-        params: {
-          drawId,
-          structureId,
-          drawPosition,
-        },
-      },
-    ];
-
-    mutationRequest({
-      methods,
-      callback: (result: any) => {
-        if (result.success) {
-          // Update local state and trigger re-render
-          originalAssignBye({ drawPosition });
-        }
-        return result;
-      },
-    });
-
-    return { success: true };
-  };
-
-  // Override assignQualifier to use TMX mutations
-  const originalAssignQualifier = baseManager.assignQualifier.bind(baseManager);
-  baseManager.assignQualifier = ({ drawPosition }) => {
-    // Assign qualifier placeholder using factory
-    const methods = [
-      {
-        method: ASSIGN_DRAW_POSITION,
-        params: {
-          drawId,
-          structureId,
-          drawPosition,
-          qualifier: true,
-        },
-      },
-    ];
-
-    mutationRequest({
-      methods,
-      callback: (result: any) => {
-        if (result.success) {
-          // Update local state and trigger re-render
-          originalAssignQualifier({ drawPosition });
-        }
-        return result;
-      },
-    });
-
-    return { success: true };
-  };
-
-  // Override removeAssignment to use TMX mutations
-  const originalRemoveAssignment = baseManager.removeAssignment.bind(baseManager);
-  baseManager.removeAssignment = ({ drawPosition }) => {
-    const methods = [
-      {
-        method: REMOVE_DRAW_POSITION_ASSIGNMENT,
-        params: {
-          drawId,
-          structureId,
-          drawPosition,
-        },
-      },
-    ];
-
-    mutationRequest({
-      methods,
-      callback: (result: any) => {
-        if (result.success) {
-          // Update local state and trigger re-render
-          originalRemoveAssignment({ drawPosition });
-        }
-        return result;
-      },
-    });
-
-    return { success: true };
-  };
-
-  return baseManager;
-}
-
 function renderAssignmentView({
   drawId,
   eventId,
@@ -222,6 +97,7 @@ function renderAssignmentView({
   structureId: string;
 }): void {
   if (!stateManager) return;
+  const manager = stateManager;
 
   const matchUps = stateManager.getMatchUps();
   const eventData = tournamentEngine.q.eventData({ eventId });
@@ -259,7 +135,7 @@ function renderAssignmentView({
         participantId: participant.participantId,
       });
 
-      if (!result.success) {
+      if (!result.success && !result.pending) {
         console.error('Failed to assign participant:', result.error);
       }
     },
@@ -272,7 +148,7 @@ function renderAssignmentView({
         drawPosition,
       });
 
-      if (!result.success) {
+      if (!result.success && !result.pending) {
         console.error('Failed to assign BYE:', result.error);
       }
     },
@@ -285,7 +161,7 @@ function renderAssignmentView({
         drawPosition,
       });
 
-      if (!result.success) {
+      if (!result.success && !result.pending) {
         console.error('Failed to assign QUALIFIER:', result.error);
       }
     },
@@ -298,7 +174,7 @@ function renderAssignmentView({
         drawPosition,
       });
 
-      if (!result.success) {
+      if (!result.success && !result.pending) {
         console.error('Failed to remove assignment:', result.error);
       }
     },
@@ -326,6 +202,7 @@ function renderAssignmentView({
   const focusDrawPosition = stateManager.getAndClearFocusDrawPosition();
   if (focusDrawPosition) {
     setTimeout(() => {
+      if (stateManager !== manager || !assignmentMode) return;
       const inputToFocus = drawsView?.querySelector(
         `.participant-assignment-input[data-draw-position="${focusDrawPosition}"] input`,
       ) as HTMLInputElement;
@@ -337,6 +214,7 @@ function renderAssignmentView({
   } else {
     // Focus first input on initial render
     setTimeout(() => {
+      if (stateManager !== manager || !assignmentMode) return;
       const firstInput = drawsView?.querySelector('.participant-assignment-input input') as HTMLInputElement;
       firstInput?.focus();
     }, 100);

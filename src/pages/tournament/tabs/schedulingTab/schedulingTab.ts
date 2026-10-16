@@ -3,13 +3,12 @@
  *
  * Replaces the two previously-separate tabs (`/schedule2` and
  * `/venues/availability`) with a single workspace that switches between
- * three modes.
+ * four modes.
  *
  * Profile and Grid modes reuse the exact same view-rendering machinery as
  * `/schedule2` (renderGridView, renderProfileView, buildGridHeaderActions,
- * openClearScheduleMenu) so their layout + behavior is identical until the
- * /schedule2 route is retired. Availability mode is still a placeholder
- * pending its own migration in a follow-up commit.
+ * openClearScheduleMenu). Availability mounts its painter; Plan edits a scenario
+ * independently of the official schedule.
  *
  * Routes:
  *   /tournament/:id/scheduling                                    → default mode for today's date
@@ -19,28 +18,45 @@
  *   /tournament/:id/scheduling/:date/grid
  */
 
-import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
-import { renderPlanMode } from '../scheduleViews/planView';
-import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
-import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
-import { confirmModal } from 'components/modals/baseModal/baseModal';
-import {
-  peerLinkedIds,
-  primaryVenueIds,
-  facilityEventTouchesVenues,
-} from 'services/facilitySchedule/facilityScheduleHelpers';
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
+import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
 import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
+import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
+import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
+import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
+import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { renderPlanMode } from '../scheduleViews/planView';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
+import {
+  peerLinkedIds,
+  primaryVenueIds,
+  facilityEventTouchesVenues,
+} from 'services/facilitySchedule/facilityScheduleHelpers';
+import {
+  subscribeQueue,
+  hasUnsavedChanges,
+  getPendingCount,
+  savePending,
+  discardPending,
+  executeMethods,
+  setAvailabilityDirty,
+  isAvailabilityDirty,
+} from 'services/schedulingWorkspace/queueService';
+import {
   renderGridView,
   destroyGridView,
   hasUnsavedGridChanges,
+  discardPendingGridChanges,
   setGridBulkMode,
   getGridBulkMode,
   getUnsavedGridChangeCount,
@@ -53,22 +69,6 @@ import {
   resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../scheduleViews/gridView';
-import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
-import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
-import {
-  readScheduleDisplayConfig,
-  writeScheduleDisplayConfig,
-} from 'services/schedulePreferences/scheduleDisplayExtension';
-import {
-  subscribeQueue,
-  hasUnsavedChanges,
-  getPendingCount,
-  savePending,
-  discardPending,
-  executeMethods,
-  setAvailabilityDirty,
-  isAvailabilityDirty,
-} from 'services/schedulingWorkspace/queueService';
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
@@ -264,7 +264,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   }
 
   // Subscribe to the workspace queue so the action bar reflects bulk-queue
-  // changes. (For Profile/Grid that still use schedule2's internal queue, the
+  // changes. (Grid has its own draft, and Profile dispatches directly; the
   // workspace bar stays inert; only the Availability mode currently writes
   // through queueService.)
   queueUnsubscribe?.();
@@ -506,7 +506,10 @@ function guardUnsavedAndProceed(proceed: () => void): void {
     title: t('schedulingTab.discardChanges'),
     query: 'You have unsaved scheduling changes. Discard and continue?',
     okIntent: 'is-warning',
-    okAction: () => proceed(),
+    okAction: () => {
+      if (hasUnsavedGridChanges() && !discardPendingGridChanges()) return;
+      proceed();
+    },
   });
 }
 

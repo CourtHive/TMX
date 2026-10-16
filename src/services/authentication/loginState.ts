@@ -214,8 +214,8 @@ export function logIn({
         console.error('[auth] failed to clear provider-bound tournaments on login', err);
       });
     // Fire-and-forget: fetch the multi-provider user context from the server.
-    // The context will be available by the time the user interacts with the
-    // tournaments table or any provider-scoped UI element.
+    // No interaction-time guarantee: consumers requiring this context must await
+    // ensureUserContext rather than assuming this request has completed.
     fetchUserContext();
     if (valid.activeProviderConfig) providerConfig.set(valid.activeProviderConfig);
     // Re-resolve the PDF font now that the provider's defaultPdfFont is known.

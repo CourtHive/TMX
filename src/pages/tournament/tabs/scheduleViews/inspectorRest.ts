@@ -8,7 +8,8 @@
  *
  * ── `asOf` is the PROJECTED instant, not the real one ──
  *
- * The factory holds no clock, so the caller supplies `asOf`. Passing the real `now` unconditionally
+ * Factory has record and competition clocks; TMX supplies `asOf` for the viewed-day projection.
+ * Passing the real `now` unconditionally
  * fails open: `resolveScheduleDate()` opens the schedule on a tournament's LAST date once its dates
  * are past, so anyone running a past-dated event in real time lives there permanently, and against
  * a real `now` three days later every anchor on that day sits hours in the past. Rest figures in the

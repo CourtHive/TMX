@@ -5,8 +5,8 @@
  * WHY THIS FILE EXISTS. The two configs used to be hand-copied. When the web
  * config dropped `vite-tsconfig-paths` in favour of Vite's native
  * `resolve.tsconfigPaths`, the Electron copy kept importing the removed
- * package and `pnpm electron:build` broke — invisibly, because no lint, type
- * check, test, or CI job looks at the Electron target. Anything the two
+ * package and `pnpm electron:build` broke. That historical gap is now partly
+ * covered: lint/type checks include Electron, and its browser workflow runs at checkpoints. Anything the two
  * renderers must agree on belongs here, so a change to one is a change to both.
  *
  * Electron-specific concerns (output paths, `base`, the main/preload targets)

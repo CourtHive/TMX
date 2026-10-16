@@ -10,7 +10,7 @@ Before doing anything else, read `../Mentat/CLAUDE.md`, `../Mentat/TASKS.md`, `.
 
 `dev` is this repo's integration branch. **Branch from `origin/dev` and open PRs against `dev`.** `main`
 advances only at checkpoints, by merging `dev` into it. This follows `factory` (since 2026-09-12) and
-`courthive-components` (2026-09-28); CA: *"We should do the same for TMX, come to think of it."*
+`courthive-components` (2026-09-28); CA: _"We should do the same for TMX, come to think of it."_
 
 `dev` was created from `main` at `7116f4cb` on 2026-09-28, byte-identical, after the four open renovate
 PRs were merged so none was orphaned. **Renovate targets `dev`** (`baseBranches` in `renovate.json`), so
@@ -18,13 +18,13 @@ dependency PRs arrive on the integration branch rather than on the release branc
 
 **A checkpoint merge does NOT publish.** Read from the workflows rather than assumed:
 
-| workflow | trigger | consequence |
-|---|---|---|
-| `ci.yml` | bare `pull_request:` + `push: [main]` | a PR into `dev` gets the full gate. A direct push to `dev` gets **no** run, so land work by PR |
-| `electron.yml` | `pull_request: [main]` + `push: [main]` + `workflow_dispatch` | **PRs into `dev` get no Electron run** (CA, 2026-10-10); it runs at the checkpoint. Dispatch it by hand for a dev PR touching `electron/` |
-| `release-please.yml` | `push: [main]` ONLY | a checkpoint merge **refreshes** the release PR. Nothing is tagged or published |
-| `deploy-pages.yml` | `release: published` | unaffected |
-| `sync-i18n.yml` | `push: [main]`, path-filtered on `src/i18n/locales/en.json` | **an i18n change on `dev` does not sync until it reaches `main`** at a checkpoint |
+| workflow             | trigger                                                       | consequence                                                                                                                               |
+| -------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`             | bare `pull_request:` + `push: [main]`                         | a PR into `dev` gets the full gate. A direct push to `dev` gets **no** run, so land work by PR                                            |
+| `electron.yml`       | `pull_request: [main]` + `push: [main]` + `workflow_dispatch` | **PRs into `dev` get no Electron run** (CA, 2026-10-10); it runs at the checkpoint. Dispatch it by hand for a dev PR touching `electron/` |
+| `release-please.yml` | `push: [main]` ONLY                                           | a checkpoint merge **refreshes** the release PR. Nothing is tagged or published                                                           |
+| `deploy-pages.yml`   | `release: published`                                          | unaffected                                                                                                                                |
+| `sync-i18n.yml`      | `push: [main]`, path-filtered on `src/i18n/locales/en.json`   | **an i18n change on `dev` does not sync until it reaches `main`** at a checkpoint                                                         |
 
 **`delete_branch_on_merge` is false, deliberately.** A checkpoint PR has `dev` as its HEAD, so auto-delete
 would delete the integration branch every time — and GitHub silently **retargets open PRs** whose base is
@@ -88,6 +88,7 @@ pnpm test:e2e:prod        # Playwright against production build
 E2E tests live in `e2e/`. See `Mentat/planning/PLAYWRIGHT_E2E_TESTING.md` for the full strategy.
 
 Three-layer assertion architecture:
+
 1. **Mutation log** — `dev.context({ internal: true })` logs every mutation to console; tests capture via `page.on('console')`
 2. **Server audit trail** (future) — full-stack mutation verification against the server's audit log
 3. **DOM** — targeted assertions on `tmxConstants` IDs + ARIA roles
@@ -130,48 +131,50 @@ Persistence: IndexedDB via Dexie (`src/services/storage/tmx2db.ts`), user prefs 
 ### Mutation Pattern
 
 All data changes go through `mutationRequest()` (`src/services/mutation/mutationRequest.ts`):
+
 - Validates auth/permissions
 - Executes factory methods via `executionQueue()`
-- Optionally emits to server via Socket.IO
+- Sends provider commands over HTTP; realtime subscriptions and broadcasts use Socket.IO
 - Saves locally to IndexedDB
 
-With `env.serverFirst = true` (default), mutations execute on the server first, then locally on acknowledgement.
+With `serverConfig.get().serverFirst = true` (default), mutations execute on the server first, then locally on acknowledgement.
 
 ### Scheduling Workspace — Save Model Invariant (load-bearing)
 
-The scheduling workspace at `/tournament/:id/scheduling/...` shares **one** save model across all three modes (Availability, Profile, Grid). Every mutation initiated from a workspace mode — including `MODIFY_COURT_AVAILABILITY` from the painter — flows through `queueService.executeMethods({ mode, methods })` in `src/services/schedulingWorkspace/queueService.ts`. The service:
-
-- **Immediate mode** — dispatches via `mutationRequest` synchronously.
-- **Bulk mode** — applies locally via `competitionEngine.executionQueue` and pushes the batch onto a shared `pendingBatches` queue. `savePending()` flushes all batches as one `mutationRequest`; `discardPending()` reloads the tournament from IndexedDB and clears the queue.
+The workspace has four modes: Availability, Profile, Grid and Plan. Availability mutations use
+`queueService.executeMethods` via the painter hook; its optional bulk queue has no production enabler.
+Profile dispatches edits directly through `mutationRequest`. Grid uses the grid's separate `BulkScheduleDraft`: previews retain an in-memory baseline,
+failed saves retain pending methods, and Discard reverts preview-owned fields while preserving concurrent changes.
+Plan mutates a scenario. These paths have not been consolidated into one queue.
 
 **Invariants that other code must not break:**
 
 1. The standalone `/venues/availability` painter (no workspace) continues to dispatch `mutationRequest` directly. It does NOT participate in the workspace queue. The split is by route, not by component.
 2. Availability mutations originating from the workspace painter route through `queueService.executeMethods({ mode: 'availability', ... })` via the painter's `onMutationMethods` hook, never `mutationRequest` directly. Bypassing this hook reintroduces the discard clobber race that Phase 0 closed.
-3. `discardPending` must never silently dispatch queued methods. The IDB reload is the only path back to a clean state — if you find yourself wanting to "rescue" a batch on discard, you are violating the invariant.
+3. Discard must never dispatch queued methods. Grid drafts use their in-memory baseline; the separate queueService discard currently reloads IDB and must not be enabled without repairing that limitation.
 4. Painter dirty state (`isAvailabilityDirty()`) is tracked separately from the bulk queue (`hasUnsavedChanges()`) because the painter buffers paint internally until its toolbar Save runs. Mode-switch guards and the workspace's sticky action bar consume both signals — do not collapse them.
 
 Regression coverage lives in `src/services/schedulingWorkspace/queueService.test.ts`. If you change the save model, update those tests in the same PR.
 
 ### Key Conventions
 
-- **Absolute imports** — `tsconfig.json` sets `baseUrl: "src/"`, so imports use `import { t } from 'i18n'`, `import { env } from 'settings/env'`, etc.
+- **Absolute imports** — `tsconfig.json` defines explicit paths for source imports such as `import { t } from 'i18n'`, `import { env } from 'settings/env'`, etc.
 - **DOM IDs** — all element IDs are constants in `src/constants/tmxConstants.ts`. Use the constant, not raw strings.
 - **Mutation constants** — factory method names are in `src/constants/mutationConstants.ts`. Use these when calling `mutationRequest()`.
 - **Tables** — all data grids use Tabulator (`tabulator-tables`). Table instances stored in `context.tables`.
-- **i18n** — `i18next` with 7 locales (en, fr, es, pt-BR, de, ar, zh-CN). Use `import { t } from 'i18n'`.
+- **i18n** — `i18next` bundles English and loads non-English resources through the runtime manifest/cache. Use `import { t } from 'i18n'`.
 - **Commit messages** — Conventional Commits with emojis. Use `pnpm commit` for interactive prompt.
 
 ### Key Dependencies
 
-| Package | Purpose |
-|---|---|
+| Package                    | Purpose                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
 | `tods-competition-factory` | Core business logic — tournament engine, draw generation, scheduling |
-| `courthive-components` | Shared UI component library |
-| `navigo` | Hash-based SPA router |
-| `dexie` | IndexedDB wrapper |
-| `tabulator-tables` | Data grid/table component |
-| `socket.io-client` | Real-time server communication |
+| `courthive-components`     | Shared UI component library                                          |
+| `navigo`                   | Hash-based SPA router                                                |
+| `dexie`                    | IndexedDB wrapper                                                    |
+| `tabulator-tables`         | Data grid/table component                                            |
+| `socket.io-client`         | Real-time server communication                                       |
 
 ### Code Style Notes
 
@@ -186,6 +189,7 @@ This project follows the CourtHive ecosystem coding standards.
 See [CourtHive/Mentat/standards/coding-standards.md](https://github.com/CourtHive/Mentat/blob/main/standards/coding-standards.md) for the full reference.
 
 Key repo-specific notes:
+
 - Package manager: pnpm only
 - Test runner: vitest
 - Lint command: `pnpm lint`

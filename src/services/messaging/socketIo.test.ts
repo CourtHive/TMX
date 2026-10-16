@@ -46,7 +46,14 @@ const fake = vi.hoisted(() => {
     // server replies to each one; by default it accepts.
     state.posted = [] as any[];
     state.answer = (data: any): any => ({
-      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
+      deliver: {
+        event: 'ack',
+        payload: {
+          ackId: data.payload.ackId,
+          success: true,
+          ...(data.payload.commandId && { commandId: data.payload.commandId, durableReceipt: true }),
+        },
+      },
     });
     state.chatSend = undefined as undefined | ((data: any) => void);
     state.chatAccepted = vi.fn();
@@ -60,7 +67,20 @@ const fake = vi.hoisted(() => {
       loadMessages: vi.fn(async (userId: string) =>
         [...state.rows.values()].filter((row) => row.userId === userId).sort((a, b) => a.queuedAt - b.queuedAt),
       ),
-      claimMessage: vi.fn(async (id: string) => state.rows.delete(id)),
+      claimMessage: vi.fn(async (id: string, userId: string, owner: string) => {
+        const row = state.rows.get(id);
+        if (!row) return 'missing';
+        if (row.blocked) return 'blocked';
+        if (row.userId !== userId || (row.leaseUntil > Date.now() && row.leaseOwner !== owner)) return 'busy';
+        row.leaseOwner = owner;
+        row.leaseUntil = Date.now() + 30_000;
+        return 'claimed';
+      }),
+      releaseMessage: vi.fn(async (id: string, owner: string, blocked?: string) => {
+        const row = state.rows.get(id);
+        if (row?.leaseOwner === owner)
+          Object.assign(row, { leaseOwner: undefined, leaseUntil: 0, ...(blocked && { blocked }) });
+      }),
     };
     state.down = () => {
       state.connected = false;
@@ -87,7 +107,8 @@ vi.mock('services/messaging/outboxStore', () => ({
   persistMessage: (row: any) => fake.store.persistMessage(row),
   forgetMessage: (id: string) => fake.store.forgetMessage(id),
   loadMessages: (userId: string) => fake.store.loadMessages(userId),
-  claimMessage: (id: string) => fake.store.claimMessage(id),
+  claimMessage: (...args: any[]) => fake.store.claimMessage(...args),
+  releaseMessage: (...args: any[]) => fake.store.releaseMessage(...args),
 }));
 vi.mock('services/chat/chatService', () => ({
   setChatSendFn: (fn: any) => (fake.chatSend = fn),
@@ -155,23 +176,27 @@ describe('socketIo over a MessageTransport', () => {
   // Defect: connectSocket passed its callback to EVERY `connect`. When emitTmx creates the
   // connection lazily the callback is the action that emits the mutation, so the mutation was
   // re-sent on every reconnect for the life of the page.
-  it('sends a lazily-connected mutation once, not again on every reconnect', () => {
+  it('sends a lazily-connected mutation once, not again on every reconnect', async () => {
     socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
     expect(mutations()).toHaveLength(0); // no connection yet
 
     fake.up();
+    await settle();
     expect(mutations()).toHaveLength(1);
 
     fake.down();
     fake.up();
+    await settle();
     fake.down();
     fake.up();
+    await settle();
     expect(mutations()).toHaveLength(1);
   });
 
-  it("stamps this tab's originClientId on what it sends", () => {
+  it("stamps this tab's originClientId on what it sends", async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     socketIo.emitTmx({ data: executionQueue() });
     expect(mutations()[0].data.payload.originClientId).toBe(clientIdentity.getOriginClientId());
   });
@@ -179,16 +204,18 @@ describe('socketIo over a MessageTransport', () => {
   it('routes the ack to the callback registered for its ackId', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     const ackCallback = vi.fn();
     socketIo.emitTmx({ data: executionQueue(), ackCallback });
-    const { ackId } = mutations()[0].data.payload;
+    const { ackId, commandId } = mutations()[0].data.payload;
 
     await settle(); // the server's answer is the ack
-    expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
+    expect(ackCallback).toHaveBeenCalledWith({ ackId, commandId, durableReceipt: true, success: true });
   });
 
-  // P49: every ack passes through here — this tab's own mutation moves its sync point.
-  it('an ack with write times moves the sync point', async () => {
+  // Transport receipt alone does not establish that the command was applied locally.
+  it('delivers write times without advancing sync before local application', async () => {
+    const updatedAt = '2026-10-08T19:30:00.000Z';
     const sync = await import('services/staleness/serverSync');
     sync.setServerSync('t1', '2026-10-08T19:29:00.000Z');
     fake.answer = (data: any) => ({
@@ -198,22 +225,28 @@ describe('socketIo over a MessageTransport', () => {
           ackId: data.payload.ackId,
           success: true,
           previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
-          serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
+          serverUpdatedAt: { t1: updatedAt },
         },
       },
     });
     socketIo.connectSocket();
     fake.up();
-    socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
+    await settle();
+    const applied = vi.fn();
+    socketIo.emitTmx({ data: executionQueue(), ackCallback: applied });
 
     await settle();
-    expect(sync.serverIsAhead('t1', '2026-10-08T19:30:00.000Z')).toBe(false);
+    expect(applied).toHaveBeenCalledWith(
+      expect.objectContaining({ success: true, serverUpdatedAt: { t1: updatedAt } }),
+    );
+    expect(sync.serverIsAhead('t1', updatedAt)).toBe(true);
   });
 
   // D1 (CA, 2026-10-08): nothing is sent while offline; it is queued and replayed on connect.
-  it('queues messages sent while offline and replays them in order on reconnect', () => {
+  it('queues messages sent while offline and replays them in order on reconnect', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     fake.down();
     socketIo.emitTmx({ data: { type: 'executionQueue', payload: { methods: [{ method: 'a' }] } } });
     socketIo.emitTmx({ data: { type: 'executionQueue', payload: { methods: [{ method: 'b' }] } } });
@@ -221,77 +254,88 @@ describe('socketIo over a MessageTransport', () => {
     expect(socketIo.queuedMessageCount()).toBe(2);
 
     fake.up();
+    await settle();
 
     expect(mutations().map((m: any) => m.data.payload.methods[0].method)).toEqual(['a', 'b']);
     expect(socketIo.queuedMessageCount()).toBe(0);
   });
 
-  it('replays only after the tournament room is re-joined', () => {
+  it('replays only after the tournament room is re-joined', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     socketIo.joinTournamentRoom('t1');
     fake.down();
     socketIo.emitTmx({ data: executionQueue() });
     fake.log.length = 0;
 
     fake.up();
+    await settle();
 
     const order = fake.log;
     expect(order.indexOf('joinTournament')).toBeGreaterThanOrEqual(0);
     expect(order.indexOf('joinTournament')).toBeLessThan(order.indexOf('executionQueue'));
   });
 
-  it('does not queue what a connect rebuilds anyway', () => {
+  it('does not queue what a connect rebuilds anyway', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     fake.down();
     socketIo.emitTmx({ data: { type: 'timestamp' } });
     expect(socketIo.queuedMessageCount()).toBe(0);
   });
 
-  it('cancel() withdraws a queued message so it is never replayed', () => {
+  it('cancel() withdraws a queued message so it is never replayed', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     fake.down();
     const handle = socketIo.emitTmx({ data: executionQueue() });
 
     expect(handle.cancel()).toBe(true);
     fake.up();
+    await settle();
     expect(mutations()).toHaveLength(0);
   });
 
-  it('cancel() reports false once the message has been sent', () => {
+  it('cancel() reports false once the message has been sent', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     const handle = socketIo.emitTmx({ data: executionQueue() });
     expect(handle.cancel()).toBe(false);
     expect(mutations()).toHaveLength(1);
   });
 
-  it('cancel() before the first connect stops a lazily-connected message', () => {
+  it('cancel() before the first connect stops a lazily-connected message', async () => {
     const handle = socketIo.emitTmx({ data: executionQueue() });
     expect(handle.cancel()).toBe(true);
     fake.up();
+    await settle();
     expect(mutations()).toHaveLength(0);
   });
 
-  it('keeps what it could not replay when the connection drops mid-flush', () => {
+  it('keeps what it could not replay when the connection drops mid-flush', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     fake.down();
     socketIo.emitTmx({ data: executionQueue() });
     socketIo.emitTmx({ data: executionQueue() });
     // The connection comes up, carries one message, and drops again.
     fake.connection.isConnected = () => fake.connected && mutations().length < 1;
     fake.up();
+    await settle();
 
     expect(mutations()).toHaveLength(1);
     expect(socketIo.queuedMessageCount()).toBe(1);
   });
 
-  it('warns when the offline queue overflows and drops the oldest', () => {
+  it('warns when the offline queue overflows and drops the oldest', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     fake.down();
     for (let i = 0; i < 501; i++) socketIo.emitTmx({ data: executionQueue() });
     expect(socketIo.queuedMessageCount()).toBe(500);
@@ -299,27 +343,31 @@ describe('socketIo over a MessageTransport', () => {
     expect(String(warn.mock.calls[0][0])).toContain('offline queue full');
   });
 
-  it('rejoins the current tournament room after a reconnect', () => {
+  it('rejoins the current tournament room after a reconnect', async () => {
     socketIo.connectSocket();
     fake.up();
+    await settle();
     socketIo.joinTournamentRoom('t1');
     fake.down();
     fake.sent.length = 0;
 
     fake.up();
+    await settle();
     expect(fake.sent).toContainEqual({ event: 'joinTournament', data: { tournamentId: 't1' } });
   });
 
-  it('runs reconnect listeners on a reconnect but not on the first connect', () => {
+  it('runs reconnect listeners on a reconnect but not on the first connect', async () => {
     const listener = vi.fn();
     socketIo.onSocketReconnect(listener);
     socketIo.connectSocket();
 
     fake.up();
+    await settle();
     expect(listener).not.toHaveBeenCalled();
 
     fake.down();
     fake.up();
+    await settle();
     expect(listener).toHaveBeenCalledTimes(1);
   });
 });
@@ -375,13 +423,71 @@ describe('socketIo offline queue across a reload', () => {
     expect(rows[0].data.payload.methods[0].method).toBe('durable');
   });
 
-  it('sends a durable message straight away when connected, without touching IndexedDB', async () => {
+  it('persists a durable message before sending it when connected', async () => {
     socketIo.connectSocket();
     fake.up();
     socketIo.emitTmx({ data: mutation('a'), durable: true });
     await settle();
     expect(methodsSent()).toEqual(['a']);
-    expect(fake.store.persistMessage).not.toHaveBeenCalled();
+    expect(fake.store.persistMessage).toHaveBeenCalledTimes(1);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('reports failed durability and sends nothing when no account owns the command', async () => {
+    fake.login = undefined;
+    const handle = socketIo.emitTmx({ data: mutation('noOwner'), durable: true });
+    await expect(handle.persisted).resolves.toBe(false);
+    expect(fake.posted).toHaveLength(0);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('retains the online in-flight row and recovers the same command ID after a lost answer', async () => {
+    let answer: any;
+    fake.answer = () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      });
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('one'), durable: true });
+    await settle();
+    expect(fake.rows.size).toBe(1);
+    const id = fake.posted[0].data.payload.commandId;
+    expect([...fake.rows.keys()]).toEqual([id]);
+    answer({ unreachable: 'lost after server commit' });
+    await settle();
+    expect(fake.rows.size).toBe(1);
+    await reload();
+    fake.answer = (data: any) => ({
+      deliver: {
+        event: 'ack',
+        payload: {
+          ackId: data.payload.ackId,
+          success: true,
+          commandId: id,
+          durableReceipt: true,
+          deduplicated: true,
+        },
+      },
+    });
+    socketIo.connectSocket();
+    fake.up();
+    await settle();
+    expect(fake.posted.at(-1).data.payload.commandId).toBe(id);
+    expect(fake.rows.size).toBe(0);
+  });
+
+  it('retains and blocks a row when an older server cannot confirm its receipt', async () => {
+    fake.answer = (data: any) => ({ deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } } });
+    socketIo.connectSocket();
+    fake.up();
+    socketIo.emitTmx({ data: mutation('oldServer'), durable: true });
+    await settle();
+    expect([...fake.rows.values()][0].blocked).toBe('receipt-unsupported');
+    fake.down();
+    fake.up();
+    await settle();
+    expect(methodsSent()).toEqual(['oldServer']);
   });
 
   it('replays a durable message on reconnect and removes it from IndexedDB', async () => {
@@ -464,16 +570,17 @@ describe('socketIo offline queue across a reload', () => {
     expect(fake.rows.size).toBe(0);
   });
 
-  it('still sends from memory when IndexedDB would not take the message, and says a reload would lose it', async () => {
+  it('does not send a durable command when IndexedDB refuses persistence', async () => {
     fake.persistFails = true;
     goOffline();
     socketIo.emitTmx({ data: mutation('a'), durable: true });
     await settle();
-    expect(String(warn.mock.calls[0][0])).toContain('a reload would lose it');
+    expect(fake.toast).toHaveBeenCalledWith({ message: 'storage.writeFailed', intent: 'is-danger' });
 
     fake.up();
     await settle();
-    expect(methodsSent()).toEqual(['a']);
+    expect(methodsSent()).toEqual([]);
+    expect(socketIo.queuedMessageCount()).toBe(1);
   });
 
   it('puts a claimed message back when the connection drops before it is sent', async () => {
@@ -502,13 +609,13 @@ describe('socketIo offline queue across a reload', () => {
     expect(methodsSent()).toEqual(['queued', 'fresh']);
   });
 
-  it('forgets a durable message dropped from a full queue', async () => {
+  it('retains a durable command on disk when the memory queue overflows', async () => {
     goOffline();
     socketIo.emitTmx({ data: mutation('oldest'), durable: true });
     for (let i = 0; i < 500; i++) socketIo.emitTmx({ data: mutation('filler') });
     await settle();
-    expect(fake.store.forgetMessage).toHaveBeenCalledTimes(1);
-    expect(fake.rows.size).toBe(0);
+    expect(fake.store.forgetMessage).not.toHaveBeenCalled();
+    expect(fake.rows.size).toBe(1);
   });
 
   const replayAfterReload = async (answer: (data: any) => any) => {
@@ -534,7 +641,14 @@ describe('socketIo offline queue across a reload', () => {
 
   it('says nothing when a message replayed after a reload succeeds: the edit was applied locally', async () => {
     await replayAfterReload((data) => ({
-      deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } },
+      deliver: {
+        event: 'ack',
+        payload: {
+          ackId: data.payload.ackId,
+          success: true,
+          ...(data.payload.commandId && { commandId: data.payload.commandId, durableReceipt: true }),
+        },
+      },
     }));
     expect(fake.toast).not.toHaveBeenCalled();
   });
@@ -574,8 +688,8 @@ describe('socketIo commands over HTTP', () => {
 
     expect(socketMutations()).toHaveLength(0);
     expect(postedMethods()).toEqual(['a']);
-    const { ackId } = fake.posted[0].data.payload;
-    expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
+    const { ackId, commandId } = fake.posted[0].data.payload;
+    expect(ackCallback).toHaveBeenCalledWith({ ackId, commandId, durableReceipt: true, success: true });
   });
 
   it('sends a chat message over HTTP and hands the answer to the chat service as chatAccepted', async () => {
@@ -644,18 +758,27 @@ describe('socketIo commands over HTTP', () => {
     socketIo.emitTmx({ data: mutation('a'), durable: true });
     socketIo.emitTmx({ data: mutation('b'), durable: true });
     await settle();
-    fake.answer = (data: any) => ({ deliver: { event: 'ack', payload: { ackId: data.payload.ackId, success: true } } });
-    socketIo.emitTmx({ data: mutation('c'), durable: true }); // answered: not queued
+    fake.answer = (data: any) => ({
+      deliver: {
+        event: 'ack',
+        payload: {
+          ackId: data.payload.ackId,
+          success: true,
+          ...(data.payload.commandId && { commandId: data.payload.commandId, durableReceipt: true }),
+        },
+      },
+    });
+    socketIo.emitTmx({ data: mutation('c'), durable: true }); // waits behind the unresolved head
     await settle();
 
-    expect(socketIo.queuedMessageCount()).toBe(2);
-    expect(fake.rows.size).toBe(2); // and a reload would keep them
+    expect(socketIo.queuedMessageCount()).toBe(3);
+    expect(fake.rows.size).toBe(3); // unresolved head preserves ordering
 
     fake.posted.length = 0;
     fake.down();
     fake.up();
     await settle();
-    expect(postedMethods()).toEqual(['a', 'b']);
+    expect(postedMethods()).toEqual(['a', 'b', 'c']);
     expect(fake.resumed).toBeGreaterThan(0);
   });
 });

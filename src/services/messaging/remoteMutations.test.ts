@@ -30,6 +30,7 @@ vi.mock('services/storage/saveTournamentRecord', () => ({
 }));
 
 vi.mock('services/messaging/socketIo', () => ({
+  onDurableRecovery: vi.fn(),
   onTournamentMutation: (cb: any) => {
     registeredListener = cb;
   },

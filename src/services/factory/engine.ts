@@ -6,8 +6,8 @@
  * makes typos like `tournamentEngine.findEvent(...)` (real bug, the correct
  * method is `getEvent`) a compile-time error.
  *
- * Per-method param shapes are still `any` upstream — this layer only catches
- * unregistered method names, not bad argument shapes.
+ * Factory lifts many parameter/result signatures and typed query facades.
+ * Methods with remaining optional or any fields still need runtime validation.
  *
  * Always import the engines from here, never directly from
  * `tods-competition-factory`.

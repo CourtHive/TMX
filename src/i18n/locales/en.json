@@ -2144,6 +2144,7 @@
     "connectionError": "Connection error",
     "noConnection": "No connection",
     "offlineMustConnect": "Offline: must be connected to internet",
+    "durableChangeNeedsReview": "An earlier change needs review. Refresh the tournament before continuing.",
     "offlineChangeRejected": "A change made while offline was rejected by the server",
     "addedParticipants": "Added {{count}} participant(s)",
     "updatedParticipants": "Updated {{count}} existing participant(s)",
@@ -2179,7 +2180,9 @@
       "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
       "notSaved": "Schedule change was not saved: {{reason}}"
     },
-    "statusOutOfScope": "This status is unavailable for this match"
+    "statusOutOfScope": "This status is unavailable for this match",
+    "durableCommandNotStored": "Durable command could not be stored for this session",
+    "durableQueueFailed": "The change could not be queued durably; keep this page open"
   },
   "loginMenu": {
     "authorization": "Authorization",
@@ -3432,7 +3435,9 @@
     "modify": "Modify?",
     "impersonate": "Impersonate?",
     "rejected": "Server rejected mutation",
-    "sessionExpired": "Session expired"
+    "sessionExpired": "Session expired",
+    "tournamentChangedBeforeApply": "Tournament changed before mutation could be applied",
+    "tournamentChangedAwaitingAck": "Tournament changed while awaiting acknowledgement"
   },
   "queueService": {
     "saved": "Saved"

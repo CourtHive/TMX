@@ -50,6 +50,17 @@ describe('commands over HTTP', () => {
       );
     });
 
+    it('keeps durable 500 responses uncertain and preserves receipt metadata on success', () => {
+      expect(http.toCommandOutcome('a', { status: 500 }, 'command-1')).toEqual({ unreachable: 'server 500' });
+      expect(
+        http.toCommandOutcome(
+          'a',
+          { status: 200, data: { success: true, commandId: 'command-1', durableReceipt: true, deduplicated: true } },
+          'command-1',
+        ),
+      ).toEqual(ack({ ackId: 'a', success: true, commandId: 'command-1', durableReceipt: true, deduplicated: true }));
+    });
+
     it("carries the mutation gate's 403 as a refusal", () => {
       const data = { statusCode: 403, message: 'Not permitted: addEvent', error: 'Forbidden' };
       expect(http.toCommandOutcome('a1', { status: 403, data })).toEqual(
@@ -110,6 +121,7 @@ describe('commands over HTTP', () => {
     expect(url).toBe('/factory');
     expect(body).toEqual(command('a1').payload);
     expect(config.silenceErrors).toBe(true);
+    expect(config.timeout).toBe(20_000);
     expect(config.validateStatus(500)).toBe(true);
     expect(config.validateStatus(401)).toBe(false); // left to baseApi's refresh-and-retry
   });
@@ -149,5 +161,15 @@ describe('commands over HTTP', () => {
 
     http.resumeCommands();
     expect(await http.postCommand('executionQueue', command('a3'))).toEqual(ack({ ackId: 'a3', success: true }));
+  });
+  it('treats a thrown network error as uncertain and holds later commands', async () => {
+    post.mockRejectedValueOnce(new Error('network reset'));
+    expect(await http.postCommand('executionQueue', command('a1'))).toHaveProperty('unreachable');
+    expect(await http.postCommand('executionQueue', command('a2'))).toHaveProperty('unreachable');
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+  it('does not post a command when its queued owner has changed', async () => {
+    expect(await http.postCommand('executionQueue', command('a1'), () => false)).toHaveProperty('unreachable');
+    expect(post).not.toHaveBeenCalled();
   });
 });
