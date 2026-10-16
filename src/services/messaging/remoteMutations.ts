@@ -10,7 +10,7 @@
  */
 import { captureTournamentOperation, markTournamentRecordInstalled } from 'services/tournament/operationOwnership';
 import { notifyMutationApplied, onAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
-import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
+import { onTournamentMutation, joinTournamentRoom, onDurableRecovery } from 'services/messaging/socketIo';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
@@ -41,14 +41,20 @@ let staleRefreshTournamentId: string | undefined;
  * Call once at app startup (e.g. in initialState.ts).
  */
 let stopRefreshObserver: (() => void) | undefined;
+let stopDurableRecoveryObserver: (() => void) | undefined;
 export function initRemoteMutationHandler(): void {
   slog('[remoteMutation] handler registered');
   onTournamentMutation(handleRemoteMutation);
   stopRefreshObserver?.();
-  stopRefreshObserver = onAuthoritativeRefreshRequired((ids) => {
+  stopDurableRecoveryObserver?.();
+  // A local result the server's answer cannot be applied to, and a durable command recovered with an
+  // uncertain local state, both leave the local copy unproven: pull the authoritative record.
+  const markIfViewing = (ids: string[]) => {
     const id = factory[TOURNAMENT_ENGINE].getTournamentId();
     if (id && ids.includes(id)) markStaleNeedsRefresh(id);
-  });
+  };
+  stopRefreshObserver = onAuthoritativeRefreshRequired(markIfViewing);
+  stopDurableRecoveryObserver = onDurableRecovery(markIfViewing);
 }
 
 /** Hide the sync indicator (called on navigation). */

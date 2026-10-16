@@ -154,6 +154,7 @@ describe('mutation operation ownership and canonical HTTP answers', () => {
     markTournamentRecordInstalled();
     h.sessionValid = true;
     h.reportSessionLost.mock.calls[0][0].retry();
+    expect(h.emitTmx.mock.calls[1][0].data.payload.commandId).toBe(h.emitTmx.mock.calls[0][0].data.payload.commandId);
     h.emitTmx.mock.calls[1][0].ackCallback({ success: true });
     await settle();
     expect(tournamentEngine.getTournament().tournamentRecord?.tournamentName).toBe('Restored edit');
@@ -232,6 +233,33 @@ describe('mutation operation ownership and canonical HTTP answers', () => {
       await settle();
       expect(done).toHaveBeenCalledWith(expect.objectContaining({ success: true, refreshRequired: true }));
     } finally {
+      execute.mockRestore();
+    }
+  });
+  // Review finding 9: a deduplicated receipt proves the server applied the command, not that this copy did.
+  it('requests the authoritative record, never re-applies or advances sync, on a deduplicated receipt', async () => {
+    const execute = vi.spyOn(tournamentEngine, 'executionQueue');
+    const refresh = vi.fn();
+    const unsubscribe = onAuthoritativeRefreshRequired(refresh);
+    try {
+      setServerSync('tid-1', SYNC_BEFORE);
+      replayServerMutation({
+        methods: [{ method: 'setTournamentName', params: { tournamentName: 'Already on server' } }],
+        factoryEngine: tournamentEngine,
+        tournamentIds: ['tid-1'],
+      });
+      h.emitTmx.mock.calls[0][0].ackCallback({
+        success: true,
+        deduplicated: true,
+        previousServerUpdatedAt: { 'tid-1': SYNC_BEFORE },
+        serverUpdatedAt: { 'tid-1': SYNC_AFTER },
+      });
+      await settle();
+      expect(execute).not.toHaveBeenCalled();
+      expect(serverIsAhead('tid-1', SYNC_AFTER)).toBe(true);
+      expect(refresh).toHaveBeenCalledWith(['tid-1']);
+    } finally {
+      unsubscribe();
       execute.mockRestore();
     }
   });

@@ -1,18 +1,7 @@
-/**
- * IndexedDB backing for the offline outbox in socketIo.ts, so a durable message
- * survives a reload while queued. It is not yet a durable acknowledgement protocol.
- *
- * Durable means the client has already acted on the message: a local-first
- * mutation that is applied locally before it is sent, or the replay of an edit
- * preserved across a lost session. Losing one of those after a reload loses the
- * edit. Everything else in the outbox (chat sends, server-first mutations, which
- * withdraw themselves after `serverTimeout`) stays in memory only.
- *
- * Rows are keyed to the user who wrote them and replayed only for that user.
- * A row is claimed (deleted in a transaction) before it is sent, so two tabs of
- * the same user cannot both send it. A crash after that deletion and before the
- * answer can lose the command; online dispatch also bypasses persistence.
- * Server-side stable-key deduplication must precede a retry-protocol change.
+/** IndexedDB durable commands. A lease is temporary ownership, never acknowledgement.
+ * Rows survive online sends, crashes and expired leases. Only a confirmed server receipt deletes
+ * an accepted command; rejected/unsupported commands remain blocked for explicit reconciliation.
+ * Nonindexed lease fields need no schema/index upgrade from version 8.
  */
 import { tmx2db } from 'services/storage/tmx2db';
 
@@ -22,32 +11,53 @@ export interface PersistedMessage {
   data: any;
   userId: string;
   queuedAt: number;
+  leaseOwner?: string;
+  leaseUntil?: number;
+  blocked?: string;
 }
-
+const DATABASE_NOT_OPEN = 'IndexedDB is not open';
 const outboxTable = () => tmx2db.dex?.outbox;
+export const OUTBOX_LEASE_MS = 30_000;
+export type ClaimResult = 'claimed' | 'busy' | 'missing' | 'blocked';
 
 export async function persistMessage(message: PersistedMessage): Promise<void> {
   const table = outboxTable();
-  if (!table) throw new Error('IndexedDB is not open');
-  await table.put(message);
+  if (!table) throw new Error(DATABASE_NOT_OPEN);
+  // Never overwrite another tab's lease/rejection if an existing command is encountered.
+  await tmx2db.dex.transaction('rw', table, async () => {
+    if (!(await table.get(message.id))) await table.add(message);
+  });
 }
-
 export async function forgetMessage(id: string): Promise<void> {
-  await outboxTable()?.delete(id);
+  const table = outboxTable();
+  if (!table) throw new Error(DATABASE_NOT_OPEN);
+  await table.delete(id);
 }
-
-/** The user's persisted messages, oldest first. */
 export async function loadMessages(userId: string): Promise<PersistedMessage[]> {
   const table = outboxTable();
-  if (!table) return [];
+  if (!table) throw new Error(DATABASE_NOT_OPEN);
   const rows: PersistedMessage[] = await table.where('userId').equals(userId).toArray();
-  return rows.sort((a, b) => a.queuedAt - b.queuedAt);
+  return rows.sort((a, b) => a.queuedAt - b.queuedAt || a.id.localeCompare(b.id));
 }
-
-/** Take a row before sending it. False when it is already gone: another tab sent it. */
-export async function claimMessage(id: string): Promise<boolean> {
+export async function claimMessage(id: string, userId: string, owner: string, now = Date.now()): Promise<ClaimResult> {
   const table = outboxTable();
-  if (!table) return false;
-  const removed: number = await tmx2db.dex.transaction('rw', table, () => table.where('id').equals(id).delete());
-  return removed > 0;
+  if (!table) throw new Error(DATABASE_NOT_OPEN);
+  return tmx2db.dex.transaction('rw', table, async () => {
+    const row: PersistedMessage | undefined = await table.get(id);
+    if (!row) return 'missing';
+    if (row.userId !== userId) return 'busy';
+    if (row.blocked) return 'blocked';
+    if ((row.leaseUntil ?? 0) > now && row.leaseOwner !== owner) return 'busy';
+    await table.update(id, { leaseOwner: owner, leaseUntil: now + OUTBOX_LEASE_MS });
+    return 'claimed';
+  });
+}
+export async function releaseMessage(id: string, owner: string, blocked?: string): Promise<void> {
+  const table = outboxTable();
+  if (!table) throw new Error(DATABASE_NOT_OPEN);
+  await tmx2db.dex.transaction('rw', table, async () => {
+    const row: PersistedMessage | undefined = await table.get(id);
+    if (row?.leaseOwner === owner)
+      await table.update(id, { leaseOwner: undefined, leaseUntil: 0, ...(blocked && { blocked }) });
+  });
 }

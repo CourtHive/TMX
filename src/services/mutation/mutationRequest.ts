@@ -54,6 +54,8 @@ interface MutationParams {
   warmCache?: boolean;
   /** A bulk draft owns its own retry/discard state and disables automatic session replay. */
   retryAfterLogin?: boolean;
+  /** Preserve this key when explicitly retrying the same intent. */
+  commandId?: string;
 }
 
 // ── Pure helpers (testable without DOM) ──
@@ -113,7 +115,15 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   }
   resetActivityTimer();
 
-  const { tournamentRecord, methods, engine = TOURNAMENT_ENGINE, callback, warmCache, retryAfterLogin = true } = params;
+  const {
+    tournamentRecord,
+    methods,
+    engine = TOURNAMENT_ENGINE,
+    callback,
+    warmCache,
+    retryAfterLogin = true,
+    commandId = factory.tools.UUID(),
+  } = params;
   const state = getLoginState();
 
   let isCurrent = () => true;
@@ -179,6 +189,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
           isCurrent,
           isSelected,
           retryAfterLogin,
+          commandId,
         })
       : Promise.resolve(completion({ error: { message: t('mutationPrompts.tournamentChangedBeforeApply') } }));
   if (!inDateRange) {
@@ -313,7 +324,9 @@ async function makeMutation({
   isCurrent,
   isSelected,
   retryAfterLogin,
+  commandId,
 }: {
+  commandId: string;
   retryAfterLogin: boolean;
   isCurrent: () => boolean;
   isSelected: () => boolean;
@@ -363,6 +376,9 @@ async function makeMutation({
         return;
       }
       ackReceived = true;
+      // A receipt replay may follow a full reload that already includes this command. Refresh
+      // the owned copy via the durable recovery signal rather than running business methods twice.
+      if ((ack as any)?.deduplicated) return completion({ success: true, recovered: true });
       const missingTournament = isMissingTournament(ack);
       if (strategy === SERVER_FIRST && (ack?.success || missingTournament)) {
         (async () => {
@@ -409,7 +425,7 @@ async function makeMutation({
     const emitted = emitTmx({
       data: {
         type: 'executionQueue',
-        payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true, warmCache },
+        payload: { methods: resolvedMethods, tournamentIds, rollbackOnError: true, warmCache, commandId },
       },
       ackCallback,
       // Local-first has already applied the edit here, so it must reach the server even across a reload.
@@ -417,6 +433,9 @@ async function makeMutation({
     });
     if (strategy === LOCAL_FIRST) {
       await localSave(saveLocal || false);
+      if (emitted?.persisted && !(await emitted.persisted)) {
+        return completion({ error: { message: 'The change could not be queued durably; keep this page open' } });
+      }
     } else {
       setTimeout(() => {
         if (ackReceived) return;
@@ -437,7 +456,15 @@ async function makeMutation({
             ...(retryAfterLogin && {
               retry: () => {
                 if (getSessionIdentity() !== initiatingIdentity) return;
-                replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal, warmCache });
+                // The same resolved methods under the same commandId: the server deduplicates the replay.
+                replayServerMutation({
+                  methods: resolvedMethods,
+                  factoryEngine,
+                  tournamentIds,
+                  saveLocal,
+                  warmCache,
+                  commandId,
+                });
               },
             }),
           });
@@ -468,12 +495,14 @@ export function replayServerMutation({
   tournamentIds,
   saveLocal,
   warmCache,
+  commandId = factory.tools.UUID(),
 }: {
   methods: any[];
   factoryEngine: any;
   tournamentIds: string[];
   saveLocal?: boolean;
   warmCache?: boolean;
+  commandId?: string;
 }): void {
   const isCurrent = captureTournamentOperation(tournamentIds);
   const isSelected = captureTournamentSelection(tournamentIds);
@@ -487,6 +516,12 @@ export function replayServerMutation({
       if (ack?.success) notifyAuthoritativeRefreshRequired(tournamentIds);
       return;
     }
+    // A deduplicated answer proves the server applied this command earlier, not that this copy did: its first
+    // answer was lost. Never advance sync on a receipt alone; pull the authoritative record instead.
+    if (ack?.deduplicated) {
+      notifyAuthoritativeRefreshRequired(tournamentIds);
+      return;
+    }
     const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
     const result = engineExecution({
@@ -498,7 +533,7 @@ export function replayServerMutation({
     void localSave(saveLocal || missingTournament);
   };
   emitTmx({
-    data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true, warmCache } },
+    data: { type: 'executionQueue', payload: { methods, tournamentIds, rollbackOnError: true, warmCache, commandId } },
     ackCallback,
     // The edit the user was told was preserved: a reload must not lose it.
     durable: true,

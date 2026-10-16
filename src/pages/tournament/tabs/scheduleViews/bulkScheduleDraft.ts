@@ -104,12 +104,15 @@ function restoreObject(before: any, preview: any, current: any): any {
 export class BulkScheduleDraft {
   pending: any[][] = [];
   saving = false;
+  commandId = crypto.randomUUID();
+  private submittedMethods?: string;
   private baseline?: Snapshot;
   private preview?: Snapshot;
   private ownsInstalledRecord: () => boolean = () => true;
 
   stage(methods: any[], engine: DraftEngine, isCurrent: () => boolean = () => true): Result {
     if (this.saving) return { error: 'Bulk save in progress' };
+    if (this.submittedMethods) return { error: 'Save or discard the submitted draft before editing it' };
     const before = engine.getState();
     if (this.baseline && (before.tournamentId !== this.baseline.tournamentId || !this.ownsInstalledRecord()))
       return { error: 'Bulk draft belongs to another tournament' };
@@ -129,6 +132,12 @@ export class BulkScheduleDraft {
       complete({ error: 'Tournament refreshed; discard the old bulk draft before scheduling again' });
       return;
     }
+    const intent = JSON.stringify(methods);
+    if (this.submittedMethods && this.submittedMethods !== intent) {
+      complete({ error: 'The submitted draft changed; discard it before scheduling again' });
+      return;
+    }
+    this.submittedMethods = intent;
     this.saving = true;
     let settled = false;
     const done = (result: Result) => {
@@ -171,6 +180,8 @@ export class BulkScheduleDraft {
 
   clear(): void {
     this.pending = [];
+    this.submittedMethods = undefined;
+    this.commandId = crypto.randomUUID();
     this.baseline = undefined;
     this.preview = undefined;
     this.ownsInstalledRecord = () => true;

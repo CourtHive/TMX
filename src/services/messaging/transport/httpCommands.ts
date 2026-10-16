@@ -49,16 +49,18 @@ function unreachableReason(response: any): string | undefined {
 }
 
 /** Map a `POST /factory` answer to the socket's `ack`. Exported for its tests. */
-export function toCommandOutcome(ackId: string | undefined, response: any): CommandOutcome {
-  const unreachable = unreachableReason(response);
+export function toCommandOutcome(ackId: string | undefined, response: any, commandId?: string): CommandOutcome {
+  const unreachable =
+    unreachableReason(response) ?? (commandId && response?.status >= 500 ? `server ${response.status}` : undefined);
   if (unreachable) return { unreachable };
   const { status, data } = response;
   if (status >= 200 && status < 300 && data?.success) {
     // The write times ride the ack as they do on the socket (P49): the sender's sync point moves with them.
-    const { serverUpdatedAt, previousServerUpdatedAt, appliedMethods } = data;
+    const { serverUpdatedAt, previousServerUpdatedAt, appliedMethods, commandId, durableReceipt, deduplicated } = data;
     const payload = {
       ackId,
       success: true,
+      ...(commandId && { commandId, durableReceipt, deduplicated }),
       ...(serverUpdatedAt && { serverUpdatedAt, previousServerUpdatedAt }),
       ...(appliedMethods && { appliedMethods }),
     };
@@ -92,7 +94,7 @@ const ROUTES: Record<string, Route> = {
   executionQueue: {
     path: '/factory',
     body: (data) => data?.payload ?? {},
-    answer: (data, response) => toCommandOutcome(data?.payload?.ackId, response),
+    answer: (data, response) => toCommandOutcome(data?.payload?.ackId, response, data?.payload?.commandId),
   },
   chatMessage: {
     path: '/tmx/chat',
@@ -118,8 +120,8 @@ export function resumeCommands(): void {
   heldBehind = undefined;
 }
 
-export function postCommand(event: string, data: any): Promise<CommandOutcome> {
-  const run = chain.then(() => send(event, data));
+export function postCommand(event: string, data: any, isCurrent: () => boolean = () => true): Promise<CommandOutcome> {
+  const run = chain.then(() => (isCurrent() ? send(event, data) : { unreachable: 'command owner changed' }));
   chain = run.catch(() => undefined);
   return run;
 }
@@ -131,13 +133,19 @@ async function send(event: string, data: any): Promise<CommandOutcome> {
     const { deliver } = route.answer(data, undefined);
     return { unreachable: `held behind an earlier command (${heldBehind})`, ...(deliver && { deliver }) };
   }
-  const response = await baseApi.post(route.path, route.body(data), {
-    // Refusals are answers, not transport errors: resolve them so they become the reply. A 401
-    // still rejects, so baseApi's interceptor gets its one silent refresh-and-retry.
-    validateStatus: (status: number) => status !== 401,
-    // The caller reports the outcome; baseApi must not toast it as well.
-    silenceErrors: true,
-  });
+  let response: any;
+  try {
+    response = await baseApi.post(route.path, route.body(data), {
+      timeout: 20_000,
+      // Refusals are answers, not transport errors: resolve them so they become the reply. A 401
+      // still rejects, so baseApi's interceptor gets its one silent refresh-and-retry.
+      validateStatus: (status: number) => status !== 401,
+      // The caller reports the outcome; baseApi must not toast it as well.
+      silenceErrors: true,
+    });
+  } catch (error) {
+    console.warn(`[socket] '${event}' request failed; outcome uncertain:`, error);
+  }
   const outcome = route.answer(data, response);
   if ('unreachable' in outcome) {
     heldBehind = outcome.unreachable;
