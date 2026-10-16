@@ -61,20 +61,18 @@ test.describe('electron build contract', () => {
     ).not.toThrow();
   });
 
-  test('the EMITTED preload file is named .mjs so Electron loads it as ESM', () => {
-    const pkg = JSON.parse(read('package.json'));
-
-    // Electron accepts an ESM preload ONLY when the file is named `.mjs`. This
-    // assertion is meaningless unless the package is ESM, so tie the two
-    // together rather than hard-coding the expectation.
-    test.skip(pkg.type !== 'module', 'package is CommonJS — preload extension is unconstrained');
-
-    // Assert on the BUILD OUTPUT directory, not on what main.ts references —
-    // an earlier version of this test checked the reference and passed happily
-    // while the build was emitting `preload.js`, which is the very defect it was
-    // written to catch.
+  test('the EMITTED preload is a CommonJS script, as a sandboxed preload must be', () => {
+    // The window runs with `sandbox: true`, where Electron evaluates the preload as a classic script:
+    // an ES module there is never injected, silently. `.cjs` also keeps the package's
+    // `"type": "module"` from claiming the file.
+    //
+    // Assert on the BUILD OUTPUT directory, not on what main.ts references — an earlier version of
+    // this test checked the reference and passed happily while the build was emitting a different
+    // name, which is the very defect it was written to catch.
     const emitted = readdirSync(resolve(repoRoot, 'dist-electron/preload'));
-    expect(emitted, `preload output directory contains: ${emitted.join(', ')}`).toContain('preload.mjs');
+    expect(emitted, `preload output directory contains: ${emitted.join(', ')}`).toContain('preload.cjs');
+    const source = read('dist-electron/preload/preload.cjs');
+    expect(source, 'the preload was emitted as an ES module').not.toMatch(/^\s*import\s|^\s*export\s/m);
   });
 
   test('renderer index.html uses relative asset paths', () => {

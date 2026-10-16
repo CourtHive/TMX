@@ -12,22 +12,23 @@ function download(filename: string, dataStr: string): void {
   elem.remove();
 }
 
+/** Native save in Electron: the main process shows the dialog and writes; the path never returns here. */
+async function saveNatively(title: string, filename: string, filterName: string, ext: string, content: string) {
+  await platform.saveFile!({
+    title,
+    defaultName: filename,
+    filters: [{ name: filterName, extensions: [ext] }],
+    data: new TextEncoder().encode(content),
+  });
+}
+
 /** Save JSON to a file — uses native dialog in Electron, browser download otherwise */
 export async function downloadJSON(filename: string, json: any): Promise<void> {
   const content = safeJSON.stringify(json) || '';
 
-  if (platform.canAccessFileSystem() && platform.showSaveDialog && platform.writeFile) {
-    const ext = filename.endsWith('.json') ? 'json' : filename.split('.').pop() || 'json';
-    const filePath = await platform.showSaveDialog({
-      title: t('exportFile.saveJson'),
-      defaultPath: filename,
-      filters: [{ name: 'JSON Files', extensions: [ext] }],
-    });
-    if (filePath) {
-      await platform.writeFile(filePath, new TextEncoder().encode(content));
-      return;
-    }
-    // User cancelled — don't fall through to browser download
+  if (platform.canAccessFileSystem() && platform.saveFile) {
+    // A cancelled dialog does not fall through to a browser download.
+    await saveNatively(t('exportFile.saveJson'), filename, 'JSON Files', 'json', content);
     return;
   }
 
@@ -37,17 +38,9 @@ export async function downloadJSON(filename: string, json: any): Promise<void> {
 
 /** Save text to a file — uses native dialog in Electron, browser download otherwise */
 export async function downloadText(filename: string, text: string): Promise<void> {
-  if (platform.canAccessFileSystem() && platform.showSaveDialog && platform.writeFile) {
-    const ext = filename.split('.').pop() || 'txt';
-    const filePath = await platform.showSaveDialog({
-      title: t('exportFile.saveFile'),
-      defaultPath: filename,
-      filters: [{ name: 'Text Files', extensions: [ext] }],
-    });
-    if (filePath) {
-      await platform.writeFile(filePath, new TextEncoder().encode(text));
-      return;
-    }
+  if (platform.canAccessFileSystem() && platform.saveFile) {
+    const ext = filename.split('.').pop()?.toLowerCase() || 'txt';
+    await saveNatively(t('exportFile.saveFile'), filename, 'Text Files', ext, text);
     return;
   }
 

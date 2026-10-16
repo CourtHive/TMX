@@ -52,7 +52,7 @@ TMX/
 | ----------------- | --------------- | -------------------------------------- | ----------------------------------- |
 | Web               | `vite`          | `vite.config.ts`                       | `dist/`                             |
 | Electron main     | `electron-vite` | `electron.vite.config.ts` → `main`     | `dist-electron/main/main.js`        |
-| Electron preload  | `electron-vite` | `electron.vite.config.ts` → `preload`  | `dist-electron/preload/preload.mjs` |
+| Electron preload  | `electron-vite` | `electron.vite.config.ts` → `preload`  | `dist-electron/preload/preload.cjs` |
 | Electron renderer | `electron-vite` | `electron.vite.config.ts` → `renderer` | `dist/` (same as web)               |
 
 The renderer config includes `vite-tsconfig-paths` and `vite-plugin-environment` (same plugins
@@ -80,22 +80,20 @@ never checks `window.electronAPI` directly.
 
 ## Preload Bridge (IPC)
 
-The preload script (`electron/preload.ts`) exposes a typed API via `contextBridge`:
+The renderer is **untrusted**: it renders server-delivered strings with innerHTML, so script in the
+page is assumed reachable (see `Mentat/planning/TMX_ELECTRON_SECURITY.md`). The bridge is
+therefore narrow, and no method takes a file path. The preload (`electron/preload.ts`) runs
+sandboxed and exposes:
 
 ```typescript
 window.electronAPI = {
-  // File dialogs
-  showSaveDialog(options): Promise<string | undefined>,
-  showOpenDialog(options): Promise<string[] | undefined>,
+  // Files: main shows the native dialog and does the I/O; the chosen path never returns
+  saveFile({ title?, defaultName?, filters, data }): Promise<{ saved: boolean }>,
+  openFiles({ title?, filters, multiple? }): Promise<{ name: string; data: Uint8Array }[] | undefined>,
 
-  // File system
-  readFile(filePath): Promise<Uint8Array>,
-  writeFile(filePath, data): Promise<void>,
-
-  // App metadata
-  getAppDataPath(): string,
+  // Server URL: https, or http on localhost; a change is confirmed in a native dialog
   getServerUrl(): string,
-  setServerUrl(url): Promise<void>,
+  setServerUrl(url): Promise<{ saved: boolean }>,
 
   // DevTools (admin-gated in renderer)
   toggleDevTools(): Promise<void>,
@@ -108,13 +106,33 @@ window.electronAPI = {
 The `ElectronBridge` interface in `src/platform/electron.ts` mirrors this shape. The
 `PlatformAdapter` wraps each method as an optional capability so web code never sees them.
 
+### What the main process enforces (`electron/main.ts`, `electron/policy.ts`)
+
+- **Sender check** on every handler: the call must come from the main window's top frame while
+  it shows the app.
+- **Files**: filter extensions from an allow-list (save: `json`, `csv`, `txt`; open: `json`),
+  a 100 MB cap per file, and a bare file name as the dialog's default.
+- **Navigation**: the window may only show the app. A link or redirect elsewhere is cancelled,
+  and an `https:` URL is handed to the system browser. `window.open` is denied the same way,
+  except an app-made `blob:` URL (the PDF preview), which opens in a sandboxed window with no
+  preload. `<webview>` is disabled.
+- **Permissions**: only `notifications`, `clipboard-sanitized-write` and `fullscreen`.
+- **Content-Security-Policy**: injected into the packaged renderer's `index.html` at build time
+  (`electron.vite.config.ts`, where each allowance is listed with its reason). No inline script
+  except the hashed theme bootstrap, no `eval`.
+- `ELECTRON_RENDERER_URL` is honoured only when the app is not packaged.
+
+`e2e/electron/security.spec.ts` runs injected-script attacks against each of these; set
+`TMX_E2E_PACKAGED=1` to run it against the packaged app in `release/`.
+
 ---
 
 ## Main Process (`electron/main.ts`)
 
 ### Window Management
 
-- Creates a single `BrowserWindow` with `contextIsolation: true`, `nodeIntegration: false`
+- Creates a single `BrowserWindow` with `contextIsolation: true`, `nodeIntegration: false`,
+  `sandbox: true`, `webviewTag: false`
 - Window bounds (position + size) are persisted to `tmx-prefs.json` in the app's `userData` dir
 - Restored on next launch; defaults to 1400x900 (clamped to screen)
 - `minWidth: 800`, `minHeight: 600`
@@ -122,22 +140,22 @@ The `ElectronBridge` interface in `src/platform/electron.ts` mirrors this shape.
 ### Content Loading
 
 - **Development**: `electron-vite dev` sets `ELECTRON_RENDERER_URL` → `mainWindow.loadURL()`
-  points to the Vite dev server (typically `http://localhost:5173`)
+  points to the Vite dev server (typically `http://localhost:5173`). Ignored in a packaged app.
 - **Production**: `mainWindow.loadFile('../../dist/index.html')` relative to the built main.js
 
 ### IPC Handlers
 
-| Channel              | Direction       | Purpose                     |
-| -------------------- | --------------- | --------------------------- |
-| `dialog:save`        | renderer → main | Native save dialog          |
-| `dialog:open`        | renderer → main | Native open dialog          |
-| `fs:readFile`        | renderer → main | Read file from disk         |
-| `fs:writeFile`       | renderer → main | Write file to disk          |
-| `app:getDataPath`    | renderer → main | User data directory path    |
-| `app:getServerUrl`   | renderer → main | Load persisted server URL   |
-| `app:setServerUrl`   | renderer → main | Persist server URL          |
-| `app:toggleDevTools` | renderer → main | Toggle Chrome DevTools      |
-| `menu:action`        | main → renderer | Menu item clicked (one-way) |
+| Channel              | Direction       | Purpose                                            |
+| -------------------- | --------------- | -------------------------------------------------- |
+| `file:save`          | renderer → main | Native save dialog + write; returns `{ saved }`    |
+| `file:open`          | renderer → main | Native open dialog + read; returns names, contents |
+| `app:getServerUrl`   | renderer → main | Load persisted server URL                          |
+| `app:setServerUrl`   | renderer → main | Validate, confirm natively, persist server URL     |
+| `app:toggleDevTools` | renderer → main | Toggle Chrome DevTools                             |
+| `menu:action`        | main → renderer | Menu item clicked (one-way)                        |
+
+Every renderer → main handler refuses a call that is not from the main window's top frame
+showing the app.
 
 ---
 
@@ -180,7 +198,7 @@ In Electron, tournament import/export uses native OS dialogs instead of browser 
 
 `downloadJSON()` and `downloadText()` check `platform.canAccessFileSystem()`:
 
-- **Electron**: calls `platform.showSaveDialog()` → `platform.writeFile()` (native Save As)
+- **Electron**: calls `platform.saveFile()`; main shows the native Save As and writes the file
 - **Web**: falls back to the existing `data:` URI + invisible `<a>` click pattern
 
 The filter defaults to the appropriate file type (`.json`, `.csv`, etc.).
@@ -189,8 +207,9 @@ The filter defaults to the appropriate file type (`.json`, `.csv`, etc.).
 
 `importTournaments()` checks `platform.canAccessFileSystem()`:
 
-- **Electron**: calls `platform.showOpenDialog()` with `multiple: true` → `platform.readFile()`
-  for each selected file → parses JSON → feeds into the existing `addTournament()` flow
+- **Electron**: calls `platform.openFiles()` with `multiple: true`; main shows the native Open
+  and returns each file's name and contents → parses JSON → feeds into the existing
+  `addTournament()` flow
 - **Web**: falls back to `dropzoneModal()` (drag-and-drop / `<input type="file">`)
 
 ---
@@ -277,18 +296,25 @@ TMX overrides `@xmldom/xmldom` to `^0.9.0` for security, which also captured
 `plist`. Resolved by the scoped override in `pnpm-workspace.yaml`:
 
 ```yaml
-'plist>@xmldom/xmldom': ^0.8.11
+'plist>@xmldom/xmldom': ^0.8.15
 ```
 
 `plist` is build-time only (never in the app bundle, never fed untrusted input),
 so the 0.8 line is not an exposure. Everything else stays on 0.9.
 
+This broke a second time when Renovate "updated" the scoped pin to `^0.9.0` (#1275), and nothing
+noticed: CI packages on Linux, which never parses an `Info.plist`. Restored 2026-10-16, and a
+`renovate.json` rule now holds `plist>@xmldom/xmldom` below 0.9. Package on macOS before trusting
+a change here.
+
 ### `window.electronAPI` is undefined in the packaged app
 
-The preload was emitted under a name `electron/main.ts` does not load. Electron
-accepts an ESM preload **only** when the file is named `.mjs`, and electron-vite
-v5 defaults `entryFileNames` to `[name].js`; `electron.vite.config.ts` pins
-`output: { format: 'es', entryFileNames: 'preload.mjs' }` for this reason.
+The preload was emitted under a name or format `electron/main.ts` cannot load. The
+window runs with `sandbox: true`, where a preload must be a CommonJS script (an ES
+module is never injected), so `electron.vite.config.ts` pins
+`output: { format: 'cjs', entryFileNames: 'preload.cjs' }`. Before the sandbox
+(2026-10-16) it was ESM named `.mjs`; electron-vite v5 defaulting `entryFileNames`
+to `[name].js` broke that once.
 
 Nothing errors when this breaks — `src/platform/index.ts` simply falls back to
 the **web** adapter, so native dialogs become browser downloads and the

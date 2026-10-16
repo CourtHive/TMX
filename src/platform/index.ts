@@ -8,11 +8,11 @@ import { createElectronPlatform } from './electron';
 import type { PlatformAdapter } from './types';
 import { createWebPlatform } from './web';
 
-export type { PlatformAdapter, PlatformType, SaveDialogOptions, OpenDialogOptions } from './types';
+export type { PlatformAdapter, PlatformType, SaveFileRequest, OpenFilesRequest, OpenedFile } from './types';
 
 function detectPlatform(): PlatformAdapter {
-  // Electron preload scripts set window.electronAPI
-  if (typeof window !== 'undefined' && (window as any).electronAPI) {
+  // The Electron preload sets globalThis.electronAPI
+  if ((globalThis as any).electronAPI) {
     return createElectronPlatform();
   }
   return createWebPlatform();

@@ -1,7 +1,6 @@
 import { ElectronApplication, Page, _electron as electron, expect, test } from '@playwright/test';
+import { findPackagedExecutable } from './helpers/packagedExecutable';
 import { freshUserDataDir } from './helpers/userDataDir';
-import { existsSync, readdirSync } from 'fs';
-import { resolve } from 'path';
 
 /**
  * Smoke test against the REAL packaged application — the `.app` / `.exe` /
@@ -23,39 +22,6 @@ import { resolve } from 'path';
  * CI runs `electron-builder --dir`, which exercises the same packaging pipeline
  * without producing installers, so this spec runs there too.
  */
-
-const repoRoot = resolve(import.meta.dirname, '../..');
-const RELEASE_DIR = resolve(repoRoot, 'release');
-
-/**
- * Locate the packaged executable for the current platform. Returns undefined
- * when no package has been built, which switches the whole suite to skipped.
- */
-function findPackagedExecutable(): string | undefined {
-  if (!existsSync(RELEASE_DIR)) return undefined;
-
-  const entries = readdirSync(RELEASE_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-
-  for (const dir of entries) {
-    if (process.platform === 'darwin') {
-      const appDir = resolve(RELEASE_DIR, dir);
-      const app = readdirSync(appDir, { withFileTypes: true }).find((e) => e.name.endsWith('.app'));
-      if (app) {
-        const binary = resolve(appDir, app.name, 'Contents/MacOS', app.name.replace(/\.app$/, ''));
-        if (existsSync(binary)) return binary;
-      }
-    } else if (process.platform === 'win32') {
-      const binary = resolve(RELEASE_DIR, dir, 'TMX.exe');
-      if (existsSync(binary)) return binary;
-    } else {
-      const binary = resolve(RELEASE_DIR, dir, 'tmx');
-      if (existsSync(binary)) return binary;
-    }
-  }
-  return undefined;
-}
 
 const executablePath = findPackagedExecutable();
 
@@ -105,5 +71,26 @@ test.describe('packaged application', () => {
   test('loads every bundled asset from the package', async () => {
     await window.waitForTimeout(2_500);
     expect(failedFileRequests, `packaged app failed to load:\n  ${failedFileRequests.join('\n  ')}`).toEqual([]);
+  });
+});
+
+test.describe('packaged application ignores the dev-server override', () => {
+  test.skip(!executablePath, 'no package in release/ — run `pnpm electron:package` first');
+
+  test('ELECTRON_RENDERER_URL cannot point a packaged app at another page', async () => {
+    const userData = freshUserDataDir();
+    const app = await electron.launch({
+      executablePath,
+      args: [`--user-data-dir=${userData.path}`],
+      env: { ...process.env, ELECTRON_RENDERER_URL: 'https://example.com/' },
+    });
+    try {
+      const window = await app.firstWindow();
+      await window.waitForLoadState('domcontentloaded');
+      expect(window.url()).toMatch(/^file:\/\/.*\/dist\/index\.html/);
+    } finally {
+      await app.close();
+      userData.cleanup();
+    }
   });
 });

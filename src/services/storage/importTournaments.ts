@@ -34,21 +34,17 @@ function processImportData(data: string, tournamentIds: string[], table: any): v
 export function importTournaments({ table }: { table: any }): void {
   const tournamentIds = table.getData().map((t: any) => t.tournamentId);
 
-  if (platform.canAccessFileSystem() && platform.showOpenDialog && platform.readFile) {
+  if (platform.canAccessFileSystem() && platform.openFiles) {
     platform
-      .showOpenDialog({
+      .openFiles({
         title: t('storage.importTournament'),
         filters: [{ name: 'CODES JSON', extensions: ['json'] }],
         multiple: true,
       })
-      .then(async (filePaths) => {
-        if (!filePaths) return;
-        for (const filePath of filePaths) {
-          const bytes = await platform.readFile!(filePath);
-          const data = new TextDecoder().decode(bytes);
-          processImportData(data, tournamentIds, table);
-        }
-      });
+      .then((files) => {
+        for (const file of files ?? []) processImportData(new TextDecoder().decode(file.data), tournamentIds, table);
+      })
+      .catch((err) => console.error('[import] native open failed', err));
     return;
   }
 
