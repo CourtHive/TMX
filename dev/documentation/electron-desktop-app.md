@@ -108,18 +108,28 @@ The `ElectronBridge` interface in `src/platform/electron.ts` mirrors this shape.
 
 ### What the main process enforces (`electron/main.ts`, `electron/policy.ts`)
 
+- **Origin**: the built renderer is served from `app://tmx/` by a protocol handler that resolves
+  only inside `dist/`, never from `file://`. Over `file://` the CSP `'self'` matched every local
+  file and Chromium let the page fetch others, so page script could read any file the user can.
+  Browser storage (IndexedDB, localStorage) belongs to `app://tmx`; data a pre-2026-10-16 build
+  stored under the `file://` origin is not visible to it.
 - **Sender check** on every handler: the call must come from the main window's top frame while
   it shows the app.
 - **Files**: filter extensions from an allow-list (save: `json`, `csv`, `txt`; open: `json`),
-  a 100 MB cap per file, and a bare file name as the dialog's default.
+  a 100 MB cap per file, and a bare file name as the dialog's default. A saved file always gets
+  an allowed extension (`Update.bat` → `Update.bat.json`); open refuses other file types.
 - **Navigation**: the window may only show the app. A link or redirect elsewhere is cancelled,
-  and an `https:` URL is handed to the system browser. `window.open` is denied the same way,
+  and an `https:` URL is handed to the system browser: directly for CourtHive domains and the
+  configured server, after a native confirmation for any other host. `window.open` is denied the same way,
   except an app-made `blob:` URL (the PDF preview), which opens in a sandboxed window with no
-  preload. `<webview>` is disabled.
-- **Permissions**: only `notifications`, `clipboard-sanitized-write` and `fullscreen`.
+  preload. Sub-frames are held to the app, `blob:` and `about:`. `<webview>` is disabled.
+- **Permissions**: only `notifications`, `clipboard-sanitized-write` and `fullscreen`, judged by
+  the requesting frame's origin.
 - **Content-Security-Policy**: injected into the packaged renderer's `index.html` at build time
   (`electron.vite.config.ts`, where each allowance is listed with its reason). No inline script
-  except the hashed theme bootstrap, no `eval`.
+  except the hashed theme bootstrap, no `eval`. The document response adds a `connect-src`
+  header naming the configured server (https + wss; localhost only when unpackaged or unset),
+  so a confirmed server change reloads the window.
 - `ELECTRON_RENDERER_URL` is honoured only when the app is not packaged.
 
 `e2e/electron/security.spec.ts` runs injected-script attacks against each of these; set
@@ -141,7 +151,8 @@ The `ElectronBridge` interface in `src/platform/electron.ts` mirrors this shape.
 
 - **Development**: `electron-vite dev` sets `ELECTRON_RENDERER_URL` → `mainWindow.loadURL()`
   points to the Vite dev server (typically `http://localhost:5173`). Ignored in a packaged app.
-- **Production**: `mainWindow.loadFile('../../dist/index.html')` relative to the built main.js
+- **Production**: `mainWindow.loadURL('app://tmx/index.html')`, served from `dist/` by the
+  `app://` protocol handler
 
 ### IPC Handlers
 
@@ -359,7 +370,7 @@ Run with `pnpm test:electron`. Config: `e2e/playwright.electron.config.ts`
 | Spec                     | Guards                                                                                                                                                                                                           |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `build-contract.spec.ts` | Static assertions on build OUTPUT — `package.json#main` resolves, the preload filename `main.ts` loads is actually emitted, preload is `.mjs`, `index.html` asset paths stay relative, `version.json` is emitted |
-| `app-launch.spec.ts`     | Launches `dist-electron/main/main.js`: window opens, assets resolve under `file://`, TMX itself boots (`globalThis.dev`), no uncaught errors, and **no request fails against the `file://` origin**              |
+| `app-launch.spec.ts`     | Launches `dist-electron/main/main.js`: window opens, assets resolve under `app://tmx`, TMX itself boots (`globalThis.dev`), no uncaught errors, and **no request fails against the `file://` origin**            |
 | `preload-bridge.spec.ts` | `window.electronAPI` is injected, exposes every method `PlatformAdapter` needs, and both IPC directions round-trip                                                                                               |
 | `packaged-app.spec.ts`   | The real `.app`/`.exe`/AppImage from electron-builder — boots from inside the asar, ships the preload, loads every bundled asset. Auto-skips unless `release/` exists                                            |
 
@@ -373,7 +384,8 @@ Two habits keep this suite honest:
 - **Falsify the detector.** Every guard here was verified to report _dirty_, not
   just clean: reverting the preload fix fires 7 failures, reverting
   `staticAssetUrl` fires on `file:///fonts/catalog.json`, and reverting the
-  `baseApi` fix fires on `file:///i18n/manifest`.
+  `baseApi` fix fires on `file:///i18n/manifest` (both measured under the old
+  `file://` origin; failures are now tracked on `app://`, including 404 responses).
 
 ---
 
