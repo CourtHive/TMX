@@ -6,7 +6,7 @@
  * page is assumed reachable. Everything the page asks the main process for passes through here.
  * See Mentat/planning/TMX_ELECTRON_SECURITY.md.
  */
-import { basename } from 'path';
+import { basename, resolve, sep } from 'path';
 
 export interface FileFilter {
   name: string;
@@ -20,6 +20,11 @@ export const OPEN_EXTENSIONS: readonly string[] = ['json'];
 /** Per-file cap on both directions; the largest real tournament records are a few MB. */
 export const MAX_FILE_BYTES = 100 * 1024 * 1024;
 const MAX_NAME_LENGTH = 200;
+
+/** The renderer is served from `app://tmx/`, never `file://` (see `resolveAppFile`). */
+export const APP_SCHEME = 'app';
+export const APP_HOST = 'tmx';
+export const APP_ORIGIN = `${APP_SCHEME}://${APP_HOST}`;
 
 /** Permissions TMX uses: desktop notifications, clipboard writes (call sheet), fullscreen. */
 export const ALLOWED_PERMISSIONS: ReadonlySet<string> = new Set([
@@ -52,10 +57,44 @@ export function safeDefaultName(name: unknown): string | undefined {
   return bare.slice(0, MAX_NAME_LENGTH);
 }
 
+const extensionOf = (name: string) => (name.includes('.') ? (name.split('.').pop() ?? '').toLowerCase() : '');
+
 /** True when `path` ends in one of the filters' extensions. */
 export function hasAllowedExtension(path: string, filters: FileFilter[]): boolean {
-  const ext = path.split('.').pop()?.toLowerCase() ?? '';
+  const ext = extensionOf(basename(path));
   return filters.some((filter) => filter.extensions.includes(ext));
+}
+
+/**
+ * `name` if its extension is one the filters allow, otherwise `name` with the first allowed
+ * extension appended — so `Update.bat` under a JSON filter is saved as `Update.bat.json`.
+ */
+export function withAllowedExtension(name: string, filters: FileFilter[]): string {
+  return hasAllowedExtension(name, filters) ? name : `${name}.${filters[0].extensions[0]}`;
+}
+
+/**
+ * The file inside `distDir` that an `app://tmx/…` request names, or undefined for any other host,
+ * scheme, or a path that resolves outside `distDir` (including percent-encoded `..`).
+ */
+export function resolveAppFile(requestUrl: string, distDir: string): string | undefined {
+  let url: URL;
+  try {
+    url = new URL(requestUrl);
+  } catch {
+    return undefined;
+  }
+  if (url.protocol !== `${APP_SCHEME}:` || url.host !== APP_HOST) return undefined;
+  let pathname: string;
+  try {
+    pathname = decodeURIComponent(url.pathname);
+  } catch {
+    return undefined;
+  }
+  if (pathname.includes('\0')) return undefined;
+  const root = resolve(distDir);
+  const file = resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
+  return file.startsWith(root + sep) ? file : undefined;
 }
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
@@ -80,33 +119,24 @@ export function normalizeServerUrl(value: unknown): string | undefined {
   return `${url.origin}${path}`;
 }
 
+const sameSite = (a: URL, b: URL) => a.protocol === b.protocol && a.host === b.host;
+
 /**
- * Whether `url` is the app itself: the same file (ignoring hash and query) for the packaged
- * renderer, or the same origin for the development server.
+ * Whether `url` is the app itself: same scheme and host as the app (`app://tmx` when packaged or
+ * built, the dev server origin in development). Path, query and hash may differ.
  */
 export function isAppUrl(url: string, appUrl: string): boolean {
-  let target: URL;
-  let app: URL;
   try {
-    target = new URL(url);
-    app = new URL(appUrl);
+    return sameSite(new URL(url), new URL(appUrl));
   } catch {
     return false;
   }
-  if (app.protocol === 'file:') return target.protocol === 'file:' && target.pathname === app.pathname;
-  return target.origin === app.origin;
 }
 
-/** A blob: URL minted by the app's own origin (the PDF preview), e.g. `blob:file:///<uuid>`. */
+/** A blob: URL minted by the app's own origin (the PDF preview), e.g. `blob:app://tmx/<uuid>`. */
 export function isAppBlobUrl(url: string, appUrl: string): boolean {
   if (!url.startsWith('blob:')) return false;
-  try {
-    const inner = new URL(url.slice('blob:'.length));
-    const app = new URL(appUrl);
-    return app.protocol === 'file:' ? inner.protocol === 'file:' : inner.origin === app.origin;
-  } catch {
-    return false;
-  }
+  return isAppUrl(url.slice('blob:'.length), appUrl);
 }
 
 /** An https URL to hand to the system browser; anything else is not opened at all. */
@@ -117,4 +147,40 @@ export function externalUrl(url: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+const TRUSTED_EXTERNAL_DOMAINS = ['courthive.com', 'courthive.net'];
+
+/**
+ * Whether an external https link may open without asking: CourtHive's own domains and the
+ * configured server's host. Anything else is confirmed by the user first.
+ */
+export function isTrustedExternal(url: string, serverUrl?: string): boolean {
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return false;
+  }
+  if (TRUSTED_EXTERNAL_DOMAINS.some((domain) => host === domain || host.endsWith(`.${domain}`))) return true;
+  const server = serverUrl ? normalizeServerUrl(serverUrl) : undefined;
+  return !!server && new URL(server).hostname === host;
+}
+
+/**
+ * The `connect-src` the renderer gets as a response header: its own origin, the configured
+ * server (https + wss), and local development hosts only when unpackaged or no server is set
+ * (the renderer then falls back to http://localhost:8383).
+ */
+export function connectSources(serverUrl: string | undefined, packaged: boolean): string {
+  const sources = ["'self'"];
+  const server = serverUrl ? normalizeServerUrl(serverUrl) : undefined;
+  if (server) {
+    const { origin, protocol, host } = new URL(server);
+    sources.push(origin, `${protocol === 'https:' ? 'wss:' : 'ws:'}//${host}`);
+  }
+  if (!packaged || !server) {
+    sources.push('http://localhost:*', 'ws://localhost:*', 'http://127.0.0.1:*', 'ws://127.0.0.1:*');
+  }
+  return `connect-src ${sources.join(' ')}`;
 }

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  withAllowedExtension,
+  hasAllowedExtension,
   normalizeServerUrl,
+  isTrustedExternal,
   SAVE_EXTENSIONS,
+  connectSources,
+  resolveAppFile,
   safeDefaultName,
   allowedFilters,
   isAppBlobUrl,
@@ -9,7 +14,12 @@ import {
   isAppUrl,
 } from './policy';
 
-const APP = 'file:///Applications/TMX.app/Contents/Resources/app.asar/dist/index.html';
+const APP = 'app://tmx/index.html';
+const DIST = '/Applications/TMX.app/Contents/Resources/app.asar/dist';
+const JSON_FILTER = [{ name: 'JSON', extensions: ['json'] }];
+const SERVER = 'https://courthive.net';
+const SCRIPT_URL = 'javascript:alert(1)';
+const REMOTE = 'https://example.com/';
 const DEV = 'http://localhost:5173/';
 
 describe('allowedFilters', () => {
@@ -43,14 +53,14 @@ describe('safeDefaultName', () => {
 
 describe('normalizeServerUrl', () => {
   it('accepts https anywhere and http only on this machine', () => {
-    expect(normalizeServerUrl('https://courthive.net/')).toBe('https://courthive.net');
+    expect(normalizeServerUrl('https://courthive.net/')).toBe(SERVER);
     expect(normalizeServerUrl(' https://courthive.net/api/ ')).toBe('https://courthive.net/api');
     expect(normalizeServerUrl('http://localhost:8383')).toBe('http://localhost:8383');
     expect(normalizeServerUrl('http://127.0.0.1:8383')).toBe('http://127.0.0.1:8383');
   });
   it('refuses other schemes, remote http, credentials and garbage', () => {
     for (const value of [
-      'javascript:alert(1)',
+      SCRIPT_URL,
       'file:///etc/passwd',
       'http://evil.example',
       'http://localhost.evil.example',
@@ -64,19 +74,22 @@ describe('normalizeServerUrl', () => {
     }
   });
   it('drops query and hash', () => {
-    expect(normalizeServerUrl('https://courthive.net/?x=1#y')).toBe('https://courthive.net');
+    expect(normalizeServerUrl('https://courthive.net/?x=1#y')).toBe(SERVER);
   });
 });
 
 describe('isAppUrl', () => {
-  it('matches the packaged index.html whatever its hash or query', () => {
-    expect(isAppUrl(`${APP}#/tournament/t1`, APP)).toBe(true);
-    expect(isAppUrl(`${APP}?x=1`, APP)).toBe(true);
+  it('matches the app origin whatever the path, hash or query', () => {
+    expect(isAppUrl('app://tmx/index.html#/tournament/t1', APP)).toBe(true);
+    expect(isAppUrl('app://tmx/assets/index.js?x=1', APP)).toBe(true);
+    expect(isAppUrl('app://tmx', APP)).toBe(true);
   });
-  it('refuses any other file, and any other origin', () => {
-    expect(isAppUrl('file:///etc/hosts', APP)).toBe(false);
-    expect(isAppUrl('https://example.com/', APP)).toBe(false);
-    expect(isAppUrl('blob:file:///abc', APP)).toBe(false);
+  it('refuses another host on the same scheme, file:, and any other origin', () => {
+    expect(isAppUrl('app://evil/index.html', APP)).toBe(false);
+    expect(isAppUrl('file:///Applications/TMX.app/Contents/Resources/app.asar/dist/index.html', APP)).toBe(false);
+    expect(isAppUrl('file://evil-host/dist/index.html', APP)).toBe(false);
+    expect(isAppUrl(REMOTE, APP)).toBe(false);
+    expect(isAppUrl('blob:app://tmx/abc', APP)).toBe(false);
   });
   it('matches by origin for the development server', () => {
     expect(isAppUrl('http://localhost:5173/#/x', DEV)).toBe(true);
@@ -86,18 +99,69 @@ describe('isAppUrl', () => {
 
 describe('isAppBlobUrl', () => {
   it('matches blob: URLs minted by the app origin only', () => {
-    expect(isAppBlobUrl('blob:file:///0b1c', APP)).toBe(true);
+    expect(isAppBlobUrl('blob:app://tmx/0b1c', APP)).toBe(true);
     expect(isAppBlobUrl('blob:http://localhost:5173/0b1c', DEV)).toBe(true);
+    expect(isAppBlobUrl('blob:file:///0b1c', APP)).toBe(false);
     expect(isAppBlobUrl('blob:https://example.com/0b1c', APP)).toBe(false);
-    expect(isAppBlobUrl('blob:https://example.com/0b1c', DEV)).toBe(false);
-    expect(isAppBlobUrl('https://example.com/', APP)).toBe(false);
+    expect(isAppBlobUrl(REMOTE, APP)).toBe(false);
+  });
+});
+
+describe('resolveAppFile', () => {
+  it('maps app://tmx paths into dist, with / as index.html', () => {
+    expect(resolveAppFile('app://tmx/', DIST)).toBe(`${DIST}/index.html`);
+    expect(resolveAppFile('app://tmx/assets/index-abc.js?v=1', DIST)).toBe(`${DIST}/assets/index-abc.js`);
+  });
+  it('refuses anything that escapes dist, another host or scheme', () => {
+    // The URL parser collapses encoded dot segments itself, so this stays inside dist.
+    expect(resolveAppFile('app://tmx/%2e%2e/%2e%2e/etc/passwd', DIST)).toBe(`${DIST}/etc/passwd`);
+    expect(resolveAppFile('app://tmx/..%2f..%2fetc/passwd', DIST)).toBeUndefined();
+    expect(resolveAppFile('app://tmx/assets/%00x.js', DIST)).toBeUndefined();
+    expect(resolveAppFile('app://other/index.html', DIST)).toBeUndefined();
+    expect(resolveAppFile('file:///etc/passwd', DIST)).toBeUndefined();
+    expect(resolveAppFile('app://tmx/%E0%A4%A', DIST)).toBeUndefined();
+  });
+});
+
+describe('extensions', () => {
+  it('appends an allowed extension to any other name', () => {
+    expect(withAllowedExtension('export.codes.json', JSON_FILTER)).toBe('export.codes.json');
+    expect(withAllowedExtension('Update.bat', JSON_FILTER)).toBe('Update.bat.json');
+    expect(withAllowedExtension('x.command', JSON_FILTER)).toBe('x.command.json');
+    expect(withAllowedExtension('noext', JSON_FILTER)).toBe('noext.json');
+  });
+  it('checks the extension of the file name, not a directory', () => {
+    expect(hasAllowedExtension('/Users/me/my.json/report', JSON_FILTER)).toBe(false);
+    expect(hasAllowedExtension('C:/x/REPORT.JSON', JSON_FILTER)).toBe(true);
+  });
+});
+
+describe('isTrustedExternal', () => {
+  it('trusts CourtHive domains and the configured server host only', () => {
+    expect(isTrustedExternal('https://courthive.com/docs')).toBe(true);
+    expect(isTrustedExternal('https://pub.courthive.net/x')).toBe(true);
+    expect(isTrustedExternal('https://courthive.com.evil.example/')).toBe(false);
+    expect(isTrustedExternal('https://evilcourthive.com/')).toBe(false);
+    expect(isTrustedExternal('https://tmx.example.org/a', 'https://tmx.example.org')).toBe(true);
+    expect(isTrustedExternal(REMOTE)).toBe(false);
+  });
+});
+
+describe('connectSources', () => {
+  it('names the configured server for https and wss, and drops localhost when packaged', () => {
+    expect(connectSources(SERVER, true)).toBe("connect-src 'self' https://courthive.net wss://courthive.net");
+  });
+  it('keeps local development hosts when unpackaged or when no server is set', () => {
+    expect(connectSources(undefined, true)).toContain('http://localhost:*');
+    expect(connectSources(SERVER, false)).toContain('ws://127.0.0.1:*');
+    expect(connectSources(SCRIPT_URL, true)).toContain('http://localhost:*');
   });
 });
 
 describe('externalUrl', () => {
   it('passes https only', () => {
     expect(externalUrl('https://example.com/a')).toBe('https://example.com/a');
-    for (const url of ['http://example.com', 'file:///etc/hosts', 'smb://share/x', 'javascript:alert(1)', 'x']) {
+    for (const url of ['http://example.com', 'file:///etc/hosts', 'smb://share/x', SCRIPT_URL, 'x']) {
       expect(externalUrl(url), url).toBeUndefined();
     }
   });

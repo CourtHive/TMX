@@ -8,7 +8,7 @@ import { resolve } from 'path';
  * Asserts progressively deeper layers so a failure localises itself:
  *   1. the Electron process starts at all           (main entry is loadable)
  *   2. a window opens                               (createWindow ran)
- *   3. the renderer's own assets loaded             (base / file:// resolution)
+ *   3. the renderer's own assets loaded             (base / app://tmx resolution)
  *   4. TMX itself booted                            (app code ran, not just HTML)
  */
 
@@ -44,12 +44,20 @@ test.beforeAll(async () => {
   // Track failures against the app's OWN origin. Requests to an http(s) API host
   // are expected to fail in this suite — there is no CFS running — so asserting
   // on console text would either be too noisy to keep or too vague to trust.
-  // A failed `file://` request is unambiguous: either a bundled asset is missing,
-  // or code built an absolute URL against the file origin (the `/fonts/*` and
-  // `file:///i18n/manifest` defects both presented exactly this way).
+  // A failed request on the app's own origin is unambiguous: either a bundled
+  // asset is missing, or code built an absolute URL against the app origin (the
+  // `/fonts/*` and `file:///i18n/manifest` defects, under the old file:// origin,
+  // both presented exactly this way).
+  // The renderer is served from app://tmx: a missing asset is a 404 RESPONSE from the protocol
+  // handler, not a failed request, so both are tracked.
   window.on('requestfailed', (request) => {
     const url = request.url();
-    if (url.startsWith('file://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
+    if (url.startsWith('app://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
+  });
+  window.on('response', (response) => {
+    if (response.url().startsWith('app://') && response.status() >= 400) {
+      failedFileRequests.push(`${response.url()} (HTTP ${response.status()})`);
+    }
   });
 });
 
@@ -73,7 +81,7 @@ test.describe('electron app launch', () => {
     expect(identity.name).toBeTruthy();
   });
 
-  test('renderer assets resolve under the file:// protocol', async () => {
+  test('renderer assets resolve under the app://tmx origin', async () => {
     // The blank-window failure mode: index.html parses fine, so a title check
     // still passes, but every `/assets/*` request 404s off the filesystem root.
     // Proving a stylesheet applied is proving the asset graph actually loaded.
@@ -113,7 +121,7 @@ test.describe('electron app launch', () => {
 
     expect(
       failedFileRequests,
-      `requests failed against the file:// origin:\n  ${failedFileRequests.join('\n  ')}`,
+      `requests failed against the app://tmx origin:\n  ${failedFileRequests.join('\n  ')}`,
     ).toEqual([]);
   });
 });

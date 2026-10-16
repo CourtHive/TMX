@@ -40,9 +40,16 @@ test.describe('packaged application', () => {
       args: [`--user-data-dir=${userData.path}`],
     });
     window = await app.firstWindow();
+    // The renderer is served from app://tmx: a missing asset is a 404 RESPONSE from the protocol
+    // handler, not a failed request, so both are tracked.
     window.on('requestfailed', (request) => {
       const url = request.url();
-      if (url.startsWith('file://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
+      if (url.startsWith('app://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
+    });
+    window.on('response', (response) => {
+      if (response.url().startsWith('app://') && response.status() >= 400) {
+        failedFileRequests.push(`${response.url()} (HTTP ${response.status()})`);
+      }
     });
   });
 
@@ -87,7 +94,7 @@ test.describe('packaged application ignores the dev-server override', () => {
     try {
       const window = await app.firstWindow();
       await window.waitForLoadState('domcontentloaded');
-      expect(window.url()).toMatch(/^file:\/\/.*\/dist\/index\.html/);
+      expect(window.url()).toBe('app://tmx/index.html');
     } finally {
       await app.close();
       userData.cleanup();

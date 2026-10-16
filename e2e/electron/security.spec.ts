@@ -28,7 +28,8 @@ let app: ElectronApplication;
 let window: Page;
 let userData: { path: string; cleanup: () => void };
 let scratch: string;
-const cspViolations: string[] = [];
+/** Main-process console output from the boot itself, before any test injects anything. */
+let bootConsole: string[] = [];
 
 const api = (page: Page, script: string) =>
   page.evaluate(`(async () => { const api = globalThis.electronAPI; ${script} })()`) as Promise<any>;
@@ -60,6 +61,18 @@ const withoutHash = (url: string) => url.split('#')[0];
 
 const dialogCalls = (): Promise<any[]> => app.evaluate(() => (globalThis as any).__dialogCalls ?? []);
 
+/** Waits for the app to be running again after main reloads the window (a confirmed server change). */
+async function untilReloaded(action: () => Promise<any>): Promise<any> {
+  const reloaded = window.waitForEvent('load');
+  const result = await action();
+  await reloaded;
+  await window.waitForFunction(() => typeof (globalThis as any).dev !== 'undefined', null, { timeout: 30_000 });
+  return result;
+}
+
+/** Console messages the main process saw, captured from before the boot under test. */
+const mainConsole = (): Promise<string[]> => app.evaluate(() => (globalThis as any).__console ?? []);
+
 test.beforeAll(async () => {
   userData = freshUserDataDir();
   scratch = mkdtempSync(join(tmpdir(), 'tmx-electron-security-'));
@@ -72,11 +85,18 @@ test.beforeAll(async () => {
         env: { ...process.env, ELECTRON_RENDERER_URL: '', NODE_ENV: 'production' },
       });
   window = await app.firstWindow();
-  window.on('console', (message) => {
-    if (/Content Security Policy/i.test(message.text())) cspViolations.push(message.text());
+  // Capture console output in MAIN, then reload, so the CSP check sees the whole boot — a listener
+  // attached after firstWindow() would miss violations logged while the document parses.
+  await app.evaluate(({ BrowserWindow }) => {
+    const log: string[] = ((globalThis as any).__console = []);
+    BrowserWindow.getAllWindows()[0].webContents.on('console-message', (...args: any[]) => {
+      log.push(String(args[0]?.message ?? args[2] ?? ''));
+    });
   });
-  await window.waitForLoadState('domcontentloaded');
+  await window.reload();
   await window.waitForFunction(() => typeof (globalThis as any).dev !== 'undefined', null, { timeout: 30_000 });
+  await window.waitForTimeout(1500); // late startup requests (fonts, i18n)
+  bootConsole = await mainConsole();
 });
 
 test.afterAll(async () => {
@@ -105,6 +125,58 @@ test.describe('W1 — the page never chooses a file path', () => {
     expect(leaked, 'the renderer read a file it named itself').toBeNull();
   });
 
+  test('page script cannot fetch a local file', async () => {
+    const secret = join(scratch, 'fetched.txt');
+    writeFileSync(secret, 'operator secret');
+    const outcome = await window.evaluate(async (url) => {
+      try {
+        return 'READ: ' + (await (await fetch(url)).text());
+      } catch {
+        return 'blocked';
+      }
+    }, `file://${secret}`);
+    expect(outcome).toBe('blocked');
+  });
+
+  test('a planted local .js file cannot be run as a script', async () => {
+    const planted = join(scratch, 'planted.js');
+    writeFileSync(planted, 'globalThis.__localScript = true;');
+    const ran = await window.evaluate(
+      (url) =>
+        new Promise<boolean>((done) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.onload = script.onerror = () => done(Boolean((globalThis as any).__localScript));
+          document.head.appendChild(script);
+        }),
+      `file://${planted}`,
+    );
+    expect(ran).toBe(false);
+  });
+
+  test('a local file cannot be framed', async () => {
+    const secret = join(scratch, 'framed.txt');
+    writeFileSync(secret, 'operator secret');
+    const framed = await window.evaluate(
+      (url) =>
+        new Promise<string>((done) => {
+          const frame = document.createElement('iframe');
+          frame.src = url;
+          frame.onload = () => {
+            try {
+              done(frame.contentDocument?.body?.textContent ?? 'opaque');
+            } catch {
+              done('opaque');
+            }
+          };
+          document.body.appendChild(frame);
+          setTimeout(() => done('not loaded'), 2000);
+        }),
+      `file://${secret}`,
+    );
+    expect(framed).not.toContain('operator secret');
+  });
+
   test('the bridge exposes no path-taking file or dialog methods', async () => {
     const keys: string[] = await api(window, `return Object.keys(api);`);
     for (const removed of ['readFile', 'writeFile', 'showSaveDialog', 'showOpenDialog', 'getAppDataPath']) {
@@ -124,6 +196,33 @@ test.describe('W1 — the page never chooses a file path', () => {
     expect(readFileSync(chosen, 'utf8')).toBe('{"ok":true}');
     const [call] = await dialogCalls();
     expect(call.options.defaultPath).toBe('x.json');
+  });
+
+  test('saveFile never offers or writes an executable name the page chose', async () => {
+    const typed = join(scratch, 'evil.command');
+    await stubDialogs({ savePath: typed });
+    const result = await api(
+      window,
+      `return api.saveFile({ defaultName: 'Update.bat', filters: [{ name: 'JSON', extensions: ['json'] }],
+        data: new TextEncoder().encode('{}') });`,
+    );
+    expect(result).toEqual({ saved: true });
+    const [call] = await dialogCalls();
+    expect(call.options.defaultPath).toBe('Update.bat.json');
+    expect(existsSync(typed)).toBe(false);
+    expect(readFileSync(`${typed}.json`, 'utf8')).toBe('{}');
+  });
+
+  test('openFiles refuses a picked file of another type', async () => {
+    const picked = join(scratch, 'notes.txt');
+    writeFileSync(picked, 'not json');
+    await stubDialogs({ openPaths: [picked] });
+    const outcome = await api(
+      window,
+      `try { await api.openFiles({ filters: [{ name: 'JSON', extensions: ['json'] }] }); return 'read'; }
+       catch { return 'refused'; }`,
+    );
+    expect(outcome).toBe('refused');
   });
 
   test('saveFile refuses an extension outside the allow-list without opening a dialog', async () => {
@@ -179,12 +278,26 @@ test.describe('W3 — the privileged window stays on the app', () => {
   });
   const opened = (): Promise<string[]> => app.evaluate(() => (globalThis as any).__opened ?? []);
 
-  test('window.open of an https URL opens no Electron window; the system browser gets it', async () => {
+  test('window.open of a CourtHive https URL opens no Electron window; the system browser gets it', async () => {
     const count = await windowCount();
-    await window.evaluate(() => globalThis.open('https://example.com/public', '_blank'));
+    await window.evaluate(() => globalThis.open('https://courthive.com/public', '_blank'));
     await window.waitForTimeout(1000);
     expect(await windowCount()).toBe(count);
-    expect(await opened()).toEqual(['https://example.com/public']);
+    expect(await opened()).toEqual(['https://courthive.com/public']);
+  });
+
+  test('an https link to any other host opens only after the user confirms it', async () => {
+    await stubDialogs({ confirm: false });
+    await window.evaluate(() => globalThis.open('https://example.com/phish', '_blank'));
+    await window.waitForTimeout(1000);
+    expect(await opened()).toEqual([]);
+    const [call] = await dialogCalls();
+    expect(call.options.message).toContain('example.com');
+
+    await stubDialogs({ confirm: true });
+    await window.evaluate(() => globalThis.open('https://example.com/phish', '_blank'));
+    await window.waitForTimeout(1000);
+    expect(await opened()).toEqual(['https://example.com/phish']);
   });
 
   test('window.open of a file: URL is refused outright', async () => {
@@ -204,6 +317,12 @@ test.describe('W3 — the privileged window stays on the app', () => {
     const child = await childPromise;
     await child.waitForLoadState('domcontentloaded');
     expect(await child.evaluate(() => typeof (globalThis as any).electronAPI)).toBe('undefined');
+    const childPreferences = await app.evaluate(({ BrowserWindow }) => {
+      const preview = BrowserWindow.getAllWindows().find((w) => w.webContents.getURL().startsWith('blob:'));
+      const prefs = (preview?.webContents as any)?.getLastWebPreferences();
+      return { preload: prefs?.preload ?? '', sandbox: prefs?.sandbox };
+    });
+    expect(childPreferences).toEqual({ preload: '', sandbox: true });
     await child.close();
   });
 
@@ -225,9 +344,21 @@ test.describe('W3 — the privileged window stays on the app', () => {
 });
 
 test.describe('W4 — Content-Security-Policy', () => {
-  // First in this block: the injection tests below cause violations of their own on purpose.
   test('the app itself booted without a CSP violation', async () => {
-    expect(cspViolations).toEqual([]);
+    const violations = bootConsole.filter((text) => /Content Security Policy/i.test(text));
+    expect(violations).toEqual([]);
+  });
+
+  test('the document may connect only to its server, not to an arbitrary host', async () => {
+    const violated = await window.evaluate(
+      () =>
+        new Promise<string>((done) => {
+          document.addEventListener('securitypolicyviolation', (e) => done(e.effectiveDirective), { once: true });
+          fetch('https://exfil.example.net/x').catch(() => undefined);
+          setTimeout(() => done('none'), 3000);
+        }),
+    );
+    expect(violated).toBe('connect-src');
   });
 
   test('the renderer carries a CSP meta tag', async () => {
@@ -283,7 +414,8 @@ test.describe('W5 — the persisted server URL', () => {
     expect(await api(window, `return api.getServerUrl();`)).not.toBe('https://tmx.example.org');
 
     await stubDialogs({ confirm: true });
-    expect(await api(window, `return api.setServerUrl('https://tmx.example.org/');`)).toEqual({ saved: true });
+    const saved = await untilReloaded(() => api(window, `return api.setServerUrl('https://tmx.example.org/');`));
+    expect(saved).toEqual({ saved: true });
     expect(await api(window, `return api.getServerUrl();`)).toBe('https://tmx.example.org');
     const [call] = await dialogCalls();
     expect(call.kind).toBe('message');
@@ -292,7 +424,8 @@ test.describe('W5 — the persisted server URL', () => {
 
   test('http is accepted for a local development server', async () => {
     await stubDialogs({ confirm: true });
-    expect(await api(window, `return api.setServerUrl('http://localhost:8383');`)).toEqual({ saved: true });
+    const saved = await untilReloaded(() => api(window, `return api.setServerUrl('http://localhost:8383');`));
+    expect(saved).toEqual({ saved: true });
     expect(await api(window, `return api.getServerUrl();`)).toBe('http://localhost:8383');
   });
 });
@@ -323,6 +456,7 @@ test.describe('W3 — navigation (runs last)', () => {
   });
 
   test('navigating the window to a remote origin is refused and handed to the system browser', async () => {
+    await stubDialogs({ confirm: true });
     const before = withoutHash(window.url());
     await window.evaluate(() => {
       globalThis.location.href = 'https://example.com/landing';
