@@ -133,8 +133,8 @@ export function setupTMX(): void {
   }
 
   // Background upgrade: if CFS has a newer version of the active locale,
-  // fetch and swap it in transparently. Bundled locales (above) already
-  // rendered the UI; this is a non-blocking refresh.
+  // fetch and swap it in transparently. English is bundled; other locales are
+  // cached or fetched before their translated UI can render; this is a non-blocking refresh.
   // See Mentat/planning/I18N_DELIVERY.md for the runtime-fetch architecture.
   queueMicrotask(() => {
     void ensureLocaleCurrent(i18next.language).catch((err) => {
