@@ -90,7 +90,7 @@ import { providerConfig } from 'config/providerConfig';
  *   1. settings.language (user explicit, marked via languageExplicit)
  *   2. providerConfig.defaults.defaultLanguage (provider hint)
  *   3. inherited saved language when no provider default exists
- *   4. navigator.language if it matches a known locale
+ *   4. navigator.language, unchecked (i18next falls back to 'en' for a locale it cannot load)
  *   5. fallback 'en'
  *
  * If settings.language exists but languageExplicit is not true, treat it

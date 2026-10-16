@@ -16,6 +16,7 @@
  *   /tournament/:id/scheduling/:date/availability
  *   /tournament/:id/scheduling/:date/profile
  *   /tournament/:id/scheduling/:date/grid
+ *   /tournament/:id/scheduling/:date/plan                         → only while featureFlags.schedulePlan is on
  */
 
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
