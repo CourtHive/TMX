@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.38.1](https://github.com/CourtHive/TMX/compare/v8.38.0...v8.38.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **modals:** the Edit Dates calendar draws over the footer; drop keepTypeAheadInView ([#1655](https://github.com/CourtHive/TMX/issues/1655)) ([872fc08](https://github.com/CourtHive/TMX/commit/872fc08775ffdf748a3a52f28398d79303c1e6cd))
+* persist durable commands until the server confirms a receipt ([#1657](https://github.com/CourtHive/TMX/issues/1657)) ([1de7383](https://github.com/CourtHive/TMX/commit/1de73837af6b05c1aedb5d38ce2d763495c532db))
+* preserve tournament operation ownership, bulk draft recovery and accepted-mutation reconciliation ([#1656](https://github.com/CourtHive/TMX/issues/1656)) ([a1ea051](https://github.com/CourtHive/TMX/commit/a1ea0518b000c15e807e1811dab38d682fc90b0b))
+
 ## [8.38.0](https://github.com/CourtHive/TMX/compare/v8.37.0...v8.38.0) (2026-10-15)
 
 
