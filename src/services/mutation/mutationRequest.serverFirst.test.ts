@@ -157,7 +157,7 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     vi.advanceTimersByTime(60);
 
     expect(h.cancel).toHaveBeenCalledTimes(1);
-    expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' } });
+    expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' }, notified: true });
   });
 
   it('withdraws it on the session-lost path too, which replays the edit itself', async () => {

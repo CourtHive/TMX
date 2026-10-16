@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { tournamentEngine } from 'services/factory/engine';
+import { clearSyncIndicator, isSyncStale, markStaleNeedsRefresh, initRemoteMutationHandler } from './remoteMutations';
+import { notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 const request = vi.hoisted(() => vi.fn());
 vi.mock('services/apis/servicesApi', () => ({ requestTournament: request }));
 vi.mock('services/messaging/socketIo', () => ({ onTournamentMutation: vi.fn(), joinTournamentRoom: vi.fn() }));
@@ -11,9 +11,11 @@ vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
-import { clearSyncIndicator, isSyncStale, markStaleNeedsRefresh } from './remoteMutations';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { tournamentEngine } from 'services/factory/engine';
 
 const OWNER = 'refresh-owner';
+const OTHER_OWNER = 'other-owner';
 
 describe('explicit stale refresh ownership', () => {
   let click: () => void;
@@ -49,9 +51,24 @@ describe('explicit stale refresh ownership', () => {
     );
     markStaleNeedsRefresh(OWNER);
     click();
-    tournamentEngine.setState({ tournamentId: 'other-owner', tournamentName: 'Other' });
+    tournamentEngine.setState({ tournamentId: OTHER_OWNER, tournamentName: 'Other' });
     answer({ data: { tournamentRecords: { [OWNER]: { tournamentId: OWNER, tournamentName: 'Old response' } } } });
     for (let i = 0; i < 5; i++) await Promise.resolve();
-    expect(tournamentEngine.getTournament().tournamentRecord?.tournamentId).toBe('other-owner');
+    expect(tournamentEngine.getTournament().tournamentRecord?.tournamentId).toBe(OTHER_OWNER);
+  });
+  it('does not block another tournament or refresh the old one when the stale icon is clicked', () => {
+    markStaleNeedsRefresh(OWNER);
+    tournamentEngine.setState({ tournamentId: OTHER_OWNER, tournamentName: 'Other' });
+    expect(isSyncStale()).toBe(false);
+    click();
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('surfaces reconciliation only for the currently selected tournament', () => {
+    initRemoteMutationHandler();
+    notifyAuthoritativeRefreshRequired(['other']);
+    expect(isSyncStale()).toBe(false);
+    notifyAuthoritativeRefreshRequired([OWNER]);
+    expect(isSyncStale()).toBe(true);
   });
 });

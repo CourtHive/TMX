@@ -44,3 +44,20 @@ export function notifyMutationApplied(): void {
     }
   }
 }
+
+type RefreshObserver = (tournamentIds: string[]) => void;
+const refreshObservers = new Set<RefreshObserver>();
+/** An accepted write may already be included in a newer copy; reconcile instead of applying it twice. */
+export function onAuthoritativeRefreshRequired(observer: RefreshObserver): () => void {
+  refreshObservers.add(observer);
+  return () => refreshObservers.delete(observer);
+}
+export function notifyAuthoritativeRefreshRequired(tournamentIds: string[]): void {
+  for (const observer of refreshObservers) {
+    try {
+      observer(tournamentIds);
+    } catch (error) {
+      console.error('[mutationObservers] refresh observer threw', error);
+    }
+  }
+}

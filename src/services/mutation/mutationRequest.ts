@@ -1,14 +1,15 @@
+import { captureTournamentOperation, captureTournamentSelection } from 'services/tournament/operationOwnership';
 /**
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
  */
+import { notifyMutationApplied, notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
-import { captureTournamentOperation } from 'services/tournament/operationOwnership';
 import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
+import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { advanceServerSync } from 'services/staleness/serverSync';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { pipelineConfig } from 'config/pipelineConfig';
@@ -38,9 +39,6 @@ import { providerConfig } from 'config/providerConfig';
 // Read when called, not at module load: the code is the factory's, so a typo cannot drift from it.
 const isMissingTournament = (ack: any): boolean =>
   ack?.error?.code === factory.errorConditionConstants.MISSING_TOURNAMENT_RECORD.code;
-
-const identityOf = (state?: { userId?: string; sub?: string; email?: string }): string | undefined =>
-  state?.userId ?? state?.sub ?? state?.email;
 
 interface MutationParams {
   tournamentRecord?: any;
@@ -110,7 +108,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   if (isStale()) {
     const msg = 'Please refresh tournament data before making changes';
     tmxToast({ message: msg, intent: 'is-warning' });
-    if (params.callback) params.callback({ error: { message: msg } });
+    if (params.callback) params.callback({ error: { message: msg }, notified: true });
     return;
   }
   resetActivityTimer();
@@ -119,6 +117,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const state = getLoginState();
 
   let isCurrent = () => true;
+  let isSelected = () => true;
   let completed = false;
   const completion = (result?: any): void => {
     if (completed) return;
@@ -154,8 +153,10 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
 
   const tournamentIds = Object.values(tournamentRecords)?.map((record: any) => record.tournamentId);
   const ownsTournament = captureTournamentOperation(tournamentIds);
-  const identity = identityOf(state);
-  isCurrent = () => ownsTournament() && identityOf(getLoginState()) === identity;
+  const ownsSelection = captureTournamentSelection(tournamentIds);
+  const identity = getSessionIdentity();
+  isCurrent = () => ownsTournament() && getSessionIdentity() === identity;
+  isSelected = () => ownsSelection() && getSessionIdentity() === identity;
   const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
   if (providerIds.length > 1) return reject('toasts.multipleProviders');
 
@@ -176,6 +177,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
           saveLocal,
           warmCache,
           isCurrent,
+          isSelected,
           retryAfterLogin,
         })
       : Promise.resolve(completion({ error: { message: 'Tournament changed before mutation could be applied' } }));
@@ -309,10 +311,12 @@ async function makeMutation({
   saveLocal,
   warmCache,
   isCurrent,
+  isSelected,
   retryAfterLogin,
 }: {
   retryAfterLogin: boolean;
   isCurrent: () => boolean;
+  isSelected: () => boolean;
   offline: any;
   methods: any[];
   completion: (result?: any) => void;
@@ -321,7 +325,7 @@ async function makeMutation({
   saveLocal?: boolean;
   warmCache?: boolean;
 }): Promise<void> {
-  const initiatingIdentity = identityOf(getLoginState());
+  const initiatingIdentity = getSessionIdentity();
   const tournamentRecord = factoryEngine.getTournament().tournamentRecord;
   // Pipeline features (Settings): their per-call options ride on every setMatchUpStatus, and a mock tournament
   // in use under them runs locally — results under modified rules must not reach the server.
@@ -349,6 +353,11 @@ async function makeMutation({
       if (timedOut || ackReceived) return;
       if (!isCurrent()) {
         ackReceived = true;
+        if (ack?.success && isSelected()) {
+          notifyAuthoritativeRefreshRequired(tournamentIds);
+          if (strategy === SERVER_FIRST) completion({ success: true, refreshRequired: true });
+          return;
+        }
         if (strategy === SERVER_FIRST)
           completion({ error: { message: 'Tournament changed while awaiting acknowledgement' } });
         return;
@@ -357,20 +366,40 @@ async function makeMutation({
       const missingTournament = isMissingTournament(ack);
       if (strategy === SERVER_FIRST && (ack?.success || missingTournament)) {
         (async () => {
-          factoryResult = engineExecution({
-            factoryEngine,
-            methods: ack?.success ? (ack.appliedMethods ?? resolvedMethods) : resolvedMethods,
-          });
-          if (factoryResult.error) return completion(factoryResult);
-          if (ack?.success) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
-          await localSave(saveLocal || missingTournament);
-          return completion(factoryResult);
+          try {
+            factoryResult = engineExecution({
+              factoryEngine,
+              methods: ack?.success ? (ack.appliedMethods ?? resolvedMethods) : resolvedMethods,
+            });
+            if (factoryResult.error) {
+              if (!ack?.success) return completion(factoryResult);
+              notifyAuthoritativeRefreshRequired(tournamentIds);
+              return completion({ success: true, refreshRequired: true, localError: factoryResult.error });
+            }
+            if (ack?.success) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+            try {
+              await localSave(saveLocal || missingTournament);
+            } catch (persistenceError) {
+              // The server and engine accepted this edit. Finish the save without inviting a duplicate
+              // retry, but expose the failed local persistence and its reduced offline availability.
+              console.error('[mutationRequest] accepted edit could not be saved locally:', persistenceError);
+              tmxToast({ message: t('storage.writeFailed'), intent: 'is-danger' });
+              return completion({ ...factoryResult, persistenceError });
+            }
+            return completion(factoryResult);
+          } catch (error) {
+            console.error('[mutationRequest] accepted edit could not be applied locally:', error);
+            notifyAuthoritativeRefreshRequired(tournamentIds);
+            completion({ success: true, refreshRequired: true, localError: error });
+          }
         })();
       } else if (strategy === LOCAL_FIRST && ack?.success) {
         // Ordinary local-first methods are already applied. A different canonical payload needs a
         // refresh, not a blind second application of potentially non-idempotent business methods.
         if (!ack.appliedMethods || JSON.stringify(ack.appliedMethods) === JSON.stringify(resolvedMethods)) {
           advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+        } else {
+          notifyAuthoritativeRefreshRequired(tournamentIds);
         }
       } else if (strategy === SERVER_FIRST) {
         completion(ack?.error ? ack : { error: { message: t('mutationPrompts.rejected') } });
@@ -407,7 +436,7 @@ async function makeMutation({
             source: 'mutation-timeout',
             ...(retryAfterLogin && {
               retry: () => {
-                if (identityOf(getLoginState()) !== initiatingIdentity) return;
+                if (getSessionIdentity() !== initiatingIdentity) return;
                 replayServerMutation({ methods, factoryEngine, tournamentIds, saveLocal, warmCache });
               },
             }),
@@ -415,7 +444,7 @@ async function makeMutation({
           return completion({ error: { message: t('mutationPrompts.sessionExpired'), code: 'SESSION_EXPIRED' } });
         }
         tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
-        completion({ error: { message: t('toasts.serverNotResponding') } });
+        completion({ error: { message: t('toasts.serverNotResponding') }, notified: true });
       }, serverConfig.get().serverTimeout ?? 10000);
     }
   }
@@ -447,12 +476,17 @@ export function replayServerMutation({
   warmCache?: boolean;
 }): void {
   const isCurrent = captureTournamentOperation(tournamentIds);
-  const replayIdentity = identityOf(getLoginState());
+  const isSelected = captureTournamentSelection(tournamentIds);
+  const replayIdentity = getSessionIdentity();
   let acknowledged = false;
   const ackCallback = (ack: any) => {
     if (acknowledged) return;
     acknowledged = true;
-    if (!isCurrent() || identityOf(getLoginState()) !== replayIdentity) return;
+    if (getSessionIdentity() !== replayIdentity || !isSelected()) return;
+    if (!isCurrent()) {
+      if (ack?.success) notifyAuthoritativeRefreshRequired(tournamentIds);
+      return;
+    }
     const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
     const result = engineExecution({

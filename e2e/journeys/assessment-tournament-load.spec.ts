@@ -21,17 +21,17 @@ test('a delayed earlier tournament load cannot replace the newer selection', asy
     dev.tmx2db.findTournament = (id: string) =>
       id === 'assessment-load-a'
         ? new Promise((resolve) => {
-            (window as any).releaseEarlierLoad = async () => resolve(await find(id));
+            (globalThis as any).releaseEarlierLoad = async () => resolve(await find(id));
           })
         : find(id);
     dev.tournamentContext.router?.navigate('/tournament/assessment-load-a');
   });
-  await expect.poll(() => page.evaluate(() => typeof (window as any).releaseEarlierLoad)).toBe('function');
+  await expect.poll(() => page.evaluate(() => typeof (globalThis as any).releaseEarlierLoad)).toBe('function');
   await page.evaluate(() => dev.tournamentContext.router?.navigate('/tournament/assessment-load-b'));
   await expect
     .poll(() => page.evaluate(() => dev.factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId))
     .toBe('assessment-load-b');
-  await page.evaluate(() => (window as any).releaseEarlierLoad());
+  await page.evaluate(() => (globalThis as any).releaseEarlierLoad());
   await page.waitForTimeout(100);
   expect(await page.evaluate(() => dev.factory.tournamentEngine.getTournament().tournamentRecord?.tournamentId)).toBe(
     'assessment-load-b',

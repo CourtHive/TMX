@@ -14,6 +14,12 @@ export interface MutationMethod {
 
 /** Result returned by factory engine executionQueue or server ack. */
 export interface ExecutionResult {
+  /** The mutation boundary already displayed this failure; hosts should not toast it again. */
+  notified?: boolean;
+  /** Server acceptance is known, but the current local copy must be reconciled. */
+  refreshRequired?: boolean;
+  persistenceError?: unknown;
+  localError?: unknown;
   success?: boolean;
   error?: { message: string; code?: string };
   results?: any[];

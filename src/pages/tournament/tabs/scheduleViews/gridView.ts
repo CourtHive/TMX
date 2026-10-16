@@ -1813,7 +1813,7 @@ async function savePending(): Promise<void> {
   bulkDraft.save(
     allMethods,
     (done) => {
-      void mutationRequest({
+      mutationRequest({
         methods: allMethods,
         engine: COMPETITION_ENGINE,
         retryAfterLogin: false,

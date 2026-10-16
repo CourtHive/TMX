@@ -12,7 +12,7 @@ import { todayLocal } from '../helpers/dates';
  * shows ZERO dispatched methods while queued, which is exactly what makes the
  * discard-clobber invariant (CLAUDE.md "Save Model Invariant") assertable:
  *   - Save  → all queued batches flush as ONE mutationRequest.
- *   - Discard → nothing is dispatched; factory reloads from IndexedDB (no clobber).
+ *   - Discard → nothing is dispatched; preview-owned fields revert without relying on IndexedDB.
  *
  * Uses cell→cell reschedule drags across three distinct courts so the selectors
  * stay stable across the grid's post-drop re-render.
@@ -169,5 +169,37 @@ test.describe('assessment bulk draft integrity', () => {
     await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toBeVisible();
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.getByText(/1 unsaved action/)).toBeVisible();
+  });
+  test('click-away cancels a navigation prompt and permits the next attempt', async ({ page }) => {
+    const s = await stageWithoutLocalRecord(page);
+    const navigate = () =>
+      page.evaluate((id) => dev.tournamentContext.router?.navigate(`/tournament/${id}/events`), s.tournamentId);
+    await navigate();
+    await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toBeVisible();
+    await page
+      .locator('section[id^="cmdl-"]')
+      .last()
+      .locator(':scope > div')
+      .click({ position: { x: 2, y: 2 } });
+    await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toHaveCount(0);
+    await expect(page.getByText(/1 unsaved action/)).toBeVisible();
+    await navigate();
+    await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  });
+  test('cancelled back navigation restores the scheduling URL and keeps the draft', async ({ page }) => {
+    await stageWithoutLocalRecord(page);
+    const before = page.url();
+    await page.goBack();
+    await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toBeVisible();
+    const destination = page.url();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page).toHaveURL(before);
+    await expect(page.getByText(/1 unsaved action/)).toBeVisible();
+    await page.goBack();
+    await expect(page.getByText(/Discard.*scheduling changes.*leave/)).toBeVisible();
+    await expect(page).toHaveURL(destination);
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page).toHaveURL(before);
   });
 });

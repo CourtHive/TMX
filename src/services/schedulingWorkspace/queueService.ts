@@ -2,7 +2,8 @@
  * Scheduling workspace save model — load-bearing invariants.
  *
  * This service owns the availability painter hook and an optional bulk queue.
- * Grid/Profile retain a separate BulkScheduleDraft in gridView.ts; Plan owns
+ * Profile sends edits directly through mutationRequest.
+ * Grid retains a separate BulkScheduleDraft in gridView.ts; Plan owns
  * scenario mutations. No production caller currently enables this service bulk queue.
  *
  * Invariants other code MUST NOT break:
@@ -18,7 +19,8 @@
  *     that Phase 0 closed.
  *
  *  3. `discardPending` must never silently dispatch queued methods. The IDB
- *     reload is the only path back to a clean state. If you ever feel the
+ *     reload is the legacy recovery path and may clobber concurrent changes;
+ *     keep this service bulk mode disabled until recovery is repaired. If you ever feel the
  *     urge to "rescue" a batch on discard, you are violating the invariant.
  *
  *  4. Painter dirty state (`isAvailabilityDirty()`) is tracked separately

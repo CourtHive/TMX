@@ -3,6 +3,7 @@ import { tournamentEngine } from 'services/factory/engine';
 
 let loadGeneration = 0;
 let selectionGeneration = 0;
+let recordGeneration = 0;
 let requestedTournamentId: string | undefined;
 
 export function beginTournamentLoad(tournamentId: string): () => boolean {
@@ -21,11 +22,11 @@ export function invalidatePendingTournamentLoads(): void {
 
 /** A full record replacement supersedes operations captured over an older local copy. */
 export function markTournamentRecordInstalled(): void {
-  selectionGeneration++;
+  recordGeneration++;
 }
 
 /** Capture before permission/network awaits; a replay captures a new owner when it is sent. */
-export function captureTournamentOperation(tournamentIds: string[]): () => boolean {
+export function captureTournamentSelection(tournamentIds: string[]): () => boolean {
   const generation = selectionGeneration;
   const owner = tournamentEngine.getTournamentId();
   return () => {
@@ -33,4 +34,11 @@ export function captureTournamentOperation(tournamentIds: string[]): () => boole
     const { tournamentIds: loaded = [] } = tournamentEngine.getTournamentIds();
     return tournamentIds.every((id) => loaded.includes(id));
   };
+}
+
+/** Strict ownership for previews/refreshes tied to the installed copy, in addition to selection. */
+export function captureTournamentOperation(tournamentIds: string[]): () => boolean {
+  const generation = recordGeneration;
+  const isSelected = captureTournamentSelection(tournamentIds);
+  return () => generation === recordGeneration && isSelected();
 }

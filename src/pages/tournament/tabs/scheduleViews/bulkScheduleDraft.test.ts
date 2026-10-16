@@ -95,4 +95,33 @@ describe('bulk schedule recovery', () => {
     expect(draft.pending).toHaveLength(1);
     expect(draft.saving).toBe(false);
   });
+  it('removes only preview timeItems while preserving an appended call', () => {
+    const f = fixture();
+    const match: any = f.read().tournamentRecords.t1.events[0].matchUps[0];
+    match.timeItems = [{ itemType: 'SCHEDULE.ASSIGNMENT.COURT', itemValue: 'old', createdAt: 'a' }];
+    f.engine.executionQueue = () => {
+      match.timeItems.push({ itemType: 'SCHEDULE.ASSIGNMENT.COURT', itemValue: 'preview', createdAt: 'b' });
+      return { success: true };
+    };
+    const draft = new BulkScheduleDraft();
+    draft.stage([{ method: 'schedule' }], f.engine);
+    match.timeItems.push({ itemType: 'SCHEDULE.CALL', itemValue: 'called', createdAt: 'c' });
+    expect(draft.discard(f.engine).success).toBe(true);
+    const restored = (f.read().tournamentRecords.t1.events[0].matchUps[0] as any).timeItems;
+    expect(restored.map((item: any) => item.itemValue)).toEqual(['old', 'called']);
+  });
+  it('restores an id-keyed object removed by the preview while retaining remote additions', () => {
+    const f = fixture();
+    const original = structuredClone(f.read().tournamentRecords.t1.events[0]);
+    f.engine.executionQueue = () => {
+      f.read().tournamentRecords.t1.events = [];
+      return { success: true };
+    };
+    const draft = new BulkScheduleDraft();
+    draft.stage([{ method: 'remove' }], f.engine);
+    const remote = { eventId: 'e2', matchUps: [] };
+    f.read().tournamentRecords.t1.events.push(remote);
+    expect(draft.discard(f.engine).success).toBe(true);
+    expect(f.read().tournamentRecords.t1.events).toEqual(expect.arrayContaining([original, remote]));
+  });
 });

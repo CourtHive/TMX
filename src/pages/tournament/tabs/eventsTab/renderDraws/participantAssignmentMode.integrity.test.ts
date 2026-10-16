@@ -10,7 +10,7 @@ const harness = vi.hoisted(() => {
     createElement: () => ({ style: {} }),
     getElementById: () => null,
   });
-  return { handlers: {} as any, renders: 0, request: undefined as any };
+  return { handlers: {} as any, renders: 0, request: undefined as any, toast: vi.fn() };
 });
 vi.mock('courthive-components', async (original) => {
   const actual = await original<typeof import('courthive-components')>();
@@ -32,7 +32,7 @@ vi.mock('services/mutation/mutationRequest', () => ({
 }));
 vi.mock('services/compositions/resolveCompositionByName', () => ({ resolveCompositionByName: () => undefined }));
 vi.mock('./renderDrawView', () => ({ renderDrawView: vi.fn() }));
-vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
+vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...args: any[]) => harness.toast(...args) }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
 import { enterParticipantAssignmentMode, forceExitAssignmentMode } from './participantAssignmentMode';
@@ -43,6 +43,7 @@ describe('assignment mode mutation ownership', () => {
     forceExitAssignmentMode();
     harness.renders = 0;
     harness.request = undefined;
+    harness.toast.mockClear();
     document.body.innerHTML = '';
   });
 
@@ -91,7 +92,8 @@ describe('assignment mode mutation ownership', () => {
     });
     const renders = harness.renders;
     harness.handlers.assignBye({ side: { drawPosition: 1 } });
-    harness.request.callback({ error: 'refused' });
+    harness.request.callback({ error: { message: 'refused' }, notified: true });
+    expect(harness.toast).not.toHaveBeenCalled();
     expect(harness.renders).toBe(renders);
     expect(
       tournamentEngine.q

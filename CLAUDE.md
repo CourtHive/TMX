@@ -143,7 +143,7 @@ With `serverConfig.get().serverFirst = true` (default), mutations execute on the
 
 The workspace has four modes: Availability, Profile, Grid and Plan. Availability mutations use
 `queueService.executeMethods` via the painter hook; its optional bulk queue has no production enabler.
-Grid/Profile use the grid's separate `BulkScheduleDraft`: previews retain an in-memory baseline,
+Profile dispatches edits directly through `mutationRequest`. Grid uses the grid's separate `BulkScheduleDraft`: previews retain an in-memory baseline,
 failed saves retain pending methods, and Discard reverts preview-owned fields while preserving concurrent changes.
 Plan mutates a scenario. These paths have not been consolidated into one queue.
 

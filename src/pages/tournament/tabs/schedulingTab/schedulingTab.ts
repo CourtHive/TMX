@@ -264,7 +264,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   }
 
   // Subscribe to the workspace queue so the action bar reflects bulk-queue
-  // changes. (For Profile/Grid that still use schedule2's internal queue, the
+  // changes. (Grid has its own draft, and Profile dispatches directly; the
   // workspace bar stays inert; only the Availability mode currently writes
   // through queueService.)
   queueUnsubscribe?.();

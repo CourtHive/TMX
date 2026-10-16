@@ -49,7 +49,8 @@ export function enterParticipantAssignmentMode({
           methods: [{ method, params }],
           callback: (result) => {
             callback(result);
-            if (result?.error) tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
+            if (result?.error && !result.notified)
+              tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
           },
         });
       },

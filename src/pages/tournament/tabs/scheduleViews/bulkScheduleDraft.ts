@@ -29,31 +29,72 @@ const ID_KEYS = [
 ];
 
 /** Revert only preview-owned fields. Concurrent fields and newly received objects survive discard. */
-function restoreFields(before: any, preview: any, current: any): any {
+function restoreFields(before: any, preview: any, current: any, field?: string): any {
   if (same(before, preview)) return current;
   if (same(current, preview)) return structuredClone(before);
+  if (
+    field === 'timeItems' &&
+    (preview === undefined || Array.isArray(preview)) &&
+    (before === undefined || Array.isArray(before)) &&
+    Array.isArray(current)
+  ) {
+    return restoreTimeItems(before ?? [], preview ?? [], current);
+  }
   if (object(before) && object(preview) && object(current)) return restoreObject(before, preview, current);
   if (Array.isArray(before) && Array.isArray(preview) && Array.isArray(current)) {
     const key = ID_KEYS.find((id) =>
       [...before, ...preview, ...current].every((value) => object(value) && typeof value[id] === 'string'),
     );
-    if (key)
-      return current.map((value) =>
-        restoreFields(
-          before.find((item) => item[key] === value[key]),
-          preview.find((item) => item[key] === value[key]),
-          value,
-        ),
-      );
+    if (key) {
+      const restored = current
+        .map((value) =>
+          restoreFields(
+            before.find((item) => item[key] === value[key]),
+            preview.find((item) => item[key] === value[key]),
+            value,
+          ),
+        )
+        .filter((value) => value !== undefined);
+      for (const value of before) {
+        if (!preview.some((item) => item[key] === value[key]) && !current.some((item) => item[key] === value[key])) {
+          restored.push(structuredClone(value));
+        }
+      }
+      return restored;
+    }
   }
   // The same field changed remotely. That newer value supersedes the preview.
   return current;
 }
 
+/** timeItems are an append-only history, not one scalar field. Undo the preview's multiset delta. */
+function restoreTimeItems(before: any[], preview: any[], current: any[]): any[] {
+  const difference = (left: any[], right: any[]) => {
+    const remaining = [...right];
+    return left.filter((item) => {
+      const index = remaining.findIndex((candidate) => same(item, candidate));
+      if (index < 0) return true;
+      remaining.splice(index, 1);
+      return false;
+    });
+  };
+  const restored = [...current];
+  for (const item of difference(preview, before)) {
+    const index = restored.findIndex((candidate) => same(item, candidate));
+    if (index >= 0) restored.splice(index, 1);
+  }
+  for (const item of difference(before, preview)) {
+    if (!restored.some((candidate) => same(item, candidate))) {
+      restored.splice(Math.min(before.indexOf(item), restored.length), 0, structuredClone(item));
+    }
+  }
+  return restored;
+}
+
 function restoreObject(before: any, preview: any, current: any): any {
   const restored = { ...current };
   for (const key of new Set([...Object.keys(before), ...Object.keys(preview)])) {
-    const value = restoreFields(before[key], preview[key], current[key]);
+    const value = restoreFields(before[key], preview[key], current[key], key);
     if (value === undefined) delete restored[key];
     else restored[key] = value;
   }

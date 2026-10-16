@@ -20,10 +20,10 @@ import { unwrapOr } from 'tods-competition-factory';
  *  - `allMatchUps` and `scheduleMatchUps(date)` — invalidated on every
  *    mutation (anything routed through `executeMethods`), because matchUp
  *    state and court placement can change.
- *  - `competitionDateRange` and `tournamentInfo` — page-scoped. The schedule
- *    page itself never edits these; the whole cache is dropped when the active
- *    tournament switches (the `onTournamentContextChanged` subscription below)
- *    and on schedule-tab teardown (`invalidateAllScheduleCaches`).
+ *  - `competitionDateRange` and `tournamentInfo` — cached across reads, invalidated
+ *    with matchUps after acknowledged writes and full record reloads. Remote metadata
+ *    changes can arrive without navigation. Tournament switches and schedule-tab teardown
+ *    also drop the complete cache (`invalidateAllScheduleCaches`).
  *
  * Variance-tolerant caching: callers pass different param shapes
  * (`{inContext: true, nextMatchUps: true}` vs `{inContext: true}` alone;

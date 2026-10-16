@@ -16,19 +16,20 @@ import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
+import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { context } from 'services/context';
 import Navigo from 'navigo';
 import { t } from 'i18n';
 import {
-  forceExitAssignmentMode,
-  isAssignmentMode,
-} from 'pages/tournament/tabs/eventsTab/renderDraws/participantAssignmentMode';
-import {
   hasUnsavedGridChanges,
   getUnsavedGridChangeCount,
   discardPendingGridChanges,
 } from 'pages/tournament/tabs/scheduleViews/gridView';
+import {
+  forceExitAssignmentMode,
+  isAssignmentMode,
+} from 'pages/tournament/tabs/eventsTab/renderDraws/participantAssignmentMode';
 
 import {
   DRAW,
@@ -70,10 +71,23 @@ export function routeTMX() {
 
   // Reconnect socket on any navigation if it was lost
   router.hooks({
-    before(done) {
+    before(done, match) {
+      const previous = router.lastResolved()?.[0];
+      const cancel = () => {
+        if (previous) {
+          const address = new URL(globalThis.location.href);
+          address.hash =
+            '/' + previous.url.replace(/^\//, '') + (previous.queryString ? '?' + previous.queryString : '');
+          // Restore the accepted entry without overwriting the history destination; Back can be retried.
+          if (address.href !== globalThis.location.href)
+            globalThis.history.pushState(globalThis.history.state, '', address);
+        }
+        done(false);
+      };
       const proceed = () => {
         invalidatePendingTournamentLoads();
-        destroyActiveTab();
+        // routeTo owns intra-tournament tab disposal. Date/mode changes keep the mounted page.
+        if (match?.data?.tournamentId !== tournamentEngine.getTournamentId()) destroyActiveTab();
         if (isAssignmentMode()) forceExitAssignmentMode();
         ensureConnected();
         resetActivityTimer();
@@ -87,11 +101,16 @@ export function routeTMX() {
             defaultValue: 'Discard {{n}} scheduling changes and leave?',
           }),
           okIntent: 'is-warning',
-          okAction: async () => {
-            if (await discardPendingGridChanges()) proceed();
-            else done(false);
+          okAction: () => {
+            try {
+              if (discardPendingGridChanges()) proceed();
+              else cancel();
+            } catch (error) {
+              console.error('[router] bulk discard failed:', error);
+              cancel();
+            }
           },
-          cancelAction: () => done(false),
+          cancelAction: cancel,
         });
         return;
       }
