@@ -433,6 +433,14 @@ describe('socketIo offline queue across a reload', () => {
     expect(fake.rows.size).toBe(0);
   });
 
+  it('reports failed durability and sends nothing when no account owns the command', async () => {
+    fake.login = undefined;
+    const handle = socketIo.emitTmx({ data: mutation('noOwner'), durable: true });
+    await expect(handle.persisted).resolves.toBe(false);
+    expect(fake.posted).toHaveLength(0);
+    expect(fake.rows.size).toBe(0);
+  });
+
   it('retains the online in-flight row and recovers the same command ID after a lost answer', async () => {
     let answer: any;
     fake.answer = () =>

@@ -369,7 +369,9 @@ export function emitTmx({
 
     if (durable) {
       if (!userId || messageType !== 'executionQueue') {
+        persisted = Promise.resolve(false);
         console.error('[socket] durable command requires a signed-in user and executionQueue');
+        tmxToast({ message: t('storage.writeFailed'), intent: 'is-danger' });
         ackCallback?.({ error: { message: 'Durable command could not be stored for this session' } } as ServerAck);
         return;
       }
