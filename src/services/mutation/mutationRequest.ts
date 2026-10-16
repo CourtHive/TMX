@@ -180,7 +180,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
           isSelected,
           retryAfterLogin,
         })
-      : Promise.resolve(completion({ error: { message: 'Tournament changed before mutation could be applied' } }));
+      : Promise.resolve(completion({ error: { message: t('mutationPrompts.tournamentChangedBeforeApply') } }));
   if (!inDateRange) {
     queryDateRange({ state, providerIds, mutate, reject });
     return;
@@ -359,7 +359,7 @@ async function makeMutation({
           return;
         }
         if (strategy === SERVER_FIRST)
-          completion({ error: { message: 'Tournament changed while awaiting acknowledgement' } });
+          completion({ error: { message: t('mutationPrompts.tournamentChangedAwaitingAck') } });
         return;
       }
       ackReceived = true;
