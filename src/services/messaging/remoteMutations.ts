@@ -8,12 +8,13 @@
  *   → refreshes active table data in-place (preserving sort/scroll)
  *   → shows sync indicator in navbar if no table could be refreshed
  */
+import { captureTournamentOperation, markTournamentRecordInstalled } from 'services/tournament/operationOwnership';
+import { notifyMutationApplied, onAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 import { onTournamentMutation, joinTournamentRoom } from 'services/messaging/socketIo';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
-import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { isOwnMutation } from 'services/messaging/clientIdentity';
@@ -39,9 +40,15 @@ let staleRefreshTournamentId: string | undefined;
  * Initialize the remote mutation listener.
  * Call once at app startup (e.g. in initialState.ts).
  */
+let stopRefreshObserver: (() => void) | undefined;
 export function initRemoteMutationHandler(): void {
   slog('[remoteMutation] handler registered');
   onTournamentMutation(handleRemoteMutation);
+  stopRefreshObserver?.();
+  stopRefreshObserver = onAuthoritativeRefreshRequired((ids) => {
+    const id = factory[TOURNAMENT_ENGINE].getTournamentId();
+    if (id && ids.includes(id)) markStaleNeedsRefresh(id);
+  });
 }
 
 /** Hide the sync indicator (called on navigation). */
@@ -111,6 +118,9 @@ export function markStaleNeedsRefresh(tournamentId: string): void {
  * mode). Mutations are blocked while this is true so a director can't act on
  * stale data — they must click the refresh icon first. */
 export function isSyncStale(): boolean {
+  if (staleRefreshTournamentId && staleRefreshTournamentId !== factory[TOURNAMENT_ENGINE].getTournamentId()) {
+    clearSyncIndicator();
+  }
   return !!staleRefreshTournamentId;
 }
 
@@ -118,13 +128,17 @@ export function isSyncStale(): boolean {
  * invoked on an explicit sync-icon click, so the full record is fetched on
  * demand — never on a background poll. */
 async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
+  const isCurrent = captureTournamentOperation([tournamentId]);
   try {
     const result: any = await requestTournament({ tournamentId });
     const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
-    if (!serverRecord) return;
+    if (!serverRecord || !isCurrent()) return;
 
     const factoryEngine: any = factory[TOURNAMENT_ENGINE];
-    factoryEngine.setState(serverRecord);
+    const applied = factoryEngine.setState(serverRecord);
+    if (applied?.error) return;
+    markTournamentRecordInstalled();
+    if (staleRefreshTournamentId === tournamentId) clearSyncIndicator();
     setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
     notifyMutationApplied();
     await saveTournamentRecord();
@@ -147,8 +161,8 @@ function showSyncIndicator(): void {
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
     el.addEventListener('click', () => {
-      const staleId = staleRefreshTournamentId;
-      clearSyncIndicator();
+      const staleId = isSyncStale() ? staleRefreshTournamentId : undefined;
+      if (!staleId) clearSyncIndicator();
       if (staleId) {
         slog('[syncIndicator] clicked — pulling fresh record (stale)');
         void refreshTournamentFromServer(staleId);

@@ -1,10 +1,10 @@
 /**
  * Scheduling workspace save model — load-bearing invariants.
  *
- * The workspace at `/tournament/:id/scheduling/...` shares ONE save model
- * across all three modes (Availability, Profile, Grid). The pre-mortem in
- * `Mentat/planning/SCHEDULE2_AVAILABILITY_INTEGRATION.md` flagged the dual
- * save-model race as the load-bearing risk; this module is its resolution.
+ * This service owns the availability painter hook and an optional bulk queue.
+ * Profile sends edits directly through mutationRequest.
+ * Grid retains a separate BulkScheduleDraft in gridView.ts; Plan owns
+ * scenario mutations. No production caller currently enables this service bulk queue.
  *
  * Invariants other code MUST NOT break:
  *
@@ -19,7 +19,8 @@
  *     that Phase 0 closed.
  *
  *  3. `discardPending` must never silently dispatch queued methods. The IDB
- *     reload is the only path back to a clean state. If you ever feel the
+ *     reload is the legacy recovery path and may clobber concurrent changes;
+ *     keep this service bulk mode disabled until recovery is repaired. If you ever feel the
  *     urge to "rescue" a batch on discard, you are violating the invariant.
  *
  *  4. Painter dirty state (`isAvailabilityDirty()`) is tracked separately
@@ -208,8 +209,8 @@ export function executeMethods({ mode, methods, onRefresh, onResult }: ExecuteOp
 
 export async function savePending(): Promise<void> {
   // Painter save fires first so its mutations land before any bulk batches.
-  // The painter's save dispatches via mutationRequest itself (through the
-  // onMutationMethods callback wiring), so we don't need to merge methods.
+  // The painter's onMutationMethods hook routes through executeMethods; dispatch
+  // depends on this service's bulk flag. This callback is not awaited here.
   if (availabilityDirty && availabilitySave) {
     availabilitySave();
   }

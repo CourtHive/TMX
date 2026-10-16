@@ -3,7 +3,6 @@ import type { SchedulePageCatalogState } from 'courthive-components';
 import type { ProviderValue } from 'types/tmx';
 
 export const context: {
-  matchUpsToBroadcast: any[];
   tables: any;
   ee: any;
   drawer: any;
@@ -47,7 +46,6 @@ export const context: {
    *  within a single tournament. Cleared on tournament load. */
   scheduleCatalogState?: SchedulePageCatalogState;
 } = {
-  matchUpsToBroadcast: [],
   tables: [],
 
   ee: null,

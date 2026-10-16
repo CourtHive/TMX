@@ -2,6 +2,10 @@
  * Application initialization and setup.
  * Sets up context, environment, event listeners, and routing.
  */
+import { getLoginState, initLoginToggle, logIn, logOut } from 'services/authentication/loginState';
+import { watchSessionAcrossTabs } from 'services/authentication/watchSessionAcrossTabs';
+import { promptProviderSelection } from 'services/authentication/providerSelection';
+import { startConnectionLifecycle } from 'services/messaging/connectionLifecycle';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
 import { initRemoteMutationHandler } from 'services/messaging/remoteMutations';
@@ -10,17 +14,13 @@ import { hydrateConfigFromStorage } from 'services/settings/settingsStorage';
 import { factoryConstants, globalState } from 'tods-competition-factory';
 import { initTheme, initThemeToggle } from 'services/theme/themeService';
 import { loadUserCompositions } from 'pages/templates/compositionBridge';
-import { startConnectionLifecycle } from 'services/messaging/connectionLifecycle';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { initStalenessGuard } from 'services/staleness/stalenessGuard';
-import { initSessionGuard } from 'services/session/sessionGuard';
 import { initTmxVersionCheck } from 'services/version/checkTmxVersion';
-import { watchSessionAcrossTabs } from 'services/authentication/watchSessionAcrossTabs';
-import { promptProviderSelection } from 'services/authentication/providerSelection';
-import { getLoginState, initLoginToggle, logIn, logOut } from 'services/authentication/loginState';
-import { getToken } from 'services/authentication/tokenManagement';
 import { ensureLocaleCurrent, getCachedLocale, i18next } from 'i18n';
+import { getToken } from 'services/authentication/tokenManagement';
 import { courthiveComponentsVersion } from 'courthive-components';
+import { initSessionGuard } from 'services/session/sessionGuard';
 import { hydrateDemoOverlay } from 'services/demoMode/demoState';
 import { tournamentEngine } from 'services/factory/engine';
 import { registerMenuHandler } from 'platform/menuHandler';
@@ -89,8 +89,9 @@ import { providerConfig } from 'config/providerConfig';
  * Boot-time language resolution per Mentat/planning/I18N_DELIVERY.md:
  *   1. settings.language (user explicit, marked via languageExplicit)
  *   2. providerConfig.defaults.defaultLanguage (provider hint)
- *   3. navigator.language if it matches a known locale
- *   4. fallback 'en'
+ *   3. inherited saved language when no provider default exists
+ *   4. navigator.language if it matches a known locale
+ *   5. fallback 'en'
  *
  * If settings.language exists but languageExplicit is not true, treat it
  * as inherited and let provider default override.
@@ -132,8 +133,8 @@ export function setupTMX(): void {
   }
 
   // Background upgrade: if CFS has a newer version of the active locale,
-  // fetch and swap it in transparently. Bundled locales (above) already
-  // rendered the UI; this is a non-blocking refresh.
+  // fetch and swap it in transparently. English is bundled; other locales are
+  // cached or fetched before their translated UI can render; this is a non-blocking refresh.
   // See Mentat/planning/I18N_DELIVERY.md for the runtime-fetch architecture.
   queueMicrotask(() => {
     void ensureLocaleCurrent(i18next.language).catch((err) => {
@@ -257,8 +258,6 @@ function setSubscriptions(): void {
   globalState.setSubscriptions({
     subscriptions: {
       [topicConstants.MODIFY_MATCHUP]: (data: any) => {
-        const matchUpId = data.matchUp?.matchUpId;
-        context.matchUpsToBroadcast.push(matchUpId);
         if (debugConfig.get().devNotes) console.log('MODIFY_MATCHUP', data);
       },
     },

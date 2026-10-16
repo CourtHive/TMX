@@ -174,7 +174,7 @@ describe('schedule2DataCache', () => {
       expect(competitionScheduleMatchUpsMock).toHaveBeenCalledTimes(2);
     });
 
-    it('leaves page-scoped caches intact after a mutation is applied', () => {
+    it('invalidates metadata caches as well as matchUps after a mutation is applied', () => {
       getCachedCompetitionDateRange();
       getCachedTournamentInfo();
 
@@ -182,10 +182,9 @@ describe('schedule2DataCache', () => {
 
       getCachedCompetitionDateRange();
       getCachedTournamentInfo();
-      // Date range + tournamentInfo do not change in response to matchUp
-      // mutations — they survive, matching invalidateMatchUpCaches semantics.
-      expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(1);
-      expect(getTournamentInfoMock).toHaveBeenCalledTimes(1);
+      // Remote metadata edits can arrive without navigating away from this page.
+      expect(getCompetitionDateRangeMock).toHaveBeenCalledTimes(2);
+      expect(getTournamentInfoMock).toHaveBeenCalledTimes(2);
     });
   });
 

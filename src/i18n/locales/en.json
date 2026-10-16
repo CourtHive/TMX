@@ -3432,7 +3432,9 @@
     "modify": "Modify?",
     "impersonate": "Impersonate?",
     "rejected": "Server rejected mutation",
-    "sessionExpired": "Session expired"
+    "sessionExpired": "Session expired",
+    "tournamentChangedBeforeApply": "Tournament changed before mutation could be applied",
+    "tournamentChangedAwaitingAck": "Tournament changed while awaiting acknowledgement"
   },
   "queueService": {
     "saved": "Saved"

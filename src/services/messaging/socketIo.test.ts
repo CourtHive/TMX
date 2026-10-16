@@ -187,8 +187,9 @@ describe('socketIo over a MessageTransport', () => {
     expect(ackCallback).toHaveBeenCalledWith({ ackId, success: true });
   });
 
-  // P49: every ack passes through here — this tab's own mutation moves its sync point.
-  it('an ack with write times moves the sync point', async () => {
+  // Transport receipt alone does not establish that the command was applied locally.
+  it('delivers write times without advancing sync before local application', async () => {
+    const updatedAt = '2026-10-08T19:30:00.000Z';
     const sync = await import('services/staleness/serverSync');
     sync.setServerSync('t1', '2026-10-08T19:29:00.000Z');
     fake.answer = (data: any) => ({
@@ -198,16 +199,20 @@ describe('socketIo over a MessageTransport', () => {
           ackId: data.payload.ackId,
           success: true,
           previousServerUpdatedAt: { t1: '2026-10-08T19:29:00.000Z' },
-          serverUpdatedAt: { t1: '2026-10-08T19:30:00.000Z' },
+          serverUpdatedAt: { t1: updatedAt },
         },
       },
     });
     socketIo.connectSocket();
     fake.up();
-    socketIo.emitTmx({ data: executionQueue(), ackCallback: vi.fn() });
+    const applied = vi.fn();
+    socketIo.emitTmx({ data: executionQueue(), ackCallback: applied });
 
     await settle();
-    expect(sync.serverIsAhead('t1', '2026-10-08T19:30:00.000Z')).toBe(false);
+    expect(applied).toHaveBeenCalledWith(
+      expect.objectContaining({ success: true, serverUpdatedAt: { t1: updatedAt } }),
+    );
+    expect(sync.serverIsAhead('t1', updatedAt)).toBe(true);
   });
 
   // D1 (CA, 2026-10-08): nothing is sent while offline; it is queued and replayed on connect.

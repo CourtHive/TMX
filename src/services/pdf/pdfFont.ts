@@ -8,7 +8,7 @@
  *
  * Fonts (TrueType) ship in TMX's own `public/fonts/` bundle (see the README there),
  * so Vite serves them at `/fonts/` in dev and in the build with no server config —
- * any checkout works standalone. We fetch from the web origin (`location.origin`),
+ * any checkout works standalone. staticAssetUrl resolves against the document for subpaths/Electron,
  * NEVER through the API client (`baseApi` → CFS): static blobs must stay off the
  * mutation server, and a static GET should carry no auth header. The chosen font is
  * fetched once, base64-encoded, and cached in IndexedDB (Dexie `pdfFonts` table) so
