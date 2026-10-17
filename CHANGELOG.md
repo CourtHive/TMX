@@ -1,5 +1,21 @@
 # Changelog
 
+## [8.38.2](https://github.com/CourtHive/TMX/compare/v8.38.1...v8.38.2) (2026-10-17)
+
+
+### Bug Fixes
+
+* **deps:** update @courthive/scoring-visualizations to 0.2.21 ([#1664](https://github.com/CourtHive/TMX/issues/1664)) ([1d8f25d](https://github.com/CourtHive/TMX/commit/1d8f25d5d4849d7eafbe25ff201d75a72cadf5c4))
+* **electron:** treat the renderer as untrusted — no path authority, sandbox, navigation lock, CSP ([#1663](https://github.com/CourtHive/TMX/issues/1663)) ([3d7ee7d](https://github.com/CourtHive/TMX/commit/3d7ee7d6c4ec08fcd7e0333e325acb90370533da))
+* **provider:** render the provider abbreviation as text, not markup ([#1661](https://github.com/CourtHive/TMX/issues/1661)) ([e0c1829](https://github.com/CourtHive/TMX/commit/e0c18293f379e0becca24eb9d1caa49946cdc23a))
+* **security:** escape record data at the remaining HTML sinks ([#1669](https://github.com/CourtHive/TMX/issues/1669)) ([5e303c2](https://github.com/CourtHive/TMX/commit/5e303c27e5d4b27635869b888fa99b0705f32980))
+* **security:** render server-delivered names as text; sanitize notes ([#1665](https://github.com/CourtHive/TMX/issues/1665)) ([a169217](https://github.com/CourtHive/TMX/commit/a1692174e67f83e708c229db05ce44ffc8514392))
+
+
+### Documentation
+
+* correct the two inline comments the assessment corrections left behind ([#1662](https://github.com/CourtHive/TMX/issues/1662)) ([0b2ca00](https://github.com/CourtHive/TMX/commit/0b2ca007d5686d1a1183f481a0275623f1057c16))
+
 ## [8.38.1](https://github.com/CourtHive/TMX/compare/v8.38.0...v8.38.1) (2026-10-16)
 
 
