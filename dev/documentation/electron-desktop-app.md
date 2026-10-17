@@ -131,6 +131,13 @@ The `ElectronBridge` interface in `src/platform/electron.ts` mirrors this shape.
   header naming the configured server (https + wss; localhost only when unpackaged or unset),
   so a confirmed server change reloads the window.
 - `ELECTRON_RENDERER_URL` is honoured only when the app is not packaged.
+- **Fuses** (`electron-builder.json5` → `electronFuses`): `RunAsNode`, `NODE_OPTIONS` and
+  `--inspect` are off; cookie encryption, embedded asar integrity and asar-only loading are on;
+  `file://` gets no extra privileges. Writing fuses invalidates the binary's signature, so macOS
+  builds are ad-hoc signed (`mac.identity: "-"`) until a Developer ID is decided; without a valid
+  signature Apple silicon kills the app at launch. `packaged-app.spec.ts` reads the fuse wire out
+  of the packaged binary and drives the app over CDP, because the inspect fuse blocks Playwright's
+  usual Electron launch.
 
 `e2e/electron/security.spec.ts` runs injected-script attacks against each of these; set
 `TMX_E2E_PACKAGED=1` to run it against the packaged app in `release/`.

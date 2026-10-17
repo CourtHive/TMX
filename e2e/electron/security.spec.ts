@@ -21,7 +21,10 @@ import { tmpdir } from 'os';
 const repoRoot = resolve(import.meta.dirname, '../..');
 const MAIN_ENTRY = resolve(repoRoot, 'dist-electron/main/main.js');
 // TMX_E2E_PACKAGED=1 runs these journeys against the packaged app in release/ instead, where
-// `app.isPackaged` is true and the renderer loads from inside the asar.
+// `app.isPackaged` is true and the renderer loads from inside the asar. They stub dialogs in the
+// main process, which needs the Node inspector the shipped fuses disable, so build that package with
+//   electron-builder --config electron-builder.json5 --dir -c.electronFuses.enableNodeCliInspectArguments=true
+// (packaged-app.spec.ts covers the shipped, fully fused artifact over CDP).
 const packagedExecutable = process.env.TMX_E2E_PACKAGED ? findPackagedExecutable() : undefined;
 
 let app: ElectronApplication;

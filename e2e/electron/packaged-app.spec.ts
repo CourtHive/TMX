@@ -1,5 +1,6 @@
-import { ElectronApplication, Page, _electron as electron, expect, test } from '@playwright/test';
+import { launchPackagedOverCdp, readFuseWire, type PackagedApp } from './helpers/packagedApp';
 import { findPackagedExecutable } from './helpers/packagedExecutable';
+import { expect, test, type Page } from '@playwright/test';
 import { freshUserDataDir } from './helpers/userDataDir';
 
 /**
@@ -19,8 +20,11 @@ import { freshUserDataDir } from './helpers/userDataDir';
  *
  *     pnpm electron:package && pnpm test:electron
  *
- * CI runs `electron-builder --dir`, which exercises the same packaging pipeline
- * without producing installers, so this spec runs there too.
+ * CI runs `electron-builder --dir` AFTER the smoke suite, so in CI this spec skips; the packaging
+ * step itself is the CI gate there.
+ *
+ * The shipped app carries Electron fuses that disable the Node inspector, so it is driven over the
+ * DevTools protocol (helpers/packagedApp.ts), and the fuse wire itself is asserted below.
  */
 
 const executablePath = findPackagedExecutable();
@@ -28,20 +32,18 @@ const executablePath = findPackagedExecutable();
 test.describe('packaged application', () => {
   test.skip(!executablePath, 'no package in release/ — run `pnpm electron:package` first');
 
-  let app: ElectronApplication;
+  let packaged: PackagedApp;
   let window: Page;
   let userData: { path: string; cleanup: () => void };
   const failedFileRequests: string[] = [];
 
   test.beforeAll(async () => {
     userData = freshUserDataDir();
-    app = await electron.launch({
-      executablePath,
-      args: [`--user-data-dir=${userData.path}`],
-    });
-    window = await app.firstWindow();
+    packaged = await launchPackagedOverCdp(executablePath!, userData.path);
+    window = packaged.page;
     // The renderer is served from app://tmx: a missing asset is a 404 RESPONSE from the protocol
-    // handler, not a failed request, so both are tracked.
+    // handler, not a failed request, so both are tracked. The page may have loaded before CDP
+    // attached, so reload once the listeners are in place.
     window.on('requestfailed', (request) => {
       const url = request.url();
       if (url.startsWith('app://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
@@ -51,11 +53,21 @@ test.describe('packaged application', () => {
         failedFileRequests.push(`${response.url()} (HTTP ${response.status()})`);
       }
     });
+    await window.reload();
   });
 
   test.afterAll(async () => {
-    await app?.close();
+    await packaged?.close();
     userData?.cleanup();
+  });
+
+  test('ships with the security fuses set', () => {
+    // FuseV1Options order: RunAsNode, EnableCookieEncryption, EnableNodeOptionsEnvironmentVariable,
+    // EnableNodeCliInspectArguments, EnableEmbeddedAsarIntegrityValidation, OnlyLoadAppFromAsar,
+    // LoadBrowserProcessSpecificV8Snapshot, GrantFileProtocolExtraPrivileges, …
+    const wire = readFuseWire(executablePath!);
+    expect(wire.slice(0, 6), 'fuses 0–5').toBe('010011');
+    expect(wire[7], 'GrantFileProtocolExtraPrivileges').toBe('0');
   });
 
   test('boots TMX from inside the asar', async () => {
@@ -86,17 +98,15 @@ test.describe('packaged application ignores the dev-server override', () => {
 
   test('ELECTRON_RENDERER_URL cannot point a packaged app at another page', async () => {
     const userData = freshUserDataDir();
-    const app = await electron.launch({
-      executablePath,
-      args: [`--user-data-dir=${userData.path}`],
-      env: { ...process.env, ELECTRON_RENDERER_URL: 'https://example.com/' },
+    const packaged = await launchPackagedOverCdp(executablePath!, userData.path, {
+      ...process.env,
+      ELECTRON_RENDERER_URL: 'https://example.com/',
     });
     try {
-      const window = await app.firstWindow();
-      await window.waitForLoadState('domcontentloaded');
-      expect(window.url()).toBe('app://tmx/index.html');
+      await packaged.page.waitForLoadState('domcontentloaded');
+      expect(packaged.page.url()).toBe('app://tmx/index.html');
     } finally {
-      await app.close();
+      await packaged.close();
       userData.cleanup();
     }
   });
