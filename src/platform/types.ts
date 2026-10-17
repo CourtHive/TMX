@@ -7,16 +7,29 @@
 
 export type PlatformType = 'web' | 'electron';
 
-export interface SaveDialogOptions {
-  title?: string;
-  defaultPath?: string;
-  filters?: { name: string; extensions: string[] }[];
+export interface FileFilter {
+  name: string;
+  extensions: string[];
 }
 
-export interface OpenDialogOptions {
+/** The main process shows the save dialog and writes `data`; the chosen path never comes back. */
+export interface SaveFileRequest {
   title?: string;
-  filters?: { name: string; extensions: string[] }[];
+  /** A bare file name to pre-fill; any directory part is dropped. */
+  defaultName?: string;
+  filters: FileFilter[];
+  data: Uint8Array;
+}
+
+export interface OpenFilesRequest {
+  title?: string;
+  filters: FileFilter[];
   multiple?: boolean;
+}
+
+export interface OpenedFile {
+  name: string;
+  data: Uint8Array;
 }
 
 export interface PlatformAdapter {
@@ -34,23 +47,14 @@ export interface PlatformAdapter {
   /** Resolve the default server URL for Socket.IO connection */
   getDefaultServerUrl(): string;
 
-  /** Native save dialog — returns file path or undefined if cancelled */
-  showSaveDialog?(options: SaveDialogOptions): Promise<string | undefined>;
+  /** Save through a native dialog (Electron only) — resolves `{ saved: false }` when cancelled */
+  saveFile?(request: SaveFileRequest): Promise<{ saved: boolean }>;
 
-  /** Native open dialog — returns file paths or undefined if cancelled */
-  showOpenDialog?(options: OpenDialogOptions): Promise<string[] | undefined>;
+  /** Open files through a native dialog (Electron only) — undefined when cancelled */
+  openFiles?(request: OpenFilesRequest): Promise<OpenedFile[] | undefined>;
 
-  /** Read a file from disk (Electron only) */
-  readFile?(filePath: string): Promise<Uint8Array>;
-
-  /** Write a file to disk (Electron only) */
-  writeFile?(filePath: string, data: Uint8Array): Promise<void>;
-
-  /** Get the app's user data directory (Electron only) */
-  getAppDataPath?(): string;
-
-  /** Persist server URL preference (Electron only) */
-  setServerUrl?(url: string): Promise<void>;
+  /** Persist the server URL (Electron only) — the user confirms a change; refused URLs are not saved */
+  setServerUrl?(url: string): Promise<{ saved: boolean }>;
 
   /** Toggle Chrome DevTools (Electron only) */
   toggleDevTools?(): Promise<void>;

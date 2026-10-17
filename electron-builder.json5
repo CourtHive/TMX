@@ -11,6 +11,15 @@
   "directories": {
     "output": "release"
   },
+  "electronFuses": {
+    "runAsNode": false,
+    "enableCookieEncryption": true,
+    "enableNodeOptionsEnvironmentVariable": false,
+    "enableNodeCliInspectArguments": false,
+    "enableEmbeddedAsarIntegrityValidation": true,
+    "onlyLoadAppFromAsar": true,
+    "grantFileProtocolExtraPrivileges": false
+  },
   "files": [
     "dist/**/*",
     "dist-electron/**/*"
@@ -18,7 +27,8 @@
   "mac": {
     "target": ["dmg", "zip"],
     "category": "public.app-category.sports",
-    "minimumSystemVersion": "12.0"
+    "minimumSystemVersion": "12.0",
+    "identity": "-"
   },
   "win": {
     "target": ["nsis"]

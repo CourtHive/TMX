@@ -21,6 +21,11 @@
   },
   "packageRules": [
     {
+      "description": "plist calls DOMParser.parseFromString without a mimeType, which xmldom 0.9 rejects; the scoped override in pnpm-workspace.yaml keeps plist on 0.8 so macOS packaging works. #1275 bumped it to ^0.9.0 and broke it unnoticed (Linux CI never parses an Info.plist).",
+      "matchDepNames": ["plist>@xmldom/xmldom"],
+      "allowedVersions": "<0.9.0"
+    },
+    {
       "description": "pnpm itself is updated through packageManager / .tool-versions, not as a devDependency, so the dev-deps group never caught it: it got its own PR, no schedule, re-run on every rebase (32 factory CI runs in a day, 2026-10-07). Minor/patch ride the Monday group; majors still arrive alone.",
       "matchPackageNames": ["pnpm"],
       "matchUpdateTypes": ["minor", "patch"],
