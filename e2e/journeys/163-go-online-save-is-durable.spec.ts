@@ -116,6 +116,14 @@ test.describe('Journey 163 — go online is durable and conditional', () => {
       });
     });
 
+    // Any mutation sent to the server after the refused save would be written over the newer record.
+    const mutations: string[] = [];
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/factory')) {
+        mutations.push(request.postData() ?? '');
+      }
+    });
+
     const tournamentId = await seedOfflineTournament(page);
     await page.locator(GO_ONLINE).click();
 
@@ -125,6 +133,12 @@ test.describe('Journey 163 — go online is durable and conditional', () => {
 
     expect(saves).toHaveLength(1); // a conflict is an answer: never resent
     expect(await storedLocally(page, tournamentId)).toBe(true);
+    // Back offline in this tab only: the flag is restored locally, and nothing reached the server.
+    const offline = await page.evaluate(
+      () => dev.factory.tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue?.offline,
+    );
+    expect(offline, 'the tournament is offline again locally').toBeTruthy();
+    expect(mutations, 'no mutation is sent to the server after the refused save').toEqual([]);
     // Still remembered: the next attempt is conditional on the same write.
     expect(await page.evaluate((id) => localStorage.getItem(`tmxOfflineSync:${id}`), tournamentId)).toBe(
       WENT_OFFLINE_AT,

@@ -471,6 +471,19 @@ function changeOnlineState({
   });
 }
 
+/**
+ * Re-mark the tournament offline in THIS tab only, after a go-online save that did not land. The
+ * offline flag was cleared to send the copy, so a `changeOnlineState` here would run server-first and
+ * write this copy's TMX time item over the server's record, which on a conflict is someone else's
+ * newer one. Local engine and IndexedDB only; repeating go-online reuses the save's commandId.
+ */
+function restoreOfflineLocally(state: any): void {
+  const prior = tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue;
+  const itemValue = { ...prior, offline: { email: state.email } };
+  tournamentEngine.addTournamentTimeItem({ removePriorValues: true, timeItem: { itemType: 'TMX', itemValue } });
+  saveTournamentRecord();
+}
+
 function createActionButton(label: string, icon: string, onClick: () => void, id?: string): HTMLElement {
   const btn = document.createElement('button');
   btn.className = 'dash-action-btn';
@@ -665,7 +678,7 @@ export function createActionsPanel(): HTMLElement {
                   // Only a save known to have landed (or a deduplicated resend of it) may delete the
                   // offline copy. A conflict, a refusal or an unknown outcome keeps it, offline.
                   if (result.status !== 'saved') {
-                    changeOnlineState({ state, offline: true });
+                    restoreOfflineLocally(state);
                     reportSaveOutcome(result, 'goOnline', updated.tournamentId);
                     return;
                   }
@@ -678,7 +691,7 @@ export function createActionsPanel(): HTMLElement {
                 },
                 (err: any) => {
                   console.log({ err });
-                  changeOnlineState({ state, offline: true });
+                  restoreOfflineLocally(state);
                 },
               );
             }
