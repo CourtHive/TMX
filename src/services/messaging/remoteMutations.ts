@@ -131,9 +131,9 @@ export function isSyncStale(): boolean {
 }
 
 /** Pull the latest tournament record from the server and apply it locally. Only
- * invoked on an explicit sync-icon click, so the full record is fetched on
- * demand — never on a background poll. */
-async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
+ * invoked on an explicit click (the sync icon, or a save-conflict toast's action),
+ * so the full record is fetched on demand — never on a background poll. */
+export async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
   const isCurrent = captureTournamentOperation([tournamentId]);
   try {
     const result: any = await requestTournament({ tournamentId });

@@ -133,29 +133,33 @@ axiosInstance.interceptors.response.use(
     }
     if (error.response) {
       if (error.response?.status === 401) removeAuthorization();
-      if (!silenceErrors) {
-        const data = error.response.data ?? {};
-        const message = data.message || data.error || data;
-        const validationErrors: string[] | undefined = Array.isArray(data.validationErrors)
-          ? data.validationErrors
-          : undefined;
-        if (validationErrors?.length) {
-          tmxToast({
-            message,
-            intent: 'is-danger',
-            duration: 6000,
-            action: { text: t('common.details'), onClick: () => showValidationDetailsModal(validationErrors) },
-          });
-        } else {
-          tmxToast({ message, intent: 'is-danger' });
-        }
-      }
+      if (!silenceErrors) reportErrorResponse(error.response.data);
     }
     // Preserve the pre-existing contract: rejected requests resolve to
     // `undefined` (errors are surfaced via toasts), not a rejected promise.
     return undefined;
   },
 );
+
+/** Toast a refused request's body, its validation errors one click away. Also for callers that
+ * silence baseApi's reporting to handle some answers themselves (durable saves). */
+export function reportErrorResponse(responseData: any): void {
+  const data = responseData ?? {};
+  const message = data.message || data.error || data;
+  const validationErrors: string[] | undefined = Array.isArray(data.validationErrors)
+    ? data.validationErrors
+    : undefined;
+  if (validationErrors?.length) {
+    tmxToast({
+      message,
+      intent: 'is-danger',
+      duration: 6000,
+      action: { text: t('common.details'), onClick: () => showValidationDetailsModal(validationErrors) },
+    });
+  } else {
+    tmxToast({ message, intent: 'is-danger' });
+  }
+}
 
 // Dynamic import: baseModal pulls in `courthive-components` which touches
 // the DOM at module load time; a static import would break vitest's
