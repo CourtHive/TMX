@@ -19,6 +19,7 @@ import { roleBadge } from 'components/tables/common/formatters/roleBadge';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { buildTeamCard, cModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 export function teamProfileModal({ participantId }: { participantId: string }): void {
@@ -58,7 +59,7 @@ export function teamProfileModal({ participantId }: { participantId: string }): 
   }
 
   cModal.open({
-    title: team.participantName || t('modals.teamProfile.title'),
+    title: escapeHtml(team.participantName) || t('modals.teamProfile.title'),
     content,
     buttons: [{ label: t('common.close'), close: true }],
     config: { maxWidth: 900 },
@@ -162,7 +163,7 @@ function rosterColumns(): any[] {
       sorter: jerseySorter,
       formatter: (cell: any) => {
         const v = cell.getValue();
-        return v == null || v === '' ? '' : `<strong>${v}</strong>`;
+        return v == null || v === '' ? '' : `<strong>${escapeHtml(v)}</strong>`;
       },
     },
     { title: t('modals.teamProfile.columns.name'), field: 'participantName', headerSort: true, minWidth: 180 },
@@ -196,5 +197,5 @@ function formatSexBadge(sex?: string): string {
   const upper = sex.toUpperCase();
   const color = upper === 'FEMALE' ? '#c14070' : upper === 'MALE' ? '#3273dc' : '#888';
   const label = upper === 'FEMALE' ? 'F' : upper === 'MALE' ? 'M' : sex;
-  return `<span style="display:inline-block; padding:0.1em 0.5em; border-radius:3px; font-size:0.85em; background:${color}22; border:1px solid ${color}66; color:var(--tmx-text-primary, #eee);">${label}</span>`;
+  return `<span style="display:inline-block; padding:0.1em 0.5em; border-radius:3px; font-size:0.85em; background:${color}22; border:1px solid ${color}66; color:var(--tmx-text-primary, #eee);">${escapeHtml(label)}</span>`;
 }

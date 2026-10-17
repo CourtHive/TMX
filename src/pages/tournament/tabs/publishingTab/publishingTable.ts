@@ -215,7 +215,7 @@ function handleEmbargoClick(cell: any): void {
       });
 
     openEmbargoModal({
-      title: `${t(TRN_EMBARGO)}: ${data.name}`,
+      title: `${t(TRN_EMBARGO)}: ${escapeHtml(data.name)}`,
       currentEmbargo: data.embargo,
       onSet: (isoString) => setStructureEmbargo(isoString),
       onClear: data.embargo ? () => setStructureEmbargo() : undefined,
@@ -226,7 +226,7 @@ function handleEmbargoClick(cell: any): void {
   if (data.type !== 'draw') return undefined;
 
   openEmbargoModal({
-    title: `${t(TRN_EMBARGO)}: ${data.name}`,
+    title: `${t(TRN_EMBARGO)}: ${escapeHtml(data.name)}`,
     currentEmbargo: data.embargo,
     onSet: (isoString) => {
       const drawDetails: Record<string, any> = {};
@@ -299,7 +299,7 @@ function handleScheduleEmbargoClick(cell: any): void {
   }
 
   openEmbargoModal({
-    title: `${t(TRN_EMBARGO)}: ${data.name} ${t('publishing.roundSchedule').toLowerCase()}`,
+    title: `${t(TRN_EMBARGO)}: ${escapeHtml(data.name)} ${t('publishing.roundSchedule').toLowerCase()}`,
     currentEmbargo: currentScheduleEmbargo,
     onSet: (isoString) => {
       // Set schedule embargo on all rounds in all structures

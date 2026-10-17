@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderForm } from 'courthive-components';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
@@ -115,7 +116,7 @@ export function orderResolutionModal({
   }));
 
   const options = participants.map((participant) => ({
-    text: getParticipantName(participant),
+    text: escapeHtml(getParticipantName(participant)),
     style: 'font-size: 0.9em;',
     fieldPair: {
       options: [{ label: '', value: '' }, ...orderOptions],

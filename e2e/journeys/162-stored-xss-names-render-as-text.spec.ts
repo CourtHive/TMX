@@ -10,9 +10,10 @@ import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridg
  * page title, the participants and publishing tables, the event/draw dropdowns and the draw view.
  *
  * Every name field a mock record carries is overwritten with a payload tagged by field, and the
- * tournament notes (rich text, so sanitized rather than escaped) carry a handler of their own. Each view is
- * then visited and two things are asserted: no payload element exists in the DOM (it was parsed as
- * HTML) and no payload handler ran. The field tag says which field leaked, and the view says where.
+ * tournament notes (rich text, so sanitized rather than escaped) carry a handler of their own. Rating
+ * scale names and a stored score string are seeded the same way. Each view is then visited and two
+ * things are asserted: no payload element exists in the DOM (it was parsed as HTML) and no payload
+ * handler ran. The field tag says which field leaked, and the view says where.
  */
 
 async function seedHostileTournament(page: Page): Promise<{ t: string; e: string; d: string; s: string; v: string }> {
@@ -43,13 +44,31 @@ async function seedHostileTournament(page: Page): Promise<{ t: string; e: string
       venue.venueAbbreviation = set('venueAbbreviation', 'VA');
       for (const court of venue.courts ?? []) court.courtName = set('courtName', 'C');
     }
+    // Scale names are split on dots and upper-cased before they render, so their payload carries no
+    // dots and no handler: only its presence in the DOM counts (matched case-insensitively below).
+    // Two unknown scales and no WTN make the active-rating prompt open as the tournament loads.
+    const scaleItems = ['a', 'b'].map((suffix) => ({
+      itemType: `SCALE.RATING.SINGLES.<img src=x class=xss-scaleName-${suffix}>`,
+      itemValue: 5,
+      createdAt: new Date().toISOString(),
+    }));
     for (const participant of record.participants ?? []) {
       participant.participantName = set('participantName', 'P');
       if (participant.person) {
         participant.person.standardGivenName = set('givenName', 'G');
         participant.person.standardFamilyName = set('familyName', 'F');
         participant.person.addresses = [{ city: set('city', 'City') }];
+        participant.timeItems = [...scaleItems];
       }
+    }
+    // A stored score string is record data too; the matchUps table and lucky-loser rows print it.
+    const scored = record.events[0].drawDefinitions[0].structures[0].matchUps.find(
+      (m: any) => m.drawPositions?.filter(Boolean).length === 2,
+    );
+    if (scored) {
+      scored.winningSide = 1;
+      scored.matchUpStatus = 'COMPLETED';
+      scored.score = { scoreStringSide1: set('scoreString', '6-1'), scoreStringSide2: set('scoreString', '1-6') };
     }
     dev.factory.tournamentEngine.setState(record);
     await dev.load(record);
@@ -68,10 +87,11 @@ async function seedHostileTournament(page: Page): Promise<{ t: string; e: string
 /** Payload elements present in the DOM, and handlers that ran, since the last call. */
 async function leaks(page: Page): Promise<string[]> {
   return page.evaluate(() => {
-    const parsed = [...document.querySelectorAll('img[class^="xss-"]')].map((el) => el.className.slice(4));
+    const selector = 'img[class^="xss-" i]';
+    const parsed = [...document.querySelectorAll(selector)].map((el) => el.className.slice(4).toLowerCase());
     const ran: string[] = (globalThis as any).__xss ?? [];
     (globalThis as any).__xss = [];
-    for (const el of document.querySelectorAll('img[class^="xss-"]')) el.remove();
+    for (const el of document.querySelectorAll(selector)) el.remove();
     return [...new Set([...parsed, ...ran])].sort((a, b) => a.localeCompare(b));
   });
 }

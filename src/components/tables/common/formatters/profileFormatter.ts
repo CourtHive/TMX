@@ -16,7 +16,7 @@ export function profileFormatter(cell): HTMLSpanElement {
     const { competitiveness } = competitiveProfile;
     content.style.color = colorMap[competitiveness];
     content.style.fontSize = 'smaller';
-    content.innerHTML = competitiveness;
+    content.textContent = competitiveness;
   }
 
   return content;

@@ -1,3 +1,4 @@
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isObject } from 'functions/typeOf';
 
 export const groupOrderFormatter = (cell) => {
@@ -10,9 +11,9 @@ export const groupOrderFormatter = (cell) => {
   if (ties) {
     const subOrder = playerRow?.subOrder;
     const color = subOrder ? 'blue' : 'red';
-    elem.innerHTML = `<span style='font-weight: bold; color: ${color}'>[${isObject(value) ? (value as any).groupOrder : value}]</span>`;
+    elem.innerHTML = `<span style='font-weight: bold; color: ${color}'>[${escapeHtml(isObject(value) ? (value as any).groupOrder : value)}]</span>`;
   } else {
-    elem.innerHTML = (isObject(value) ? (value as any).groupOrder : value) || '';
+    elem.textContent = (isObject(value) ? (value as any).groupOrder : value) || '';
   }
 
   return elem;

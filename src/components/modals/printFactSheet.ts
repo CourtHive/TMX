@@ -22,7 +22,7 @@ export function printFactSheet(): void {
       field: 'templateId',
       label: t('ui.template'),
       options: templates.map((tmpl) => ({
-        label: tmpl.name,
+        label: escapeHtml(tmpl.name),
         value: tmpl.id,
         selected: tmpl.id === 'national-federation',
       })),
