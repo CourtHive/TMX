@@ -22,7 +22,7 @@ export const ratingFormatter =
     };
 
     content.style.color = colorMap[band];
-    content.innerHTML = value ?? '';
+    content.textContent = value ?? '';
 
     return content;
   };

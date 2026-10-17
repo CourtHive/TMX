@@ -6,6 +6,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
@@ -45,7 +46,7 @@ export function editGroupNames({
     return groups;
   }, {});
   const options = Object.values(groups).map(({ structureName, structureId }: any) => ({
-    text: `${structureName}:`,
+    text: `${escapeHtml(structureName)}:`,
     fieldPair: {
       error: t('modals.editGroupNames.minChars'),
       validator: validators.nameValidator(3),

@@ -7,6 +7,7 @@
 
 import { createCourtSvg, TournamentCardData, TournamentStatusKind } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 
 import { TOURNAMENT } from 'constants/tmxConstants';
@@ -52,24 +53,24 @@ function imageFormatter(cell: any): HTMLElement {
 
 function nameFormatter(cell: any): string {
   const data: TournamentCardData = cell.getRow().getData().tournament;
-  return `<span style="font-weight:500">${data?.tournamentName ?? ''}</span>`;
+  return `<span style="font-weight:500">${escapeHtml(data?.tournamentName)}</span>`;
 }
 
 function statusFormatter(cell: any): string {
   const data: TournamentCardData = cell.getRow().getData().tournament;
   if (!data?.status) return '';
   const label = STATUS_LABEL[data.status.kind] ?? data.status.label;
-  return `<span class="tmx-tournaments-status-pill" data-kind="${data.status.kind}">${label}</span>`;
+  return `<span class="tmx-tournaments-status-pill" data-kind="${escapeHtml(data.status.kind)}">${escapeHtml(label)}</span>`;
 }
 
 function locationFormatter(cell: any): string {
   const data: TournamentCardData = cell.getRow().getData().tournament;
-  return data?.location ?? '';
+  return escapeHtml(data?.location);
 }
 
 function datesFormatter(cell: any): string {
   const data: TournamentCardData = cell.getRow().getData().tournament;
-  return data?.dateRangeFormatted ?? '';
+  return escapeHtml(data?.dateRangeFormatted);
 }
 
 function playersFormatter(cell: any): string {
@@ -79,7 +80,7 @@ function playersFormatter(cell: any): string {
 
 function feeFormatter(cell: any): string {
   const data: TournamentCardData = cell.getRow().getData().tournament;
-  return data?.feeFormatted ?? '';
+  return escapeHtml(data?.feeFormatted);
 }
 
 function tierFormatter(cell: any): string {
@@ -87,7 +88,7 @@ function tierFormatter(cell: any): string {
   if (!tier?.value) return '';
   // Plain value — operators within a provider already know their system.
   // The header tooltip carries the system name for cross-provider clarity.
-  return `<span class="tmx-tournaments-tier-pill" title="${tier.system}">${tier.value}</span>`;
+  return `<span class="tmx-tournaments-tier-pill" title="${escapeHtml(tier.system)}">${escapeHtml(tier.value)}</span>`;
 }
 
 // Sort: lower numericRank = more prestigious (matches federation conventions

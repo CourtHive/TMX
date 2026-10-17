@@ -13,6 +13,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { setActiveScale } from 'settings/setActiveScale';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { env } from 'settings/env';
 
 import { markRatingPromptDismissed, wasRatingPromptDismissed } from './ratingPromptStorage';
@@ -37,7 +38,7 @@ function chip(label: string, variant: 'available' | 'inactive'): string {
     variant === 'available'
       ? 'background: var(--tmx-panel-blue-bg, #e7f1fa); color: var(--tmx-panel-blue-text, #2c5d8a);'
       : 'background: var(--tmx-bg-secondary, #f4f4f5); color: var(--tmx-text-primary, inherit); opacity: 0.75;';
-  return `<span style="${base} ${themed}">${label}</span>`;
+  return `<span style="${base} ${themed}">${escapeHtml(label)}</span>`;
 }
 
 function renderPromptContent(available: string[], current: string): string {
@@ -96,13 +97,13 @@ export function runActiveScaleAutoSwitch(): void {
   // action === 'prompt'
   const buttons: ModalButton[] = [
     ...decision.availableScales.map((scale): ModalButton => ({
-      label: `Use ${scale.toUpperCase()}`,
+      label: `Use ${escapeHtml(scale.toUpperCase())}`,
       intent: 'is-info',
       close: true,
       onClick: () => applyScale(scale),
     })),
     {
-      label: `Keep ${decision.fromScale.toUpperCase()}`,
+      label: `Keep ${escapeHtml(decision.fromScale.toUpperCase())}`,
       intent: 'is-light',
       close: true,
       onClick: () => {

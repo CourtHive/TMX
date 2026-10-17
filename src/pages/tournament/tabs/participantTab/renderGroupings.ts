@@ -16,6 +16,7 @@ import { participantConstants } from 'tods-competition-factory';
 import { generateTeams } from 'components/modals/generateTeams';
 import { participantChips } from './participantChips';
 import { controlBar } from 'courthive-components';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 // Constants
@@ -75,7 +76,7 @@ export function renderGroupings({ view }: { view: string }): void {
       .filter(({ eventType }: any) => eventType === TEAM)
       .map((event: any) => ({
         onClick: () => addParticipantsToEvent({ event, participantType: TEAM, table, callback: replaceTableData }),
-        label: event.eventName,
+        label: escapeHtml(event.eventName),
         close: true,
       })),
   );

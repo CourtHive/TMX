@@ -7,6 +7,7 @@ import { showTMXtemplates } from 'services/transitions/screenSlaver';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { homeNavigation } from 'homeNavigation';
 import { context } from 'services/context';
 import {
@@ -701,7 +702,7 @@ function renderTieFormatPreview(container: HTMLElement, tieFormat: any): void {
 
 function openTieFormatEditor(tieFormat: any, defaultName?: string, editingId?: string): void {
   editTieFormat({
-    title: defaultName || 'New Tie Format',
+    title: escapeHtml(defaultName) || 'New Tie Format',
     tieFormat,
     onClose: (result: any) => {
       if (!result) return;

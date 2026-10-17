@@ -65,7 +65,7 @@ function createPill({
   if (event.eventType === SINGLES) {
     pill.classList.add('is-light');
   }
-  pill.innerHTML = event.eventName;
+  pill.textContent = event.eventName ?? '';
   return pill;
 }
 

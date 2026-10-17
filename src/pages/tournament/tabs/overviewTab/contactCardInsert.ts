@@ -1,5 +1,6 @@
 import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 const { COMPETITOR } = participantRoles;
 const { INDIVIDUAL } = participantConstants;
@@ -78,8 +79,8 @@ export function buildContactCardHtml(): string {
 
   const rows = contacts
     .map((c) => {
-      const details = [c.email, c.phone].filter(Boolean).join(' &middot; ');
-      return `<tr><td><strong>${c.name}</strong></td><td>${c.role}</td><td>${details}</td></tr>`;
+      const details = [c.email, c.phone].filter(Boolean).map(escapeHtml).join(' &middot; ');
+      return `<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${escapeHtml(c.role)}</td><td>${details}</td></tr>`;
     })
     .join('\n');
 

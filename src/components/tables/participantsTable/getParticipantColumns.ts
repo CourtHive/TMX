@@ -21,6 +21,7 @@ import { threeDots } from '../common/formatters/threeDots';
 import { toggleSignInStatus } from './toggleSignInStatus';
 import { idEditor } from '../common/editors/idEditor';
 import { headerMenu } from '../common/headerMenu';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 // constants
@@ -126,7 +127,7 @@ export function getParticipantColumns({
       width: 60,
       formatter: (cell: any) => {
         const v = cell.getValue();
-        return v == null || v === '' ? '' : `<strong>${v}</strong>`;
+        return v == null || v === '' ? '' : `<strong>${escapeHtml(v)}</strong>`;
       },
     },
     {

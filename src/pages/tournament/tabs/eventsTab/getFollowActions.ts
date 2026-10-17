@@ -1,3 +1,4 @@
+import { escapeHtml } from 'utilities/escapeHtml';
 /**
  * Compute "Go to {structure}" popover actions for a clicked participant.
  *
@@ -63,7 +64,7 @@ export function getFollowActions({
 
   return [...bestByStructure.entries()].map(([structureId, matchUp]) => ({
     type: 'FOLLOW_TO_STRUCTURE',
-    label: `Go to ${structureNameById.get(structureId)}`,
+    label: `Go to ${escapeHtml(structureNameById.get(structureId))}`,
     payload: { eventId, drawId, structureId, matchUpId: matchUp.matchUpId, participantId },
   }));
 }

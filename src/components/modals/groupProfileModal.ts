@@ -25,6 +25,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
 import { selectParticipant } from './selectParticipant';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -79,7 +80,7 @@ export function groupProfileModal({ participantId, callback }: { participantId: 
   };
 
   cModal.open({
-    title: rendered.group.participantName || t('modals.groupProfile.title'),
+    title: escapeHtml(rendered.group.participantName) || t('modals.groupProfile.title'),
     content: rendered.content,
     config: { maxWidth: 720 },
     onClose: () => table?.destroy?.(),

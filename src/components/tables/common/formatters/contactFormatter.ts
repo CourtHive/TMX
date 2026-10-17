@@ -20,6 +20,7 @@ import {
   telHref,
   smsHref,
 } from 'services/contact/contactLinks';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 import type { ContactLike } from 'services/contact/contactLinks';
@@ -69,7 +70,7 @@ export function contactCellMarkup(contacts?: ContactLike[]): string {
   const links = affordances
     .map(
       ({ href, icon, title }) =>
-        `<a class="tmx-contact-link" href="${href}" title="${title}" onclick="event.stopPropagation()"><i class="fa-solid ${icon}"></i></a>`,
+        `<a class="tmx-contact-link" href="${escapeHtml(href)}" title="${escapeHtml(title)}" onclick="event.stopPropagation()"><i class="fa-solid ${icon}"></i></a>`,
     )
     .join('');
 

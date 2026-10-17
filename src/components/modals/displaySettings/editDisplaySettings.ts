@@ -7,6 +7,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 
 // constants
@@ -135,7 +136,7 @@ export async function editDisplaySettings(params) {
 
   const userOptions = getUserCompositionsSync().map((u) => ({
     selected: u.name === selections.compositionName,
-    label: `${u.name} (custom)`,
+    label: `${escapeHtml(u.name)} (custom)`,
     value: u.name,
   }));
 

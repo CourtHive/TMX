@@ -9,6 +9,7 @@ import { feedInQualifyingSupported } from './feedInQualifying';
 import { getTopologyTemplates } from './topologyTemplates';
 import { validateTopology } from 'courthive-components';
 import { providerConfig } from 'config/providerConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 // constants and types
@@ -60,7 +61,7 @@ export function getDrawTypeOptions({
     ? getTopologyTemplates()
         .filter(isValidTemplate)
         .map((tpl) => ({
-          label: `\u2726 ${tpl.name}`,
+          label: `\u2726 ${escapeHtml(tpl.name)}`,
           value: `${TOPOLOGY_TEMPLATE_PREFIX}${tpl.name}`,
         }))
     : [];
@@ -70,7 +71,7 @@ export function getDrawTypeOptions({
     ? getUserTopologiesSync()
         .filter(isValidTemplate)
         .map((tpl) => ({
-          label: `\u2726 ${tpl.name}`,
+          label: `\u2726 ${escapeHtml(tpl.name)}`,
           value: `${TOPOLOGY_TEMPLATE_PREFIX}${tpl.name}`,
         }))
     : [];
@@ -82,7 +83,7 @@ export function getDrawTypeOptions({
     ? getBuiltinTopologies()
         .filter(isValidTemplate)
         .map((tpl) => ({
-          label: `\u2726 ${tpl.name}`,
+          label: `\u2726 ${escapeHtml(tpl.name)}`,
           value: `${TOPOLOGY_TEMPLATE_PREFIX}${tpl.name}`,
         }))
     : [];

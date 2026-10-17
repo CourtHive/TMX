@@ -14,6 +14,7 @@
  * Creating or editing scheduling policies lives on the `/policies` page.
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 import {
   ATTACHED_POLICY_ID,
@@ -65,7 +66,7 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
       summary.style.cssText =
         'padding: 8px 12px; background: var(--tmx-bg-secondary, rgba(0,0,0,0.04)); border-radius: 6px; font-size: 0.75rem;';
       const attachedLabel = matchedLabel ?? 'Custom policy (not from this list)';
-      summary.innerHTML = `<strong>Currently attached:</strong> ${attachedLabel}`;
+      summary.innerHTML = `<strong>Currently attached:</strong> ${escapeHtml(attachedLabel)}`;
       root.appendChild(summary);
     }
 

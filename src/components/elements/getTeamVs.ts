@@ -40,7 +40,7 @@ export function getSide({
   side.className = `matchup-side justify-${justify}`;
   const sideName = document.createElement('div');
   sideName.className = 'side-name';
-  sideName.innerHTML = participantName;
+  sideName.textContent = participantName;
   side.appendChild(sideName);
   return side;
 }

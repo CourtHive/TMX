@@ -145,17 +145,16 @@ function createToast(options: ToastOptions): { element: HTMLElement } {
   const container = document.createElement('div');
   container.style.cssText = 'display: flex; flex-direction: row; align-items: center; justify-content: center;';
 
-  if (typeof options.message === 'string') {
-    container.insertAdjacentHTML('beforeend', options.message);
-  } else if (options.message) {
-    console.log(' MESSAGE ', options.message, typeof options.message);
-  }
+  // A string message is TEXT: toasts often carry record data (names in "Added N to <draw>",
+  // conflict summaries), which must never be parsed as markup. A caller that needs formatting
+  // passes an element.
+  if (options.message) container.append(options.message);
 
   if (isFunction(options.action?.onClick)) {
     const actionButton = document.createElement('button');
     actionButton.style.cssText = 'margin-left: 1em;';
     actionButton.className = options.type === 'is-danger' ? 'button is-light' : 'button';
-    actionButton.innerHTML = options.action.text || 'OK';
+    actionButton.textContent = options.action.text || 'OK';
     actionButton.addEventListener('click', options.action.onClick!);
     container.appendChild(actionButton);
   }

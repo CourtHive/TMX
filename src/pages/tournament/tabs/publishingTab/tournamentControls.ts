@@ -14,6 +14,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { providerConfig } from 'config/providerConfig';
 import { openEmbargoModal } from './embargoModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import dayjs from 'dayjs';
 import { t } from 'i18n';
 import {
@@ -380,7 +381,7 @@ function buildInformationEventSelector(data: any): { eventFormContainer?: HTMLEl
   // No stored scope means every event, which is what the factory does with an absent `eventIds`.
   const scoped: string[] | undefined = data.infoEventIds;
   const options = events.map((event) => ({
-    label: event.eventName ?? event.eventId,
+    label: escapeHtml(event.eventName ?? event.eventId),
     value: event.eventId,
     selected: !scoped || scoped.includes(event.eventId),
   }));

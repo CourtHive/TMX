@@ -5,6 +5,7 @@
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { policyConstants } from 'tods-competition-factory';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 import { NONE } from 'constants/tmxConstants';
@@ -136,7 +137,7 @@ export function showTallyReportModal({ groupMatchUps, groupName, eventId, drawId
   const buttons = [{ label: t('common.close'), intent: NONE, close: true }];
 
   openModal({
-    title: `${groupName} — ${t('modals.tallyReport.title')}`,
+    title: `${escapeHtml(groupName)} — ${t('modals.tallyReport.title')}`,
     content,
     buttons,
     config: { maxWidth: 500, padding: '0.75' },

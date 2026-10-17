@@ -15,6 +15,7 @@ import { navigateToEvent } from '../common/navigateToEvent';
 import { tournamentEngine } from 'services/factory/engine';
 import { getRoundsColumns } from './getRoundsColumns';
 import { displayConfig } from 'config/displayConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { mapRound } from './mapRound';
 
 // constants
@@ -88,7 +89,7 @@ export async function createRoundsTable({
     const element = document.getElementById(DRAWS_VIEW);
 
     table = new Tabulator(element, {
-      groupHeader: [roundGroupingHeader, (value: any) => value],
+      groupHeader: [roundGroupingHeader, (value: any) => escapeHtml(value)],
       headerSortElement: headerSortElement(['complete', 'duration', 'score']),
       responsiveLayoutCollapseStartOpen: false,
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),

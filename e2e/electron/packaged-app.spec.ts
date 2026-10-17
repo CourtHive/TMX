@@ -1,7 +1,7 @@
-import { ElectronApplication, Page, _electron as electron, expect, test } from '@playwright/test';
+import { launchPackagedOverCdp, readFuseWire, type PackagedApp } from './helpers/packagedApp';
+import { findPackagedExecutable } from './helpers/packagedExecutable';
+import { expect, test, type Page } from '@playwright/test';
 import { freshUserDataDir } from './helpers/userDataDir';
-import { existsSync, readdirSync } from 'fs';
-import { resolve } from 'path';
 
 /**
  * Smoke test against the REAL packaged application — the `.app` / `.exe` /
@@ -20,69 +20,54 @@ import { resolve } from 'path';
  *
  *     pnpm electron:package && pnpm test:electron
  *
- * CI runs `electron-builder --dir`, which exercises the same packaging pipeline
- * without producing installers, so this spec runs there too.
+ * CI runs `electron-builder --dir` AFTER the smoke suite, so in CI this spec skips; the packaging
+ * step itself is the CI gate there.
+ *
+ * The shipped app carries Electron fuses that disable the Node inspector, so it is driven over the
+ * DevTools protocol (helpers/packagedApp.ts), and the fuse wire itself is asserted below.
  */
-
-const repoRoot = resolve(import.meta.dirname, '../..');
-const RELEASE_DIR = resolve(repoRoot, 'release');
-
-/**
- * Locate the packaged executable for the current platform. Returns undefined
- * when no package has been built, which switches the whole suite to skipped.
- */
-function findPackagedExecutable(): string | undefined {
-  if (!existsSync(RELEASE_DIR)) return undefined;
-
-  const entries = readdirSync(RELEASE_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-
-  for (const dir of entries) {
-    if (process.platform === 'darwin') {
-      const appDir = resolve(RELEASE_DIR, dir);
-      const app = readdirSync(appDir, { withFileTypes: true }).find((e) => e.name.endsWith('.app'));
-      if (app) {
-        const binary = resolve(appDir, app.name, 'Contents/MacOS', app.name.replace(/\.app$/, ''));
-        if (existsSync(binary)) return binary;
-      }
-    } else if (process.platform === 'win32') {
-      const binary = resolve(RELEASE_DIR, dir, 'TMX.exe');
-      if (existsSync(binary)) return binary;
-    } else {
-      const binary = resolve(RELEASE_DIR, dir, 'tmx');
-      if (existsSync(binary)) return binary;
-    }
-  }
-  return undefined;
-}
 
 const executablePath = findPackagedExecutable();
 
 test.describe('packaged application', () => {
   test.skip(!executablePath, 'no package in release/ — run `pnpm electron:package` first');
 
-  let app: ElectronApplication;
+  let packaged: PackagedApp;
   let window: Page;
   let userData: { path: string; cleanup: () => void };
   const failedFileRequests: string[] = [];
 
   test.beforeAll(async () => {
     userData = freshUserDataDir();
-    app = await electron.launch({
-      executablePath,
-      args: [`--user-data-dir=${userData.path}`],
-    });
-    window = await app.firstWindow();
+    packaged = await launchPackagedOverCdp(executablePath!, userData.path);
+    window = packaged.page;
+    // The renderer is served from app://tmx: a missing asset is a 404 RESPONSE from the protocol
+    // handler, not a failed request, so both are tracked. The page may have loaded before CDP
+    // attached, so reload once the listeners are in place.
     window.on('requestfailed', (request) => {
       const url = request.url();
-      if (url.startsWith('file://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
+      if (url.startsWith('app://')) failedFileRequests.push(`${url} (${request.failure()?.errorText})`);
     });
+    window.on('response', (response) => {
+      if (response.url().startsWith('app://') && response.status() >= 400) {
+        failedFileRequests.push(`${response.url()} (HTTP ${response.status()})`);
+      }
+    });
+    await window.reload();
   });
 
   test.afterAll(async () => {
-    await app?.close();
+    await packaged?.close();
     userData?.cleanup();
+  });
+
+  test('ships with the security fuses set', () => {
+    // FuseV1Options order: RunAsNode, EnableCookieEncryption, EnableNodeOptionsEnvironmentVariable,
+    // EnableNodeCliInspectArguments, EnableEmbeddedAsarIntegrityValidation, OnlyLoadAppFromAsar,
+    // LoadBrowserProcessSpecificV8Snapshot, GrantFileProtocolExtraPrivileges, …
+    const wire = readFuseWire(executablePath!);
+    expect(wire.slice(0, 6), 'fuses 0–5').toBe('010011');
+    expect(wire[7], 'GrantFileProtocolExtraPrivileges').toBe('0');
   });
 
   test('boots TMX from inside the asar', async () => {
@@ -105,5 +90,24 @@ test.describe('packaged application', () => {
   test('loads every bundled asset from the package', async () => {
     await window.waitForTimeout(2_500);
     expect(failedFileRequests, `packaged app failed to load:\n  ${failedFileRequests.join('\n  ')}`).toEqual([]);
+  });
+});
+
+test.describe('packaged application ignores the dev-server override', () => {
+  test.skip(!executablePath, 'no package in release/ — run `pnpm electron:package` first');
+
+  test('ELECTRON_RENDERER_URL cannot point a packaged app at another page', async () => {
+    const userData = freshUserDataDir();
+    const packaged = await launchPackagedOverCdp(executablePath!, userData.path, {
+      ...process.env,
+      ELECTRON_RENDERER_URL: 'https://example.com/',
+    });
+    try {
+      await packaged.page.waitForLoadState('domcontentloaded');
+      expect(packaged.page.url()).toBe('app://tmx/index.html');
+    } finally {
+      await packaged.close();
+      userData.cleanup();
+    }
   });
 });

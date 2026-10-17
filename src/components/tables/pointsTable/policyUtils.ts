@@ -3,6 +3,7 @@
  * extract available levels, and build policy option lists.
  */
 import { fixtures } from 'tods-competition-factory';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 const { policies: factoryPolicies } = fixtures;
 
@@ -116,7 +117,7 @@ export function getAvailablePolicies(): PolicyOption[] {
 
     options.push({
       id: key,
-      label: policy?.policyName || fallbackLabel,
+      label: escapeHtml(policy?.policyName) || fallbackLabel,
       policyData: data,
       requiresLevel,
       availableLevels,

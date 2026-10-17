@@ -167,7 +167,7 @@ overrides:
   '@courthive/provider-config': link:../provider-config
   '@courthive/scoring-visualizations': link:../scoringVisualizations
   '@xmldom/xmldom': ^0.9.0
-  plist>@xmldom/xmldom: ^0.9.0
+  plist>@xmldom/xmldom: ^0.8.15
   brace-expansion@1: ^5.0.0
   brace-expansion@2: ^5.0.0
   brace-expansion@>=4 <5.0.5: ^5.0.5
@@ -219,6 +219,9 @@ importers:
       dexie:
         specifier: 4.4.6
         version: 4.4.6
+      dompurify:
+        specifier: ^3.4.12
+        version: 3.4.16
       focus-trap:
         specifier: 8.2.3
         version: 8.2.3
@@ -2496,9 +2499,9 @@ packages:
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
 
-  '@xmldom/xmldom@0.9.12':
-    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
-    engines: {node: '>=14.6'}
+  '@xmldom/xmldom@0.8.15':
+    resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
+    engines: {node: '>=10.0.0'}
 
   abbrev@4.0.0:
     resolution: {integrity: sha512-a1wflyaL0tHtJSmLSOVybYhy22vRih4eduhhrkcjgrWGnRfrZtovJ2FRjxuTtkkj47O/baf0R86QU5OuYpz8fA==}
@@ -7404,7 +7407,7 @@ snapshots:
 
   '@webcontainer/env@1.1.1': {}
 
-  '@xmldom/xmldom@0.9.12': {}
+  '@xmldom/xmldom@0.8.15': {}
 
   abbrev@4.0.0: {}
 
@@ -8104,7 +8107,6 @@ snapshots:
   dompurify@3.4.16:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
-    optional: true
 
   dotenv-expand@11.0.7:
     dependencies:
@@ -9606,7 +9608,7 @@ snapshots:
 
   plist@3.1.0:
     dependencies:
-      '@xmldom/xmldom': 0.9.12
+      '@xmldom/xmldom': 0.8.15
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
 

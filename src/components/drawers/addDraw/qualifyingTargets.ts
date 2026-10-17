@@ -1,3 +1,5 @@
+import { escapeHtml } from 'utilities/escapeHtml';
+
 /**
  * Qualifying targets — the pure half of a target-aware "Add qualifying".
  *
@@ -72,7 +74,9 @@ export function targetNotice(target: QualifyingTarget, t: Translate): string {
   });
   if (!feeders.length) return `${t('drawers.addDraw.noFeeders', { round: target.roundNumber })} ${room}`;
   const feederNames = feeders
-    .map((feeder) => `${feeder.structureName ?? t('drawers.addDraw.qualifying')} (${feeder.qualifiersCount})`)
+    .map(
+      (feeder) => `${escapeHtml(feeder.structureName ?? t('drawers.addDraw.qualifying'))} (${feeder.qualifiersCount})`,
+    )
     .join(', ');
   return `${t('drawers.addDraw.alreadyFed', { round: target.roundNumber, feederNames, count: target.promisedQualifiers })} ${room}`;
 }

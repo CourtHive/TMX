@@ -28,6 +28,7 @@ import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { cannot } from 'services/capability/can';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
@@ -218,7 +219,7 @@ export function renderIndividuals({ view }: { view: string }): void {
     .map((event: any) => ({
       onClick: () =>
         addParticipantsToEvent({ event, participantType: INDIVIDUAL, table, callback: refreshAfterEventChange }),
-      label: event.eventName,
+      label: escapeHtml(event.eventName),
       close: true,
     }))
     .concat([

@@ -26,11 +26,8 @@ const MAIN_ENTRY = resolve(repoRoot, 'dist-electron/main/main.js');
 // Mirrors the contextBridge surface in `electron/preload.ts` and the optional
 // members of `PlatformAdapter` in `src/platform/types.ts`.
 const EXPECTED_BRIDGE_METHODS = [
-  'showSaveDialog',
-  'showOpenDialog',
-  'readFile',
-  'writeFile',
-  'getAppDataPath',
+  'saveFile',
+  'openFiles',
   'getServerUrl',
   'setServerUrl',
   'toggleDevTools',
@@ -83,19 +80,24 @@ test.describe('preload bridge', () => {
   test('main process answers a synchronous IPC call through the bridge', async () => {
     // Exercises the round trip rather than merely the shape — a bridge whose
     // handlers are unregistered in main would still pass the key check above.
-    const dataPath = await window.evaluate(() => (globalThis as any).electronAPI.getAppDataPath());
-    expect(typeof dataPath).toBe('string');
-    expect(dataPath.length).toBeGreaterThan(0);
+    // A cold profile has no saved server, so main answers with an empty string;
+    // an unregistered handler would leave `sendSync` returning undefined.
+    const serverUrl = await window.evaluate(() => (globalThis as any).electronAPI.getServerUrl());
+    expect(serverUrl).toBe('');
   });
 
   test('an invoke-channel round trip resolves', async () => {
-    const roundTrip = await window.evaluate(async () => {
-      // `app:setServerUrl` persists to tmx-prefs.json and returns void; pairing
-      // it with the sync getter proves both IPC directions are wired.
-      await (globalThis as any).electronAPI.setServerUrl('http://localhost:8383');
-      return (globalThis as any).electronAPI.getServerUrl();
+    // A server change is confirmed in a native dialog; answer it as a user would.
+    await app.evaluate(({ dialog }) => {
+      (dialog as any).showMessageBox = async () => ({ response: 0, checkboxChecked: false });
     });
-    expect(roundTrip).toBe('http://localhost:8383');
+    const roundTrip = await window.evaluate(async () => {
+      // `app:setServerUrl` persists to tmx-prefs.json; pairing it with the sync
+      // getter proves both IPC directions are wired.
+      const result = await (globalThis as any).electronAPI.setServerUrl('http://localhost:8383');
+      return { result, url: (globalThis as any).electronAPI.getServerUrl() };
+    });
+    expect(roundTrip).toEqual({ result: { saved: true }, url: 'http://localhost:8383' });
   });
 });
 

@@ -7,6 +7,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { participantConstants } from 'tods-competition-factory';
 
 import { ADD_INDIVIDUAL_PARTICIPANT_IDS } from 'constants/mutationConstants';
+import { escapeHtml } from 'utilities/escapeHtml';
 const { TEAM } = participantConstants;
 
 type GetAddToGroupingSelectionParams = {
@@ -67,7 +68,7 @@ export function getAddToGroupingSelection({
   return {
     options: participants.map((team) => ({
       onClick: () => addToTeam({ team }),
-      label: team.participantName,
+      label: escapeHtml(team.participantName),
       participant: team,
       close: true,
     })),

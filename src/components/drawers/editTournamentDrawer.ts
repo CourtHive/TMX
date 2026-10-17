@@ -16,6 +16,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { getParent } from 'services/dom/parentAndChild';
 import { providerConfig } from 'config/providerConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
 
@@ -370,7 +371,7 @@ function buildTierSystemField(currentSystem: string, tFn: typeof t): any {
     { value: '', label: tFn('drawers.editTournament.tierSystemNone'), selected: !currentSystem },
     ...allowed.map((entry) => ({
       value: entry.system,
-      label: entry.displayName ?? entry.system,
+      label: escapeHtml(entry.displayName ?? entry.system),
       selected: entry.system === currentSystem,
     })),
   ];

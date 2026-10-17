@@ -7,6 +7,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
@@ -18,7 +19,7 @@ export function editStructureNames({ drawId, callback }: { drawId: string; callb
   if (!structures?.length) return;
 
   const options = structures.map(({ structureName, structureId }: any, index: number) => ({
-    text: `${structureName}:`,
+    text: `${escapeHtml(structureName)}:`,
     fieldPair: {
       error: t('modals.editStructureNames.minChars'),
       validator: validators.nameValidator(4),

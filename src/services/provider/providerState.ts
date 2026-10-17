@@ -209,13 +209,12 @@ function updateProviderBranding(): void {
   const provider = context.provider;
 
   if (el) {
-    if (provider?.organisationAbbreviation) {
-      el.innerHTML = `<div style="font-size: .6em">${provider.organisationAbbreviation}</div>`;
-      el.title = provider.organisationName ?? '';
-    } else {
-      el.innerHTML = `<div style="font-size: .6em">TMX</div>`;
-      el.title = '';
-    }
+    // The abbreviation is provider-supplied data: render it as text, never as markup.
+    const label = document.createElement('div');
+    label.style.fontSize = '.6em';
+    label.textContent = provider?.organisationAbbreviation || 'TMX';
+    el.replaceChildren(label);
+    el.title = provider?.organisationAbbreviation ? (provider.organisationName ?? '') : '';
   }
 
   if (stopBtn) {

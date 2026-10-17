@@ -8,6 +8,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 import { RESOLVE_DRAFT_POSITIONS } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
@@ -106,11 +107,11 @@ export function openResolveDraft({ drawId, eventId }: ResolveDraftParams): void 
         const matchLabel = getMatchLabel(entry.preferenceMatch);
         const matchColor = getMatchColor(entry.preferenceMatch);
         const prefsDisplay = entry.preferences?.length
-          ? entry.preferences.join(', ')
+          ? escapeHtml(entry.preferences.join(', '))
           : '<span style="color: var(--tmx-text-muted, #999);">none</span>';
 
         html += `<tr>`;
-        html += `<td style="${TD_STYLE}">${name}</td>`;
+        html += `<td style="${TD_STYLE}">${escapeHtml(name)}</td>`;
         html += `<td style="${TD_STYLE} font-weight: 600;">${pos}</td>`;
         html += `<td style="${TD_STYLE}"><span style="color: ${matchColor}; font-weight: 500;">${matchLabel}</span></td>`;
         html += `<td style="${TD_STYLE} font-size: 12px; color: var(--tmx-text-secondary, #666);">${prefsDisplay}</td>`;

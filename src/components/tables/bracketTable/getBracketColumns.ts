@@ -3,6 +3,7 @@ import { groupOrderFormatter } from '../common/formatters/groupOderFormatter';
 import { percentFormatter } from '../common/formatters/percentFormatter';
 import { groupOrderAction } from '../statsTable/groupOrderAction';
 import { bracketScoreFormatter } from './bracketScoreFormatter';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
 
@@ -143,7 +144,7 @@ export function getBracketColumns({
   for (const p of participants) {
     columns.push({
       field: `opponent_${p.participantId}`,
-      title: p.participantName || String(p.drawPosition),
+      title: escapeHtml(p.participantName) || String(p.drawPosition),
       formatter: bracketScoreFormatter,
       cellClick: scoreClick,
       headerHozAlign: CENTER,

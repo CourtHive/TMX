@@ -8,6 +8,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { primaryNumber } from 'services/contact/contactLinks';
 import { collectContacts } from './collectContacts';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t, i18next } from 'i18n';
@@ -351,7 +352,7 @@ export function editIndividualParticipant({
         options: existingContacts.map((contact: any, index: number) => ({
           // `text` doubles as the radio's DOM value in `renderField`, so the selection is read back
           // through the per-option `field` and `.checked` — never by comparing the displayed text.
-          text: contactRowLabel(contact, index),
+          text: escapeHtml(contactRowLabel(contact, index)),
           field: primaryRadioField(index),
           checked: index === 0,
         })),
