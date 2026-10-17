@@ -9,12 +9,12 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { editGroupNames } from 'components/modals/editGroupNames';
 import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { defaultRoundsView } from '../options/roundsViews';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
 // Constants
 import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
-import { ROUNDS_BRACKET, ROUNDS_COLUMNS } from 'constants/tmxConstants';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
@@ -80,7 +80,7 @@ export function getStructureOptions({
       const name = structure.structureName || structure.stage || 'Structure';
       return {
         onClick: () => {
-          const roundsView = structure.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
+          const roundsView = defaultRoundsView(structure);
           renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true, roundsView });
         },
         label: escapeHtml(name),

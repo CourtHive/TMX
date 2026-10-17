@@ -15,10 +15,11 @@ import { mergeStructureDetails } from './publishingData';
 // constants
 import { PUBLISH_EVENT } from 'constants/mutationConstants';
 
+// No `refreshResults`: re-tallying round robins on every publish built results nothing reads. The server takes only
+// the eventId from the PUBLISH_EVENT notice, and stored tallies are refreshed when a score changes.
 export const PUBLISH_EVENT_DATA_PARAMS = {
   participantsProfile: { withScaleValues: true },
   pressureRating: true,
-  refreshResults: true,
 };
 
 type UpdateStructure = (structureId: string, detail: Record<string, any>) => Record<string, any>;

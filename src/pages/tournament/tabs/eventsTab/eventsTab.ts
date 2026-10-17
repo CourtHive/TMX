@@ -29,6 +29,7 @@ import { deleteFlights } from 'components/modals/deleteFlights';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { renderDrawView } from './renderDraws/renderDrawView';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { resolveRoundsView } from './options/roundsViews';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { cleanupDrawPanel } from './cleanupDrawPanel';
 import { renderDrawPanel } from './renderDrawPanel';
@@ -37,7 +38,6 @@ import { highlightTab } from 'navigation';
 import { eventsView } from './eventsView';
 
 // constants
-import { drawDefinitionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar } from 'courthive-components';
 import {
@@ -50,13 +50,10 @@ import {
   OVERLAY,
   RIGHT,
   ROUNDS_BRACKET,
-  ROUNDS_COLUMNS,
   ROUNDS_STATS,
   ROUNDS_TABLE,
 } from 'constants/tmxConstants';
 import { t } from 'i18n';
-
-const { CONTAINER } = drawDefinitionConstants;
 
 type RenderEventsTabParams = {
   eventId?: string;
@@ -70,15 +67,14 @@ type RenderEventsTabParams = {
 export function renderEventsTab(params: RenderEventsTabParams): void {
   let { eventId, drawId, structureId, renderDraw, renderPoints, roundsView } = params;
 
-  // Resolve structureId from draw data when not provided; default to Grid view for round robin draws
+  // Resolve structureId from draw data when not provided. The view is the structure's default (Grid for round robin)
+  // unless the route names one the structure offers: a stats or grid route on an elimination structure has no tally.
   if (drawId) {
     const eventData = tournamentEngine.q.eventData({ eventId });
     const drawData = eventData?.drawsData?.find((d: any) => d.drawId === drawId);
     if (!structureId) structureId = defaultStructureId(drawData?.structures);
-    if (!roundsView) {
-      const struct = drawData?.structures?.find((s: any) => s.structureId === structureId);
-      roundsView = struct?.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
-    }
+    const structure = drawData?.structures?.find((s: any) => s.structureId === structureId);
+    roundsView = resolveRoundsView({ structure, drawType: drawData?.drawType, roundsView });
   }
   highlightTab(EVENTS_TAB);
   destroyTables();
