@@ -81,7 +81,7 @@ export const formatParticipant =
       elem.style.color = color;
     }
 
-    elem.innerHTML = (isObject(value) ? (value as any).participantName : value) || '';
+    elem.textContent = (isObject(value) ? (value as any).participantName : value) || '';
 
     return elem;
   };

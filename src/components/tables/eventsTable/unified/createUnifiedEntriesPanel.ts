@@ -23,6 +23,7 @@ import { getUnifiedColumns } from './unifiedColumns';
 import { inheritedEntryStage } from './pairSegment';
 import { pairFromUnified } from './pairFromUnified';
 import type { SortState } from './segmentSorter';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import {
@@ -168,7 +169,7 @@ export function createUnifiedEntriesPanel({
   // ── Data loading ──
   const getTableData = () => {
     const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
-    if (headerElement) headerElement.innerHTML = event?.eventName;
+    if (headerElement) headerElement.textContent = event?.eventName ?? '';
     if (!event) return { error: 'EVENT_NOT_FOUND' };
 
     const { participants, derivedDrawInfo } =
@@ -525,7 +526,7 @@ export function createUnifiedEntriesPanel({
     const entriesOptions = (freshEvent?.drawDefinitions || [])
       .map((dd: any) => ({
         onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
-        label: dd?.drawName,
+        label: escapeHtml(dd?.drawName),
         close: true,
       }))
       .concat([{ divider: true } as any, eventEntries]);
@@ -556,7 +557,7 @@ export function createUnifiedEntriesPanel({
         selection: false,
         location: LEFT,
       },
-      { label: drawName || ALL_ENTRIES, options: entriesOptions, location: LEFT },
+      { label: escapeHtml(drawName) || ALL_ENTRIES, options: entriesOptions, location: LEFT },
       {
         onClick: () => editAvoidances({ eventId }),
         intent: 'is-warning',

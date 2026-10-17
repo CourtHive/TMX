@@ -8,6 +8,7 @@ import { participantRoles } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 const { COMPETITOR } = participantRoles;
@@ -49,7 +50,7 @@ export function printPlayerList({ eventId }: PrintPlayerListParams = {}): void {
         { label: t('print.signin'), value: 'signInSheet' },
       ],
     },
-    ...(eventId ? [{ text: `Event: ${eventName}`, style: 'font-weight: bold; margin-top: 8px;' }] : []),
+    ...(eventId ? [{ text: `Event: ${escapeHtml(eventName)}`, style: 'font-weight: bold; margin-top: 8px;' }] : []),
     { text: `${filteredParticipants.length} participants`, style: 'color: #666; font-size: 13px;' },
   ];
 

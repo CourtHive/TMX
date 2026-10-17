@@ -16,6 +16,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 import { ADD_DRAW_ENTRIES } from 'constants/mutationConstants';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { OVERLAY } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
@@ -94,7 +95,7 @@ export const addToDraw =
     const options = availableDraws.map(({ drawName, drawId: ddId }: any) => ({
       onClick: () => addTo(table, event, ddId, entryStage),
       stateChange: true,
-      label: drawName,
+      label: escapeHtml(drawName),
       value: ddId,
       close: true,
     }));

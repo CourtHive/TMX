@@ -12,6 +12,6 @@ export function genderedText(cell: any): HTMLDivElement {
     '';
   const el = document.createElement('div');
   el.style.color = color;
-  el.innerHTML = value;
+  el.textContent = value ?? '';
   return el;
 }

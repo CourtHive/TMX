@@ -1,6 +1,7 @@
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
 import type { Event } from 'tods-competition-factory';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -59,7 +60,7 @@ export function getEventFilter(
   const eventOptions = [allEvents, { ...noEvents, filterValue: '__NONE__' }, { divider: true }].concat(
     events.map((event) => ({
       onClick: () => updateEventFilter(event.eventId),
-      label: event.eventName ?? '',
+      label: escapeHtml(event.eventName),
       filterValue: event.eventId,
       close: true,
     })),

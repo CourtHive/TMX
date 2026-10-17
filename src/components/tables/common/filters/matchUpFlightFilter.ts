@@ -4,6 +4,7 @@
  */
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -58,7 +59,7 @@ export function getMatchUpFlightFilter(
         (event: any) =>
           event.drawDefinitions?.map(({ drawId, drawName }: any) => ({
             onClick: () => updateFilter(drawId),
-            label: drawName,
+            label: escapeHtml(drawName),
             filterValue: drawId,
             close: true,
           })) || [],

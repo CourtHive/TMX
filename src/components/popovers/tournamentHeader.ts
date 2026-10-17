@@ -20,9 +20,12 @@ export function tournamentHeader(): void {
   const tournamentElement = document.getElementById('pageTitle');
   if (tournamentElement && tournamentInfo?.tournamentName) {
     removeAllChildNodes(tournamentElement);
-    tournamentElement.innerHTML = `<div class='tmx-title' style='cursor:pointer'>${tournamentInfo?.tournamentName}</div>`;
-    const titleDiv = tournamentElement.querySelector('.tmx-title');
-    if (titleDiv) titleDiv.addEventListener('click', () => openEditTournamentNameModal());
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'tmx-title';
+    titleDiv.style.cursor = 'pointer';
+    titleDiv.textContent = tournamentInfo.tournamentName;
+    titleDiv.addEventListener('click', () => openEditTournamentNameModal());
+    tournamentElement.appendChild(titleDiv);
     syncPipelineBadge();
   } else {
     context.router?.navigate('/tournaments');

@@ -2,6 +2,7 @@ import { exitBeforeArrivalAction, recordExitBeforeArrival } from 'services/trans
 import { participantConstants, scoreGovernor } from 'tods-competition-factory';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 const { TEAM } = participantConstants;
 
@@ -13,7 +14,7 @@ export const handleScoreClick = (replaceTableData) => (_, cell) => {
   const exitAction = matchUpType !== TEAM && !readyToScore ? exitBeforeArrivalAction({ matchUpId, drawId }) : undefined;
   if (matchUpType === TEAM) {
     const onClose = () => replaceTableData();
-    openScorecard({ title: eventName, matchUpId, drawId, onClose });
+    openScorecard({ title: escapeHtml(eventName), matchUpId, drawId, onClose });
   } else if (exitAction) {
     recordExitBeforeArrival({ action: exitAction, matchUp: data.matchUp, callback: () => replaceTableData() });
   } else if (readyToScore || scoreGovernor.checkScoreHasValue(data.matchUp)) {

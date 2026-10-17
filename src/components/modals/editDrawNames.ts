@@ -17,6 +17,7 @@ import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
@@ -41,7 +42,7 @@ export function editDrawNames({
 
   const MIN_CHARS = 2;
   const options = draws.map(({ drawName, drawId }: any, index: number) => ({
-    text: `${drawName}:`,
+    text: `${escapeHtml(drawName)}:`,
     fieldPair: {
       error: t('modals.editDrawNames.minChars'),
       validator: validators.nameValidator(MIN_CHARS),
