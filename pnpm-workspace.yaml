@@ -56,7 +56,7 @@ overrides:
   # Renovate "updated" this pin to ^0.9.0 in #1275, which broke macOS packaging
   # again unnoticed: Linux CI packaging never parses an Info.plist. Restored
   # 2026-10-16; renovate.json now holds it below 0.9.
-  'plist>@xmldom/xmldom': ^0.8.15
+  'plist>@xmldom/xmldom': ^0.9.0
   'brace-expansion@1': ^5.0.0
   'brace-expansion@2': ^5.0.0
   'brace-expansion@>=4 <5.0.5': ^5.0.5
