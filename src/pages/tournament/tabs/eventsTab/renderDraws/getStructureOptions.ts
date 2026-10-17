@@ -15,6 +15,7 @@ import { renderDrawView } from './renderDrawView';
 // Constants
 import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
 import { ROUNDS_BRACKET, ROUNDS_COLUMNS } from 'constants/tmxConstants';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 const { FINISHING_POSITIONS, CONTAINER, MAIN, AD_HOC, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
@@ -82,7 +83,7 @@ export function getStructureOptions({
           const roundsView = structure.structureType === CONTAINER ? ROUNDS_BRACKET : ROUNDS_COLUMNS;
           renderDrawView({ eventId, drawId, structureId: structure.structureId, redraw: true, roundsView });
         },
-        label: name,
+        label: escapeHtml(name),
         close: true,
       };
     })

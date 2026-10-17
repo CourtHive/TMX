@@ -7,6 +7,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
 import { openModal } from './baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { UTR } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
@@ -29,5 +30,5 @@ export function exportTournamentRecord(): void {
   ];
   const title = `${t('phrases.export')}: ${t('trn')}`;
 
-  openModal({ title, content: tournamentRecord.tournamentName, buttons });
+  openModal({ title, content: escapeHtml(tournamentRecord.tournamentName), buttons });
 }

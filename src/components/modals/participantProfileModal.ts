@@ -13,6 +13,7 @@ import { controlBar, cModal } from 'courthive-components';
 
 // constants
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 const { ratingsParameters } = fixtures;
@@ -161,7 +162,8 @@ function buildInfoHeader(participant: any): HTMLElement {
   if (cityState) {
     const locationEl = document.createElement('span');
     locationEl.style.cssText = 'color: var(--tmx-text-secondary, #666); font-size: 0.9em;';
-    locationEl.innerHTML = `<i class="fas fa-map-marker-alt" style="margin-right: 0.3em;"></i>${cityState}`;
+    locationEl.innerHTML = '<i class="fas fa-map-marker-alt" style="margin-right: 0.3em;"></i>';
+    locationEl.append(cityState);
     header.appendChild(locationEl);
   }
 
@@ -593,7 +595,7 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   buttons.push({ label: t('common.close'), close: true });
 
   cModal.open({
-    title: participant.participantName || 'Participant Profile',
+    title: escapeHtml(participant.participantName) || 'Participant Profile',
     content,
     buttons,
     config: { maxWidth: 1000 },

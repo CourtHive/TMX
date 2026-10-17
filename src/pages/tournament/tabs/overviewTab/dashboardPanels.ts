@@ -17,6 +17,7 @@ import { sendTournament } from 'services/apis/servicesApi';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { downloadUTRmatches } from 'services/export/UTR';
 import { downloadJSON } from 'services/export/download';
+import { sanitizeHtml } from 'utilities/sanitizeHtml';
 import { openNotesEditor } from './notesEditorModal';
 import type { StructureInfo } from './dashboardData';
 import { success } from 'components/notices/success';
@@ -83,7 +84,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
 
   const hasContent = notes && notes.replaceAll(/<[^>]*>/g, '').trim().length > 0;
   if (hasContent) {
-    notesView.innerHTML = notes;
+    notesView.innerHTML = sanitizeHtml(notes);
   } else {
     const placeholder = document.createElement('div');
     placeholder.style.cssText =
@@ -120,7 +121,7 @@ export function createNotesPanel(notes?: string): HTMLElement {
       notes,
       onSave: (html) => {
         mutationRequest({ methods: [{ method: SET_TOURNAMENT_NOTES, params: { notes: html } }] });
-        notesView.innerHTML = html;
+        notesView.innerHTML = sanitizeHtml(html);
       },
     });
   });

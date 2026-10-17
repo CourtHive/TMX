@@ -4,6 +4,7 @@
  */
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -55,7 +56,7 @@ export function getMatchUpEventFilter(
   const eventOptions = [allOption, { divider: true }].concat(
     events.map((event: any) => ({
       onClick: () => updateFilter(event.eventId),
-      label: event.eventName,
+      label: escapeHtml(event.eventName),
       filterValue: event.eventId,
       close: true,
     })),

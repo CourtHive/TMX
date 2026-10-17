@@ -32,6 +32,6 @@ function createPill({
     pill.onclick = () => teamClick({ participantId, matchUpId });
   }
   pill.className = 'tag event-pill';
-  pill.innerHTML = participantName;
+  pill.textContent = participantName ?? '';
   return pill;
 }

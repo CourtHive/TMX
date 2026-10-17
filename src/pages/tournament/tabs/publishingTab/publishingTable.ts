@@ -14,6 +14,7 @@ import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
 import { getPublishingTableData } from './publishingData';
 import { openEmbargoModal } from './embargoModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 import {
   PUBLISH_EVENT_DATA_PARAMS,
@@ -48,7 +49,7 @@ function stateFormatter(cell: any): string {
     const data = cell.getRow().getData();
     const url = getRowPublicUrl(data);
     if (url) {
-      return `<a href="${url}" target="_blank" rel="noopener" class="pub-state-badge pub-state-live" style="text-decoration:none; cursor:pointer;"><i class="fa fa-eye"></i> ${t('publishing.live')}</a>`;
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="pub-state-badge pub-state-live" style="text-decoration:none; cursor:pointer;"><i class="fa fa-eye"></i> ${t('publishing.live')}</a>`;
     }
     return `<span class="pub-state-badge pub-state-live"><i class="fa fa-eye"></i> ${t('publishing.live')}</span>`;
   }
@@ -71,7 +72,7 @@ function toggleFormatter(cell: any): string {
 
 function nameFormatter(cell: any): string {
   const name = cell.getValue();
-  return `<span style="cursor:pointer; text-decoration:underline; text-decoration-color:var(--tmx-text-muted); text-underline-offset:2px;">${name}</span>`;
+  return `<span style="cursor:pointer; text-decoration:underline; text-decoration-color:var(--tmx-text-muted); text-underline-offset:2px;">${escapeHtml(name)}</span>`;
 }
 
 function publicUrlFormatter(cell: any): string {
@@ -87,7 +88,7 @@ function publicUrlFormatter(cell: any): string {
   }
 
   if (url) {
-    return `<a href="${url}" target="_blank" rel="noopener" style="color:var(--tmx-accent-blue); font-size:1rem;"><i class="fa fa-arrow-up-right-from-square"></i></a>`;
+    return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:var(--tmx-accent-blue); font-size:1rem;"><i class="fa fa-arrow-up-right-from-square"></i></a>`;
   }
   return '<span style="color:var(--tmx-text-muted); font-size:0.85rem;">—</span>';
 }

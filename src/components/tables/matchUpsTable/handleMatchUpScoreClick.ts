@@ -5,6 +5,7 @@ import { isPointsTotalFormat } from 'functions/isPointsTotalFormat';
 import { participantConstants } from 'tods-competition-factory';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { deviceConfig } from 'config/deviceConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 const { TEAM } = participantConstants;
 
@@ -15,7 +16,7 @@ export const handleScoreClick = (replaceTableData, setFocusData) => (e, cell) =>
   const exitAction = matchUpType !== TEAM && !readyToScore ? exitBeforeArrivalAction({ matchUpId, drawId }) : undefined;
   if (matchUpType === TEAM) {
     const onClose = () => replaceTableData();
-    openScorecard({ title: eventName, matchUpId, drawId, onClose });
+    openScorecard({ title: escapeHtml(eventName), matchUpId, drawId, onClose });
   } else if (exitAction) {
     recordExitBeforeArrival({ action: exitAction, matchUp: data.matchUp, callback: replaceTableData });
   } else if (readyToScore || data.matchUp.score?.scoreStringSide1)

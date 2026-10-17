@@ -7,6 +7,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { venueToday } from 'functions/venueTimeFrame';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 export function printFactSheet(): void {
@@ -27,7 +28,7 @@ export function printFactSheet(): void {
       })),
     },
     {
-      text: tournamentName,
+      text: escapeHtml(tournamentName),
       style: 'font-weight: bold; margin-top: 8px;',
     },
   ];

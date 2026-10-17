@@ -17,6 +17,7 @@ import { getDrawsOptions } from '../getDrawsOptions';
 import { displayConfig } from 'config/displayConfig';
 import { compositions } from 'courthive-components';
 import { renderDrawView } from '../renderDrawView';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
@@ -70,13 +71,13 @@ export function getEventControlItems({
     },
     {
       options: drawsOptions.length > 1 ? drawsOptions : undefined,
-      label: drawData?.drawName,
+      label: escapeHtml(drawData?.drawName),
       modifyLabel: true,
       location: LEFT,
     },
     {
       options: structureOptions.length > 1 ? structureOptions : undefined,
-      label: structureName,
+      label: escapeHtml(structureName),
       modifyLabel: true,
       location: LEFT,
     },
@@ -240,7 +241,7 @@ export function getTopologyControlItems({
   return [
     {
       options: drawsOptions.length > 1 ? drawsOptions : undefined,
-      label: drawData?.drawName,
+      label: escapeHtml(drawData?.drawName),
       modifyLabel: true,
       location: LEFT,
     },

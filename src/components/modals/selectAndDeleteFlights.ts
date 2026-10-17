@@ -6,12 +6,13 @@ import { deleteFlights } from 'components/modals/deleteFlights';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
+import { escapeHtml } from 'utilities/escapeHtml';
 import { NONE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): void {
   const options = eventData.drawsData.map(({ drawId, drawName }: any) => ({
-    label: drawName,
+    label: escapeHtml(drawName),
     checkbox: true,
     field: drawId,
     id: drawId,
