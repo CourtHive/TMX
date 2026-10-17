@@ -48,7 +48,6 @@ export async function editDisplaySettings(params) {
   const venueId = 'venueId';
   const venueProfiles = [
     {
-      onlineResources: [{ link: 'https://www.google.com', label: t('modals.displaySettings.google') }],
       venueName: 'Club Courts',
       venueAbbreviation: 'CC',
       startTime: '08:00',
@@ -77,7 +76,7 @@ export async function editDisplaySettings(params) {
       ],
     },
   ];
-  const participantsProfile = { withScaleValues: true, withISO2: true };
+  const participantsProfile = { withISO2: true };
 
   const tournamentRecord = mocksEngine.generateTournamentRecord({
     scheduleCompletedMatchUps: true,
@@ -89,6 +88,14 @@ export async function editDisplaySettings(params) {
     drawProfiles,
     startDate,
   }).tournamentRecord;
+  // the mocks build venues from courts and times only, so the preview venue's online resources are
+  // attached to the generated venue (as a venueProfile key they were never read)
+  const previewVenue = tournamentRecord.venues?.find((venue) => venue.venueId === venueId);
+  if (previewVenue) {
+    previewVenue.onlineResources = [
+      { identifier: 'https://www.google.com', name: t('modals.displaySettings.google'), resourceType: 'URL' },
+    ];
+  }
 
   const matchUps = queryGovernor.allTournamentMatchUps({ tournamentRecord }).matchUps ?? [];
   const matchUp = matchUps.find((matchUp) => matchUp.matchUpType === 'SINGLES');

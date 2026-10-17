@@ -25,7 +25,8 @@ const PROFILE_16_MAIN_32_QUALIFYING: MockProfile = {
   tournamentName: 'E2E Cross-stage Sizing',
   tournamentAttributes: { tournamentId: 'e2e-cross-stage-sizing' },
   participantsProfile: { participantsCount: 80 } as any,
-  eventProfiles: [{ eventName: 'Singles', participantsCount: 0 }] as any,
+  // an event with no draws and no participants of its own: the count belongs in its participantsProfile
+  eventProfiles: [{ eventName: 'Singles', participantsProfile: { participantsCount: 0 } }],
 };
 
 async function seedEntries(page: any, eventId: string): Promise<string[]> {
