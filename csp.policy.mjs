@@ -10,7 +10,7 @@
  * `infra/nginx` carry the printed string. Change it here, then re-print it there.
  *
  * Why each directive:
- * - script-src 'self': only the bundle and `theme-init.js` run; no inline code, no handlers, no eval.
+ * - script-src 'self': only the bundle, `theme-init.js` and the Cloudflare beacon run; no inline code, no handlers, no eval.
  *   This is the directive that turns an `<img onerror>` that slipped past escaping into a report.
  * - style-src 'unsafe-inline': Tabulator, courthive-components and TMX set inline styles throughout.
  *   Google Fonts CSS is loaded by the theme service.
@@ -18,10 +18,14 @@
  * - connect-src 'self': the API, Socket.IO, /relay/ and /query/ are same-origin behind nginx. A server
  *   on another origin (a LAN host, a local CFS) is passed in as an extra origin.
  * - worker-src/frame-src blob: PDF and print previews are built as blobs.
+ * - Cloudflare Web Analytics: Cloudflare injects its beacon script into pages it proxies and the beacon
+ *   posts to cloudflareinsights.com. TMX cannot remove it, so it is allowed (CA, 2026-10-17).
  */
 
 const FONT_CSS = 'https://fonts.googleapis.com';
 const FONT_FILES = 'https://fonts.gstatic.com';
+const CF_BEACON_SCRIPT = 'https://static.cloudflareinsights.com';
+const CF_BEACON_REPORT = 'https://cloudflareinsights.com';
 
 /**
  * @param {{ connect?: string[]; reportUri?: string }} [options]
@@ -30,11 +34,11 @@ const FONT_FILES = 'https://fonts.gstatic.com';
 export function buildCsp({ connect = [], reportUri = '/csp-report' } = {}) {
   const directives = [
     ["default-src 'self'"],
-    ["script-src 'self'"],
+    [`script-src 'self' ${CF_BEACON_SCRIPT}`],
     [`style-src 'self' 'unsafe-inline' ${FONT_CSS}`],
     [`font-src 'self' data: ${FONT_FILES}`],
     ["img-src 'self' data: blob: https:"],
-    [["connect-src 'self'", ...connect].join(' ')],
+    [["connect-src 'self'", CF_BEACON_REPORT, ...connect].join(' ')],
     ["worker-src 'self' blob:"],
     ["frame-src 'self' blob:"],
     ["media-src 'self' data: blob:"],
