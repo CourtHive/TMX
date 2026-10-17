@@ -15,6 +15,10 @@ import { S } from '../helpers/selectors';
  *
  * The statuses come from the factory's `completedMatchUpStatuses`, and the seed must produce a row for each
  * (asserted), so a status the factory adds later fails here until it is seeded.
+ *
+ * DEAD_RUBBER is scoped (factory, CA 2026-10-13): it marks a rubber of a decided team tie, or a DOUBLE_ELIMINATION
+ * Decider that is not needed, and is refused anywhere else. Seeding it as a singles outcome made the whole mock
+ * generation fail, so it is set on a rubber of a small TEAM tie instead.
  */
 
 const MATCHUPS = S.TOURNAMENT_MATCHUPS;
@@ -29,15 +33,14 @@ const OUTCOMES = [
   { roundNumber: 1, roundPosition: 7, matchUpStatus: 'DOUBLE_DEFAULT' },
   { roundNumber: 1, roundPosition: 9, matchUpStatus: 'CANCELLED' },
   { roundNumber: 1, roundPosition: 10, matchUpStatus: 'ABANDONED' },
-  { roundNumber: 1, roundPosition: 11, matchUpStatus: 'DEAD_RUBBER' },
 ];
 
 type CellReading = { status: string; ticks: number; svgs: number; fill?: string };
 
 test.describe('Journey 158 — the complete column', () => {
   test.beforeEach(async ({ page }) => {
-    // Tall enough that the table's virtual renderer draws all 31 rows at once.
-    await page.setViewportSize({ width: 1440, height: 2400 });
+    // Tall enough that the table's virtual renderer draws every row at once (31 singles + the TEAM tie's).
+    await page.setViewportSize({ width: 1440, height: 3600 });
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);
@@ -47,12 +50,27 @@ test.describe('Journey 158 — the complete column', () => {
 
   test('every finished status shows a green tick; an unfinished matchUp shows no mark', async ({ page }) => {
     const { tournamentId, completedStatuses, rowCount } = await page.evaluate(async (outcomes) => {
-      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        drawProfiles: [{ drawSize: 32, outcomes }],
+      const engine = dev.factory.tournamentEngine;
+      dev.factory.mocksEngine.generateTournamentRecord({
+        drawProfiles: [
+          { drawSize: 32, outcomes },
+          { drawSize: 2, eventType: 'TEAM', tieFormatName: 'COLLEGE_D3' },
+        ],
+        policyDefinitions: { scoring: { requireParticipantsForScoring: false } },
         tournamentAttributes: { tournamentId: 'e2e-complete-tick' },
         nonRandom: 1,
         setState: true,
       });
+      const rubber = engine
+        .allTournamentMatchUps({ matchUpFilters: { matchUpTypes: ['SINGLES'] } })
+        .matchUps.find((m: any) => m.collectionId);
+      const deadRubber = engine.setMatchUpStatus({
+        outcome: { matchUpStatus: 'DEAD_RUBBER' },
+        matchUpId: rubber.matchUpId,
+        drawId: rubber.drawId,
+      });
+      if (!deadRubber.success) throw new Error(`DEAD_RUBBER refused: ${JSON.stringify(deadRubber.error)}`);
+      const { tournamentRecord } = engine.getTournament();
       await dev.load(tournamentRecord);
       const { matchUps } = dev.factory.tournamentEngine.allTournamentMatchUps();
       return {
