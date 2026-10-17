@@ -10,10 +10,12 @@ import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
 import { renderButtons, renderForm, validators } from 'courthive-components';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getProvider, sendTournament } from 'services/apis/servicesApi';
+import { reportSaveOutcome } from 'services/apis/reportSaveOutcome';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { durableSave } from 'services/apis/durableSave';
 import { getParent } from 'services/dom/parentAndChild';
 import { providerConfig } from 'config/providerConfig';
 import { escapeHtml } from 'utilities/escapeHtml';
@@ -310,10 +312,18 @@ export function editTournament({
               // Do not add a provider-owned tournament to the visible list until
               // the server confirms persistence. Otherwise a rejected save looks
               // successful in this window, then disappears in every other one.
-              // baseApi resolves a failed request to `undefined` and has already
-              // raised the error toast, so the abort is reported, not silent.
-              const saveResult = await sendTournament({ tournamentRecord: newTournamentRecord });
-              if (!saveResult?.data?.success) return undefined;
+              // Durable (C3): a lost answer is resent under the same commandId, so a
+              // creation that landed is confirmed rather than abandoned here while
+              // it shows in every other window. Every failure is reported.
+              const saveResult = await durableSave({
+                tournamentRecord: newTournamentRecord,
+                flow: 'create',
+                send: sendTournament,
+              });
+              if (saveResult.status !== 'saved') {
+                reportSaveOutcome(saveResult, 'create', newTournamentRecord.tournamentId);
+                return undefined;
+              }
             }
             return completeTournamentAdd({ tournamentRecord: newTournamentRecord, table, onCreated });
           };

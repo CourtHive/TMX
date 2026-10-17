@@ -1,3 +1,4 @@
+import { durableSave, forgetOfflineSyncPoint, rememberOfflineSyncPoint } from 'services/apis/durableSave';
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
@@ -8,6 +9,7 @@ import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { reportSaveOutcome } from 'services/apis/reportSaveOutcome';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
 import { printFactSheet } from 'components/modals/printFactSheet';
@@ -469,6 +471,19 @@ function changeOnlineState({
   });
 }
 
+/**
+ * Re-mark the tournament offline in THIS tab only, after a go-online save that did not land. The
+ * offline flag was cleared to send the copy, so a `changeOnlineState` here would run server-first and
+ * write this copy's TMX time item over the server's record, which on a conflict is someone else's
+ * newer one. Local engine and IndexedDB only; repeating go-online reuses the save's commandId.
+ */
+function restoreOfflineLocally(state: any): void {
+  const prior = tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue;
+  const itemValue = { ...prior, offline: { email: state.email } };
+  tournamentEngine.addTournamentTimeItem({ removePriorValues: true, timeItem: { itemType: 'TMX', itemValue } });
+  saveTournamentRecord();
+}
+
 function createActionButton(label: string, icon: string, onClick: () => void, id?: string): HTMLElement {
   const btn = document.createElement('button');
   btn.className = 'dash-action-btn';
@@ -582,7 +597,11 @@ export function createActionsPanel(): HTMLElement {
               intent: 'is-danger',
               close: true,
               onClick: () => {
-                sendTournament({ tournamentRecord: record }).then(success, failure);
+                if (!record) return;
+                durableSave({ tournamentRecord: record, flow: 'upload', send: sendTournament }).then((result) => {
+                  if (result.status === 'saved') return success();
+                  reportSaveOutcome(result, 'upload', record.tournamentId);
+                }, failure);
               },
             },
           ],
@@ -598,11 +617,17 @@ export function createActionsPanel(): HTMLElement {
         if (record && !record.parentOrganisation) {
           record.parentOrganisation = activeProvider;
           tournamentEngine.setState(record);
-          sendTournament({ tournamentRecord: record }).then(
-            (result: any) => {
-              // baseApi returns the raw axios response on 2xx and `undefined`
-              // on non-2xx; the success payload lives at result.data.success.
-              if (!result?.data?.success) return;
+          durableSave({ tournamentRecord: record, flow: 'claim', send: sendTournament }).then(
+            (result) => {
+              if (result.status !== 'saved') {
+                // Not claimed (or not known to be): back to the unclaimed copy, which is what
+                // IndexedDB still holds, so the claim can be repeated. An unchanged repeat of an
+                // uncertain claim reuses its commandId, and the server answers whether it landed.
+                delete record.parentOrganisation;
+                tournamentEngine.setState(record);
+                reportSaveOutcome(result, 'claim', record.tournamentId);
+                return;
+              }
               tmx2db.deleteTournament(record.tournamentId);
               tmxToast({ message: t('modals.tournamentActions.tournamentClaimed'), intent: 'is-info' });
               renderOverview();
@@ -625,6 +650,8 @@ export function createActionsPanel(): HTMLElement {
           postMutation: (result: any) => {
             if (result?.success) {
               saveTournamentRecord();
+              // The write it went offline at: going online sends it as the precondition (C3).
+              if (tournamentRecord) rememberOfflineSyncPoint(tournamentRecord.tournamentId);
               const dnav = document.getElementById('dnav');
               if (dnav) dnav.style.backgroundColor = 'var(--tmx-bg-highlight)';
               tmxToast({ message: t('modals.tournamentActions.offline'), intent: 'is-info' });
@@ -646,16 +673,16 @@ export function createActionsPanel(): HTMLElement {
             if (result?.success) {
               const updated = tournamentEngine.q.tournament();
               if (!updated) return;
-              sendTournament({ tournamentRecord: updated }).then(
-                (result: any) => {
-                  // Skip local destruction when the server rejected the
-                  // upload — baseApi resolves to `undefined` on non-2xx and
-                  // would otherwise wipe the only remaining offline copy.
-                  // The success payload lives at result.data.success.
-                  if (!result?.data?.success) {
-                    changeOnlineState({ state, offline: true });
+              durableSave({ tournamentRecord: updated, flow: 'goOnline', send: sendTournament }).then(
+                (result) => {
+                  // Only a save known to have landed (or a deduplicated resend of it) may delete the
+                  // offline copy. A conflict, a refusal or an unknown outcome keeps it, offline.
+                  if (result.status !== 'saved') {
+                    restoreOfflineLocally(state);
+                    reportSaveOutcome(result, 'goOnline', updated.tournamentId);
                     return;
                   }
+                  forgetOfflineSyncPoint(updated.tournamentId);
                   tmx2db.deleteTournament(updated.tournamentId);
                   const dnav = document.getElementById('dnav');
                   if (dnav) dnav.style.backgroundColor = '';
@@ -664,7 +691,7 @@ export function createActionsPanel(): HTMLElement {
                 },
                 (err: any) => {
                   console.log({ err });
-                  changeOnlineState({ state, offline: true });
+                  restoreOfflineLocally(state);
                 },
               );
             }

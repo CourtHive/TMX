@@ -1634,6 +1634,10 @@
       "offline": "Offline",
       "online": "Online",
       "uploadWarning": "Warning: This action will replace the tournament record on the server",
+      "saveConflict": "The server has a newer version of this tournament. Nothing was saved and your local copy was kept. Loading the server copy replaces it.",
+      "saveExists": "This tournament already exists on the server. Nothing was saved and your local copy was kept.",
+      "saveUncertain": "Could not confirm the save reached the server. Your local copy was kept; try again.",
+      "loadServerCopy": "Load server copy",
       "scopedAccess": "Scoped access"
     },
     "manageAccess": {
