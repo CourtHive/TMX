@@ -12,7 +12,7 @@ export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   content.classList.add('scoreCell');
   if (data.score) {
     content.style.fontSize = 'smaller';
-    content.innerHTML = data.score;
+    content.textContent = data.score;
   } else if (isWalkover) {
     content.innerHTML = 'WO';
   } else {

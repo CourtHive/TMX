@@ -12,6 +12,7 @@ import { destroyTable } from 'pages/tournament/destroyTable';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { displayConfig } from 'config/displayConfig';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { scalesMap } from 'config/scalesConfig';
 import tippy, { type Instance } from 'tippy.js';
 
@@ -266,7 +267,7 @@ function buildScorelineFormatter(drawId: string) {
       span.style.cursor = 'pointer';
       const color = entry.result === 'W' ? 'green' : entry.result === 'L' ? 'red' : '';
       const prefix = entry.result ? `<span style="color:${color};font-weight:bold;">${entry.result}</span> ` : '';
-      span.innerHTML = `${prefix}${entry.score}`;
+      span.innerHTML = `${prefix}${escapeHtml(entry.score)}`;
       span.addEventListener('click', (e) => {
         e.stopPropagation();
         showMatchUpTipster(span, drawId, entry.matchUpId);
@@ -291,9 +292,9 @@ function buildRoundColumn(rn: number, drawId: string): any {
       const opponent = rowData[`r${rn}_opponent`] || '';
       const matchUpId = rowData[`r${rn}_matchUpId`];
       const color = val === 'W' ? 'green' : val === 'L' ? 'red' : '';
-      const tooltip = `${opponent}${score ? ' ' + score : ''}`;
+      const tooltip = escapeHtml(`${opponent}${score ? ' ' + score : ''}`);
       const cursor = matchUpId && val ? 'cursor:pointer;' : '';
-      return `<span style="color:${color}; font-weight:bold; ${cursor}" title="${tooltip}">${val || '-'}</span>`;
+      return `<span style="color:${color}; font-weight:bold; ${cursor}" title="${tooltip}">${escapeHtml(val || '-')}</span>`;
     },
     cellClick: (_e: any, cell: any) => {
       const rowData = cell.getRow().getData();

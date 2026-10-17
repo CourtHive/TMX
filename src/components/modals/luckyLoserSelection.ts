@@ -14,6 +14,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 import { LUCKY_DRAW_ADVANCEMENT } from 'constants/mutationConstants';
 import { t } from 'i18n';
@@ -68,8 +69,8 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
         .map(
           (w: any) =>
             `<div style="${ROW_STYLE} color: var(--tmx-text-primary, #363636);">
-              <span style="flex: 1;">${w.participantName || 'Unknown'}</span>
-              <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${w.scoreString || ''}</span>
+              <span style="flex: 1;">${escapeHtml(w.participantName || 'Unknown')}</span>
+              <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${escapeHtml(w.scoreString)}</span>
             </div>`,
         )
         .join('')
@@ -88,8 +89,8 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
 
           return `<div class="lucky-loser-row" data-index="${i}"
             style="${ROW_STYLE} cursor: ${canAdvance ? 'pointer' : 'default'}; border-radius: 3px; transition: background-color 0.15s;">
-            <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${l.participantName || 'Unknown'}</span>
-            <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${l.scoreString || ''}</span>
+            <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(l.participantName || 'Unknown')}</span>
+            <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${escapeHtml(l.scoreString)}</span>
             <span style="color: #2979ff; font-size: 12px; font-weight: 600; font-family: monospace; white-space: nowrap; min-width: 120px; text-align: right;">${ratios}</span>
           </div>`;
         })

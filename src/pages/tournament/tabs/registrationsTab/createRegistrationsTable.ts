@@ -6,6 +6,7 @@
  * (registrationActions.ts is the wiring).
  */
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 import type { RegistrationEntry } from 'services/apis/registrationsApi';
 import { collapseRegistrationPairs } from './collapseRegistrationPairs';
@@ -30,7 +31,7 @@ const STATUS_PILL_COLORS: Record<string, string> = {
 function statusPillFormatter(cell: any): string {
   const status = String(cell.getValue() ?? '');
   const color = STATUS_PILL_COLORS[status] ?? '#7a7a7a';
-  return `<span style="background:${color};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">${status}</span>`;
+  return `<span style="background:${color};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">${escapeHtml(status)}</span>`;
 }
 
 function actionsFormatter(cell: any): string {

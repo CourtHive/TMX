@@ -8,6 +8,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { fixtures } from 'tods-competition-factory';
 
 const { ratingsParameters } = fixtures;
@@ -460,7 +461,7 @@ function openPreferenceEntry({
     return `
       <div style="font-size: 0.9em; overflow: hidden;">
         <div style="margin-bottom: 10px; color: var(--tmx-text-secondary, #666); font-size: 13px;">
-          Click draw positions in order of preference for <strong>${name}</strong>.
+          Click draw positions in order of preference for <strong>${escapeHtml(name)}</strong>.
         </div>
         <div id="pref-selection-summary" style="margin-bottom: 10px; font-size: 13px; color: var(--tmx-text-secondary, #666);">
           ${selected.length ? `Selected: ${selected.join(' → ')} (${selected.length}/${maxPrefs})` : `Click positions to rank preferences (max ${maxPrefs})`}
@@ -565,7 +566,7 @@ function openPreferenceEntry({
   };
 
   openModal({
-    title: `Preferences — ${participants.get(currentPid) || currentPid.slice(0, 8)}`,
+    title: `Preferences — ${escapeHtml(participants.get(currentPid) || currentPid.slice(0, 8))}`,
     content: renderContent(),
     buttons: [
       {
@@ -702,7 +703,7 @@ function openResolutionDetail({
   const { name: initialName, html: initialHtml } = renderDetail(resolvedIds[currentIndex]);
 
   openModal({
-    title: `Resolution — ${initialName}`,
+    title: `Resolution — ${escapeHtml(initialName)}`,
     content: initialHtml,
     buttons: [
       {
@@ -776,7 +777,7 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
   const scaleBadge = (pid: string) => {
     const val = scaleValues?.get(pid);
     if (!val) return '';
-    return `<span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 20px; padding: 0 6px; font-size: 11px; font-weight: 600; border-radius: 3px; background: var(--tmx-bg-secondary, #f0f0f0); color: var(--tmx-text-secondary, #666); margin-right: 6px; flex-shrink: 0;">${val}</span>`;
+    return `<span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 20px; padding: 0 6px; font-size: 11px; font-weight: 600; border-radius: 3px; background: var(--tmx-bg-secondary, #f0f0f0); color: var(--tmx-text-secondary, #666); margin-right: 6px; flex-shrink: 0;">${escapeHtml(val)}</span>`;
   };
 
   return tiers
@@ -807,10 +808,10 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
                     : match
                       ? 'var(--tmx-text-secondary, #666)'
                       : 'var(--tmx-text-muted, #999)';
-              const prefsText = prefs?.length ? `(prefs: ${prefs.join(', ')})` : '';
+              const prefsText = prefs?.length ? `(prefs: ${escapeHtml(prefs.join(', '))})` : '';
 
               return `<div class="draft-participant-row draft-participant-resolved" data-participant-id="${pid}" style="${ROW_STYLE}">
-                ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+                ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
                 <span style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-right: 4px;">${prefsText}</span>
                 <span style="font-size: 12px; font-weight: 600; color: ${matchColor};">${matchLabel}</span>
                 <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: #1b5e20; color: #fff;">${pos}</span>
@@ -819,22 +820,22 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
 
             // Resolved but no resolution data (tier was resolved before resolutions tracking was added)
             const prefDisplay = prefs?.length
-              ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${prefs.join(', ')}</span>`
+              ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
               : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
             return `<div class="draft-participant-row" style="${ROW_STYLE} cursor: default; opacity: 0.6;">
-              ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+              ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
               <span style="display: flex; align-items: center;">${prefDisplay}</span>
             </div>`;
           }
 
           // Unresolved tier — editable
           const prefDisplay = prefs?.length
-            ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${prefs.join(', ')}</span>`
+            ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
             : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
           return `<div class="draft-participant-row draft-participant-clickable" data-participant-id="${pid}" style="${ROW_STYLE}">
-            ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+            ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
             <span style="display: flex; align-items: center;">${prefDisplay}</span>
             <i class="fa-solid fa-pencil" style="font-size: 11px; color: var(--tmx-text-muted, #999);"></i>
           </div>`;
@@ -1009,10 +1010,10 @@ function openTransparencyReport({
             : match
               ? 'var(--tmx-text-secondary, #666)'
               : 'var(--tmx-text-muted, #999)';
-      const prefsText = prefs.length ? `(${prefs.join(', ')})` : '';
+      const prefsText = prefs.length ? `(${escapeHtml(prefs.join(', '))})` : '';
 
       return `<div style="${ROW_STYLE} cursor: default;">
-        <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${name}</span>
+        <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
         <span style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-right: 4px;">${prefsText}</span>
         <span style="font-size: 12px; font-weight: 600; color: ${matchColor};">${matchLabel}</span>
         <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: #1b5e20; color: #fff;">${pos}</span>
@@ -1058,7 +1059,10 @@ function discoverScaleOptions(eventType?: string): ScaleOption[] {
 function scaleSelectOptions(options: ScaleOption[], currentValue: string): string {
   if (!options.length) return '';
   return options
-    .map((o) => `<option value="${o.value}" ${o.value === currentValue ? 'selected' : ''}>${o.value}</option>`)
+    .map(
+      (o) =>
+        `<option value="${escapeHtml(o.value)}" ${o.value === currentValue ? 'selected' : ''}>${escapeHtml(o.value)}</option>`,
+    )
     .join('');
 }
 

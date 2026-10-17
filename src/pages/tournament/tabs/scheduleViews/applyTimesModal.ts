@@ -12,6 +12,7 @@
  * of scope here — that lives on the `/policies` page.
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 
 import {
   ATTACHED_POLICY_ID,
@@ -55,7 +56,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
       'padding: 8px 12px; background: var(--tmx-bg-secondary, rgba(0,0,0,0.04)); border-radius: 6px; font-size: 0.75rem;';
     if (attachedChoice) {
       const attachedLabel = matchedLabel ?? 'Custom policy (not from this list)';
-      summary.innerHTML = `<strong>Currently attached:</strong> ${attachedLabel}`;
+      summary.innerHTML = `<strong>Currently attached:</strong> ${escapeHtml(attachedLabel)}`;
     } else {
       summary.innerHTML =
         '<strong>Currently attached:</strong> none — the Garman scheduler will use the factory default fallback.';

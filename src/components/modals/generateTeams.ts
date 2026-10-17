@@ -8,6 +8,7 @@ import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
 import { getGenerateTeamsModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
 import { fixtures } from 'tods-competition-factory';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 const { tieFormats: builtinTieFormats } = fixtures;
@@ -21,12 +22,12 @@ export async function generateTeams({ callback }: { callback?: () => void }): Pr
 
   const tieFormatOptions = [
     ...Object.entries(builtinTieFormats).map(([key, tf]) => ({
-      label: (tf as any).tieFormatName || key,
+      label: escapeHtml((tf as any).tieFormatName || key),
       value: key,
       tieFormat: tf,
     })),
     ...userTieFormats.map((item) => ({
-      label: item.name,
+      label: escapeHtml(item.name),
       value: item.id,
       tieFormat: item.tieFormat,
     })),

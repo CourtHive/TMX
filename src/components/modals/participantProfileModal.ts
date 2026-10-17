@@ -104,7 +104,7 @@ function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
       responsive: 0,
       formatter: (cell: any) => {
         const val = cell.getValue();
-        return val ? `<strong>${val}</strong>` : '';
+        return val ? `<strong>${escapeHtml(val)}</strong>` : '';
       },
     },
   ];

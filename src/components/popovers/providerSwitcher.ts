@@ -16,6 +16,7 @@ import { selectProviderModal } from 'components/modals/selectProviderModal';
 import { exchangeForProviderSession } from 'services/authentication/providerSelection';
 import { getLoginState, logIn } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { tipster } from './tipster';
 import { t } from 'i18n';
@@ -76,7 +77,7 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
   const associationItems = associations.map((assoc) => {
     const isActive = current?.organisationId === assoc.providerId;
     return {
-      text: isActive ? `${assoc.organisationName} ✓` : assoc.organisationName,
+      text: isActive ? `${escapeHtml(assoc.organisationName)} ✓` : escapeHtml(assoc.organisationName),
       hide: false,
       onClick: () => {
         if (isActive) return;
@@ -101,7 +102,7 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
     .map((prov) => {
       const isActive = current?.organisationId === prov.providerId;
       return {
-        text: isActive ? `${prov.organisationName} ✓` : prov.organisationName,
+        text: isActive ? `${escapeHtml(prov.organisationName)} ✓` : escapeHtml(prov.organisationName),
         hide: false,
         onClick: () => {
           if (isActive) return;
@@ -158,7 +159,7 @@ export function openProviderSwitcher({ target }: OpenProviderSwitcherParams): vo
   tipster({
     target,
     title: current?.organisationName
-      ? t('providerSwitcher.titleImpersonating', { name: current.organisationName })
+      ? t('providerSwitcher.titleImpersonating', { name: escapeHtml(current.organisationName) })
       : t('providerSwitcher.title'),
     items,
   });

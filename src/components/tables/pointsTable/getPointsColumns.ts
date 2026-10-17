@@ -4,6 +4,7 @@
  */
 import { preferencesConfig } from 'config/preferencesConfig';
 import { renderParticipant } from 'courthive-components';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { scalesMap } from 'config/scalesConfig';
 import { t } from 'i18n';
 
@@ -104,7 +105,7 @@ export function getPointsColumns(): any[] {
       responsive: 0,
       formatter: (cell: any) => {
         const val = cell.getValue();
-        return val ? `<strong>${val}</strong>` : '';
+        return val ? `<strong>${escapeHtml(val)}</strong>` : '';
       },
     },
   ];

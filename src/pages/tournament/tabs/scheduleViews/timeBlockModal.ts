@@ -33,6 +33,7 @@ import { addBookingsToDateAvailability, roundUpToQuarter, timeBlockError, toCloc
 import { MODIFY_COURT_AVAILABILITY } from 'constants/mutationConstants';
 import { closeModal, openModal } from 'components/modals/baseModal/baseModal';
 import { venueNowOnDate } from 'functions/venueTimeFrame';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { scheduleToast } from './scheduleToast';
 import { BookingTypeEnum } from 'tods-competition-factory';
 import { NONE } from 'constants/tmxConstants';
@@ -239,7 +240,7 @@ export function openTimeBlockModal(params: TimeBlockModalParams): void {
   renderRows();
 
   openModal({
-    title: t('schedule.timeBlock.title', { court: court.courtName }),
+    title: t('schedule.timeBlock.title', { court: escapeHtml(court.courtName) }),
     content,
     buttons: [
       { label: t('common.cancel'), intent: NONE, close: true },

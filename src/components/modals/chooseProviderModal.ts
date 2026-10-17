@@ -6,6 +6,7 @@
  */
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 export type ChoosableProvider = {
@@ -35,8 +36,8 @@ export function chooseProviderModal({
     ...(preselected ? [] : [{ label: '', value: '' }]),
     ...providers.map((p) => ({
       label: p.organisationAbbreviation
-        ? `${p.organisationName} (${p.organisationAbbreviation})`
-        : (p.organisationName ?? p.providerId),
+        ? `${escapeHtml(p.organisationName)} (${escapeHtml(p.organisationAbbreviation)})`
+        : escapeHtml(p.organisationName ?? p.providerId),
       value: p.providerId,
     })),
   ];
