@@ -1,4 +1,4 @@
-import { drawDefinitionConstants } from 'tods-competition-factory';
+import { defaultRoundsView, getRoundsViews } from './roundsViews';
 import { tournamentEngine } from 'services/factory/engine';
 
 // Constants
@@ -12,77 +12,29 @@ import {
   ROUNDS_TABLE,
 } from 'constants/tmxConstants';
 import { t } from 'i18n';
-const { CONTAINER, SWISS } = drawDefinitionConstants;
 
 export function getRoundTabs({ callback, structure, existingView, drawId }: any) {
   const displayUpdate = (view) => existingView !== view && callback({ refresh: true, view });
-  const isRoundRobin = structure?.structureType === CONTAINER;
   const isAdHoc = tournamentEngine.isAdHoc({ structure });
   const { drawDefinition } = drawId ? tournamentEngine.getEvent({ drawId }) : ({} as any);
-  const isSwiss = drawDefinition?.drawType === SWISS;
+  const defaultView = defaultRoundsView(structure);
 
-  const actionOptions: Array<{
-    active: boolean;
-    onClick: () => any;
-    label: string;
-    close: boolean;
-  }> = [];
-
-  if (isRoundRobin)
-    actionOptions.push({
-      active: !existingView || existingView === ROUNDS_BRACKET,
-      onClick: () => displayUpdate(ROUNDS_BRACKET),
-      label: t('ui.grid'),
-      close: true,
-    });
-
-  actionOptions.push({
-    active: isRoundRobin ? existingView === ROUNDS_COLUMNS : !existingView || existingView === ROUNDS_COLUMNS,
-    onClick: () => displayUpdate(ROUNDS_COLUMNS),
-    label: isAdHoc ? 'Columns' : 'Cards',
-    close: true,
-  });
-
-  if (isSwiss)
-    actionOptions.push({
-      active: existingView === ROUNDS_SWISS_CHART,
-      onClick: () => displayUpdate(ROUNDS_SWISS_CHART),
-      label: t('ui.chart'),
-      close: true,
-    });
-
-  actionOptions.push({
-    active: existingView === ROUNDS_TABLE,
-    onClick: () => displayUpdate(ROUNDS_TABLE),
-    label: t('ui.table'),
-    close: true,
-  });
-
-  if (isAdHoc || isRoundRobin)
-    actionOptions.push({
-      active: existingView === ROUNDS_STATS,
-      onClick: () => displayUpdate(ROUNDS_STATS),
-      label: t('ui.stats'),
-      close: true,
-    });
-
-  if (isSwiss)
-    actionOptions.push({
-      active: existingView === ROUNDS_STANDINGS,
-      onClick: () => displayUpdate(ROUNDS_STANDINGS),
-      label: t('ui.standings'),
-      close: true,
-    });
-
-  if (isAdHoc && !isSwiss)
-    actionOptions.push({
-      active: existingView === ROUNDS_RATINGS,
-      onClick: () => displayUpdate(ROUNDS_RATINGS),
-      label: t('rtz'),
-      close: true,
-    });
-
-  return {
-    tabs: actionOptions,
+  const labels: Record<string, string> = {
+    [ROUNDS_BRACKET]: t('ui.grid'),
+    [ROUNDS_COLUMNS]: isAdHoc ? 'Columns' : 'Cards',
+    [ROUNDS_SWISS_CHART]: t('ui.chart'),
+    [ROUNDS_TABLE]: t('ui.table'),
+    [ROUNDS_STATS]: t('ui.stats'),
+    [ROUNDS_STANDINGS]: t('ui.standings'),
+    [ROUNDS_RATINGS]: t('rtz'),
   };
+
+  const tabs = getRoundsViews({ structure, drawType: drawDefinition?.drawType }).map((view) => ({
+    active: existingView ? existingView === view : view === defaultView,
+    onClick: () => displayUpdate(view),
+    label: labels[view],
+    close: true,
+  }));
+
+  return { tabs };
 }
