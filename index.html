@@ -35,16 +35,7 @@
 
     <link rel="manifest" href="src/assets/manifest.json" />
 
-    <script>
-      (function() {
-        var pref = localStorage.getItem('tmx_theme') || 'dark';
-        var theme = pref;
-        if (pref === 'system') {
-          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        document.documentElement.setAttribute('data-theme', theme);
-      })();
-    </script>
+    <script src="%BASE_URL%theme-init.js"></script>
 
     <title>CourtHive® TMX 3</title>
   </head>

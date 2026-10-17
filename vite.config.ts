@@ -1,4 +1,5 @@
 import { rendererOptimizeDeps, rendererPlugins, rendererResolve, rendererOnwarn } from './vite.shared.ts';
+import { buildCsp, DEV_CONNECT } from './csp.policy.mjs';
 import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -48,9 +49,15 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
         },
       }),
     ],
+    // The web CSP in report-only mode (csp.policy.mjs). The dev server sends it so every e2e journey
+    // runs under the policy prod serves; journey 164 fails on any violation it reports.
     server: {
       port: 5173,
       strictPort: true,
+      headers: { 'Content-Security-Policy-Report-Only': buildCsp({ connect: DEV_CONNECT }) },
+    },
+    preview: {
+      headers: { 'Content-Security-Policy-Report-Only': buildCsp({ connect: DEV_CONNECT }) },
     },
     optimizeDeps: rendererOptimizeDeps,
     resolve: rendererResolve,
