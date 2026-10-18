@@ -17,17 +17,19 @@
  * nothing renders as `—` with a warning, because a checkbox that looks like it
  * works while changing nothing would mislead whoever is being demonstrated to.
  */
+import { canUseDemoClock, stopDemoClock } from 'services/clock/demoClock';
+import { openDemoClockPanel } from 'components/demoClock/demoClockPanel';
 import { BOOLEAN_PERMISSION_KEYS } from '@courthive/provider-config';
 
 import { clearDemoOverlay, getDemoOverlay, setDemoOverlay, setDemoPermission } from 'services/demoMode/demoState';
 import { DEMO_PRESET_IDS, overridesForPreset } from 'services/demoMode/demoPresets';
-import { coverageFor } from 'services/capability/capabilityCoverage';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
+import { coverageFor } from 'services/capability/capabilityCoverage';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
-import type { DemoPresetId } from 'services/demoMode/demoPresets';
 import type { ProviderPermissions } from '@courthive/provider-config';
+import type { DemoPresetId } from 'services/demoMode/demoPresets';
 import { RIGHT } from 'constants/tmxConstants';
 
 type Key = keyof ProviderPermissions;
@@ -104,6 +106,19 @@ function buildPanel(): HTMLElement {
   warning.className = 'tmx-demo-warning';
   warning.textContent = t('demoMode.clientOnly');
   content.appendChild(warning);
+
+  const clockHint = document.createElement('p');
+  clockHint.textContent = t('demoClock.launchHint');
+  const clockButton = document.createElement('button');
+  clockButton.type = 'button';
+  clockButton.className = 'button';
+  clockButton.textContent = t('demoClock.launch');
+  clockButton.disabled = !canUseDemoClock();
+  clockButton.addEventListener('click', () => {
+    context.drawer.close();
+    openDemoClockPanel();
+  });
+  content.append(clockHint, clockButton);
 
   // ── Posture ──
   const postureHeading = document.createElement('div');
@@ -190,6 +205,7 @@ function buildFooter(): HTMLElement {
   exit.className = 'button is-warning';
   exit.textContent = t('demoMode.exit');
   exit.addEventListener('click', () => {
+    stopDemoClock();
     clearDemoOverlay();
     context.drawer.close();
     renderDemoAffordance();

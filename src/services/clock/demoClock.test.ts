@@ -1,0 +1,110 @@
+import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
+import { mocksEngine, tools } from 'tods-competition-factory';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { tournamentEngine } from 'services/factory/engine';
+import { competitionNowMs } from './competitionClock';
+import { context } from 'services/context';
+import {
+  advanceDemoClock,
+  canUseDemoClock,
+  demoWallTime,
+  getDemoClock,
+  nextDemoBoundary,
+  retainDemoClockFor,
+  setDemoClockBusy,
+  setDemoClockTime,
+  stopDemoClock,
+} from './demoClock';
+
+const session = vi.hoisted(() => ({ token: null as string | null }));
+vi.mock('services/authentication/tokenManagement', () => ({ getToken: () => session.token }));
+
+const START = Date.parse('2026-10-18T13:55:00Z');
+const DATE = '2026-10-18';
+const ZONE = 'America/New_York';
+
+function loadLab() {
+  let result: any = mocksEngine.generateTournamentRecord(buildSchedulerDemoProfile(new Date(START)) as any);
+  expect(result.error).toBeUndefined();
+  tournamentEngine.setState(result.tournamentRecord);
+}
+
+afterEach(() => {
+  stopDemoClock();
+  session.token = null;
+  context.provider = undefined;
+  tournamentEngine.reset();
+});
+
+describe('paused local demo clock ownership', () => {
+  it('steps TMX and factory competition and record time together; exit restores real time', () => {
+    loadLab();
+    expect(setDemoClockTime(START)).toBe(true);
+    expect(advanceDemoClock(5)).toBe(true);
+    expect(competitionNowMs()).toBe(START + 300_000);
+    expect(tools.competitionNow().getTime()).toBe(START + 300_000);
+    expect(tools.now().getTime()).toBe(START + 300_000);
+    expect(setDemoClockTime(START)).toBe(false);
+    expect(setDemoClockTime(Number.NaN)).toBe(false);
+    setDemoClockBusy(true);
+    expect(advanceDemoClock(15)).toBe(false);
+    setDemoClockBusy(false);
+    stopDemoClock();
+    expect(Math.abs(competitionNowMs()! - Date.now())).toBeLessThan(1000);
+    expect(Math.abs(tools.now().getTime() - Date.now())).toBeLessThan(1000);
+  });
+
+  it('refuses signed-in, impersonated and provider-owned sessions', () => {
+    loadLab();
+    session.token = 'some-token';
+    expect(canUseDemoClock()).toBe(false);
+    expect(setDemoClockTime(START)).toBe(false);
+    session.token = null;
+    context.provider = { organisationId: 'provider' } as any;
+    expect(setDemoClockTime(START)).toBe(false);
+    context.provider = undefined;
+    const record = tournamentEngine.getTournament().tournamentRecord!;
+    tournamentEngine.setState({ ...record, parentOrganisation: { organisationId: 'provider' } });
+    expect(setDemoClockTime(START)).toBe(false);
+  });
+
+  it('retains time within the demo tournament and releases it before another route', () => {
+    loadLab();
+    setDemoClockTime(START);
+    retainDemoClockFor('scheduler-demo-three-days');
+    expect(getDemoClock()?.nowMs).toBe(START);
+    retainDemoClockFor('other-tournament');
+    expect(getDemoClock()).toBeUndefined();
+    expect(Math.abs(competitionNowMs()! - Date.now())).toBeLessThan(1000);
+  });
+
+  it('refuses time reads when identity changes before the navigation hook runs', () => {
+    loadLab();
+    setDemoClockTime(START);
+    session.token = 'new-identity';
+    expect(competitionNowMs()).toBeUndefined();
+    retainDemoClockFor('scheduler-demo-three-days');
+    expect(getDemoClock()).toBeUndefined();
+  });
+});
+
+describe('demo time boundaries', () => {
+  it('chooses the first strictly future threshold in venue time, including maintenance', () => {
+    const matchUps = [{ schedule: { scheduledDate: DATE, scheduledTime: '10:00' } }];
+    const venues = [
+      { courts: [{ dateAvailability: [{ date: DATE, bookings: [{ startTime: '10:02', endTime: '10:10' }] }] }] },
+    ];
+    const first = nextDemoBoundary(START, matchUps, venues, ZONE)!;
+    expect(first).toEqual({ at: START + 300_000, kind: 'scheduled' });
+    const next = nextDemoBoundary(first.at, matchUps, venues, ZONE)!;
+    expect(next.kind).toBe('blockStart');
+    expect(nextDemoBoundary(next.at, matchUps, venues, ZONE)?.kind).toBe('blockEnd');
+    expect(nextDemoBoundary(START + 3600_000, matchUps, venues, ZONE)).toBeUndefined();
+  });
+
+  it('rejects invalid calendar dates and nonexistent DST times', () => {
+    expect(demoWallTime('2026-02-30', '10:00', ZONE)).toBeUndefined();
+    expect(demoWallTime('2026-03-08', '02:30', ZONE)).toBeUndefined();
+    expect(demoWallTime(DATE, '09:55', ZONE)).toBe(START);
+  });
+});

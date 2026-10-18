@@ -1,21 +1,8 @@
-import {
-  getToken,
-  removeToken,
-  setToken,
-  getRefreshToken,
-  setRefreshToken,
-  removeRefreshToken,
-} from './tokenManagement';
-import {
-  isProviderSelectionResponse,
-  promptProviderSelection,
-  type ProviderSelectionResponse,
-} from './providerSelection';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
 import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
 import { notifySessionRecovered } from 'services/session/sessionGuard';
-import { setupChatIndicator } from 'navigation';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
@@ -29,15 +16,29 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { isActiveProviderAdmin } from './isProviderAdmin';
 import { loginModal } from 'components/modals/loginModal';
 import { ensurePdfFontReady } from 'services/pdf/pdfFont';
+import { stopDemoClock } from 'services/clock/demoClock';
 import { getLoginColor } from 'functions/getLoginColor';
 import { providerConfig } from 'config/providerConfig';
 import { tipster } from 'components/popovers/tipster';
 import { tmx2db } from 'services/storage/tmx2db';
+import { setupChatIndicator } from 'navigation';
 import { revokeRefreshToken } from './authApi';
 import { isFunction } from 'functions/typeOf';
-import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  getToken,
+  removeToken,
+  setToken,
+  getRefreshToken,
+  setRefreshToken,
+  removeRefreshToken,
+} from './tokenManagement';
+import {
+  isProviderSelectionResponse,
+  promptProviderSelection,
+  type ProviderSelectionResponse,
+} from './providerSelection';
 
 // types
 import type { LoginState } from 'types/tmx';
@@ -91,7 +92,8 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
-  // A demo posture must never outlive an identity change.
+  // A demo posture and competition clock must never outlive an identity change.
+  stopDemoClock();
   clearDemoOverlay();
   // Best-effort server-side revocation of the refresh token so a leaked copy
   // can't be replayed after logout. Fire-and-forget; never blocks local logout.
@@ -183,7 +185,8 @@ export function logIn({
     return;
   }
 
-  // A demo posture must never outlive an identity change.
+  // A demo posture and competition clock must never outlive an identity change.
+  stopDemoClock();
   clearDemoOverlay();
   const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.q.tournament()?.tournamentId;

@@ -3,6 +3,7 @@
  * Creates sample tournaments with various draw types and categories.
  */
 import { sportFromMatchUpFormat, COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
+import { SCHEDULER_DEMO_PROFILE } from 'pages/tournaments/schedulerDemoProfile';
 import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
@@ -621,6 +622,7 @@ const mockProfiles = [
     venueProfiles: [clubCourts],
   },
   LIVE_SCHEDULE_PROFILE,
+  SCHEDULER_DEMO_PROFILE,
 ];
 
 export const EXAMPLE_TOURNAMENT_CATALOG = mockProfiles.map((p, i) => ({

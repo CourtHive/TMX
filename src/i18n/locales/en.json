@@ -3480,5 +3480,48 @@
       "ranking": "Ranking",
       "rating": "Rating"
     }
+  },
+  "demoClock": {
+    "title": "Demo Clock",
+    "launch": "Open Demo Clock",
+    "launchHint": "Open the Scheduling Lab — Garman + Pro example from Examples first. Clock controls are available for this local example while signed out.",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "exit": "Exit clock",
+    "time": "Demo time",
+    "date": "Demo date",
+    "setTime": "Demo wall time",
+    "set": "Set time",
+    "paused": "Paused",
+    "step": "+{{minutes}} min",
+    "forwardOnly": "Choose a valid time at or after the current demo time. Calls and results cannot be rewound.",
+    "boundary": "Next: {{kind}} · {{time}}",
+    "noBoundary": "No upcoming time boundary",
+    "boundaries": {
+      "scheduled": "scheduled start",
+      "blockStart": "court block starts",
+      "blockEnd": "court block ends"
+    },
+    "openDay": "Open day",
+    "garman": "Apply Garman times",
+    "pro": "Apply Pro grid",
+    "saveFirst": "Save or discard scheduling edits before running a scheduler.",
+    "failed": "Scheduling failed. Check the schedule and try again.",
+    "applied": "Scheduler applied. Inspect the day in Grid to compare the result.",
+    "hint": "Time is paused. Start, score and finish matches with the normal tournament controls. Opening a later day advances to 09:55; earlier days can be viewed without rewinding history. Exit restores real time.",
+    "days": [
+      {
+        "title": "Day 1 · Garman",
+        "description": "Apply Times to Singles. Inspect policy-based start times, recovery gaps and court availability."
+      },
+      {
+        "title": "Day 2 · Pro",
+        "description": "Apply Grid to Doubles. Inspect court order without scheduled times. Use the normal grid controls for not-before and follow-by annotations."
+      },
+      {
+        "title": "Day 3 · Together",
+        "description": "Apply Garman times first, then Pro grid to the same Singles and Doubles draws. Verify the times remain while court positions are added."
+      }
+    ]
   }
 }
