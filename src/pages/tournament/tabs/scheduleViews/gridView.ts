@@ -1256,7 +1256,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   syncCatalogToolbar = () => {
     const bottom = currentCatalogPlacement === 'bottom';
     if (bottom) {
-      tools.append(catalogToolbar, catalogFilter, scheduledToolbar, scheduledFilterBtn);
+      tools.append(catalogFilter, catalogToolbar, scheduledFilterBtn, scheduledToolbar);
     } else {
       catalogPanel.insertBefore(catalogToolbar, catalogPanel.querySelector('.sp-catalog'));
       catalogFilterHome.appendChild(catalogFilter);
