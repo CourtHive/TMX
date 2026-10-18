@@ -14,6 +14,7 @@ import { printSchedule } from 'components/modals/printSchedule';
 import { registerGridSearchControl } from './gridSearchControl';
 import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
+import { venueToday } from 'functions/venueTimeFrame';
 import { buildStepper } from './stepperControl';
 import { t } from 'i18n';
 
@@ -150,7 +151,7 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
   return {
     leading: [catalogBtn],
     titleSlot: buildSearchSlot(onSearch),
-    trailing: [stripBtn, startOnDropBtn, shiftBtn, resolveBtn, printBtn],
+    trailing: [...(selectedDate === venueToday() ? [stripBtn] : []), startOnDropBtn, shiftBtn, resolveBtn, printBtn],
     footerControls: [rowsStepper],
   };
 }
