@@ -695,7 +695,11 @@ export function renderGridView(
   presentationActions.append(catalogPlacement, inspectorPlacement);
   const layoutButton = document.createElement('button');
   layoutButton.type = 'button';
-  layoutButton.textContent = t('schedule.presentation.layout');
+  layoutButton.style.cssText =
+    TOGGLE_BTN_BASE_STYLE + '; background: transparent; color: var(--tmx-accent-blue, #3b82f6)';
+  layoutButton.innerHTML =
+    '<i class="fa-solid fa-table-cells-large" style="font-size: 0.75rem;" aria-hidden="true"></i>';
+  layoutButton.title = t('schedule.presentation.layoutLabel');
   layoutButton.setAttribute(ARIA_LABEL, t('schedule.presentation.layoutLabel'));
   const layoutTip = tippy(layoutButton, {
     content: presentationActions,
