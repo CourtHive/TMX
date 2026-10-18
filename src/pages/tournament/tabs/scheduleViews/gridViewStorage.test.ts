@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  readCatalogPlacement,
+  writeCatalogPlacement,
+  readInspectorPlacement,
+  writeInspectorPlacement,
+  readInspectorGeometry,
+  writeInspectorGeometry,
   readInspectorVisible,
   readScheduledFilters,
   readScheduledGroupBy,
@@ -253,5 +259,40 @@ describe('grid warning bars', () => {
     writeGridWarningBars(false);
     expect(localStorage.getItem(INSPECTOR_KEY)).toBeNull();
     expect(readInspectorVisible()).toBe(true);
+  });
+});
+
+describe('catalog presentation preferences', () => {
+  it('defaults to the current left and docked layout', () => {
+    expect(readCatalogPlacement()).toBe('left');
+    expect(readInspectorPlacement()).toBe('docked');
+    expect(readInspectorGeometry()).toBeUndefined();
+  });
+  it('round-trips layout and geometry independently of visibility', () => {
+    writeCatalogPlacement('bottom');
+    writeInspectorPlacement('floating');
+    const geometry = { left: 10, top: 20, width: 320, height: 400 };
+    writeInspectorGeometry(geometry);
+    expect(readCatalogPlacement()).toBe('bottom');
+    expect(readInspectorPlacement()).toBe('floating');
+    expect(readInspectorGeometry()).toEqual(geometry);
+    expect(readInspectorVisible()).toBe(true);
+  });
+  it('rejects malformed preferences and nonfinite or negative dimensions', () => {
+    localStorage.setItem('schedule2:catalog-placement', '"diagonal"');
+    localStorage.setItem('schedule2:inspector-placement', '{');
+    localStorage.setItem('schedule2:inspector-geometry', JSON.stringify({ left: 0, top: 0, width: -2, height: 30 }));
+    expect(readCatalogPlacement()).toBe('left');
+    expect(readInspectorPlacement()).toBe('docked');
+    expect(readInspectorGeometry()).toBeUndefined();
+  });
+  it('remains usable when browser storage is blocked', () => {
+    installThrowingStorage();
+    expect(() => {
+      writeCatalogPlacement('bottom');
+      writeInspectorPlacement('floating');
+    }).not.toThrow();
+    expect(readCatalogPlacement()).toBe('left');
+    expect(readInspectorGeometry()).toBeUndefined();
   });
 });

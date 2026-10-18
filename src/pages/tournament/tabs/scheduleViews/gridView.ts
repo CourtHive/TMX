@@ -155,6 +155,9 @@ export const DEFAULT_MIN_COURT_GRID_ROWS = 10;
 // so the visual highlight is consistent across the two panels.
 const FILTER_HIGHLIGHT_CLASS = 'is-filtering';
 
+const ARIA_LABEL = 'aria-label';
+const ARIA_PRESSED = 'aria-pressed';
+
 const DATA_COURT_ID = 'data-court-id';
 const DATA_VENUE_ID = 'data-venue-id';
 const DATA_COURT_ORDER = 'data-court-order';
@@ -281,6 +284,7 @@ let catalogStateUnsubscribe: (() => void) | null = null;
  * the first catalog render, built before that, carries no badges.
  */
 let sidebarVisible = true;
+let currentCatalogPlacement: 'left' | 'bottom' = 'left';
 let sidebarTab: SidebarTab | null = null;
 /** Repaints whichever sidebar panel has just come on screen. Assigned per mount. */
 let onSidebarShown: (() => void) | null = null;
@@ -307,6 +311,12 @@ import { renderCheckInBadge } from './checkInBadge';
 import { evaluateRest } from './inspectorRest';
 import { renderRestBadge } from './restBadge';
 import {
+  readCatalogPlacement,
+  writeCatalogPlacement,
+  readInspectorPlacement,
+  writeInspectorPlacement,
+  readInspectorGeometry,
+  writeInspectorGeometry,
   readSidebarTab,
   writeSidebarTab,
   readScheduledSearch,
@@ -363,6 +373,7 @@ export function renderGridView(
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   sidebarVisible = options?.catalogVisible ?? true;
+  currentCatalogPlacement = readCatalogPlacement();
   sidebarTab = null;
   planContext = options?.planContext ?? null;
   if (planContext) ensurePlanModeStyles();
@@ -509,6 +520,11 @@ export function renderGridView(
     initialCatalogState: context.scheduleCatalogState,
     hideLeft: true,
     catalogSide: 'left',
+    catalogPlacement: currentCatalogPlacement,
+    inspectorPlacement: readInspectorPlacement(),
+    inspectorGeometry: readInspectorGeometry(),
+    onInspectorGeometryChange: writeInspectorGeometry,
+    onInspectorPlacementChange: writeInspectorPlacement,
     scheduledBehavior: 'dim',
     schedulingMode: 'immediate',
 
@@ -619,7 +635,80 @@ export function renderGridView(
   panelArea.style.cssText = 'flex: 1; min-height: 0; overflow: hidden;';
   panelWrapper.appendChild(panelArea);
 
+  const presentationActions = document.createElement('div');
+  presentationActions.className = 'tmx-schedule-presentation';
+  const catalogPlacement = document.createElement('select');
+  catalogPlacement.setAttribute(ARIA_LABEL, t('schedule.presentation.catalogPlacement'));
+  for (const [value, label] of [
+    ['left', t('schedule.presentation.catalogLeft')],
+    ['bottom', t('schedule.presentation.catalogBottom')],
+  ]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    catalogPlacement.appendChild(option);
+  }
+  catalogPlacement.value = currentCatalogPlacement;
+  catalogPlacement.addEventListener('change', () => {
+    const placement = catalogPlacement.value === 'bottom' ? 'bottom' : 'left';
+    currentCatalogPlacement = placement;
+    writeCatalogPlacement(placement);
+    activeControl?.setCatalogPlacement(placement);
+    syncCatalogToolbar?.();
+  });
+  const inspectorPlacement = document.createElement('select');
+  inspectorPlacement.setAttribute(ARIA_LABEL, t('schedule.presentation.inspectorPlacement'));
+  for (const [value, label] of [
+    ['docked', t('schedule.presentation.inspectorDocked')],
+    ['floating', t('schedule.presentation.inspectorFloating')],
+  ]) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    inspectorPlacement.appendChild(option);
+  }
+  inspectorPlacement.value = readInspectorPlacement();
+  inspectorPlacement.addEventListener('change', () => {
+    const placement = inspectorPlacement.value === 'floating' ? 'floating' : 'docked';
+    activeControl?.setInspectorPlacement(placement);
+  });
+  const priorPlacementChange = config.onInspectorPlacementChange;
+  config.onInspectorPlacementChange = (placement) => {
+    priorPlacementChange?.(placement);
+    inspectorPlacement.value = placement;
+  };
+  const showInspector = document.createElement('button');
+  showInspector.type = 'button';
+  showInspector.textContent = t('schedule.inspector.heading');
+  showInspector.addEventListener('click', () => activeControl?.toggleInspector());
+  presentationActions.append(catalogPlacement, inspectorPlacement, showInspector);
+  const layoutButton = document.createElement('button');
+  layoutButton.type = 'button';
+  layoutButton.textContent = t('schedule.presentation.layout');
+  layoutButton.setAttribute(ARIA_LABEL, t('schedule.presentation.layoutLabel'));
+  const layoutTip = tippy(layoutButton, {
+    content: presentationActions,
+    interactive: true,
+    trigger: 'click',
+    placement: 'bottom-end',
+    appendTo: () => document.body,
+  });
+  disposePresentationActions = () => layoutTip.destroy();
+  config.headerActions = [
+    ...(Array.isArray(config.headerActions)
+      ? config.headerActions
+      : config.headerActions
+        ? [config.headerActions]
+        : []),
+    layoutButton,
+  ];
   activeControl = createSchedulePage(config, panelArea);
+  activeControl.setCatalogVisible(sidebarVisible);
+  activeControl.getStore().subscribe((state) => {
+    writeInspectorVisible(state.inspectorVisible);
+    showInspector.setAttribute(ARIA_PRESSED, String(state.inspectorVisible));
+  });
+  showInspector.setAttribute(ARIA_PRESSED, String(activeControl.inspectorVisible));
 
   // Action bar — always rendered; it owns the min-width stepper even when
   // there are no issues / no bulk toggle / no clear menu. The provider
@@ -767,12 +856,15 @@ export function renderGridView(
 // Sidebar Controls (collapse + scheduled matchUp list)
 // ============================================================================
 
+let syncCatalogToolbar: (() => void) | null = null;
+let disposePresentationActions: (() => void) | null = null;
+let disposeCatalogPopover: (() => void) | null = null;
+
 function injectSidebarControls(container: HTMLElement, refresh: () => void): void {
   const layout = container.querySelector('.spl-layout') as HTMLElement;
   if (!layout) return;
 
-  // The sidebar is the first child when catalogSide='left'
-  const sidebar = layout.firstElementChild as HTMLElement;
+  const sidebar = activeControl?.getCatalogRegion();
   if (!sidebar) return;
 
   // Build control bar (inspector toggle + tab switcher: Unscheduled / Scheduled)
@@ -791,9 +883,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>';
 
   const syncInspectorToggle = (visible: boolean) => {
-    inspectorToggle.setAttribute('aria-pressed', String(visible));
+    inspectorToggle.setAttribute(ARIA_PRESSED, String(visible));
     inspectorToggle.title = visible ? t('schedule.inspector.hide') : t('schedule.inspector.show');
-    inspectorToggle.setAttribute('aria-label', inspectorToggle.title);
+    inspectorToggle.setAttribute(ARIA_LABEL, inspectorToggle.title);
   };
   syncInspectorToggle(activeControl?.getStore().getState().inspectorVisible ?? readInspectorVisible());
 
@@ -949,6 +1041,23 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // Cards container — re-populated each `updateScheduledPanel` call.
   const scheduledCardsContainer = document.createElement('div');
   scheduledCardsContainer.className = 'sp-catalog';
+  for (const [label, direction] of [
+    [t('schedule.presentation.previousCards'), -1],
+    [t('schedule.presentation.nextCards'), 1],
+  ] as const) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'spl-catalog-scroll';
+    button.textContent = direction < 0 ? '◀' : '▶';
+    button.setAttribute(ARIA_LABEL, label);
+    button.addEventListener('click', () =>
+      scheduledCardsContainer.scrollBy({
+        left: direction * Math.max(280, scheduledCardsContainer.clientWidth * 0.8),
+        behavior: 'smooth',
+      }),
+    );
+    scheduledToolbar.appendChild(button);
+  }
   scheduledCardsContainer.style.cssText = 'flex: 1; min-height: 0;';
   scheduledPanel.appendChild(scheduledCardsContainer);
 
@@ -966,6 +1075,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     scheduledFilterBtn.classList.toggle('active', isAnyScheduledFilterActive());
   }
   updateScheduledFilterBadge();
+
+  disposeCatalogPopover = () => destroyScheduledFilterTip();
 
   function destroyScheduledFilterTip(): void {
     if (scheduledFilterTip) {
@@ -1103,35 +1214,45 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     destroyScheduledFilterTip();
     scheduledFilterTip = tippy(scheduledFilterBtn, {
       content: buildScheduledFilterPopover(),
-      placement: 'bottom-start',
+      placement: currentCatalogPlacement === 'bottom' ? 'top-start' : 'bottom-start',
       interactive: true,
       trigger: 'manual',
-      appendTo: () => scheduledPanel,
+      appendTo: () => document.body,
       onClickOutside: () => destroyScheduledFilterTip(),
       theme: '',
     });
     scheduledFilterTip.show();
   });
 
-  // The component's existing catalog content (everything after the control bar)
-  // The component's existing catalog content, EXCLUDING the Inspector panel.
-  // The Inspector is a sibling of the catalog in the layout's sidebar, so a naive
-  // `Array.from(sidebar.children)` sweeps it into "catalog content" and hides it
-  // whenever the Scheduled tab is shown — which is precisely why the Scheduled
-  // view had no Inspector. It is identified by the `data-panel` hook rather than
-  // by sibling order (both panels carry the same `sp-panel` class).
-  const catalogContent = Array.from(sidebar.children).filter((el) => (el as HTMLElement).dataset.panel !== 'inspector');
-
-  // Insert control bar at top
-  sidebar.insertBefore(controlBar, sidebar.firstChild);
-  // The Scheduled panel stands in for the catalog, so it takes the catalog's
-  // slot — ABOVE the Inspector. Appending it to the sidebar instead leaves it
-  // after the Inspector, which puts the Inspector at the TOP on the Scheduled
-  // tab and at the BOTTOM on the Unscheduled tab: the panel jumps as soon as
-  // you switch views. `insertBefore(_, null)` degrades to append if the
-  // Inspector is ever absent.
-  const inspectorEl = sidebar.querySelector(':scope > [data-panel="inspector"]');
-  sidebar.insertBefore(scheduledPanel, inspectorEl);
+  const catalogContent = Array.from(sidebar.children);
+  sidebar.prepend(controlBar);
+  sidebar.appendChild(scheduledPanel);
+  controlBar.classList.add('tmx-catalog-control-strip');
+  const catalogPanel = sidebar.querySelector<HTMLElement>('[data-panel="catalog"]')!;
+  const catalogHeader = catalogPanel.querySelector<HTMLElement>('.sp-panel-header')!;
+  const catalogToolbar = catalogPanel.querySelector<HTMLElement>('.sp-catalog-toolbar')!;
+  const catalogFilter = catalogHeader.querySelector<HTMLElement>('.spl-catalog-filter-btn')!;
+  const catalogFilterHome = catalogFilter.parentElement!;
+  const scheduledFilterHome = scheduledFilterBtn.parentElement!;
+  const tools = document.createElement('div');
+  tools.className = 'tmx-catalog-tools';
+  controlBar.appendChild(tools);
+  syncCatalogToolbar = () => {
+    const bottom = currentCatalogPlacement === 'bottom';
+    if (bottom) {
+      tools.append(catalogToolbar, catalogFilter, scheduledToolbar, scheduledFilterBtn);
+    } else {
+      catalogPanel.insertBefore(catalogToolbar, catalogPanel.querySelector('.sp-catalog'));
+      catalogFilterHome.appendChild(catalogFilter);
+      scheduledPanel.insertBefore(scheduledToolbar, scheduledCardsContainer);
+      scheduledFilterHome.appendChild(scheduledFilterBtn);
+    }
+    const scheduled = sidebarTab === 'scheduled';
+    catalogToolbar.hidden = bottom && scheduled;
+    catalogFilter.hidden = bottom && scheduled;
+    scheduledToolbar.hidden = bottom && !scheduled;
+    scheduledFilterBtn.hidden = bottom && !scheduled;
+  };
 
   // Default sidebar tab is resolved after the scheduled-orphan helpers are
   // declared (see `resolveInitialTab` below), so we can land on "Scheduled"
@@ -1344,6 +1465,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     const catalogWasShown = catalogOnScreen();
     activeTab = tab;
     sidebarTab = tab;
+    syncCatalogToolbar?.();
     // Persist only explicit operator choices, not the auto-resolved default, so
     // `readSidebarTab()` keeps meaning "the last tab the operator clicked".
     if (options?.persist !== false) writeSidebarTab(tab);
@@ -1405,6 +1527,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let renderedCatalog: unknown = activeControl?.getStore().getState().matchUpCatalog;
   let renderedShowCompleted = activeControl?.getStore().getState().showCompleted;
   activeControl?.getStore().subscribe((state) => {
+    syncInspectorToggle(state.inspectorVisible);
     const dataChanged = state.matchUpCatalog !== renderedCatalog || state.showCompleted !== renderedShowCompleted;
     renderedCatalog = state.matchUpCatalog;
     renderedShowCompleted = state.showCompleted;
@@ -1492,6 +1615,10 @@ function scheduledTimeToMinutes(time: string | undefined): number {
 }
 
 export function destroyGridView(): void {
+  disposePresentationActions?.();
+  disposePresentationActions = null;
+  disposeCatalogPopover?.();
+  disposeCatalogPopover = null;
   if (activeStripUnsubscribe) {
     activeStripUnsubscribe();
     activeStripUnsubscribe = null;
@@ -1519,6 +1646,7 @@ export function destroyGridView(): void {
   gridRootElement = null;
   currentRefresh = null;
   onSidebarShown = null;
+  syncCatalogToolbar = null;
   sidebarTab = null;
   // An Inspector left on screen by another surface must not dispatch into a dead
   // render; the action declines to offer itself instead.
@@ -1530,6 +1658,7 @@ export function destroyGridView(): void {
  * expanding it repaints whichever one is showing.
  */
 export function setGridSidebarVisible(visible: boolean): void {
+  activeControl?.setCatalogVisible(visible);
   const wasVisible = sidebarVisible;
   sidebarVisible = visible;
   if (visible && !wasVisible) onSidebarShown?.();

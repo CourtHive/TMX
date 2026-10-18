@@ -875,3 +875,49 @@
   font-size: 12px;
   color: var(--chc-text-secondary);
 }
+
+.tmx-schedule-presentation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tmx-schedule-presentation select,
+.tmx-schedule-presentation button {
+  color: var(--sp-text);
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-line);
+  border-radius: 6px;
+  padding: 4px;
+  font-size: 11px;
+}
+.tmx-catalog-tools {
+  display: contents;
+}
+.spl-layout[data-catalog-placement='bottom'] .tmx-catalog-control-strip {
+  min-width: 0;
+  overflow-x: auto;
+}
+.spl-layout[data-catalog-placement='bottom'] .tmx-catalog-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 100px;
+}
+.spl-layout[data-catalog-placement='bottom'] .spl-catalog-region > [data-panel='catalog'] {
+  display: flex;
+  flex-direction: column;
+}
+.spl-layout[data-catalog-placement='bottom'] .spl-catalog-region > [data-panel='catalog'] > .sp-panel-header,
+.spl-layout[data-catalog-placement='bottom'] [data-sidebar-panel='scheduled'] > .sp-panel-header {
+  display: none;
+}
+.spl-layout[data-catalog-placement='bottom'] .tmx-catalog-tools .sp-catalog-toolbar {
+  flex: 1;
+  min-width: 120px;
+  border: 0;
+  padding: 0;
+}
+.tmx-catalog-tools [hidden] {
+  display: none !important;
+}

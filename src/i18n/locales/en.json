@@ -1211,7 +1211,19 @@
       "invalid": "Tournament time zone is not valid — times hidden",
       "invalidTitle": "This tournament’s time zone is not a recognised time zone. Times are hidden and automatic calls are paused until a valid one is set."
     },
-    "clockUnavailable": "The competition clock is not giving a usable time, so the match was not called."
+    "clockUnavailable": "The competition clock is not giving a usable time, so the match was not called.",
+    "presentation": {
+      "layout": "Layout",
+      "layoutLabel": "Scheduling layout",
+      "catalogPlacement": "Catalog placement",
+      "inspectorPlacement": "Inspector placement",
+      "catalogLeft": "Catalog: Left",
+      "catalogBottom": "Catalog: Bottom",
+      "inspectorDocked": "Inspector: Docked",
+      "inspectorFloating": "Inspector: Floating",
+      "previousCards": "Previous cards",
+      "nextCards": "Next cards"
+    }
   },
   "penalties": {
     "AUDIBLE_OBSCENITY": "Audible Obscenity",

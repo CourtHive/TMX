@@ -357,8 +357,6 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
     minRows: effectiveMinRows,
     onToggleCatalog: (next: boolean) => {
       writeBoolFlag(GRID_CATALOG_VISIBILITY_KEY, next);
-      const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
-      if (layout) layout.classList.toggle(COLLAPSED_CLASS, !next);
       setGridSidebarVisible(next);
     },
     onToggleActiveStrip: (next: boolean) => {
@@ -420,10 +418,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
   // Wire remote-mutation refresh so cells update when other clients schedule matchUps.
   context.refreshActiveTable = refreshGridView;
 
-  if (!gridCatalogVisible) {
-    const layout = container.querySelector(LAYOUT_SEL) as HTMLElement | null;
-    if (layout) layout.classList.add(COLLAPSED_CLASS);
-  }
+  setGridSidebarVisible(gridCatalogVisible);
 
   container.appendChild(buildActionBarMount());
 }
