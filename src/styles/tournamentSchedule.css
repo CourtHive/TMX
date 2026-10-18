@@ -632,29 +632,6 @@
   color: var(--tmx-accent-red);
 }
 
-/* Inspector show/hide toggle in the sidebar control bar. */
-.tmx-inspector-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px 5px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: var(--sp-chip-bg, rgba(128, 128, 128, 0.12));
-  color: inherit;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.tmx-inspector-toggle:hover {
-  border-color: var(--tmx-border-primary);
-}
-
-.tmx-inspector-toggle[aria-pressed='true'] {
-  background: var(--tmx-fill-accent, #2563eb);
-  color: #fff;
-}
-
 /* ── Schedule2 Inspector: actions block and popover ──
    A sibling of the rest section, never a child — the rest section replaces its
    own children every 30 seconds and would take an open popover with it. Tokens

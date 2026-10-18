@@ -157,7 +157,6 @@ export const DEFAULT_MIN_COURT_GRID_ROWS = 10;
 const FILTER_HIGHLIGHT_CLASS = 'is-filtering';
 
 const ARIA_LABEL = 'aria-label';
-const ARIA_PRESSED = 'aria-pressed';
 
 const DATA_COURT_ID = 'data-court-id';
 const DATA_VENUE_ID = 'data-venue-id';
@@ -883,38 +882,10 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   const sidebar = activeControl?.getCatalogRegion();
   if (!sidebar) return;
 
-  // Build control bar (inspector toggle + tab switcher: Unscheduled / Scheduled)
+  // Build the Unscheduled / Scheduled tab switcher.
   const controlBar = document.createElement('div');
   controlBar.style.cssText =
     'display: flex; align-items: center; gap: 4px; padding: 6px 8px; flex-shrink: 0; border-bottom: 1px solid var(--sp-border, var(--tmx-border-primary));';
-
-  // Inspector show/hide, left of the tabs. Global to the catalog: one flag for
-  // BOTH views, because the Inspector describes the selected matchUp rather than
-  // either tab's contents. Persisted, and NOT auto-revealed on selection — a
-  // deliberate operator choice is not overridden (see the workstream plan).
-  const inspectorToggle = document.createElement('button');
-  inspectorToggle.className = 'tmx-inspector-toggle';
-  inspectorToggle.dataset.inspectorToggle = 'true';
-  inspectorToggle.innerHTML =
-    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>';
-
-  const syncInspectorToggle = (visible: boolean) => {
-    inspectorToggle.setAttribute(ARIA_PRESSED, String(visible));
-    inspectorToggle.title = visible ? t('schedule.inspector.hide') : t('schedule.inspector.show');
-    inspectorToggle.setAttribute(ARIA_LABEL, inspectorToggle.title);
-  };
-  syncInspectorToggle(activeControl?.getStore().getState().inspectorVisible ?? readInspectorVisible());
-
-  inspectorToggle.addEventListener('click', () => {
-    const store = activeControl?.getStore();
-    if (!store) return;
-    const next = !store.getState().inspectorVisible;
-    store.setInspectorVisible(next);
-    writeInspectorVisible(next);
-    syncInspectorToggle(next);
-  });
-
-  controlBar.appendChild(inspectorToggle);
 
   const unschedTab = document.createElement('button');
   unschedTab.dataset.sidebarTab = 'unscheduled';
@@ -1543,7 +1514,6 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let renderedCatalog: unknown = activeControl?.getStore().getState().matchUpCatalog;
   let renderedShowCompleted = activeControl?.getStore().getState().showCompleted;
   activeControl?.getStore().subscribe((state) => {
-    syncInspectorToggle(state.inspectorVisible);
     const dataChanged = state.matchUpCatalog !== renderedCatalog || state.showCompleted !== renderedShowCompleted;
     renderedCatalog = state.matchUpCatalog;
     renderedShowCompleted = state.showCompleted;
