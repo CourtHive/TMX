@@ -10,14 +10,14 @@
  * as a unified "panel + bottom strip" pair.
  */
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
-import tippy from 'tippy.js';
 import { badgeSeverity } from './scheduleIssueSeverity';
 import { preferredCellFor } from './scheduleCellLookup';
 import { providerConfig } from 'config/providerConfig';
 import { buildLegendButton } from './scheduleLegend';
-import { t } from 'i18n';
 import { ScheduleIssue } from 'courthive-components';
 import { buildStepper } from './stepperControl';
+import tippy from 'tippy.js';
+import { t } from 'i18n';
 import {
   MIN_COURT_WIDTH_FLOOR,
   MIN_COURT_WIDTH_CEILING,
@@ -37,6 +37,7 @@ export interface GridActionBarParams {
   issues: ScheduleIssue[];
   bulkMode: boolean;
   minCourtWidth: number;
+  footerControls?: HTMLElement[];
   onMinCourtWidthChange: (width: number) => void;
   onBulkModeChange: (enabled: boolean) => void;
   onClearSchedule?: (target: HTMLElement) => void;
@@ -148,9 +149,11 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
   bar.appendChild(venueSlot);
   setVenueFrame();
 
-  bar.appendChild(buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange));
+  const widthStepper = buildMinCourtWidthStepper(minCourtWidth, onMinCourtWidthChange);
+  widthStepper.dataset.gridWidthControl = 'true';
+  bar.append(widthStepper, ...(params.footerControls ?? []));
 
-  // Call Timing Variance shortcut — just right of the Min Width stepper.
+  // Call Timing Variance shortcut follows the Width / Rows controls.
   const timingSlot = document.createElement('div');
   timingSlot.style.display = 'contents';
   const setTimingAvailable = (available: boolean): void => {

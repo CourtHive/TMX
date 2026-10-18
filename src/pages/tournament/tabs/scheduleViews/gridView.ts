@@ -25,6 +25,7 @@ import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'serv
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
+import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
 import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
@@ -359,6 +360,7 @@ export function renderGridView(
   scheduledDate: string,
   options?: {
     headerActions?: HTMLElement[];
+    footerControls?: HTMLElement[];
     titleLeadingActions?: HTMLElement[];
     titleSlot?: HTMLElement;
     activeStripVisible?: boolean;
@@ -655,6 +657,7 @@ export function renderGridView(
     writeCatalogPlacement(placement);
     activeControl?.setCatalogPlacement(placement);
     syncCatalogToolbar?.();
+    layoutTip.hide();
   });
   const inspectorPlacement = document.createElement('select');
   inspectorPlacement.setAttribute(ARIA_LABEL, t('schedule.presentation.inspectorPlacement'));
@@ -671,6 +674,7 @@ export function renderGridView(
   inspectorPlacement.addEventListener('change', () => {
     const placement = inspectorPlacement.value === 'floating' ? 'floating' : 'docked';
     activeControl?.setInspectorPlacement(placement);
+    layoutTip.hide();
   });
   const priorPlacementChange = config.onInspectorPlacementChange;
   config.onInspectorPlacementChange = (placement) => {
@@ -679,9 +683,16 @@ export function renderGridView(
   };
   const showInspector = document.createElement('button');
   showInspector.type = 'button';
-  showInspector.textContent = t('schedule.inspector.heading');
+  showInspector.dataset.gridInspectorToggle = 'true';
+  showInspector.style.cssText = TOGGLE_BTN_BASE_STYLE;
+  showInspector.innerHTML =
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>';
+  const syncHeaderInspectorToggle = (visible: boolean) => {
+    applyToggleState(showInspector, visible, t('schedule.inspector.hide'), t('schedule.inspector.show'));
+    showInspector.setAttribute(ARIA_LABEL, showInspector.title);
+  };
   showInspector.addEventListener('click', () => activeControl?.toggleInspector());
-  presentationActions.append(catalogPlacement, inspectorPlacement, showInspector);
+  presentationActions.append(catalogPlacement, inspectorPlacement);
   const layoutButton = document.createElement('button');
   layoutButton.type = 'button';
   layoutButton.textContent = t('schedule.presentation.layout');
@@ -694,21 +705,21 @@ export function renderGridView(
     appendTo: () => document.body,
   });
   disposePresentationActions = () => layoutTip.destroy();
-  config.headerActions = [
-    ...(Array.isArray(config.headerActions)
-      ? config.headerActions
-      : config.headerActions
-        ? [config.headerActions]
-        : []),
-    layoutButton,
-  ];
+  const headerActions = Array.isArray(config.headerActions)
+    ? [...config.headerActions]
+    : config.headerActions
+      ? [config.headerActions]
+      : [];
+  const printIndex = headerActions.findIndex((action) => action.dataset.schedulePrint === 'true');
+  headerActions.splice(printIndex < 0 ? headerActions.length : printIndex, 0, showInspector);
+  config.headerActions = [...headerActions, layoutButton];
   activeControl = createSchedulePage(config, panelArea);
   activeControl.setCatalogVisible(sidebarVisible);
   activeControl.getStore().subscribe((state) => {
     writeInspectorVisible(state.inspectorVisible);
-    showInspector.setAttribute(ARIA_PRESSED, String(state.inspectorVisible));
+    syncHeaderInspectorToggle(state.inspectorVisible);
   });
-  showInspector.setAttribute(ARIA_PRESSED, String(activeControl.inspectorVisible));
+  syncHeaderInspectorToggle(activeControl.inspectorVisible);
 
   // Action bar — always rendered; it owns the min-width stepper even when
   // there are no issues / no bulk toggle / no clear menu. The provider
@@ -718,6 +729,7 @@ export function renderGridView(
     issues,
     bulkMode: options?.bulkMode ?? false,
     minCourtWidth: readUserMinCourtWidth(),
+    footerControls: options?.footerControls,
     onMinCourtWidthChange: (width) => {
       writeUserMinCourtWidth(width);
       refresh();

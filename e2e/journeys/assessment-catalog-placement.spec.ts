@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 import { todayLocal } from '../helpers/dates';
 
 test('catalog placement and floating inspector preserve selection across both tabs', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await waitForAppReady(page);
   await initDevBridge(page);
   await resetState(page);
@@ -37,14 +37,33 @@ test('catalog placement and floating inspector preserve selection across both ta
   await tournament.navigateToScheduling();
   const layout = page.locator('.spl-layout');
   await expect(layout).toHaveAttribute('data-catalog-placement', 'left');
+  const rowsControl = page.locator('[data-grid-rows-control="true"]');
+  await expect(rowsControl).toBeVisible();
+  expect(
+    await rowsControl.evaluate((control) => (control.previousElementSibling as HTMLElement)?.dataset.gridWidthControl),
+  ).toBe('true');
+  await expect(page.locator('.spl-center-header [data-grid-rows-control]')).toHaveCount(0);
+  const inspectorToggle = page.locator('[data-grid-inspector-toggle="true"]');
+  await expect(inspectorToggle.locator('svg')).toHaveCount(1);
+  expect(
+    await inspectorToggle.evaluate((button) => (button.nextElementSibling as HTMLElement)?.dataset.schedulePrint),
+  ).toBe('true');
+  await inspectorToggle.click();
+  await expect(page.locator('[data-panel="inspector"]')).toBeHidden();
+  await inspectorToggle.click();
+  await expect(page.locator('[data-panel="inspector"]')).toBeVisible();
   await page.locator('[data-sidebar-tab="scheduled"]').click();
   const selected = page.locator('[data-sidebar-panel="scheduled"] .spl-matchup-card').first();
   await selected.click();
   const selectedId = await selected.getAttribute('data-match-up-id');
   await page.getByRole('button', { name: 'Scheduling layout' }).click();
+  await expect(page.locator('.tmx-schedule-presentation button')).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Catalog placement', exact: true }).selectOption('bottom');
+  await expect(page.getByRole('combobox', { name: 'Catalog placement', exact: true })).toBeHidden();
   await expect(layout).toHaveAttribute('data-catalog-placement', 'bottom');
+  await page.getByRole('button', { name: 'Scheduling layout' }).click();
   await page.getByRole('combobox', { name: 'Inspector placement', exact: true }).selectOption('floating');
+  await expect(page.getByRole('combobox', { name: 'Inspector placement', exact: true })).toBeHidden();
   const floating = page.getByRole('dialog', { name: 'MatchUp inspector' });
   await expect(floating).toBeVisible();
   const beforeMove = (await floating.boundingBox())!;

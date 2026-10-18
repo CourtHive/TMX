@@ -383,6 +383,7 @@ function renderGridMode(container: HTMLElement, scheduledDate: string, params: R
 
   renderGridView(container, scheduledDate, {
     headerActions: gridActions.trailing,
+    footerControls: gridActions.footerControls,
     titleLeadingActions: gridActions.leading,
     titleSlot: gridActions.titleSlot,
     activeStripVisible,

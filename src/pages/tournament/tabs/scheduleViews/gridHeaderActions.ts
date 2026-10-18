@@ -4,17 +4,17 @@
  *   - leading: catalog show/hide toggle
  *   - titleSlot: schedule-wide search input (replaces the default "Court Grid"
  *     label so the header reads as a single clean search field)
- *   - trailing: active-strip toggle, rows stepper, print
+ *   - trailing: active-strip toggle and print; rows stepper is returned for the footer
  *
  * Each control manages its own visual state (aria-pressed, opacity, label).
  * Toggle callbacks receive the new state; the consumer persists + applies it.
  */
+import { buildToggleIconButton, TOGGLE_BG_UNPRESSED, TOGGLE_BTN_BASE_STYLE } from 'components/buttons/toggleIconButton';
 import { printSchedule } from 'components/modals/printSchedule';
 import { registerGridSearchControl } from './gridSearchControl';
 import { competitionEngine } from 'services/factory/engine';
 import { wrapSearchWithClear } from 'courthive-components';
 import { buildStepper } from './stepperControl';
-import { buildToggleIconButton, TOGGLE_BG_UNPRESSED, TOGGLE_BTN_BASE_STYLE } from 'components/buttons/toggleIconButton';
 import { t } from 'i18n';
 
 const MIN_ROWS_FLOOR = 1;
@@ -53,6 +53,8 @@ export interface GridHeaderActions {
   titleSlot: HTMLElement;
   /** Rendered right-aligned in the header — actions that operate on the grid itself. */
   trailing: HTMLElement[];
+  /** Controls mounted immediately beside the footer width stepper. */
+  footerControls: HTMLElement[];
 }
 
 export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHeaderActions {
@@ -97,8 +99,10 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
   });
 
   const rowsStepper = buildMinRowsStepper(minRows, onMinRowsChange);
+  rowsStepper.dataset.gridRowsControl = 'true';
 
   const printBtn = document.createElement('button');
+  printBtn.dataset.schedulePrint = 'true';
   printBtn.style.cssText =
     TOGGLE_BTN_BASE_STYLE +
     `; background: ${TOGGLE_BG_UNPRESSED}` +
@@ -146,7 +150,8 @@ export function buildGridHeaderActions(params: GridHeaderActionsParams): GridHea
   return {
     leading: [catalogBtn],
     titleSlot: buildSearchSlot(onSearch),
-    trailing: [stripBtn, startOnDropBtn, rowsStepper, shiftBtn, resolveBtn, printBtn],
+    trailing: [stripBtn, startOnDropBtn, shiftBtn, resolveBtn, printBtn],
+    footerControls: [rowsStepper],
   };
 }
 
