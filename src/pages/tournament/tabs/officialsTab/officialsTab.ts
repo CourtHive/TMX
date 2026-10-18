@@ -48,8 +48,12 @@ function rows(): OfficialRow[] {
   // `timeItems` ride along by default — verified empirically, and load-bearing: `signedInOnDate`
   // reads the SIGN_IN_STATUS history rather than the `signedIn` flag, which is the latest value and
   // stays true all week because nothing signs anybody out.
+  // without the map, the factory builds only the officials rather than every participant
   const { participants } =
-    tournamentEngine.getParticipants({ participantFilters: { participantRoles: ['OFFICIAL'] } }) ?? {};
+    tournamentEngine.getParticipants({
+      participantFilters: { participantRoles: ['OFFICIAL'] },
+      returnParticipantMap: false,
+    }) ?? {};
 
   return buildOfficialsBoard({
     matchUps: matchUps ?? [],
