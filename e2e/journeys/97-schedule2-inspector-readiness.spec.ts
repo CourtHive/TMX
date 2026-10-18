@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
+import { test, expect } from '@playwright/test';
+import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 97 — Schedule2 Inspector: both catalog views, toggleable, readiness.

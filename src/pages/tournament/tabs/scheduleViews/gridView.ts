@@ -638,18 +638,14 @@ export function renderGridView(
 
   const presentationActions = document.createElement('div');
   presentationActions.className = 'tmx-schedule-presentation';
-  const catalogPlacement = document.createElement('select');
-  catalogPlacement.setAttribute(ARIA_LABEL, t('schedule.presentation.catalogPlacement'));
-  for (const [value, label] of [
-    ['left', t('schedule.presentation.catalogLeft')],
-    ['bottom', t('schedule.presentation.catalogBottom')],
-  ]) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = label;
-    catalogPlacement.appendChild(option);
-  }
-  catalogPlacement.value = currentCatalogPlacement;
+  const catalogPlacement = buildPlacementSelect(
+    t('schedule.presentation.catalogPlacement'),
+    [
+      ['left', t('schedule.presentation.catalogLeft')],
+      ['bottom', t('schedule.presentation.catalogBottom')],
+    ],
+    currentCatalogPlacement,
+  );
   catalogPlacement.addEventListener('change', () => {
     const placement = catalogPlacement.value === 'bottom' ? 'bottom' : 'left';
     currentCatalogPlacement = placement;
@@ -658,18 +654,14 @@ export function renderGridView(
     syncCatalogToolbar?.();
     layoutTip.hide();
   });
-  const inspectorPlacement = document.createElement('select');
-  inspectorPlacement.setAttribute(ARIA_LABEL, t('schedule.presentation.inspectorPlacement'));
-  for (const [value, label] of [
-    ['docked', t('schedule.presentation.inspectorDocked')],
-    ['floating', t('schedule.presentation.inspectorFloating')],
-  ]) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = label;
-    inspectorPlacement.appendChild(option);
-  }
-  inspectorPlacement.value = readInspectorPlacement();
+  const inspectorPlacement = buildPlacementSelect(
+    t('schedule.presentation.inspectorPlacement'),
+    [
+      ['docked', t('schedule.presentation.inspectorDocked')],
+      ['floating', t('schedule.presentation.inspectorFloating')],
+    ],
+    readInspectorPlacement(),
+  );
   inspectorPlacement.addEventListener('change', () => {
     const placement = inspectorPlacement.value === 'floating' ? 'floating' : 'docked';
     activeControl?.setInspectorPlacement(placement);
@@ -694,8 +686,7 @@ export function renderGridView(
   presentationActions.append(catalogPlacement, inspectorPlacement);
   const layoutButton = document.createElement('button');
   layoutButton.type = 'button';
-  layoutButton.style.cssText =
-    TOGGLE_BTN_BASE_STYLE + '; background: transparent; color: var(--tmx-accent-blue, #3b82f6)';
+  layoutButton.style.cssText = TOGGLE_BTN_BASE_STYLE + '; background: transparent; color: var(--tmx-accent-blue)';
   layoutButton.innerHTML =
     '<i class="fa-solid fa-table-cells-large" style="font-size: 0.75rem;" aria-hidden="true"></i>';
   layoutButton.title = t('schedule.presentation.layoutLabel');
@@ -708,21 +699,20 @@ export function renderGridView(
     appendTo: () => document.body,
   });
   disposePresentationActions = () => layoutTip.destroy();
-  const headerActions = Array.isArray(config.headerActions)
-    ? [...config.headerActions]
-    : config.headerActions
-      ? [config.headerActions]
-      : [];
+  const headerActions = [config.headerActions ?? []].flat();
   const printIndex = headerActions.findIndex((action) => action.dataset.schedulePrint === 'true');
   headerActions.splice(printIndex < 0 ? headerActions.length : printIndex, 0, showInspector);
   config.headerActions = [...headerActions, layoutButton];
   activeControl = createSchedulePage(config, panelArea);
   activeControl.setCatalogVisible(sidebarVisible);
+  let inspectorShown = activeControl.inspectorVisible;
   activeControl.getStore().subscribe((state) => {
-    writeInspectorVisible(state.inspectorVisible);
-    syncHeaderInspectorToggle(state.inspectorVisible);
+    if (state.inspectorVisible === inspectorShown) return;
+    inspectorShown = state.inspectorVisible;
+    writeInspectorVisible(inspectorShown);
+    syncHeaderInspectorToggle(inspectorShown);
   });
-  syncHeaderInspectorToggle(activeControl.inspectorVisible);
+  syncHeaderInspectorToggle(inspectorShown);
 
   // Action bar — always rendered; it owns the min-width stepper even when
   // there are no issues / no bulk toggle / no clear menu. The provider
@@ -870,6 +860,19 @@ export function renderGridView(
 // ============================================================================
 // Sidebar Controls (collapse + scheduled matchUp list)
 // ============================================================================
+
+function buildPlacementSelect(label: string, options: [string, string][], value: string): HTMLSelectElement {
+  const select = document.createElement('select');
+  select.setAttribute(ARIA_LABEL, label);
+  for (const [optionValue, optionLabel] of options) {
+    const option = document.createElement('option');
+    option.value = optionValue;
+    option.textContent = optionLabel;
+    select.appendChild(option);
+  }
+  select.value = value;
+  return select;
+}
 
 let syncCatalogToolbar: (() => void) | null = null;
 let disposePresentationActions: (() => void) | null = null;
