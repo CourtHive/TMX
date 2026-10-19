@@ -8,12 +8,13 @@ This first increment demonstrates Garman, Pro, and their composition in one loca
 4. Use **Clock controls** in the centered bottom-bar clock to reveal time settings and demo scenes.
 
 For an existing local tournament, choose **Open Demo Clock** for free clock mode
-(starting at 08:00 on the selected schedule date). It runs on a **demo copy** of the
-tournament, never the original: the clock stamps simulated times into the record it
-runs on (calls, scores, time items), and a local tournament can later be claimed into a
-provider. Demo tournaments (the Scheduling Lab and demo copies) carry a `demoScript`
-extension and are never offered **Claim**. The Scheduling Lab mode selector can switch
-between guided scenes and free clock operation.
+(starting at 08:00 on the selected schedule date). The clock runs **only on demo
+tournaments** (the Scheduling Lab, marked by its `demoScript` extension): it stamps
+simulated times into the record it runs on, so it is never offered on a real tournament,
+and demo tournaments are never offered **Claim**. The clock never reads the record (the
+engine deep-copies on every read): `loadTournament` notes a demo tournament's id and start
+date from the record in hand, and every clock check is a lookup of the engine's tournament
+id. The mode selector switches between guided scenes and free clock operation.
 
 | Day | Run                                          | Inspect                                                                            |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -63,7 +64,7 @@ to the workspace's linked dependencies. It never reuses a server running from an
 
 The Demo mode drawer now offers **Load guided scheduling demo**, which creates a
 fresh local copy and opens the guided clock, and **Open Demo Clock**, which opens
-free clock control on a demo copy of the current local tournament. The mode selector switches a
+free clock control on the loaded Scheduling Lab. The mode selector switches a
 Scheduling Lab between guided and free operation. Signed-in sessions are excluded.
 
 **Start recording** captures the initial record, clock/navigation steps and applied

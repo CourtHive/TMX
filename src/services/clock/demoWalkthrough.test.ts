@@ -1,5 +1,5 @@
+import { setDemoClockTime, advanceDemoClock, stopDemoClock, noteLoadedTournament } from './demoClock';
 import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
-import { setDemoClockTime, advanceDemoClock, stopDemoClock } from './demoClock';
 import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -27,6 +27,7 @@ const driver = {
 beforeEach(() => {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord(buildSchedulerDemoProfile(new Date(START)) as any);
   tournamentEngine.setState(tournamentRecord);
+  noteLoadedTournament(tournamentRecord);
   setDemoOverlay({ v: 1, permissions: {} });
   expect(setDemoClockTime(START, 'clock')).toBe(true);
 });

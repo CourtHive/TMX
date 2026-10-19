@@ -3483,7 +3483,6 @@
   "demoClock": {
     "title": "Demo Clock",
     "launch": "Open Demo Clock",
-    "copyName": "{{name}} (demo copy)",
     "cannotStart": "The demo clock could not start: this tournament needs a start date and a venue time zone.",
     "launchHint": "Control time in a local tournament, or load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough. Available only while signed out.",
     "collapse": "Hide controls",

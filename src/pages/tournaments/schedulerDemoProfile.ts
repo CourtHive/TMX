@@ -7,20 +7,10 @@ export const SCHEDULER_DEMO_VENUE = 'scheduler-demo-venue';
 export const SCHEDULER_DEMO_ZONE = 'America/New_York';
 export const SCHEDULER_DEMO_SCRIPT = 'scheduling-lab-v1';
 
-/** Marks a demo copy of a local tournament: the free clock runs on it, never on the original. */
-export const DEMO_COPY_SCRIPT = 'free-clock-copy-v1';
-
 /**
- * A tournament made for demonstration (the guided Scheduling Lab, or a demo copy). The demo clock stamps simulated
- * times into it, so it is the only kind of record the clock may run on, and it is never claimed into a provider.
+ * A demo tournament: the guided Scheduling Lab. The demo clock runs only on these (it stamps simulated times into the
+ * record), and they are never offered Claim into a provider.
  */
-export function isDemoTournament(record: any): boolean {
-  return (
-    record?.tournamentId === SCHEDULER_DEMO_ID ||
-    !!record?.extensions?.some((extension: any) => extension.name === 'demoScript')
-  );
-}
-
 export function hasSchedulingDemoScript(record: any): boolean {
   return (
     record?.tournamentId === SCHEDULER_DEMO_ID ||

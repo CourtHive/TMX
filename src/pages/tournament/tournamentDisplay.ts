@@ -1,3 +1,4 @@
+import { noteLoadedTournament } from 'services/clock/demoClock';
 /**
  * Main tournament display router and loader.
  * Handles tournament loading, navigation, and tab rendering.
@@ -80,6 +81,8 @@ export function displayTournament({ config }: { config?: any } = {}): void {
   const isCurrent = beginTournamentLoad(config.tournamentId);
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
+    // Already in the engine (dev.load, a catalog demo): note it for the demo clock from the record this branch holds.
+    noteLoadedTournament(tournamentRecord);
     // Tournament already loaded — check if we missed updates while disconnected
     if (hadDisconnect() && getLoginState()) {
       clearDisconnectFlag();
@@ -235,6 +238,9 @@ export function loadTournament({
   isCurrent?: () => boolean;
 }): void {
   if (!isCurrent()) return;
+  // The demo clock runs only on demo tournaments and never reads a record (the engine copies on read): it is told
+  // here, from the record in hand, whether this one is a demo tournament.
+  noteLoadedTournament(tournamentRecord);
   // Clear per-tournament transient state
   context.matchUpFilters = {};
   context.scheduleCatalogState = undefined;

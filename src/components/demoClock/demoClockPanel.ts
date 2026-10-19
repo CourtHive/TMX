@@ -1,8 +1,8 @@
-import { hasSchedulingDemoScript, schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { clearDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
+import { schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -14,6 +14,7 @@ import { t } from 'i18n';
 import {
   advanceDemoClock,
   canUseDemoClock,
+  demoTournamentStartDate,
   isDemoClockEligible,
   demoWallTime,
   getDemoClock,
@@ -62,13 +63,12 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   }
   // Everything that can refuse is checked BEFORE demo mode is entered, so a refusal never leaves the demo badge and
   // tint on with no clock.
-  const record = tournamentEngine.getTournament().tournamentRecord;
+  const tournamentId = tournamentEngine.getTournamentId();
+  const startDate = demoTournamentStartDate();
   const zone = venueTimeZone() ?? '';
-  const scripted = hasSchedulingDemoScript(record);
-  const selectedMode = mode ?? (scripted ? 'script' : 'clock');
-  const dates = scripted && record?.startDate ? schedulerDemoDates(record.startDate) : [];
-  const firstDate =
-    selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? record?.startDate);
+  const selectedMode = mode ?? 'script';
+  const dates = startDate ? schedulerDemoDates(startDate) : [];
+  const firstDate = selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? startDate);
   const initial =
     firstDate && zone ? demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone) : undefined;
   if (!getDemoClock() && initial === undefined) {
@@ -173,7 +173,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       if (getDemoClock()?.busy) return;
       const at = demoWallTime(scheduleDate, '09:55', zone);
       if (at !== undefined && at >= (getDemoClock()?.nowMs ?? 0)) setDemoClockTime(at);
-      context.router?.navigate(`/tournament/${record!.tournamentId}/${SCHEDULING_TAB}/${scheduleDate}/profile`);
+      context.router?.navigate(`/tournament/${tournamentId}/${SCHEDULING_TAB}/${scheduleDate}/profile`);
     });
     scene.append(heading, description, open);
     // These use the same mutation path as Apply Times / Apply Grid, scoped to ONE day.
@@ -210,7 +210,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   modeLabel.textContent = t('demoClock.mode');
   const modeSelect = document.createElement('select');
   modeSelect.setAttribute(ARIA_LABEL, t('demoClock.mode'));
-  const modes: DemoClockMode[] = scripted ? ['clock', 'script'] : ['clock'];
+  const modes: DemoClockMode[] = ['clock', 'script'];
   for (const value of modes) {
     const option = document.createElement('option');
     option.value = value;

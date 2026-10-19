@@ -1,5 +1,5 @@
-import { hasSchedulingDemoScript, isDemoTournament } from 'pages/tournaments/schedulerDemoProfile';
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
+import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
@@ -25,21 +25,30 @@ export function isDemoClockSessionEligible(): boolean {
 }
 
 /**
- * The record the clock may run on: a demo tournament (guided lab or demo copy) with no provider, alone in the
- * engine. The clock stamps simulated times into whatever it runs on, so a real tournament never qualifies; free
- * clock on a real local tournament runs on a demo copy of it (demoClockLauncher).
+ * Demo tournaments seen loading, by id. The clock only ever runs on a demo tournament (the Scheduling Lab), and the
+ * engine cannot hand out a record without deep-copying it, so the clock never reads the record: TMX notes a demo
+ * tournament's id and start date from the plain record it already holds while loading it (`loadTournament`), and
+ * every check below is a lookup of the engine's current tournament id.
  */
+const demoTournaments = new Map<string, { startDate: string }>();
+
+/** Called with the record being loaded; notes it only if it is a demo tournament with no provider. */
+export function noteLoadedTournament(record: any): void {
+  const tournamentId = record?.tournamentId;
+  if (!tournamentId) return;
+  if (hasSchedulingDemoScript(record) && !record.parentOrganisation?.organisationId && record.startDate)
+    demoTournaments.set(tournamentId, { startDate: record.startDate });
+  else demoTournaments.delete(tournamentId);
+}
+
+/** The loaded demo tournament's start date, or undefined when the loaded tournament is not a demo tournament. */
+export function demoTournamentStartDate(): string | undefined {
+  return demoTournaments.get(tournamentEngine.getTournamentId())?.startDate;
+}
+
+/** The loaded tournament is a demo tournament and nobody is signed in. */
 export function isDemoClockEligible(): boolean {
-  if (!isDemoClockSessionEligible()) return false;
-  const record = tournamentEngine.getTournament().tournamentRecord;
-  return (
-    !!record?.tournamentId &&
-    isDemoTournament(record) &&
-    !record.parentOrganisation?.organisationId &&
-    Object.values(tournamentEngine.getState().tournamentRecords ?? {}).every(
-      (entry: any) => entry.tournamentId === record.tournamentId,
-    )
-  );
+  return isDemoClockSessionEligible() && demoTournaments.has(tournamentEngine.getTournamentId());
 }
 
 /** Eligibility alone is insufficient: the demo posture must also be active. */
@@ -47,11 +56,7 @@ export function canUseDemoClock(): boolean {
   return isDemoActive() && isDemoClockEligible();
 }
 
-/**
- * Read on every competition-time lookup (the factory reads it once per engine call), so it checks only cheap facts
- * and never copies the record: the session is still anonymous, demo posture is on, and the loaded tournament is the
- * one the clock was set on. Ownership of that record was checked when the clock was set (setDemoClockTime).
- */
+/** Read on every competition-time lookup (the factory reads it once per engine call): id comparisons only. */
 function clockApplies(): boolean {
   return (
     !!state &&
@@ -97,10 +102,8 @@ export function setDemoClockTime(nowMs: number, mode?: DemoClockMode): boolean {
     return false;
   // Stored calls and results cannot be undone by winding a clock back.
   if (state && nowMs < state.nowMs) return false;
-  const record = tournamentEngine.getTournament().tournamentRecord!;
-  const nextMode = mode ?? state?.mode ?? (hasSchedulingDemoScript(record) ? 'script' : 'clock');
-  if (nextMode === 'script' && !hasSchedulingDemoScript(record)) return false;
-  state = { tournamentId: record.tournamentId!, nowMs, busy: false, mode: nextMode };
+  const nextMode = mode ?? state?.mode ?? 'script';
+  state = { tournamentId: tournamentEngine.getTournamentId(), nowMs, busy: false, mode: nextMode };
   // Reinstall to notify every existing scheduling subscriber, coalesced by competitionClock.
   setCompetitionClock({ nowMs: () => (clockApplies() ? (state?.nowMs ?? Number.NaN) : Number.NaN) });
   changed();

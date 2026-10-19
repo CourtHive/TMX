@@ -1,5 +1,6 @@
 import { durableSave, forgetOfflineSyncPoint, rememberOfflineSyncPoint } from 'services/apis/durableSave';
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
+import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
 import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
@@ -7,7 +8,6 @@ import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { isDemoTournament } from 'pages/tournaments/schedulerDemoProfile';
 import { editTournamentImage } from 'components/modals/tournamentImage';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { reportSaveOutcome } from 'services/apis/reportSaveOutcome';
@@ -612,7 +612,7 @@ export function createActionsPanel(): HTMLElement {
   }
 
   // A demo tournament carries simulated clock times (demoClock): never claim it into a provider's records.
-  if (tournamentRecord && !providerId && activeProvider && !isDemoTournament(tournamentRecord)) {
+  if (tournamentRecord && !providerId && activeProvider && !hasSchedulingDemoScript(tournamentRecord)) {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.claimTournament'), 'fa-hand-paper', () => {
         const record = tournamentEngine.q.tournament();

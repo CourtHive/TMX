@@ -6,6 +6,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { competitionNowMs } from './competitionClock';
 import { context } from 'services/context';
 import {
+  noteLoadedTournament,
   advanceDemoClock,
   canUseDemoClock,
   demoWallTime,
@@ -28,6 +29,7 @@ function loadLab() {
   let result: any = mocksEngine.generateTournamentRecord(buildSchedulerDemoProfile(new Date(START)) as any);
   expect(result.error).toBeUndefined();
   tournamentEngine.setState(result.tournamentRecord);
+  noteLoadedTournament(result.tournamentRecord);
 }
 
 beforeEach(() => {
@@ -70,7 +72,9 @@ describe('paused local demo clock ownership', () => {
     expect(setDemoClockTime(START)).toBe(false);
     context.provider = undefined;
     const record = tournamentEngine.getTournament().tournamentRecord!;
-    tournamentEngine.setState({ ...record, parentOrganisation: { organisationId: 'provider' } });
+    const owned = { ...record, parentOrganisation: { organisationId: 'provider' } };
+    tournamentEngine.setState(owned);
+    noteLoadedTournament(owned);
     expect(setDemoClockTime(START)).toBe(false);
   });
 
