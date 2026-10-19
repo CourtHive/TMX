@@ -68,7 +68,9 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   const zone = venueTimeZone() ?? '';
   const selectedMode = mode ?? 'script';
   const dates = startDate ? schedulerDemoDates(startDate) : [];
-  const firstDate = selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? startDate);
+  // The clock always starts on the tournament's first day (the demo is generated to start today), whichever schedule
+  // date the page happens to show: it only moves forward, so starting on a later day would strand the earlier ones.
+  const firstDate = dates[0] ?? startDate;
   const initial =
     firstDate && zone ? demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone) : undefined;
   if (!getDemoClock() && initial === undefined) {

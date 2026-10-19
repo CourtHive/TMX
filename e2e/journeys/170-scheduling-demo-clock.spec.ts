@@ -246,3 +246,26 @@ test('loads a fresh guided tournament and captures a clock walkthrough', async (
   await panel.getByLabel('Demo mode', { exact: true }).selectOption('clock');
   await expect(panel.locator('.tmx-demo-clock-scenes')).not.toBeVisible();
 });
+
+test('the clock starts on the first day even when the page shows a later day', async ({ page }) => {
+  const panel = page.locator(PANEL);
+  await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
+  await expect(panel).toHaveCount(0);
+  const { firstDay, lastDay } = await page.evaluate(() => {
+    const record = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+    return { firstDay: record.startDate, lastDay: record.endDate };
+  });
+  expect(lastDay > firstDay).toBe(true);
+  // The Scheduling page on the LAST day: free clock used to start on the date the page showed.
+  await page.evaluate(
+    (date) => dev.tournamentContext.router.navigate(`/tournament/scheduler-demo-three-days/scheduling/${date}/profile`),
+    lastDay,
+  );
+  await expect(page).toHaveURL(new RegExp(lastDay));
+  await page.locator('#login').click();
+  await page.getByText('Demo mode…', { exact: true }).click();
+  await page.getByRole('button', { name: 'Open Demo Clock', exact: true }).click();
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('output')).toHaveAttribute('title', new RegExp(`^${firstDay} `));
+  await expect(panel.locator('output')).toContainText('08:00');
+});
