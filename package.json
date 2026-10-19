@@ -86,7 +86,7 @@
     "cz-git": "1.14.0",
     "electron": "^44.0.0",
     "electron-builder": "^26.0.12",
-    "electron-vite": "^5.0.0",
+    "electron-vite": "^6.0.0",
     "envfile": "7.1.0",
     "eslint": "10.12.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
