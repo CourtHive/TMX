@@ -17,7 +17,7 @@
  * nothing renders as `—` with a warning, because a checkbox that looks like it
  * works while changing nothing would mislead whoever is being demonstrated to.
  */
-import { canUseDemoClock, stopDemoClock } from 'services/clock/demoClock';
+import { isDemoClockEligible, stopDemoClock } from 'services/clock/demoClock';
 import { openDemoClockPanel } from 'components/demoClock/demoClockPanel';
 import { BOOLEAN_PERMISSION_KEYS } from '@courthive/provider-config';
 
@@ -113,7 +113,9 @@ function buildPanel(): HTMLElement {
   clockButton.type = 'button';
   clockButton.className = 'button';
   clockButton.textContent = t('demoClock.launch');
-  clockButton.disabled = !canUseDemoClock();
+  clockButton.disabled = !isDemoClockEligible();
+  clockButton.hidden = !isDemoClockEligible();
+  clockHint.hidden = !isDemoClockEligible();
   clockButton.addEventListener('click', () => {
     context.drawer.close();
     openDemoClockPanel();

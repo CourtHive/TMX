@@ -1,4 +1,5 @@
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
+import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
 import { SCHEDULER_DEMO_ID } from 'pages/tournaments/schedulerDemoProfile';
 import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
@@ -9,8 +10,8 @@ type DemoClockState = { tournamentId: string; nowMs: number; busy: boolean };
 let state: DemoClockState | undefined;
 const listeners = new Set<() => void>();
 
-/** This first increment is exclusively for the anonymous, local Scheduling Lab. */
-export function canUseDemoClock(): boolean {
+/** Eligibility to enter clock control; no signed-in identity, including super-admins. */
+export function isDemoClockEligible(): boolean {
   const record = tournamentEngine.getTournament().tournamentRecord;
   return (
     !getToken() &&
@@ -22,6 +23,15 @@ export function canUseDemoClock(): boolean {
     )
   );
 }
+
+/** Eligibility alone is insufficient: the demo posture must also be active. */
+export function canUseDemoClock(): boolean {
+  return isDemoActive() && isDemoClockEligible();
+}
+
+onDemoOverlayChange(() => {
+  if (!canUseDemoClock()) stopDemoClock();
+});
 
 export function getDemoClock(): Readonly<DemoClockState> | undefined {
   return state ? { ...state } : undefined;

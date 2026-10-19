@@ -1,14 +1,18 @@
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
+import { isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
+import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
+import { mountDemoClock } from './demoClockDock';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
   advanceDemoClock,
   canUseDemoClock,
+  isDemoClockEligible,
   demoWallTime,
   getDemoClock,
   nextDemoBoundary,
@@ -25,6 +29,8 @@ import { SCHEDULE_PROFILE_ROUNDS, SCHEDULE_PROFILE_GRID } from 'constants/mutati
 
 import './demoClockPanel.css';
 
+const CLOCK_ACTIVE_ATTRIBUTE = 'tmxDemoClock';
+
 const ARIA_LABEL = 'aria-label';
 
 let disposePanel: (() => void) | undefined;
@@ -37,42 +43,17 @@ function button(label: string, action: () => void): HTMLButtonElement {
   return element;
 }
 
-function installDrag(panel: HTMLElement, handle: HTMLElement): () => void {
-  const move = (event: PointerEvent) => {
-    if (!origin) return;
-    panel.style.left = `${Math.max(0, Math.min(innerWidth - panel.offsetWidth, origin.left + event.clientX - origin.x))}px`;
-    panel.style.top = `${Math.max(0, Math.min(innerHeight - 40, origin.top + event.clientY - origin.y))}px`;
-    panel.style.right = 'auto';
-    panel.style.bottom = 'auto';
-  };
-  let origin: { x: number; y: number; left: number; top: number } | undefined;
-  const down = (event: PointerEvent) => {
-    if (event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
-    const rect = panel.getBoundingClientRect();
-    origin = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
-    handle.setPointerCapture(event.pointerId);
-  };
-  const up = () => {
-    origin = undefined;
-  };
-  handle.addEventListener('pointerdown', down);
-  handle.addEventListener('pointermove', move);
-  handle.addEventListener('pointerup', up);
-  handle.addEventListener('lostpointercapture', up);
-  return () => {
-    handle.removeEventListener('pointerdown', down);
-    handle.removeEventListener('pointermove', move);
-    handle.removeEventListener('pointerup', up);
-    handle.removeEventListener('lostpointercapture', up);
-  };
-}
-
-/** One panel for one local fixture; closing or leaving releases both factory clocks. */
+/** A centered page-bottom clock; details open only when requested. */
 export function openDemoClockPanel(): void {
-  if (!canUseDemoClock()) return;
+  if (!isDemoClockEligible()) return;
   if (disposePanel) {
     document.getElementById(DEMO_CLOCK_PANEL)?.focus();
     return;
+  }
+  // Opening clock control explicitly enters demo mode without granting permissions.
+  if (!isDemoActive()) {
+    setDemoOverlay({ v: 1, preset: 'custom', permissions: {} });
+    renderDemoAffordance();
   }
   const record = tournamentEngine.getTournament().tournamentRecord;
   const zone = venueTimeZone() ?? '';
@@ -86,19 +67,22 @@ export function openDemoClockPanel(): void {
   panel.className = 'tmx-demo-clock';
   panel.tabIndex = -1;
   panel.setAttribute(ARIA_LABEL, t('demoClock.title'));
-  const header = document.createElement('header');
-  const title = document.createElement('strong');
+  const header = document.createElement('div');
+  header.className = 'tmx-demo-clock-toolbar';
   const body = document.createElement('div');
   body.className = 'tmx-demo-clock-body';
-  const collapse = button(t('demoClock.collapse'), () => {
+  body.hidden = true;
+  const collapse = button(t('demoClock.expand'), () => {
     body.hidden = !body.hidden;
     collapse.textContent = t(body.hidden ? 'demoClock.expand' : 'demoClock.collapse');
     collapse.setAttribute('aria-expanded', String(!body.hidden));
   });
-  collapse.setAttribute('aria-expanded', 'true');
-  header.append(title, collapse, button(t('demoClock.exit'), stopDemoClock));
+  collapse.setAttribute('aria-expanded', 'false');
+  const exit = button(t('demoClock.exit'), stopDemoClock);
   const clock = document.createElement('output');
   clock.setAttribute(ARIA_LABEL, t('demoClock.time'));
+  header.append(clock);
+  clock.title = zone;
   const timezone = document.createElement('small');
   timezone.textContent = zone;
   const status = document.createElement('p');
@@ -121,7 +105,7 @@ export function openDemoClockPanel(): void {
   fields.className = 'tmx-demo-clock-row';
   fields.append(date, time, set);
   const steps = document.createElement('div');
-  steps.className = 'tmx-demo-clock-row';
+  steps.className = 'tmx-demo-clock-steps';
   for (const minutes of [1, 5, 15])
     steps.append(
       button(t('demoClock.step', { minutes }), () => {
@@ -192,22 +176,25 @@ export function openDemoClockPanel(): void {
 
   const hint = document.createElement('p');
   hint.textContent = t('demoClock.hint');
-  body.append(clock, timezone, fields, steps, boundary, scenes, hint, status);
+  header.append(collapse, exit);
+  body.append(timezone, fields, steps, boundary, scenes, hint, status);
   panel.append(header, body);
-  document.body.append(panel);
-  const removeDrag = installDrag(panel, header);
+  document.documentElement.dataset[CLOCK_ACTIVE_ATTRIBUTE] = 'true';
+  const unmount = mountDemoClock(panel);
   function refresh() {
     const state = getDemoClock();
     if (!state) {
       disposePanel?.();
       return;
     }
-    title.textContent = `${t('demoClock.title')} · ${venueClock(state.nowMs, zone)}`;
-    clock.textContent = `${venueCalendarDate(state.nowMs, zone)} ${venueClock(state.nowMs, zone)} · ${t('demoClock.paused')}`;
+    clock.textContent = `${t('demoClock.shortLabel')} · ${venueClock(state.nowMs, zone)}`;
+    clock.title = `${venueCalendarDate(state.nowMs, zone)} · ${zone} · ${t('demoClock.paused')}`;
     if (document.activeElement !== date) date.value = venueCalendarDate(state.nowMs, zone);
     if (document.activeElement !== time) time.value = venueClock(state.nowMs, zone);
-    for (const control of body.querySelectorAll('button, input'))
+    for (const control of panel.querySelectorAll('button, input'))
       (control as HTMLButtonElement | HTMLInputElement).disabled = state.busy;
+    collapse.disabled = false;
+    exit.disabled = false;
     const next = readBoundary();
     boundary.disabled = state.busy || !next;
     boundary.textContent = next
@@ -222,8 +209,8 @@ export function openDemoClockPanel(): void {
   disposePanel = () => {
     offClock();
     offMutation();
-    removeDrag();
-    panel.remove();
+    unmount();
+    delete document.documentElement.dataset[CLOCK_ACTIVE_ATTRIBUTE];
     disposePanel = undefined;
   };
   refresh();

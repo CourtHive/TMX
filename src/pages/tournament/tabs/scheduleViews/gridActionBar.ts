@@ -10,6 +10,7 @@
  * as a unified "panel + bottom strip" pair.
  */
 import { buildVenueFrameNotice } from 'components/notices/venueFrameNotice';
+import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { badgeSeverity } from './scheduleIssueSeverity';
 import { preferredCellFor } from './scheduleCellLookup';
 import { providerConfig } from 'config/providerConfig';
@@ -179,8 +180,7 @@ export function buildGridActionBar(params: GridActionBarParams): GridActionBar {
 
   // Spacer pushes the right cluster (bulk-mode toggle + clear button) flush
   // right while the left cluster stays anchored at the start of the bar.
-  const spacer = document.createElement('div');
-  spacer.style.cssText = 'flex: 1;';
+  const spacer = createDemoClockSlot(bar, { spacer: true });
   bar.appendChild(spacer);
 
   // Right cluster

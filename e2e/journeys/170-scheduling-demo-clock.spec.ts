@@ -5,7 +5,8 @@ import { test, expect } from '@playwright/test';
 const PANEL = '#demoClockPanel';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  // Bypass the animated splash's delayed redirect while seeding a tournament.
+  await page.goto('/#/tournaments');
   await initDevBridge(page);
   await resetState(page);
   await page.evaluate(async () => {
@@ -22,6 +23,7 @@ test.beforeEach(async ({ page }) => {
   await page.getByText('Demo mode…', { exact: true }).click();
   await page.getByRole('button', { name: 'Open Demo Clock', exact: true }).click();
   await expect(page.locator(PANEL)).toBeVisible();
+  await page.locator(PANEL).getByRole('button', { name: 'Clock controls', exact: true }).click();
 });
 
 test('runs Garman, Pro, and both together through normal day-scoped mutations', async ({ page }) => {
@@ -89,9 +91,7 @@ test('runs Garman, Pro, and both together through normal day-scoped mutations', 
   collector.detach();
 });
 
-test('steps both clocks, keeps collapse usable, drags, refuses rewind and cleans up on exit/navigation', async ({
-  page,
-}) => {
+test('steps both clocks, keeps centered controls usable, refuses rewind and cleans up on exit', async ({ page }) => {
   const panel = page.locator(PANEL);
   await expect(panel.locator('output')).toContainText('09:55');
   await panel.getByRole('button', { name: '+5 min', exact: true }).click();
@@ -102,16 +102,14 @@ test('steps both clocks, keeps collapse usable, drags, refuses rewind and cleans
   await panel.getByRole('button', { name: 'Set time', exact: true }).click();
   await expect(panel.locator('p[role=status]')).toContainText('cannot be rewound');
   await expect(panel.locator('output')).toContainText('10:00');
-  await panel.getByRole('button', { name: 'Collapse', exact: true }).click();
-  await expect(panel.locator('output')).not.toBeVisible();
-  await panel.getByRole('button', { name: 'Expand', exact: true }).click();
-  const header = panel.locator('header');
-  const rect = await header.boundingBox();
-  await page.mouse.move(rect!.x + 30, rect!.y + 15);
-  await page.mouse.down();
-  await page.mouse.move(80, 80);
-  await page.mouse.up();
-  expect((await panel.boundingBox())!.x).toBeLessThan(150);
+  await panel.getByRole('button', { name: 'Hide controls', exact: true }).click();
+  await expect(panel.locator('.tmx-demo-clock-body')).not.toBeVisible();
+  await expect(panel.locator('output')).toContainText('10:00');
+  await panel.getByRole('button', { name: 'Clock controls', exact: true }).click();
+  const panelRect = await panel.boundingBox();
+  const slotRect = await panel.locator('..').boundingBox();
+  expect(Math.abs(panelRect!.x + panelRect!.width / 2 - slotRect!.x - slotRect!.width / 2)).toBeLessThan(2);
+  await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
   await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
   await expect(panel).toHaveCount(0);
   expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
@@ -141,4 +139,75 @@ test('next boundary refreshes the live strip immediately and leaving the tournam
   await page.evaluate(() => dev.tournamentContext.router.navigate('/tournaments'));
   await expect(panel).toHaveCount(0);
   expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
+});
+
+test('reuses scheduling footers, docks on MatchUps, and restores both bar colors on exit', async ({ page }) => {
+  const panel = page.locator(PANEL);
+  await panel.getByRole('button', { name: 'Hide controls', exact: true }).click();
+  await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
+  await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
+  const colors = await page.evaluate(() => ({
+    nav: getComputedStyle(document.getElementById('dnav')!).backgroundColor,
+    footer: getComputedStyle(document.querySelector('.tmx-demo-clock-host--active')!).backgroundColor,
+  }));
+  expect(colors.nav).toBe(colors.footer);
+  await page.evaluate(() => dev.tournamentContext.router.navigate('/tournament/scheduler-demo-three-days/matchUps'));
+  await expect(page.locator('.tmx-demo-clock-bar')).toBeVisible();
+  await expect(panel.locator('output')).toContainText('09:55');
+  const rect = await panel.boundingBox();
+  const viewport = page.viewportSize()!;
+  expect(Math.abs(rect!.x + rect!.width / 2 - viewport.width / 2)).toBeLessThan(2);
+  expect(rect!.y + rect!.height).toBeLessThanOrEqual(viewport.height);
+  const table = page.locator('.tabulator:visible').first();
+  await expect
+    .poll(async () => (await table.boundingBox())!.y + (await table.boundingBox())!.height)
+    .toBeLessThanOrEqual((await page.locator('.tmx-demo-clock-bar').boundingBox())!.y + 1);
+  await page.screenshot({ path: '/tmp/tmx-demo-clock-matchups.png' });
+  await page.evaluate(() => dev.tournamentContext.router.navigate('/tournament/scheduler-demo-three-days/scheduling'));
+  await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
+  await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
+  await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
+  await expect(page.locator('html')).not.toHaveAttribute('data-tmx-demo-clock');
+  await expect(page.locator('.tmx-demo-clock-host--active')).toHaveCount(0);
+  expect(await page.locator('#dnav').evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(
+    colors.nav,
+  );
+});
+
+test('exiting demo mode removes the clock and signed-in sessions cannot reopen it', async ({ page }) => {
+  await page.evaluate(async () => {
+    const statePath = '/src/services/demoMode/demoState.ts';
+    const { clearDemoOverlay } = await import(/* @vite-ignore */ statePath);
+    clearDemoOverlay();
+  });
+  await expect(page.locator(PANEL)).toHaveCount(0);
+  await expect(page.locator('html')).not.toHaveAttribute('data-tmx-demo-clock');
+  await page.evaluate(async () => {
+    const tokenPath = '/src/services/authentication/tokenManagement.ts';
+    const panelPath = '/src/components/demoClock/demoClockPanel.ts';
+    const { setToken } = await import(/* @vite-ignore */ tokenPath);
+    const { openDemoClockPanel } = await import(/* @vite-ignore */ panelPath);
+    setToken(`header.${btoa(JSON.stringify({ roles: ['superadmin'], exp: Date.now() / 1000 + 3600 }))}.signature`);
+    openDemoClockPanel();
+  });
+  await expect(page.locator(PANEL)).toHaveCount(0);
+  expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
+});
+
+test('Availability reuses the workspace bar without adding a second Scheduling footer', async ({ page }) => {
+  await page.locator(PANEL).getByRole('button', { name: 'Hide controls', exact: true }).click();
+  await page.evaluate(() => {
+    const record = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+    dev.tournamentContext.router.navigate(
+      `/tournament/${record.tournamentId}/scheduling/${record.startDate}/availability`,
+    );
+  });
+  const panel = page.locator(PANEL);
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
+  await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
+  await expect(page.locator('.tmx-demo-clock-host--active')).toHaveCount(1);
+  await page.screenshot({ path: '/tmp/tmx-demo-clock-availability.png' });
+  await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
+  await expect(page.locator('[data-clock-workspace]')).not.toBeVisible();
 });

@@ -11,6 +11,7 @@
  */
 import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
 import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
+import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine } from 'services/factory/engine';
@@ -547,7 +548,7 @@ function buildActionBar(statusEl: HTMLElement): HTMLElement {
   const scopePill = buildApplyScopePill();
   if (scopePill) bar.appendChild(scopePill);
 
-  bar.appendChild(statusEl);
+  bar.append(statusEl, createDemoClockSlot(bar));
 
   return bar;
 }

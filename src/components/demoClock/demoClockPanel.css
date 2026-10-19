@@ -1,69 +1,121 @@
-.tmx-demo-clock {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 1100;
-  width: min(370px, calc(100vw - 24px));
-  max-height: calc(100vh - 24px);
-  overflow: auto;
-  border: 1px solid var(--tmx-border-primary, #64748b);
-  border-radius: 12px;
-  background: var(--tmx-bg-primary, #fff);
-  color: var(--tmx-text-primary, #172033);
-  box-shadow: 0 12px 40px #0003;
-  font-size: 13px;
+html[data-tmx-demo-clock='true'] {
+  --tmx-demo-clock-surface: color-mix(in srgb, var(--tmx-fill-warning) 20%, var(--tmx-bg-primary));
 }
 
-.tmx-demo-clock header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+html[data-tmx-demo-clock='true'] #dnav,
+html[data-tmx-demo-clock='true'] .tmx-demo-clock-host--active,
+html[data-tmx-demo-clock='true'] .tmx-demo-clock-bar {
+  background: var(--tmx-demo-clock-surface) !important;
+  border-color: var(--tmx-fill-warning);
+}
+
+/* Demo's existing banner occupies real space above the app shell. */
+html[data-tmx-demo-clock='true'] #root {
+  min-height: calc(100dvh - var(--tmx-demo-clock-banner-height, 0px));
+}
+
+/* Only pages without an existing bottom bar reserve room for the fallback dock. */
+html[data-tmx-demo-clock-dock='true'] .app_shell {
+  padding-bottom: 44px;
+}
+
+.tmx-demo-clock-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--tmx-fill-warning);
+}
+
+.tmx-demo-clock-host--active {
+  display: flex !important;
+}
+
+.tmx-demo-clock-host[data-clock-workspace='true'] > div:first-child:empty {
+  display: none;
+}
+
+.tabulator[data-demo-clock-fit='true'] {
+  min-height: 0;
+  max-height: var(--tmx-demo-clock-table-height);
+}
+
+.tmx-demo-clock-slot {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+}
+
+.tmx-demo-clock-slot:empty:not(.tmx-demo-clock-slot--spacer) {
+  display: none;
+}
+
+.tmx-demo-clock {
+  color: var(--tmx-text-primary);
+  font-size: 0.75rem;
+  max-width: 100%;
+}
+
+.tmx-demo-clock-toolbar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px;
-  cursor: move;
-  touch-action: none;
-  background: var(--tmx-bg-secondary, #f1f5f9);
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.tmx-demo-clock header strong {
-  flex: 1;
+.tmx-demo-clock output {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
+
 .tmx-demo-clock-body {
-  padding: 12px;
+  position: fixed;
+  bottom: 52px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 8px;
+  background: var(--tmx-bg-primary);
+  box-shadow: var(--sp-panel-shadow);
 }
+
 .tmx-demo-clock-body[hidden] {
   display: none;
 }
-.tmx-demo-clock output {
-  display: block;
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
-}
 .tmx-demo-clock small {
   display: block;
-  margin: 4px 0 12px;
+  margin-bottom: 12px;
 }
 .tmx-demo-clock p {
   margin: 6px 0;
   line-height: 1.5;
 }
-.tmx-demo-clock-row {
+.tmx-demo-clock-row,
+.tmx-demo-clock-steps {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 8px;
 }
 .tmx-demo-clock-scenes > div {
-  border-top: 1px solid var(--tmx-border-primary, #cbd5e1);
+  border-top: 1px solid var(--tmx-border-primary);
   padding: 10px 0;
 }
 .tmx-demo-clock button,
 .tmx-demo-clock input {
-  border: 1px solid var(--tmx-border-primary, #cbd5e1);
+  border: 1px solid var(--tmx-border-primary);
   border-radius: 6px;
-  background: var(--tmx-bg-secondary, #f1f5f9);
+  background: var(--tmx-bg-secondary);
   color: inherit;
   padding: 6px 8px;
   font: inherit;
@@ -77,6 +129,6 @@
   cursor: default;
 }
 .tmx-demo-clock :focus-visible {
-  outline: 2px solid var(--tmx-accent-blue, #2563eb);
+  outline: 2px solid var(--tmx-border-focus);
   outline-offset: 2px;
 }

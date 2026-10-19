@@ -1,6 +1,7 @@
 import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
+import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mocksEngine, tools } from 'tods-competition-factory';
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { tournamentEngine } from 'services/factory/engine';
 import { competitionNowMs } from './competitionClock';
 import { context } from 'services/context';
@@ -29,7 +30,12 @@ function loadLab() {
   tournamentEngine.setState(result.tournamentRecord);
 }
 
+beforeEach(() => {
+  setDemoOverlay({ v: 1, permissions: {} });
+});
+
 afterEach(() => {
+  clearDemoOverlay();
   stopDemoClock();
   session.token = null;
   context.provider = undefined;

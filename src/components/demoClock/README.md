@@ -4,7 +4,8 @@ This first increment demonstrates Garman, Pro, and their composition in one loca
 
 1. While signed out, choose **Examples → Scheduling Lab — Garman + Pro** in the tournaments list.
 2. Open the generated tournament, then choose **Demo mode… → Open Demo Clock** in the login menu.
-3. Time starts paused at 09:55 on day one, in `America/New_York`.
+3. Opening the clock enters demo mode. Time starts paused at 09:55 on day one, in `America/New_York`.
+4. Use **Clock controls** in the centered bottom-bar clock to reveal time settings and demo scenes.
 
 | Day | Run                                          | Inspect                                                                            |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -22,10 +23,17 @@ demonstrate. Day three's policy permits four matches per participant (two single
 and court hours run 10:00–23:00 so the mixed recovery requirements fit. Court 3 has a 12:00–13:00
 maintenance block.
 
-The clock offers forward steps of 1/5/15 minutes, explicit venue date/time, and the next scheduled
-start or court-block boundary. Collapse retains the visible time; drag the header to move the panel.
+The clock occupies the middle of the existing Scheduling bottom bar (Grid, Profile, Plan and
+Availability). Pages without a bottom bar, including MatchUps, receive a slim centered dock; table
+space is measured so the dock does not cover rows. No extra bar is added on Scheduling.
+
+The compact clock stays visible while its controls are hidden. **Clock controls** opens the
+1/5/15-minute steps, explicit venue date/time, next time boundary, and demo scenes above the bar.
+The navigation and active bottom bar share a warm tint while clock control is active.
 Opening an earlier day only changes the viewed date. Save or discard drafts before running a scheduler.
-Closing the clock, leaving the tournament or changing login identity releases the simulated clocks.
+Closing the clock, leaving demo mode, leaving the tournament or changing login identity releases
+the simulated clocks and restores the normal bar colors. Clock control is unavailable to every
+signed-in session, including super-admins, and requires an active demo overlay.
 The clock is not persisted across reloads.
 
 Calls, check-ins, starts and results still use ordinary tournament actions. Automatic calling

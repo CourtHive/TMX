@@ -32,6 +32,15 @@ const STORAGE_KEY = 'tmx_demo_overlay';
 let overlay: DemoOverlay | undefined;
 /** Bumped on every mutation so memoized consumers can invalidate cheaply. */
 let version = 0;
+const observers = new Set<() => void>();
+
+/** Clock control must stop immediately when its demo posture is removed. */
+export function onDemoOverlayChange(observer: () => void): () => void {
+  observers.add(observer);
+  return () => {
+    observers.delete(observer);
+  };
+}
 
 function persist(): void {
   try {
@@ -74,6 +83,7 @@ export function setDemoOverlay(next: DemoOverlay | undefined): void {
   overlay = next;
   version += 1;
   persist();
+  for (const observer of observers) observer();
 }
 
 /** Turn a single capability off (or back on) without disturbing the rest. */
