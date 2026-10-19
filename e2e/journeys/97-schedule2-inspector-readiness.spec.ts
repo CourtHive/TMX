@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
+import { test, expect } from '@playwright/test';
+import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 97 — Schedule2 Inspector: both catalog views, toggleable, readiness.
@@ -44,7 +44,7 @@ const CATALOG_PANEL = '[data-panel="catalog"]';
 const SCHEDULED_PANEL = '[data-sidebar-panel="scheduled"]';
 const SCHEDULED_TAB = 'button[data-sidebar-tab="scheduled"]';
 const UNSCHEDULED_TAB = 'button[data-sidebar-tab="unscheduled"]';
-const INSPECTOR_TOGGLE = 'button[data-inspector-toggle="true"]';
+const INSPECTOR_TOGGLE = 'button[data-grid-inspector-toggle="true"]';
 const SCHEDULED_CARD = `${SCHEDULED_PANEL} .spl-matchup-card`;
 const READINESS = '.tmx-readiness';
 const READINESS_FINDING = '.tmx-readiness-finding';
