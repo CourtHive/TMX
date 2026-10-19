@@ -18,9 +18,9 @@
  * factory call succeeds for both shapes the UI can be in: with and without
  * an existing qualifying placeholder.
  */
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady, ensureDrawsTableMode } from '../helpers/dev-bridge';
 import { seedTournament, MockProfile } from '../helpers/seed';
+import { test, expect } from '@playwright/test';
 
 const PROFILE_WITH_PLACEHOLDER: MockProfile = {
   tournamentName: 'E2E Generate Qualifying — placeholder',
@@ -103,7 +103,7 @@ async function callGenerateQualifying(page: any, drawId: string): Promise<any> {
       const engine = (dev as any).factory.tournamentEngine;
       const { event } = engine.getEvent({ drawId });
       const drawEntries = (event.entries ?? []).filter((e: any) => e.entryStage === 'QUALIFYING');
-      return engine.generateDrawDefinition({
+      const result = engine.generateDrawDefinition({
         drawEntries,
         qualifyingProfiles: [
           {
@@ -125,6 +125,15 @@ async function callGenerateQualifying(page: any, drawId: string): Promise<any> {
         eventId: event.eventId,
         drawId,
       });
+      // A generator builds on a copy of an existing draw (factory 7.16.0, #5600); the caller commits it,
+      // as TMX's generateDraw does with ADD_DRAW_DEFINITION.
+      if (!result.success) return result;
+      const committed = engine.addDrawDefinition({
+        drawDefinition: result.drawDefinition,
+        eventId: event.eventId,
+        allowReplacement: true,
+      });
+      return committed.success ? result : committed;
     },
     { drawId },
   );

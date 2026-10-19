@@ -183,8 +183,10 @@ export function matchUpActions({
   const OFFICIALS_REGISTRY_TIMEOUT_MS = 1500;
 
   const selectOfficial = async () => {
+    // without the map, the factory builds only the officials rather than every participant
     const { participants: officials = [] } = tournamentEngine.getParticipants({
       participantFilters: { participantRoles: [OFFICIAL] },
+      returnParticipantMap: false,
     });
 
     if (!officials.length) {

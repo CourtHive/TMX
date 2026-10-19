@@ -29,7 +29,12 @@ const CHECK_IN_PROMPT_MODE_KEY = 'tmx.schedule.checkInPromptMode';
  * paths without dragging in the rest of the schedule grid.
  */
 
-import type { CatalogFilters, MatchUpCatalogGroupBy } from 'courthive-components';
+import type {
+  CatalogFilters,
+  MatchUpCatalogGroupBy,
+  InspectorGeometry,
+  InspectorPlacement,
+} from 'courthive-components';
 
 export type SidebarTab = 'unscheduled' | 'scheduled';
 
@@ -198,3 +203,57 @@ export function readCheckInPromptMode(): CheckInPromptMode {
 export function writeCheckInPromptMode(mode: CheckInPromptMode): void {
   globalThis.localStorage?.setItem(CHECK_IN_PROMPT_MODE_KEY, mode);
 }
+
+export type GridCatalogPlacement = 'left' | 'bottom';
+export type GridInspectorPlacement = InspectorPlacement;
+export type GridInspectorGeometry = InspectorGeometry;
+
+function readPresentation<T>(key: string, valid: (value: unknown) => value is T, fallback: T): T {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(key) ?? 'null');
+    return valid(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writePresentation(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* Optional local preference; the current UI remains usable. */
+  }
+}
+
+export const readCatalogPlacement = (): GridCatalogPlacement =>
+  readPresentation(
+    'schedule2:catalog-placement',
+    (v): v is GridCatalogPlacement => v === 'left' || v === 'bottom',
+    'left',
+  );
+export const writeCatalogPlacement = (v: GridCatalogPlacement): void =>
+  writePresentation('schedule2:catalog-placement', v);
+export const readInspectorPlacement = (): GridInspectorPlacement =>
+  readPresentation(
+    'schedule2:inspector-placement',
+    (v): v is GridInspectorPlacement => v === 'docked' || v === 'floating',
+    'docked',
+  );
+export const writeInspectorPlacement = (v: GridInspectorPlacement): void =>
+  writePresentation('schedule2:inspector-placement', v);
+export const readInspectorGeometry = (): GridInspectorGeometry | undefined =>
+  readPresentation<GridInspectorGeometry | undefined>(
+    'schedule2:inspector-geometry',
+    (v): v is GridInspectorGeometry => {
+      if (!v || typeof v !== 'object') return false;
+      const g = v as Record<string, unknown>;
+      return (
+        ['left', 'top', 'width', 'height'].every((key) => typeof g[key] === 'number' && Number.isFinite(g[key])) &&
+        Number(g.width) > 0 &&
+        Number(g.height) > 0
+      );
+    },
+    undefined,
+  );
+export const writeInspectorGeometry = (v: GridInspectorGeometry): void =>
+  writePresentation('schedule2:inspector-geometry', v);

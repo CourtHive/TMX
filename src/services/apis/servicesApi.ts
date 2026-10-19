@@ -133,10 +133,39 @@ export async function removeUser({ email }: { email: string }) {
   return await baseApi.post('/auth/remove', { email });
 }
 
-export async function sendTournament({ tournamentRecord }: { tournamentRecord: any }) {
-  const response = await baseApi.post('/factory/save', { tournamentRecord });
-  // The saved record replaced the server's: this copy is the server's as of that write (P49).
-  setServerSyncFrom(response?.data?.serverUpdatedAt);
+/**
+ * Replace the server's record (`POST /factory/save`). With a `commandId` (C3, see durableSave.ts) the
+ * save is durable and optionally conditional, and every answer but a 401 resolves, so the caller can
+ * tell a 409 conflict and a refusal from a lost answer; baseApi raises no toast, the caller reports.
+ * Without one it behaves as it always has: refusals toasted by baseApi and resolved to `undefined`.
+ */
+export async function sendTournament({
+  tournamentRecord,
+  commandId,
+  expectedServerUpdatedAt,
+}: {
+  tournamentRecord: any;
+  commandId?: string;
+  expectedServerUpdatedAt?: Record<string, string | null>;
+}) {
+  const durable = commandId !== undefined;
+  const body = {
+    tournamentRecord,
+    ...(durable && { commandId }),
+    ...(expectedServerUpdatedAt && { expectedServerUpdatedAt }),
+  };
+  const options = durable
+    ? {
+        timeout: 20_000,
+        // A 401 still rejects, so baseApi's interceptor gets its one silent refresh-and-retry.
+        validateStatus: (status: number) => status !== 401,
+        silenceErrors: true,
+      }
+    : undefined;
+  const response = await baseApi.post('/factory/save', body, options);
+  // The saved record replaced the server's: this copy is the server's as of that write (P49). Only on
+  // success: a 409 carries the server's current write as a bare string, and this copy is not at it.
+  if (response?.data?.success) setServerSyncFrom(response.data.serverUpdatedAt);
   return response;
 }
 

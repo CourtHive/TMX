@@ -1,7 +1,7 @@
-import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { todayLocal } from '../helpers/dates';
+import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
+import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 96 — Schedule locks: the operator surface
@@ -255,9 +255,13 @@ test.describe('Journey 96 — schedule locks', () => {
     expect(await isLocked(page, a)).toBe(false);
     expect(await isLocked(page, b)).toBe(false);
 
-    // NOT anchored: the action-bar button renders an icon before its label, so
-    // its accessible name is " Lock " — a /^lock/ anchor never matches.
-    await page.getByRole('button', { name: /lock/i }).first().click();
+    // The action-bar button's accessible name carries its icon glyphs around the label, so it is
+    // matched as the whole word "Lock" with no other letters: /lock/i alone also matches the catalog
+    // group header for this "Locks Singles" event, a <button> since courthive-components 6.10.0.
+    await page
+      .getByRole('button', { name: /^[^a-z]*lock[^a-z]*$/i })
+      .first()
+      .click();
     const lockDay = page.getByText(/Lock this day/i).first();
     await expect(lockDay).toBeVisible({ timeout: 8_000 });
     await expect(lockDay).toContainText('2');
