@@ -17,9 +17,9 @@
  * nothing renders as `—` with a warning, because a checkbox that looks like it
  * works while changing nothing would mislead whoever is being demonstrated to.
  */
-import { isDemoClockEligible, stopDemoClock } from 'services/clock/demoClock';
-import { openDemoClockPanel } from 'components/demoClock/demoClockPanel';
+import { buildDemoClockLauncher } from 'components/demoClock/demoClockLauncher';
 import { BOOLEAN_PERMISSION_KEYS } from '@courthive/provider-config';
+import { stopDemoClock } from 'services/clock/demoClock';
 
 import { clearDemoOverlay, getDemoOverlay, setDemoOverlay, setDemoPermission } from 'services/demoMode/demoState';
 import { DEMO_PRESET_IDS, overridesForPreset } from 'services/demoMode/demoPresets';
@@ -107,20 +107,7 @@ function buildPanel(): HTMLElement {
   warning.textContent = t('demoMode.clientOnly');
   content.appendChild(warning);
 
-  const clockHint = document.createElement('p');
-  clockHint.textContent = t('demoClock.launchHint');
-  const clockButton = document.createElement('button');
-  clockButton.type = 'button';
-  clockButton.className = 'button';
-  clockButton.textContent = t('demoClock.launch');
-  clockButton.disabled = !isDemoClockEligible();
-  clockButton.hidden = !isDemoClockEligible();
-  clockHint.hidden = !isDemoClockEligible();
-  clockButton.addEventListener('click', () => {
-    context.drawer.close();
-    openDemoClockPanel();
-  });
-  content.append(clockHint, clockButton);
+  content.append(buildDemoClockLauncher());
 
   // ── Posture ──
   const postureHeading = document.createElement('div');

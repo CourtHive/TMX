@@ -7,6 +7,7 @@ import { resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { clearUserContext, fetchUserContext } from './getUserContext';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { validateToken } from 'services/authentication/validateToken';
+import { clearDemoWalkthrough } from 'services/clock/demoWalkthrough';
 import { resetLocalCalendar } from 'services/storage/localCalendar';
 import { contentEquals } from 'services/transitions/screenSlaver';
 import { disconnectSocket } from 'services/messaging/socketIo';
@@ -94,6 +95,7 @@ export function getLoginState(): LoginState | undefined {
 export function logOut(): void {
   // A demo posture and competition clock must never outlive an identity change.
   stopDemoClock();
+  clearDemoWalkthrough();
   clearDemoOverlay();
   // Best-effort server-side revocation of the refresh token so a leaked copy
   // can't be replayed after logout. Fire-and-forget; never blocks local logout.
@@ -187,6 +189,7 @@ export function logIn({
 
   // A demo posture and competition clock must never outlive an identity change.
   stopDemoClock();
+  clearDemoWalkthrough();
   clearDemoOverlay();
   const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.q.tournament()?.tournamentId;

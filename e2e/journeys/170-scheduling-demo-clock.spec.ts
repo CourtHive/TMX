@@ -24,6 +24,9 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('button', { name: 'Open Demo Clock', exact: true }).click();
   await expect(page.locator(PANEL)).toBeVisible();
   await page.locator(PANEL).getByRole('button', { name: 'Clock controls', exact: true }).click();
+  await page.locator(PANEL).getByLabel('Demo mode', { exact: true }).selectOption('script');
+  await page.locator(PANEL).getByLabel('Demo wall time').fill('09:55');
+  await page.locator(PANEL).getByRole('button', { name: 'Set time', exact: true }).click();
 });
 
 test('runs Garman, Pro, and both together through normal day-scoped mutations', async ({ page }) => {
@@ -112,6 +115,8 @@ test('steps both clocks, keeps centered controls usable, refuses rewind and clea
   await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
   await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
   await expect(panel).toHaveCount(0);
+  await expect(page.locator('#demoBadge')).toHaveCount(0);
+  expect(await page.evaluate(() => sessionStorage.getItem('tmx_demo_overlay'))).toBeNull();
   expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
 });
 
@@ -146,6 +151,8 @@ test('reuses scheduling footers, docks on MatchUps, and restores both bar colors
   await panel.getByRole('button', { name: 'Hide controls', exact: true }).click();
   await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
   await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
+  await expect(page.locator('#demoBanner')).toHaveCount(0);
+  await expect(page.locator('#demoBadge')).toBeVisible();
   const colors = await page.evaluate(() => ({
     nav: getComputedStyle(document.getElementById('dnav')!).backgroundColor,
     footer: getComputedStyle(document.querySelector('.tmx-demo-clock-host--active')!).backgroundColor,
@@ -210,4 +217,25 @@ test('Availability reuses the workspace bar without adding a second Scheduling f
   await page.screenshot({ path: '/tmp/tmx-demo-clock-availability.png' });
   await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
   await expect(page.locator('[data-clock-workspace]')).not.toBeVisible();
+});
+
+test('loads a fresh guided tournament and captures a clock walkthrough', async ({ page }) => {
+  await page.locator(PANEL).getByRole('button', { name: 'Exit clock', exact: true }).click();
+  await page.evaluate(() => dev.context({ perf: true }));
+  await page.locator('#login').click();
+  await page.getByText('Demo mode…', { exact: true }).click();
+  await page.getByRole('button', { name: 'Load guided scheduling demo', exact: true }).click();
+  await expect(page).toHaveURL(/tournament\/scheduling-demo-(?!three-days)/);
+  const panel = page.locator(PANEL);
+  await expect(panel).toBeVisible();
+  await panel.getByRole('button', { name: 'Clock controls', exact: true }).click();
+  await expect(panel.getByLabel('Demo mode', { exact: true })).toHaveValue('script');
+  await panel.getByRole('button', { name: 'Start recording', exact: true }).click();
+  await panel.getByRole('button', { name: '+5 min', exact: true }).click();
+  await panel.getByRole('button', { name: 'Stop recording', exact: true }).click();
+  const download = page.waitForEvent('download');
+  await panel.getByRole('button', { name: 'Export recording', exact: true }).click();
+  expect((await download).suggestedFilename()).toMatch(/^demo-walkthrough-.*\.json$/);
+  await panel.getByLabel('Demo mode', { exact: true }).selectOption('clock');
+  await expect(panel.locator('.tmx-demo-clock-scenes')).not.toBeVisible();
 });

@@ -1,7 +1,7 @@
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
+import { clearDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
-import { isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -21,11 +21,19 @@ import {
   setDemoClockTime,
   stopDemoClock,
 } from 'services/clock/demoClock';
+import {
+  exportDemoWalkthrough,
+  getWalkthroughStatus,
+  onWalkthroughChange,
+  startDemoWalkthrough,
+  stopDemoWalkthrough,
+} from 'services/clock/demoWalkthrough';
 
 // constants and types
-import { SCHEDULER_DEMO_ID, schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
+import { hasSchedulingDemoScript, schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { COMPETITION_ENGINE, DEMO_CLOCK_PANEL, SCHEDULING_TAB } from 'constants/tmxConstants';
 import { SCHEDULE_PROFILE_ROUNDS, SCHEDULE_PROFILE_GRID } from 'constants/mutationConstants';
+import type { DemoClockMode } from 'services/clock/demoClock';
 
 import './demoClockPanel.css';
 
@@ -44,9 +52,10 @@ function button(label: string, action: () => void): HTMLButtonElement {
 }
 
 /** A centered page-bottom clock; details open only when requested. */
-export function openDemoClockPanel(): void {
+export function openDemoClockPanel(mode?: DemoClockMode): void {
   if (!isDemoClockEligible()) return;
   if (disposePanel) {
+    if (mode) setDemoClockTime(getDemoClock()!.nowMs, mode);
     document.getElementById(DEMO_CLOCK_PANEL)?.focus();
     return;
   }
@@ -58,9 +67,12 @@ export function openDemoClockPanel(): void {
   const record = tournamentEngine.getTournament().tournamentRecord;
   const zone = venueTimeZone() ?? '';
   if (!record?.startDate || !zone) return;
-  const dates = schedulerDemoDates(record.startDate);
-  const initial = demoWallTime(dates[0], '09:55', zone);
-  if (!getDemoClock() && (initial === undefined || !setDemoClockTime(initial))) return;
+  const scripted = hasSchedulingDemoScript(record);
+  const selectedMode = mode ?? (scripted ? 'script' : 'clock');
+  const dates = scripted ? schedulerDemoDates(record.startDate) : [];
+  const firstDate = selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? record.startDate);
+  const initial = demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone);
+  if (!getDemoClock() && (initial === undefined || !setDemoClockTime(initial, selectedMode))) return;
 
   const panel = document.createElement('section');
   panel.id = DEMO_CLOCK_PANEL;
@@ -78,7 +90,11 @@ export function openDemoClockPanel(): void {
     collapse.setAttribute('aria-expanded', String(!body.hidden));
   });
   collapse.setAttribute('aria-expanded', 'false');
-  const exit = button(t('demoClock.exit'), stopDemoClock);
+  const exit = button(t('demoClock.exit'), () => {
+    stopDemoClock();
+    clearDemoOverlay();
+    renderDemoAffordance();
+  });
   const clock = document.createElement('output');
   clock.setAttribute(ARIA_LABEL, t('demoClock.time'));
   header.append(clock);
@@ -141,7 +157,7 @@ export function openDemoClockPanel(): void {
       if (getDemoClock()?.busy) return;
       const at = demoWallTime(scheduleDate, '09:55', zone);
       if (at !== undefined && at >= (getDemoClock()?.nowMs ?? 0)) setDemoClockTime(at);
-      context.router?.navigate(`/tournament/${SCHEDULER_DEMO_ID}/${SCHEDULING_TAB}/${scheduleDate}/profile`);
+      context.router?.navigate(`/tournament/${record!.tournamentId}/${SCHEDULING_TAB}/${scheduleDate}/profile`);
     });
     scene.append(heading, description, open);
     // These use the same mutation path as Apply Times / Apply Grid, scoped to ONE day.
@@ -174,10 +190,54 @@ export function openDemoClockPanel(): void {
     }
   }
 
+  const modeLabel = document.createElement('label');
+  modeLabel.textContent = t('demoClock.mode');
+  const modeSelect = document.createElement('select');
+  modeSelect.setAttribute(ARIA_LABEL, t('demoClock.mode'));
+  const modes: DemoClockMode[] = scripted ? ['clock', 'script'] : ['clock'];
+  for (const value of modes) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = t(`demoClock.modes.${value}`);
+    modeSelect.append(option);
+  }
+  modeSelect.addEventListener('change', () =>
+    setDemoClockTime(getDemoClock()!.nowMs, modeSelect.value as DemoClockMode),
+  );
+  modeLabel.append(modeSelect);
+
+  const captureStatus = document.createElement('p');
+  captureStatus.setAttribute('aria-live', 'polite');
+  const captureButton = button('', () => {
+    if (getWalkthroughStatus().recording) stopDemoWalkthrough();
+    else if (hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty())
+      status.textContent = t('demoClock.saveFirst');
+    else if (!startDemoWalkthrough()) status.textContent = t('demoClock.captureFailed');
+  });
+  const exportButton = button(t('demoClock.exportCapture'), () => void exportDemoWalkthrough());
+  const captureControls = document.createElement('div');
+  captureControls.className = 'tmx-demo-clock-row';
+  captureControls.append(captureButton, exportButton);
+  function refreshCapture() {
+    const capture = getWalkthroughStatus();
+    captureButton.textContent = t(capture.recording ? 'demoClock.stopCapture' : 'demoClock.startCapture');
+    exportButton.disabled = !capture.available;
+    captureStatus.textContent = t(
+      capture.stopReason === 'limit'
+        ? 'demoClock.captureLimit'
+        : capture.recording
+          ? 'demoClock.capturing'
+          : 'demoClock.captureReady',
+      { count: capture.steps },
+    );
+  }
+  const offCapture = onWalkthroughChange(refreshCapture);
+  refreshCapture();
+
   const hint = document.createElement('p');
   hint.textContent = t('demoClock.hint');
   header.append(collapse, exit);
-  body.append(timezone, fields, steps, boundary, scenes, hint, status);
+  body.append(timezone, modeLabel, fields, steps, boundary, scenes, hint, captureControls, captureStatus, status);
   panel.append(header, body);
   document.documentElement.dataset[CLOCK_ACTIVE_ATTRIBUTE] = 'true';
   const unmount = mountDemoClock(panel);
@@ -188,11 +248,15 @@ export function openDemoClockPanel(): void {
       return;
     }
     clock.textContent = `${t('demoClock.shortLabel')} · ${venueClock(state.nowMs, zone)}`;
-    clock.title = `${venueCalendarDate(state.nowMs, zone)} · ${zone} · ${t('demoClock.paused')}`;
+    clock.title = `${venueCalendarDate(state.nowMs, zone)} · ${zone} · ${t('demoClock.modes.' + state.mode)} · ${t('demoClock.paused')}`;
+    scenes.hidden = state.mode !== 'script';
+    hint.textContent = t(state.mode === 'script' ? 'demoClock.hint' : 'demoClock.freeHint');
+    modeSelect.value = state.mode;
     if (document.activeElement !== date) date.value = venueCalendarDate(state.nowMs, zone);
     if (document.activeElement !== time) time.value = venueClock(state.nowMs, zone);
-    for (const control of panel.querySelectorAll('button, input'))
+    for (const control of panel.querySelectorAll('button, input, select'))
       (control as HTMLButtonElement | HTMLInputElement).disabled = state.busy;
+    refreshCapture();
     collapse.disabled = false;
     exit.disabled = false;
     const next = readBoundary();
@@ -209,6 +273,7 @@ export function openDemoClockPanel(): void {
   disposePanel = () => {
     offClock();
     offMutation();
+    offCapture();
     unmount();
     delete document.documentElement.dataset[CLOCK_ACTIVE_ATTRIBUTE];
     disposePanel = undefined;

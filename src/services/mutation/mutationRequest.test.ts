@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
+// These pure helpers run outside clock control; demo-clock integration has its own browser journey.
+vi.mock('services/clock/demoClock', () => ({ getDemoClock: () => undefined, canUseDemoClock: () => false }));
+vi.mock('functions/venueTimeFrame', () => ({ venueCalendarDate: vi.fn(), venueTimeZone: vi.fn() }));
 vi.mock('services/authentication/loginState', () => ({ getLoginState: vi.fn(), styleLogin: vi.fn() }));
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn() }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));

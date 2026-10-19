@@ -1,25 +1,29 @@
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
+import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
-import { SCHEDULER_DEMO_ID } from 'pages/tournaments/schedulerDemoProfile';
 import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
 import { setCompetitionClock } from './competitionClock';
 import { context } from 'services/context';
 
-type DemoClockState = { tournamentId: string; nowMs: number; busy: boolean };
+export type DemoClockMode = 'clock' | 'script';
+type DemoClockState = { tournamentId: string; nowMs: number; busy: boolean; mode: DemoClockMode };
 let state: DemoClockState | undefined;
 const listeners = new Set<() => void>();
 
 /** Eligibility to enter clock control; no signed-in identity, including super-admins. */
+export function isDemoClockSessionEligible(): boolean {
+  return !getToken() && !context.provider;
+}
+
 export function isDemoClockEligible(): boolean {
+  if (!isDemoClockSessionEligible()) return false;
   const record = tournamentEngine.getTournament().tournamentRecord;
   return (
-    !getToken() &&
-    !context.provider &&
-    record?.tournamentId === SCHEDULER_DEMO_ID &&
+    !!record?.tournamentId &&
     !record.parentOrganisation?.organisationId &&
     Object.values(tournamentEngine.getState().tournamentRecords ?? {}).every(
-      (entry: any) => entry.tournamentId === SCHEDULER_DEMO_ID,
+      (entry: any) => entry.tournamentId === record.tournamentId,
     )
   );
 }
@@ -60,12 +64,15 @@ export function retainDemoClockFor(tournamentId?: string): void {
   if (state && (state.tournamentId !== tournamentId || !canUseDemoClock())) stopDemoClock();
 }
 
-export function setDemoClockTime(nowMs: number): boolean {
+export function setDemoClockTime(nowMs: number, mode?: DemoClockMode): boolean {
   if (!canUseDemoClock() || state?.busy || !Number.isFinite(nowMs) || Number.isNaN(new Date(nowMs).getTime()))
     return false;
   // Stored calls and results cannot be undone by winding a clock back.
   if (state && nowMs < state.nowMs) return false;
-  state = { tournamentId: SCHEDULER_DEMO_ID, nowMs, busy: false };
+  const record = tournamentEngine.getTournament().tournamentRecord!;
+  const nextMode = mode ?? state?.mode ?? (hasSchedulingDemoScript(record) ? 'script' : 'clock');
+  if (nextMode === 'script' && !hasSchedulingDemoScript(record)) return false;
+  state = { tournamentId: record.tournamentId!, nowMs, busy: false, mode: nextMode };
   // Reinstall to notify every existing scheduling subscriber, coalesced by competitionClock.
   setCompetitionClock({ nowMs: () => (canUseDemoClock() ? (state?.nowMs ?? Number.NaN) : Number.NaN) });
   changed();

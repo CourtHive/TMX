@@ -9,11 +9,6 @@ html[data-tmx-demo-clock='true'] .tmx-demo-clock-bar {
   border-color: var(--tmx-fill-warning);
 }
 
-/* Demo's existing banner occupies real space above the app shell. */
-html[data-tmx-demo-clock='true'] #root {
-  min-height: calc(100dvh - var(--tmx-demo-clock-banner-height, 0px));
-}
-
 /* Only pages without an existing bottom bar reserve room for the fallback dock. */
 html[data-tmx-demo-clock-dock='true'] .app_shell {
   padding-bottom: 44px;
@@ -112,7 +107,8 @@ html[data-tmx-demo-clock-dock='true'] .app_shell {
   padding: 10px 0;
 }
 .tmx-demo-clock button,
-.tmx-demo-clock input {
+.tmx-demo-clock input,
+.tmx-demo-clock select {
   border: 1px solid var(--tmx-border-primary);
   border-radius: 6px;
   background: var(--tmx-bg-secondary);
@@ -131,4 +127,11 @@ html[data-tmx-demo-clock-dock='true'] .app_shell {
 .tmx-demo-clock :focus-visible {
   outline: 2px solid var(--tmx-border-focus);
   outline-offset: 2px;
+}
+
+.tmx-demo-clock label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }

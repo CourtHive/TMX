@@ -50,8 +50,6 @@ export function mountDemoClock(panel: HTMLElement): () => void {
 
   const place = () => {
     frame = undefined;
-    const bannerHeight = document.querySelector('.tmx-demo-banner')?.getBoundingClientRect().height ?? 0;
-    document.documentElement.style.setProperty('--tmx-demo-clock-banner-height', `${bannerHeight}px`);
     const slots = [...shell.querySelectorAll<HTMLElement>(SLOT)];
     const slot =
       slots.find(
@@ -107,6 +105,5 @@ export function mountDemoClock(panel: HTMLElement): () => void {
     fallback?.remove();
     releaseTableSpace();
     delete document.documentElement.dataset.tmxDemoClockDock;
-    document.documentElement.style.removeProperty('--tmx-demo-clock-banner-height');
   };
 }

@@ -3484,7 +3484,7 @@
   "demoClock": {
     "title": "Demo Clock",
     "launch": "Open Demo Clock",
-    "launchHint": "Open the Scheduling Lab — Garman + Pro example from Examples first. Clock controls are available for this local example while signed out.",
+    "launchHint": "Control time in a local tournament, or load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough. Available only while signed out.",
     "collapse": "Hide controls",
     "expand": "Clock controls",
     "exit": "Exit clock",
@@ -3524,6 +3524,21 @@
       }
     ],
     "shortLabel": "Demo time",
-    "bottomBar": "Demo clock bottom bar"
+    "bottomBar": "Demo clock bottom bar",
+    "mode": "Demo mode",
+    "modes": {
+      "clock": "Free clock",
+      "script": "Guided scheduling demo"
+    },
+    "loadScript": "Load guided scheduling demo",
+    "loadFailed": "Could not load the scheduling demo. Please try again.",
+    "freeHint": "Time is paused. Walk through this tournament using normal controls, step time forward, and optionally record your actions. Exit restores real time.",
+    "startCapture": "Start recording",
+    "stopCapture": "Stop recording",
+    "exportCapture": "Export recording",
+    "capturing": "Recording · {{count}} steps",
+    "captureReady": "Recording ready · {{count}} steps",
+    "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
+    "captureFailed": "Could not start recording. Check that demo clock control is active."
   }
 }

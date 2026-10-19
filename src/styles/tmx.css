@@ -1566,16 +1566,6 @@ img {
   margin-left: 0.4rem;
 }
 
-/* Deliberately not dismissible — a demo posture that can be hidden defeats it. */
-.tmx-demo-banner {
-  background: var(--tmx-fill-warning);
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-align: center;
-  padding: 0.3rem 0.5rem;
-}
-
 /* ── Per-matchUp check-in ────────────────────────────────────────────── */
 /*
  * The desk panel. Distinct from the participants page's sign-in tick, deliberately: signing in is

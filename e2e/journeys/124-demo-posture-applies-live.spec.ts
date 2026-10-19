@@ -176,5 +176,6 @@ test('a posture survives a reload, and paints before the first navigation', asyn
   // navigation has happened since the reload.
   await expect(page.locator(EVENTS_ICON)).toBeHidden();
   await expect(page.locator(VENUES_ICON)).toBeHidden();
-  await expect(page.locator('#demoBanner')).toBeVisible();
+  await expect(page.locator('#demoBadge')).toBeVisible();
+  await expect(page.locator('#demoBanner')).toHaveCount(0);
 });

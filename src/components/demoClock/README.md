@@ -2,10 +2,14 @@
 
 This first increment demonstrates Garman, Pro, and their composition in one local tournament.
 
-1. While signed out, choose **Examples → Scheduling Lab — Garman + Pro** in the tournaments list.
-2. Open the generated tournament, then choose **Demo mode… → Open Demo Clock** in the login menu.
-3. Opening the clock enters demo mode. Time starts paused at 09:55 on day one, in `America/New_York`.
+1. While signed out, open **Demo mode…** in the login menu.
+2. Choose **Load guided scheduling demo** to create a fresh local Scheduling Lab.
+3. Time starts paused at 09:55 on day one, in `America/New_York`.
 4. Use **Clock controls** in the centered bottom-bar clock to reveal time settings and demo scenes.
+
+For an existing local tournament, choose **Open Demo Clock** for free clock mode
+(starting at 08:00 on the selected schedule date). The Scheduling Lab mode selector
+can switch between guided scenes and free clock operation.
 
 | Day | Run                                          | Inspect                                                                            |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -50,3 +54,22 @@ pnpm exec playwright test --config e2e/playwright.demo-clock.config.ts
 
 The dedicated browser configuration uses port 5187 and a separate Vite cache, with filesystem access
 to the workspace's linked dependencies. It never reuses a server running from another checkout.
+
+The Demo mode drawer now offers **Load guided scheduling demo**, which creates a
+fresh local copy and opens the guided clock, and **Open Demo Clock**, which enables
+free clock control on the current local tournament. The mode selector switches a
+Scheduling Lab between guided and free operation. Signed-in sessions are excluded.
+
+**Start recording** captures the initial record, clock/navigation steps and applied
+mutation commands with resulting record checkpoints. **Export recording** downloads
+JSON; captures stay in memory until exported and are cleared on identity changes.
+The isolated `replayDemoWalkthrough` test driver reexecutes commands and compares
+checkpoints. Uninstrumented state edits and nondeterministic results are reported
+as unverified; recordings are candidates for regression fixtures, not automatically
+certified tests. Recording is limited to 1,000 steps / 25 MiB.
+
+For performance checks, enable `dev.context({ perf: true })` in the browser console
+and inspect repeated method entries per action. Factory perf logging only emits
+calls exceeding its threshold (true currently means 1 ms), so absence from that log
+is not proof a method was never called. Distinguish dry-run entries from committed
+mutations and compare the same action with recording enabled and disabled.

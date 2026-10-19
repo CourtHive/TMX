@@ -1,4 +1,6 @@
 import { captureTournamentOperation, captureTournamentSelection } from 'services/tournament/operationOwnership';
+import { venueCalendarDate, venueTimeZone } from 'functions/venueTimeFrame';
+import { canUseDemoClock, getDemoClock } from 'services/clock/demoClock';
 /**
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
@@ -171,7 +173,11 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   if (providerIds.length > 1) return reject('toasts.multipleProviders');
 
   const now = Date.now();
+  const demo = getDemoClock();
+  const demoDate = demo && canUseDemoClock() ? venueCalendarDate(demo.nowMs, venueTimeZone()) : undefined;
   const inDateRange = Object.values(tournamentRecords).every((record: any) => {
+    if (demoDate && record.tournamentId === demo?.tournamentId)
+      return !!record.endDate && record.endDate.slice(0, 10) >= demoDate;
     const endTime = dayjs(record.endDate).endOf('day').valueOf();
     return !!(endTime && endTime >= now);
   });
@@ -303,7 +309,7 @@ function engineExecution({ factoryEngine, methods }: { factoryEngine: any; metho
   // before any callback re-reads. Without this, score entry from the scoring
   // modal (which calls mutationRequest directly, not the schedule's
   // executeMethods) left the grid showing pre-score data after modal close.
-  if (!result.error) notifyMutationApplied();
+  if (!result.error) notifyMutationApplied({ methods, tournamentId: factoryEngine.getTournamentId?.() });
   return result;
 }
 

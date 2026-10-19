@@ -5,6 +5,16 @@ export const SCHEDULER_DEMO_ID = 'scheduler-demo-three-days';
 export const SCHEDULER_DEMO_NAME = 'Scheduling Lab — Garman + Pro';
 export const SCHEDULER_DEMO_VENUE = 'scheduler-demo-venue';
 export const SCHEDULER_DEMO_ZONE = 'America/New_York';
+export const SCHEDULER_DEMO_SCRIPT = 'scheduling-lab-v1';
+
+export function hasSchedulingDemoScript(record: any): boolean {
+  return (
+    record?.tournamentId === SCHEDULER_DEMO_ID ||
+    record?.extensions?.some(
+      (extension: any) => extension.name === 'demoScript' && extension.value === SCHEDULER_DEMO_SCRIPT,
+    )
+  );
+}
 
 /** Explicit calendar arithmetic: independent of the presenter's browser zone and DST. */
 export function schedulerDemoDates(startDate: string): string[] {
@@ -30,7 +40,11 @@ export function buildSchedulerDemoProfile(now = competitionNow()) {
   ];
   return {
     tournamentName: SCHEDULER_DEMO_NAME,
-    tournamentAttributes: { tournamentId: SCHEDULER_DEMO_ID, localTimeZone: SCHEDULER_DEMO_ZONE },
+    tournamentAttributes: {
+      tournamentId: SCHEDULER_DEMO_ID,
+      localTimeZone: SCHEDULER_DEMO_ZONE,
+      extensions: [{ name: 'demoScript', value: SCHEDULER_DEMO_SCRIPT }],
+    },
     startDate,
     endDate: dates[2],
     nonRandom: 1,
