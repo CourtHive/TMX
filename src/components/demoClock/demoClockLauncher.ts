@@ -62,8 +62,8 @@ export function buildDemoClockLauncher(): HTMLElement {
   free.type = 'button';
   free.className = 'button';
   free.textContent = t('demoClock.launch');
-  // The clock runs only on a demo tournament: free clock is offered there and nowhere else.
-  free.disabled = !isDemoClockEligible();
+  // The clock runs only on a Scheduling Lab, so this is offered only while one is open (to reopen its clock). It is
+  // left out rather than `hidden`: the `button` class sets display, which overrides the attribute.
   free.addEventListener('click', () => {
     context.drawer.close();
     openDemoClockPanel('clock');
@@ -84,7 +84,7 @@ export function buildDemoClockLauncher(): HTMLElement {
       guided.disabled = false;
     }
   });
-  root.append(hint, free, guided);
+  root.append(hint, ...(isDemoClockEligible() ? [free] : []), guided);
   if (getWalkthroughStatus().available) {
     const download = document.createElement('button');
     download.type = 'button';

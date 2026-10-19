@@ -7,8 +7,8 @@ This first increment demonstrates Garman, Pro, and their composition in one loca
 3. Time starts paused at 09:55 on day one, in `America/New_York`.
 4. Use **Clock controls** in the centered bottom-bar clock to reveal time settings and demo scenes.
 
-For an existing local tournament, choose **Open Demo Clock** for free clock mode
-(starting at 08:00 on the selected schedule date). The clock runs **only on demo
+While a Scheduling Lab is open, **Open Demo Clock** (shown only then) brings back free clock mode
+(starting at 08:00 on the tournament's first day; the clock only moves forward). The clock runs **only on demo
 tournaments** (the Scheduling Lab, marked by its `demoScript` extension): it stamps
 simulated times into the record it runs on, so it is never offered on a real tournament,
 and demo tournaments are never offered **Claim**. The clock never reads the record (the

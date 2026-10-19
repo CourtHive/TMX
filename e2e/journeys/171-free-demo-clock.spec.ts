@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 const PANEL = '#demoClockPanel';
 const LOCAL_ID = 'free-clock-real-local';
 
-test('Open Demo Clock is not offered on a real local tournament', async ({ page }) => {
+test('Open Demo Clock is not shown on a real local tournament', async ({ page }) => {
   await page.goto('/#/tournaments');
   await initDevBridge(page);
   await resetState(page);
@@ -32,7 +32,8 @@ test('Open Demo Clock is not offered on a real local tournament', async ({ page 
 
   await page.locator('#login').click();
   await page.getByText('Demo mode…', { exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Open Demo Clock', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Load guided scheduling demo', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open Demo Clock', exact: true })).toBeHidden();
 
   // Nor can it be opened directly: the loaded tournament is not a demo tournament.
   await page.evaluate(async () => {

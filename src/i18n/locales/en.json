@@ -3484,7 +3484,7 @@
     "title": "Demo Clock",
     "launch": "Open Demo Clock",
     "cannotStart": "The demo clock could not start: this tournament needs a start date and a venue time zone.",
-    "launchHint": "Control time in a local tournament, or load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough. Available only while signed out.",
+    "launchHint": "Load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough and its demo clock. The clock runs only in a Scheduling Lab: while one is open, Open Demo Clock brings the clock back. Available only while signed out.",
     "collapse": "Hide controls",
     "expand": "Clock controls",
     "exit": "Exit clock",
