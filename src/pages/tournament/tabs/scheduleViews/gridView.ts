@@ -24,7 +24,6 @@ import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedule
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
-import { isTournamentProviderMember } from 'services/authentication/isTournamentProviderMember';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
@@ -35,6 +34,7 @@ import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
+import { isRunningDesk } from 'services/authentication/isRunningDesk';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { decoratesCell, severityOf } from './scheduleIssueSeverity';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -3086,12 +3086,14 @@ function refreshActiveStrip(date: string): void {
  */
 function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void {
   if (suppressAutoCall || !currentRefresh) return;
-  // Auto-call is a running-desk action, not a viewer side effect: only users
-  // associated with this tournament's provider trigger it. A super-admin (or any
-  // cross-provider viewer) merely observing must not stamp calledAt. Deferred:
-  // a per-provider on/off toggle (default ON for provider staff) + calling roles.
+  // Auto-call is a running-desk action, not a viewer side effect: on a provider's
+  // tournament only that provider's staff trigger it, so a super-admin (or any
+  // cross-provider viewer) merely observing never stamps calledAt. A tournament
+  // with no provider opened by nobody signed in is a local record, so this
+  // client is its desk (the anonymous scheduling demo included). Deferred: a
+  // per-provider on/off toggle (default ON for provider staff) + calling roles.
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
-  if (!isTournamentProviderMember({ loginState: getLoginState(), tournamentRecord })) return;
+  if (!isRunningDesk({ loginState: getLoginState(), tournamentRecord })) return;
   const now = competitionNow();
   // Compared against `scheduledTime`, which is a venue wall clock — so "now"
   // has to be one too, or the desk auto-calls on the operator's clock.

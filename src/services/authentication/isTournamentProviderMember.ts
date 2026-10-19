@@ -4,10 +4,11 @@
  * Deliberate inverse of `isActiveProviderAdmin` / `canManageRegistrations`:
  * there is **no super-admin shortcut**. A super-admin merely observing another
  * provider's tournament must NOT be treated as provider staff — this predicate
- * gates side effects that only the running desk should trigger (auto-call being
- * the first: `runAutoCallPass` fires `setMatchUpCalledAt` on load + every
- * ticker, and a viewing super-admin was stamping `calledAt` on tournaments they
- * were only observing).
+ * decides, for a provider's tournament, who may trigger side effects that only
+ * the running desk should (auto-call being the first: `runAutoCallPass` fires
+ * `setMatchUpCalledAt` on load + every ticker, and a viewing super-admin was
+ * stamping `calledAt` on tournaments they were only observing). `isRunningDesk`
+ * composes it with the local-tournament case, where there is no provider.
  *
  * Membership (any one, matched against the tournament's own provider):
  *   1. PROVISIONER managing the tournament's provider (`provisionerProviders`)

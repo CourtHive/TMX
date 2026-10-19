@@ -120,7 +120,7 @@ test('steps both clocks, keeps centered controls usable, refuses rewind and clea
   expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
 });
 
-test('next boundary refreshes the live strip immediately and leaving the tournament releases the clock', async ({
+test('next boundary auto-calls the due matches on the demo clock and leaving the tournament releases the clock', async ({
   page,
 }) => {
   const panel = page.locator(PANEL);
@@ -137,10 +137,19 @@ test('next boundary refreshes the live strip immediately and leaving the tournam
   const strip = page.locator('.spl-active-strip');
   await expect(strip).toBeVisible();
   await expect(strip).not.toContainText('DUE');
+  // The demo tournament has no provider, so this anonymous client is its running desk and auto-call fires
+  // (isRunningDesk). The call is stamped with the paused demo clock, not real time.
+  const collector = createMutationCollector(page);
   await panel.getByRole('button', { name: /^Next: scheduled start/ }).click();
   await expect(panel.locator('output')).toContainText('10:00');
-  await expect(strip).toContainText('DUE', { timeout: 2000 });
-  await page.screenshot({ path: '/tmp/tmx-scheduling-demo-clock.png' });
+  const entry = await collector.waitForMethod('setMatchUpCalledAt', 5000);
+  const calls = entry.methods.filter((m) => m.method === 'setMatchUpCalledAt');
+  expect(calls).toHaveLength(4);
+  const demoNow = await page.evaluate(() => dev.factory.tools.now().getTime());
+  for (const call of calls) expect(Date.parse((call.params as any).calledAt)).toBe(demoNow);
+  await expect(strip).not.toContainText('DUE');
+  await expect(strip.getByText('NEXT')).toHaveCount(4);
+  collector.detach();
   await page.evaluate(() => dev.tournamentContext.router.navigate('/tournaments'));
   await expect(panel).toHaveCount(0);
   expect(await page.evaluate(() => Math.abs(dev.factory.tools.now().getTime() - Date.now()))).toBeLessThan(1000);
@@ -169,7 +178,6 @@ test('reuses scheduling footers, docks on MatchUps, and restores both bar colors
   await expect
     .poll(async () => (await table.boundingBox())!.y + (await table.boundingBox())!.height)
     .toBeLessThanOrEqual((await page.locator('.tmx-demo-clock-bar').boundingBox())!.y + 1);
-  await page.screenshot({ path: '/tmp/tmx-demo-clock-matchups.png' });
   await page.evaluate(() => dev.tournamentContext.router.navigate('/tournament/scheduler-demo-three-days/scheduling'));
   await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
   await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
@@ -214,7 +222,6 @@ test('Availability reuses the workspace bar without adding a second Scheduling f
   await expect(panel.locator('..')).toHaveClass(/tmx-demo-clock-slot/);
   await expect(page.locator('.tmx-demo-clock-bar')).toHaveCount(0);
   await expect(page.locator('.tmx-demo-clock-host--active')).toHaveCount(1);
-  await page.screenshot({ path: '/tmp/tmx-demo-clock-availability.png' });
   await panel.getByRole('button', { name: 'Exit clock', exact: true }).click();
   await expect(page.locator('[data-clock-workspace]')).not.toBeVisible();
 });
