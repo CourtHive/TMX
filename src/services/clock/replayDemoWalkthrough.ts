@@ -15,8 +15,9 @@ function canonical(value: any): string {
   return JSON.stringify(value, (_key, entry) =>
     entry && typeof entry === 'object' && !Array.isArray(entry)
       ? Object.fromEntries(
+          // Code-unit order: a canonical form must not vary with the runtime's locale.
           Object.keys(entry)
-            .sort()
+            .sort((a, b) => (a < b ? -1 : Number(a > b)))
             .map((key) => [key, entry[key]]),
         )
       : entry,

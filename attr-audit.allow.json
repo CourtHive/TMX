@@ -5,7 +5,9 @@
   "drawsCount",
   "formats",
   "games",
+  "route",
   "segments",
+  "setTime",
   "targets",
   "timeItem"
 ]

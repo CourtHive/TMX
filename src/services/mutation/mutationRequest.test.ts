@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 // These pure helpers run outside clock control; demo-clock integration has its own browser journey.
 vi.mock('services/clock/demoClock', () => ({ getDemoClock: () => undefined, canUseDemoClock: () => false }));
+// A full stub: the real module needs factory tools, which the factory stub below does not carry. The demo date gate
+// is tested as the pure recordsInDateRange below.
 vi.mock('functions/venueTimeFrame', () => ({ venueCalendarDate: vi.fn(), venueTimeZone: vi.fn() }));
 vi.mock('services/authentication/loginState', () => ({ getLoginState: vi.fn(), styleLogin: vi.fn() }));
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn() }));
@@ -37,7 +39,12 @@ vi.mock('services/pipeline/pipelineFeatures', () => ({
   applyPipelineOverrides: (methods: any[]) => methods,
 }));
 
-import { checkOfflineState, applyDevOverrides, determineExecutionStrategy } from './mutationRequest';
+import {
+  checkOfflineState,
+  applyDevOverrides,
+  determineExecutionStrategy,
+  recordsInDateRange,
+} from './mutationRequest';
 
 describe('checkOfflineState', () => {
   it('returns offline=0 when no tournament records have offline timeItems', () => {
@@ -135,5 +142,43 @@ describe('determineExecutionStrategy', () => {
   it('returns server-first when provider exists and serverFirst is on', () => {
     let result: any = determineExecutionStrategy(true, false, true);
     expect(result).toBe('server-first');
+  });
+});
+
+describe('recordsInDateRange', () => {
+  const DEMO_ID = 'demo';
+  const END_DATE = '2026-03-14';
+  const INSIDE = '2026-03-13';
+  const ENDED = { tournamentId: DEMO_ID, endDate: END_DATE };
+  const AFTER_END = Date.parse('2026-10-19T12:00:00Z');
+  const DURING = Date.parse('2026-03-12T12:00:00Z');
+
+  it('without the demo clock it is the real-time check: an ended tournament is out of range', () => {
+    expect(recordsInDateRange([ENDED], AFTER_END)).toBe(false);
+    expect(recordsInDateRange([ENDED], DURING)).toBe(true);
+  });
+
+  it('the demo tournament is judged on the demo date, so a walkthrough inside its dates is in range', () => {
+    expect(recordsInDateRange([ENDED], AFTER_END, { tournamentId: DEMO_ID, date: INSIDE })).toBe(true);
+    expect(recordsInDateRange([ENDED], AFTER_END, { tournamentId: DEMO_ID, date: END_DATE })).toBe(true);
+  });
+
+  it('a demo date after the end date is out of range, even while real time is inside it', () => {
+    expect(recordsInDateRange([ENDED], DURING, { tournamentId: DEMO_ID, date: '2026-03-15' })).toBe(false);
+  });
+
+  it('the demo date applies only to the tournament the clock runs on', () => {
+    const other = { tournamentId: 'other', endDate: END_DATE };
+    expect(recordsInDateRange([other], AFTER_END, { tournamentId: DEMO_ID, date: INSIDE })).toBe(false);
+  });
+
+  it('an empty demo date (no venue time zone) falls back to real time', () => {
+    expect(recordsInDateRange([ENDED], AFTER_END, { tournamentId: DEMO_ID, date: '' })).toBe(false);
+  });
+
+  it('a record with no endDate is judged the same on either clock (real time treats it as in range)', () => {
+    const open = { tournamentId: DEMO_ID };
+    expect(recordsInDateRange([open], DURING)).toBe(true);
+    expect(recordsInDateRange([open], DURING, { tournamentId: DEMO_ID, date: INSIDE })).toBe(true);
   });
 });

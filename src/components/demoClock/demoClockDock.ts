@@ -16,7 +16,7 @@ export function createDemoClockSlot(bar: HTMLElement, { spacer = false, workspac
 
 /** Follow page-owned bars across rerenders. Only pages without a bar receive a fallback dock. */
 export function mountDemoClock(panel: HTMLElement): () => void {
-  const shell = document.querySelector('.app_shell')!;
+  const shell = document.querySelector<HTMLElement>('.app_shell') ?? document.body;
   let fallback: HTMLElement | undefined;
   let activeHost: HTMLElement | undefined;
   let activeSlot: HTMLElement | undefined;
@@ -41,7 +41,7 @@ export function mountDemoClock(panel: HTMLElement): () => void {
     // space beneath them instead of covering rows, including on short windows.
     for (const table of shell.querySelectorAll<HTMLElement>('.tabulator')) {
       if (!table.getClientRects().length || table.parentElement?.closest('.tabulator')) continue;
-      const height = `${Math.max(120, innerHeight - table.getBoundingClientRect().top - dock.offsetHeight)}px`;
+      const height = `${Math.max(120, globalThis.innerHeight - table.getBoundingClientRect().top - dock.offsetHeight)}px`;
       if (table.style.getPropertyValue(tableHeight) !== height) table.style.setProperty(tableHeight, height);
       table.dataset.demoClockFit = 'true';
       fittedTables.add(table);
@@ -88,8 +88,10 @@ export function mountDemoClock(panel: HTMLElement): () => void {
       reserveTableSpace(fallback);
     }
   };
+  // Pages show and hide their bars through inline style, so style changes are watched; placement runs at most once per
+  // animation frame however many mutations arrive.
   const schedulePlacement = () => {
-    frame ??= requestAnimationFrame(place);
+    frame ??= globalThis.requestAnimationFrame(place);
   };
   const observer = new MutationObserver(schedulePlacement);
   observer.observe(shell, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
@@ -98,7 +100,7 @@ export function mountDemoClock(panel: HTMLElement): () => void {
   return () => {
     observer.disconnect();
     globalThis.removeEventListener('resize', schedulePlacement);
-    if (frame !== undefined) cancelAnimationFrame(frame);
+    if (frame !== undefined) globalThis.cancelAnimationFrame(frame);
     activeHost?.classList.remove(ACTIVE_HOST);
     releaseSlot();
     panel.remove();

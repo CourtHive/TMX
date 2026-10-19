@@ -76,7 +76,7 @@ describe('demo walkthrough capture and regression replay', () => {
     expect(load).not.toHaveBeenCalled();
   });
 
-  it('stops on clock exit, ignores busy notifications, and refuses unsupported state replay', async () => {
+  it('stops on clock exit and refuses unsupported state replay', async () => {
     expect(startDemoWalkthrough()).toBe(true);
     tournamentEngine.setTournamentName({ tournamentName: 'Direct state edit' });
     notifyMutationApplied();
@@ -86,5 +86,24 @@ describe('demo walkthrough capture and regression replay', () => {
       verified: false,
       error: 'UNREPLAYABLE_STATE_STEP',
     });
+  });
+
+  it('records a route only inside the captured tournament, never one that can carry a key or token', () => {
+    const tournamentId = tournamentEngine.getTournamentId();
+    vi.stubGlobal('location', { hash: '#/invite/SECRET-INVITE-KEY' });
+    try {
+      expect(startDemoWalkthrough()).toBe(true);
+      stopDemoWalkthrough();
+      expect(getDemoWalkthrough()!.initialRoute).toBe('#/other');
+      expect(JSON.stringify(getDemoWalkthrough())).not.toContain('SECRET-INVITE-KEY');
+
+      clearDemoWalkthrough();
+      vi.stubGlobal('location', { hash: `#/tournament/${tournamentId}/scheduling` });
+      expect(startDemoWalkthrough()).toBe(true);
+      stopDemoWalkthrough();
+      expect(getDemoWalkthrough()!.initialRoute).toBe(`#/tournament/${tournamentId}/scheduling`);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

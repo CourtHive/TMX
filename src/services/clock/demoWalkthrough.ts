@@ -41,7 +41,17 @@ let bytes = 0;
 let lastTime = 0;
 let lastRecord = '';
 let detach: (() => void) | undefined;
-const route = () => globalThis.location?.hash ?? '';
+/**
+ * Only routes inside the captured tournament are recorded. Any other hash is replaced by a placeholder: a route such
+ * as `#/invite/:inviteKey`, `#/magic/:code` or `#/sso?token=…` can be recorded before the router stops the clock (an
+ * unsaved-changes prompt delays it), and a key or token must never reach an exported capture.
+ */
+const OTHER_ROUTE = '#/other';
+const route = () => {
+  const hash = globalThis.location?.hash ?? '';
+  const tournamentId = capture?.tournamentId ?? getDemoClock()?.tournamentId;
+  return tournamentId && hash.startsWith(`#/tournament/${tournamentId}`) ? hash : OTHER_ROUTE;
+};
 
 function changed(): void {
   for (const observer of observers) observer();

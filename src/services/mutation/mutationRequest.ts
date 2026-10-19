@@ -62,6 +62,26 @@ interface MutationParams {
 
 // ── Pure helpers (testable without DOM) ──
 
+/**
+ * Whether every record is still running: its endDate (end of that day) is not before `now`. The tournament the demo
+ * clock runs on is judged on the demo clock's venue date instead, so a historical walkthrough is not prompted as out
+ * of range; a record with no endDate is judged as real time judges it. `demoDay` is undefined unless the demo clock
+ * applies (anonymous, demo posture, a demo tournament), so for every other session this is exactly the real-time
+ * check. An empty demo date (no venue zone) falls back to it.
+ */
+export function recordsInDateRange(
+  records: any[],
+  now: number,
+  demoDay?: { tournamentId: string; date: string },
+): boolean {
+  return records.every((record: any) => {
+    if (demoDay?.date && record.endDate && record.tournamentId === demoDay.tournamentId)
+      return record.endDate.slice(0, 10) >= demoDay.date;
+    const endTime = dayjs(record.endDate).endOf('day').valueOf();
+    return !!(endTime && endTime >= now);
+  });
+}
+
 export function checkOfflineState(tournamentRecords: Record<string, any>): {
   offline: number;
   invalidOffline: boolean;
@@ -172,15 +192,12 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
   if (providerIds.length > 1) return reject('toasts.multipleProviders');
 
-  const now = Date.now();
   const demo = getDemoClock();
-  const demoDate = demo && canUseDemoClock() ? venueCalendarDate(demo.nowMs, venueTimeZone()) : undefined;
-  const inDateRange = Object.values(tournamentRecords).every((record: any) => {
-    if (demoDate && record.tournamentId === demo?.tournamentId)
-      return !!record.endDate && record.endDate.slice(0, 10) >= demoDate;
-    const endTime = dayjs(record.endDate).endOf('day').valueOf();
-    return !!(endTime && endTime >= now);
-  });
+  const demoDay =
+    demo && canUseDemoClock()
+      ? { tournamentId: demo.tournamentId, date: venueCalendarDate(demo.nowMs, venueTimeZone()) }
+      : undefined;
+  const inDateRange = recordsInDateRange(Object.values(tournamentRecords), Date.now(), demoDay);
 
   const mutate = (saveLocal?: boolean) =>
     isCurrent()

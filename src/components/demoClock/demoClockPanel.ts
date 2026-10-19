@@ -1,3 +1,4 @@
+import { hasSchedulingDemoScript, schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { clearDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
@@ -6,6 +7,7 @@ import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { mountDemoClock } from './demoClockDock';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -30,7 +32,6 @@ import {
 } from 'services/clock/demoWalkthrough';
 
 // constants and types
-import { hasSchedulingDemoScript, schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { COMPETITION_ENGINE, DEMO_CLOCK_PANEL, SCHEDULING_TAB } from 'constants/tmxConstants';
 import { SCHEDULE_PROFILE_ROUNDS, SCHEDULE_PROFILE_GRID } from 'constants/mutationConstants';
 import type { DemoClockMode } from 'services/clock/demoClock';
@@ -59,20 +60,35 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     document.getElementById(DEMO_CLOCK_PANEL)?.focus();
     return;
   }
+  // Everything that can refuse is checked BEFORE demo mode is entered, so a refusal never leaves the demo badge and
+  // tint on with no clock.
+  const record = tournamentEngine.getTournament().tournamentRecord;
+  const zone = venueTimeZone() ?? '';
+  const scripted = hasSchedulingDemoScript(record);
+  const selectedMode = mode ?? (scripted ? 'script' : 'clock');
+  const dates = scripted && record?.startDate ? schedulerDemoDates(record.startDate) : [];
+  const firstDate =
+    selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? record?.startDate);
+  const initial =
+    firstDate && zone ? demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone) : undefined;
+  if (!getDemoClock() && initial === undefined) {
+    tmxToast({ message: t('demoClock.cannotStart'), intent: 'is-warning' });
+    return;
+  }
   // Opening clock control explicitly enters demo mode without granting permissions.
-  if (!isDemoActive()) {
+  const enteredDemo = !isDemoActive();
+  if (enteredDemo) {
     setDemoOverlay({ v: 1, preset: 'custom', permissions: {} });
     renderDemoAffordance();
   }
-  const record = tournamentEngine.getTournament().tournamentRecord;
-  const zone = venueTimeZone() ?? '';
-  if (!record?.startDate || !zone) return;
-  const scripted = hasSchedulingDemoScript(record);
-  const selectedMode = mode ?? (scripted ? 'script' : 'clock');
-  const dates = scripted ? schedulerDemoDates(record.startDate) : [];
-  const firstDate = selectedMode === 'script' ? dates[0] : (context.displayed.selectedScheduleDate ?? record.startDate);
-  const initial = demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone);
-  if (!getDemoClock() && (initial === undefined || !setDemoClockTime(initial, selectedMode))) return;
+  if (!getDemoClock() && !setDemoClockTime(initial!, selectedMode)) {
+    if (enteredDemo) {
+      clearDemoOverlay();
+      renderDemoAffordance();
+    }
+    tmxToast({ message: t('demoClock.cannotStart'), intent: 'is-warning' });
+    return;
+  }
 
   const panel = document.createElement('section');
   panel.id = DEMO_CLOCK_PANEL;
@@ -161,8 +177,8 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     });
     scene.append(heading, description, open);
     // These use the same mutation path as Apply Times / Apply Grid, scoped to ONE day.
-    if (day !== 1) scene.append(button(t('demoClock.garman'), () => void runScheduler(day, SCHEDULE_PROFILE_ROUNDS)));
-    if (day !== 0) scene.append(button(t('demoClock.pro'), () => void runScheduler(day, SCHEDULE_PROFILE_GRID)));
+    if (day !== 1) scene.append(button(t('demoClock.garman'), () => runScheduler(day, SCHEDULE_PROFILE_ROUNDS)));
+    if (day !== 0) scene.append(button(t('demoClock.pro'), () => runScheduler(day, SCHEDULE_PROFILE_GRID)));
     scenes.append(scene);
   }
 
@@ -214,7 +230,9 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       status.textContent = t('demoClock.saveFirst');
     else if (!startDemoWalkthrough()) status.textContent = t('demoClock.captureFailed');
   });
-  const exportButton = button(t('demoClock.exportCapture'), () => void exportDemoWalkthrough());
+  const exportButton = button(t('demoClock.exportCapture'), () => {
+    exportDemoWalkthrough().catch((error) => console.error('[demoClock] export failed', error));
+  });
   const captureControls = document.createElement('div');
   captureControls.className = 'tmx-demo-clock-row';
   captureControls.append(captureButton, exportButton);
@@ -222,14 +240,10 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     const capture = getWalkthroughStatus();
     captureButton.textContent = t(capture.recording ? 'demoClock.stopCapture' : 'demoClock.startCapture');
     exportButton.disabled = !capture.available;
-    captureStatus.textContent = t(
-      capture.stopReason === 'limit'
-        ? 'demoClock.captureLimit'
-        : capture.recording
-          ? 'demoClock.capturing'
-          : 'demoClock.captureReady',
-      { count: capture.steps },
-    );
+    let key = 'demoClock.captureReady';
+    if (capture.recording) key = 'demoClock.capturing';
+    if (capture.stopReason === 'limit') key = 'demoClock.captureLimit';
+    captureStatus.textContent = t(key, { count: capture.steps });
   }
   const offCapture = onWalkthroughChange(refreshCapture);
   refreshCapture();

@@ -1,5 +1,5 @@
 import { canUseDemoClock, getDemoClock, isDemoClockEligible, setDemoClockTime, stopDemoClock } from './demoClock';
-import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
+import { buildSchedulerDemoProfile, DEMO_COPY_SCRIPT } from 'pages/tournaments/schedulerDemoProfile';
 import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mocksEngine, tools } from 'tods-competition-factory';
@@ -47,5 +47,29 @@ describe('clock control requires an explicit anonymous demo session', () => {
     expect(isDemoClockEligible()).toBe(false);
     expect(canUseDemoClock()).toBe(false);
     expect(setDemoClockTime(INSTANT)).toBe(false);
+  });
+
+  it('never runs on a real local tournament: only a demo tournament (guided lab or demo copy) qualifies', () => {
+    const plain: any = mocksEngine.generateTournamentRecord({ tournamentName: 'My local event' });
+    tournamentEngine.setState(plain.tournamentRecord);
+    setDemoOverlay({ v: 1, permissions: {} });
+    expect(isDemoClockEligible()).toBe(false);
+    expect(setDemoClockTime(INSTANT)).toBe(false);
+
+    const copy = { ...plain.tournamentRecord, extensions: [{ name: 'demoScript', value: DEMO_COPY_SCRIPT }] };
+    tournamentEngine.setState(copy);
+    expect(isDemoClockEligible()).toBe(true);
+    expect(setDemoClockTime(INSTANT, 'clock')).toBe(true);
+  });
+
+  it('demo time applies only while the tournament it was set on is the loaded one', () => {
+    setDemoOverlay({ v: 1, permissions: {} });
+    expect(setDemoClockTime(INSTANT)).toBe(true);
+    expect(competitionNowMs()).toBe(INSTANT);
+    const other: any = mocksEngine.generateTournamentRecord({ tournamentName: 'Another record' });
+    tournamentEngine.setState(other.tournamentRecord);
+    // The provider withholds demo time (NaN, which the factory refuses) rather than lend it to another record; the
+    // router releases the clock on navigation (retainDemoClockFor).
+    expect(competitionNowMs()).not.toBe(INSTANT);
   });
 });

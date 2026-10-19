@@ -8,8 +8,12 @@ This first increment demonstrates Garman, Pro, and their composition in one loca
 4. Use **Clock controls** in the centered bottom-bar clock to reveal time settings and demo scenes.
 
 For an existing local tournament, choose **Open Demo Clock** for free clock mode
-(starting at 08:00 on the selected schedule date). The Scheduling Lab mode selector
-can switch between guided scenes and free clock operation.
+(starting at 08:00 on the selected schedule date). It runs on a **demo copy** of the
+tournament, never the original: the clock stamps simulated times into the record it
+runs on (calls, scores, time items), and a local tournament can later be claimed into a
+provider. Demo tournaments (the Scheduling Lab and demo copies) carry a `demoScript`
+extension and are never offered **Claim**. The Scheduling Lab mode selector can switch
+between guided scenes and free clock operation.
 
 | Day | Run                                          | Inspect                                                                            |
 | --- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -41,7 +45,9 @@ signed-in session, including super-admins, and requires an active demo overlay.
 The clock is not persisted across reloads.
 
 Calls, check-ins, starts and results still use ordinary tournament actions. Automatic calling
-currently requires provider membership, so it does not run in this anonymous demo. Scripted match
+runs here: a tournament with no provider, opened by nobody signed in, is a local record, so
+this client is its running desk (`isRunningDesk`). On a provider's tournament auto-call stays
+limited to that provider's staff. Scripted match
 actions, recovery-boundary jumps, checkpoint restoration, accelerated playback and synchronized
 online simulation are subsequent increments. Recreate the example to start with clean tournament data.
 
@@ -56,8 +62,8 @@ The dedicated browser configuration uses port 5187 and a separate Vite cache, wi
 to the workspace's linked dependencies. It never reuses a server running from another checkout.
 
 The Demo mode drawer now offers **Load guided scheduling demo**, which creates a
-fresh local copy and opens the guided clock, and **Open Demo Clock**, which enables
-free clock control on the current local tournament. The mode selector switches a
+fresh local copy and opens the guided clock, and **Open Demo Clock**, which opens
+free clock control on a demo copy of the current local tournament. The mode selector switches a
 Scheduling Lab between guided and free operation. Signed-in sessions are excluded.
 
 **Start recording** captures the initial record, clock/navigation steps and applied

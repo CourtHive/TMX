@@ -1,5 +1,5 @@
+import { hasSchedulingDemoScript, isDemoTournament } from 'pages/tournaments/schedulerDemoProfile';
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
-import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
 import { getToken } from 'services/authentication/tokenManagement';
 import { tournamentEngine } from 'services/factory/engine';
@@ -11,16 +11,30 @@ type DemoClockState = { tournamentId: string; nowMs: number; busy: boolean; mode
 let state: DemoClockState | undefined;
 const listeners = new Set<() => void>();
 
-/** Eligibility to enter clock control; no signed-in identity, including super-admins. */
-export function isDemoClockSessionEligible(): boolean {
-  return !getToken() && !context.provider;
+function signedIn(): boolean {
+  try {
+    return !!getToken();
+  } catch {
+    return true; // storage unreadable: cannot prove the session is anonymous
+  }
 }
 
+/** Eligibility to enter clock control; no signed-in identity, including super-admins. */
+export function isDemoClockSessionEligible(): boolean {
+  return !signedIn() && !context.provider;
+}
+
+/**
+ * The record the clock may run on: a demo tournament (guided lab or demo copy) with no provider, alone in the
+ * engine. The clock stamps simulated times into whatever it runs on, so a real tournament never qualifies; free
+ * clock on a real local tournament runs on a demo copy of it (demoClockLauncher).
+ */
 export function isDemoClockEligible(): boolean {
   if (!isDemoClockSessionEligible()) return false;
   const record = tournamentEngine.getTournament().tournamentRecord;
   return (
     !!record?.tournamentId &&
+    isDemoTournament(record) &&
     !record.parentOrganisation?.organisationId &&
     Object.values(tournamentEngine.getState().tournamentRecords ?? {}).every(
       (entry: any) => entry.tournamentId === record.tournamentId,
@@ -31,6 +45,20 @@ export function isDemoClockEligible(): boolean {
 /** Eligibility alone is insufficient: the demo posture must also be active. */
 export function canUseDemoClock(): boolean {
   return isDemoActive() && isDemoClockEligible();
+}
+
+/**
+ * Read on every competition-time lookup (the factory reads it once per engine call), so it checks only cheap facts
+ * and never copies the record: the session is still anonymous, demo posture is on, and the loaded tournament is the
+ * one the clock was set on. Ownership of that record was checked when the clock was set (setDemoClockTime).
+ */
+function clockApplies(): boolean {
+  return (
+    !!state &&
+    isDemoClockSessionEligible() &&
+    isDemoActive() &&
+    tournamentEngine.getTournamentId() === state.tournamentId
+  );
 }
 
 onDemoOverlayChange(() => {
@@ -74,7 +102,7 @@ export function setDemoClockTime(nowMs: number, mode?: DemoClockMode): boolean {
   if (nextMode === 'script' && !hasSchedulingDemoScript(record)) return false;
   state = { tournamentId: record.tournamentId!, nowMs, busy: false, mode: nextMode };
   // Reinstall to notify every existing scheduling subscriber, coalesced by competitionClock.
-  setCompetitionClock({ nowMs: () => (canUseDemoClock() ? (state?.nowMs ?? Number.NaN) : Number.NaN) });
+  setCompetitionClock({ nowMs: () => (clockApplies() ? (state?.nowMs ?? Number.NaN) : Number.NaN) });
   changed();
   return true;
 }
