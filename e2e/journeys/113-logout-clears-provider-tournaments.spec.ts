@@ -93,19 +93,30 @@ async function seedBothTournaments(page: Page): Promise<void> {
         await dev.tmx2db.upsertCalendarEntry(bucket, entry);
       };
 
-      mocks.generateTournamentRecord({ nonRandom: 1, setState: true, tournamentName: providerName });
+      mocks.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: providerName,
+        // A seeded engine mints the same ids every time (factory 7.16.0), so each fixture names its own.
+        tournamentAttributes: { tournamentId: 'e2e-j113-provider-bound' },
+      });
       const bound = engine.getTournament().tournamentRecord;
       bound.parentOrganisation = { organisationId: providerId, organisationName: 'E2E Provider' };
       await persist(bound, providerId);
 
-      mocks.generateTournamentRecord({ nonRandom: 1, setState: true, tournamentName: localName });
+      mocks.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: localName,
+        // A seeded engine mints the same ids every time (factory 7.16.0), so each fixture names its own.
+        tournamentAttributes: { tournamentId: 'e2e-j113-local-only' },
+      });
       const local = engine.getTournament().tournamentRecord;
       // The premise of the control. If a future mocksEngine default started stamping a
       // parentOrganisation, this record would be wiped too and the control would silently
       // stop controlling for anything.
       if (local.parentOrganisation) throw new Error('local fixture carries a parentOrganisation');
       await persist(local, localBucket);
-
     },
     { providerName: PROVIDER_BOUND, localName: LOCAL_ONLY, providerId: PROVIDER_ID, localBucket: LOCAL_BUCKET },
   );
