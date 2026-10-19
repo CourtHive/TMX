@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.39.0](https://github.com/CourtHive/TMX/compare/v8.38.2...v8.39.0) (2026-10-19)
+
+
+### Features
+
+* horizontal scheduling catalog and floating inspector ([#1683](https://github.com/CourtHive/TMX/issues/1683)) ([41a3381](https://github.com/CourtHive/TMX/commit/41a3381d2db60df452dc9e656ad95b1a06eb16cf))
+* **security:** a report-only Content Security Policy for the web app ([#1674](https://github.com/CourtHive/TMX/issues/1674)) ([0b661a0](https://github.com/CourtHive/TMX/commit/0b661a0fd5d504ce89d1c410b3c94ff861edd6f3))
+
+
+### Bug Fixes
+
+* **csp:** allow the Cloudflare Web Analytics beacon ([#1676](https://github.com/CourtHive/TMX/issues/1676)) ([bf6271b](https://github.com/CourtHive/TMX/commit/bf6271b248d52b00bb7e8dea1a0175e6ac92801a))
+* **deps:** update tods-competition-factory to 7.16.0 ([#1685](https://github.com/CourtHive/TMX/issues/1685)) ([4e6500c](https://github.com/CourtHive/TMX/commit/4e6500cfee015ddf25dbe82353be30a43bce21c4))
+* **display-settings:** the preview venue carries its online resources ([#1681](https://github.com/CourtHive/TMX/issues/1681)) ([018a269](https://github.com/CourtHive/TMX/commit/018a26910294eefce1f66ee012ccd8066b79eca5))
+* **events:** a view route opens only a view its structure offers ([#1678](https://github.com/CourtHive/TMX/issues/1678)) ([fbad64a](https://github.com/CourtHive/TMX/commit/fbad64abc532c3e5c66d33ae51f841a87d49c8d3))
+* **save:** go-online and claim saves are durable and conditional (C3) ([#1675](https://github.com/CourtHive/TMX/issues/1675)) ([0fb0413](https://github.com/CourtHive/TMX/commit/0fb0413a9533fd3a3f6579b8e9c612554276b3e0))
+
+
+### Performance
+
+* **officials:** the officials lookups ask the factory for no participant map ([#1682](https://github.com/CourtHive/TMX/issues/1682)) ([caee33a](https://github.com/CourtHive/TMX/commit/caee33a0b25aa9ecaf05419a7cb5fdb45e573003))
+
 ## [8.38.2](https://github.com/CourtHive/TMX/compare/v8.38.1...v8.38.2) (2026-10-17)
 
 
