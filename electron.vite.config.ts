@@ -1,5 +1,5 @@
 /**
- * Electron-specific Vite configuration (electron-vite v5).
+ * Electron-specific Vite configuration (electron-vite v6).
  *
  * Builds main process, preload, and renderer separately. The renderer shares
  * its plugin/resolve/warning surface with the web build via `vite.shared.ts` —
@@ -11,8 +11,9 @@ import { createHash } from 'crypto';
 import type { Plugin } from 'vite';
 import { resolve } from 'path';
 
-// Only externalize the 'electron' package, not our electron/ directory
-const isElectronPackage = (id: string) => id === 'electron' || id.startsWith('electron/dist');
+// Only externalize the 'electron' package, not our electron/ directory. An array, not a predicate:
+// electron-vite 6 appends its own externals to this option, and rolldown refuses a function inside the array.
+const isElectronPackage = ['electron', /^electron\/dist/];
 
 /**
  * Content-Security-Policy for the packaged renderer, injected as a `<meta>` at build time (the
