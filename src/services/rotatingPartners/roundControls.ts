@@ -26,7 +26,7 @@ export function previewRotatingRound({
   const { matchUps, error } = tournamentEngine.allDrawMatchUps({ drawId });
   if (error || !matchUps) {
     tmxToast({ message: String(error?.message ?? t('rotatingPartners.creation.configError')), intent: WARNING_INTENT });
-    return undefined;
+    return;
   }
   const roundNumber = matchUps.reduce((last, matchUp) => Math.max(last, matchUp.roundNumber ?? 0), 0) + 1;
   const preview = tournamentEngine.getRotatingPartnerRoundPreview({

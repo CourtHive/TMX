@@ -1,4 +1,3 @@
-import 'styles/components/rotatingDrawForm.css';
 import type { RotatingCreation, RotatingFormat } from 'services/rotatingPartners/creation';
 import { tournamentEngine } from 'services/factory/engine';
 import { drawsGovernor } from 'tods-competition-factory';
@@ -31,9 +30,7 @@ function field(container: HTMLElement, key: string, input: HTMLElement): HTMLEle
   control.className = 'control font-medium';
   if (input instanceof HTMLSelectElement) {
     const select = document.createElement('div');
-    select.className = 'select';
-    select.style.width = '100%';
-    input.style.width = '100%';
+    select.className = 'select rotating-select';
     select.appendChild(input);
     control.appendChild(select);
   } else {

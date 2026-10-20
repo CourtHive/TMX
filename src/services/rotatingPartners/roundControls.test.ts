@@ -18,7 +18,6 @@ vi.mock('i18n', () => ({ t: (key: string) => key }));
 afterEach(() => {
   tournamentEngine.reset();
   vi.unstubAllGlobals();
-  vi.clearAllMocks();
 });
 
 describe('the next rotating round from an existing menu callback', () => {
@@ -44,17 +43,14 @@ describe('the next rotating round from an existing menu callback', () => {
         },
         1,
       );
-      expect(tournamentEngine.executionQueue(prepared.methods)).toMatchObject({ success: true });
+      let result: any = tournamentEngine.executionQueue(prepared.methods);
+      expect(result).toMatchObject({ success: true });
       const drawId = prepared.drawDefinition!.drawId;
       const structureId = prepared.drawDefinition!.structures![0].structureId;
-      const capturedStructure = { structureId, matchUps: [] };
-      previewRotatingRound({ drawId, structure: capturedStructure });
-      expect(modal.open).toHaveBeenCalledOnce();
-      const first = modal.open.mock.calls[0][0];
-      first.buttons[1].onClick();
-      for (const matchUp of tournamentEngine.allDrawMatchUps({ drawId }).matchUps ?? []) {
-        expect(
-          tournamentEngine.setMatchUpStatus({
+      const completeRound = (roundNumber: number) => {
+        for (const matchUp of tournamentEngine.allDrawMatchUps({ drawId }).matchUps ?? []) {
+          if (matchUp.roundNumber !== roundNumber) continue;
+          result = tournamentEngine.setMatchUpStatus({
             drawId,
             matchUpId: matchUp.matchUpId,
             outcome: {
@@ -62,16 +58,31 @@ describe('the next rotating round from an existing menu callback', () => {
               winningSide: 1,
               score: { sets: [{ setNumber: 1, side1Score: 20, side2Score: 12, winningSide: 1 }] },
             },
-          }),
-        ).toMatchObject({ success: true });
-      }
-      expect(capturedStructure.matchUps).toEqual([]);
+          });
+          expect(result).toMatchObject({ success: true });
+        }
+      };
+
+      // A summary with no matchUps: the old code asked for round 1 again.
+      previewRotatingRound({ drawId, structure: { structureId, matchUps: [] } });
+      expect(modal.open).toHaveBeenCalledOnce();
+      modal.open.mock.calls[0][0].buttons[1].onClick();
+      completeRound(1);
+      const roundOneSummary = { structureId, matchUps: tournamentEngine.allDrawMatchUps({ drawId }).matchUps };
+
       previewRotatingRound({ drawId, structure: { structureId } });
       expect(modal.open).toHaveBeenCalledTimes(2);
       modal.open.mock.calls[1][0].buttons[1].onClick();
+      completeRound(2);
+
+      // A summary captured before round 2 was applied: the old code asked for round 2 again.
+      previewRotatingRound({ drawId, structure: roundOneSummary });
+      expect(modal.open).toHaveBeenCalledTimes(3);
+      modal.open.mock.calls[2][0].buttons[1].onClick();
+
       const draw = tournamentEngine.getEvent({ drawId }).drawDefinition!;
-      expect(draw.competitionRounds?.map((round) => round.roundNumber)).toEqual([1, 2]);
-      expect(tournamentEngine.allDrawMatchUps({ drawId }).matchUps).toHaveLength(4);
+      expect(draw.competitionRounds?.map((round) => round.roundNumber)).toEqual([1, 2, 3]);
+      expect(tournamentEngine.allDrawMatchUps({ drawId }).matchUps).toHaveLength(6);
     },
   );
 });
