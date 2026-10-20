@@ -5,6 +5,8 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
+const WARNING_INTENT = 'is-warning';
+
 export function isConfiguredRotatingDraw(drawId: string): boolean {
   const { drawDefinition } = tournamentEngine.getEvent({ drawId });
   return ['AMERICANO', 'MEXICANO'].includes(drawDefinition?.competitionProfile?.format ?? '');
@@ -19,7 +21,14 @@ export function previewRotatingRound({
   structure: any;
   callback?: () => void;
 }): void {
-  const roundNumber = Math.max(0, ...(structure.matchUps ?? []).map((matchUp: any) => matchUp.roundNumber ?? 0)) + 1;
+  // Menu callbacks capture a structure summary, which may omit matchUps or predate an applied round.
+  // Read the draw's current matchUps, as the factory does when enforcing the next logical round.
+  const { matchUps, error } = tournamentEngine.allDrawMatchUps({ drawId });
+  if (error || !matchUps) {
+    tmxToast({ message: String(error?.message ?? t('rotatingPartners.creation.configError')), intent: WARNING_INTENT });
+    return undefined;
+  }
+  const roundNumber = matchUps.reduce((last, matchUp) => Math.max(last, matchUp.roundNumber ?? 0), 0) + 1;
   const preview = tournamentEngine.getRotatingPartnerRoundPreview({
     drawId,
     structureId: structure.structureId,
@@ -28,7 +37,7 @@ export function previewRotatingRound({
   if (preview.error || !preview.round || !preview.scoringContract) {
     tmxToast({
       message: String(preview.info ?? preview.error?.message ?? t('rotatingPartners.creation.configError')),
-      intent: 'is-warning',
+      intent: WARNING_INTENT,
     });
     return;
   }
@@ -83,7 +92,7 @@ export function previewRotatingRound({
 export function showRotatingStandings(drawId: string): void {
   const result = tournamentEngine.getRotatingPartnerStandings({ drawId });
   if (result.error) {
-    tmxToast({ message: String(result.info ?? result.error.message), intent: 'is-warning' });
+    tmxToast({ message: String(result.info ?? result.error.message), intent: WARNING_INTENT });
     return;
   }
   const participants = tournamentEngine.getTournament().tournamentRecord?.participants ?? [];

@@ -1,3 +1,4 @@
+import 'styles/components/rotatingDrawForm.css';
 import type { RotatingCreation, RotatingFormat } from 'services/rotatingPartners/creation';
 import { tournamentEngine } from 'services/factory/engine';
 import { drawsGovernor } from 'tods-competition-factory';
@@ -26,7 +27,19 @@ function field(container: HTMLElement, key: string, input: HTMLElement): HTMLEle
   if (input.id) label.htmlFor = input.id;
   label.className = 'label';
   label.textContent = t(`rotatingPartners.creation.${key}`);
-  wrapper.append(label, input);
+  const control = document.createElement('div');
+  control.className = 'control font-medium';
+  if (input instanceof HTMLSelectElement) {
+    const select = document.createElement('div');
+    select.className = 'select';
+    select.style.width = '100%';
+    input.style.width = '100%';
+    select.appendChild(input);
+    control.appendChild(select);
+  } else {
+    control.appendChild(input);
+  }
+  wrapper.append(label, control);
   container.appendChild(wrapper);
   return wrapper;
 }
@@ -51,9 +64,10 @@ export function mountRotatingFormatFields({
 }) {
   const tournamentRecord = tournamentEngine.getTournament().tournamentRecord;
   const container = document.createElement('div');
-  target.appendChild(container);
+  const drawTypeField = inputs[DRAW_TYPE]?.closest('.field');
+  if (drawTypeField) drawTypeField.after(container);
+  else target.appendChild(container);
   const format = document.createElement('select');
-  format.className = 'select';
   format.id = ROTATING_FORMAT;
   option(format, 'STANDARD', t('rotatingPartners.creation.standard'));
   option(format, 'AMERICANO', 'Americano');
@@ -67,11 +81,10 @@ export function mountRotatingFormatFields({
   total.min = '1';
   total.step = '1';
   total.value = '32';
-  total.className = 'input';
+  total.className = 'input font-medium';
   field(details, 'pointTotal', total);
   const variant = document.createElement('select');
   variant.id = ROTATING_TIE_RESOLUTION;
-  variant.className = 'select';
   field(details, 'tieResolution', variant);
   const rounds = document.createElement('input');
   rounds.id = ROTATING_ROUNDS;
@@ -79,14 +92,14 @@ export function mountRotatingFormatFields({
   rounds.min = '1';
   rounds.step = '1';
   rounds.value = '7';
-  rounds.className = 'input';
+  rounds.className = 'input font-medium';
   const roundField = field(details, 'rounds', rounds);
   const notice = document.createElement('p');
   notice.className = 'help';
   details.appendChild(notice);
   const roster = document.createElement('div');
   roster.id = ROTATING_ROSTER;
-  roster.style.cssText = 'max-height: 220px; overflow: auto;';
+  roster.className = 'rotating-roster';
   field(details, 'players', roster);
   const selected = new Set(selectedParticipantIds ?? []);
   const choices = (tournamentRecord?.participants ?? [])
@@ -95,7 +108,7 @@ export function mountRotatingFormatFields({
     )
     .map((participant: any) => {
       const row = document.createElement('label');
-      row.style.display = 'block';
+      row.className = 'rotating-roster-option';
       const check = document.createElement('input');
       check.type = 'checkbox';
       check.checked = selected.has(participant.participantId);
