@@ -1079,7 +1079,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   function reconcileScheduledSelections(): void {
     const items = listScheduledOrphans(currentDate).map((m) => scheduledMatchUpToCatalogItem(m));
     const retained = reconcileScheduledFilters(scheduledFilters, items);
-    if (JSON.stringify(retained) === JSON.stringify(scheduledFilters)) return;
+    if (JSON.stringify(retained) === JSON.stringify(scheduledFilters)) return undefined;
     scheduledFilters = retained;
     writeScheduledFilters(scheduledFilters);
     updateScheduledFilterBadge();

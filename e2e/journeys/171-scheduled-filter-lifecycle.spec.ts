@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await resetState(page);
   await page.evaluate(
     async ({ id, first, next }) => {
-      localStorage.clear();
+      globalThis.localStorage.clear();
       dev.factory.mocksEngine.generateTournamentRecord({
         nonRandom: 1,
         setState: true,
@@ -103,7 +103,9 @@ test('changes days retaining valid filters and search, clearing absent values, a
   await page.locator(`${PANEL} input[type="text"]`).fill('missing player');
   await navigate(page, NEXT_DAY);
   await expect(page.locator(`${PANEL} input[type="text"]`)).toHaveValue('missing player');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('schedule2:scheduled-filters') || '{}'))).toEqual({
+  expect(
+    await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('schedule2:scheduled-filters') || '{}')),
+  ).toEqual({
     eventName: 'Alpha',
   });
   const nextPopover = await openFilters(page);
@@ -128,7 +130,7 @@ test('a tournament reload clears saved search and filter selections', async ({ p
   await page.reload();
   await expect(page.locator(CARDS)).toHaveCount(2);
   await expect(page.locator(`${PANEL} input[type="text"]`)).toHaveValue('');
-  expect(await page.evaluate(() => localStorage.getItem('schedule2:scheduled-filters'))).toBeNull();
+  expect(await page.evaluate(() => globalThis.localStorage.getItem('schedule2:scheduled-filters'))).toBeNull();
 });
 
 test('a data update clears a renamed event filter while retaining other valid selections', async ({ page }) => {
@@ -160,7 +162,9 @@ test('a data update clears a renamed event filter while retaining other valid se
   });
   await expect(page.locator(CARDS)).toHaveCount(1);
   await expect(page.locator(CARDS)).toContainText('Renamed');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('schedule2:scheduled-filters') || '{}'))).toEqual({
+  expect(
+    await page.evaluate(() => JSON.parse(globalThis.localStorage.getItem('schedule2:scheduled-filters') || '{}')),
+  ).toEqual({
     gender: 'MALE',
   });
 });

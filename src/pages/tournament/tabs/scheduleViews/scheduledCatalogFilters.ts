@@ -1,3 +1,4 @@
+// constants and types
 import type { CatalogMatchUpItem, CatalogFilters } from 'courthive-components';
 
 type FilterSection = { key: keyof CatalogFilters; labelKey: string; values: string[] };

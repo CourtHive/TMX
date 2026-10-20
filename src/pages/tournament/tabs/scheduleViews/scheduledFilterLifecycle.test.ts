@@ -2,6 +2,7 @@ import { resetScheduledCatalogFilters, readScheduledFilters, readScheduledSearch
 import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+// constants and types
 import type { CatalogMatchUpItem } from 'courthive-components';
 
 const items = (values: Partial<CatalogMatchUpItem>[]): CatalogMatchUpItem[] => values as CatalogMatchUpItem[];
