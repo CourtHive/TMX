@@ -1,24 +1,34 @@
 import { isMatchUpAwaitingReconciliation } from 'services/crowd/delegatedReconciliation';
+import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { isMatchUpCrowdsourced } from 'services/messaging/crowdsourcedScores';
 import { t } from 'i18n';
 
+const STATUS_DISPLAY: Record<string, string> = {
+  RETIRED: 'RET',
+  WALKOVER: 'WO',
+  DEFAULTED: 'DEF',
+  DOUBLE_WALKOVER: 'DWO',
+  DOUBLE_DEFAULT: 'DDEF',
+  CANCELLED: 'CAN',
+  ABANDONED: 'ABN',
+};
+
 export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   const data = cell.getRow().getData();
-  if (!data.readyToScore) return;
-
-  const isWalkover = data.matchUp.matchUpStatus === 'WALKOVER';
+  const statusLabel = STATUS_DISPLAY[data.matchUp?.matchUpStatus];
+  if (!data.score && !statusLabel && (!data.readyToScore || !scoreActionPermitted(data.matchUp))) return undefined;
 
   const content = document.createElement('span');
   content.classList.add('scoreCell');
   if (data.score) {
     content.style.fontSize = 'smaller';
     content.textContent = data.score;
-  } else if (isWalkover) {
-    content.innerHTML = 'WO';
+  } else if (statusLabel) {
+    content.textContent = statusLabel;
   } else {
     content.style.color = 'var(--tmx-accent-blue)';
     content.style.fontSize = 'smaller';
-    content.innerHTML = 'Enter score';
+    content.textContent = t('schedule.enterScore');
   }
 
   if (isMatchUpCrowdsourced(data.matchUp?.matchUpId)) {

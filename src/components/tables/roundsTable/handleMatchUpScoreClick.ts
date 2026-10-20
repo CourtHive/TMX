@@ -1,7 +1,8 @@
 import { exitBeforeArrivalAction, recordExitBeforeArrival } from 'services/transitions/recordExitBeforeArrival';
-import { participantConstants, scoreGovernor } from 'tods-competition-factory';
+import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { participantConstants } from 'tods-competition-factory';
 import { escapeHtml } from 'utilities/escapeHtml';
 
 const { TEAM } = participantConstants;
@@ -17,7 +18,7 @@ export const handleScoreClick = (replaceTableData) => (_, cell) => {
     openScorecard({ title: escapeHtml(eventName), matchUpId, drawId, onClose });
   } else if (exitAction) {
     recordExitBeforeArrival({ action: exitAction, matchUp: data.matchUp, callback: () => replaceTableData() });
-  } else if (readyToScore || scoreGovernor.checkScoreHasValue(data.matchUp)) {
+  } else if (scoreActionPermitted(data.matchUp)) {
     const callback = () => {
       replaceTableData();
     };

@@ -1,9 +1,10 @@
 import { exitBeforeArrivalAction, recordExitBeforeArrival } from 'services/transitions/recordExitBeforeArrival';
+import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { openScorecard } from 'components/overlays/scorecard/scorecard';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
-import { isPointsTotalFormat } from 'functions/isPointsTotalFormat';
 import { participantConstants } from 'tods-competition-factory';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { takesHotkeyEntry } from './hotkeyScoreField';
 import { deviceConfig } from 'config/deviceConfig';
 import { escapeHtml } from 'utilities/escapeHtml';
 
@@ -19,14 +20,10 @@ export const handleScoreClick = (replaceTableData, setFocusData) => (e, cell) =>
     openScorecard({ title: escapeHtml(eventName), matchUpId, drawId, onClose });
   } else if (exitAction) {
     recordExitBeforeArrival({ action: exitAction, matchUp: data.matchUp, callback: replaceTableData });
-  } else if (readyToScore || data.matchUp.score?.scoreStringSide1)
-    // The hotkey keypad is the factory's tennis keyValueScore: one digit is the losing side's games. It cannot
-    // enter a combined-point total (SET1-S:P32: typing 1 gives "-1"), so such a matchUp opens the score dialog.
-    if (
-      preferencesConfig.get().hotkeys &&
-      !deviceConfig.get().isMobile &&
-      !isPointsTotalFormat(data.matchUp.matchUpFormat)
-    ) {
+  } else if (scoreActionPermitted(data.matchUp))
+    // Final-result corrections open the dialog even in hotkey mode. The keypad remains for unfinished
+    // tennis scores; combined-point totals also need the dialog because one keypad digit means losing games.
+    if (preferencesConfig.get().hotkeys && !deviceConfig.get().isMobile && takesHotkeyEntry(data.matchUp)) {
       setFocusData({ e, cell, replaceTableData });
       const tcells = document.querySelectorAll('.activeScoreCell');
       for (const tcell of Array.from(tcells)) {
