@@ -24,6 +24,7 @@ import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedule
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
+import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
@@ -66,6 +67,7 @@ import {
   buildMatchUpCard,
   clearRelatedHighlight,
   wrapSearchWithClear,
+  syncClearVisibility,
   computeActiveStrip,
 } from 'courthive-components';
 import type {
@@ -334,19 +336,6 @@ import {
   type SidebarTab,
 } from './gridViewStorage';
 
-/** Distinct, sorted, locale-aware values of an accessor across catalog items.
- *  Mirrors the helper inside courthive-components' `matchUpCatalog.ts`. */
-function uniqueCatalogValues(
-  items: CatalogMatchUpItem[],
-  fn: (item: CatalogMatchUpItem) => string | undefined,
-): string[] {
-  const set = new Set<string>();
-  for (const item of items) {
-    const v = fn(item);
-    if (v) set.add(v);
-  }
-  return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-}
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
 let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] } | null = null;
@@ -1076,11 +1065,32 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     }
   }
 
+  function clearScheduledFilters(): void {
+    scheduledFilters = {};
+    scheduledSearchQuery = '';
+    scheduledSearchInput.value = '';
+    syncClearVisibility(scheduledSearchWrap);
+    writeScheduledFilters(scheduledFilters);
+    writeScheduledSearch('');
+    updateScheduledFilterBadge();
+    updateScheduledPanel();
+  }
+
+  function reconcileScheduledSelections(): void {
+    const items = listScheduledOrphans(currentDate).map((m) => scheduledMatchUpToCatalogItem(m));
+    const retained = reconcileScheduledFilters(scheduledFilters, items);
+    if (JSON.stringify(retained) === JSON.stringify(scheduledFilters)) return;
+    scheduledFilters = retained;
+    writeScheduledFilters(scheduledFilters);
+    updateScheduledFilterBadge();
+    destroyScheduledFilterTip();
+  }
+
   function buildScheduledFilterPopover(): HTMLElement {
     // Build option lists from the unfiltered catalog source for the current
     // date so the popover always offers every available value — filtering
     // by one dimension shouldn't shrink the choices on the others.
-    const items = getScheduledNotPlacedOnCourt().map((m) => scheduledMatchUpToCatalogItem(m));
+    const items = listScheduledOrphans(currentDate).map((m) => scheduledMatchUpToCatalogItem(m));
 
     const container = document.createElement('div');
     container.className = 'spl-filter-popover';
@@ -1093,16 +1103,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     clearAll.textContent = t('schedule.filterClearAll');
     clearAll.addEventListener('click', (ev) => {
       ev.stopPropagation();
-      scheduledFilters = {};
-      writeScheduledFilters(scheduledFilters);
-      updateScheduledFilterBadge();
-      for (const sel of container.querySelectorAll<HTMLSelectElement>('select')) {
-        sel.value = '';
-        sel.classList.remove(FILTER_HIGHLIGHT_CLASS);
-        const lbl = sel.previousElementSibling;
-        if (lbl?.classList.contains('spl-filter-label')) lbl.classList.remove(FILTER_HIGHLIGHT_CLASS);
-      }
-      updateScheduledPanel();
+      clearScheduledFilters();
+      destroyScheduledFilterTip();
     });
     popoverHeader.appendChild(clearAll);
 
@@ -1117,29 +1119,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
 
     container.appendChild(popoverHeader);
 
-    const sections: Array<{ labelKey: string; key: keyof CatalogFilters; values: string[] }> = [
-      {
-        labelKey: 'schedule.filterAllEventTypes',
-        key: 'eventType',
-        values: uniqueCatalogValues(items, (m) => m.matchUpType),
-      },
-      {
-        labelKey: 'schedule.filterAllEvents',
-        key: 'eventName',
-        values: uniqueCatalogValues(items, (m) => m.eventName),
-      },
-      { labelKey: 'schedule.filterAllFlights', key: 'drawName', values: uniqueCatalogValues(items, (m) => m.drawName) },
-      { labelKey: 'schedule.filterAllGenders', key: 'gender', values: uniqueCatalogValues(items, (m) => m.gender) },
-      {
-        labelKey: 'schedule.filterAllRounds',
-        key: 'roundName',
-        values: uniqueCatalogValues(items, (m) => m.roundName),
-      },
-    ];
-
-    for (const section of sections) {
-      if (section.values.length < 2) continue;
-
+    for (const section of scheduledFilterSections(items, scheduledFilters)) {
       const label = document.createElement('label');
       label.className = 'spl-filter-label';
       label.textContent = t(section.labelKey);
@@ -1261,6 +1241,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function updateBadge(): void {
+    reconcileScheduledSelections();
     // Single factory pass; split into visible-count (respects the toggle)
     // and absolute-count (gates funnel visibility). The funnel is hidden
     // when there's nothing for the popover to act on even with the toggle
@@ -1271,7 +1252,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       ? orphans.length
       : orphans.filter((m: any) => !isCompletedStatus(m.matchUpStatus)).length;
     schedBadge.textContent = String(visibleCount);
-    scheduledFilterBtn.style.display = orphans.length === 0 ? 'none' : '';
+    scheduledFilterBtn.style.display = orphans.length === 0 && !isAnyScheduledFilterActive() ? 'none' : '';
     // Unscheduled badge reflects the unfiltered eligible-for-unscheduled
     // count for the current date — same source the catalog widget meta
     // shows ("X unscheduled"), so the badge cannot drift from what the
@@ -1283,6 +1264,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   }
 
   function updateScheduledPanel(): void {
+    reconcileScheduledSelections();
     // Hidden with the sidebar: built when it is shown again (`onSidebarShown`).
     if (!sidebarVisible) return;
     scheduledCardsContainer.innerHTML = '';
@@ -1328,6 +1310,11 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       hint.style.cssText =
         'font-size: 0.6875rem; color: var(--sp-muted, var(--tmx-muted)); text-align: center; padding: 24px 8px;';
       hint.textContent = t('schedule.noScheduledMatchUpsMatch');
+      const clear = document.createElement('button');
+      clear.className = 'spl-filter-clear-btn';
+      clear.textContent = t('schedule.filterClearAll');
+      clear.addEventListener('click', clearScheduledFilters);
+      hint.appendChild(clear);
       scheduledCardsContainer.appendChild(hint);
       return;
     }
