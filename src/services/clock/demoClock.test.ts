@@ -3,10 +3,13 @@ import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mocksEngine, tools } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import { SCHEDULER_DEMO_ID } from './schedulingDemoScript';
 import { competitionNowMs } from './competitionClock';
 import { context } from 'services/context';
 import {
+  forgetDemoClockHistory,
   noteLoadedTournament,
+  demoClockResumeAt,
   advanceDemoClock,
   canUseDemoClock,
   demoWallTime,
@@ -39,6 +42,7 @@ beforeEach(() => {
 afterEach(() => {
   clearDemoOverlay();
   stopDemoClock();
+  forgetDemoClockHistory();
   session.token = null;
   context.provider = undefined;
   tournamentEngine.reset();
@@ -81,7 +85,7 @@ describe('paused local demo clock ownership', () => {
   it('retains time within the demo tournament and releases it before another route', () => {
     loadLab();
     setDemoClockTime(START);
-    retainDemoClockFor('scheduler-demo-three-days');
+    retainDemoClockFor(SCHEDULER_DEMO_ID);
     expect(getDemoClock()?.nowMs).toBe(START);
     retainDemoClockFor('other-tournament');
     expect(getDemoClock()).toBeUndefined();
@@ -93,8 +97,59 @@ describe('paused local demo clock ownership', () => {
     setDemoClockTime(START);
     session.token = 'new-identity';
     expect(competitionNowMs()).toBeUndefined();
-    retainDemoClockFor('scheduler-demo-three-days');
+    retainDemoClockFor(SCHEDULER_DEMO_ID);
     expect(getDemoClock()).toBeUndefined();
+  });
+
+  it('releases the clock after the first refused read once another tab signs in', async () => {
+    loadLab();
+    setDemoClockTime(START);
+    session.token = 'signed-in-elsewhere';
+    expect(competitionNowMs()).toBeUndefined();
+    expect(getDemoClock()).toBeDefined(); // answered at once, released after the reading call
+    await Promise.resolve();
+    expect(getDemoClock()).toBeUndefined();
+  });
+
+  it('a refused read with the session still anonymous keeps the clock', async () => {
+    loadLab();
+    setDemoClockTime(START);
+    tournamentEngine.reset();
+    expect(competitionNowMs()).toBeUndefined();
+    await Promise.resolve();
+    expect(getDemoClock()?.nowMs).toBe(START);
+  });
+});
+
+describe('forward-only across Exit and reopen', () => {
+  it('a reopened clock resumes at the furthest time reached, never before it', () => {
+    loadLab();
+    expect(demoClockResumeAt(START)).toBe(START);
+    setDemoClockTime(START);
+    advanceDemoClock(60 * 24 * 2); // day 3
+    const furthest = START + 2 * 86_400_000;
+    stopDemoClock();
+    expect(getDemoClock()).toBeUndefined();
+    expect(setDemoClockTime(START)).toBe(false);
+    expect(demoClockResumeAt(START)).toBe(furthest);
+    expect(setDemoClockTime(demoClockResumeAt(START))).toBe(true);
+    expect(getDemoClock()?.nowMs).toBe(furthest);
+  });
+
+  it('a later first-day start than the furthest time wins', () => {
+    loadLab();
+    setDemoClockTime(START);
+    stopDemoClock();
+    expect(demoClockResumeAt(START + 60_000)).toBe(START + 60_000);
+  });
+
+  it('a regenerated record starts over', () => {
+    loadLab();
+    setDemoClockTime(START + 86_400_000);
+    stopDemoClock();
+    forgetDemoClockHistory(SCHEDULER_DEMO_ID);
+    expect(demoClockResumeAt(START)).toBe(START);
+    expect(setDemoClockTime(START)).toBe(true);
   });
 });
 

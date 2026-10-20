@@ -19,7 +19,6 @@
  */
 import { buildDemoClockLauncher } from 'components/demoClock/demoClockLauncher';
 import { BOOLEAN_PERMISSION_KEYS } from '@courthive/provider-config';
-import { stopDemoClock } from 'services/clock/demoClock';
 
 import { clearDemoOverlay, getDemoOverlay, setDemoOverlay, setDemoPermission } from 'services/demoMode/demoState';
 import { DEMO_PRESET_IDS, overridesForPreset } from 'services/demoMode/demoPresets';
@@ -194,7 +193,7 @@ function buildFooter(): HTMLElement {
   exit.className = 'button is-warning';
   exit.textContent = t('demoMode.exit');
   exit.addEventListener('click', () => {
-    stopDemoClock();
+    // clearing the overlay also stops the demo clock (its overlay observer)
     clearDemoOverlay();
     context.drawer.close();
     renderDemoAffordance();

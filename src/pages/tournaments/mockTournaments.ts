@@ -8,6 +8,7 @@ import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
 import { getLoginState } from 'services/authentication/loginState';
+import { forgetDemoClockHistory } from 'services/clock/demoClock';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 import {
@@ -657,12 +658,16 @@ function generateTournamentRecords(indices?: number[]): any[] {
     const { build, ...rest }: any = profile;
     const built = build?.();
     if (build && !built) {
-      // the live schedule needs a usable competition clock; the other examples do not, so they still generate
-      tmxToast({ message: t('tournaments.liveDemoClockUnavailable'), intent: 'is-danger' });
+      // a time-relative example (the live schedule, the Scheduling Lab) needs a usable competition clock; the other
+      // examples do not, so they still generate
+      const message = t('tournaments.exampleClockUnavailable', { name: rest.tournamentName });
+      tmxToast({ message, intent: 'is-danger' });
       return [];
     }
     const resolved = built ? { ...rest, ...built } : rest;
     const { tournamentRecord } = mocksEngine.generateTournamentRecord(resolved);
+    // a regenerated example (the Scheduling Lab keeps a fixed id) holds none of its old demo-clock stamps
+    forgetDemoClockHistory(tournamentRecord.tournamentId);
     addAutoCourtImage(tournamentRecord, resolved.drawProfiles);
     return [tournamentRecord];
   });

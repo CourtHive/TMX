@@ -1,24 +1,21 @@
 import { fixtures, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { competitionNow } from 'services/clock/competitionClock';
+import {
+  SCHEDULER_DEMO_ID,
+  SCHEDULER_DEMO_NAME,
+  SCHEDULER_DEMO_VENUE,
+  SCHEDULER_DEMO_ZONE,
+  SCHEDULER_DEMO_SCRIPT,
+} from 'services/clock/schedulingDemoScript';
 
-export const SCHEDULER_DEMO_ID = 'scheduler-demo-three-days';
-export const SCHEDULER_DEMO_NAME = 'Scheduling Lab — Garman + Pro';
-export const SCHEDULER_DEMO_VENUE = 'scheduler-demo-venue';
-export const SCHEDULER_DEMO_ZONE = 'America/New_York';
-export const SCHEDULER_DEMO_SCRIPT = 'scheduling-lab-v1';
-
-/**
- * A demo tournament: the guided Scheduling Lab. The demo clock runs only on these (it stamps simulated times into the
- * record), and they are never offered Claim into a provider.
- */
-export function hasSchedulingDemoScript(record: any): boolean {
-  return (
-    record?.tournamentId === SCHEDULER_DEMO_ID ||
-    record?.extensions?.some(
-      (extension: any) => extension.name === 'demoScript' && extension.value === SCHEDULER_DEMO_SCRIPT,
-    )
-  );
-}
+export {
+  SCHEDULER_DEMO_ID,
+  SCHEDULER_DEMO_NAME,
+  SCHEDULER_DEMO_VENUE,
+  SCHEDULER_DEMO_ZONE,
+  SCHEDULER_DEMO_SCRIPT,
+  hasSchedulingDemoScript,
+} from 'services/clock/schedulingDemoScript';
 
 /** Explicit calendar arithmetic: independent of the presenter's browser zone and DST. */
 export function schedulerDemoDates(startDate: string): string[] {

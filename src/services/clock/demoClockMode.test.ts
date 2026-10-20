@@ -5,6 +5,7 @@ import { mocksEngine, tools } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { competitionNowMs } from './competitionClock';
 import {
+  forgetDemoClockHistory,
   canUseDemoClock,
   getDemoClock,
   isDemoClockEligible,
@@ -28,6 +29,7 @@ beforeEach(() => {
 
 afterEach(() => {
   stopDemoClock();
+  forgetDemoClockHistory();
   clearDemoOverlay();
   identity.token = null;
   tournamentEngine.reset();

@@ -1,4 +1,3 @@
-import { noteLoadedTournament } from 'services/clock/demoClock';
 /**
  * Main tournament display router and loader.
  * Handles tournament loading, navigation, and tab rendering.
@@ -26,6 +25,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { clearCallerGrants } from 'services/capability/scopeState';
 import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { showContent } from 'services/transitions/screenSlaver';
+import { noteLoadedTournament } from 'services/clock/demoClock';
 import { factoryConstants } from 'tods-competition-factory';
 import { renderFormatWizardPage } from './formatWizardPage';
 import { tournamentEngine } from 'services/factory/engine';

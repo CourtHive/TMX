@@ -1,9 +1,9 @@
 import { durableSave, forgetOfflineSyncPoint, rememberOfflineSyncPoint } from 'services/apis/durableSave';
 import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'courthive-components';
-import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
 import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
+import { hasSchedulingDemoScript } from 'services/clock/schedulingDemoScript';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';

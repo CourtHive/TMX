@@ -1,7 +1,8 @@
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
-import { hasSchedulingDemoScript } from 'pages/tournaments/schedulerDemoProfile';
 import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
 import { getToken } from 'services/authentication/tokenManagement';
+import { hasSchedulingDemoScript } from './schedulingDemoScript';
+import { getJwtTokenStorageKey } from 'config/localStorage';
 import { tournamentEngine } from 'services/factory/engine';
 import { setCompetitionClock } from './competitionClock';
 import { context } from 'services/context';
@@ -70,6 +71,54 @@ onDemoOverlayChange(() => {
   if (!canUseDemoClock()) stopDemoClock();
 });
 
+/**
+ * A sign-in in another tab shares the token through localStorage. Without this the demo tab would keep its panel up
+ * while every factory call is refused for an unusable clock (NaN), with no reason given.
+ */
+function releaseIfSessionChanged(): void {
+  if (state && !isDemoClockSessionEligible()) stopDemoClock();
+}
+
+if (typeof globalThis.addEventListener === 'function')
+  globalThis.addEventListener('storage', (event: StorageEvent) => {
+    if (event.key === null || event.key === getJwtTokenStorageKey()) releaseIfSessionChanged();
+  });
+
+let releaseQueued = false;
+/** A refused read is answered with NaN at once; the release itself runs after the engine call that read it. */
+function queueSessionRelease(): void {
+  if (releaseQueued) return;
+  releaseQueued = true;
+  queueMicrotask(() => {
+    releaseQueued = false;
+    releaseIfSessionChanged();
+  });
+}
+
+function readDemoNow(): number {
+  if (clockApplies()) return state?.nowMs ?? Number.NaN;
+  queueSessionRelease();
+  return Number.NaN;
+}
+
+/**
+ * The furthest time each demo tournament's clock has reached. Calls and results stamped up to it are in the record,
+ * so it outlives `state`: Exit and route changes stop the clock, and a reopened clock resumes from here instead of
+ * winding back under those stamps.
+ */
+const highWater = new Map<string, number>();
+
+/** Where a (re)opened clock may start for the loaded tournament: `startMs`, or later if the clock already ran past it. */
+export function demoClockResumeAt(startMs: number): number {
+  return Math.max(startMs, highWater.get(tournamentEngine.getTournamentId()) ?? startMs);
+}
+
+/** The tournament's record was regenerated, so none of its earlier stamps remain. No id forgets every tournament. */
+export function forgetDemoClockHistory(tournamentId?: string): void {
+  if (tournamentId) highWater.delete(tournamentId);
+  else highWater.clear();
+}
+
 export function getDemoClock(): Readonly<DemoClockState> | undefined {
   return state ? { ...state } : undefined;
 }
@@ -100,12 +149,18 @@ export function retainDemoClockFor(tournamentId?: string): void {
 export function setDemoClockTime(nowMs: number, mode?: DemoClockMode): boolean {
   if (!canUseDemoClock() || state?.busy || !Number.isFinite(nowMs) || Number.isNaN(new Date(nowMs).getTime()))
     return false;
-  // Stored calls and results cannot be undone by winding a clock back.
-  if (state && nowMs < state.nowMs) return false;
+  const tournamentId = tournamentEngine.getTournamentId();
+  // Stored calls and results cannot be undone by winding a clock back, including by exiting and reopening it.
+  const floor = Math.max(
+    state?.nowMs ?? Number.NEGATIVE_INFINITY,
+    highWater.get(tournamentId) ?? Number.NEGATIVE_INFINITY,
+  );
+  if (nowMs < floor) return false;
   const nextMode = mode ?? state?.mode ?? 'script';
-  state = { tournamentId: tournamentEngine.getTournamentId(), nowMs, busy: false, mode: nextMode };
+  state = { tournamentId, nowMs, busy: false, mode: nextMode };
+  highWater.set(tournamentId, nowMs);
   // Reinstall to notify every existing scheduling subscriber, coalesced by competitionClock.
-  setCompetitionClock({ nowMs: () => (clockApplies() ? (state?.nowMs ?? Number.NaN) : Number.NaN) });
+  setCompetitionClock({ nowMs: readDemoNow });
   changed();
   return true;
 }

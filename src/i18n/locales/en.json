@@ -630,7 +630,7 @@
     "publishtime": "Publish Time",
     "replacelocal": "Replace Local Copy?",
     "unpublish": "Unpublish Tournament?",
-    "liveDemoClockUnavailable": "The Live Schedule example was not generated: the competition clock is not giving a usable time. Fix or remove the competition clock (dev.setCompetitionClock) and try again."
+    "exampleClockUnavailable": "The {{name}} example was not generated: the competition clock is not giving a usable time. Fix or remove the competition clock (dev.setCompetitionClock) and try again."
   },
   "ddlb": {
     "singles": "Singles Tournament Rank:",
@@ -3509,20 +3509,20 @@
     "failed": "Scheduling failed. Check the schedule and try again.",
     "applied": "Scheduler applied. Inspect the day in Grid to compare the result.",
     "hint": "Time is paused. Start, score and finish matches with the normal tournament controls. Opening a later day advances to 09:55; earlier days can be viewed without rewinding history. Exit restores real time.",
-    "days": [
-      {
+    "days": {
+      "day1": {
         "title": "Day 1 · Garman",
         "description": "Apply Times to Singles. Inspect policy-based start times, recovery gaps and court availability."
       },
-      {
+      "day2": {
         "title": "Day 2 · Pro",
         "description": "Apply Grid to Doubles. Inspect court order without scheduled times. Use the normal grid controls for not-before and follow-by annotations."
       },
-      {
+      "day3": {
         "title": "Day 3 · Together",
         "description": "Apply Garman times first, then Pro grid to the same Singles and Doubles draws. Verify the times remain while court positions are added."
       }
-    ],
+    },
     "shortLabel": "Demo time",
     "bottomBar": "Demo clock bottom bar",
     "mode": "Demo mode",

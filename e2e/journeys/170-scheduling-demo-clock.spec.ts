@@ -267,5 +267,6 @@ test('the clock starts on the first day even when the page shows a later day', a
   await page.getByRole('button', { name: 'Open Demo Clock', exact: true }).click();
   await expect(panel).toBeVisible();
   await expect(panel.locator('output')).toHaveAttribute('title', new RegExp(`^${firstDay} `));
-  await expect(panel.locator('output')).toContainText('08:00');
+  // Free clock starts at 08:00, but this clock already ran to 09:55 before Exit: it resumes there, never earlier.
+  await expect(panel.locator('output')).toContainText('09:55');
 });

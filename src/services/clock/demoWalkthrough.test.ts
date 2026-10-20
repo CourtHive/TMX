@@ -1,4 +1,3 @@
-import { setDemoClockTime, advanceDemoClock, stopDemoClock, noteLoadedTournament } from './demoClock';
 import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
 import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
@@ -6,6 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { replayDemoWalkthrough } from './replayDemoWalkthrough';
 import { mocksEngine, tools } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import {
+  forgetDemoClockHistory,
+  noteLoadedTournament,
+  advanceDemoClock,
+  setDemoClockTime,
+  stopDemoClock,
+} from './demoClock';
 import {
   clearDemoWalkthrough,
   getDemoWalkthrough,
@@ -34,6 +40,7 @@ beforeEach(() => {
 afterEach(() => {
   clearDemoWalkthrough();
   stopDemoClock();
+  forgetDemoClockHistory();
   clearDemoOverlay();
   tools.setClock();
   tournamentEngine.reset();

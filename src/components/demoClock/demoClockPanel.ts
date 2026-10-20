@@ -14,6 +14,7 @@ import { t } from 'i18n';
 import {
   advanceDemoClock,
   canUseDemoClock,
+  demoClockResumeAt,
   demoTournamentStartDate,
   isDemoClockEligible,
   demoWallTime,
@@ -71,8 +72,10 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   // The clock always starts on the tournament's first day (the demo is generated to start today), whichever schedule
   // date the page happens to show: it only moves forward, so starting on a later day would strand the earlier ones.
   const firstDate = dates[0] ?? startDate;
-  const initial =
+  // Reopened after Exit or a route change, it resumes where it stopped: the record holds stamps up to there.
+  const firstStart =
     firstDate && zone ? demoWallTime(firstDate, selectedMode === 'script' ? '09:55' : '08:00', zone) : undefined;
+  const initial = firstStart === undefined ? undefined : demoClockResumeAt(firstStart);
   if (!getDemoClock() && initial === undefined) {
     tmxToast({ message: t('demoClock.cannotStart'), intent: 'is-warning' });
     return;
@@ -168,9 +171,9 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   for (const [day, scheduleDate] of dates.entries()) {
     const scene = document.createElement('div');
     const heading = document.createElement('strong');
-    heading.textContent = t(`demoClock.days.${day}.title`);
+    heading.textContent = t(`demoClock.days.day${day + 1}.title`);
     const description = document.createElement('p');
-    description.textContent = t(`demoClock.days.${day}.description`);
+    description.textContent = t(`demoClock.days.day${day + 1}.description`);
     const open = button(t('demoClock.openDay'), () => {
       if (getDemoClock()?.busy) return;
       const at = demoWallTime(scheduleDate, '09:55', zone);
