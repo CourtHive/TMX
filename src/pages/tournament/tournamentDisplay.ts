@@ -25,6 +25,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { clearCallerGrants } from 'services/capability/scopeState';
 import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { showContent } from 'services/transitions/screenSlaver';
+import { noteLoadedTournament } from 'services/clock/demoClock';
 import { factoryConstants } from 'tods-competition-factory';
 import { renderFormatWizardPage } from './formatWizardPage';
 import { tournamentEngine } from 'services/factory/engine';
@@ -80,6 +81,8 @@ export function displayTournament({ config }: { config?: any } = {}): void {
   const isCurrent = beginTournamentLoad(config.tournamentId);
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId === config.tournamentId) {
+    // Already in the engine (dev.load, a catalog demo): note it for the demo clock from the record this branch holds.
+    noteLoadedTournament(tournamentRecord);
     // Tournament already loaded — check if we missed updates while disconnected
     if (hadDisconnect() && getLoginState()) {
       clearDisconnectFlag();
@@ -235,6 +238,9 @@ export function loadTournament({
   isCurrent?: () => boolean;
 }): void {
   if (!isCurrent()) return;
+  // The demo clock runs only on demo tournaments and never reads a record (the engine copies on read): it is told
+  // here, from the record in hand, whether this one is a demo tournament.
+  noteLoadedTournament(tournamentRecord);
   // Clear per-tournament transient state
   context.matchUpFilters = {};
   context.scheduleCatalogState = undefined;

@@ -325,3 +325,5 @@ export const ROTATING_POINT_TOTAL = 'rotatingPointTotal';
 export const ROTATING_TIE_RESOLUTION = 'rotatingTieResolution';
 export const ROTATING_ROUNDS = 'rotatingRounds';
 export const ROTATING_ROSTER = 'rotatingRoster';
+
+export const DEMO_CLOCK_PANEL = 'demoClockPanel';

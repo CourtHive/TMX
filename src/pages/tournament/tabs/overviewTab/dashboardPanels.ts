@@ -3,6 +3,7 @@ import { burstChart, fromFactoryDrawData, createCourtSvg, CourtSport } from 'cou
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { consoleGrantsRoute, consoleUrl } from 'services/navigation/consoleUrl';
 import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
+import { hasSchedulingDemoScript } from 'services/clock/schedulingDemoScript';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { openRegistrationProfileEditor } from './registrationProfileEditor';
 import { donutChartFromMatchUps } from '@courthive/scoring-visualizations';
@@ -610,7 +611,8 @@ export function createActionsPanel(): HTMLElement {
     );
   }
 
-  if (tournamentRecord && !providerId && activeProvider) {
+  // A demo tournament carries simulated clock times (demoClock): never claim it into a provider's records.
+  if (tournamentRecord && !providerId && activeProvider && !hasSchedulingDemoScript(tournamentRecord)) {
     btnContainer.appendChild(
       createActionButton(t('modals.tournamentActions.claimTournament'), 'fa-hand-paper', () => {
         const record = tournamentEngine.q.tournament();

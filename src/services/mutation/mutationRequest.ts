@@ -1,15 +1,17 @@
-import { captureTournamentOperation, captureTournamentSelection } from 'services/tournament/operationOwnership';
 /**
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
  */
 import { notifyMutationApplied, notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
+import { captureTournamentOperation, captureTournamentSelection } from 'services/tournament/operationOwnership';
 import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
 import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
+import { venueCalendarDate, venueTimeZone } from 'functions/venueTimeFrame';
+import { canUseDemoClock, getDemoClock } from 'services/clock/demoClock';
 import { advanceServerSync } from 'services/staleness/serverSync';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { pipelineConfig } from 'config/pipelineConfig';
@@ -59,6 +61,26 @@ interface MutationParams {
 }
 
 // ── Pure helpers (testable without DOM) ──
+
+/**
+ * Whether every record is still running: its endDate (end of that day) is not before `now`. The tournament the demo
+ * clock runs on is judged on the demo clock's venue date instead, so a historical walkthrough is not prompted as out
+ * of range; a record with no endDate is judged as real time judges it. `demoDay` is undefined unless the demo clock
+ * applies (anonymous, demo posture, a demo tournament), so for every other session this is exactly the real-time
+ * check. An empty demo date (no venue zone) falls back to it.
+ */
+export function recordsInDateRange(
+  records: any[],
+  now: number,
+  demoDay?: { tournamentId: string; date: string },
+): boolean {
+  return records.every((record: any) => {
+    if (demoDay?.date && record.endDate && record.tournamentId === demoDay.tournamentId)
+      return record.endDate.slice(0, 10) >= demoDay.date;
+    const endTime = dayjs(record.endDate).endOf('day').valueOf();
+    return !!(endTime && endTime >= now);
+  });
+}
 
 export function checkOfflineState(tournamentRecords: Record<string, any>): {
   offline: number;
@@ -170,11 +192,12 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   const providerIds = factory.tools.unique(Object.values(tournamentRecords)?.map(getProviderId)).filter(Boolean);
   if (providerIds.length > 1) return reject('toasts.multipleProviders');
 
-  const now = Date.now();
-  const inDateRange = Object.values(tournamentRecords).every((record: any) => {
-    const endTime = dayjs(record.endDate).endOf('day').valueOf();
-    return !!(endTime && endTime >= now);
-  });
+  const demo = getDemoClock();
+  const demoDay =
+    demo && canUseDemoClock()
+      ? { tournamentId: demo.tournamentId, date: venueCalendarDate(demo.nowMs, venueTimeZone()) }
+      : undefined;
+  const inDateRange = recordsInDateRange(Object.values(tournamentRecords), Date.now(), demoDay);
 
   const mutate = (saveLocal?: boolean) =>
     isCurrent()
@@ -303,7 +326,7 @@ function engineExecution({ factoryEngine, methods }: { factoryEngine: any; metho
   // before any callback re-reads. Without this, score entry from the scoring
   // modal (which calls mutationRequest directly, not the schedule's
   // executeMethods) left the grid showing pre-score data after modal close.
-  if (!result.error) notifyMutationApplied();
+  if (!result.error) notifyMutationApplied({ methods, tournamentId: factoryEngine.getTournamentId?.() });
   return result;
 }
 

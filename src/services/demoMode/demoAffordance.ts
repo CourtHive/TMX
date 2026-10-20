@@ -8,9 +8,9 @@
  * ## Visual signals
  *
  * Demo mode must be visually unmistakable — a posture that silently persists
- * looks like a bug report waiting to happen. Two signals, because either alone
- * can be missed on a projector: a navbar badge and a non-dismissible banner.
- * Both use `--tmx-fill-warning`, which is defined with the same value in light
+ * looks like a bug report waiting to happen. The navbar badge and active clock bar colors
+ * identify the posture without taking vertical space above the navigation.
+ * The badge uses `--tmx-fill-warning`, which is defined with the same value in light
  * and dark, so no per-theme override is needed.
  *
  * ## Navigation
@@ -26,16 +26,11 @@
  * `reapplyTabCapability` also leaves a section the new posture denies. The route
  * guard cannot help there: no route changed, so it never runs.
  */
-import { isDemoActive, getDemoOverlay } from './demoState';
 import { reapplyTabCapability } from 'navigation';
+import { isDemoActive } from './demoState';
 import { t } from 'i18n';
 
 const BADGE_ID = 'demoBadge';
-const BANNER_ID = 'demoBanner';
-
-function deniedCount(): number {
-  return Object.keys(getDemoOverlay()?.permissions ?? {}).length;
-}
 
 export function renderDemoAffordance(): void {
   if (typeof document === 'undefined') return;
@@ -43,7 +38,7 @@ export function renderDemoAffordance(): void {
   const active = isDemoActive();
   document.documentElement.dataset.tmxDemo = active ? 'true' : '';
 
-  // Before the badge and banner: the nav rail is the signal the operator reads first, and a
+  // Before the badge: the nav rail is the signal the operator reads first, and a
   // posture that has not reached it is a posture the user can still navigate around. This also
   // leaves a section the new posture denies — choosing "read only" while sitting on Events must
   // not leave Events on screen with only its icon gone.
@@ -62,22 +57,4 @@ export function renderDemoAffordance(): void {
     }
     badge.textContent = t('demoMode.badgeLabel');
   }
-
-  // ── banner ──
-  let banner = document.getElementById(BANNER_ID);
-  if (!active) {
-    banner?.remove();
-    return;
-  }
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = BANNER_ID;
-    banner.className = 'tmx-demo-banner';
-    document.body.prepend(banner);
-  }
-  const preset = getDemoOverlay()?.preset ?? 'custom';
-  banner.textContent = t('demoMode.bannerText', {
-    preset: t(`demoMode.presets.${preset}`, { defaultValue: preset }),
-    count: deniedCount(),
-  });
 }

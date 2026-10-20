@@ -15,7 +15,10 @@
  * `onMutationApplied`. New caches opt in here; no call site changes needed.
  */
 
-type MutationObserver = () => void;
+import type { MutationMethod } from 'types/services';
+
+export type AppliedMutation = { methods?: MutationMethod[]; tournamentId?: string };
+type MutationObserver = (details?: AppliedMutation) => void;
 
 const observers = new Set<MutationObserver>();
 
@@ -35,10 +38,10 @@ export function onMutationApplied(observer: MutationObserver): () => void {
  * successful local `executionQueue`. An observer that throws must not
  * prevent the others from running, so each is wrapped.
  */
-export function notifyMutationApplied(): void {
+export function notifyMutationApplied(details?: AppliedMutation): void {
   for (const observer of observers) {
     try {
-      observer();
+      observer(details);
     } catch (err) {
       console.error('[mutationObservers] observer threw', err);
     }

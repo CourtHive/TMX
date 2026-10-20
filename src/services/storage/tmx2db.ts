@@ -69,6 +69,8 @@ export class TMXDatabase {
   };
 
   findAllTournaments = (): Promise<any[]> => this.findAll('tournaments');
+  /** Ids only — the primary keys — without loading every full record. */
+  findTournamentIds = (): Promise<string[]> => this.dex['tournaments'].toCollection().primaryKeys();
   findAllProviders = (): Promise<any[]> => this.findAll('providers');
   findAllIdioms = (): Promise<any[]> => this.findAll('idioms');
 

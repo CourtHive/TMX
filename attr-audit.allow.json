@@ -5,7 +5,11 @@
   "drawsCount",
   "formats",
   "games",
+  "getTournamentIds",
+  "route",
   "segments",
+  "setTime",
+  "setTournamentId",
   "targets",
   "timeItem"
 ]

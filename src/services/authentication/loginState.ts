@@ -1,3 +1,32 @@
+import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
+import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
+import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
+import { notifySessionRecovered } from 'services/session/sessionGuard';
+import { resetActivityTimer } from 'services/staleness/stalenessGuard';
+import { clearUserContext, fetchUserContext } from './getUserContext';
+import { clearActiveProvider } from 'services/provider/providerState';
+import { validateToken } from 'services/authentication/validateToken';
+import { clearDemoWalkthrough } from 'services/clock/demoWalkthrough';
+import { resetLocalCalendar } from 'services/storage/localCalendar';
+import { contentEquals } from 'services/transitions/screenSlaver';
+import { disconnectSocket } from 'services/messaging/socketIo';
+import { refreshAccessToken } from 'services/apis/baseApi';
+import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { isActiveProviderAdmin } from './isProviderAdmin';
+import { loginModal } from 'components/modals/loginModal';
+import { ensurePdfFontReady } from 'services/pdf/pdfFont';
+import { stopDemoClock } from 'services/clock/demoClock';
+import { getLoginColor } from 'functions/getLoginColor';
+import { providerConfig } from 'config/providerConfig';
+import { tipster } from 'components/popovers/tipster';
+import { tmx2db } from 'services/storage/tmx2db';
+import { setupChatIndicator } from 'navigation';
+import { revokeRefreshToken } from './authApi';
+import { isFunction } from 'functions/typeOf';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   getToken,
   removeToken,
@@ -11,33 +40,6 @@ import {
   promptProviderSelection,
   type ProviderSelectionResponse,
 } from './providerSelection';
-import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
-import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
-import { initProviderSwitcher } from 'services/provider/initProviderSwitcher';
-import { notifySessionRecovered } from 'services/session/sessionGuard';
-import { setupChatIndicator } from 'navigation';
-import { resetActivityTimer } from 'services/staleness/stalenessGuard';
-import { clearUserContext, fetchUserContext } from './getUserContext';
-import { clearActiveProvider } from 'services/provider/providerState';
-import { validateToken } from 'services/authentication/validateToken';
-import { resetLocalCalendar } from 'services/storage/localCalendar';
-import { contentEquals } from 'services/transitions/screenSlaver';
-import { disconnectSocket } from 'services/messaging/socketIo';
-import { refreshAccessToken } from 'services/apis/baseApi';
-import { tournamentEngine } from 'services/factory/engine';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { isActiveProviderAdmin } from './isProviderAdmin';
-import { loginModal } from 'components/modals/loginModal';
-import { ensurePdfFontReady } from 'services/pdf/pdfFont';
-import { getLoginColor } from 'functions/getLoginColor';
-import { providerConfig } from 'config/providerConfig';
-import { tipster } from 'components/popovers/tipster';
-import { tmx2db } from 'services/storage/tmx2db';
-import { revokeRefreshToken } from './authApi';
-import { isFunction } from 'functions/typeOf';
-import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
-import { context } from 'services/context';
-import { t } from 'i18n';
 
 // types
 import type { LoginState } from 'types/tmx';
@@ -91,7 +93,9 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
-  // A demo posture must never outlive an identity change.
+  // A demo posture and competition clock must never outlive an identity change.
+  stopDemoClock();
+  clearDemoWalkthrough();
   clearDemoOverlay();
   // Best-effort server-side revocation of the refresh token so a leaked copy
   // can't be replayed after logout. Fire-and-forget; never blocks local logout.
@@ -183,7 +187,9 @@ export function logIn({
     return;
   }
 
-  // A demo posture must never outlive an identity change.
+  // A demo posture and competition clock must never outlive an identity change.
+  stopDemoClock();
+  clearDemoWalkthrough();
   clearDemoOverlay();
   const valid = validateToken(data.token);
   const tournamentInState = tournamentEngine.q.tournament()?.tournamentId;
