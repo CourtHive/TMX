@@ -23,6 +23,8 @@ vi.mock('tods-competition-factory', async (importOriginal) => ({
   },
   tournamentEngine: {
     getParticipants: () => ({ participants: [{ participantName: 'Ref Jones' }] }),
+    // Rows ask once whether an empty score cell may advertise entry; these fixtures offer no SCORE action.
+    matchUpActions: () => ({ validActions: [] }),
     q: {
       participants: () => [{ participantName: 'Ref Jones' }],
     },

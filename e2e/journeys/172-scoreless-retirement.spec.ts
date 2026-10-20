@@ -38,6 +38,9 @@ for (const reverseWinner of [false, true]) {
         targetId: target.matchUpId,
         nextId: next.matchUpId,
         winner: target.winningSide,
+        targetSides: target.sides.map((side: any) => side.participantId),
+        nextSides: next.sides.map((side: any) => side.participantId),
+        nextWinningSide: next.winningSide,
         nextScore: next.score,
       };
     });
@@ -72,9 +75,14 @@ for (const reverseWinner of [false, true]) {
       seeded,
     );
     expect(after.target.winningSide).toBe(requestedWinner);
-    if (!reverseWinner) {
-      expect(after.next.score).toEqual(seeded.nextScore);
-      expect(after.next.matchUpStatus).toBe('COMPLETED');
-    }
+    // Either way the next match keeps its result. A reversal swaps the new winner into the old winner's seat
+    // there (the factory's swapWinnerLoser contract); a same-winner correction leaves its sides alone.
+    expect(after.next.score).toEqual(seeded.nextScore);
+    expect(after.next.matchUpStatus).toBe('COMPLETED');
+    expect(after.next.winningSide).toBe(seeded.nextWinningSide);
+    const oldWinner = seeded.targetSides[seeded.winner - 1];
+    const newWinner = seeded.targetSides[requestedWinner - 1];
+    const nextSides = after.next.sides.map((side: any) => side.participantId);
+    expect(nextSides).toEqual(seeded.nextSides.map((id: string) => (id === oldWinner ? newWinner : id)));
   });
 }

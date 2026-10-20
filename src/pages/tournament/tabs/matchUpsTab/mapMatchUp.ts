@@ -2,7 +2,9 @@
  * Map matchUp data for table display.
  * Transforms matchUp objects into table-ready format with participant details.
  */
+import { MATCHUP_STATUS_DISPLAY } from 'components/tables/common/formatters/matchUpStatusDisplay';
 import { isScheduleLocked } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
+import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { eventConstants, factoryConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { hasFinalResult } from 'functions/hasFinalResult';
@@ -70,6 +72,13 @@ export const mapMatchUp = (matchUp: any): any => {
   // winner, but its score is still shown.
   const readyToScore = !!(rest.winningSide || rest.readyToScore || hasFinalResult(rest));
   const score = rest.score?.scoreStringSide1;
+  // Whether the empty score cell may advertise entry. Asked of the factory once per row as the table data is
+  // built, and only where the cell would otherwise be empty; the click handler asks again before opening.
+  const scorePermitted =
+    readyToScore &&
+    !score &&
+    !MATCHUP_STATUS_DISPLAY[matchUp.matchUpStatus] &&
+    scoreActionPermitted({ drawId, matchUpId });
 
   const firstLast = sides
     .flatMap((side: any) => {
@@ -108,6 +117,7 @@ export const mapMatchUp = (matchUp: any): any => {
     competitiveProfile,
     scheduleLocked,
     scheduledDate,
+    scorePermitted,
     readyToScore,
     scheduledTime,
     lockReason,

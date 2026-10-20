@@ -1,22 +1,13 @@
 import { isMatchUpAwaitingReconciliation } from 'services/crowd/delegatedReconciliation';
-import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { isMatchUpCrowdsourced } from 'services/messaging/crowdsourcedScores';
+import { MATCHUP_STATUS_DISPLAY } from './matchUpStatusDisplay';
 import { t } from 'i18n';
-
-const STATUS_DISPLAY: Record<string, string> = {
-  RETIRED: 'RET',
-  WALKOVER: 'WO',
-  DEFAULTED: 'DEF',
-  DOUBLE_WALKOVER: 'DWO',
-  DOUBLE_DEFAULT: 'DDEF',
-  CANCELLED: 'CAN',
-  ABANDONED: 'ABN',
-};
 
 export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   const data = cell.getRow().getData();
-  const statusLabel = STATUS_DISPLAY[data.matchUp?.matchUpStatus];
-  if (!data.score && !statusLabel && (!data.readyToScore || !scoreActionPermitted(data.matchUp))) return undefined;
+  const statusLabel = MATCHUP_STATUS_DISPLAY[data.matchUp?.matchUpStatus];
+  // `scorePermitted` is decided once per row when the table data is built (mapMatchUp / mapRound), not per render.
+  if (!data.score && !statusLabel && !data.scorePermitted) return undefined;
 
   const content = document.createElement('span');
   content.classList.add('scoreCell');
