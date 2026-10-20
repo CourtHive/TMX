@@ -5,8 +5,8 @@
  * dialog's `[Clear]` then `[Submit]` used to go to the engine and come back refused with "No valid
  * actions" when a later match depended on the result: the director learned it by being told no, in
  * words that did not say why. The factory publishes the answer in advance as the `CLEAR_SCORE` matchUp
- * action (#4795(factory)), present only when a clear would succeed. These read it; nothing here
- * re-derives the rule.
+ * action (#4795(factory)), present only when removing the result would succeed. It gates submitting
+ * an empty outcome, not resetting the dialog's input fields before typing a replacement score.
  */
 import { tournamentEngine } from 'services/factory/engine';
 

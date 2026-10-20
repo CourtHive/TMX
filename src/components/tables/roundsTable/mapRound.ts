@@ -1,3 +1,5 @@
+import { MATCHUP_STATUS_DISPLAY } from '../common/formatters/matchUpStatusDisplay';
+import { scoreActionPermitted } from 'services/transitions/scoreActionPermitted';
 import { eventConstants, factoryConstants } from 'tods-competition-factory';
 import { normalizeDiacritics } from 'normalize-text';
 
@@ -49,6 +51,13 @@ export const mapRound = (matchUp: any): any => {
 
   const readyToScore = !!(rest.winningSide || rest.readyToScore);
   const score = rest.score?.scoreStringSide1;
+  // Whether the empty score cell may advertise entry. Asked of the factory once per row as the table data is
+  // built, and only where the cell would otherwise be empty; the click handler asks again before opening.
+  const scorePermitted =
+    readyToScore &&
+    !score &&
+    !MATCHUP_STATUS_DISPLAY[matchUp.matchUpStatus] &&
+    scoreActionPermitted({ drawId, matchUpId });
 
   const firstLast = sides
     .flatMap((side: any) => {
@@ -81,6 +90,7 @@ export const mapRound = (matchUp: any): any => {
     competitiveProfile,
     structureName,
     scheduledDate,
+    scorePermitted,
     readyToScore,
     scheduleTime,
     matchUpType,

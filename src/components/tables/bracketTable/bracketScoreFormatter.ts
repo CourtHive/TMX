@@ -1,16 +1,9 @@
+import { MATCHUP_STATUS_DISPLAY } from '../common/formatters/matchUpStatusDisplay';
+
 const SELF_BG = 'var(--tmx-bg-tertiary)';
 const WON_COLOR = 'var(--tmx-accent-blue)';
 
 const TEXT_MUTED = 'var(--tmx-text-muted)';
-
-const STATUS_DISPLAY: Record<string, string> = {
-  WALKOVER: 'WO',
-  DOUBLE_WALKOVER: 'DWO',
-  DEFAULTED: 'DEF',
-  DOUBLE_DEFAULT: 'DDEF',
-  CANCELLED: 'CAN',
-  ABANDONED: 'ABN',
-};
 
 export function bracketScoreFormatter(cell: any): string | HTMLElement {
   const value = cell.getValue();
@@ -33,7 +26,7 @@ export function bracketScoreFormatter(cell: any): string | HTMLElement {
 
   const el = cell.getElement();
   const matchUpStatus = value.matchUp?.matchUpStatus;
-  const statusLabel = matchUpStatus && STATUS_DISPLAY[matchUpStatus];
+  const statusLabel = matchUpStatus && MATCHUP_STATUS_DISPLAY[matchUpStatus];
 
   // Irregular ending without a score string — show the status
   if (statusLabel && !value.score) {
