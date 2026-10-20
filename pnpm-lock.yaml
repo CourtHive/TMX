@@ -236,7 +236,7 @@ importers:
         version: 1.0.0
       i18next:
         specifier: ^26.0.0
-        version: 26.4.7(typescript@6.0.3)
+        version: 26.5.1(typescript@6.0.3)
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -3459,8 +3459,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  i18next@26.4.7:
-    resolution: {integrity: sha512-p/3hqy6EcuqRs6wNwBYwGGC1fzBJSMxV9zMuN814ab/7QjdZbXfjXwuPZdQbngX6KDOTxM01uUiZyqmMB8ghZg==}
+  i18next@26.5.1:
+    resolution: {integrity: sha512-OUvrmZkL3/Bn0pbxxiVOvpvsbrIvbGHhTYJ/EhcTYXLbrueIVJr5BsX7nzrz/b0DC0UDsS0UUJ4cDT1IUGrGeQ==}
     peerDependencies:
       typescript: 6.0.3
     peerDependenciesMeta:
@@ -8603,7 +8603,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  i18next@26.4.7(typescript@6.0.3):
+  i18next@26.5.1(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
