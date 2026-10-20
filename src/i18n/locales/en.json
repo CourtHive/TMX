@@ -987,7 +987,7 @@
     "drying": "Drying",
     "unscheduled": "Unscheduled",
     "noScheduledMatchUps": "No scheduled matchUps",
-    "noScheduledMatchUpsMatch": "No scheduled matchUps match the search",
+    "noScheduledMatchUpsMatch": "No scheduled matchUps match the current filters and search",
     "searchScheduledMatchUps": "Search scheduled matchUps...",
     "scheduledTitle": "Scheduled MatchUps",
     "scheduledCount_one": "{{count}} scheduled",

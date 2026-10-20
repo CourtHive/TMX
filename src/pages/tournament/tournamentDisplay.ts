@@ -11,6 +11,7 @@ import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/parti
 import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
+import { resetScheduledCatalogFilters } from './tabs/scheduleViews/gridViewStorage';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
@@ -244,6 +245,7 @@ export function loadTournament({
   // Clear per-tournament transient state
   context.matchUpFilters = {};
   context.scheduleCatalogState = undefined;
+  resetScheduledCatalogFilters();
   clearChat();
 
   const state = getLoginState();
