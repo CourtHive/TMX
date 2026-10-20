@@ -46,9 +46,9 @@ signed-in session, including super-admins, and requires an active demo overlay.
 The clock is not persisted across reloads.
 
 Calls, check-ins, starts and results still use ordinary tournament actions. Automatic calling
-runs here: a tournament with no provider, opened by nobody signed in, is a local record, so
-this client is its running desk (`isRunningDesk`). On a provider's tournament auto-call stays
-limited to that provider's staff. Scripted match
+runs here: a demo tournament with no provider, opened by nobody signed in, is a local record, so
+this client is its running desk (`isRunningDesk`). Other anonymous local records do not auto-call,
+and on a provider's tournament auto-call stays limited to that provider's staff. Scripted match
 actions, recovery-boundary jumps, checkpoint restoration, accelerated playback and synchronized
 online simulation are subsequent increments. Recreate the example to start with clean tournament data.
 

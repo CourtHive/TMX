@@ -7,16 +7,18 @@ import { isTournamentProviderMember, type IsTournamentProviderMemberInput } from
  * answer is `isTournamentProviderMember`: an observer, including a super-admin viewing another provider's
  * tournament, must not stamp `calledAt` on it (#1240).
  *
- * A tournament with no provider, opened by nobody signed in, can only be a local record on this machine (an
- * anonymous client loads nothing from the server), so whoever has it open is its desk. The anonymous scheduling
- * demo is such a tournament, which is why auto-call runs there with no demo-specific branch.
+ * The anonymous scheduling demo has no provider and nobody signed in, so it is a local record on this machine and
+ * whoever has it open is its desk. That rule is held to demo tournaments (`demoTournament`, which the caller sets
+ * from `isDemoClockEligible`): an ordinary anonymous local record (a signed-out club, the example catalog, an
+ * imported file) keeps the old answer, false, until auto-call there is a deliberate product change.
  *
  * Signed in, a record with no provider keeps the old answer (`isTournamentProviderMember`, false): it may have come
  * from the server (a legacy record with no `parentOrganisation`), and reopening #1240 for an observing super-admin
  * there is not worth it.
  */
-export function isRunningDesk(input: IsTournamentProviderMemberInput): boolean {
+export function isRunningDesk(input: IsTournamentProviderMemberInput & { demoTournament?: boolean }): boolean {
   if (!input.tournamentRecord) return false;
-  if (!input.tournamentRecord.parentOrganisation?.organisationId && !input.loginState) return true;
+  const anonymousLocal = !input.tournamentRecord.parentOrganisation?.organisationId && !input.loginState;
+  if (anonymousLocal && input.demoTournament) return true;
   return isTournamentProviderMember(input);
 }

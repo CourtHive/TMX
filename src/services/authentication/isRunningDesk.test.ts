@@ -33,18 +33,31 @@ describe('isRunningDesk', () => {
   });
 
   describe('a tournament with no provider', () => {
-    it('true when nobody is signed in: a local record, so this client is its desk (the anonymous scheduling demo)', () => {
-      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState: null })).toBe(true);
+    it('true for the anonymous scheduling demo: a local record, so this client is its desk', () => {
+      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState: null, demoTournament: true })).toBe(true);
+    });
+
+    it('false for an ordinary anonymous local record: auto-call stays off outside the demo', () => {
+      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState: null })).toBe(false);
+      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState: null, demoTournament: false })).toBe(
+        false,
+      );
     });
 
     it('an empty organisationId is no provider', () => {
-      expect(
-        isRunningDesk({ tournamentRecord: { parentOrganisation: { organisationId: '' } }, loginState: null }),
-      ).toBe(true);
+      const tournamentRecord = { parentOrganisation: { organisationId: '' } };
+      expect(isRunningDesk({ tournamentRecord, loginState: null, demoTournament: true })).toBe(true);
+    });
+
+    it('false for a provider tournament even if flagged as a demo', () => {
+      expect(isRunningDesk({ tournamentRecord: PROVIDER_TOURNAMENT, loginState: null, demoTournament: true })).toBe(
+        false,
+      );
     });
 
     it('false for a signed-in super-admin: the record may be a legacy server record they only observe (#1240)', () => {
-      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState: { roles: ['superadmin'] } })).toBe(false);
+      const loginState = { roles: ['superadmin'] };
+      expect(isRunningDesk({ tournamentRecord: LOCAL_TOURNAMENT, loginState, demoTournament: true })).toBe(false);
     });
 
     it('false for any signed-in user, as before this gate existed', () => {

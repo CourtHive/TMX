@@ -40,6 +40,7 @@ import { decoratesCell, severityOf } from './scheduleIssueSeverity';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { getLoginState } from 'services/authentication/loginState';
+import { isDemoClockEligible } from 'services/clock/demoClock';
 import { openScheduleLockMenu } from './scheduleLockActions';
 import { renameCourt } from 'components/modals/renameCourt';
 import { plainDateRange } from 'functions/plainDateRange';
@@ -3088,12 +3089,13 @@ function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void
   if (suppressAutoCall || !currentRefresh) return;
   // Auto-call is a running-desk action, not a viewer side effect: on a provider's
   // tournament only that provider's staff trigger it, so a super-admin (or any
-  // cross-provider viewer) merely observing never stamps calledAt. A tournament
-  // with no provider opened by nobody signed in is a local record, so this
-  // client is its desk (the anonymous scheduling demo included). Deferred: a
-  // per-provider on/off toggle (default ON for provider staff) + calling roles.
+  // cross-provider viewer) merely observing never stamps calledAt. The anonymous
+  // scheduling demo is a local record, so this client is its desk; other
+  // anonymous local records do not auto-call. Deferred: a per-provider on/off
+  // toggle (default ON for provider staff) + calling roles.
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
-  if (!isRunningDesk({ loginState: getLoginState(), tournamentRecord })) return;
+  const demoTournament = isDemoClockEligible();
+  if (!isRunningDesk({ loginState: getLoginState(), tournamentRecord, demoTournament })) return;
   const now = competitionNow();
   // Compared against `scheduledTime`, which is a venue wall clock — so "now"
   // has to be one too, or the desk auto-calls on the operator's clock.
