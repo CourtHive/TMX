@@ -1,4 +1,4 @@
-import type { DemoWalkthrough } from './demoWalkthrough';
+import type { DemoWalkthrough } from '../demoWalkthrough';
 import type { MutationMethod } from 'types/services';
 
 export type WalkthroughReplayDriver = {

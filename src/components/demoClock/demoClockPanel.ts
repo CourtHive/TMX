@@ -1,5 +1,5 @@
+import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
-import { clearDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
 import { schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
@@ -80,10 +80,11 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     tmxToast({ message: t('demoClock.cannotStart'), intent: 'is-warning' });
     return;
   }
-  // Opening clock control explicitly enters demo mode without granting permissions.
+  // Opening clock control explicitly enters demo mode without granting permissions. That posture is transient: it is
+  // not persisted across a reload (the clock is not), and Exit removes it. A posture the operator chose is left alone.
   const enteredDemo = !isDemoActive();
   if (enteredDemo) {
-    setDemoOverlay({ v: 1, preset: 'custom', permissions: {} });
+    setDemoOverlay({ v: 1, preset: 'custom', permissions: {}, transient: true });
     renderDemoAffordance();
   }
   if (!getDemoClock() && !setDemoClockTime(initial!, selectedMode)) {
@@ -113,7 +114,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   collapse.setAttribute('aria-expanded', 'false');
   const exit = button(t('demoClock.exit'), () => {
     stopDemoClock();
-    clearDemoOverlay();
+    if (getDemoOverlay()?.transient) clearDemoOverlay();
     renderDemoAffordance();
   });
   const clock = document.createElement('output');

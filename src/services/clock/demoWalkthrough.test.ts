@@ -2,7 +2,7 @@ import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfil
 import { clearDemoOverlay, setDemoOverlay } from 'services/demoMode/demoState';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { replayDemoWalkthrough } from './replayDemoWalkthrough';
+import { replayDemoWalkthrough } from './testing/replayDemoWalkthrough';
 import { mocksEngine, tools } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import {

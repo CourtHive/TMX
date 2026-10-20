@@ -43,7 +43,9 @@ Opening an earlier day only changes the viewed date. Save or discard drafts befo
 Closing the clock, leaving demo mode, leaving the tournament or changing login identity releases
 the simulated clocks and restores the normal bar colors. Clock control is unavailable to every
 signed-in session, including super-admins, and requires an active demo overlay.
-The clock is not persisted across reloads.
+The clock is not persisted across reloads, and neither is the demo posture it entered on its own:
+after a reload the tab is back to its posture before the clock opened. Exit removes that posture
+and leaves one the operator chose.
 
 Calls, check-ins, starts and results still use ordinary tournament actions. Automatic calling
 runs here: a demo tournament with no provider, opened by nobody signed in, is a local record, so
@@ -56,21 +58,22 @@ online simulation are subsequent increments. Recreate the example to start with 
 
 ```sh
 pnpm test --run src/services/clock/demoClock.test.ts src/pages/tournaments/schedulerDemoProfile.test.ts --maxWorkers=2
-pnpm exec playwright test --config e2e/playwright.demo-clock.config.ts
+pnpm test:e2e e2e/journeys/170-scheduling-demo-clock.spec.ts e2e/journeys/171-free-demo-clock.spec.ts
 ```
 
-The dedicated browser configuration uses port 5187 and a separate Vite cache, with filesystem access
-to the workspace's linked dependencies. It never reuses a server running from another checkout.
+The journeys run under the main Playwright configuration, which reuses a dev server already on
+:5173. Check which checkout that server belongs to, and restart it after editing `src/`.
 
 The Demo mode drawer now offers **Load guided scheduling demo**, which creates a
 fresh local copy and opens the guided clock, and **Open Demo Clock**, which opens
-free clock control on the loaded Scheduling Lab. The mode selector switches a
+free clock control on the loaded Scheduling Lab. Only the newest guided copy is kept: once a new one
+loads, earlier `scheduling-demo-*` records and their calendar entries are removed. The mode selector switches a
 Scheduling Lab between guided and free operation. Signed-in sessions are excluded.
 
 **Start recording** captures the initial record, clock/navigation steps and applied
 mutation commands with resulting record checkpoints. **Export recording** downloads
 JSON; captures stay in memory until exported and are cleared on identity changes.
-The isolated `replayDemoWalkthrough` test driver reexecutes commands and compares
+The isolated `replayDemoWalkthrough` test driver (`services/clock/testing/`) reexecutes commands and compares
 checkpoints. Uninstrumented state edits and nondeterministic results are reported
 as unverified; recordings are candidates for regression fixtures, not automatically
 certified tests. Recording is limited to 1,000 steps / 25 MiB.

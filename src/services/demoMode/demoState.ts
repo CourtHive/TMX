@@ -15,6 +15,11 @@
  * A mid-demo reload is routine — dev-server restart, projector reconnect — so
  * the posture must survive F5. It must NOT survive the tab, or a demo posture
  * could be inherited by tomorrow's real session on a shared machine.
+ *
+ * A `transient` posture is the one the demo clock enters on its own. The clock
+ * itself is not persisted, so neither is that posture: after a reload the tab is
+ * back where it was before the clock opened, rather than showing a badge for a
+ * clock that no longer runs.
  */
 import type { ProviderPermissions } from '@courthive/provider-config';
 
@@ -25,6 +30,8 @@ export type DemoOverlay = {
   /** Name of the preset the operator selected, or 'custom' once they tick a box. */
   preset?: string;
   permissions: DemoPermissionOverride;
+  /** Entered by the demo clock rather than chosen by the operator: lives only as long as the clock. */
+  transient?: true;
 };
 
 const STORAGE_KEY = 'tmx_demo_overlay';
@@ -44,7 +51,7 @@ export function onDemoOverlayChange(observer: () => void): () => void {
 
 function persist(): void {
   try {
-    if (overlay) globalThis.sessionStorage?.setItem(STORAGE_KEY, JSON.stringify(overlay));
+    if (overlay && !overlay.transient) globalThis.sessionStorage?.setItem(STORAGE_KEY, JSON.stringify(overlay));
     else globalThis.sessionStorage?.removeItem(STORAGE_KEY);
   } catch {
     /* sessionStorage unavailable (private mode / SSR) — the overlay still works in memory */

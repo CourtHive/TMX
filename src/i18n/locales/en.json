@@ -3506,6 +3506,7 @@
     "garman": "Apply Garman times",
     "pro": "Apply Pro grid",
     "saveFirst": "Save or discard scheduling edits before running a scheduler.",
+    "notOpened": "The scheduling demo was saved but not opened. Open it from the tournaments list.",
     "failed": "Scheduling failed. Check the schedule and try again.",
     "applied": "Scheduler applied. Inspect the day in Grid to compare the result.",
     "hint": "Time is paused. Start, score and finish matches with the normal tournament controls. Opening a later day advances to 09:55; earlier days can be viewed without rewinding history. Exit restores real time.",
