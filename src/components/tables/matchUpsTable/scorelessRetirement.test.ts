@@ -138,6 +138,18 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
     ).toBeDefined();
   });
 
+  it('allows a winner change when the engine accepts change propagation', () => {
+    const { target } = importedRetirement();
+    const result = tournamentEngine.setMatchUpStatus({
+      drawId: target.drawId,
+      matchUpId: target.matchUpId,
+      allowChangePropagation: true,
+      outcome: completedOutcome(1),
+    });
+    expect(result).toMatchObject({ success: true });
+    expect(tournamentEngine.q.matchUp({ matchUpId: target.matchUpId })?.winningSide).toBe(1);
+  });
+
   it('does not advertise or open scoring without a SCORE action', () => {
     const matchUp = { matchUpId: 'absent', drawId: 'absent', readyToScore: true };
     expect(scoreFormatter(cellFor({ matchUp, readyToScore: true }))).toBeUndefined();

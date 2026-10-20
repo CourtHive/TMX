@@ -156,8 +156,8 @@ export function enterMatchUpScore(params: {
     applyScore();
   };
 
-  // Asked once, as the dialog opens, so it can withhold [Clear] where the engine would refuse it. The
-  // check in `dispatch` stays: it asks again at submit, against whatever was decided in the meantime.
+  // The dialog may always reset its form. This permission gates submitting an empty replacement;
+  // dispatch checks it again at submit, against whatever was decided in the meantime.
   const clearable = clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId });
   const disabledMatchUpStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
 
