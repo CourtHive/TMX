@@ -4,14 +4,12 @@
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
 import { firstPermittedTab, isTabAvailable, ownsTabVisibility } from 'services/capability/navCapability';
-import { openAssistantPanel, checkAssistantHealth } from 'components/panels/assistantPanel';
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { openChatModal } from 'components/modals/chatModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { providerConfig } from 'config/providerConfig';
-import { featureFlags } from 'config/featureFlags';
 import { deviceConfig } from 'config/deviceConfig';
 import { context } from 'services/context';
 import tippy from 'tippy.js';
@@ -190,8 +188,6 @@ function setupMobileNav(selectedTab: string | undefined): void {
     menu.appendChild(item);
   });
 
-  // Panel toggles — assistant and chat (non-route items)
-  if (featureFlags.get().assistant) addMobilePanelItem(menu, toggle, 'Ask TMX', () => openAssistantPanel());
   // Chat is on by default; a provider may disable it via provider config. It
   // also needs an authenticated session (server interaction), so hide it for a
   // locally-loaded tournament with no login.
@@ -304,9 +300,6 @@ export function tmxNavigation(): void {
 
   // Chat icon — show/hide based on feature flag and unread count
   setupChatIndicator();
-
-  // Ask TMX assistant button (behind beta flag)
-  if (featureFlags.get().assistant) setupAssistantIndicator();
 }
 
 function addMobilePanelItem(
@@ -369,28 +362,6 @@ export function setupChatIndicator(): void {
   };
   onChatUpdate(updateVisibility);
   updateVisibility();
-}
-
-function setupAssistantIndicator(): void {
-  const ids = ['assistantIndicator', 'assistantIndicatorHome'];
-  const elements = ids.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
-  if (elements.length === 0) return;
-
-  for (const el of elements) {
-    el.onclick = (e) => {
-      e.stopPropagation();
-      openAssistantPanel();
-    };
-  }
-
-  // One health check drives visibility/opacity for both icons.
-  checkAssistantHealth().then((healthy) => {
-    for (const el of elements) {
-      el.style.display = 'inline-flex';
-      el.style.opacity = healthy ? '1' : '0.35';
-      el.title = healthy ? 'Ask TMX' : 'Ask TMX (unavailable)';
-    }
-  });
 }
 
 export function highlightTab(selectedTab: string): void {

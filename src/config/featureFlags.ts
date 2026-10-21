@@ -6,7 +6,6 @@
  * beta features.
  */
 export interface FeatureFlags {
-  assistant: boolean;
   formatWizard: boolean;
   schedulePlan: boolean;
   /** Linked Tournaments panel in the tournament settings tab. */
@@ -26,7 +25,6 @@ export interface FeatureFlags {
 }
 
 const defaults: FeatureFlags = {
-  assistant: false,
   formatWizard: false,
   schedulePlan: false,
   linkedTournaments: false,

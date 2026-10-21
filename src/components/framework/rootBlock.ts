@@ -247,9 +247,6 @@ function newBlock(): HTMLDivElement {
         <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
       </span>
       <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
-      <span id='assistantIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
-        <i class="nav-icon fa-solid fa-robot"></i>
-      </span>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>
       <div id="mobileNav" class="mobile-nav">
         <button id="mobileNavToggle" class="mobile-nav-toggle"></button>
@@ -264,9 +261,6 @@ function newBlock(): HTMLDivElement {
       <i id='h-policies' class="home-nav-icon fa-solid fa-file-shield"></i>
       <i id='h-rankings' class="home-nav-icon fa-solid fa-ranking-star" style="display: none;"></i>
       <i id='h-console' class="home-nav-icon fa-solid fa-gauge-high" style="display: none;"></i>
-      <span id='assistantIndicatorHome' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Ask TMX">
-        <i class="home-nav-icon fa-solid fa-robot"></i>
-      </span>
       <i id='h-settings' class="home-nav-icon fa-solid fa-sliders"></i>
       <div id="mobileHomeNav" class="mobile-nav">
         <button id="mobileHomeNavToggle" class="mobile-nav-toggle"></button>
