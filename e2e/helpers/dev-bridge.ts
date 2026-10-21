@@ -315,7 +315,7 @@ export async function loginAsProviderMember(
  */
 export async function seedFeatureFlagInitScript(
   page: Page,
-  flag: 'formatWizard' | 'assistant' | 'reports' | 'schedulePlan' | 'scoreEntryDialog',
+  flag: 'formatWizard' | 'reports' | 'schedulePlan' | 'scoreEntryDialog',
   value = true,
 ): Promise<void> {
   // `value` so a flag that is ON by default (scoreEntryDialog) can be turned off for a journey that tests

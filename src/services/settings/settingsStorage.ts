@@ -20,7 +20,6 @@ export type TMXSettings = {
   scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   saveLocal?: boolean;
   smartComplements?: boolean;
-  assistant?: boolean;
   formatWizard?: boolean;
   schedulePlan?: boolean;
   linkedTournaments?: boolean;
@@ -159,7 +158,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
 
   // Feature flags
   const flagsPatch: Record<string, any> = {};
-  if (settings.assistant !== undefined) flagsPatch.assistant = settings.assistant;
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
   if (settings.schedulePlan !== undefined) flagsPatch.schedulePlan = settings.schedulePlan;
   if (settings.linkedTournaments !== undefined) flagsPatch.linkedTournaments = settings.linkedTournaments;
@@ -195,7 +193,6 @@ export function persistConfigToStorage(
     drawMinimapVisible: prefs.drawMinimapVisible,
     officialsBoard: prefs.officialsBoard,
     saveLocal: server.saveLocal,
-    assistant: flags.assistant,
     formatWizard: flags.formatWizard,
     schedulePlan: flags.schedulePlan,
     linkedTournaments: flags.linkedTournaments,

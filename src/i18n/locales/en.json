@@ -3267,10 +3267,6 @@
     "addCollection": "Add Collection",
     "noCollections": "No collections — click Add Collection to start"
   },
-  "assistant": {
-    "title": "TMX Assistant",
-    "ask": "Ask TMX"
-  },
   "matchUpActions": {
     "scheduleDate": "Schedule date",
     "scheduleTime": "Schedule time",
@@ -3417,7 +3413,6 @@
     "linkAction": "Link"
   },
   "settingsGrid": {
-    "askAssistant": "Ask TMX assistant",
     "schedulePlan": "Schedule Plan",
     "scoreEntryDialog": "New score entry dialog",
     "desktopNotifications": " Desktop Notifications",

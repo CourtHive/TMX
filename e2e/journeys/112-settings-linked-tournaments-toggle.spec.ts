@@ -82,7 +82,7 @@ test('the toggle is not offered on the global settings page, where it could do n
 
   // The Beta Features panel IS here — the control, so "checkbox absent" cannot pass
   // by the panel simply having failed to render.
-  await expect(page.locator('#assistant')).toHaveCount(1);
+  await expect(page.locator('#formatWizard')).toHaveCount(1);
   await expect(page.locator(CHECKBOX)).toHaveCount(0);
 });
 
@@ -110,7 +110,7 @@ test('logged out, the toggle does not expose the provider-authenticated panel', 
 
   // The control: the Beta Features panel IS rendered, so "checkbox absent" cannot pass by
   // the whole panel having failed to render while logged out.
-  await expect(page.locator('#assistant')).toHaveCount(1);
+  await expect(page.locator('#formatWizard')).toHaveCount(1);
 
   // …and the provider-authenticated panel stays away, since a 401 here becomes a full logout.
   await expect(page.locator(PANEL)).toHaveCount(0);
