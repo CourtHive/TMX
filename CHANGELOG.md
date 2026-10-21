@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.40.1](https://github.com/CourtHive/TMX/compare/v8.40.0...v8.40.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **deps:** update pdf-factory to 1.1.3 ([#1706](https://github.com/CourtHive/TMX/issues/1706)) ([8b6a9e6](https://github.com/CourtHive/TMX/commit/8b6a9e6e14f72a2eedd75a5a7b36cefe1de0bfd0))
+
 ## [8.40.0](https://github.com/CourtHive/TMX/compare/v8.39.0...v8.40.0) (2026-10-21)
 
 
