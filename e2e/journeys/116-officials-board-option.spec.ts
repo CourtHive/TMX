@@ -65,10 +65,10 @@ test('the option sits in Options, unchecked, and not among the beta features', a
 
   await expect(page.locator(CHECKBOX)).not.toBeChecked();
 
-  // Not a beta feature. The Beta panel IS present (assistant proves it rendered),
+  // Not a beta feature. The Beta panel IS present (formatWizard proves it rendered),
   // so an absent checkbox there cannot pass by the panel having failed to draw.
   const betaPanel = page.locator('.settings-panel').filter({ hasText: 'Beta features' }).first();
-  await expect(betaPanel.locator('#assistant')).toHaveCount(1);
+  await expect(betaPanel.locator('#formatWizard')).toHaveCount(1);
   await expect(betaPanel.locator(CHECKBOX)).toHaveCount(0);
 });
 

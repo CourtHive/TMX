@@ -63,11 +63,9 @@ async function persistAll(
   optionsInputs: any,
   displayInputs: any,
 ): Promise<void> {
-  const previousAssistant = featureFlags.get().assistant;
   const activeScale = ratingInputs?.activeRating?.value;
   serverConfig.set({ saveLocal: optionsInputs.saveLocal.checked });
   featureFlags.set({
-    assistant: displayInputs.assistant?.checked || false,
     formatWizard: displayInputs.formatWizard?.checked || false,
     schedulePlan: displayInputs.schedulePlan?.checked || false,
     linkedTournaments: displayInputs.linkedTournaments?.checked || false,
@@ -102,8 +100,6 @@ async function persistAll(
 
   if (activeScale) setActiveScale(activeScale);
 
-  const assistantChanged = (displayInputs.assistant?.checked || false) !== previousAssistant;
-
   // `languageExplicit` defeats the provider default on every subsequent boot, so it may only be set
   // when the user actually chose a language here. Writing it unconditionally is what turned "changed
   // an unrelated setting" into a permanent, silent switch to whichever option the control happened
@@ -125,7 +121,7 @@ async function persistAll(
     }
   }
 
-  if (languageChanged || assistantChanged) {
+  if (languageChanged) {
     globalThis.location.reload();
   }
 }
@@ -401,14 +397,6 @@ export async function renderSettingsGrid(
 
   const displayForm = document.createElement('div');
   displayInputs = renderForm(displayForm, [
-    {
-      label: t('settingsGrid.askAssistant'),
-      checked: featureFlags.get().assistant || false,
-      field: 'assistant',
-      id: 'assistant',
-      onChange: persist,
-      checkbox: true,
-    },
     {
       label: t('formatWizard.title'),
       checked: featureFlags.get().formatWizard || false,
