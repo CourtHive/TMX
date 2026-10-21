@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.40.0](https://github.com/CourtHive/TMX/compare/v8.39.0...v8.40.0) (2026-10-21)
+
+
+### Features
+
+* scheduling demo clock, guided Scheduling Lab and walkthrough capture ([#1693](https://github.com/CourtHive/TMX/issues/1693)) ([0fa89aa](https://github.com/CourtHive/TMX/commit/0fa89aa62c065c0426f6b0b498cd12b9d6653783))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.10.1 and scoring-visualizations to 0.2.23 ([#1690](https://github.com/CourtHive/TMX/issues/1690)) ([db89683](https://github.com/CourtHive/TMX/commit/db896834d8f4077ddd03ccc04432f9fd5e9aa77c))
+* **deps:** update courthive-components to 6.10.3 ([#1702](https://github.com/CourtHive/TMX/issues/1702)) ([9683325](https://github.com/CourtHive/TMX/commit/9683325b2bfc3f823d2746cae2e052949757c2c7))
+* **deps:** update dependency timepicker-ui to v4.5.0 ([#1679](https://github.com/CourtHive/TMX/issues/1679)) ([132acac](https://github.com/CourtHive/TMX/commit/132acac2f93d9dff059d65dcede2b7df8579052d))
+* **deps:** update tods-competition-factory to 7.18.0 ([#1701](https://github.com/CourtHive/TMX/issues/1701)) ([66c0eb1](https://github.com/CourtHive/TMX/commit/66c0eb1f9f0f4c10b6fd6764647f0c36fb6d4580))
+* **rotating-partners:** align rotating draw fields and generate the next live round ([#1694](https://github.com/CourtHive/TMX/issues/1694)) ([63c37a0](https://github.com/CourtHive/TMX/commit/63c37a05db1b6bf2d86bb0c961393066b5c350e6))
+* **schedule:** reset and reconcile scheduled catalog filters ([#1698](https://github.com/CourtHive/TMX/issues/1698)) ([a32e9b1](https://github.com/CourtHive/TMX/commit/a32e9b1bac4bf0141dc2b9e2bf0852930aa1e4bf))
+* **scoring:** show scoreless retirements and allow permitted score corrections ([#1697](https://github.com/CourtHive/TMX/issues/1697)) ([feecdde](https://github.com/CourtHive/TMX/commit/feecdde9b587617c3d65503953bfa741d7e59638))
+
 ## [8.39.0](https://github.com/CourtHive/TMX/compare/v8.38.2...v8.39.0) (2026-10-19)
 
 
