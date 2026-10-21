@@ -103,6 +103,12 @@ export function writeScheduledGroupBy(value: MatchUpCatalogGroupBy): void {
   }
 }
 
+/** A tournament load starts a fresh filtering session; layout preferences remain intact. */
+export function resetScheduledCatalogFilters(): void {
+  writeScheduledFilters({});
+  writeScheduledSearch('');
+}
+
 // ── Scheduled-panel filters ──
 
 export function readScheduledFilters(): CatalogFilters {

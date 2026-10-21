@@ -28,31 +28,13 @@ import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
+import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { renderPlanMode } from '../scheduleViews/planView';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
 import { t } from 'i18n';
-import {
-  readScheduleDisplayConfig,
-  writeScheduleDisplayConfig,
-} from 'services/schedulePreferences/scheduleDisplayExtension';
-import {
-  peerLinkedIds,
-  primaryVenueIds,
-  facilityEventTouchesVenues,
-} from 'services/facilitySchedule/facilityScheduleHelpers';
-import {
-  subscribeQueue,
-  hasUnsavedChanges,
-  getPendingCount,
-  savePending,
-  discardPending,
-  executeMethods,
-  setAvailabilityDirty,
-  isAvailabilityDirty,
-} from 'services/schedulingWorkspace/queueService';
 import {
   renderGridView,
   destroyGridView,
@@ -70,6 +52,25 @@ import {
   resolveColumnConflicts,
   DEFAULT_MIN_COURT_GRID_ROWS,
 } from '../scheduleViews/gridView';
+import {
+  subscribeQueue,
+  hasUnsavedChanges,
+  getPendingCount,
+  savePending,
+  discardPending,
+  executeMethods,
+  setAvailabilityDirty,
+  isAvailabilityDirty,
+} from 'services/schedulingWorkspace/queueService';
+import {
+  peerLinkedIds,
+  primaryVenueIds,
+  facilityEventTouchesVenues,
+} from 'services/facilitySchedule/facilityScheduleHelpers';
+import {
+  readScheduleDisplayConfig,
+  writeScheduleDisplayConfig,
+} from 'services/schedulePreferences/scheduleDisplayExtension';
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
@@ -513,30 +514,35 @@ function guardUnsavedAndProceed(proceed: () => void): void {
 // ── Workspace queue action bar ──
 
 let actionBarRef: HTMLElement | null = null;
+let actionBarContentRef: HTMLElement | null = null;
 
 function buildActionBarMount(): HTMLElement {
   actionBarRef = document.createElement('div');
   actionBarRef.style.cssText =
     'position: sticky; bottom: 0; padding: 8px 12px; background: var(--tmx-bg-secondary, #f4f4f4); border-top: 1px solid var(--tmx-border-primary, #ddd); display: none; gap: 12px; align-items: center;';
+  actionBarContentRef = document.createElement('div');
+  actionBarContentRef.style.cssText = 'display: flex; align-items: center; gap: 12px; flex: 1;';
+  actionBarRef.append(actionBarContentRef, createDemoClockSlot(actionBarRef, { workspace: true }));
   return actionBarRef;
 }
 
 function refreshActionBar(): void {
   const bar = actionBarRef;
-  if (!bar) return;
+  const content = actionBarContentRef;
+  if (!bar || !content) return;
   if (!hasUnsavedChanges()) {
     bar.style.display = 'none';
-    bar.innerHTML = '';
+    content.replaceChildren();
     return;
   }
 
   bar.style.display = 'flex';
-  bar.innerHTML = '';
+  content.replaceChildren();
 
   const summary = document.createElement('div');
   summary.style.cssText = 'flex: 1; font-size: 0.9rem;';
   summary.textContent = `${getPendingCount()} unsaved change(s)`;
-  bar.appendChild(summary);
+  content.appendChild(summary);
 
   const discardBtn = document.createElement('button');
   discardBtn.type = 'button';
@@ -545,7 +551,7 @@ function refreshActionBar(): void {
   discardBtn.addEventListener('click', () => {
     void discardPending();
   });
-  bar.appendChild(discardBtn);
+  content.appendChild(discardBtn);
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
@@ -555,7 +561,7 @@ function refreshActionBar(): void {
   saveBtn.addEventListener('click', () => {
     void savePending();
   });
-  bar.appendChild(saveBtn);
+  content.appendChild(saveBtn);
 }
 
 // ── beforeunload guard ──

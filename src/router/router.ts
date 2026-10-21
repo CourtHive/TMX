@@ -14,6 +14,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { logIn, logOut } from 'services/authentication/loginState';
 import { tmxTournaments } from 'pages/tournaments/tournaments';
 import { showSplash } from 'services/transitions/screenSlaver';
+import { retainDemoClockFor } from 'services/clock/demoClock';
 import { renderAdminPage } from 'pages/admin/renderAdminPage';
 import { destroyTables } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
@@ -85,6 +86,7 @@ export function routeTMX() {
         done(false);
       };
       const proceed = () => {
+        retainDemoClockFor(match?.data?.tournamentId);
         invalidatePendingTournamentLoads();
         // routeTo owns intra-tournament tab disposal. Date/mode changes keep the mounted page.
         if (match?.data?.tournamentId !== tournamentEngine.getTournamentId()) destroyActiveTab();

@@ -1,10 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-
-import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay, setDemoPermission } from './demoState';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { intersectList, intersectPermissions } from './intersect';
-import { overridesForPreset } from './demoPresets';
 import { providerConfig } from 'config/providerConfig';
+import { overridesForPreset } from './demoPresets';
 import { can } from 'services/capability/can';
+import {
+  clearDemoOverlay,
+  getDemoOverlay,
+  hydrateDemoOverlay,
+  isDemoActive,
+  setDemoOverlay,
+  setDemoPermission,
+} from './demoState';
 
 describe('demo overlay — intersect only', () => {
   it('can remove a capability', () => {
@@ -147,5 +153,44 @@ describe('presets set the checkboxes rather than bypassing them', () => {
     expect(getDemoOverlay()?.preset).toBe('custom');
     expect(can('createEvent').allowed).toBe(true);
     expect(can('createDraw').allowed).toBe(false);
+  });
+});
+
+describe('a posture the demo clock entered does not outlive the clock', () => {
+  const store = new Map<string, string>();
+  beforeEach(() => {
+    store.clear();
+    vi.stubGlobal('sessionStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, value),
+      removeItem: (key: string) => store.delete(key),
+    });
+  });
+  afterEach(() => {
+    clearDemoOverlay();
+    vi.unstubAllGlobals();
+  });
+
+  it('is not written to sessionStorage, so a reload does not restore it', () => {
+    setDemoOverlay({ v: 1, preset: 'custom', permissions: {}, transient: true });
+    expect(isDemoActive()).toBe(true);
+    expect(store.size).toBe(0);
+    clearDemoOverlay();
+    hydrateDemoOverlay();
+    expect(isDemoActive()).toBe(false);
+  });
+
+  it('becomes an operator posture, and persists, once a permission is changed', () => {
+    setDemoOverlay({ v: 1, preset: 'custom', permissions: {}, transient: true });
+    setDemoPermission('canCreateEvents', false);
+    expect(getDemoOverlay()?.transient).toBeUndefined();
+    expect(store.size).toBe(1);
+  });
+
+  it('an operator posture still survives a reload', () => {
+    setDemoOverlay({ v: 1, preset: 'custom', permissions: { canPublish: false } });
+    expect(store.size).toBe(1);
+    hydrateDemoOverlay();
+    expect(getDemoOverlay()?.permissions).toEqual({ canPublish: false });
   });
 });

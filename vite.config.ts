@@ -71,8 +71,10 @@ const viteconfigFactory = ({ mode }: { mode: string }) => {
     test: {
       // '.claude/**' keeps a git worktree checked out under .claude/worktrees/ from being
       // discovered as a second copy of the entire suite — Vitest's default `include` globs
-      // from the project root, and its default `exclude` does not cover .claude.
-      exclude: ['e2e/**', 'node_modules/**', '**/.claude/**'],
+      // from the project root, and its default `exclude` does not cover .claude. '.worktrees/**' does the
+      // same for worktrees made by Mentat/scripts/worktree.sh, and 'scratch/**' for the gitignored
+      // scratch folder: a bare `vitest run` in a checkout holding both collected ~149k files.
+      exclude: ['e2e/**', 'node_modules/**', '**/.claude/**', '.worktrees/**', 'scratch/**'],
       // Quiet the suite: many error-path tests deliberately trigger a caught
       // error whose handler logs via console.error/warn (e.g. "[localCalendar]
       // failed to maintain entry"). Those are asserted on behaviorally, so the

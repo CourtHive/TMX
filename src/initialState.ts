@@ -72,6 +72,7 @@ import 'styles/components/tags.css';
 import 'styles/components/forms.css';
 import 'styles/components/layout.css';
 import 'styles/components/roundProfileEditor.css';
+import 'styles/components/rotatingDrawForm.css';
 import 'styles/theme.css';
 
 import 'styles/tournamentContainer.css';

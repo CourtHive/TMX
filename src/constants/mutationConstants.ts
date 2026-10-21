@@ -127,3 +127,6 @@ export const GET_ROTATING_PARTNER_STANDINGS = 'getRotatingPartnerStandings';
 
 export const SET_COMPETITION_PROFILE = 'setCompetitionProfile';
 export const GENERATE_ROTATING_PARTNER_ROUND = 'generateRotatingPartnerRound';
+
+export const SCHEDULE_PROFILE_ROUNDS = 'scheduleProfileRounds';
+export const SCHEDULE_PROFILE_GRID = 'scheduleProfileGrid';

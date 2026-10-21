@@ -1,24 +1,25 @@
 import { isMatchUpAwaitingReconciliation } from 'services/crowd/delegatedReconciliation';
 import { isMatchUpCrowdsourced } from 'services/messaging/crowdsourcedScores';
+import { MATCHUP_STATUS_DISPLAY } from './matchUpStatusDisplay';
 import { t } from 'i18n';
 
 export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   const data = cell.getRow().getData();
-  if (!data.readyToScore) return;
-
-  const isWalkover = data.matchUp.matchUpStatus === 'WALKOVER';
+  const statusLabel = MATCHUP_STATUS_DISPLAY[data.matchUp?.matchUpStatus];
+  // `scorePermitted` is decided once per row when the table data is built (mapMatchUp / mapRound), not per render.
+  if (!data.score && !statusLabel && !data.scorePermitted) return undefined;
 
   const content = document.createElement('span');
   content.classList.add('scoreCell');
   if (data.score) {
     content.style.fontSize = 'smaller';
     content.textContent = data.score;
-  } else if (isWalkover) {
-    content.innerHTML = 'WO';
+  } else if (statusLabel) {
+    content.textContent = statusLabel;
   } else {
     content.style.color = 'var(--tmx-accent-blue)';
     content.style.fontSize = 'smaller';
-    content.innerHTML = 'Enter score';
+    content.textContent = t('schedule.enterScore');
   }
 
   if (isMatchUpCrowdsourced(data.matchUp?.matchUpId)) {

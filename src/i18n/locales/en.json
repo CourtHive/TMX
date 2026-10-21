@@ -630,7 +630,7 @@
     "publishtime": "Publish Time",
     "replacelocal": "Replace Local Copy?",
     "unpublish": "Unpublish Tournament?",
-    "liveDemoClockUnavailable": "The Live Schedule example was not generated: the competition clock is not giving a usable time. Fix or remove the competition clock (dev.setCompetitionClock) and try again."
+    "exampleClockUnavailable": "The {{name}} example was not generated: the competition clock is not giving a usable time. Fix or remove the competition clock (dev.setCompetitionClock) and try again."
   },
   "ddlb": {
     "singles": "Singles Tournament Rank:",
@@ -987,7 +987,7 @@
     "drying": "Drying",
     "unscheduled": "Unscheduled",
     "noScheduledMatchUps": "No scheduled matchUps",
-    "noScheduledMatchUpsMatch": "No scheduled matchUps match the search",
+    "noScheduledMatchUpsMatch": "No scheduled matchUps match the current filters and search",
     "searchScheduledMatchUps": "Search scheduled matchUps...",
     "scheduledTitle": "Scheduled MatchUps",
     "scheduledCount_one": "{{count}} scheduled",
@@ -2151,6 +2151,7 @@
     "matchUpScoredElsewhere": "Another user just scored this match ({{score}}). Review before saving.",
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
     "clearRefused": "This result can't be cleared: a later match depends on it. Clear that match first.",
+    "scoreRefused": "This match can't be scored or corrected now: the draw does not offer scoring for it.",
     "scoreDiscardedByFormat": "Changing the format to {{matchUpFormat}} discarded {{count}} set(s): {{sets}}",
     "tournamentNotFound": "Tournament not found",
     "tournamentsTruncated": "Showing the first {{loaded}} of {{total}} tournaments. Filter or search to narrow the list.",
@@ -2918,7 +2919,6 @@
     "capabilities": "CAPABILITIES",
     "exit": "Exit demo mode",
     "badgeLabel": "DEMO",
-    "bannerText": "Demo mode — {{preset}} · {{count}} capabilities disabled · client-side only",
     "legend": "UI+MUT = control hidden and mutation refused · UI = control hidden only · MUT = mutation refused only · — = no gate implemented, toggling changes nothing",
     "presets": {
       "providerDefaults": "Provider defaults (no simulation)",
@@ -3480,5 +3480,67 @@
       "ranking": "Ranking",
       "rating": "Rating"
     }
+  },
+  "demoClock": {
+    "title": "Demo Clock",
+    "launch": "Open Demo Clock",
+    "cannotStart": "The demo clock could not start: this tournament needs a start date and a venue time zone.",
+    "launchHint": "Load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough and its demo clock. The clock runs only in a Scheduling Lab: while one is open, Open Demo Clock brings the clock back. Available only while signed out.",
+    "collapse": "Hide controls",
+    "expand": "Clock controls",
+    "exit": "Exit clock",
+    "time": "Demo time",
+    "date": "Demo date",
+    "setTime": "Demo wall time",
+    "set": "Set time",
+    "paused": "Paused",
+    "step": "+{{minutes}} min",
+    "forwardOnly": "Choose a valid time at or after the current demo time. Calls and results cannot be rewound.",
+    "boundary": "Next: {{kind}} · {{time}}",
+    "noBoundary": "No upcoming time boundary",
+    "boundaries": {
+      "scheduled": "scheduled start",
+      "blockStart": "court block starts",
+      "blockEnd": "court block ends"
+    },
+    "openDay": "Open day",
+    "garman": "Apply Garman times",
+    "pro": "Apply Pro grid",
+    "saveFirst": "Save or discard scheduling edits before running a scheduler.",
+    "notOpened": "The scheduling demo was saved but not opened. Open it from the tournaments list.",
+    "failed": "Scheduling failed. Check the schedule and try again.",
+    "applied": "Scheduler applied. Inspect the day in Grid to compare the result.",
+    "hint": "Time is paused. Start, score and finish matches with the normal tournament controls. Opening a later day advances to 09:55; earlier days can be viewed without rewinding history. Exit restores real time.",
+    "days": {
+      "day1": {
+        "title": "Day 1 · Garman",
+        "description": "Apply Times to Singles. Inspect policy-based start times, recovery gaps and court availability."
+      },
+      "day2": {
+        "title": "Day 2 · Pro",
+        "description": "Apply Grid to Doubles. Inspect court order without scheduled times. Use the normal grid controls for not-before and follow-by annotations."
+      },
+      "day3": {
+        "title": "Day 3 · Together",
+        "description": "Apply Garman times first, then Pro grid to the same Singles and Doubles draws. Verify the times remain while court positions are added."
+      }
+    },
+    "shortLabel": "Demo time",
+    "bottomBar": "Demo clock bottom bar",
+    "mode": "Demo mode",
+    "modes": {
+      "clock": "Free clock",
+      "script": "Guided scheduling demo"
+    },
+    "loadScript": "Load guided scheduling demo",
+    "loadFailed": "Could not load the scheduling demo. Please try again.",
+    "freeHint": "Time is paused. Walk through this tournament using normal controls, step time forward, and optionally record your actions. Exit restores real time.",
+    "startCapture": "Start recording",
+    "stopCapture": "Stop recording",
+    "exportCapture": "Export recording",
+    "capturing": "Recording · {{count}} steps",
+    "captureReady": "Recording ready · {{count}} steps",
+    "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
+    "captureFailed": "Could not start recording. Check that demo clock control is active."
   }
 }
