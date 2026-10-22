@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.40.2](https://github.com/CourtHive/TMX/compare/v8.40.1...v8.40.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** update pdf-factory to 1.1.4 ([#1714](https://github.com/CourtHive/TMX/issues/1714)) ([14cd6f9](https://github.com/CourtHive/TMX/commit/14cd6f9931672e2a1c6ce1b770fc93a0ebee2e5f))
+* **deps:** update tods-competition-factory to 7.19.0 ([#1715](https://github.com/CourtHive/TMX/issues/1715)) ([5d9eb1e](https://github.com/CourtHive/TMX/commit/5d9eb1e2ee507f18dd6232a4ec04e9269795a44a))
+* **print:** pass the full tournament record to the print composition resolver ([#1711](https://github.com/CourtHive/TMX/issues/1711)) ([397c85e](https://github.com/CourtHive/TMX/commit/397c85e575f0185f106ceb7c9f687465e4aa413e))
+
+
+### Documentation
+
+* dev is protected and merged branches auto-delete ([#1713](https://github.com/CourtHive/TMX/issues/1713)) ([a0c8f62](https://github.com/CourtHive/TMX/commit/a0c8f62f721b258b32eeba1ab2c799c9ed5c91c3))
+
 ## [8.40.1](https://github.com/CourtHive/TMX/compare/v8.40.0...v8.40.1) (2026-10-21)
 
 
