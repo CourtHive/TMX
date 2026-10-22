@@ -5,6 +5,7 @@
 import { notifyMutationApplied, notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 import { captureTournamentOperation, captureTournamentSelection } from 'services/tournament/operationOwnership';
 import { getUserContext, ensureUserContext } from 'services/authentication/getUserContext';
+import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusal';
 import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
@@ -158,7 +159,10 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     if (callback && isFunction(callback)) {
       callback(result);
     } else if (result?.error) {
-      tmxToast({ message: result.error.message ?? t('common.error'), intent: 'is-danger' });
+      tmxToast({
+        message: playedOrderRefusalMessage(result) ?? result.error.message ?? t('common.error'),
+        intent: 'is-danger',
+      });
     }
   };
 
