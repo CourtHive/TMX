@@ -26,9 +26,11 @@ import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } fro
 import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
+import { scheduleErrorMessage } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
 import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
+import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusal';
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
@@ -1861,7 +1863,15 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
       methods,
       engine: COMPETITION_ENGINE,
       callback: (result: any) => {
-        if (!result.success) console.error('[schedule2] mutation error', result);
+        if (!result.success) {
+          console.error('[schedule2] mutation error', result);
+          // a refused drop used to snap back in silence; say why (the played-order refusal names the blocking match)
+          if (!result.notified)
+            scheduleToast({
+              message: playedOrderRefusalMessage(result) ?? scheduleErrorMessage(result.error),
+              intent: INTENT_DANGER,
+            });
+        }
         // Factory state just changed — drop matchUp caches so the refresh
         // re-fetches against the new truth. dateRange/tournamentInfo are
         // page-scoped and survive mutations.
@@ -1877,7 +1887,7 @@ function executeMethods(methods: any[], onRefresh: () => void): void {
   const result = bulkDraft.stage(methods, competitionEngine, captureTournamentOperation(ids));
   if (result?.error) {
     console.error('[schedule2] local execution error', result);
-    scheduleToast({ message: t('gridView.localFailed'), intent: INTENT_DANGER });
+    scheduleToast({ message: playedOrderRefusalMessage(result) ?? t('gridView.localFailed'), intent: INTENT_DANGER });
     return;
   }
 
@@ -1932,7 +1942,10 @@ async function savePending(): Promise<void> {
         scheduleToast({ message: `Saved ${allMethods.length} scheduling changes`, intent: INTENT_SUCCESS });
       } else {
         console.error('[schedule2] bulk save error', result);
-        scheduleToast({ message: t('gridView.serverFailed'), intent: INTENT_DANGER });
+        scheduleToast({
+          message: playedOrderRefusalMessage(result) ?? t('gridView.serverFailed'),
+          intent: INTENT_DANGER,
+        });
       }
       updateActionBar();
     },

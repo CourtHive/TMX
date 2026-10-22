@@ -1,3 +1,4 @@
+import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
@@ -48,7 +49,10 @@ export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
   // that the engine refuses now says so.
   const postMutation = (result: any) => {
     if (result?.error) {
-      tmxToast({ message: scheduleErrorMessage(result.error), intent: 'is-danger' });
+      tmxToast({
+        message: playedOrderRefusalMessage(result) ?? scheduleErrorMessage(result.error),
+        intent: 'is-danger',
+      });
       return;
     }
     if (result?.success && callback && isFunction(callback)) {
