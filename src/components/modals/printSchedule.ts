@@ -3,7 +3,7 @@
  *
  * Provides options for generating a PDF of the schedule for a specific date.
  * Routes through pdf-factory's print dispatcher with a CompositionConfig
- * resolved from provider defaults + tournament overrides + modal-runtime
+ * resolved from provider defaults + the tournament's print policy + modal-runtime
  * tweaks. See Mentat/planning/PRINT_DISPATCHER_SCHEDULE_BRANCH.md.
  */
 import type { PrintCompositionConfig as PrintComposition } from 'courthive-components';
@@ -89,9 +89,11 @@ export function printSchedule(options: PrintScheduleOptions): void {
   }
 
   function buildPdf(): { doc: any; filename: string } | null {
+    // the full record: getTournamentInfo() output has no extensions, so its print policy never reached the resolver
+    const tournamentRecord = competitionEngine.getTournament()?.tournamentRecord;
     const composition = resolveCompositionConfig({
       providerConfig: providerConfig.get() as any,
-      tournamentRecord: tournamentInfo as any,
+      tournamentRecord: tournamentRecord as any,
       printType: 'schedule',
       runtime: gatherRuntimeComposition() as any,
     });
