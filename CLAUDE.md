@@ -26,11 +26,15 @@ dependency PRs arrive on the integration branch rather than on the release branc
 | `deploy-pages.yml`   | `release: published`                                          | unaffected                                                                                                                                |
 | `sync-i18n.yml`      | `push: [main]`, path-filtered on `src/i18n/locales/en.json`   | **an i18n change on `dev` does not sync until it reaches `main`** at a checkpoint                                                         |
 
-**`delete_branch_on_merge` is false, deliberately.** A checkpoint PR has `dev` as its HEAD, so auto-delete
-would delete the integration branch every time — and GitHub silently **retargets open PRs** whose base is
-deleted, which is how work reaches `main` with nobody choosing it. The factory hit exactly this on
-2026-09-13. The cost is that merged branches no longer self-delete: prune on PR **state**, never ancestry,
-because a squash-merged branch never looks merged.
+**`dev` is protected and `delete_branch_on_merge` is on (CA, 2026-10-21).** Merged feature branches delete
+themselves. A checkpoint PR has `dev` as its HEAD, and GitHub's auto-delete skips protected branches, so `dev`
+survives; the back-merge PR's head, `main`, is protected too. The protection only blocks deletion and
+force-push — `dev` has no required checks or reviews. Before this, auto-delete was on with `dev` unprotected,
+and both checkpoints on 2026-10-21 deleted `dev`; had any open PR been based on it, GitHub would have
+silently **retargeted** it to `main` (the factory hit that on 2026-09-13).
+
+Local branches still need pruning: judge by PR **state**, never ancestry, because a squash-merged branch
+never looks merged.
 
 ```bash
 gh pr list --repo CourtHive/TMX --state merged --head <branch>

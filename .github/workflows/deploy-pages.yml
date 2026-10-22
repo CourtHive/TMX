@@ -8,6 +8,9 @@ name: deploy-pages
 # released versions only — transient main commits do not deploy. The
 # manual `workflow_dispatch` trigger is the escape hatch for republishing
 # without cutting a new release.
+#
+# Each publish REPLACES the branch with one parentless commit, so `docs`
+# never accumulates a build history (see the publish step).
 
 on:
   release:
@@ -85,5 +88,12 @@ jobs:
             echo "No changes to publish."
             exit 0
           fi
-          git commit -m "docs: update to $REF"
-          git push origin docs
+
+          # Publish as ONE parentless commit instead of stacking on the old tip.
+          # Pages serves only the tip, so the build history has no reader, and
+          # every stacked "docs: update" commit crowded `git log --all` views.
+          # Same approach as factory's scripts/squashGhPages.mjs. The lease pins
+          # the tip we checked out, so a concurrent publish is never overwritten.
+          old_tip=$(git rev-parse HEAD)
+          new_tip=$(git commit-tree "$(git write-tree)" -m "docs: update to $REF")
+          git push --force-with-lease="refs/heads/docs:$old_tip" origin "$new_tip:refs/heads/docs"
