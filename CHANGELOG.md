@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.42.0](https://github.com/CourtHive/TMX/compare/v8.41.0...v8.42.0) (2026-10-23)
+
+
+### Features
+
+* **schedule:** offer the profile repair, show the new scheduler reasons, grid no-policy sends {} ([#1724](https://github.com/CourtHive/TMX/issues/1724)) ([75b6010](https://github.com/CourtHive/TMX/commit/75b60100e568aa5ac7f1b4b8c291e405d7714b3e))
+
+
+### Bug Fixes
+
+* **deps:** update dependency dexie to v4.4.7 ([#1727](https://github.com/CourtHive/TMX/issues/1727)) ([64e92d3](https://github.com/CourtHive/TMX/commit/64e92d34f7f44d80dd14389d27812a2477e6477c))
+* **topology:** read round robin links by traversal, not by the POSITION label ([#1728](https://github.com/CourtHive/TMX/issues/1728)) ([e852c46](https://github.com/CourtHive/TMX/commit/e852c4671448eb5bc6c07a198193958720d67a55))
+
 ## [8.41.0](https://github.com/CourtHive/TMX/compare/v8.40.2...v8.41.0) (2026-10-23)
 
 
