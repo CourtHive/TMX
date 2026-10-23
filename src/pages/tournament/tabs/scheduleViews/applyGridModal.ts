@@ -3,29 +3,30 @@
  * running the pro scheduler.
  *
  * Mirrors `applyTimesModal` (the Garman flow) and shares selection/identity/
- * compare logic via `schedulingPolicyChoices.ts`. The pro scheduler is
- * policy-blind by default; selecting a scheduling policy here enables
- * per-participant daily-limit enforcement (`defaultDailyLimits`) for that run.
+ * compare logic via `schedulingPolicyChoices.ts`. With a policy selected, the
+ * grid enforces the daily limits the timed scheduler does (the policy's, the
+ * tournament's, each participant's override; factory, CA 2026-10-23).
  *
- * Unlike Apply Times, this modal defaults to "No policy" to preserve the
- * intentional unconstrained grid behavior — the attached policy is offered as
- * a first-class selectable entry, but the operator must opt into it.
+ * The attached policy is pre-selected when there is one (CA 2026-10-23);
+ * otherwise "No policy", which sends `matchUpDailyLimits: {}`: nothing is held
+ * off the grid for a limit, and a placement over one is flagged in the results.
  *
  * Creating or editing scheduling policies lives on the `/policies` page.
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { escapeHtml } from 'utilities/escapeHtml';
+import { t } from 'i18n';
 
 import {
   ATTACHED_POLICY_ID,
   PolicyChoice,
   appendChoiceGroup,
   buildAttachedChoice,
+  defaultGridChoiceId,
   getAttachedSchedulingPolicy,
   loadSchedulingChoices,
   resolveAttachedChoiceId,
 } from './schedulingPolicyChoices';
-import { t } from 'i18n';
 
 export type { PolicyChoice } from './schedulingPolicyChoices';
 
@@ -46,9 +47,8 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
 
   const allChoices: PolicyChoice[] = attachedChoice ? [attachedChoice, ...choices] : choices;
 
-  // Default to "No policy" so the legacy unconstrained behavior is preserved
-  // unless the operator explicitly opts into limits.
-  let selectedId = NO_POLICY_ID;
+  // the attached policy when there is one, else "No policy" (CA 2026-10-23)
+  let selectedId = defaultGridChoiceId(attachedChoice, NO_POLICY_ID);
 
   const content = (root: HTMLElement) => {
     root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 0.8125rem;';
@@ -56,8 +56,8 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     const intro = document.createElement('div');
     intro.innerHTML =
       'The pro scheduler places matchUps on the court grid <em>without</em> assigning times. ' +
-      'Selecting a scheduling policy applies its per-participant daily limits to this run; ' +
-      'choose <strong>No policy</strong> to keep the current unrestricted behavior.';
+      "Selecting a scheduling policy enforces its per-participant daily limits (and the tournament's) for this run; " +
+      'choose <strong>No policy</strong> to place without holding matchUps back, flagging placements over a limit.';
     intro.style.cssText = 'line-height: 1.45;';
     root.appendChild(intro);
 
@@ -91,7 +91,7 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     const noneOpt = document.createElement('option');
     noneOpt.value = NO_POLICY_ID;
     noneOpt.textContent = t('applyScheduling.noPolicy');
-    noneOpt.selected = true;
+    noneOpt.selected = selectedId === NO_POLICY_ID;
     select.appendChild(noneOpt);
 
     appendChoiceGroup(select, 'Attached', allChoices, 'attached', selectedId);

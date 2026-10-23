@@ -99,3 +99,26 @@ export function describeDependencyDeferred(
   if (times.length) fragments.push(`tried ${times.join(', ')}`);
   return fragments.join(' — ');
 }
+
+export type PlayedOrderDeferral = {
+  scheduleTime?: string;
+  blockingMatchUps?: { matchUpId: string; scheduledDate?: string; scheduledTime?: string; roundNumber?: number }[];
+};
+
+// "R1 · Amelie Paz vs Aravis Ellul already played 2026-10-02 09:00 (+1 more) — tried 08:00"
+export function describePlayedOrderDeferred(
+  deferral: PlayedOrderDeferral | undefined,
+  matchUps: MatchUpLookup,
+  phrase: (params: { matchUp: string; when: string }) => string,
+): string {
+  const [first, ...rest] = deferral?.blockingMatchUps ?? [];
+  if (!first) return deferral?.scheduleTime ? `tried ${deferral.scheduleTime}` : '';
+  const entry = matchUps.get(first.matchUpId);
+  const matchUp = entry
+    ? [entry.roundLabel, entry.participantsLabel].filter(Boolean).join(' · ')
+    : `R${first.roundNumber ?? '?'}`;
+  const when = [first.scheduledDate, first.scheduledTime].filter(Boolean).join(' ');
+  const more = rest.length ? ` (+${rest.length} more)` : '';
+  const tried = deferral?.scheduleTime ? ` — tried ${deferral.scheduleTime}` : '';
+  return `${phrase({ matchUp, when })}${more}${tried}`;
+}

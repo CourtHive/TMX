@@ -10,7 +10,9 @@
  * engine which assigns concrete times to matchUps based on the profile.
  */
 import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
+import { planGuardRefusalCount, profileRepairOffer, schedulerResultOf } from 'services/scheduling/schedulingRefusals';
 import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
+import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -45,6 +47,8 @@ const INTENT_DANGER = 'is-danger';
 const AVG_MATCH_MINUTES = 75;
 
 let activeControl: SchedulingProfileControl | null = null;
+// where the view was last rendered, so a repaired profile can be reloaded into it
+let lastRender: { target: HTMLElement; scheduledDate?: string; options?: ProfileViewOptions } | null = null;
 
 export interface ProfileViewOptions {
   catalogVisible: boolean;
@@ -52,6 +56,7 @@ export interface ProfileViewOptions {
 }
 
 export function renderProfileView(target: HTMLElement, scheduledDate?: string, options?: ProfileViewOptions): void {
+  lastRender = { target, scheduledDate, options };
   target.innerHTML = '';
 
   const setup = buildProfileSetup();
@@ -672,6 +677,10 @@ function runScheduleWithPolicy(
         const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
 
         if (result?.error || eqResult?.error) {
+          if (handleSchedulerRefusal(eqResult)) {
+            statusEl.textContent = t('schedulingProfile.failed');
+            return;
+          }
           const err = result?.error || eqResult?.error;
           scheduleToast({
             message: `Scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
@@ -722,8 +731,66 @@ function hasActionableResults(result: any): boolean {
     dateMapHasEntries(result.noTimeMatchUpIds) ||
     dateMapHasEntries(result.recoveryTimeDeferredMatchUpIds) ||
     dateMapHasEntries(result.dependencyDeferredMatchUpIds) ||
+    dateMapHasEntries(result.playedOrderDeferredMatchUpIds) ||
+    dateMapHasEntries(result.noFormatMatchUpIds) ||
     dateMapHasEntries(result.requestConflicts)
   );
+}
+
+/**
+ * A scheduler refusal TMX answers itself: a profile that needs repair is offered its repair (saved with
+ * setSchedulingProfile, so client and server repair alike, then reloaded into the view); the plan's played-order
+ * guard is said plainly. False for any other result, which the caller reports as before.
+ */
+function handleSchedulerRefusal(eqResult: any): boolean {
+  const result = schedulerResultOf(eqResult);
+  const offer = profileRepairOffer(result);
+  if (offer) {
+    openProfileRepair(offer.repairedSchedulingProfile, offer.modifications);
+    return true;
+  }
+  const refused = planGuardRefusalCount(result);
+  if (refused !== undefined) {
+    scheduleToast({ message: t('schedulingProfile.planGuardRefused', { count: refused }), intent: INTENT_DANGER });
+    return true;
+  }
+  return false;
+}
+
+function openProfileRepair(repairedSchedulingProfile: any[], modifications: number): void {
+  const content = document.createElement('p');
+  content.style.cssText = 'margin: 0; padding: 12px; font-size: 0.85rem;';
+  content.textContent = t('schedulingProfile.repairIntro', { count: modifications });
+  openModal({
+    title: t('schedulingProfile.repairTitle'),
+    content,
+    buttons: [
+      { label: t('common.cancel'), close: true, onClick: closeModal },
+      {
+        label: t('schedulingProfile.repair'),
+        intent: 'is-primary',
+        close: true,
+        onClick: () => repairProfile(repairedSchedulingProfile),
+      },
+    ],
+  });
+}
+
+function repairProfile(schedulingProfile: any[]): void {
+  mutationRequest({
+    methods: [{ method: 'setSchedulingProfile', params: { schedulingProfile } }],
+    engine: COMPETITION_ENGINE,
+    callback: (result: any) => {
+      if (result?.error) {
+        scheduleToast({ message: t('schedulingProfile.repairFailed'), intent: INTENT_DANGER });
+        return;
+      }
+      invalidateMatchUpCaches();
+      scheduleToast({ message: t('schedulingProfile.repaired'), intent: INTENT_SUCCESS });
+      // the view's profile still holds the removed rounds, and Apply saves it first: reload it from the repaired one
+      if (lastRender) renderProfileView(lastRender.target, lastRender.scheduledDate, lastRender.options);
+    },
+  });
 }
 
 function applyGrid(_setup: ProfileSetup, statusEl: HTMLElement): void {
@@ -767,10 +834,11 @@ function runGridWithPolicy(
     const params: any = { scheduleDates };
     if (courtIds) params.courtIds = courtIds;
 
-    // Extract daily limits from the chosen policy (if any). Mirrors what the
-    // factory's `getMatchUpDailyLimits` would read from an attached policy.
-    const matchUpDailyLimits = selectedPolicy?.definition?.scheduling?.defaultDailyLimits;
-    if (matchUpDailyLimits) params.matchUpDailyLimits = matchUpDailyLimits;
+    // Daily limits (factory, CA 2026-10-23): with a policy chosen, none are sent and the grid resolves them as the
+    // timed scheduler does (the attached policy, which is attached first below when it is not yet, the tournament's
+    // limits and each participant's override) and enforces them. "No policy" sends {}: nothing is held off the grid,
+    // and placements over those limits come back as dailyLimitWarningMatchUpIds.
+    if (!selectedPolicy) params.matchUpDailyLimits = {};
 
     const methods: any[] = [];
     if (selectedPolicy && mustAttach) {
@@ -790,6 +858,10 @@ function runGridWithPolicy(
         const result = Array.isArray(results) ? results[results.length - 1] : eqResult;
 
         if (result?.error || eqResult?.error) {
+          if (handleSchedulerRefusal(eqResult)) {
+            statusEl.textContent = t('schedulingProfile.gridFailed');
+            return;
+          }
           const err = result?.error || eqResult?.error;
           scheduleToast({
             message: `Grid scheduling failed: ${typeof err === 'string' ? err : JSON.stringify(err)}`,
@@ -821,20 +893,27 @@ function runGridWithPolicy(
         const segments = [`Placed ${totalScheduled} matchUps on grid across ${dateCount} dates`];
         if (totalNotScheduled > 0) segments.push(`${totalNotScheduled} could not be placed`);
         if (totalOverLimit > 0) segments.push(`${totalOverLimit} over daily limit`);
+        const totalWarned = countDateMap(result?.dailyLimitWarningMatchUpIds);
+        if (totalWarned > 0) segments.push(`${totalWarned} placed over a daily limit`);
         const message = segments.join(' — ') + '.';
 
         scheduleToast({
           message,
-          intent: totalNotScheduled > 0 || totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
+          intent: totalNotScheduled > 0 || totalOverLimit > 0 || totalWarned > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;
+        if (totalWarned > 0) openScheduleResultsDrawer(result);
       },
     });
   });
 }
 
 // ── Helpers ──
+
+function countDateMap(dateMap?: { [date: string]: string[] }): number {
+  return Object.values(dateMap ?? {}).reduce((count, ids) => count + (ids?.length ?? 0), 0);
+}
 
 function renderEmpty(target: HTMLElement, message: string): void {
   const placeholder = document.createElement('div');

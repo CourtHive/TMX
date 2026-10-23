@@ -36,6 +36,7 @@ import {
   POLICY_TYPE_SCHEDULING,
   buildAttachedChoice,
   choiceIdentity,
+  defaultGridChoiceId,
   getAttachedSchedulingPolicy,
   loadSchedulingChoices,
   normalizedFingerprint,
@@ -251,5 +252,15 @@ describe('loadSchedulingChoices', () => {
 
     expect(choices.map((c) => c.id)).toEqual([BUILTIN_ID]);
     expect(consoleError).toHaveBeenCalled();
+  });
+});
+
+describe('defaultGridChoiceId', () => {
+  it('pre-selects the attached policy when there is one', () => {
+    expect(defaultGridChoiceId({ id: 'attached' }, '__no_policy__')).toEqual('attached');
+  });
+
+  it('falls back to "No policy" otherwise', () => {
+    expect(defaultGridChoiceId(null, '__no_policy__')).toEqual('__no_policy__');
   });
 });

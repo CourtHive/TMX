@@ -217,8 +217,8 @@ importers:
         specifier: 1.11.23
         version: 1.11.23
       dexie:
-        specifier: 4.4.6
-        version: 4.4.6
+        specifier: 4.4.7
+        version: 4.4.7
       dompurify:
         specifier: ^3.4.12
         version: 3.4.17
@@ -236,7 +236,7 @@ importers:
         version: 1.0.0
       i18next:
         specifier: ^26.0.0
-        version: 26.5.2(typescript@6.0.3)
+        version: 26.5.3(typescript@6.0.3)
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -2914,8 +2914,8 @@ packages:
   detect-node@2.1.0:
     resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}
 
-  dexie@4.4.6:
-    resolution: {integrity: sha512-hJP/BO6mjB+tX6hToIO1kmxYLNmun90wYbfcoAoLpKEyDYal/k33dg0TAfoUe2TDsbbLoVIzljJ3BN2UbR5EOg==}
+  dexie@4.4.7:
+    resolution: {integrity: sha512-wemFiCl3DTCnfzyqepUTX1ugbYbkTrw3aEZOG7YjAOUoEQB5g5PrEywPzk5JpbX/SxqQ9IvjUpxCDIEjoOWEfA==}
 
   diffie-hellman@5.0.3:
     resolution: {integrity: sha512-kqag/Nl+f3GwyK25fhUMYj81BUOrZ9IuJsjIcDE5icNM9FJHAVm3VcUDxdLPoQtTuUylWm6ZIknYJwwaPxsUzg==}
@@ -3459,8 +3459,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  i18next@26.5.2:
-    resolution: {integrity: sha512-6fIXt//2MZNok3tULyjnypxe3vbsy3pV1bVg8p2x3yKrzZvp7z3T+wXx/88LQsATRdhyJeAUAvUxEtxsHdJ29w==}
+  i18next@26.5.3:
+    resolution: {integrity: sha512-6pRwOwJ6lBCBB66fqNZaSoUmvsALHMord7FL6GsDhubT1CrPabTMEJIqddm0nn2YEbKofdI/3VAtGrQPuztY1Q==}
     peerDependencies:
       typescript: 6.0.3
     peerDependenciesMeta:
@@ -7838,7 +7838,7 @@ snapshots:
   detect-node@2.1.0:
     optional: true
 
-  dexie@4.4.6: {}
+  dexie@4.4.7: {}
 
   diffie-hellman@5.0.3:
     dependencies:
@@ -8603,7 +8603,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  i18next@26.5.2(typescript@6.0.3):
+  i18next@26.5.3(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
