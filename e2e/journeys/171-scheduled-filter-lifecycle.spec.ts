@@ -1,10 +1,13 @@
 import { initDevBridge, resetState } from '../helpers/dev-bridge';
+import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
 import { test, expect } from '@playwright/test';
 
 const PANEL = '[data-sidebar-panel="scheduled"]';
 const CARDS = `${PANEL} .spl-matchup-card`;
-const FIRST_DAY = '2026-10-20';
-const NEXT_DAY = '2026-10-21';
+// Relative to today: a tournament that has ended refuses edits ("Not in date range"), and literal dates
+// passed only while the suite ran within them.
+const FIRST_DAY = todayLocal();
+const NEXT_DAY = daysFromTodayLocal(1);
 const ID = 'e2e-scheduled-filter-lifecycle';
 
 async function navigate(page: import('@playwright/test').Page, day: string): Promise<void> {
@@ -33,7 +36,10 @@ test.beforeEach(async ({ page }) => {
       dev.factory.mocksEngine.generateTournamentRecord({
         nonRandom: 1,
         setState: true,
-        tournamentAttributes: { tournamentId: id, startDate: first, endDate: next },
+        // top level: mocksEngine overwrites `tournamentAttributes` dates with these (defaulting to today)
+        startDate: first,
+        endDate: next,
+        tournamentAttributes: { tournamentId: id },
         participantsProfile: { scaledParticipantsCount: 16 },
         drawProfiles: [
           { eventName: 'Alpha', gender: 'MALE', drawSize: 8 },
