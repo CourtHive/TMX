@@ -2,6 +2,10 @@
  * Hydrate Topology — Converts existing drawDefinition (structures + links) back to TopologyState.
  * Used for editing existing draws in the topology builder.
  */
+import { finishingPositionQualifiers } from 'functions/finishingPositionQualifiers';
+import { tools } from 'tods-competition-factory';
+
+// constants and types
 import type { TopologyState, TopologyNode, TopologyEdge } from 'courthive-components';
 
 const STAGE_MAP: Record<string, TopologyNode['stage']> = {
@@ -55,6 +59,9 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     if (!structure.drawType && stage === 'MAIN' && structure.stageSequence === 1) {
       structureType = ddDrawType;
     }
+    // a CONTAINER of groups is a round robin; a qualifying one carries no drawType to say so
+    const isContainer = structure.structureType === 'CONTAINER' && !!structure.structures?.length;
+    if (isContainer) structureType = 'ROUND_ROBIN';
     if (structure.matchUpType === 'TEAM') {
       structureType = 'SINGLE_ELIMINATION';
     }
@@ -83,7 +90,7 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       structureName: structure.structureName || `${stage} ${sameStage.length + 1}`,
       stage,
       structureType,
-      drawSize: structure.positionAssignments?.length || countMatchUpPositions(structure),
+      drawSize: isContainer ? countGroupPositions(structure) : structurePositions(structure),
       matchUpFormat: structure.matchUpFormat,
       ...(structureOptions && { structureOptions }),
       position: {
@@ -93,34 +100,43 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
     };
   });
 
-  // Build edges from links
+  // Build edges from links. A link out of a round robin is directed by its finishingPositions whether it is labelled
+  // POSITION or WINNER (classic TMX conversions carry WINNER): it hydrates as the POSITION edge it is, and its
+  // source.roundNumber, which decides nothing, is not carried onto the edge.
   const edges: TopologyEdge[] = links.map((link: any, index: number) => {
     const sourceStructureId = link.source?.structureId;
     const targetStructureId = link.target?.structureId;
-    const linkType = LINK_TYPE_MAP[link.linkType] || 'WINNER';
+    const byFinishingPosition = tools.traversesByFinishingPosition(link, drawDefinition);
+    const linkType = byFinishingPosition ? 'POSITION' : LINK_TYPE_MAP[link.linkType] || 'WINNER';
 
     return {
       id: `link-${index}`,
       sourceNodeId: sourceStructureId,
       targetNodeId: targetStructureId,
       linkType,
-      sourceRoundNumber: link.source?.roundNumber,
+      sourceRoundNumber: byFinishingPosition ? undefined : link.source?.roundNumber,
       targetRoundNumber: link.target?.roundNumber,
       feedProfile: link.target?.feedProfile,
       finishingPositions: link.source?.finishingPositions,
-      label: computeLabel(link),
+      label: computeLabel(link, byFinishingPosition),
     };
   });
 
-  // Compute qualifyingPositions for QUALIFYING nodes from outgoing WINNER links.
-  // The link's sourceRoundNumber tells us where qualifiers exit; the count is
-  // drawSize / 2^sourceRoundNumber for standard elimination brackets.
+  // Compute qualifyingPositions for QUALIFYING nodes from their outgoing links. A round robin's finishing-position
+  // link carries each group's finishers at its finishingPositions. A round winner link's source.roundNumber tells us
+  // where qualifiers exit; the count is drawSize / 2^roundNumber for standard elimination brackets.
   for (const node of nodes) {
     if (node.stage !== 'QUALIFYING') continue;
 
-    const outgoingWinner = edges.find((e: TopologyEdge) => e.sourceNodeId === node.id && e.linkType === 'WINNER');
-    if (outgoingWinner?.sourceRoundNumber) {
-      node.qualifyingPositions = Math.floor(node.drawSize / Math.pow(2, outgoingWinner.sourceRoundNumber));
+    const outgoing = links.filter((link: any) => link.source?.structureId === node.id);
+    const positionQualifiers = outgoing
+      .map((link: any) => finishingPositionQualifiers(link, drawDefinition))
+      .find(Boolean);
+    const roundWinner = outgoing.find((link: any) => tools.isRoundWinnerLink(link, drawDefinition));
+    if (positionQualifiers) {
+      node.qualifyingPositions = positionQualifiers;
+    } else if (roundWinner?.source?.roundNumber) {
+      node.qualifyingPositions = Math.floor(node.drawSize / Math.pow(2, roundWinner.source.roundNumber));
     }
   }
 
@@ -147,6 +163,15 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
   };
 }
 
+function structurePositions(structure: any): number {
+  return structure.positionAssignments?.length || countMatchUpPositions(structure);
+}
+
+/** a round robin's positions are its groups' positions */
+function countGroupPositions(container: any): number {
+  return container.structures.reduce((total: number, group: any) => total + structurePositions(group), 0);
+}
+
 function countMatchUpPositions(structure: any): number {
   const matchUps = structure.matchUps || [];
   const positions = new Set<number>();
@@ -158,11 +183,15 @@ function countMatchUpPositions(structure: any): number {
   return positions.size || 2;
 }
 
-function computeLabel(link: any): string {
+function computeLabel(link: any, byFinishingPosition: boolean): string {
   const linkType = (link.linkType || 'WINNER').toLowerCase();
   let label = linkType;
 
-  if (link.source?.roundNumber) {
+  if (byFinishingPosition) {
+    // the same label for both labels, with or without a source.roundNumber
+    const finishingPositions = link.source?.finishingPositions ?? [];
+    label = finishingPositions.length ? `positions ${finishingPositions.join(',')}` : 'positions';
+  } else if (link.source?.roundNumber) {
     label = `R${link.source.roundNumber} ${linkType}`;
   }
   if (link.target?.roundNumber) {

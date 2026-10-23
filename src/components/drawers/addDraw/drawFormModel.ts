@@ -24,6 +24,7 @@
 
 // constants and types
 import { selectTarget, targetsWithCapacity, type QualifyingTarget } from './qualifyingTargets';
+import { finishingPositionQualifiers } from 'functions/finishingPositionQualifiers';
 import { entryStatusConstants } from 'tods-competition-factory';
 import { isSeedableDrawType } from './seedCount';
 import { t } from 'i18n';
@@ -692,6 +693,10 @@ function inferExistingQualifiersCount(draw: any): number {
   if (!qualifyingLink) return 0;
   const explicit = qualifyingLink?.source?.qualifyingPositions;
   if (typeof explicit === 'number' && explicit > 0) return explicit;
+  // A round robin's finishing-position link (POSITION, or WINNER naming finishingPositions) carries each group's
+  // finishers at those positions; its source.roundNumber decides nothing.
+  const positionQualifiers = finishingPositionQualifiers(qualifyingLink, draw);
+  if (positionQualifiers) return positionQualifiers;
   // Fallback: count matchUps in the qualifying source structure's final round.
   const sourceStructureId = qualifyingLink?.source?.structureId;
   const sourceRoundNumber = qualifyingLink?.source?.roundNumber;

@@ -2,16 +2,10 @@
  * Add ad-hoc round modal with automated drawMatic or manual generation.
  * Creates new round with optional dynamic ratings and participant selection.
  */
-import {
-  positionActionConstants,
-  entryStatusConstants,
-  drawDefinitionConstants,
-  fixtures,
-  factoryConstants,
-} from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal, openModal } from './baseModal/baseModal';
 import { preferencesConfig } from 'config/preferencesConfig';
+import { findAdHocFeedingLinks } from './adHocFeedingLinks';
 import { tournamentEngine } from 'services/factory/engine';
 import { setActiveScale } from 'settings/setActiveScale';
 import { selectParticipant } from './selectParticipant';
@@ -19,6 +13,13 @@ import { renderForm } from 'courthive-components';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
+import {
+  positionActionConstants,
+  entryStatusConstants,
+  drawDefinitionConstants,
+  fixtures,
+  factoryConstants,
+} from 'tods-competition-factory';
 
 import { ADD_ADHOC_MATCHUPS, ADD_DRAW_ENTRIES, ADD_DYNAMIC_RATINGS } from 'constants/mutationConstants';
 import { AUTOMATED, MANUAL } from 'constants/tmxConstants';
@@ -226,12 +227,7 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const resolveLinkedParticipants = (): string[] => {
     const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-    const loserLinks = drawDefinition?.links?.filter(
-      (link: any) => link.linkType === 'LOSER' && link.target?.structureId === structureId,
-    );
-    const positionLink = drawDefinition?.links?.find(
-      (link: any) => link.linkType === 'POSITION' && link.target?.structureId === structureId,
-    );
+    const { loserLinks, positionLink } = findAdHocFeedingLinks(drawDefinition, structureId);
 
     if (loserLinks?.length) {
       return resolveLoserLinkParticipants(loserLinks, structure, drawId);
