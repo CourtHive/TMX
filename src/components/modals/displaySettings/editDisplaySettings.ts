@@ -78,8 +78,8 @@ export async function editDisplaySettings(params) {
   ];
   const participantsProfile = { withISO2: true };
 
+  // auto-scheduled, the mocks schedule the draw before playing it, so its completed matchUps carry their schedules
   const tournamentRecord = mocksEngine.generateTournamentRecord({
-    scheduleCompletedMatchUps: true,
     completeAllMatchUps: true,
     participantsProfile,
     autoSchedule: true,
