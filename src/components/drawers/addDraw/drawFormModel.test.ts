@@ -224,6 +224,42 @@ describe('drawFormModel — POPULATE_MAIN', () => {
     const view = drawFormModel(mode, EMPTY_INPUTS);
     expect(view.derivedValues.qualifiersCount).toBe(4);
   });
+
+  // a round robin's link is directed by finishingPositions whether labelled POSITION or WINNER (CA, 2026-10-23)
+  const rrQualifyingDraw = (linkType: string, roundNumber?: number) => ({
+    drawId: 'D1',
+    structures: [
+      { structureId: 'Q', stage: STAGE_QUALIFYING, structureType: 'CONTAINER', structures: [{}, {}, {}, {}] },
+      { structureId: 'M', stage: STAGE_MAIN, stageSequence: 1 },
+    ],
+    links: [
+      { linkType, source: { structureId: 'Q', finishingPositions: [1], roundNumber }, target: { structureId: 'M' } },
+    ],
+  });
+
+  it.each([
+    ['POSITION', undefined],
+    ['POSITION', 3],
+    ['WINNER', undefined],
+    ['WINNER', 3],
+  ])('infers qualifiersCount from a round robin %s link (roundNumber %s): one per group', (linkType, roundNumber) => {
+    const draw = rrQualifyingDraw(linkType as string, roundNumber as number | undefined);
+    const mode: DrawFormMode = { kind: 'POPULATE_MAIN', event: makeEvent({ mainCount: 8 }), draw };
+    expect(drawFormModel(mode, EMPTY_INPUTS).derivedValues.qualifiersCount).toBe(4);
+  });
+
+  it('still infers qualifiersCount from an elimination WINNER link by its final round', () => {
+    const draw = {
+      drawId: 'D1',
+      structures: [
+        { structureId: 'Q', stage: STAGE_QUALIFYING, matchUps: [1, 2, 3, 4].map(() => ({ roundNumber: 2 })) },
+        { structureId: 'M', stage: STAGE_MAIN, stageSequence: 1 },
+      ],
+      links: [{ linkType: 'WINNER', source: { structureId: 'Q', roundNumber: 2 }, target: { structureId: 'M' } }],
+    };
+    const mode: DrawFormMode = { kind: 'POPULATE_MAIN', event: makeEvent({ mainCount: 8 }), draw };
+    expect(drawFormModel(mode, EMPTY_INPUTS).derivedValues.qualifiersCount).toBe(4);
+  });
 });
 
 /* ─── GENERATE_QUALIFYING ───────────────────────────────────────────── */
