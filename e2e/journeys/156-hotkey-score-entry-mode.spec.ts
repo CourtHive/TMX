@@ -41,7 +41,11 @@ const recorded = (page: Page, matchUpId: string) =>
   }, matchUpId);
 
 const TOAST = '.notification';
-const CLEAR_REFUSED = "This result can't be cleared: a later match depends on it.";
+// the score entry dialog's own words for the empty card it will not submit (courthive-components default)
+const REPLACEMENT_REQUIRED = 'Enter a replacement score: a later match depends on this result.';
+const DIALOG_CANCEL = 'button[data-action="cancel"]';
+const DIALOG_SUBMIT = 'button[data-action="submit"]';
+const DIALOG_CLEAR = 'button[data-action="clear"]';
 const ENGINE_REFUSAL = 'No valid actions';
 
 type Scoring = { round: number; position: number; status: string; sets: number[][]; winningSide?: number };
@@ -202,7 +206,7 @@ test.describe('journey 156 — hotkey score entry mode', () => {
     expect((await recorded(page, inProgressId.r1p1)).score ?? '').toBe('');
   });
 
-  test('a clear a later match depends on is stopped with the reason; one nothing depends on goes through', async ({
+  test('a final result opens the score dialog, where a clear a later match depends on cannot be submitted', async ({
     page,
   }) => {
     const tournamentId = await seedTournament(page, {
@@ -247,18 +251,23 @@ test.describe('journey 156 — hotkey score entry mode', () => {
     await openMatchUps(page, tournamentId);
     await page.locator(TOGGLE).click();
 
-    // a semifinal whose winner has played the final: the clear is refused before it is sent
+    // A final result is corrected in the score dialog even in hotkey mode (#1697): the keypad is for
+    // unfinished scores. A semifinal whose winner has played the final: [Clear] resets the form, but the
+    // empty card cannot be submitted, so the clear is never sent.
     await scoreCellWithText(page, '6-1 6-1').click();
-    for (let key = 0; key < 4; key += 1) await page.keyboard.press('Backspace');
-    await page.keyboard.press('Enter');
-    await expect(page.locator(TOAST).filter({ hasText: CLEAR_REFUSED })).toBeVisible();
+    await expect(page.locator(DIALOG_CLEAR)).toBeEnabled();
+    await page.locator(DIALOG_CLEAR).click();
+    await expect(page.locator(DIALOG_SUBMIT)).toBeDisabled();
+    await expect(page.locator(DIALOG_SUBMIT)).toHaveAttribute('title', REPLACEMENT_REQUIRED);
+    await page.locator(DIALOG_CANCEL).click();
+    await expect(page.locator(DIALOG_SUBMIT)).toHaveCount(0);
     await expect(page.locator(TOAST).filter({ hasText: ENGINE_REFUSAL })).toHaveCount(0);
     expect(await recorded(page, ids.r1p1)).toEqual({ status: 'COMPLETED', score: '6-1 6-1' });
 
     // the final: nothing depends on it, so it clears
     await scoreCellWithText(page, '6-2 6-2').click();
-    for (let key = 0; key < 4; key += 1) await page.keyboard.press('Backspace');
-    await page.keyboard.press('Enter');
+    await page.locator(DIALOG_CLEAR).click();
+    await page.locator(DIALOG_SUBMIT).click();
     await expect.poll(async () => (await recorded(page, ids.r2p1)).status).toBe('TO_BE_PLAYED');
   });
 });
