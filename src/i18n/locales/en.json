@@ -3125,7 +3125,13 @@
     "saved": "Profile saved.",
     "noRounds": "No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.",
     "failed": "Scheduling failed. Check console for details.",
-    "gridFailed": "Grid scheduling failed."
+    "gridFailed": "Grid scheduling failed.",
+    "repairTitle": "Scheduling profile needs repair",
+    "repairIntro": "The scheduling profile names {{count}} round(s) whose venue, event or draw no longer exists. Nothing was scheduled. Repair the profile (remove those rounds) and apply again?",
+    "repair": "Repair profile",
+    "repaired": "Profile repaired. Apply again to schedule.",
+    "repairFailed": "Profile repair failed.",
+    "planGuardRefused": "Nothing was scheduled: the plan placed {{count}} matchUp(s) before matches already played. Please report this."
   },
   "topology": {
     "clearCanvas": "Clear Canvas",
@@ -3369,7 +3375,7 @@
     "frameRefused": "This tournament’s time zone cannot be determined, so its reports cannot be read on the venue’s clock. Set the tournament’s time zone in Edit Dates."
   },
   "applyScheduling": {
-    "noPolicy": "No policy (do not enforce daily limits)",
+    "noPolicy": "No policy (do not enforce daily limits; flag placements over them)",
     "applyGridTitle": "Apply Grid — Scheduling Policy",
     "selectPolicy": "Select the scheduling policy to use for Apply Times:",
     "noPolicies": "No scheduling policies available",
@@ -3402,7 +3408,11 @@
   "scheduleResults": {
     "title": "Scheduling Results",
     "noActivity": "No scheduler activity on this date.",
-    "noPerDate": "The scheduler completed but reported no per-date activity."
+    "noPerDate": "The scheduler completed but reported no per-date activity.",
+    "noFormat": "No Format",
+    "playedOrder": "Deferred — Played Order",
+    "playedOrderDetail": "{{matchUp}} already played {{when}}",
+    "dailyLimitWarnings": "Placed Over Daily Limit"
   },
   "schedulingTab": {
     "availability": "Availability",

@@ -3,13 +3,13 @@
  * running the pro scheduler.
  *
  * Mirrors `applyTimesModal` (the Garman flow) and shares selection/identity/
- * compare logic via `schedulingPolicyChoices.ts`. The pro scheduler is
- * policy-blind by default; selecting a scheduling policy here enables
- * per-participant daily-limit enforcement (`defaultDailyLimits`) for that run.
+ * compare logic via `schedulingPolicyChoices.ts`. With a policy selected, the
+ * grid enforces the daily limits the timed scheduler does (the policy's, the
+ * tournament's, each participant's override; factory, CA 2026-10-23).
  *
- * Unlike Apply Times, this modal defaults to "No policy" to preserve the
- * intentional unconstrained grid behavior — the attached policy is offered as
- * a first-class selectable entry, but the operator must opt into it.
+ * Unlike Apply Times, this modal defaults to "No policy", which sends
+ * `matchUpDailyLimits: {}`: nothing is held off the grid for a limit, and a
+ * placement over one is flagged in the results.
  *
  * Creating or editing scheduling policies lives on the `/policies` page.
  */
@@ -56,8 +56,8 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     const intro = document.createElement('div');
     intro.innerHTML =
       'The pro scheduler places matchUps on the court grid <em>without</em> assigning times. ' +
-      'Selecting a scheduling policy applies its per-participant daily limits to this run; ' +
-      'choose <strong>No policy</strong> to keep the current unrestricted behavior.';
+      "Selecting a scheduling policy enforces its per-participant daily limits (and the tournament's) for this run; " +
+      'choose <strong>No policy</strong> to place without holding matchUps back, flagging placements over a limit.';
     intro.style.cssText = 'line-height: 1.45;';
     root.appendChild(intro);
 
