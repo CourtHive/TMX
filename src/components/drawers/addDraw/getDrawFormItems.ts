@@ -5,6 +5,7 @@
 import { targetNotice, targetOptionLabel, type QualifyingTarget } from './qualifyingTargets';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { DEFAULT_PLAYOFF_DRAW_TYPE } from './playoffGroups';
 import { tournamentEngine } from 'services/factory/engine';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
 import { getSeedingAllowance } from './seedingPolicies';
@@ -308,6 +309,8 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       options: getDrawTypeOptions({ isPlayoff: true }),
       label: t('drawers.addDraw.playoffDrawType'),
       field: PLAYOFF_DRAW_TYPE,
+      // Without a value the select matches the option that has none: the disabled divider.
+      value: DEFAULT_PLAYOFF_DRAW_TYPE,
     },
     {
       visible: false,

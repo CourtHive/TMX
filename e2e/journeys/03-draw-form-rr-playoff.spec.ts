@@ -91,6 +91,14 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
 
   /* ── Section 2.2: Playoff draw type interactions ──────────────────── */
 
+  test('2.2.1 — playoff draw type opens on SINGLE_ELIMINATION, never the divider', async ({ page }) => {
+    const drawer = await openDrawFormWithRRPlayoff(page);
+
+    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('SINGLE_ELIMINATION');
+
+    await drawer.clickCancel();
+  });
+
   test('2.2.3 — playoff draw type ROUND_ROBIN: playoff group size appears', async ({ page }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
@@ -116,7 +124,7 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
     await drawer.clickCancel();
   });
 
-  test('2.3.2 — changing playoff type away from TOP_FINISHERS while PAGE_PLAYOFF resets to PLAY_OFF', async ({
+  test('2.3.2 — changing playoff type away from TOP_FINISHERS while PAGE_PLAYOFF resets to SINGLE_ELIMINATION', async ({
     page,
   }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
@@ -128,13 +136,15 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
     // Change playoff type away from TOP_FINISHERS
     await drawer.fieldSelect('Playoff Type').selectOption('bestFinishers');
 
-    // Playoff draw type should reset to PLAY_OFF
-    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('PLAY_OFF');
+    // Playoff draw type should reset to the drawer default
+    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('SINGLE_ELIMINATION');
 
     await drawer.clickCancel();
   });
 
-  test('2.3.3 — changing advancePerGroup away from 2 while PAGE_PLAYOFF resets to PLAY_OFF', async ({ page }) => {
+  test('2.3.3 — changing advancePerGroup away from 2 while PAGE_PLAYOFF resets to SINGLE_ELIMINATION', async ({
+    page,
+  }) => {
     const drawer = await openDrawFormWithRRPlayoff(page);
 
     // Set PAGE_PLAYOFF (forces advancePerGroup=2)
@@ -144,8 +154,8 @@ test.describe('Journey 3 — RR with Playoff sub-states', () => {
     // Change advance per group to 3
     await drawer.fieldSelect('Advance per group').selectOption('3');
 
-    // Playoff draw type should reset to PLAY_OFF
-    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('PLAY_OFF');
+    // Playoff draw type should reset to the drawer default
+    await expect(drawer.fieldSelect('Playoff Draw Type')).toHaveValue('SINGLE_ELIMINATION');
 
     await drawer.clickCancel();
   });
