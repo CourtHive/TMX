@@ -9,6 +9,7 @@ import { getChildrenByClassName } from 'services/dom/parentAndChild';
 import { renderOptions, validators } from 'courthive-components';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
+import { DEFAULT_PLAYOFF_DRAW_TYPE } from './playoffGroups';
 import { tournamentEngine } from 'services/factory/engine';
 import { getTopologyTemplates } from './topologyTemplates';
 import { getDrawTypeOptions } from './getDrawTypeOptions';
@@ -25,7 +26,6 @@ const {
   LUCKY_DRAW,
   MAIN,
   PAGE_PLAYOFF,
-  PLAY_OFF,
   QUALIFYING,
   ROUND_ROBIN,
   ROUND_ROBIN_WITH_PLAYOFF,
@@ -401,7 +401,7 @@ export function getDrawFormRelationships({
 
       // PAGE_PLAYOFF requires TOP_FINISHERS; reset if user changes away
       if (playoffType !== TOP_FINISHERS && inputs?.[PLAYOFF_DRAW_TYPE]?.value === PAGE_PLAYOFF) {
-        inputs[PLAYOFF_DRAW_TYPE].value = PLAY_OFF;
+        inputs[PLAYOFF_DRAW_TYPE].value = DEFAULT_PLAYOFF_DRAW_TYPE;
         fields[PLAYOFF_GROUP_SIZE].style.display = NONE;
       }
     }
@@ -411,7 +411,7 @@ export function getDrawFormRelationships({
     const advancePerGroup = Number.parseInt((e!.target as HTMLSelectElement).value);
     // PAGE_PLAYOFF requires exactly 2 per group; reset if user changes away
     if (advancePerGroup !== 2 && inputs?.[PLAYOFF_DRAW_TYPE]?.value === PAGE_PLAYOFF && fields) {
-      inputs[PLAYOFF_DRAW_TYPE].value = PLAY_OFF;
+      inputs[PLAYOFF_DRAW_TYPE].value = DEFAULT_PLAYOFF_DRAW_TYPE;
       fields[PLAYOFF_GROUP_SIZE].style.display = NONE;
     }
   };

@@ -29,7 +29,7 @@ const {
   LUCKY_DRAW,
   OLYMPIC,
   PAGE_PLAYOFF,
-  PLAY_OFF,
+  PLAYOFF,
   ROUND_ROBIN,
   SWISS,
   ROUND_ROBIN_WITH_PLAYOFF,
@@ -125,7 +125,8 @@ export function getDrawTypeOptions({
     { label: t('drawers.addDraw.drawTypeLucky'), value: LUCKY_DRAW, hide: isPlayoff || isQualifying },
     { label: t('drawers.addDraw.drawTypeOlympic'), value: OLYMPIC, hide: isQualifying },
     { label: t('drawers.addDraw.drawTypePagePlayoff'), value: PAGE_PLAYOFF, hide: !isPlayoff },
-    { label: t('drawers.addDraw.drawTypePlayoff'), value: PLAY_OFF, hide: isQualifying },
+    // PLAYOFF is the draw type; PLAY_OFF is a stage, and the factory builds nothing from it.
+    { label: t('drawers.addDraw.drawTypePlayoff'), value: PLAYOFF, hide: isQualifying },
     {
       label: t('drawers.addDraw.drawTypeRoundRobinWithPlayoff'),
       value: ROUND_ROBIN_WITH_PLAYOFF,
@@ -133,7 +134,9 @@ export function getDrawTypeOptions({
     },
   ];
 
-  const divider = { label: '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500', disabled: true };
+  // An explicit empty value: an option without one matches a select whose item has no `value`, and
+  // a selected option without a value attribute reports its label text as the select's value.
+  const divider = { label: '\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500', value: '', disabled: true };
 
   let allOptions = [...common, divider, ...builtIn, ...(templateOptions.length ? [divider, ...templateOptions] : [])];
 

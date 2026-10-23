@@ -6,6 +6,7 @@ import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-compe
 import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import type { RoundProfileEditorController } from './roundProfileEditor';
+import { getPlayoffDrawProps, getPlayoffGroups } from './playoffGroups';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
@@ -20,7 +21,6 @@ import { t } from 'i18n';
 import { ADD_DRAW_ENTRIES, ATTACH_QUALIFYING_STRUCTURE, SET_POSITION_ASSIGNMENTS } from 'constants/mutationConstants';
 import {
   AUTOMATED,
-  BEST_FINISHERS,
   CUSTOM,
   DRAFT,
   DRAW_MATIC,
@@ -32,10 +32,7 @@ import {
   GROUP_REMAINING,
   GROUP_SIZE,
   MATCHUP_FORMAT,
-  PLAYOFF_DRAW_TYPE,
-  PLAYOFF_GROUP_SIZE,
   PLAYOFF_TYPE,
-  POSITIONS,
   QUALIFIERS_COUNT,
   QUALIFYING_FIRST,
   QUALIFYING_POSITIONS,
@@ -46,8 +43,6 @@ import {
   SEEDS_COUNT,
   STRUCTURE_NAME,
   TEAM_AVOIDANCE,
-  TOP_FINISHERS,
-  TOTAL_ADVANCE,
 } from 'constants/tmxConstants';
 
 const {
@@ -169,74 +164,6 @@ function buildQualifyingFirstCallback(
   };
 }
 
-function getPlayoffGroups(
-  playoffType: string,
-  advancePerGroup: number,
-  groupRemaining: boolean,
-  groupSize: number,
-  inputs?: any,
-): any[] {
-  const playoffGroups: any[] = [];
-
-  // Get the selected playoff draw type and optional playoff group size
-  const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
-  const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
-    ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
-    : undefined;
-
-  // Build extra properties to spread into each playoff group
-  const playoffDrawProps: any = {};
-  if (playoffDrawType) {
-    playoffDrawProps.drawType = playoffDrawType;
-  }
-  if (playoffDrawType === ROUND_ROBIN && playoffGroupSize) {
-    playoffDrawProps.structureOptions = { groupSize: playoffGroupSize };
-  }
-
-  if (playoffType === TOP_FINISHERS) {
-    const groups = [tools.generateRange(1, advancePerGroup + 1)];
-    if (groupRemaining) {
-      const group = tools.generateRange(advancePerGroup + 1, groupSize + 1);
-      if (group.length) groups.push(group);
-    }
-    groups.forEach((finishingPositions, i) => {
-      playoffGroups.push({
-        structureName: `Playoff ${i + 1}`,
-        finishingPositions,
-        ...playoffDrawProps,
-      });
-    });
-  } else if (playoffType === BEST_FINISHERS) {
-    const totalAdvance = Number.parseInt(inputs[TOTAL_ADVANCE]?.value || 0);
-    if (totalAdvance > 0) {
-      playoffGroups.push({
-        finishingPositions: [1],
-        bestOf: totalAdvance,
-        rankBy: 'GEMscore',
-        structureName: 'Playoff 1',
-        ...playoffDrawProps,
-      });
-      if (groupRemaining) {
-        playoffGroups.push({
-          remainder: true,
-          structureName: 'Playoff 2',
-          ...playoffDrawProps,
-        });
-      }
-    }
-  } else if (playoffType === POSITIONS) {
-    tools.generateRange(1, groupSize + 1).forEach((c) => {
-      playoffGroups.push({
-        structureName: `Playoff ${c}`,
-        finishingPositions: [c],
-        ...playoffDrawProps,
-      });
-    });
-  }
-
-  return playoffGroups;
-}
-
 function validatePagePlayoff(structureOptions: any, inputs: any, groupSize: number): boolean | undefined {
   const pagePlayoffGroup = structureOptions?.playoffGroups?.find((pg: any) => pg.drawType === PAGE_PLAYOFF);
   if (!pagePlayoffGroup) return undefined;
@@ -270,21 +197,10 @@ function getStructureOptions(drawType: string, inputs: any): any {
     if (playoffGroups.length) {
       structureOptions.playoffGroups = playoffGroups;
     } else {
-      // WINNERS case: group winners advance; pass drawType if non-default
-      const playoffDrawType = inputs?.[PLAYOFF_DRAW_TYPE]?.value;
-      const playoffGroupSize = inputs?.[PLAYOFF_GROUP_SIZE]?.value
-        ? Number.parseInt(inputs[PLAYOFF_GROUP_SIZE].value)
-        : undefined;
-      if (playoffDrawType) {
-        structureOptions.playoffGroups = [
-          {
-            finishingPositions: [1],
-            drawType: playoffDrawType,
-            ...(playoffDrawType === ROUND_ROBIN && playoffGroupSize
-              ? { structureOptions: { groupSize: playoffGroupSize } }
-              : {}),
-          },
-        ];
+      // WINNERS case: group winners advance; pass drawType only when it is a real playoff draw type
+      const playoffDrawProps = getPlayoffDrawProps(inputs);
+      if (playoffDrawProps.drawType) {
+        structureOptions.playoffGroups = [{ finishingPositions: [1], ...playoffDrawProps }];
       }
     }
 
