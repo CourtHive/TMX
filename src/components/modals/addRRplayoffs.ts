@@ -3,6 +3,7 @@
  * Configures playoff groups with finishing positions, draw type, and group size options.
  */
 import { getDrawTypeOptions } from 'components/drawers/addDraw/getDrawTypeOptions';
+import { buildAddedPlayoffGroups } from 'components/drawers/addDraw/playoffGroups';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -79,17 +80,13 @@ export function addRRplayoffs({
     const checkedRanges = playoffFinishingPositionRanges.filter(
       ({ finishingPosition }: any) => inputs[getId(finishingPosition)]?.checked,
     );
-    const structureName = inputs.structureName.value;
-    const drawType = inputs[DRAW_TYPE].value;
-    const groupSize = drawType === ROUND_ROBIN ? Number.parseInt(inputs[GROUP_SIZE].value) : undefined;
-
-    // Create a separate playoff group for each checked finishing position
-    const playoffGroups = checkedRanges.map(({ finishingPosition, finishingPositionRange }: any) => ({
-      finishingPositions: [finishingPosition],
-      structureName: `${structureName} ${finishingPositionRange}`,
-      drawType,
-      ...(groupSize && { structureOptions: { groupSize } }),
-    }));
+    // One playoff group per checked finishing position; a divider or placeholder value is never sent as drawType
+    const playoffGroups = buildAddedPlayoffGroups({
+      groupSizeValue: inputs[GROUP_SIZE].value,
+      drawTypeValue: inputs[DRAW_TYPE].value,
+      structureName: inputs.structureName.value,
+      checkedRanges,
+    });
 
     // Generate structures locally so client and server use identical structures
     const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
