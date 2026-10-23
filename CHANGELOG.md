@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.42.1](https://github.com/CourtHive/TMX/compare/v8.42.0...v8.42.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update @courthive/provider-config to 0.19.0 ([#1740](https://github.com/CourtHive/TMX/issues/1740)) ([9f6d966](https://github.com/CourtHive/TMX/commit/9f6d966565b6f4d309af8a837092ca3f2d4537ef))
+
 ## [8.42.0](https://github.com/CourtHive/TMX/compare/v8.41.0...v8.42.0) (2026-10-23)
 
 
