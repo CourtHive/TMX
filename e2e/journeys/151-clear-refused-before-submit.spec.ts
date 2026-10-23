@@ -13,11 +13,15 @@ import { enterScore } from '../helpers/enterScore';
  *
  * Two layers, both pinned here, in both front ends (the score entry dialog, the default, and the score
  * modal it replaced, one Settings checkbox away):
- *  - at OPEN, the dialog is told the clear would be refused (`clearable`), and withholds `[Clear]`;
+ *  - at OPEN, the dialog is told the clear would be refused (`clearable`). `[Clear]` stays offered, because
+ *    it also resets the form before a replacement score is typed (#766(courthive-components), #1697), but
+ *    the empty card it leaves cannot be submitted;
  *  - at SUBMIT, TMX asks again, so a later match decided while the dialog was open still stops the clear.
  */
 
 const REFUSED = "This result can't be cleared: a later match depends on it.";
+// the score entry dialog's own words for the empty card it will not submit (courthive-components default)
+const REPLACEMENT_REQUIRED = 'Enter a replacement score: a later match depends on this result.';
 const ENGINE_REFUSAL = 'No valid actions';
 const TOAST = '.notification';
 
@@ -28,10 +32,12 @@ const DIALOGS = [
     clear: 'button[data-action="clear"]',
     submit: 'button[data-action="submit"]',
     cancel: 'button[data-action="cancel"]',
-    // the dialog disables it and says why
+    // [Clear] resets the form; the empty card cannot be submitted, and the dialog says why
     withheld: async (page: Page) => {
-      await expect(page.locator('button[data-action="clear"]')).toBeDisabled();
-      await expect(page.locator('button[data-action="clear"]')).toHaveAttribute('title', REFUSED);
+      await expect(page.locator('button[data-action="clear"]')).toBeEnabled();
+      await page.locator('button[data-action="clear"]').click();
+      await expect(page.locator('button[data-action="submit"]')).toBeDisabled();
+      await expect(page.locator('button[data-action="submit"]')).toHaveAttribute('title', REPLACEMENT_REQUIRED);
     },
   },
   {
@@ -40,10 +46,11 @@ const DIALOGS = [
     clear: '#clearScoreV2',
     submit: '#submitScoreV2',
     cancel: '.chc-modal-dialog button:has-text("Cancel")',
-    // the modal does not offer it
+    // [Clear] resets the form; the empty card cannot be submitted
     withheld: async (page: Page) => {
-      await expect(page.locator('#submitScoreV2')).toBeVisible();
-      await expect(page.locator('#clearScoreV2')).toHaveCount(0);
+      await expect(page.locator('#clearScoreV2')).toBeEnabled();
+      await page.locator('#clearScoreV2').click();
+      await expect(page.locator('#submitScoreV2')).toBeDisabled();
     },
   },
 ];
@@ -90,7 +97,7 @@ for (const dialog of DIALOGS) {
       await resetState(page);
     });
 
-    test('a result a later match depends on opens with [Clear] withheld; the last one clears', async ({ page }) => {
+    test('a result a later match depends on cannot be submitted cleared; the last one clears', async ({ page }) => {
       const { drawId, ids } = await seed(page, `e2e-clear-withheld-${dialog.flag ? 'dialog' : 'modal'}`);
       // the two round-1 matches, then the round-2 match they feed
       await enterScore(page, { drawId, matchUpId: ids.r1m1, scoreString: '6-1 6-1', winningSide: 1 });
@@ -103,6 +110,7 @@ for (const dialog of DIALOGS) {
       await dialog.withheld(page);
       await page.locator(dialog.cancel).click();
       await expect(page.locator(dialog.submit)).toHaveCount(0);
+      expect(await winningSide(page, ids.r1m1)).toBe(1);
 
       // 2. round 2: nothing after it is decided, so it clears
       await openDialog(page, ids.r2m1);
