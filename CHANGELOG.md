@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.41.0](https://github.com/CourtHive/TMX/compare/v8.40.2...v8.41.0) (2026-10-23)
+
+
+### Features
+
+* **schedule:** say which played match blocks a refused schedule move ([#1722](https://github.com/CourtHive/TMX/issues/1722)) ([1d61c0e](https://github.com/CourtHive/TMX/commit/1d61c0e4f31d58ac7723fe9acbaa7c3a39115e6e))
+
+
+### Bug Fixes
+
+* **addDraw:** default the playoff draw type to a buildable draw type ([#1726](https://github.com/CourtHive/TMX/issues/1726)) ([7c52b69](https://github.com/CourtHive/TMX/commit/7c52b696bc1235c2c89f1db8b6bc7b6c2dbe41ba))
+* **deps:** update courthive-components to 6.12.0 ([#1732](https://github.com/CourtHive/TMX/issues/1732)) ([86b4890](https://github.com/CourtHive/TMX/commit/86b48906f11797fc036ad68f464ff36c7be6b1da))
+* **deps:** update dependency @courthive/provider-config to v0.18.3 ([9042a3a](https://github.com/CourtHive/TMX/commit/9042a3a0450e906fb7aca737c64371e5fc549d66))
+* **deps:** update dependency timepicker-ui to v4.6.0 ([98aebdf](https://github.com/CourtHive/TMX/commit/98aebdfea615935d97826d4f37374fc5fd0120da))
+* **deps:** update dependency timepicker-ui to v4.6.0 ([7acb393](https://github.com/CourtHive/TMX/commit/7acb39316c7663f059bd4e51bcff0a84bf02e75b))
+* **deps:** update tods-competition-factory to 7.20.1 ([#1731](https://github.com/CourtHive/TMX/issues/1731)) ([87b018b](https://github.com/CourtHive/TMX/commit/87b018be35fa81baf45bda9ea7a60a6d967b7349))
+
 ## [8.40.2](https://github.com/CourtHive/TMX/compare/v8.40.1...v8.40.2) (2026-10-22)
 
 
