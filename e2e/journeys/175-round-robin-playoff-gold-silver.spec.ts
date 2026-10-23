@@ -195,19 +195,7 @@ test.describe('Journey 175 — round robin playoff Gold/Silver', () => {
     expect([...everyone].sort()).toEqual(byFinish.flat().sort());
   });
 
-  // FIXME — observed 2026-10-23 against the sibling factory dist (7.19.0, built 2026-10-22): left untouched, the
-  // drawer's "Playoff Draw Type" select holds the disabled divider option ('──────────', which has no value, so it is
-  // matched by the field's own undefined value). submitDrawParams sends it as every playoff group's `drawType`, and
-  // generateDrawDefinition returns success with ONLY the 'Main' structure: 0 PLAY_OFF structures, 0 links. The
-  // factory does the same, silently, for any playoffGroup drawType it does not build, 'PLAY_OFF' included (the
-  // select's own "Playoff" option). The draw above passes only because it picks Single Elimination explicitly.
-  test.fixme('the drawer defaults create a playoff per finishing position', async ({ page }) => {
-    await addRoundRobinWithPlayoffDraw(page);
-    await expect
-      .poll(async () => (await drawState(page)).drawType, { timeout: 10_000 })
-      .toBe('ROUND_ROBIN_WITH_PLAYOFF');
-    const { structures } = await drawState(page);
-    const playoffs = structures.filter((s) => s.stage === 'PLAY_OFF').map((s) => s.structureName);
-    expect(playoffs.sort()).toEqual(PLAYOFF_NAMES);
-  });
+  // The drawer's DEFAULT "Playoff Draw Type" (a playoff per finishing position, Single Elimination) is covered by
+  // journey 176 (TMX #1726, which fixed the select opening on its divider); this journey picks Single Elimination
+  // explicitly so it tests the playoff placement alone.
 });
