@@ -1,7 +1,7 @@
 import { focusAdjacentField, focusFieldWhenRendered, hotkeyFields, isHotkeyEntryMode } from './hotkeyScoreField';
-import { clearPermitted, isClearingOutcome } from 'services/transitions/clearScorePermission';
 import { keyValueConstants, scoreGovernor } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { keypadClearRefused, keypadOutcome } from './keypadOutcome';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { isFunction } from 'functions/typeOf';
 import hotkeys from 'hotkeys-js';
@@ -116,19 +116,12 @@ function saveOrAdvance(focusData: FocusData, typedMatchUp: any): boolean {
   const fields = hotkeyFields();
   const nextMatchUpId = fields[fields.indexOf(current) + 1]?.dataset.matchUpId;
   const { replaceTableData } = focusData;
-  const outcome = {
-    matchUpStatus: typedMatchUp.matchUpStatus,
-    winningSide: typedMatchUp.winningSide,
-    score: {
-      sets: typedMatchUp.sets,
-      scoreStringSide1: scoreGovernor.generateScoreString({ sets: typedMatchUp.sets }),
-      scoreStringSide2: scoreGovernor.generateScoreString({ sets: typedMatchUp.sets, reversed: true }),
-    },
-  };
-  // Backspace to empty, then Enter, clears the result. A clear the engine would refuse (a later match depends on it)
-  // is stopped here with the reason, as the score dialogs do, rather than sent to come back "No valid actions".
+  const outcome = keypadOutcome(typedMatchUp);
+  // Backspace to empty, then Enter, clears the result. A clear the engine would refuse (a later match depends on it;
+  // reachable on a double exit, which has no winner but propagates) is stopped here with the reason, as the score
+  // dialogs do, rather than sent to come back "No valid actions".
   const matchUp = focusData.cell.getRow().getData().matchUp;
-  if (isClearingOutcome(outcome) && !clearPermitted({ matchUp })) {
+  if (keypadClearRefused({ matchUp, outcome })) {
     tmxToast({ message: t('toasts.clearRefused'), intent: 'is-warning', pauseOnHover: true });
     replaceTableData();
     return true;
