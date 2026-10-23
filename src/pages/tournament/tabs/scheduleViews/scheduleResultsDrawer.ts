@@ -13,15 +13,17 @@
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { t } from 'i18n';
 import {
   describeOverLimitAttempts,
   describeRecoveryDeferred,
   describeDependencyDeferred,
+  describePlayedOrderDeferred,
+  type PlayedOrderDeferral,
   type MatchUpLookup,
   type ParticipantLookup,
   type OverLimitAttempt,
 } from './scheduleResultsDescribe';
-import { t } from 'i18n';
 
 const BLOCK_STYLE = 'margin-top: 10px;';
 const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 2px;';
@@ -60,6 +62,9 @@ export type ScheduleProfileRoundsResult = {
   dependencyDeferredMatchUpIds?: {
     [date: string]: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] };
   };
+  playedOrderDeferredMatchUpIds?: { [date: string]: { [matchUpId: string]: PlayedOrderDeferral } };
+  dailyLimitWarningMatchUpIds?: { [date: string]: string[] };
+  noFormatMatchUpIds?: { [date: string]: string[] };
   requestConflicts?: { [date: string]: any[] };
   scheduledDates?: string[];
 };
@@ -168,6 +173,9 @@ function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
   for (const date of Object.keys(result.recoveryTimeDeferredMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.dependencyDeferredMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.requestConflicts ?? {})) set.add(date);
+  for (const date of Object.keys(result.playedOrderDeferredMatchUpIds ?? {})) set.add(date);
+  for (const date of Object.keys(result.dailyLimitWarningMatchUpIds ?? {})) set.add(date);
+  for (const date of Object.keys(result.noFormatMatchUpIds ?? {})) set.add(date);
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
@@ -193,8 +201,14 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
   const recoveryDeferred = result.recoveryTimeDeferredMatchUpIds?.[date] ?? {};
   const dependencyDeferred = result.dependencyDeferredMatchUpIds?.[date] ?? {};
   const conflicts = result.requestConflicts?.[date] ?? [];
+  const playedOrderDeferred = result.playedOrderDeferredMatchUpIds?.[date] ?? {};
+  const dailyLimitWarnings = result.dailyLimitWarningMatchUpIds?.[date] ?? [];
+  const noFormat = result.noFormatMatchUpIds?.[date] ?? [];
 
   const empty =
+    !Object.keys(playedOrderDeferred).length &&
+    !dailyLimitWarnings.length &&
+    !noFormat.length &&
     !scheduled.length &&
     !overLimit.length &&
     !noTime.length &&
@@ -230,6 +244,17 @@ function buildDateSection(date: string, result: ScheduleProfileRoundsResult, loo
   if (conflicts.length) {
     section.appendChild(buildConflictsBlock(conflicts, lookups.matchUps));
   }
+  if (Object.keys(playedOrderDeferred).length) {
+    section.appendChild(buildPlayedOrderDeferredBlock(playedOrderDeferred, lookups));
+  }
+  if (dailyLimitWarnings.length) {
+    section.appendChild(
+      buildCategoryBlock(t('scheduleResults.dailyLimitWarnings'), dailyLimitWarnings, lookups.matchUps, 'warning'),
+    );
+  }
+  if (noFormat.length) {
+    section.appendChild(buildCategoryBlock(t('scheduleResults.noFormat'), noFormat, lookups.matchUps, 'warning'));
+  }
 
   return section;
 }
@@ -257,6 +282,23 @@ function buildOverLimitBlock(ids: string[], details: OverLimitAttempt[], lookups
 }
 
 type Intent = 'success' | 'warning' | 'danger' | 'neutral';
+
+// Deferred for the played order: every slot offered was at or before a match already played that this one depends on
+// (or after a played match that depends on it). Name the played match and when it was played.
+function buildPlayedOrderDeferredBlock(
+  deferred: { [matchUpId: string]: PlayedOrderDeferral },
+  lookups: Lookups,
+): HTMLElement {
+  const ids = Object.keys(deferred);
+  const list = document.createElement('ul');
+  list.style.cssText = LIST_STYLE;
+  const phrase = (params: { matchUp: string; when: string }) => t('scheduleResults.playedOrderDetail', params);
+  for (const id of ids) {
+    const detail = describePlayedOrderDeferred(deferred[id], lookups.matchUps, phrase);
+    list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
+  }
+  return buildCollapsibleSection(t('scheduleResults.playedOrder'), ids.length, 'neutral', list);
+}
 
 function buildCategoryBlock(label: string, ids: string[], lookup: MatchUpLookup, intent: Intent): HTMLElement {
   const list = document.createElement('ul');

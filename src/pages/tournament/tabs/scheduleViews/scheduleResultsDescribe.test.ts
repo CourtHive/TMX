@@ -1,5 +1,9 @@
-import { describeRecoveryDeferred, describeDependencyDeferred } from './scheduleResultsDescribe';
 import { describe, expect, it } from 'vitest';
+import {
+  describeRecoveryDeferred,
+  describeDependencyDeferred,
+  describePlayedOrderDeferred,
+} from './scheduleResultsDescribe';
 
 const SMITH_VS_JONES = 'Smith vs Jones';
 
@@ -87,5 +91,34 @@ describe('describeDependencyDeferred', () => {
   it('omits the waiting fragment when there are no remaining dependencies', () => {
     const attempts = [{ scheduleTime: '10:00' }, { scheduleTime: '10:30' }];
     expect(describeDependencyDeferred(attempts, matchUpLookup([]))).toBe('tried 10:00, 10:30');
+  });
+});
+
+const DAY_2 = '2026-10-02';
+
+describe('describePlayedOrderDeferred', () => {
+  const phrase = ({ matchUp, when }: { matchUp: string; when: string }) => `${matchUp} already played ${when}`;
+  const matchUps = new Map([['m1', { matchUpId: 'm1', roundLabel: 'R1', participantsLabel: 'A vs B' }]]);
+
+  it('names the first played matchUp in the way, when it was played, and the slot tried', () => {
+    const deferral = {
+      scheduleTime: '08:00',
+      blockingMatchUps: [
+        { matchUpId: 'm1', scheduledDate: DAY_2, scheduledTime: '09:00' },
+        { matchUpId: 'm2', scheduledDate: DAY_2, roundNumber: 1 },
+      ],
+    };
+    expect(describePlayedOrderDeferred(deferral, matchUps, phrase)).toEqual(
+      'R1 · A vs B already played 2026-10-02 09:00 (+1 more) — tried 08:00',
+    );
+  });
+
+  it('falls back to the round number for a matchUp the lookup does not know', () => {
+    const deferral = { blockingMatchUps: [{ matchUpId: 'mx', scheduledDate: DAY_2, roundNumber: 2 }] };
+    expect(describePlayedOrderDeferred(deferral, matchUps, phrase)).toEqual('R2 already played 2026-10-02');
+  });
+
+  it('is empty without a deferral', () => {
+    expect(describePlayedOrderDeferred(undefined, matchUps, phrase)).toEqual('');
   });
 });

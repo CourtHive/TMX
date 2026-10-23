@@ -162,3 +162,11 @@ export function appendChoiceGroup(
   }
   select.appendChild(group);
 }
+
+/**
+ * Apply Grid's initial choice (CA 2026-10-23): the attached policy when one is attached, so the grid enforces the limits
+ * the timed scheduler does; otherwise "No policy", which places everything.
+ */
+export function defaultGridChoiceId(attachedChoice: { id: string } | null, noPolicyId: string): string {
+  return attachedChoice ? attachedChoice.id : noPolicyId;
+}
