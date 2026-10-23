@@ -7,25 +7,26 @@
  * grid enforces the daily limits the timed scheduler does (the policy's, the
  * tournament's, each participant's override; factory, CA 2026-10-23).
  *
- * Unlike Apply Times, this modal defaults to "No policy", which sends
- * `matchUpDailyLimits: {}`: nothing is held off the grid for a limit, and a
- * placement over one is flagged in the results.
+ * The attached policy is pre-selected when there is one (CA 2026-10-23);
+ * otherwise "No policy", which sends `matchUpDailyLimits: {}`: nothing is held
+ * off the grid for a limit, and a placement over one is flagged in the results.
  *
  * Creating or editing scheduling policies lives on the `/policies` page.
  */
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { escapeHtml } from 'utilities/escapeHtml';
+import { t } from 'i18n';
 
 import {
   ATTACHED_POLICY_ID,
   PolicyChoice,
   appendChoiceGroup,
   buildAttachedChoice,
+  defaultGridChoiceId,
   getAttachedSchedulingPolicy,
   loadSchedulingChoices,
   resolveAttachedChoiceId,
 } from './schedulingPolicyChoices';
-import { t } from 'i18n';
 
 export type { PolicyChoice } from './schedulingPolicyChoices';
 
@@ -46,9 +47,8 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
 
   const allChoices: PolicyChoice[] = attachedChoice ? [attachedChoice, ...choices] : choices;
 
-  // Default to "No policy" so the legacy unconstrained behavior is preserved
-  // unless the operator explicitly opts into limits.
-  let selectedId = NO_POLICY_ID;
+  // the attached policy when there is one, else "No policy" (CA 2026-10-23)
+  let selectedId = defaultGridChoiceId(attachedChoice, NO_POLICY_ID);
 
   const content = (root: HTMLElement) => {
     root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 0.8125rem;';
@@ -91,7 +91,7 @@ export async function openApplyGridModal(params: ApplyGridModalParams): Promise<
     const noneOpt = document.createElement('option');
     noneOpt.value = NO_POLICY_ID;
     noneOpt.textContent = t('applyScheduling.noPolicy');
-    noneOpt.selected = true;
+    noneOpt.selected = selectedId === NO_POLICY_ID;
     select.appendChild(noneOpt);
 
     appendChoiceGroup(select, 'Attached', allChoices, 'attached', selectedId);
