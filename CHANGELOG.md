@@ -1,5 +1,29 @@
 # Changelog
 
+## [8.43.0](https://github.com/CourtHive/TMX/compare/v8.42.2...v8.43.0) (2026-10-24)
+
+
+### Features
+
+* **crowd:** live tracker scores + crowd sessions visible in bracket, tables and today's schedule ([#1758](https://github.com/CourtHive/TMX/issues/1758)) ([670d4ce](https://github.com/CourtHive/TMX/commit/670d4cee0ce314af7ade72f99ad0b49477204fa9))
+* **schedule:** collapse all catalog groups, and keep them collapsed across pages ([#1759](https://github.com/CourtHive/TMX/issues/1759)) ([98f9e90](https://github.com/CourtHive/TMX/commit/98f9e9091a530f27bf0406e96ee5d3c67fe1bd46))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.13.0 ([#1761](https://github.com/CourtHive/TMX/issues/1761)) ([e0d35bf](https://github.com/CourtHive/TMX/commit/e0d35bf650cc5d57addd7a856378894a1f54029a))
+* **deps:** update dependency tabulator-tables to v6.7.0 ([#1751](https://github.com/CourtHive/TMX/issues/1751)) ([87adb44](https://github.com/CourtHive/TMX/commit/87adb445a373485c99b6c462984ec8b8552e4651))
+* **deps:** update tods-competition-factory to 7.21.0 ([#1755](https://github.com/CourtHive/TMX/issues/1755)) ([94c4bde](https://github.com/CourtHive/TMX/commit/94c4bdea2bdef0a59ccfb4e2e2092bba8a80132d))
+* **desktop:** reach sibling services, confirm the server before using it, and LAN-safe ids ([#1756](https://github.com/CourtHive/TMX/issues/1756)) ([f8734b5](https://github.com/CourtHive/TMX/commit/f8734b5f9b2178d9c8eec217822b58a125c5d63f))
+* **env:** read the relay, declarations and AMS URLs so Vite actually replaces them ([#1760](https://github.com/CourtHive/TMX/issues/1760)) ([615fb7c](https://github.com/CourtHive/TMX/commit/615fb7c0a2aaf625f4c19d94fb336c98131870b1))
+* **storage:** never lose a tournament held offline ([#1757](https://github.com/CourtHive/TMX/issues/1757)) ([02722b1](https://github.com/CourtHive/TMX/commit/02722b1a3122d39e5e67c830096fd9e3196c5234))
+
+
+### Performance
+
+* **reads:** one factory read per render pass for the panels that shared a question ([#1750](https://github.com/CourtHive/TMX/issues/1750)) ([24a5cda](https://github.com/CourtHive/TMX/commit/24a5cdae50d22667202bdb40ac6c71550b809a63))
+* **schedule:** one getParticipantsRest per pass instead of one rest call per card ([#1754](https://github.com/CourtHive/TMX/issues/1754)) ([e5eb063](https://github.com/CourtHive/TMX/commit/e5eb06344b8a5fb6220dcd78b73116a02f18e09f))
+
 ## [8.42.2](https://github.com/CourtHive/TMX/compare/v8.42.1...v8.42.2) (2026-10-24)
 
 
