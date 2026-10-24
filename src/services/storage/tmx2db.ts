@@ -6,6 +6,7 @@
  * are passed as bare references (e.g. `catchAsync(tmx2db.initDB)`).
  */
 import { tmxToast } from 'services/notifications/tmxToast';
+import { isHeldOffline } from './offlineCustody';
 import Dexie from 'dexie';
 import { t } from 'i18n';
 
@@ -98,7 +99,7 @@ export class TMXDatabase {
   // surface to user B on a shared browser via the local-DB fallback.
   // See Mentat/planning/USER_TOURNAMENT_ACCESS_MODEL.md PR 11.
   deleteProviderBoundTournaments = (): Promise<number> => {
-    return this.dex['tournaments'].filter(isProviderBoundTournament).delete();
+    return this.dex['tournaments'].filter(isWipedOnIdentityChange).delete();
   };
 
   deleteProvider = (key: string): Promise<any> => {
@@ -199,4 +200,13 @@ export const tmx2db = new TMXDatabase();
 // for unit-test access without standing up a fake-indexeddb harness.
 export function isProviderBoundTournament(tournamentRecord: any): boolean {
   return Boolean(tournamentRecord?.parentOrganisation?.organisationId);
+}
+
+/**
+ * What the logout/login wipe deletes: provider-bound records, EXCEPT those held offline. A held record's
+ * local copy is the only one, and `offlineCustody.ts` hides it from every session but its holder's, which
+ * is what the wipe exists to guarantee.
+ */
+export function isWipedOnIdentityChange(tournamentRecord: any): boolean {
+  return isProviderBoundTournament(tournamentRecord) && !isHeldOffline(tournamentRecord);
 }
