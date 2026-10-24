@@ -8,6 +8,7 @@
  * is already valid for the tournament.
  */
 import { collectAvailableScales } from 'components/charts/participantScalings';
+import { readParticipantsWithScaleValues } from 'services/factory/passReads';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
@@ -73,7 +74,7 @@ export function runActiveScaleAutoSwitch(): void {
   const tournamentId = tournament?.tournamentId;
   if (!tournamentId) return;
 
-  const { participants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  const { participants = [] } = readParticipantsWithScaleValues() ?? {};
   const available = collectAvailableScales(participants).map((s) => s.scaleName);
 
   const decision = decideActiveScaleSwitch({

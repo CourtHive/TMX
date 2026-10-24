@@ -1,7 +1,7 @@
 import { openEditDatesModal } from './tabs/overviewTab/editDatesModal';
+import { readAllTournamentMatchUps } from 'services/factory/passReads';
 import { venueToday } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine } from 'services/factory/engine';
 import { plainDateRange } from 'functions/plainDateRange';
 import { t } from 'i18n';
 
@@ -67,7 +67,7 @@ export function maybeNudgeActiveDates({ tournamentRecord }: { tournamentRecord?:
 
   let matchUps: any[];
   try {
-    matchUps = tournamentEngine.allTournamentMatchUps()?.matchUps || [];
+    matchUps = readAllTournamentMatchUps()?.matchUps || [];
   } catch {
     return undefined;
   }
