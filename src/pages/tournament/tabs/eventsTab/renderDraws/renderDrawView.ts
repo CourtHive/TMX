@@ -19,9 +19,11 @@ import { markReadyMatchUpsInProgress } from './markReadyMatchUpsInProgress';
 import { luckyLoserSelection } from 'components/modals/luckyLoserSelection';
 import { getEventControlItems } from './eventControlBar/eventControlItems';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
+import { applyMatchUpActivityBadges } from './applyMatchUpActivityBadges';
 import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
-import { applyCrowdsourcedBadges } from './applyCrowdsourcedBadges';
+import { overlayLiveScores } from 'services/messaging/liveScoreDisplay';
 import { renderSwissGenerateButton } from './generateSwissRound';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
@@ -360,7 +362,12 @@ export function renderDrawView({
         return hasParticipant || !participantFilter;
       });
     }
-    const displayMatchUps = Object.values(structure.roundMatchUps || {}).flat();
+    // Live tracker scores are overlaid as display copies so a TD can see how far along an unofficial match is.
+    const displayMatchUps = overlayLiveScores(
+      Object.values(structure.roundMatchUps || {}).flat() as any[],
+      getLiveTrackedScore,
+    );
+    const liveTrackedIds = new Set(displayMatchUps.filter((m: any) => m?.liveTracked).map((m: any) => m.matchUpId));
 
     if (!matchUps.length) {
       renderEmptyStructure(stage, isAdHoc, {
@@ -452,7 +459,7 @@ export function renderDrawView({
       const liveNode = drawsView?.firstChild as HTMLElement;
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
-        applyCrowdsourcedBadges(liveNode);
+        applyMatchUpActivityBadges(liveNode, liveTrackedIds);
         if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
           applySwissScoreGroupShading(liveNode, drawId);
         }

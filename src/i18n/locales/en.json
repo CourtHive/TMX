@@ -51,6 +51,7 @@
     "activeTrackers_one": "{{count}} active tracker",
     "activeTrackers_other": "{{count}} active trackers",
     "viewTrackers": "View crowd trackers ({{count}})",
+    "live": "LIVE",
     "nominateScorekeeper": "Nominate scorekeeper",
     "removeScorekeeper": "Remove nominated scorekeeper",
     "approveScorekeeper": "Approve as scorekeeper",
@@ -78,6 +79,9 @@
     },
     "tooltip": {
       "liveTracker": "Score reported via live tracker",
+      "liveScore": "Live score from a tracker — unofficial until the result is entered",
+      "crowdSessions_one": "{{count}} crowd scorer on this match — click to review",
+      "crowdSessions_other": "{{count}} crowd scorers on this match — click to review",
       "unconfirmed": "Unconfirmed delegated score — confirm to make it official",
       "unconfirmedAria": "Unconfirmed delegated score awaiting confirmation"
     }
