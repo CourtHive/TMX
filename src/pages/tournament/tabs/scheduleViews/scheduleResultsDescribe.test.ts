@@ -3,6 +3,7 @@ import {
   describeRecoveryDeferred,
   describeDependencyDeferred,
   describePlayedOrderDeferred,
+  conflictRows,
 } from './scheduleResultsDescribe';
 
 const SMITH_VS_JONES = 'Smith vs Jones';
@@ -120,5 +121,25 @@ describe('describePlayedOrderDeferred', () => {
 
   it('is empty without a deferral', () => {
     expect(describePlayedOrderDeferred(undefined, matchUps, phrase)).toEqual('');
+  });
+});
+
+describe('conflictRows', () => {
+  it('gives a row per matchUp a request entry refused, describing the request and the refused slots', () => {
+    const entry = {
+      request: { requestType: 'DO_NOT_SCHEDULE', date: '2026-03-02', startTime: '10:00', endTime: '11:30' },
+      scheduleTimes: ['10:00', '10:30'],
+      matchUpIds: ['m1', 'm2'],
+    };
+    expect(conflictRows(entry)).toEqual([
+      { matchUpId: 'm1', detail: 'DO_NOT_SCHEDULE 10:00–11:30 @ 10:00, 10:30' },
+      { matchUpId: 'm2', detail: 'DO_NOT_SCHEDULE 10:00–11:30 @ 10:00, 10:30' },
+    ]);
+  });
+
+  it('still reads the earlier per-refusal shape', () => {
+    expect(conflictRows({ matchUpId: 'm1', scheduleTime: '10:00', requestType: 'DO_NOT_SCHEDULE' })).toEqual([
+      { matchUpId: 'm1', detail: 'DO_NOT_SCHEDULE @ 10:00' },
+    ]);
   });
 });
