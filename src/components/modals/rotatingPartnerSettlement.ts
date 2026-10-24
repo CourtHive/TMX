@@ -4,6 +4,7 @@ import { getUserContext } from 'services/authentication/getUserContext';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getLoginState } from 'services/authentication/loginState';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { randomId } from 'functions/randomId';
 import { t } from 'i18n';
 
 // constants and types
@@ -102,7 +103,7 @@ export function openRotatingPartnerSettlement({
       return;
     }
     const method = buildSettlementMethod(context, {
-      requestId: globalThis.crypto.randomUUID(),
+      requestId: randomId(),
       treatment: selected,
       reason: reason.value.trim(),
       recordedBy: actor.value.trim(),

@@ -169,8 +169,13 @@ export function isTrustedExternal(url: string, serverUrl?: string): boolean {
 
 /**
  * The `connect-src` the renderer gets as a response header: its own origin, the configured
- * server (https + wss), and local development hosts only when unpackaged or no server is set
- * (the renderer then falls back to http://localhost:8383).
+ * server (https + wss), and local hosts when unpackaged, when no server is set (the renderer then
+ * falls back to http://localhost:8383), or when the configured server is itself on loopback.
+ *
+ * The last case is a local CFS — a developer's, or a sidecar the desktop app runs — whose sibling
+ * services (score relay :8384, declarations :3120, AMS :3130) are on other loopback ports. Naming
+ * only the server's own origin blocked them. Loopback is this machine, so allowing it widens nothing
+ * a remote page could reach.
  */
 export function connectSources(serverUrl: string | undefined, packaged: boolean): string {
   const sources = ["'self'"];
@@ -179,7 +184,8 @@ export function connectSources(serverUrl: string | undefined, packaged: boolean)
     const { origin, protocol, host } = new URL(server);
     sources.push(origin, `${protocol === 'https:' ? 'wss:' : 'ws:'}//${host}`);
   }
-  if (!packaged || !server) {
+  const loopbackServer = !!server && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(server).hostname);
+  if (!packaged || !server || loopbackServer) {
     sources.push('http://localhost:*', 'ws://localhost:*', 'http://127.0.0.1:*', 'ws://127.0.0.1:*');
   }
   return `connect-src ${sources.join(' ')}`;

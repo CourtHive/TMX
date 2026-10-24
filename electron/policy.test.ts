@@ -19,6 +19,8 @@ const DIST = '/Applications/TMX.app/Contents/Resources/app.asar/dist';
 const JSON_FILTER = [{ name: 'JSON', extensions: ['json'] }];
 const SERVER = 'https://courthive.net';
 const SCRIPT_URL = 'javascript:alert(1)';
+const LOCAL_SERVER = 'http://localhost:8383';
+const ANY_LOCALHOST = 'http://localhost:*';
 const REMOTE = 'https://example.com/';
 const DEV = 'http://localhost:5173/';
 
@@ -55,7 +57,7 @@ describe('normalizeServerUrl', () => {
   it('accepts https anywhere and http only on this machine', () => {
     expect(normalizeServerUrl('https://courthive.net/')).toBe(SERVER);
     expect(normalizeServerUrl(' https://courthive.net/api/ ')).toBe('https://courthive.net/api');
-    expect(normalizeServerUrl('http://localhost:8383')).toBe('http://localhost:8383');
+    expect(normalizeServerUrl(LOCAL_SERVER)).toBe(LOCAL_SERVER);
     expect(normalizeServerUrl('http://127.0.0.1:8383')).toBe('http://127.0.0.1:8383');
   });
   it('refuses other schemes, remote http, credentials and garbage', () => {
@@ -152,9 +154,17 @@ describe('connectSources', () => {
     expect(connectSources(SERVER, true)).toBe("connect-src 'self' https://courthive.net wss://courthive.net");
   });
   it('keeps local development hosts when unpackaged or when no server is set', () => {
-    expect(connectSources(undefined, true)).toContain('http://localhost:*');
+    expect(connectSources(undefined, true)).toContain(ANY_LOCALHOST);
     expect(connectSources(SERVER, false)).toContain('ws://127.0.0.1:*');
-    expect(connectSources(SCRIPT_URL, true)).toContain('http://localhost:*');
+    expect(connectSources(SCRIPT_URL, true)).toContain(ANY_LOCALHOST);
+  });
+
+  it('allows the other loopback ports when the configured server is local, but not for a remote one', () => {
+    // A local CFS's relay (:8384), declarations (:3120) and AMS (:3130) sit beside it on loopback.
+    const local = connectSources(LOCAL_SERVER, true);
+    expect(local).toContain(ANY_LOCALHOST);
+    expect(local).toContain('ws://127.0.0.1:*');
+    expect(connectSources(SERVER, true)).not.toContain('localhost');
   });
 });
 

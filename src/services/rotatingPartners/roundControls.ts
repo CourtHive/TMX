@@ -2,6 +2,7 @@ import { GENERATE_ROTATING_PARTNER_ROUND } from 'constants/mutationConstants';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { randomId } from 'functions/randomId';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -55,7 +56,7 @@ export function previewRotatingRound({
       drawId,
       structureId: preview.structureId,
       roundNumber,
-      requestId: crypto.randomUUID(),
+      requestId: randomId(),
       expectedPairings: preview.round,
       expectedScoringContract: preview.scoringContract,
     },
