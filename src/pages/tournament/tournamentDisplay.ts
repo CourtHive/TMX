@@ -21,6 +21,7 @@ import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { loadCallerGrants } from 'services/capability/loadCallerGrants';
+import { readAllTournamentMatchUps } from 'services/factory/passReads';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { clearCallerGrants } from 'services/capability/scopeState';
@@ -155,7 +156,7 @@ const COMPLETED_MATCH_UP_STATUSES = new Set<string>(factoryConstants.completedMa
  */
 function pruneCompletedCrowdsourcedFromEngine(): void {
   try {
-    const { matchUps = [] } = tournamentEngine.allTournamentMatchUps() || {};
+    const { matchUps = [] } = readAllTournamentMatchUps() || {};
     const completedIds: string[] = [];
     for (const matchUp of matchUps as any[]) {
       const isComplete = matchUp.winningSide || COMPLETED_MATCH_UP_STATUSES.has(matchUp.matchUpStatus);

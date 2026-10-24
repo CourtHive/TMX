@@ -1,5 +1,6 @@
 import { resolveCurrentPracticeDefaultCapacity } from './practiceCapacityModal.logic';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
+import { readParticipantsWithScaleValues } from 'services/factory/passReads';
 import { openCategoriesEditorModal } from './categoriesEditorModal';
 import { openPracticeCapacityModal } from './practiceCapacityModal';
 import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
@@ -314,7 +315,7 @@ export function renderOverview(): void {
   // check only reads `.length`, so the same call serves both. The plain
   // (non-withScaleValues) call that lived inside shouldShowFormatWizard
   // was a second pass over the same underlying data.
-  const participantsWithScales = tournamentEngine.getParticipants({ withScaleValues: true })?.participants ?? [];
+  const participantsWithScales = readParticipantsWithScaleValues()?.participants ?? [];
 
   // Scalings histogram — full-width panel above the publishing card.
   // Gated on participant count to avoid pulling + binning thousands of
