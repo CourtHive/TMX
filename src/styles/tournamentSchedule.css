@@ -870,6 +870,31 @@
 .tmx-catalog-tools {
   display: contents;
 }
+/* "Collapse all" (catalogCollapseAll.ts): styled like the catalog's filter button, theme tokens only. */
+.tmx-catalog-collapse-all {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+  color: var(--sp-muted);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.tmx-catalog-collapse-all:hover:not(:disabled) {
+  opacity: 1;
+  color: var(--sp-text);
+}
+.tmx-catalog-collapse-all:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+/* Beside the sidebar it sits on the Unscheduled / Scheduled row, right-justified. */
+.tmx-catalog-control-strip > .tmx-catalog-collapse-all {
+  margin-left: auto;
+}
 .spl-layout[data-catalog-placement='bottom'] .tmx-catalog-control-strip {
   min-width: 0;
   overflow-x: auto;
