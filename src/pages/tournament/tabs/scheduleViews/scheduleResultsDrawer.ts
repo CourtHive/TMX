@@ -19,6 +19,7 @@ import {
   describeRecoveryDeferred,
   describeDependencyDeferred,
   describePlayedOrderDeferred,
+  conflictRows,
   type PlayedOrderDeferral,
   type MatchUpLookup,
   type ParticipantLookup,
@@ -350,24 +351,15 @@ function buildDependencyDeferredBlock(
 function buildConflictsBlock(conflicts: any[], lookup: MatchUpLookup): HTMLElement {
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
-  for (const conflict of conflicts) {
-    const matchUpId = conflict?.matchUpId;
-    const detail = describeConflict(conflict);
+  const rows = conflicts.flatMap(conflictRows);
+  for (const { matchUpId, detail } of rows) {
     if (matchUpId) {
       list.appendChild(buildMatchUpRow(matchUpId, lookup, detail));
     } else {
       list.appendChild(buildDetailOnlyRow(detail || 'Conflict'));
     }
   }
-  return buildCollapsibleSection('Conflicts', conflicts.length, 'danger', list);
-}
-
-function describeConflict(conflict: any): string {
-  if (!conflict) return '';
-  const reason = conflict.reason || conflict.type || conflict.requestType;
-  const time = conflict.scheduleTime ? `@ ${conflict.scheduleTime}` : '';
-  const participant = conflict.participantName ? `(${conflict.participantName})` : '';
-  return [reason, time, participant].filter(Boolean).join(' ');
+  return buildCollapsibleSection('Conflicts', rows.length, 'danger', list);
 }
 
 /**

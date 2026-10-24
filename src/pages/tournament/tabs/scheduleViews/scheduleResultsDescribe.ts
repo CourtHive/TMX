@@ -122,3 +122,26 @@ export function describePlayedOrderDeferred(
   const tried = deferral?.scheduleTime ? ` — tried ${deferral.scheduleTime}` : '';
   return `${phrase({ matchUp, when })}${more}${tried}`;
 }
+
+/**
+ * One row per matchUp a conflict refused. The factory reports a date's conflicts as one entry per person request a
+ * placement broke, `{ request, scheduleTimes, matchUpIds }`; releases before that reported `{ matchUpId, scheduleTime,
+ * requestType }` per refusal, which is still read.
+ */
+export function conflictRows(conflict: any): { matchUpId?: string; detail: string }[] {
+  if (!Array.isArray(conflict?.matchUpIds))
+    return [{ matchUpId: conflict?.matchUpId, detail: describeConflict(conflict) }];
+  const { request = {}, scheduleTimes = [] } = conflict;
+  const window = request.startTime && request.endTime ? `${request.startTime}–${request.endTime}` : '';
+  const refused = scheduleTimes.length ? `@ ${scheduleTimes.join(', ')}` : '';
+  const detail = [request.requestType, window, refused].filter(Boolean).join(' ');
+  return conflict.matchUpIds.map((matchUpId: string) => ({ matchUpId, detail }));
+}
+
+export function describeConflict(conflict: any): string {
+  if (!conflict) return '';
+  const reason = conflict.reason || conflict.type || conflict.requestType;
+  const time = conflict.scheduleTime ? `@ ${conflict.scheduleTime}` : '';
+  const participant = conflict.participantName ? `(${conflict.participantName})` : '';
+  return [reason, time, participant].filter(Boolean).join(' ');
+}
