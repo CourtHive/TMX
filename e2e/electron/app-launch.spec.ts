@@ -68,7 +68,10 @@ test.afterAll(async () => {
 
 test.describe('electron app launch', () => {
   test('opens a window with the TMX title', async () => {
-    expect(await window.title()).toContain('TMX');
+    // `firstWindow()` resolves when the window exists, which can be before the document has parsed
+    // its <title>: a one-shot `window.title()` then reads "" (seen on the 8.42.2 checkpoint). The
+    // retrying assertion waits for the same "contains TMX".
+    await expect(window).toHaveTitle(/TMX/);
   });
 
   test('main process reports the expected app identity', async () => {
