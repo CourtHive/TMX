@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { isHeldOffline, offlineHolder, visibleToSession } from './offlineCustody';
+import { describe, expect, it } from 'vitest';
 
 const A = 'a@example.com';
 const B = 'b@example.com';

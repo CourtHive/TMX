@@ -1,8 +1,8 @@
 import { maintainLocalCalendarEntry } from './localCalendar';
-import { isHeldOffline } from './offlineCustody';
 import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
+import { isHeldOffline } from './offlineCustody';
 import { tmx2db } from './tmx2db';
 
 export async function saveTournamentRecord(params?: { tournamentRecord?: any }): Promise<void> {
