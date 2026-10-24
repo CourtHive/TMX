@@ -18,11 +18,11 @@
  */
 import { installFakeScoreRelay, pointScoreRelayAtApp, type FakeScoreRelay } from '../helpers/fakeScoreRelay';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { TournamentPage } from '../pages/TournamentPage';
 import { seedScheduledMatchUp } from '../helpers/seedScheduledMatchUp';
-import { test, expect } from '@playwright/test';
-import { enterScore } from '../helpers/enterScore';
 import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
+import { TournamentPage } from '../pages/TournamentPage';
+import { enterScore } from '../helpers/enterScore';
+import { test, expect } from '@playwright/test';
 
 const TOURNAMENT_ID = 'e2e-live-tracker-score';
 const DATE = todayLocal();

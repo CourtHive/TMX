@@ -20,9 +20,9 @@
 import { installFakeScoreRelay, pointScoreRelayAtApp, type FakeScoreRelay } from '../helpers/fakeScoreRelay';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedScheduledMatchUp } from '../helpers/seedScheduledMatchUp';
+import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect } from '@playwright/test';
-import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
 
 const TOURNAMENT_ID = 'e2e-crowd-session-promote';
 const DATE = todayLocal();
