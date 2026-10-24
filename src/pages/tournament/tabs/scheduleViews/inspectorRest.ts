@@ -1,7 +1,7 @@
 /**
  * Schedule2 — Inspector rest section.
  *
- * Rest itself is the factory's `getParticipantRest` (scheduleGovernor). TMX carried its own copy of
+ * Rest itself is the factory's `getParticipantsRest` (scheduleGovernor). TMX carried its own copy of
  * the analysis, and the zone arithmetic it needed, until 2026-10-07; the factory does the instant
  * and venue-zone work now, so what is left here is the one decision the factory cannot make — what
  * "now" means for the day on screen — and the rendering.
@@ -89,6 +89,9 @@ export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: s
   return matchUp?.schedule?.scheduledDate ?? viewedDate;
 }
 
+/** What a request the factory refused outright, or never answered, reads as. */
+const UNANSWERED: RestResult = { evaluated: false, reason: 'unknownMatchUp' };
+
 /**
  * A rest evaluator valid for one pass, sharing the engine work across every matchUp it is asked
  * about.
@@ -97,6 +100,24 @@ export function restDateFor(matchUp: ReadinessMatchUp | undefined, viewedDate: s
  * tournament again on every call — the catalog's badge ticker re-reads every visible card on a
  * timer. The clock and the venue frame are read once too, so every badge in a tick agrees about what
  * time it is.
+ *
+ * ── One factory call per day, not one per card ──
+ *
+ * The factory's rest work is per tournament: it indexes every matchUp's anchor, its feeders and the
+ * day's prior matchUps for each participant, and `getParticipantRest` did all of that again for each
+ * card. Measured on a 252-card schedule that was 252 calls and ~390ms per render, and again on every
+ * 30-second tick. `getParticipantsRest` builds the index once for a list of requests.
+ *
+ * The per-card signature stays, because the cards are drawn one at a time by `renderCardExtra` and
+ * nothing hands this file the list in advance. So the first card asked about on a day stands in for
+ * the rest of that day: ONE request goes out for every matchUp measured on it (scheduled on it, or
+ * unscheduled and falling back to the viewed day), and every later card reads its answer from the
+ * pass. A card the batch did not cover — a day nobody has asked about yet — sends its own.
+ *
+ * Answers are keyed by matchUp and the day it is measured on, which together decide the request:
+ * `asOf` follows from the day and the pass's one clock reading. Nothing outlives the evaluator, and
+ * the evaluator does not outlive its pass or its tick — rest counts up, so an answer kept longer would
+ * be a wrong one.
  */
 export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | null) => RestResult {
   // `inContext` matchUps, straight from the cache: the factory types them as `HydratedMatchUp`,
@@ -109,16 +130,40 @@ export function makeRestEvaluator(): (matchUpId: string, viewedDate: string | nu
   // zone would have it fall back to the record's own (refused) zone or a fixed offset.
   if (!timeZone) return () => ({ evaluated: false, reason: 'noAsOf' });
 
+  const answers = new Map<string, RestResult>();
+  const keyOf = (matchUpId: string, restDate: string | null) => `${matchUpId}|${restDate ?? ''}`;
+
+  const answer = (matchUpIds: string[], viewedDate: string | null): void => {
+    const requests = matchUpIds.map((matchUpId) => {
+      const restDate = restDateFor(byId.get(matchUpId), viewedDate);
+      return {
+        matchUpId,
+        asOf: restAsOf(restDate, timeZone, now),
+        ...(restDate && { scheduledDate: restDate }),
+      };
+    });
+    const result: any = tournamentEngine.getParticipantsRest({ matchUps, requests, timeZone });
+    // `rests` is aligned with `requests`; a refused call has none, and every card reads as unanswered.
+    requests.forEach((request, i) => {
+      answers.set(keyOf(request.matchUpId, request.scheduledDate ?? null), result?.rests?.[i] ?? UNANSWERED);
+    });
+  };
+
   return (matchUpId, viewedDate) => {
     const restDate = restDateFor(byId.get(matchUpId), viewedDate);
-    const result: any = tournamentEngine.getParticipantRest({
-      matchUpId,
-      matchUps,
-      asOf: restAsOf(restDate, timeZone, now),
-      ...(restDate && { scheduledDate: restDate }),
-      timeZone,
-    });
-    return result?.rest ?? { evaluated: false, reason: 'unknownMatchUp' };
+    const key = keyOf(matchUpId, restDate);
+    if (!answers.has(key)) {
+      // A matchUp with no day has no siblings to share a request with: rest cannot be measured
+      // without one, and the factory says so for it alone.
+      const sameDay = restDate
+        ? [...byId.keys()].filter(
+            (id) => restDateFor(byId.get(id), viewedDate) === restDate && !answers.has(keyOf(id, restDate)),
+          )
+        : [];
+      // The asked matchUp is always in its own request, whether or not the cache holds it.
+      answer(sameDay.includes(matchUpId) ? sameDay : [matchUpId, ...sameDay], viewedDate);
+    }
+    return answers.get(key) ?? UNANSWERED;
   };
 }
 
