@@ -64,7 +64,7 @@ test.describe('Journey 180 — crowd session: visible, then promoted to the live
     const seed = await seedScheduledMatchUp(page, { tournamentId: TOURNAMENT_ID, date: DATE, nextDate: NEXT_DATE });
     const session = ionSportSession(seed.matchUpId);
     relay.sessions.push(session);
-    // Opening the tournament ends with the /live subscription; navigate only after it (see journey 179).
+    // Opening the tournament ends with the /live subscription; navigate only after it (see journey 181).
     await expect.poll(() => relay.subscribedTo(), { timeout: 10_000 }).toBe(TOURNAMENT_ID);
     const drawRoute = `/#/tournament/${TOURNAMENT_ID}/event/${seed.eventId}/draw/${seed.drawId}`;
     await page.goto(drawRoute);

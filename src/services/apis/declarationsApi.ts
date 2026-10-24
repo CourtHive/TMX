@@ -39,7 +39,8 @@ export interface RegistrationSnapshot {
 }
 
 export function getDeclarationsBaseUrl(): string {
-  const fromVite = (import.meta as any)?.env?.VITE_DECLARATIONS_URL;
+  // Written out exactly so Vite replaces it — see configuredRelayURL in scoreRelayApi.ts.
+  const fromVite = import.meta.env.VITE_DECLARATIONS_URL;
   if (fromVite) return String(fromVite).replace(/\/+$/, '');
   return siblingServiceBaseUrl(3120, '/declarations');
 }
