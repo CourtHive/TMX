@@ -33,7 +33,10 @@ vi.mock('services/transitions/recordExitBeforeArrival', () => ({
   exitBeforeArrivalAction: () => undefined,
   recordExitBeforeArrival: vi.fn(),
 }));
-vi.mock('services/messaging/liveTrackedScores', () => ({ getLiveTrackedScore: () => undefined }));
+vi.mock('services/messaging/liveTrackedScores', async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  getLiveTrackedScore: () => undefined,
+}));
 vi.mock('components/elements/matchUpActivityBadges', () => ({ createLiveTag: vi.fn(), createCrowdBadge: vi.fn() }));
 vi.mock('services/crowd/delegatedReconciliation', () => ({ isMatchUpAwaitingReconciliation: () => false }));
 vi.mock('config/preferencesConfig', () => ({ preferencesConfig: { get: () => ({ hotkeys: true }) } }));

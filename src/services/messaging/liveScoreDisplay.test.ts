@@ -1,4 +1,4 @@
-import { formatLiveScore, hasOfficialScore, overlayLiveScores } from './liveScoreDisplay';
+import { formatLiveScore, hasOfficialScore, overlayLiveScores, pickLiveScore, withLiveScore } from './liveScoreDisplay';
 import { describe, expect, it } from 'vitest';
 
 const live = (sets: any[]) => ({ lastSeenAt: '2026-10-24T00:00:00.000Z', score: { sets } });
@@ -28,6 +28,16 @@ describe('formatLiveScore', () => {
     expect(
       formatLiveScore({ sets: [{ side1Score: 6, side2Score: 7, side1TiebreakScore: 4, side2TiebreakScore: 7 }] }),
     ).toBe('6-7(4)');
+  });
+
+  it("formats from side 2's perspective when asked", () => {
+    const score = {
+      sets: [
+        { side1Score: 6, side2Score: 7, side1TiebreakScore: 4, side2TiebreakScore: 7 },
+        { side1Score: 2, side2Score: 1, side1PointScore: '40', side2PointScore: '15' },
+      ],
+    };
+    expect(formatLiveScore(score, 2)).toBe('7-6(4) 1-2 (15-40)');
   });
 
   it("falls back to the producer's string when it sent no sets", () => {
@@ -89,5 +99,35 @@ describe('overlayLiveScores', () => {
     expect(overlaid.score.sets[0].winningSide).toBe(1);
     expect(overlaid.winningSide).toBeUndefined();
     expect(overlaid.matchUpStatus).toBe('IN_PROGRESS');
+  });
+});
+
+describe('pickLiveScore', () => {
+  const tracker = live([{ setNumber: 1, side1Score: 4, side2Score: 4 }]);
+  const crowd = { sessionId: 's1', currentScore: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] } };
+
+  it("prefers the tracker's score when both exist", () => {
+    expect(pickLiveScore(tracker, crowd)).toBe(tracker);
+  });
+
+  it("falls back to the promoted crowd session's score, sanitized", () => {
+    expect(pickLiveScore(undefined, { ...crowd, updatedAt: 'x' })).toEqual({
+      lastSeenAt: 'x',
+      score: { sets: [{ setNumber: 1, side1Score: 2, side2Score: 1 }] },
+    });
+  });
+
+  it('is undefined with neither', () => {
+    expect(pickLiveScore(undefined, undefined)).toBeUndefined();
+  });
+});
+
+describe('withLiveScore', () => {
+  it('gives the display copy both side strings, for renderers that show a string (the schedule cell)', () => {
+    const live = { lastSeenAt: '', score: { sets: [{ setNumber: 1, side1Score: 4, side2Score: 3 }] } };
+    const copy: any = withLiveScore({ matchUpId: 'm1' }, () => live);
+    expect(copy.score.scoreStringSide1).toBe('4-3');
+    expect(copy.score.scoreStringSide2).toBe('3-4');
+    expect(copy.matchUpStatus).toBe('IN_PROGRESS');
   });
 });

@@ -3,6 +3,8 @@ import {
   __resetCrowdActivityIndex,
   getActiveSessionCount,
   getAllMatchUpsWithActivity,
+  getTrustedCrowdScore,
+  hasTrustedSessions,
   hasActiveCrowdActivity,
   setActiveCountsFromSnapshot,
   subscribeCrowdActivity,
@@ -78,5 +80,53 @@ describe('crowdActivityIndex', () => {
     listener.mockClear();
     setActiveCountsFromSnapshot([{ matchUpId: 'mu-B' }]);
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe('crowdActivityIndex — promoted sessions', () => {
+  const score = (games: number) => ({ sets: [{ setNumber: 1, side1Score: games, side2Score: 0 }] });
+
+  beforeEach(() => {
+    __resetCrowdActivityIndex();
+  });
+
+  it('keeps the score of a promoted session and ignores unpromoted ones', () => {
+    setActiveCountsFromSnapshot([
+      { matchUpId: 'm1', sessionId: 's1', trusted: false, currentScore: score(1) },
+      { matchUpId: 'm2', sessionId: 's2', trusted: true, currentScore: score(2), updatedAt: '2026-10-24T10:00:00Z' },
+    ]);
+    expect(getTrustedCrowdScore('m1')).toBeUndefined();
+    expect(getTrustedCrowdScore('m2')?.currentScore).toEqual(score(2));
+    expect(hasTrustedSessions()).toBe(true);
+  });
+
+  it('picks the most recently updated of two promoted sessions', () => {
+    setActiveCountsFromSnapshot([
+      { matchUpId: 'm1', sessionId: 'old', trusted: true, currentScore: score(1), updatedAt: '2026-10-24T10:00:00Z' },
+      { matchUpId: 'm1', sessionId: 'new', trusted: true, currentScore: score(3), updatedAt: '2026-10-24T10:05:00Z' },
+    ]);
+    expect(getTrustedCrowdScore('m1')?.sessionId).toBe('new');
+  });
+
+  it('notifies when a promotion happens or its score moves, though the session count did not change', () => {
+    const listener = vi.fn();
+    setActiveCountsFromSnapshot([{ matchUpId: 'm1', sessionId: 's1', currentScore: score(1) }]);
+    subscribeCrowdActivity(listener);
+
+    setActiveCountsFromSnapshot([{ matchUpId: 'm1', sessionId: 's1', trusted: true, currentScore: score(1) }]);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    setActiveCountsFromSnapshot([{ matchUpId: 'm1', sessionId: 's1', trusted: true, currentScore: score(2) }]);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    setActiveCountsFromSnapshot([{ matchUpId: 'm1', sessionId: 's1', trusted: true, currentScore: score(2) }]);
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops the promoted score when the session is demoted or ends', () => {
+    setActiveCountsFromSnapshot([{ matchUpId: 'm1', sessionId: 's1', trusted: true, currentScore: score(1) }]);
+    setActiveCountsFromSnapshot([]);
+    expect(getTrustedCrowdScore('m1')).toBeUndefined();
+    expect(hasTrustedSessions()).toBe(false);
   });
 });

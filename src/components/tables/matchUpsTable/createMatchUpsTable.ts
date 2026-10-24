@@ -2,6 +2,7 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
@@ -119,6 +120,9 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
     }
   });
   table.on('tableDestroyed', () => unsubscribeCrowd());
+  // Opening the view asks for current crowd state now rather than on the next poll tick — the relay or the
+  // provider's crowd-scoring setting may have become available after the tournament opened.
+  void refreshTournamentCrowdActivity();
 
   return { table, data, replaceTableData };
 }

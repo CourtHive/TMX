@@ -11,6 +11,8 @@ import { resolveCompositionByName } from 'services/compositions/resolveCompositi
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
+import { overlayLiveScores, pickLiveScore } from 'services/messaging/liveScoreDisplay';
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { renderSwissChart } from 'components/tables/swissChartView/renderSwissChart';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
 import { createStatsTable } from 'components/tables/statsTable/createStatsTable';
@@ -22,8 +24,8 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { applyMatchUpActivityBadges } from './applyMatchUpActivityBadges';
+import { getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
-import { overlayLiveScores } from 'services/messaging/liveScoreDisplay';
 import { renderSwissGenerateButton } from './generateSwissRound';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
@@ -281,6 +283,8 @@ export function renderDrawView({
 
   destroyTables();
   getData();
+  // Current crowd state for this view now, not on the next poll tick (see createMatchUpsTable).
+  void refreshTournamentCrowdActivity();
 
   // A pending matchUp focus (set before a link/follow navigation) drives the
   // initial round so the target matchUp is on-screen; it's highlighted after
@@ -362,12 +366,11 @@ export function renderDrawView({
         return hasParticipant || !participantFilter;
       });
     }
-    // Live tracker scores are overlaid as display copies so a TD can see how far along an unofficial match is.
-    const displayMatchUps = overlayLiveScores(
-      Object.values(structure.roundMatchUps || {}).flat() as any[],
-      getLiveTrackedScore,
+    // Live scores (a tracker's, or a promoted crowd session's) are overlaid as display copies so a TD can see how
+    // far along an unofficial match is.
+    const displayMatchUps = overlayLiveScores(Object.values(structure.roundMatchUps || {}).flat() as any[], (id) =>
+      pickLiveScore(getLiveTrackedScore(id), getTrustedCrowdScore(id)),
     );
-    const liveTrackedIds = new Set(displayMatchUps.filter((m: any) => m?.liveTracked).map((m: any) => m.matchUpId));
 
     if (!matchUps.length) {
       renderEmptyStructure(stage, isAdHoc, {
@@ -459,7 +462,7 @@ export function renderDrawView({
       const liveNode = drawsView?.firstChild as HTMLElement;
       if (liveNode) {
         applyLuckyRoundHighlighting(liveNode, drawId, structureId!, callback);
-        applyMatchUpActivityBadges(liveNode, liveTrackedIds);
+        applyMatchUpActivityBadges(liveNode);
         if (drawData?.drawType === SWISS && stage !== QUALIFYING) {
           applySwissScoreGroupShading(liveNode, drawId);
         }

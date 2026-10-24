@@ -4,6 +4,7 @@ const startCrowdPoller = vi.fn();
 vi.mock('./crowdPoller', () => ({ startCrowdPoller: (opts: any) => startCrowdPoller(opts) }));
 
 import {
+  TRUSTED_INTERVAL_MS,
   refreshTournamentCrowdActivity,
   startTournamentCrowdPoller,
   stopTournamentCrowdPoller,
@@ -63,5 +64,23 @@ describe('tournamentCrowdPoller', () => {
     startTournamentCrowdPoller('t1');
     expect(await refreshTournamentCrowdActivity()).toBe(2);
     expect(runOnce).toHaveBeenCalledTimes(1);
+  });
+
+  it('polls every TRUSTED_INTERVAL_MS while a session is promoted, and stops when none is', async () => {
+    vi.useFakeTimers();
+    try {
+      startTournamentCrowdPoller('t1');
+      setActiveCountsFromSnapshot([{ matchUpId: 'a', sessionId: 's', trusted: true, currentScore: { sets: [] } }]);
+      await Promise.resolve();
+      vi.advanceTimersByTime(TRUSTED_INTERVAL_MS * 2);
+      expect(runOnce).toHaveBeenCalledTimes(2);
+
+      setActiveCountsFromSnapshot([{ matchUpId: 'a', sessionId: 's' }]);
+      await Promise.resolve();
+      vi.advanceTimersByTime(TRUSTED_INTERVAL_MS * 3);
+      expect(runOnce).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

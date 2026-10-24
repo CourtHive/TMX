@@ -619,6 +619,9 @@ body {
   cursor: pointer;
   vertical-align: middle;
 }
+.tmx-crowd-badge--trusted {
+  background: var(--tmx-accent-green, #10b981);
+}
 .tmx-crowd-badge:hover {
   filter: brightness(1.15);
 }
@@ -626,6 +629,11 @@ body {
   display: inline-flex;
   align-items: center;
   margin-right: 4px;
+}
+/* Schedule grid cell with crowd activity but no score yet: the line the badge sits on, where the score goes. */
+.tmx-cell-activity {
+  text-align: center;
+  font-size: 0.625rem;
 }
 .tmx-activity-badges--floating {
   position: absolute;

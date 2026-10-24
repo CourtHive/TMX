@@ -1,8 +1,8 @@
+import { formatLiveScore, hasOfficialScore, pickLiveScore } from 'services/messaging/liveScoreDisplay';
+import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { isMatchUpAwaitingReconciliation } from 'services/crowd/delegatedReconciliation';
-import { formatLiveScore, hasOfficialScore } from 'services/messaging/liveScoreDisplay';
 import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
-import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { MATCHUP_STATUS_DISPLAY } from './matchUpStatusDisplay';
 import { t } from 'i18n';
 
@@ -10,8 +10,11 @@ export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   const data = cell.getRow().getData();
   const matchUpId = data.matchUp?.matchUpId;
   const statusLabel = MATCHUP_STATUS_DISPLAY[data.matchUp?.matchUpStatus];
-  // A tracker's score is shown only until an official one exists; it is the TD's planning aid, not a result.
-  const liveScore = hasOfficialScore(data.matchUp) ? '' : formatLiveScore(getLiveTrackedScore(matchUpId)?.score);
+  // A live score (tracker, or promoted crowd session) is shown only until an official one exists; it is the TD's
+  // planning aid, not a result.
+  const trustedCrowd = getTrustedCrowdScore(matchUpId);
+  const live = pickLiveScore(getLiveTrackedScore(matchUpId), trustedCrowd);
+  const liveScore = hasOfficialScore(data.matchUp) ? '' : formatLiveScore(live?.score);
   const crowdCount = matchUpId ? getActiveSessionCount(matchUpId) : 0;
   // `scorePermitted` is decided once per row when the table data is built (mapMatchUp / mapRound), not per render.
   if (!data.score && !statusLabel && !data.scorePermitted && !liveScore && !crowdCount) return undefined;
@@ -36,7 +39,14 @@ export function scoreFormatter(cell: any): HTMLSpanElement | undefined {
   }
 
   if (crowdCount) {
-    content.prepend(createCrowdBadge({ matchUpId, count: crowdCount, matchUpLabel: data.matchUp?.roundName }));
+    content.prepend(
+      createCrowdBadge({
+        matchUpId,
+        count: crowdCount,
+        trusted: !!trustedCrowd,
+        matchUpLabel: data.matchUp?.roundName,
+      }),
+    );
   }
 
   if (isMatchUpAwaitingReconciliation(matchUpId)) {
