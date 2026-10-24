@@ -6,7 +6,10 @@ const h = vi.hoisted(() => ({
   findAllTournaments: vi.fn(),
   findAllProviders: vi.fn(),
   clearAllProviderCalendars: vi.fn(),
+  sessionEmail: vi.fn(),
 }));
+
+vi.mock('services/authentication/sessionIdentity', () => ({ getSessionEmail: () => h.sessionEmail() }));
 
 vi.mock('services/factory/engine', () => ({
   tournamentEngine: { getTournamentCalendarEntry: h.getTournamentCalendarEntry },
@@ -46,6 +49,7 @@ beforeEach(() => {
   h.findAllTournaments.mockResolvedValue([]);
   h.findAllProviders.mockResolvedValue([]);
   h.clearAllProviderCalendars.mockResolvedValue(0);
+  h.sessionEmail.mockReturnValue(undefined);
 });
 
 afterEach(() => {
@@ -104,6 +108,38 @@ describe('readLocalCalendarEntries', () => {
     const entries = await readLocalCalendarEntries();
     expect(h.findAllTournaments).not.toHaveBeenCalled();
     expect(entries).toHaveLength(1);
+  });
+});
+
+describe('readLocalCalendarEntries with a record held offline', () => {
+  const HOLDER = 'a@example.com';
+  const heldBy = (email: string) => ({
+    tournamentId: 'held',
+    tournamentName: 'Offline',
+    parentOrganisation: { organisationId: 'p1' },
+    timeItems: [{ itemType: 'TMX', itemValue: { offline: { email } } }],
+  });
+  const migratedIds = () => h.upsertCalendarEntry.mock.calls.map(([, entry]: any[]) => entry.tournamentId);
+
+  it('does not rebuild an entry for a record another user holds offline', async () => {
+    // It survived the logout wipe; listing it would show user A's tournament to user B.
+    h.sessionEmail.mockReturnValue('b@example.com');
+    h.findAllTournaments.mockResolvedValue([heldBy(HOLDER), { tournamentId: 'demo', tournamentName: 'D' }]);
+    await readLocalCalendarEntries();
+    expect(migratedIds()).toEqual(['demo']);
+  });
+
+  it('rebuilds it for the user who holds it, and only them', async () => {
+    h.sessionEmail.mockReturnValue(HOLDER);
+    h.findAllTournaments.mockResolvedValue([heldBy('A@example.com')]);
+    await readLocalCalendarEntries();
+    expect(migratedIds()).toEqual(['held']);
+  });
+
+  it('does not rebuild it while signed out', async () => {
+    h.findAllTournaments.mockResolvedValue([heldBy(HOLDER)]);
+    await readLocalCalendarEntries();
+    expect(migratedIds()).toEqual([]);
   });
 });
 

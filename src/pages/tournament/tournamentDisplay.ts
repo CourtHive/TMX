@@ -35,6 +35,7 @@ import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { clearChat } from 'services/chat/chatService';
 import { renderTopologyPage } from './topologyPage';
+import { visibleToSession } from 'services/storage/offlineCustody';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -308,7 +309,8 @@ export function loadTournament({
       if (!isCurrent()) return;
       // A local copy: nothing says which server write it matches, so the probe must not judge it.
       setServerSync(config.tournamentId, undefined);
-      if (tournamentRecord) {
+      // Another user's offline copy is on this device but is not theirs to open (offlineCustody.ts).
+      if (tournamentRecord && visibleToSession(tournamentRecord)) {
         tournamentEngine.setState(tournamentRecord);
         markTournamentRecordInstalled();
         notifyMutationApplied();
@@ -337,6 +339,8 @@ export function loadTournament({
     // setState(undefined) and rendering an empty, record-less tournament view that traps the
     // whole nav (every tab renders empty and back-to-list is dead).
     if (!tournamentRecord) return notFound();
+    // Signed out, or a different user: a copy someone holds offline stays theirs (offlineCustody.ts).
+    if (!visibleToSession(tournamentRecord)) return notFound();
     // No server to ask, so no grants — but the mask is a singleton and the
     // previous tournament's would otherwise survive the navigation.
     clearCallerGrants();

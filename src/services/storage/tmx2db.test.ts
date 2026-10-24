@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { isProviderBoundTournament } from './tmx2db';
+import { isProviderBoundTournament, isWipedOnIdentityChange } from './tmx2db';
 
 describe('isProviderBoundTournament', () => {
   it('selects tournaments owned by a provider', () => {
@@ -41,5 +41,22 @@ describe('isProviderBoundTournament', () => {
   it('rejects null / undefined defensively', () => {
     expect(isProviderBoundTournament(null)).toBe(false);
     expect(isProviderBoundTournament(undefined)).toBe(false);
+  });
+});
+
+describe('isWipedOnIdentityChange', () => {
+  const providerBound = { tournamentId: 'T-1', parentOrganisation: { organisationId: 'prov-A' } };
+
+  it('wipes provider-bound cache copies, as before', () => {
+    expect(isWipedOnIdentityChange(providerBound)).toBe(true);
+  });
+
+  it('keeps a provider-bound record held offline: its local copy is the only one', () => {
+    const held = { ...providerBound, timeItems: [{ itemType: 'TMX', itemValue: { offline: { email: 'a@x.com' } } }] };
+    expect(isWipedOnIdentityChange(held)).toBe(false);
+  });
+
+  it('keeps demo records, as before', () => {
+    expect(isWipedOnIdentityChange({ tournamentId: 'demo-1' })).toBe(false);
   });
 });

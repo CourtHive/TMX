@@ -134,6 +134,11 @@ export async function isDevAvailable(page: Page): Promise<boolean> {
 export interface SyntheticLoginOptions {
   /** Leave the page connected to a real CFS instead of isolating it. Default `false`. */
   liveCfs?: boolean;
+  /**
+   * An `email` claim for the token. Real tokens carry one, and a tournament held offline is visible only
+   * to the email holding it (`src/services/storage/offlineCustody.ts`). Default: no email claim.
+   */
+  email?: string;
 }
 
 async function isolateUnlessLiveCfs(page: Page, options?: SyntheticLoginOptions): Promise<void> {
@@ -155,17 +160,18 @@ async function isolateUnlessLiveCfs(page: Page, options?: SyntheticLoginOptions)
  */
 export async function loginAsSuperAdmin(page: Page, options?: SyntheticLoginOptions): Promise<void> {
   await isolateUnlessLiveCfs(page, options);
-  await page.evaluate(() => {
+  await page.evaluate((email) => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(
       JSON.stringify({
         roles: ['superadmin'],
         sub: 'e2e-superadmin',
+        ...(email && { email }),
         exp: Math.floor(Date.now() / 1000) + 3600,
       }),
     );
     localStorage.setItem('tmxToken', `${header}.${payload}.fake-signature`);
-  });
+  }, options?.email);
 }
 
 /**
