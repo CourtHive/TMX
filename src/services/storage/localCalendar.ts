@@ -11,6 +11,7 @@
  * local entry is byte-identical to the one the server persists — no drift.
  */
 import { tournamentEngine } from 'services/factory/engine';
+import { visibleToSession } from './offlineCustody';
 import { tmx2db } from './tmx2db';
 
 // Bucket for tournaments with no provider (demo / scratchpad) so they still get a
@@ -46,7 +47,11 @@ export async function maintainLocalCalendarEntry(tournamentRecord: any): Promise
 async function ensureLocalCalendarMigrated(): Promise<void> {
   if (typeof localStorage !== 'undefined' && localStorage.getItem(MIGRATED_KEY) === '1') return;
   const tournaments = await tmx2db.findAllTournaments();
-  for (const tournamentRecord of tournaments) await maintainLocalCalendarEntry(tournamentRecord);
+  for (const tournamentRecord of tournaments) {
+    // A record another user holds offline survives the logout wipe; rebuilding its entry here would
+    // list it for whoever signs in next.
+    if (visibleToSession(tournamentRecord)) await maintainLocalCalendarEntry(tournamentRecord);
+  }
   if (typeof localStorage !== 'undefined') localStorage.setItem(MIGRATED_KEY, '1');
 }
 

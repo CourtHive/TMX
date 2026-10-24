@@ -25,12 +25,13 @@ import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging
 import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
-import { competitionEngine, tournamentEngine } from 'services/factory/engine';
+import { tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { renderPlanMode } from '../scheduleViews/planView';
+import { readTournamentInfo } from 'services/factory/passReads';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
@@ -220,7 +221,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   const isExplicitDate = params.scheduledDate && params.scheduledDate !== 'today';
   const resolvedDate = isExplicitDate ? params.scheduledDate! : resolveScheduleDate();
   const resolvedMode: SchedulingMode = isValidMode(params.mode) ? params.mode : DEFAULT_MODE;
-  const tournamentId = competitionEngine.getTournamentInfo()?.tournamentInfo?.tournamentId ?? '';
+  const tournamentId = readTournamentInfo()?.tournamentInfo?.tournamentId ?? '';
 
   // Persist selected date for cross-route continuity with /schedule2.
   context.displayed.selectedScheduleDate = resolvedDate;

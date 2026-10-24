@@ -71,6 +71,8 @@ import {
   wrapSearchWithClear,
   syncClearVisibility,
   computeActiveStrip,
+  allCatalogGroupsCollapsed,
+  visibleCatalogGroups,
 } from 'courthive-components';
 import type {
   SchedulePageConfig,
@@ -302,10 +304,16 @@ function catalogOnScreen(): boolean {
 // round-trips + default / malformed paths can be unit-tested without
 // spinning up this entire module.
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
+import { createCollapseAllButton, everyGroupCollapsed, toggledCollapsedGroups } from './catalogCollapseAll';
 import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
+import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
+import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
+import { pickLiveScore, withLiveScore } from 'services/messaging/liveScoreDisplay';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
+import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
@@ -330,6 +338,8 @@ import {
   writeScheduledGroupBy,
   readScheduledFilters,
   writeScheduledFilters,
+  readScheduledCollapsedGroups,
+  writeScheduledCollapsedGroups,
   readCheckInPromptMode,
   readInspectorVisible,
   writeInspectorVisible,
@@ -345,6 +355,44 @@ let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] }
 // bulk popover reduces this via computeActiveStrip so it operates on exactly the
 // matchUps the strip displays — one per court, LIVE or NEXT.
 let latestStripData: ActiveStripPanelData | null = null;
+
+// Live scoring is about now: only today's schedule shows live scores and crowd badges. Any other day is
+// planning, where an in-flight score is noise.
+const isLiveDay = () => currentDate === todayIso();
+
+// A live score — a tracker's, or a promoted crowd session's — for display only. It is overlaid on copies at
+// render time (the grid cell and the active strip) and never written back to the schedule cache.
+const liveScoreFor = (matchUpId?: string) =>
+  isLiveDay() ? pickLiveScore(getLiveTrackedScore(matchUpId), getTrustedCrowdScore(matchUpId)) : undefined;
+
+function createCrowdBadgeFor(matchUpId?: string): HTMLElement | undefined {
+  const count = matchUpId && isLiveDay() ? getActiveSessionCount(matchUpId) : 0;
+  if (!matchUpId || !count) return undefined;
+  return createCrowdBadge({ matchUpId, count, trusted: !!getTrustedCrowdScore(matchUpId) });
+}
+
+/**
+ * Grid cell: the crowd badge and, when the cell shows a live score, LIVE — both on the score line, since the
+ * cell's top line is taken by the event and round (the default layout shows the score but no status, so
+ * without LIVE a tracker's score would read as official). The Now strip needs no LIVE of ours: its own state
+ * pill says it. Reserved cells carry no matchUpId, so they get neither.
+ */
+function decorateGridCellActivity(cellContent: HTMLElement, cellData: any): void {
+  const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID) || undefined;
+  if (!matchUpId) return;
+  const isLive = !!(withLiveScore(cellData ?? {}, liveScoreFor) as any).liveTracked;
+  const crowdBadge = createCrowdBadgeFor(matchUpId);
+  if (!isLive && !crowdBadge) return;
+
+  let scoreLine = cellContent.querySelector<HTMLElement>('.spl-grid-cell__score');
+  if (!scoreLine) {
+    scoreLine = document.createElement('div');
+    scoreLine.className = 'tmx-cell-activity';
+    cellContent.appendChild(scoreLine);
+  }
+  if (isLive) scoreLine.prepend(createLiveTag());
+  if (crowdBadge) scoreLine.prepend(crowdBadge);
+}
 
 export function renderGridView(
   container: HTMLElement,
@@ -363,6 +411,8 @@ export function renderGridView(
     planContext?: { scenarioId: string; tournamentId: string } | null;
   },
 ): void {
+  // Current crowd state for today's schedule now, not on the next poll tick (see createMatchUpsTable).
+  if (scheduledDate === todayIso()) void refreshTournamentCrowdActivity();
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   sidebarVisible = options?.catalogVisible ?? true;
@@ -431,12 +481,15 @@ export function renderGridView(
       renderCell: (matchUp) => {
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
+        // `payload` already carries any live score (buildActiveStripData), so the cell shows it with LIVE.
         const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
         // The strip is where the call-to-court gesture happens, so the check-in state has to be
         // legible HERE and not only back on the catalog card. Never gated by the prompt mode:
         // `off` means "do not interrupt me", not "show me nothing".
         const badge = renderCheckInBadge(matchUp.matchUpId);
         if (badge) cell.appendChild(badge);
+        const crowdBadge = createCrowdBadgeFor(matchUp.matchUpId);
+        if (crowdBadge) cell.appendChild(crowdBadge);
         return cell;
       },
     },
@@ -811,6 +864,7 @@ export function renderGridView(
       catalogFilters: nextState.catalogFilters,
       showCompleted: nextState.showCompleted,
       showScheduled: nextState.showScheduled,
+      catalogCollapsedGroups: nextState.catalogCollapsedGroups,
     };
   });
   const initialState = activeControl.getStore().getState();
@@ -923,6 +977,20 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   controlBar.appendChild(unschedTab);
   controlBar.appendChild(schedTab);
 
+  // "Collapse all" for whichever tab is showing (`catalogCollapseAll.ts`). Placed by `syncCatalogToolbar`.
+  const collapseAll = createCollapseAllButton(() => {
+    if (sidebarTab === 'scheduled') {
+      const next = toggledCollapsedGroups(scheduledVisibleGroupKeys, scheduledCollapsedGroups);
+      scheduledCollapsedGroups.clear();
+      for (const key of next) scheduledCollapsedGroups.add(key);
+      writeScheduledCollapsedGroups(scheduledGroupBy, scheduledCollapsedGroups);
+      updateScheduledPanel();
+      return;
+    }
+    const store = activeControl?.getStore();
+    if (store) store.setAllCatalogGroupsCollapsed(!allCatalogGroupsCollapsed(store.getState()));
+  });
+
   // Scheduled matchUp list container — same DOM layout as the unscheduled
   // catalog widget (header with title + filter icon, toolbar with search +
   // group-by select, body with grouped cards) so the two panels read as
@@ -938,7 +1006,24 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let scheduledGroupBy: MatchUpCatalogGroupBy = readScheduledGroupBy();
   let scheduledFilters: CatalogFilters = readScheduledFilters();
   let scheduledFilterTip: Instance | undefined;
-  const scheduledCollapsedGroups = new Set<string>();
+  // Restored for this tournament visit, so leaving the schedule page and coming back keeps the
+  // operator's collapsed groups (cleared on tournament load: `resetScheduledCatalogFilters`).
+  const scheduledCollapsedGroups = new Set<string>(readScheduledCollapsedGroups(scheduledGroupBy));
+  // What the panel last drew, for "collapse all" to act on and judge against.
+  let scheduledVisibleGroupKeys: string[] = [];
+
+  function syncCollapseAll(): void {
+    if (sidebarTab === 'scheduled') {
+      collapseAll.sync({
+        allCollapsed: everyGroupCollapsed(scheduledVisibleGroupKeys, scheduledCollapsedGroups),
+        groupCount: scheduledVisibleGroupKeys.length,
+      });
+      return;
+    }
+    const state = activeControl?.getStore().getState();
+    if (!state) return;
+    collapseAll.sync({ allCollapsed: allCatalogGroupsCollapsed(state), groupCount: visibleCatalogGroups(state).size });
+  }
 
   // Header (title row with filter icon on the right, then a meta row below).
   // Mirrors the unscheduled catalog's `sp-panel-header > spl-catalog-title-row`
@@ -1013,6 +1098,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // collapsed-groups set so the new grouping doesn't start half-collapsed
     // based on stale keys from the previous mode.
     scheduledCollapsedGroups.clear();
+    writeScheduledCollapsedGroups(scheduledGroupBy, scheduledCollapsedGroups);
     updateScheduledPanel();
   });
 
@@ -1214,7 +1300,12 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     const bottom = currentCatalogPlacement === 'bottom';
     if (bottom) {
       tools.append(catalogFilter, catalogToolbar, scheduledFilterBtn, scheduledToolbar);
+      // In the strip: after the group-by select, before the ◀ ▶ card navigation, in the active toolbar.
+      const activeToolbar = sidebarTab === 'scheduled' ? scheduledToolbar : catalogToolbar;
+      activeToolbar.insertBefore(collapseAll.element, activeToolbar.querySelector('.spl-catalog-scroll'));
     } else {
+      // Beside the sidebar: right-justified on the Unscheduled / Scheduled row.
+      controlBar.appendChild(collapseAll.element);
       catalogPanel.insertBefore(catalogToolbar, catalogPanel.querySelector('.sp-catalog'));
       catalogFilterHome.appendChild(catalogFilter);
       scheduledPanel.insertBefore(scheduledToolbar, scheduledCardsContainer);
@@ -1297,6 +1388,10 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // Scheduled side so the panel header carries the same shape and the
     // count reflects the active search + filter.
     scheduledMeta.textContent = t('schedule.scheduledCount', { count: filtered.length });
+    // Reset first: the two early returns below draw no groups, and the button must not offer to act on
+    // the groups of a previous render.
+    scheduledVisibleGroupKeys = [];
+    syncCollapseAll();
 
     if (!scheduled.length) {
       const hint = document.createElement('div');
@@ -1322,6 +1417,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     }
 
     const groups = groupMatchUpCatalog(filtered, scheduledGroupBy);
+    scheduledVisibleGroupKeys = [...groups.keys()];
+    syncCollapseAll();
 
     // This panel builds its cards directly, so it owns the same teardown the
     // component's catalog does: a hovered card about to be destroyed never fires
@@ -1350,6 +1447,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       gh.addEventListener('click', () => {
         if (scheduledCollapsedGroups.has(gk)) scheduledCollapsedGroups.delete(gk);
         else scheduledCollapsedGroups.add(gk);
+        writeScheduledCollapsedGroups(scheduledGroupBy, scheduledCollapsedGroups);
         updateScheduledPanel();
       });
 
@@ -1446,6 +1544,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     activeTab = tab;
     sidebarTab = tab;
     syncCatalogToolbar?.();
+    syncCollapseAll();
     // Persist only explicit operator choices, not the auto-resolved default, so
     // `readSidebarTab()` keeps meaning "the last tab the operator clicked".
     if (options?.persist !== false) writeSidebarTab(tab);
@@ -1507,6 +1606,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   let renderedCatalog: unknown = activeControl?.getStore().getState().matchUpCatalog;
   let renderedShowCompleted = activeControl?.getStore().getState().showCompleted;
   activeControl?.getStore().subscribe((state) => {
+    // The Unscheduled catalog's groups follow its search, filters and collapsed set, all store state.
+    if (activeTab !== 'scheduled') syncCollapseAll();
     const dataChanged = state.matchUpCatalog !== renderedCatalog || state.showCompleted !== renderedShowCompleted;
     renderedCatalog = state.matchUpCatalog;
     renderedShowCompleted = state.showCompleted;
@@ -2102,7 +2203,10 @@ function buildRowCourtCells(params: {
           { matchUpId: '', isReserved: true, reservation: cellData.reservation, schedule: cellData.schedule },
           DEFAULT_SCHEDULE_CELL_CONFIG,
         )
-      : buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
+      : buildScheduleGridCell(
+          mapMatchUpToCellData(withLiveScore(cellData || {}, liveScoreFor)),
+          DEFAULT_SCHEDULE_CELL_CONFIG,
+        );
 
     const cell = document.createElement('div');
     cell.style.cssText = 'min-height: 60px; font-size: 0.6875rem;';
@@ -2111,6 +2215,7 @@ function buildRowCourtCells(params: {
     cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
 
     const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
+    decorateGridCellActivity(cellContent, cellData);
     const drawId = cellContent.getAttribute(DATA_DRAW_ID);
     // Plan mode: tint cells the scenario relocates so "planned" reads distinctly
     // from "official" placements sharing the grid.
@@ -2860,8 +2965,10 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const columns = visibleCourts.map(({ court, originalIndex }) => ({
     courtId: court.courtId,
     cells: rows.map((row) => {
-      const cell = row?.[`${courtPrefix}${originalIndex}`];
-      if (!cell?.matchUpId) return null;
+      const official = row?.[`${courtPrefix}${originalIndex}`];
+      if (!official?.matchUpId) return null;
+      // A live-scored match is on court now: as IN_PROGRESS the strip shows it LIVE (not NEXT) with its score.
+      const cell = withLiveScore(official, liveScoreFor);
       return {
         matchUpId: cell.matchUpId,
         drawId: cell.drawId,

@@ -8,6 +8,9 @@ import {
   writeInspectorGeometry,
   readInspectorVisible,
   readScheduledFilters,
+  readScheduledCollapsedGroups,
+  resetScheduledCatalogFilters,
+  writeScheduledCollapsedGroups,
   readScheduledGroupBy,
   readScheduledSearch,
   readGridWarningBars,
@@ -294,5 +297,31 @@ describe('catalog presentation preferences', () => {
     }).not.toThrow();
     expect(readCatalogPlacement()).toBe('left');
     expect(readInspectorGeometry()).toBeUndefined();
+  });
+});
+
+describe('Scheduled-panel collapsed groups (per tournament visit, in memory)', () => {
+  const MENS = 'Men’s Singles';
+  afterEach(() => resetScheduledCatalogFilters());
+
+  it('round-trips under the group-by it was collected in, and only that one', () => {
+    writeScheduledCollapsedGroups('event', [MENS]);
+    expect(readScheduledCollapsedGroups('event')).toEqual([MENS]);
+    // A key under one grouping is not a key under another.
+    expect(readScheduledCollapsedGroups('time')).toEqual([]);
+  });
+
+  it('is cleared by the tournament-load reset, with the filters and search', () => {
+    writeScheduledCollapsedGroups('event', [MENS]);
+    resetScheduledCatalogFilters();
+    expect(readScheduledCollapsedGroups('event')).toEqual([]);
+  });
+
+  it('does not touch localStorage', () => {
+    const setItem = vi.fn();
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem, removeItem: vi.fn() });
+    writeScheduledCollapsedGroups('event', ['x']);
+    expect(setItem).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

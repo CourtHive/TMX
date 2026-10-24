@@ -51,6 +51,7 @@
     "activeTrackers_one": "{{count}} active tracker",
     "activeTrackers_other": "{{count}} active trackers",
     "viewTrackers": "View crowd trackers ({{count}})",
+    "live": "LIVE",
     "nominateScorekeeper": "Nominate scorekeeper",
     "removeScorekeeper": "Remove nominated scorekeeper",
     "approveScorekeeper": "Approve as scorekeeper",
@@ -78,6 +79,11 @@
     },
     "tooltip": {
       "liveTracker": "Score reported via live tracker",
+      "liveScore": "Live score from a tracker — unofficial until the result is entered",
+      "crowdSessions_one": "{{count}} crowd scorer on this match — click to review",
+      "crowdSessions_other": "{{count}} crowd scorers on this match — click to review",
+      "crowdTrusted_one": "{{count}} crowd scorer, promoted — their score is shown live. Click to review",
+      "crowdTrusted_other": "{{count}} crowd scorers, one promoted — its score is shown live. Click to review",
       "unconfirmed": "Unconfirmed delegated score — confirm to make it official",
       "unconfirmedAria": "Unconfirmed delegated score awaiting confirmation"
     }
@@ -993,6 +999,8 @@
     "scheduledCount_one": "{{count}} scheduled",
     "scheduledCount_other": "{{count}} scheduled",
     "filterMatchUps": "Filter matchUps",
+    "collapseAllGroups": "Collapse all groups",
+    "expandAllGroups": "Expand all groups",
     "filterClearAll": "Clear All",
     "filterAllEventTypes": "All Event Types",
     "filterAllEvents": "All Events",

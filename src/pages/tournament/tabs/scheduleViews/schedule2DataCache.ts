@@ -1,6 +1,8 @@
 import { onTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
+import { readCompetitionDateRange, readTournamentInfo } from 'services/factory/passReads';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { competitionEngine } from 'services/factory/engine';
+import { dropPassValues } from 'functions/renderPass';
 import { unwrapOr } from 'tods-competition-factory';
 
 /**
@@ -100,13 +102,15 @@ export function getCachedScheduleMatchUps(scheduledDate: string, params: Schedul
   return entry;
 }
 
+// Filled through the pass reads (passReads), so the render that resolves the schedule date (scheduleUtils) and
+// the header/grid reading these share one factory call; the cache then keeps the value for the mount.
 export function getCachedCompetitionDateRange(): any {
-  competitionDateRangeCache ??= competitionEngine.getCompetitionDateRange();
+  competitionDateRangeCache ??= readCompetitionDateRange();
   return competitionDateRangeCache;
 }
 
 export function getCachedTournamentInfo(): any {
-  tournamentInfoCache ??= competitionEngine.getTournamentInfo();
+  tournamentInfoCache ??= readTournamentInfo();
   return tournamentInfoCache;
 }
 
@@ -127,6 +131,9 @@ export function invalidateMatchUpCaches(): void {
  * next) and when the user navigates between tournaments.
  */
 export function invalidateAllScheduleCaches(): void {
+  // The date range and tournament info fill through pass reads; a reset must not be answered by a
+  // pass value read earlier in the same task.
+  dropPassValues();
   invalidateMatchUpCaches();
   competitionDateRangeCache = null;
   tournamentInfoCache = null;

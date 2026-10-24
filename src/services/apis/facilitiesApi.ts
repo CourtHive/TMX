@@ -15,6 +15,7 @@
  * `<origin>/ams` in prod) — the same shape `declarationsApi` uses.
  */
 import { getJwtTokenStorageKey } from 'config/localStorage';
+import { siblingServiceBaseUrl } from './serviceOrigin';
 
 /** One search hit. `matchedOn` is why the registry surfaced it — shown so a picker is explainable. */
 export interface FacilityCandidate {
@@ -42,12 +43,10 @@ export interface RegistryVenue {
 }
 
 export function getAmsBaseUrl(): string {
-  const fromVite = (import.meta as any)?.env?.VITE_AMS_URL;
+  // Written out exactly so Vite replaces it — see configuredRelayURL in scoreRelayApi.ts.
+  const fromVite = import.meta.env.VITE_AMS_URL;
   if (fromVite) return String(fromVite).replace(/\/+$/, '');
-  const loc = globalThis.location;
-  const host = loc?.host ?? '';
-  const local = host.includes('localhost') || loc?.hostname === '127.0.0.1';
-  return local ? 'http://localhost:3130' : `${loc?.origin ?? ''}/ams`;
+  return siblingServiceBaseUrl(3130, '/ams');
 }
 
 /**

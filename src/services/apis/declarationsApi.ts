@@ -10,6 +10,7 @@
  * (:3120 in dev, `<origin>/declarations` in prod).
  */
 import { getJwtTokenStorageKey } from 'config/localStorage';
+import { siblingServiceBaseUrl } from './serviceOrigin';
 
 import type { RegistrationEntry, RegistrationStatus } from './registrationsApi';
 
@@ -38,12 +39,10 @@ export interface RegistrationSnapshot {
 }
 
 export function getDeclarationsBaseUrl(): string {
-  const fromVite = (import.meta as any)?.env?.VITE_DECLARATIONS_URL;
+  // Written out exactly so Vite replaces it — see configuredRelayURL in scoreRelayApi.ts.
+  const fromVite = import.meta.env.VITE_DECLARATIONS_URL;
   if (fromVite) return String(fromVite).replace(/\/+$/, '');
-  const loc = globalThis.location;
-  const host = loc?.host ?? '';
-  const local = host.includes('localhost') || loc?.hostname === '127.0.0.1';
-  return local ? 'http://localhost:3120' : `${loc?.origin ?? ''}/declarations`;
+  return siblingServiceBaseUrl(3120, '/declarations');
 }
 
 function authHeaders(): Record<string, string> {

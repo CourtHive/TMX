@@ -236,7 +236,7 @@ importers:
         version: 1.0.0
       i18next:
         specifier: ^26.0.0
-        version: 26.5.3(typescript@6.0.3)
+        version: 26.5.4(typescript@6.0.3)
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -268,8 +268,8 @@ importers:
         specifier: 4.8.4
         version: 4.8.4(supports-color@7.2.0)
       tabulator-tables:
-        specifier: 6.6.1
-        version: 6.6.1
+        specifier: 6.7.0
+        version: 6.7.0
       timepicker-ui:
         specifier: 4.6.0
         version: 4.6.0
@@ -335,8 +335,8 @@ importers:
         specifier: 1.14.0
         version: 1.14.0
       electron:
-        specifier: ^44.0.0
-        version: 44.9.0(supports-color@7.2.0)
+        specifier: ^45.0.0
+        version: 45.0.0(supports-color@7.2.0)
       electron-builder:
         specifier: ^26.0.12
         version: 26.15.3(electron-builder-squirrel-windows@26.15.3)(supports-color@7.2.0)
@@ -2984,8 +2984,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@44.9.0:
-    resolution: {integrity: sha512-boP8zA5OIoMGYe3uWP4IqB1VJNoEzdHYgcBaVYnd1DBv5TogwXkbM4yJGSfNmYCzalVQ5J3TAIbaKOY+ILTnyg==}
+  electron@45.0.0:
+    resolution: {integrity: sha512-yjz4uhMBcO6L5X7CWgRMobf2EMJPnb9j4zuf+nu/TU/6E4Sqfx7fn/a2eACo4qngjml/0JnsoZhxYroJLxLd2w==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -3459,8 +3459,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  i18next@26.5.3:
-    resolution: {integrity: sha512-6pRwOwJ6lBCBB66fqNZaSoUmvsALHMord7FL6GsDhubT1CrPabTMEJIqddm0nn2YEbKofdI/3VAtGrQPuztY1Q==}
+  i18next@26.5.4:
+    resolution: {integrity: sha512-Wg0O1u2xmnsve9gICDwGekLkMe9SIC7+ZiuLYfWUGb/A3TQdRKygQ4OY9ros4raf5D66ZnW9JMrTDtGP2b8a7Q==}
     peerDependencies:
       typescript: 6.0.3
     peerDependenciesMeta:
@@ -4743,8 +4743,8 @@ packages:
   tabbable@6.5.0:
     resolution: {integrity: sha512-wieBHXygIm7OyQOu5hQlkk62/WyCFYGlWg7L6/ZCUZwx0o398Zkn4pVmMyfYhfMG8kGrj/Krt8eIk6UKC6VzwA==}
 
-  tabulator-tables@6.6.1:
-    resolution: {integrity: sha512-8A77aN30vJS34w1P5h4HtgEajB7vX2v0AD1fXFIKxp6SxplpGGfKn0Y4ouY91+6gdGK8/quqXoCA2LkrhBVE3A==}
+  tabulator-tables@6.7.0:
+    resolution: {integrity: sha512-JO4sU6BapqZiwlFHoXJY+PXQdqjgGaWafoDYJUAvdF/qpDp4ihp23psIYKwA+xEIqk5iHtY6pFWL8IOaARR3/w==}
 
   tar@7.5.22:
     resolution: {integrity: sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==}
@@ -7954,7 +7954,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@44.9.0(supports-color@7.2.0):
+  electron@45.0.0(supports-color@7.2.0):
     dependencies:
       '@electron-internal/extract-zip': 1.0.5
       '@electron/get': 5.1.0(supports-color@7.2.0)
@@ -8603,7 +8603,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  i18next@26.5.3(typescript@6.0.3):
+  i18next@26.5.4(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
@@ -9979,7 +9979,7 @@ snapshots:
 
   tabbable@6.5.0: {}
 
-  tabulator-tables@6.6.1: {}
+  tabulator-tables@6.7.0: {}
 
   tar@7.5.22:
     dependencies:

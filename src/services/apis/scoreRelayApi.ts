@@ -73,13 +73,25 @@ export function resolveExplicitRelayURL(value: unknown): string | undefined {
   return configured ? configured.replace(/\/+$/, '') : undefined;
 }
 
-function resolveInitialBaseURL(): string {
-  const fromVite = resolveExplicitRelayURL((import.meta as any)?.env?.VITE_SCORE_RELAY_URL);
+/**
+ * The relay URL this deployment set explicitly: `undefined` when it set none (derive one), `''` when it turned the
+ * relay off. Shared with the `/live` socket (scoreRelay.ts) so REST and socket can never point at different relays.
+ *
+ * `import.meta.env.VITE_SCORE_RELAY_URL` must be written out exactly: Vite replaces that expression statically and
+ * provides no `import.meta.env` object at runtime, so an optional-chained or cast read (`import.meta?.env?.…`) is
+ * left in the bundle and is always undefined. That is how this setting was silently ignored until 2026-10-24
+ * (src/services/apis/viteEnvReads.test.ts guards the pattern).
+ */
+export function configuredRelayURL(): string | undefined {
+  const fromVite = resolveExplicitRelayURL(import.meta.env.VITE_SCORE_RELAY_URL);
   if (fromVite !== undefined) return fromVite;
   const fromProcess = typeof process === 'undefined' ? undefined : process.env?.SCORE_RELAY_URL;
-  const explicitProcessURL = resolveExplicitRelayURL(fromProcess);
-  if (explicitProcessURL !== undefined) return explicitProcessURL;
-  return deriveRelayBaseURL();
+  return resolveExplicitRelayURL(fromProcess);
+}
+
+function resolveInitialBaseURL(): string {
+  const configured = configuredRelayURL();
+  return configured ?? deriveRelayBaseURL();
 }
 
 const initialBaseURL = resolveInitialBaseURL();

@@ -4,7 +4,7 @@
  * Resolves which date to display when navigating to a schedule tab,
  * respecting tournamentRecord.activeDates when present.
  */
-import { competitionEngine } from 'services/factory/engine';
+import { readCompetitionDateRange, readTournamentInfo } from 'services/factory/passReads';
 import { venueToday } from 'functions/venueTimeFrame';
 import { tools } from 'tods-competition-factory';
 
@@ -13,8 +13,8 @@ import { tools } from 'tods-competition-factory';
  * Uses activeDates when present; otherwise the full startDate→endDate range.
  */
 export function getScheduleDateRange(): string[] {
-  const { startDate, endDate } = competitionEngine.getCompetitionDateRange();
-  const { tournamentInfo } = competitionEngine.getTournamentInfo();
+  const { startDate, endDate } = readCompetitionDateRange();
+  const { tournamentInfo } = readTournamentInfo();
   const activeDates: string[] | undefined = tournamentInfo?.activeDates;
   return activeDates?.length ? activeDates : tools.generateDateRange(startDate, endDate);
 }
@@ -29,7 +29,7 @@ export function getScheduleDateRange(): string[] {
 export function resolveScheduleDate(): string {
   const dates = getScheduleDateRange();
   if (!dates.length) {
-    const { startDate } = competitionEngine.getCompetitionDateRange();
+    const { startDate } = readCompetitionDateRange();
     return startDate ?? '';
   }
 

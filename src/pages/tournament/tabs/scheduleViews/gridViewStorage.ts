@@ -7,7 +7,8 @@ const CHECK_IN_PROMPT_MODE_KEY = 'tmx.schedule.checkInPromptMode';
 
 /**
  * `gridView.ts` persists six pieces of view state across page reloads via
- * `localStorage`:
+ * `localStorage` (plus the Scheduled panel's collapsed groups, held in memory for the tournament
+ * visit; see below):
  *
  *   - which sidebar tab the operator was last on (Unscheduled / Scheduled)
  *   - the Scheduled-panel search query
@@ -103,10 +104,34 @@ export function writeScheduledGroupBy(value: MatchUpCatalogGroupBy): void {
   }
 }
 
-/** A tournament load starts a fresh filtering session; layout preferences remain intact. */
+/**
+ * A tournament load starts a fresh catalog session: filters, search and collapsed groups go; layout
+ * preferences remain intact. (The Unscheduled catalog's equivalents live in
+ * `context.scheduleCatalogState`, cleared beside this call in `tournamentDisplay.ts`.)
+ */
 export function resetScheduledCatalogFilters(): void {
   writeScheduledFilters({});
   writeScheduledSearch('');
+  scheduledCollapsedSession = undefined;
+}
+
+// ── Scheduled-panel collapsed groups ──
+
+/**
+ * Held in memory, not localStorage: it is per tournament visit. It survives leaving the schedule page
+ * and coming back (the panel is rebuilt on every mount), is cleared by the reset above when a
+ * tournament is loaded, and goes with the page. Keyed by the group-by it was collected under, because
+ * a group key means something different in each mode.
+ */
+let scheduledCollapsedSession: { groupBy: MatchUpCatalogGroupBy; keys: string[] } | undefined;
+
+export function readScheduledCollapsedGroups(groupBy: MatchUpCatalogGroupBy): string[] {
+  return scheduledCollapsedSession?.groupBy === groupBy ? [...scheduledCollapsedSession.keys] : [];
+}
+
+export function writeScheduledCollapsedGroups(groupBy: MatchUpCatalogGroupBy, keys: Iterable<string>): void {
+  const list = [...keys];
+  scheduledCollapsedSession = list.length ? { groupBy, keys: list } : undefined;
 }
 
 // ── Scheduled-panel filters ──

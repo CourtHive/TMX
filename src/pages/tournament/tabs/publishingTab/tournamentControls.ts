@@ -12,6 +12,7 @@ import { barButton, renderForm } from 'courthive-components';
 import { venueLocaleString } from 'functions/venueTimeFrame';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
+import { readEvents } from 'services/factory/passReads';
 import { providerConfig } from 'config/providerConfig';
 import { openEmbargoModal } from './embargoModal';
 import { escapeHtml } from 'utilities/escapeHtml';
@@ -371,11 +372,11 @@ function buildEmbargoExplainer(embargo: string): HTMLElement {
 }
 
 function allEventIds(): string[] {
-  return ((tournamentEngine.q.events() ?? []) as any[]).map((event) => event.eventId);
+  return readEvents().map((event) => event.eventId);
 }
 
 function buildInformationEventSelector(data: any): { eventFormContainer?: HTMLElement; inputs: any } {
-  const events = (tournamentEngine.q.events() ?? []) as any[];
+  const events = readEvents();
   if (!events.length) return { inputs: undefined };
 
   // No stored scope means every event, which is what the factory does with an absent `eventIds`.

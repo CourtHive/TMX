@@ -2,6 +2,7 @@
  * Data aggregation for the publishing tab.
  * Queries factory publish state and structures it for the UI.
  */
+import { readTournamentDateRange, readEvents, readPublishState } from 'services/factory/passReads';
 import { publishingGovernor, tools } from 'tods-competition-factory';
 import { competitionNowMs } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
@@ -71,9 +72,9 @@ export type TournamentPublishData = {
 };
 
 export function getTournamentPublishData(): TournamentPublishData {
-  const publishState = tournamentEngine.q.publishState();
+  const publishState = readPublishState();
   const tournamentPubState = publishState?.tournament;
-  const { startDate, endDate } = tournamentEngine.getCompetitionDateRange();
+  const { startDate, endDate } = readTournamentDateRange();
 
   const oopEmbargo = tournamentPubState?.orderOfPlay?.embargo;
   const participantsEmbargo = tournamentPubState?.participants?.embargo;
@@ -289,7 +290,7 @@ function buildDrawRow({ event, dd, drawDetails, eventPublished }): PublishingRow
 }
 
 export function getPublishingTableData(): PublishingRowData[] {
-  const events = tournamentEngine.q.events() || [];
+  const events = readEvents();
   const rows: PublishingRowData[] = [];
 
   for (const event of events) {
@@ -321,7 +322,7 @@ export function getPublishingTableData(): PublishingRowData[] {
 
 export function getActiveEmbargoes(): EmbargoEntry[] {
   const embargoes: EmbargoEntry[] = [];
-  const publishState = tournamentEngine.q.publishState();
+  const publishState = readPublishState();
   const tournamentPubState = publishState?.tournament;
 
   if (tournamentPubState?.orderOfPlay?.embargo) {
@@ -344,7 +345,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
     });
   }
 
-  const events = tournamentEngine.q.events() || [];
+  const events = readEvents();
   for (const event of events) {
     const eventPubState = publishingGovernor.getPublishState({ event })?.publishState;
     const drawDetails = eventPubState?.status?.drawDetails || {};

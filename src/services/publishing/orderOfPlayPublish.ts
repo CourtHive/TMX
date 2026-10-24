@@ -10,7 +10,7 @@
  * node vitest env.
  */
 import { PUBLISH_ORDER_OF_PLAY, UNPUBLISH_ORDER_OF_PLAY } from 'constants/mutationConstants';
-import { tournamentEngine } from 'services/factory/engine';
+import { readPublishState } from 'services/factory/passReads';
 
 export interface OrderOfPlayPublishState {
   /** Order of play is published at all. */
@@ -23,7 +23,7 @@ export interface OrderOfPlayPublishState {
 
 /** Read the tournament's order-of-play publish status from the engine. */
 export function getOrderOfPlayPublishState(): OrderOfPlayPublishState {
-  const publishState: any = tournamentEngine.q?.publishState?.() ?? {};
+  const publishState: any = readPublishState() ?? {};
   const oop = publishState?.tournament?.orderOfPlay;
   const published = !!oop?.published;
   const scheduledDates: string[] = Array.isArray(oop?.scheduledDates) ? oop.scheduledDates : [];

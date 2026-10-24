@@ -3,6 +3,7 @@
  * Handles tournament loading, navigation, and tab rendering.
  */
 import { renderSchedulingTab, destroySchedulingTab } from 'pages/tournament/tabs/schedulingTab/schedulingTab';
+import { startTournamentCrowdPoller, stopTournamentCrowdPoller } from 'services/crowd/tournamentCrowdPoller';
 import { renderOfficialsTab, destroyOfficialsTab } from 'pages/tournament/tabs/officialsTab/officialsTab';
 import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
 import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
@@ -21,9 +22,11 @@ import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { renderVenueTab } from 'pages/tournament/tabs/venuesTab/venuesTab';
 import { loadCallerGrants } from 'services/capability/loadCallerGrants';
+import { readAllTournamentMatchUps } from 'services/factory/passReads';
 import { renderOverview } from './tabs/overviewTab/renderOverview';
 import { getLoginState } from 'services/authentication/loginState';
 import { clearCallerGrants } from 'services/capability/scopeState';
+import { visibleToSession } from 'services/storage/offlineCustody';
 import { maybeNudgeActiveDates } from './maybeNudgeActiveDates';
 import { showContent } from 'services/transitions/screenSlaver';
 import { noteLoadedTournament } from 'services/clock/demoClock';
@@ -49,11 +52,11 @@ import {
 import { connectRelay, disconnectRelay, onTournamentScore } from 'services/messaging/scoreRelay';
 import { LEAVE_TOURNAMENT } from 'constants/comsConstants';
 import {
-  loadCrowdsourcedScores,
-  markMatchUpCrowdsourced,
+  loadLiveTrackedScores,
+  recordLiveTrackedScore,
   pruneCompletedMatchUps,
-  clearActiveCrowdsourcedScores,
-} from 'services/messaging/crowdsourcedScores';
+  clearActiveLiveTrackedScores,
+} from 'services/messaging/liveTrackedScores';
 import {
   joinTournamentRoom,
   leaveTournamentRoom,
@@ -96,7 +99,8 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
     disconnectRelay();
-    clearActiveCrowdsourcedScores();
+    stopTournamentCrowdPoller();
+    clearActiveLiveTrackedScores();
     tmx2db.findTournament(config.tournamentId).then((tournamentRecord: any) => {
       if (isCurrent()) loadTournament({ tournamentRecord, config, isCurrent });
     });
@@ -140,8 +144,10 @@ export function renderTournament({ config }: { config: any }): void {
   if (config.tournamentId) {
     connectRelay(config.tournamentId);
     onTournamentScore(handleRelayScore);
-    loadCrowdsourcedScores(config.tournamentId);
-    pruneCompletedCrowdsourcedFromEngine();
+    loadLiveTrackedScores(config.tournamentId);
+    pruneCompletedLiveTrackedFromEngine();
+    // Crowd sessions: polled for the whole tournament so the draw view gets badges too.
+    startTournamentCrowdPoller(config.tournamentId, () => context.refreshActiveTable?.());
   }
 }
 
@@ -149,13 +155,13 @@ const COMPLETED_MATCH_UP_STATUSES = new Set<string>(factoryConstants.completedMa
 
 /**
  * Read the engine's current matchUps, pick out the completed ones, and ask
- * the crowdsourced-score store to drop them. Called on tournament load and
+ * the live-tracked score store to drop them. Called on tournament load and
  * after each relay score arrival so badges fall away as soon as a match
  * wraps up.
  */
-function pruneCompletedCrowdsourcedFromEngine(): void {
+function pruneCompletedLiveTrackedFromEngine(): void {
   try {
-    const { matchUps = [] } = tournamentEngine.allTournamentMatchUps() || {};
+    const { matchUps = [] } = readAllTournamentMatchUps() || {};
     const completedIds: string[] = [];
     for (const matchUp of matchUps as any[]) {
       const isComplete = matchUp.winningSide || COMPLETED_MATCH_UP_STATUSES.has(matchUp.matchUpStatus);
@@ -163,7 +169,7 @@ function pruneCompletedCrowdsourcedFromEngine(): void {
     }
     if (completedIds.length) pruneCompletedMatchUps(completedIds);
   } catch (err) {
-    slog('[crowdsourced] prune failed', err);
+    slog('[liveTracked] prune failed', err);
   }
 }
 
@@ -307,7 +313,8 @@ export function loadTournament({
       if (!isCurrent()) return;
       // A local copy: nothing says which server write it matches, so the probe must not judge it.
       setServerSync(config.tournamentId, undefined);
-      if (tournamentRecord) {
+      // Another user's offline copy is on this device but is not theirs to open (offlineCustody.ts).
+      if (tournamentRecord && visibleToSession(tournamentRecord)) {
         tournamentEngine.setState(tournamentRecord);
         markTournamentRecordInstalled();
         notifyMutationApplied();
@@ -336,6 +343,8 @@ export function loadTournament({
     // setState(undefined) and rendering an empty, record-less tournament view that traps the
     // whole nav (every tab renders empty and back-to-list is dead).
     if (!tournamentRecord) return notFound();
+    // Signed out, or a different user: a copy someone holds offline stays theirs (offlineCustody.ts).
+    if (!visibleToSession(tournamentRecord)) return notFound();
     // No server to ask, so no grants — but the mask is a singleton and the
     // previous tournament's would otherwise survive the navigation.
     clearCallerGrants();
@@ -353,7 +362,7 @@ export function loadTournament({
  */
 function handleRelayScore(data: any): void {
   slog('[relay] tournament score update:', data.matchUpId);
-  markMatchUpCrowdsourced(data.matchUpId);
+  recordLiveTrackedScore(data.matchUpId, data);
   pulseMatchUpScore(data.matchUpId);
 
   if (context.refreshActiveTable) {
@@ -364,7 +373,7 @@ function handleRelayScore(data: any): void {
   // official submitted a final score), or the server mutation may have
   // landed between the relay broadcast and our handler. Sweep the
   // engine so completed matchUps lose their badge immediately.
-  pruneCompletedCrowdsourcedFromEngine();
+  pruneCompletedLiveTrackedFromEngine();
 }
 
 /**

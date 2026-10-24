@@ -585,6 +585,63 @@ body {
   50%      { text-shadow: 0 0 6px rgba(50, 115, 220, 0.7); }
 }
 
+/* Live-tracked score (unofficial, from /tracker) and crowd-session badges — table score cells and bracket cells. */
+.tmx-live-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 3px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: var(--tmx-accent-green, #10b981);
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.tmx-live-score {
+  color: var(--tmx-accent-green, #10b981);
+  font-style: italic;
+}
+.tmx-crowd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 4px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--tmx-status-info, #3273dc);
+  color: var(--tmx-text-inverse, #fff);
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.tmx-crowd-badge--trusted {
+  background: var(--tmx-accent-green, #10b981);
+}
+.tmx-crowd-badge:hover {
+  filter: brightness(1.15);
+}
+.tmx-activity-badges {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+}
+/* Schedule grid cell with crowd activity but no score yet: the line the badge sits on, where the score goes. */
+.tmx-cell-activity {
+  text-align: center;
+  font-size: 0.625rem;
+}
+.tmx-activity-badges--floating {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  z-index: 1;
+}
+
 img {
   max-width: 200%; /* override minireset */
 }

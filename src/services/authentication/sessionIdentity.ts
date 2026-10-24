@@ -14,3 +14,14 @@ export function getSessionIdentity(): string | undefined {
     return undefined;
   }
 }
+
+/** The signed-in email, lowercased, for the same identity-only comparisons. Never authorization. */
+export function getSessionEmail(): string | undefined {
+  try {
+    const token = getToken();
+    if (!token) return undefined;
+    return jwtDecode<{ email?: string }>(token).email?.toLowerCase() || undefined;
+  } catch {
+    return undefined;
+  }
+}

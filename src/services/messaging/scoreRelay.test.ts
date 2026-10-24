@@ -43,9 +43,10 @@ vi.mock('socket.io-client', () => ({
 // Mutable so individual tests can flip between dev (localhost) and prod hosts.
 // `get: () => mockServerConfig` returns the live object, so mutating
 // `mockServerConfig.socketPath` before a connect changes what the module reads.
-const { mockServerConfig, mockCrowdScoringEnabled } = vi.hoisted(() => ({
+const { mockServerConfig, mockCrowdScoringEnabled, mockConfiguredRelayURL } = vi.hoisted(() => ({
   mockServerConfig: { socketPath: 'http://localhost:8383' },
   mockCrowdScoringEnabled: vi.fn(() => true),
+  mockConfiguredRelayURL: vi.fn((): string | undefined => undefined),
 }));
 
 vi.mock('config/serverConfig', () => ({
@@ -56,6 +57,7 @@ vi.mock('config/serverConfig', () => ({
 
 vi.mock('services/apis/scoreRelayApi', () => ({
   isCrowdScoringEnabled: mockCrowdScoringEnabled,
+  configuredRelayURL: mockConfiguredRelayURL,
 }));
 
 vi.mock('config/debugConfig', () => ({
@@ -142,6 +144,31 @@ describe('TMX scoreRelay client', () => {
     const [url, opts] = (io as any).mock.calls[0];
     expect(url).toBe('http://localhost:8384/live');
     expect(opts.path).toBe('/socket.io/');
+  });
+
+  describe('an explicitly configured relay (VITE_SCORE_RELAY_URL) wins over the server-derived one', () => {
+    afterEach(() => mockConfiguredRelayURL.mockReturnValue(undefined));
+
+    it('a bare origin: that origin, on the default transport path', async () => {
+      const { io } = await import('socket.io-client');
+      mockServerConfig.socketPath = DEV_SOCKET_PATH;
+      mockConfiguredRelayURL.mockReturnValue('http://localhost:18384');
+      connectRelay('tid-configured');
+
+      const [url, opts] = (io as any).mock.calls[0];
+      expect(url).toBe('http://localhost:18384/live');
+      expect(opts.path).toBe('/socket.io/');
+    });
+
+    it('a proxied relay (a URL with a path): its origin, with the path as the transport prefix', async () => {
+      const { io } = await import('socket.io-client');
+      mockConfiguredRelayURL.mockReturnValue('https://relay.example.org/relay/');
+      connectRelay('tid-configured-proxied');
+
+      const [url, opts] = (io as any).mock.calls[0];
+      expect(url).toBe('https://relay.example.org/live');
+      expect(opts.path).toBe('/relay/socket.io/');
+    });
   });
 
   it('prod host: connects to /live with the /relay/socket.io/ transport path', async () => {

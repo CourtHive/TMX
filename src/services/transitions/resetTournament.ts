@@ -1,3 +1,4 @@
+import { stopTournamentCrowdPoller } from 'services/crowd/tournamentCrowdPoller';
 import { leaveTournamentRoom } from 'services/messaging/socketIo';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
@@ -10,6 +11,7 @@ export function resetTournament(): void {
   if (tournamentRecord) {
     context.ee.emit(LEAVE_TOURNAMENT, tournamentRecord.tournamentId);
     leaveTournamentRoom(tournamentRecord.tournamentId);
+    stopTournamentCrowdPoller();
     tournamentEngine.reset();
   }
 }
