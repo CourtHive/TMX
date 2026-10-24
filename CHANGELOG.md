@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.42.2](https://github.com/CourtHive/TMX/compare/v8.42.1...v8.42.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 6.12.1 ([#1745](https://github.com/CourtHive/TMX/issues/1745)) ([0a43c2c](https://github.com/CourtHive/TMX/commit/0a43c2c0bfebdc493e16bed31ba7ad7030be2ad4))
+
 ## [8.42.1](https://github.com/CourtHive/TMX/compare/v8.42.0...v8.42.1) (2026-10-23)
 
 
