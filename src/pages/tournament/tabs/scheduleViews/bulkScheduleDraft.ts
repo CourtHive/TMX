@@ -1,3 +1,5 @@
+import { randomId } from 'functions/randomId';
+
 /** A recoverable bulk preview, owned independently of its rendered grid and of IndexedDB. */
 interface Snapshot {
   tournamentId?: string;
@@ -104,7 +106,7 @@ function restoreObject(before: any, preview: any, current: any): any {
 export class BulkScheduleDraft {
   pending: any[][] = [];
   saving = false;
-  commandId = crypto.randomUUID();
+  commandId = randomId();
   private submittedMethods?: string;
   private baseline?: Snapshot;
   private preview?: Snapshot;
@@ -181,7 +183,7 @@ export class BulkScheduleDraft {
   clear(): void {
     this.pending = [];
     this.submittedMethods = undefined;
-    this.commandId = crypto.randomUUID();
+    this.commandId = randomId();
     this.baseline = undefined;
     this.preview = undefined;
     this.ownsInstalledRecord = () => true;

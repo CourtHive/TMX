@@ -16,9 +16,11 @@ import { resolve } from 'path';
 const isElectronPackage = ['electron', /^electron\/dist/];
 
 /**
- * Content-Security-Policy for the packaged renderer, injected as a `<meta>` at build time (the
- * renderer is loaded over `file://`, which carries no response headers). Web builds are unaffected;
- * a CSP for the web PWA is a separate decision.
+ * Content-Security-Policy for the packaged renderer, injected as a `<meta>` at build time. The renderer
+ * was loaded over `file://`, which carries no response headers, when this was written; it is now served
+ * from `app://tmx` (`electron/main.ts` `serveRenderer`), which also sends a per-load header CSP naming the
+ * configured server (`electron/policy.ts` `connectSources`). Both apply, so a connection must pass both.
+ * Web builds are unaffected; a CSP for the web PWA is a separate decision.
  *
  * Each allowance, with its reason:
  * - script-src: own bundle, plus a sha256 hash per inline `<script>` in index.html (the theme
@@ -100,9 +102,10 @@ export default defineConfig({
     plugins: [...rendererPlugins(), electronContentSecurityPolicy()],
     optimizeDeps: rendererOptimizeDeps,
     resolve: rendererResolve,
-    // NO `base` here on purpose. The packaged app is served through
-    // `loadFile(...)` over `file://`, where an absolute base would resolve assets
-    // off the FILESYSTEM ROOT and render a blank window — but electron-vite
+    // NO `base` here on purpose. The packaged app was served through `loadFile(...)`
+    // over `file://`, where an absolute base would resolve assets off the FILESYSTEM
+    // ROOT and render a blank window; it is now served from `app://tmx`, where the
+    // relative base is still the right one — and in any case electron-vite
     // already forces a relative base for the renderer and IGNORES any value set
     // here (verified empirically: emitted `index.html` is byte-identical with
     // `base` unset, `'./'`, and `'/'`). Setting it would be inert config that

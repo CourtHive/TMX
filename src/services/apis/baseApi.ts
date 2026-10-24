@@ -7,9 +7,9 @@ import { t } from 'i18n';
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
 const REFRESH_TOKEN_STORAGE_NAME = getRefreshTokenStorageKey();
 
-// In a packaged desktop app the renderer is loaded from `file://`, so
-// `location.origin` is `"file://"` and EVERY REST call resolves to
-// `file:///auth/...` and fails with ERR_FILE_NOT_FOUND. Desktop therefore
+// In a packaged desktop app `location.origin` is not a network host: it was
+// `"file://"` (REST resolved to `file:///auth/...` and failed with
+// ERR_FILE_NOT_FOUND) and is now `app://tmx`, which fails the same way. Desktop therefore
 // resolves its API host from the persisted preference — the same value
 // Socket.IO already uses via `serverConfig.socketPath`, which is why the socket
 // connected while REST silently did not.

@@ -54,14 +54,9 @@ export default [
       // types AND prettier all pass while the code violates it. This rule is
       // the one from that document a linter can hold without judgement.
       //
-      // DOM data attributes are read via `.dataset`, never `.getAttribute`.
-      'no-restricted-syntax': [
-        'warn',
-        {
-          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
-          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
-        },
-      ],
+      // DOM data attributes are read via `.dataset`, never `.getAttribute`. That selector lives in the
+      // single `no-restricted-syntax` entry further down: this block used to declare the rule twice, and
+      // in an object literal the later key wins, so this one was silently off (found 2026-10-24).
       'no-unused-expressions': 'off',
       'no-useless-assignment': 'warn',
       'preserve-caught-error': 'off',
@@ -117,6 +112,17 @@ export default [
             "CallExpression[callee.object.name='JSON'][callee.property.name='parse'] > CallExpression[callee.object.name='JSON'][callee.property.name='stringify']",
           message:
             'Use structuredClone() to deep-copy — JSON.parse(JSON.stringify(x)) drops undefined/functions/Date/Map/Set and throws on cycles. For tournamentRecords use tools.makeDeepCopy, which carries factory extension semantics.',
+        },
+        {
+          selector: "CallExpression[callee.property.name='getAttribute'][arguments.0.value=/^data-/]",
+          message: 'Use .dataset.propName instead of .getAttribute("data-*") — Mentat coding standards.',
+        },
+        // Browsers withhold crypto.randomUUID outside a secure context, and TMX is meant to be servable
+        // over plain http on a venue LAN (Mentat/planning/TMX_DESKTOP_LOCAL_SERVER.md §4.5).
+        {
+          selector: "MemberExpression[property.name='randomUUID']",
+          message:
+            'Use randomId() from functions/randomId — crypto.randomUUID is unavailable outside a secure context (plain-http LAN).',
         },
       ],
     },

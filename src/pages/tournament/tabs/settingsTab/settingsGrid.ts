@@ -553,11 +553,21 @@ export async function renderSettingsGrid(
     offlineRow.appendChild(offlineCheckbox);
     offlineRow.appendChild(offlineLabel);
 
-    // Save server URL on blur
-    serverUrlInput.addEventListener('change', () => {
+    // Save server URL on blur — but only once it is confirmed. Main validates the URL and asks the user in
+    // a native dialog; applying it here first meant a declined (or invalid) URL still steered this
+    // session's socket and REST until the next reload.
+    let confirmedServerUrl = serverUrlInput.value.trim();
+    serverUrlInput.addEventListener('change', async () => {
       const url = serverUrlInput.value.trim();
+      if (platform.setServerUrl) {
+        const { saved } = await platform.setServerUrl(url);
+        if (!saved) {
+          serverUrlInput.value = confirmedServerUrl;
+          return;
+        }
+      }
+      confirmedServerUrl = url;
       serverConfig.set({ socketPath: url });
-      platform.setServerUrl?.(url);
       // Re-point the REST layer too. `serverConfig.socketPath` only steers
       // Socket.IO; without this the axios instance keeps the base URL it
       // captured at module load, so changing the server here moved the socket
