@@ -1,5 +1,5 @@
 /**
- * Journey 179 — a live tracker's score shows wherever the TD looks, and gives way to the official one
+ * Journey 181 — a live tracker's score shows wherever the TD looks, and gives way to the official one
  *
  * A tracker (epixodic, or a provider's own app such as IONSport) streams each point to the
  * score-relay's `/tracker` namespace; the relay fans it out on `/live`, which TMX subscribes to
@@ -28,7 +28,7 @@ const TOURNAMENT_ID = 'e2e-live-tracker-score';
 const DATE = todayLocal();
 const NEXT_DATE = daysFromTodayLocal(1);
 
-test.describe('Journey 179 — live tracker score', () => {
+test.describe('Journey 181 — live tracker score', () => {
   let relay: FakeScoreRelay;
 
   test.beforeEach(async ({ page }) => {

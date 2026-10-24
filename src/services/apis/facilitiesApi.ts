@@ -43,7 +43,8 @@ export interface RegistryVenue {
 }
 
 export function getAmsBaseUrl(): string {
-  const fromVite = (import.meta as any)?.env?.VITE_AMS_URL;
+  // Written out exactly so Vite replaces it — see configuredRelayURL in scoreRelayApi.ts.
+  const fromVite = import.meta.env.VITE_AMS_URL;
   if (fromVite) return String(fromVite).replace(/\/+$/, '');
   return siblingServiceBaseUrl(3130, '/ams');
 }

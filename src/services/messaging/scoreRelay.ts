@@ -6,7 +6,7 @@
  * - Production: same host, /relay path (nginx proxy)
  * - Local dev: same host, port 8384
  */
-import { isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
+import { configuredRelayURL, isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { io, Socket } from 'socket.io-client';
@@ -19,6 +19,16 @@ let tournamentScoreHandler: ((data: any) => void) | null = null;
 const matchUpCallbacks = new Map<string, (data: any) => void>();
 
 function getRelayConfig(): { origin: string; path: string } {
+  // An explicitly configured relay wins, exactly as it does for the REST client: the socket and the crowd REST
+  // calls must reach the same relay. A URL with a path (`https://host/relay`) is a proxied relay, so the transport
+  // path carries that prefix; a bare origin serves the default path.
+  const configured = configuredRelayURL();
+  if (configured) {
+    const url = new URL(configured);
+    const prefix = url.pathname.replace(/\/+$/, '');
+    return { origin: url.origin, path: `${prefix}/socket.io/` };
+  }
+
   const serverUrl = serverConfig.get().socketPath || window.location.origin;
 
   try {
