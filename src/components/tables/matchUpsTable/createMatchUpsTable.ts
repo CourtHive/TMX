@@ -2,8 +2,8 @@
  * Create matchUps table with scoring and predictive accuracy.
  * Dynamically calculates predictive accuracy for all rating types present in participant data.
  */
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
-import { startCrowdPoller, type CrowdPoller } from 'services/crowd/crowdPoller';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -106,32 +106,23 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
 
   render(data);
 
-  // ─── Phase 4 — crowd activity poller + row reformat on change ───────────
-  // Start a tournament-level poll into the crowdActivityIndex so the three-dot
-  // icon can glow and the "View crowd trackers (N)" menu item knows whether
-  // to render. Stop on tableDestroyed so a tab switch doesn't leak the timer.
-  // getState() exposes the active id at the top level (`tournamentId`); there is
-  // no singular `tournamentRecord` key (records live under `tournamentRecords`),
-  // so the old `getState().tournamentRecord.tournamentId` was always undefined
-  // and the crowd poller never started.
-  const tournamentId = tournamentEngine.getState?.()?.tournamentId;
-  let crowdPoller: CrowdPoller | undefined;
-  let unsubscribeCrowd: (() => void) | undefined;
-  if (tournamentId) {
-    crowdPoller = startCrowdPoller({ tournamentId });
-    unsubscribeCrowd = subscribeCrowdActivity((matchUpId: string) => {
-      try {
-        const row = table.getRow(matchUpId);
-        if (row) row.reformat();
-      } catch {
-        // Row may not exist on this table view; ignore.
-      }
-    });
-    table.on('tableDestroyed', () => {
-      crowdPoller?.stop();
-      unsubscribeCrowd?.();
-    });
-  }
+  // ─── Crowd activity → row reformat ──────────────────────────────────────
+  // The tournament owns the poll (services/crowd/tournamentCrowdPoller, started in
+  // tournamentDisplay) so the draw view gets crowd data too. This table only
+  // reformats the rows whose count moved, so the score-cell badge and the
+  // "View crowd trackers (N)" menu item stay current.
+  const unsubscribeCrowd = subscribeCrowdActivity((matchUpId: string) => {
+    try {
+      const row = table.getRow(matchUpId);
+      if (row) row.reformat();
+    } catch {
+      // Row may not exist on this table view; ignore.
+    }
+  });
+  table.on('tableDestroyed', () => unsubscribeCrowd());
+  // Opening the view asks for current crowd state now rather than on the next poll tick — the relay or the
+  // provider's crowd-scoring setting may have become available after the tournament opened.
+  void refreshTournamentCrowdActivity();
 
   return { table, data, replaceTableData };
 }

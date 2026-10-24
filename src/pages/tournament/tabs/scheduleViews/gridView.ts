@@ -303,9 +303,14 @@ function catalogOnScreen(): boolean {
 // spinning up this entire module.
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
+import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
+import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
 import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
+import { pickLiveScore, withLiveScore } from 'services/messaging/liveScoreDisplay';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
+import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
@@ -346,6 +351,44 @@ let latestStripSnapshot: { rows: any[]; courtPrefix: string; courtsData: any[] }
 // matchUps the strip displays — one per court, LIVE or NEXT.
 let latestStripData: ActiveStripPanelData | null = null;
 
+// Live scoring is about now: only today's schedule shows live scores and crowd badges. Any other day is
+// planning, where an in-flight score is noise.
+const isLiveDay = () => currentDate === todayIso();
+
+// A live score — a tracker's, or a promoted crowd session's — for display only. It is overlaid on copies at
+// render time (the grid cell and the active strip) and never written back to the schedule cache.
+const liveScoreFor = (matchUpId?: string) =>
+  isLiveDay() ? pickLiveScore(getLiveTrackedScore(matchUpId), getTrustedCrowdScore(matchUpId)) : undefined;
+
+function createCrowdBadgeFor(matchUpId?: string): HTMLElement | undefined {
+  const count = matchUpId && isLiveDay() ? getActiveSessionCount(matchUpId) : 0;
+  if (!matchUpId || !count) return undefined;
+  return createCrowdBadge({ matchUpId, count, trusted: !!getTrustedCrowdScore(matchUpId) });
+}
+
+/**
+ * Grid cell: the crowd badge and, when the cell shows a live score, LIVE — both on the score line, since the
+ * cell's top line is taken by the event and round (the default layout shows the score but no status, so
+ * without LIVE a tracker's score would read as official). The Now strip needs no LIVE of ours: its own state
+ * pill says it. Reserved cells carry no matchUpId, so they get neither.
+ */
+function decorateGridCellActivity(cellContent: HTMLElement, cellData: any): void {
+  const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID) || undefined;
+  if (!matchUpId) return;
+  const isLive = !!(withLiveScore(cellData ?? {}, liveScoreFor) as any).liveTracked;
+  const crowdBadge = createCrowdBadgeFor(matchUpId);
+  if (!isLive && !crowdBadge) return;
+
+  let scoreLine = cellContent.querySelector<HTMLElement>('.spl-grid-cell__score');
+  if (!scoreLine) {
+    scoreLine = document.createElement('div');
+    scoreLine.className = 'tmx-cell-activity';
+    cellContent.appendChild(scoreLine);
+  }
+  if (isLive) scoreLine.prepend(createLiveTag());
+  if (crowdBadge) scoreLine.prepend(crowdBadge);
+}
+
 export function renderGridView(
   container: HTMLElement,
   scheduledDate: string,
@@ -363,6 +406,8 @@ export function renderGridView(
     planContext?: { scenarioId: string; tournamentId: string } | null;
   },
 ): void {
+  // Current crowd state for today's schedule now, not on the next poll tick (see createMatchUpsTable).
+  if (scheduledDate === todayIso()) void refreshTournamentCrowdActivity();
   syncVisibilityDate(scheduledDate);
   currentDate = scheduledDate;
   sidebarVisible = options?.catalogVisible ?? true;
@@ -431,12 +476,15 @@ export function renderGridView(
       renderCell: (matchUp) => {
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
+        // `payload` already carries any live score (buildActiveStripData), so the cell shows it with LIVE.
         const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
         // The strip is where the call-to-court gesture happens, so the check-in state has to be
         // legible HERE and not only back on the catalog card. Never gated by the prompt mode:
         // `off` means "do not interrupt me", not "show me nothing".
         const badge = renderCheckInBadge(matchUp.matchUpId);
         if (badge) cell.appendChild(badge);
+        const crowdBadge = createCrowdBadgeFor(matchUp.matchUpId);
+        if (crowdBadge) cell.appendChild(crowdBadge);
         return cell;
       },
     },
@@ -2102,7 +2150,10 @@ function buildRowCourtCells(params: {
           { matchUpId: '', isReserved: true, reservation: cellData.reservation, schedule: cellData.schedule },
           DEFAULT_SCHEDULE_CELL_CONFIG,
         )
-      : buildScheduleGridCell(mapMatchUpToCellData(cellData || {}), DEFAULT_SCHEDULE_CELL_CONFIG);
+      : buildScheduleGridCell(
+          mapMatchUpToCellData(withLiveScore(cellData || {}, liveScoreFor)),
+          DEFAULT_SCHEDULE_CELL_CONFIG,
+        );
 
     const cell = document.createElement('div');
     cell.style.cssText = 'min-height: 60px; font-size: 0.6875rem;';
@@ -2111,6 +2162,7 @@ function buildRowCourtCells(params: {
     cell.setAttribute(DATA_COURT_ORDER, String(courtOrder));
 
     const matchUpId = cellContent.getAttribute(DATA_MATCHUP_ID);
+    decorateGridCellActivity(cellContent, cellData);
     const drawId = cellContent.getAttribute(DATA_DRAW_ID);
     // Plan mode: tint cells the scenario relocates so "planned" reads distinctly
     // from "official" placements sharing the grid.
@@ -2860,8 +2912,10 @@ function buildActiveStripData(date: string): ActiveStripPanelData {
   const columns = visibleCourts.map(({ court, originalIndex }) => ({
     courtId: court.courtId,
     cells: rows.map((row) => {
-      const cell = row?.[`${courtPrefix}${originalIndex}`];
-      if (!cell?.matchUpId) return null;
+      const official = row?.[`${courtPrefix}${originalIndex}`];
+      if (!official?.matchUpId) return null;
+      // A live-scored match is on court now: as IN_PROGRESS the strip shows it LIVE (not NEXT) with its score.
+      const cell = withLiveScore(official, liveScoreFor);
       return {
         matchUpId: cell.matchUpId,
         drawId: cell.drawId,

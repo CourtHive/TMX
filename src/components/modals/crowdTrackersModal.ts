@@ -26,6 +26,7 @@ import {
   resolveSessionScorer,
   scorerBadgeLabel,
 } from 'components/modals/crowdTrackersModalLogic';
+import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { acceptTrustedSession } from 'services/crowd/delegatedOutcomeFlow';
 import { isTrustedScorer } from 'services/crowd/classifyScorer';
 import { tournamentEngine } from 'tods-competition-factory';
@@ -97,6 +98,9 @@ export function openCrowdTrackersModal(opts: CrowdTrackersModalOptions): void {
       const matchUp = (tournamentEngine as any).q?.matchUp?.({ matchUpId: opts.matchUpId });
       const ctx: RowContext = { matchUpId: opts.matchUpId, drawId: matchUp?.drawId, matchUp };
       renderList(list, status, sessions, participants, { promote, demote, cancel, refresh }, ctx);
+      // Bring the tournament's crowd index (bracket + table badges, promoted live score) up to date now,
+      // rather than on the next poll.
+      void refreshTournamentCrowdActivity();
     };
 
     void refresh();
