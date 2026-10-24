@@ -50,7 +50,7 @@ const SEVERITY: RestStatus[] = ['onCourt', 'resting', 'rested', 'none'];
  * The row that decides the badge — the worst status present, and within that
  * status the participant furthest from being ready.
  *
- * The within-status choice is the factory `getParticipantRest`'s to make: it sorts rows
+ * The within-status choice is the factory `getParticipantsRest`'s to make: it sorts rows
  * by band and then by shortfall, so taking the first of a band is taking the
  * worst of it. That ordering is the contract between the two — a caller passing
  * unsorted rows would get the right band and an arbitrary member of it, which is

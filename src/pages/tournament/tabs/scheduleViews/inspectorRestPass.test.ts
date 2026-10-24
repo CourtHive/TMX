@@ -8,21 +8,27 @@ const engineWork = vi.hoisted(() => ({
   allMatchUps: vi.fn(),
   venueFrame: vi.fn(),
   analyze: vi.fn(),
+  // What the cache holds, reset per test; unscheduled matchUps are measured on the viewed day.
+  cached: [] as any[],
+  refuse: false,
 }));
+
+const UNSCHEDULED = [{ matchUpId: 'm1' }, { matchUpId: 'm2' }, { matchUpId: 'm3' }];
 
 vi.mock('./schedule2DataCache', () => ({
   getCachedAllMatchUps: (...args: any[]) => {
     engineWork.allMatchUps(...args);
-    return { matchUps: [{ matchUpId: 'm1' }, { matchUpId: 'm2' }, { matchUpId: 'm3' }] };
+    return { matchUps: engineWork.cached };
   },
 }));
-// Rest is the factory query now; what the pass shares is the hydrated matchUps, the venue frame
-// and the clock. The query itself is still asked once per matchUp.
+// Rest is the factory's batched query: one call answers a list of requests, aligned. Each answer
+// echoes its request, so a test can tell whose answer a card received.
 vi.mock('services/factory/engine', () => ({
   tournamentEngine: {
-    getParticipantRest: (params: any) => {
+    getParticipantsRest: (params: any) => {
       engineWork.analyze(params);
-      return { rest: { state: 'ok', matchUpId: params.matchUpId } };
+      if (engineWork.refuse) return { error: { message: 'refused' } };
+      return { rests: params.requests.map((request: any) => ({ evaluated: true, rows: [], request })) };
     },
   },
 }));
@@ -39,11 +45,13 @@ vi.mock('i18n', () => ({ t: (key: string) => key }));
 
 import { evaluateRest, makeRestEvaluator } from './inspectorRest';
 
+const requestsOf = (call: number) => engineWork.analyze.mock.calls[call][0].requests;
+const idsOf = (call: number) => requestsOf(call).map((request: any) => request.matchUpId);
+
 /**
  * `makeRestEvaluator` is documented as being worth building once per pass — it
  * reads the hydrated matchUps and resolves the venue frame, neither of which
- * varies per matchUp. (Before the factory query it also walked the tournament's
- * events and read daily limits; the query does that now.)
+ * varies per matchUp.
  *
  * The 30-second badge ticker honoured that. The RENDER did not: `renderRestBadge`
  * is `renderCardExtra`, called once per card, and it reached `evaluateRest`, which
@@ -51,39 +59,87 @@ import { evaluateRest, makeRestEvaluator } from './inspectorRest';
  * was 307 `getTournament` calls and ~245ms of a ~305ms schedule render; sharing
  * one evaluator per pass took the same render to ~63ms and 11 calls.
  *
+ * The factory query itself was still asked once per card, and it rebuilt its
+ * whole rest index each time: 252 calls and ~390ms on a 252-card schedule. The
+ * pass now asks `getParticipantsRest` once for every matchUp on the day.
+ *
  * Nothing was WRONG before — the answers were identical, which is precisely why
  * it went unnoticed. So these tests are about call counts, and each one needs its
  * control: a cache that never refreshed would satisfy "called once" perfectly.
  */
 describe('the rest evaluator is built once per pass', () => {
   beforeEach(() => {
-    for (const spy of Object.values(engineWork)) spy.mockClear();
+    engineWork.allMatchUps.mockClear();
+    engineWork.venueFrame.mockClear();
+    engineWork.analyze.mockClear();
+    engineWork.cached = UNSCHEDULED;
+    engineWork.refuse = false;
   });
 
   const flushMicrotasks = () => Promise.resolve();
 
-  it('shares one evaluator across every call in a synchronous pass', () => {
-    for (const id of ['m1', 'm2', 'm3']) evaluateRest(id, VIEWED_DATE);
+  it('answers every card in a synchronous pass from one factory call', () => {
+    const results: any[] = ['m1', 'm2', 'm3'].map((id) => evaluateRest(id, VIEWED_DATE));
 
     expect(engineWork.venueFrame).toHaveBeenCalledTimes(1);
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
-
-    // The control. Sharing the SETUP must not share the ANSWER — every matchUp
-    // is still evaluated on its own, which a cache keyed too coarsely would break.
-    expect(engineWork.analyze).toHaveBeenCalledTimes(3);
-    expect(engineWork.analyze.mock.calls.map(([p]: any[]) => p.matchUpId)).toEqual(['m1', 'm2', 'm3']);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(1);
+    expect(idsOf(0)).toEqual(['m1', 'm2', 'm3']);
     // The pass's hydrated matchUps are handed over, so the factory never hydrates the tournament
-    // again per card — which is the whole cost the shared pass exists to avoid.
-    expect(engineWork.analyze.mock.calls.every(([p]: any[]) => p.matchUps?.length === 3)).toBe(true);
+    // again — which is the whole cost the shared pass exists to avoid.
+    expect(engineWork.analyze.mock.calls[0][0].matchUps).toHaveLength(3);
+
+    // The control. Sharing the CALL must not share the ANSWER — each card reads its own, which an
+    // answer map keyed too coarsely, or read at the wrong index, would break.
+    expect(results.map((result) => result.request.matchUpId)).toEqual(['m1', 'm2', 'm3']);
+    expect(requestsOf(0).every((request: any) => request.scheduledDate === VIEWED_DATE)).toBe(true);
   });
 
-  it('scales: the engine work does not grow with the number of matchUps', () => {
-    // The shape of the defect. One hundred cards used to mean one hundred event-map
-    // walks; a test that only ever asks for three could pass while still being linear.
-    for (let i = 0; i < 100; i++) evaluateRest('m1', VIEWED_DATE);
+  it('scales: the engine work does not grow with the number of cards', () => {
+    // The shape of the defect. A test that only ever asks for three could pass while still being
+    // linear, so ask about a hundred matchUps.
+    engineWork.cached = Array.from({ length: 100 }, (_, i) => ({ matchUpId: `c${i}` }));
+    for (let i = 0; i < 100; i++) evaluateRest(`c${i}`, VIEWED_DATE);
 
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
-    expect(engineWork.analyze).toHaveBeenCalledTimes(100);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(1);
+    expect(requestsOf(0)).toHaveLength(100);
+  });
+
+  it('measures a matchUp scheduled on another day on that day, in a request of its own', () => {
+    // The Inspector can show a matchUp from another day beside a catalog on the viewed one. Its rest
+    // is measured on ITS day, so the viewed day's batch must not answer it.
+    engineWork.cached = [...UNSCHEDULED, { matchUpId: 'other', schedule: { scheduledDate: '2026-08-26' } }];
+
+    evaluateRest('m1', VIEWED_DATE);
+    expect(idsOf(0)).toEqual(['m1', 'm2', 'm3']);
+
+    const other: any = evaluateRest('other', VIEWED_DATE);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(2);
+    expect(requestsOf(1)).toEqual([expect.objectContaining({ matchUpId: 'other', scheduledDate: '2026-08-26' })]);
+    expect(other.request.matchUpId).toBe('other');
+
+    // Both days are now answered; asking again re-asks neither.
+    evaluateRest('m2', VIEWED_DATE);
+    evaluateRest('other', VIEWED_DATE);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('still asks about a matchUp the cache does not hold, and only once', () => {
+    const result: any = evaluateRest('stranger', VIEWED_DATE);
+    expect(idsOf(0)).toEqual(['stranger', 'm1', 'm2', 'm3']);
+    expect(result.request.matchUpId).toBe('stranger');
+
+    evaluateRest('stranger', VIEWED_DATE);
+    evaluateRest('m3', VIEWED_DATE);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads a refused call as unanswered for every card, not as a crash', () => {
+    engineWork.refuse = true;
+    expect(evaluateRest('m1', VIEWED_DATE)).toEqual({ evaluated: false, reason: 'unknownMatchUp' });
+    expect(evaluateRest('m2', VIEWED_DATE)).toEqual({ evaluated: false, reason: 'unknownMatchUp' });
+    expect(engineWork.analyze).toHaveBeenCalledTimes(1);
   });
 
   it('releases at the end of the task, so the next pass re-reads the engine', async () => {
@@ -96,6 +152,7 @@ describe('the rest evaluator is built once per pass', () => {
     // state — the badge counts up, and a mutation between renders must be seen.
     evaluateRest('m1', VIEWED_DATE);
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(2);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(2);
   });
 
   it('leaves makeRestEvaluator itself unshared, which the ticker relies on', () => {
@@ -108,7 +165,8 @@ describe('the rest evaluator is built once per pass', () => {
     evaluateRest('m1', VIEWED_DATE);
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(1);
 
-    makeRestEvaluator();
+    makeRestEvaluator()('m1', VIEWED_DATE);
     expect(engineWork.allMatchUps).toHaveBeenCalledTimes(2);
+    expect(engineWork.analyze).toHaveBeenCalledTimes(2);
   });
 });

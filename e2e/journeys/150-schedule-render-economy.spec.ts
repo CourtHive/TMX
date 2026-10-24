@@ -9,7 +9,9 @@ import { TournamentPage } from '../pages/TournamentPage';
  *
  * Reported from production on Battle of Boca: opening the schedule page ran hundreds of
  * `getParticipantRest` / `getMatchUpReadiness` calls, and the whole sequence twice. Each card grades
- * readiness and rest, so every redundant card build is two engine calls. Pinned here:
+ * readiness and rest, so every redundant card build was two engine calls. Rest is now one
+ * `getParticipantsRest` per pass, answering every matchUp on the day, so a card build costs one
+ * readiness call and the rest count is a count of PASSES. Pinned here:
  *
  *  1. One navigation renders the page once. The router ran EVERY matching route, and
  *     `/scheduling` matches its own route and the `:selectedTab` catch-all.
@@ -23,7 +25,8 @@ const DATE = todayLocal();
 const SCHEDULED_PANEL = '[data-sidebar-panel="scheduled"]';
 const SCHEDULED_CARD = `${SCHEDULED_PANEL} .spl-matchup-card`;
 const UNSCHEDULED_TAB = 'button[data-sidebar-tab="unscheduled"]';
-const GRADED = ['getParticipantRest', 'getMatchUpReadiness'];
+const BATCHED_REST = 'getParticipantsRest';
+const GRADED = [BATCHED_REST, 'getMatchUpReadiness'];
 
 /** 3 × 32-draw events; every first-round matchUp gets a date and time but no court. */
 async function seedScheduledWithoutCourts(page: Page): Promise<{ tournamentId: string; scheduled: number }> {
@@ -61,9 +64,14 @@ async function startCounting(page: Page): Promise<void> {
     const g = globalThis as any;
     g.__engineCalls = {};
     dev.factory.globalState.setGlobalLog(({ log }: any) => {
-      if (log?.method) g.__engineCalls[log.method] = (g.__engineCalls[log.method] ?? 0) + 1;
+      if (!log?.method) return;
+      g.__engineCalls[log.method] = (g.__engineCalls[log.method] ?? 0) + 1;
+      // How many matchUps each batched rest call answered, so a pass that badges nothing on the
+      // day it covers is visible as well as a pass that ran twice.
+      if (log.params?.requests)
+        g.__engineCalls.restRequests = (g.__engineCalls.restRequests ?? 0) + log.params.requests.length;
     });
-    dev.factory.globalState.setDevContext({ perf: 0 });
+    dev.factory.globalState.setDevContext({ perf: 0, params: ['getParticipantsRest'] });
   });
 }
 
@@ -122,7 +130,12 @@ test.describe('Journey 150 — schedule render economy', () => {
     await startCounting(page);
     await tournament.navigateToScheduling();
     await expect(page.locator(SCHEDULED_CARD)).toHaveCount(scheduled);
-    expect(graded(await takeCounts(page))).toEqual([scheduled, scheduled]);
+    const opened = await takeCounts(page);
+    // One render, so one rest call, answering at least every card on the day; the per-card call is
+    // gone entirely, which a regression to it would break here.
+    expect(graded(opened)).toEqual([1, scheduled]);
+    expect(opened.restRequests).toBeGreaterThanOrEqual(scheduled);
+    expect(opened.getParticipantRest ?? 0).toBe(0);
 
     // 3: selection moves the highlight on the same card element. The Inspector's sections and the
     // hover highlight grade the one selected matchUp (a few calls, however many cards there are);
@@ -138,12 +151,12 @@ test.describe('Journey 150 — schedule render economy', () => {
 
     // 4: a refresh (what every schedule mutation ends with) pushes the catalog, the dates and the
     // issues as one store write. The Scheduled cards are graded once and the Inspector renders once
-    // for the selection (~3 readiness, ~2 rest); written one by one it rendered four times, measured
-    // at 48+9 readiness and 48+5 rest.
+    // for the selection (~3 readiness, ~2 rest passes); written one by one it rendered four times,
+    // measured at 48+9 readiness and 48+5 per-card rest calls.
     await page.evaluate(() => (globalThis as any).dev.tournamentContext.refreshActiveTable());
     const [refreshRest, refreshReadiness] = graded(await takeCounts(page));
-    expect(refreshRest).toBeGreaterThanOrEqual(scheduled);
-    expect(refreshRest).toBeLessThanOrEqual(scheduled + 2);
+    expect(refreshRest).toBeGreaterThanOrEqual(1);
+    expect(refreshRest).toBeLessThanOrEqual(3);
     expect(refreshReadiness).toBeGreaterThanOrEqual(scheduled);
     expect(refreshReadiness).toBeLessThanOrEqual(scheduled + 3);
 
@@ -153,7 +166,10 @@ test.describe('Journey 150 — schedule render economy', () => {
     expect(firstGroupSize).toBeGreaterThan(0);
     await firstGroupHeader.click();
     await expect(page.locator(SCHEDULED_CARD)).toHaveCount(scheduled - firstGroupSize);
-    expect(graded(await takeCounts(page))).toEqual([scheduled - firstGroupSize, scheduled - firstGroupSize]);
+    // One rest pass for whatever cards remain, and none when the collapse leaves none: this seed's
+    // dates all fall in one group, so collapsing it empties the panel.
+    const remaining = scheduled - firstGroupSize;
+    expect(graded(await takeCounts(page))).toEqual([Math.min(1, remaining), remaining]);
 
     // 2, the other half: showing the catalog grades its cards.
     await page.locator(UNSCHEDULED_TAB).click();
