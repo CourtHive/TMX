@@ -38,6 +38,8 @@ import {
   receiveMessage,
   receiveHistory,
   receiveAccepted,
+  receiveRejected,
+  retryMessage,
   sendMessage,
   setChatSendFn,
   setChatGapFn,
@@ -86,6 +88,46 @@ describe('chatService persistence', () => {
     expect(mine).toHaveLength(1); // upgraded in place, not duplicated
     expect(mine[0].seq).toBe(9);
     expect(mine[0].deliveryState).toBe('accepted');
+  });
+
+  it('keeps the reason a message was refused', () => {
+    sendMessage('hello');
+    receiveRejected({ clientMsgId: 'cid-1', error: 'HTTP 405' });
+
+    const [mine] = getMessages();
+    expect(mine.deliveryState).toBe('failed');
+    expect(mine.deliveryError).toBe('HTTP 405');
+  });
+
+  it('retries a failed message under its original clientMsgId, and the accept reconciles one bubble', () => {
+    const sent: any[] = [];
+    setChatSendFn((d) => sent.push(d));
+    sendMessage('hello');
+    receiveRejected({ clientMsgId: 'cid-1', error: 'HTTP 405' });
+
+    expect(retryMessage('cid-1')).toBe(true);
+    let mine = getMessages();
+    expect(mine[0].deliveryState).toBe('sending');
+    expect(mine[0].deliveryError).toBeUndefined();
+    expect(sent).toHaveLength(2);
+    expect(sent[1]).toMatchObject({ clientMsgId: 'cid-1', message: 'hello', tournamentId: 't1' });
+
+    receiveAccepted({ clientMsgId: 'cid-1', seq: 11, timestamp: 200 });
+    mine = getMessages();
+    expect(mine).toHaveLength(1);
+    expect(mine[0]).toMatchObject({ seq: 11, deliveryState: 'accepted' });
+  });
+
+  it('retries only a failed own message', () => {
+    const sent: any[] = [];
+    setChatSendFn((d) => sent.push(d));
+    sendMessage('hello');
+
+    expect(retryMessage('cid-1')).toBe(false); // still sending
+    receiveAccepted({ clientMsgId: 'cid-1', seq: 9, timestamp: 100 });
+    expect(retryMessage('cid-1')).toBe(false); // delivered
+    expect(retryMessage('nope')).toBe(false);
+    expect(sent).toHaveLength(1);
   });
 
   it('merges history and dedupes our own acked message by clientMsgId', () => {

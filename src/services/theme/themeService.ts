@@ -1,10 +1,13 @@
-import { loadSettings, persistConfigToStorage } from 'services/settings/settingsStorage';
+import { loadSettings, persistConfigToStorage, saveSettings } from 'services/settings/settingsStorage';
+import { applyThemePalette, resolveThemePalette, type ThemeMode } from 'courthive-components';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 
 const THEME_STORAGE_KEY = 'tmx_theme'; // Fast-access key for FOIT script
+// Fast-access palette keys, read by public/theme-init.js before the bundle loads
+const PALETTE_STORAGE_KEYS: Record<ThemeMode, string> = { light: 'tmx_palette_light', dark: 'tmx_palette_dark' };
 
 type FontOption = {
   label: string;
@@ -103,14 +106,34 @@ function resolveTheme(pref: ThemePreference): 'light' | 'dark' {
   return pref;
 }
 
+/** The palette chosen for `mode`, resolved to a valid id (unset, unknown or retired → the mode's default). */
+export function getPalettePreference(mode: ThemeMode): string {
+  const settings = loadSettings();
+  return resolveThemePalette(mode, mode === 'dark' ? settings?.darkPalette : settings?.lightPalette);
+}
+
+/**
+ * Choose the palette for one mode. Applies immediately when that mode is showing; otherwise it is stored and
+ * takes effect the next time the mode switches (including an OS switch under `system`).
+ */
+export function setPalettePreference(mode: ThemeMode, paletteId: string): void {
+  const resolved = resolveThemePalette(mode, paletteId);
+  saveSettings(mode === 'dark' ? { darkPalette: resolved } : { lightPalette: resolved });
+  localStorage.setItem(PALETTE_STORAGE_KEYS[mode], resolved);
+  if (resolveTheme(getThemePreference()) === mode) applyTheme(getThemePreference());
+}
+
 /**
  * Apply the given theme to the DOM.
  * - Sets `data-theme` on <html> (drives CSS variable theming)
+ * - Sets `data-palette` to the palette chosen for that mode
  * - Toggles `tmx-dark` class on <body> (for custom selectors)
  */
 export function applyTheme(pref: ThemePreference): void {
   const theme = resolveTheme(pref);
   document.documentElement.setAttribute('data-theme', theme);
+  const palette = applyThemePalette(theme, getPalettePreference(theme));
+  localStorage.setItem(PALETTE_STORAGE_KEYS[theme], palette);
   document.body.classList.toggle('tmx-dark', theme === 'dark');
 
   // Persist for FOIT prevention script
@@ -120,7 +143,7 @@ export function applyTheme(pref: ThemePreference): void {
   persistConfigToStorage({ theme: pref });
 
   // Notify live components
-  context.ee?.emit('THEME_CHANGE', { theme, preference: pref });
+  context.ee?.emit('THEME_CHANGE', { theme, preference: pref, palette });
 }
 
 /**

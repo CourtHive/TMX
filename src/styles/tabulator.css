@@ -78,7 +78,7 @@
 .tabulator .tabulator-header .tabulator-col.tabulator-moving {
   position: absolute;
   border: 1px solid var(--tmx-tab-border);
-  background: rgba(0, 0, 0, 0);
+  background: transparent;
   pointer-events: none;
 }
 
@@ -214,7 +214,7 @@
 
 .tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: transparent;
 }
 
 .tabulator
@@ -232,7 +232,7 @@
   .tabulator-col-sorter.tabulator-col-sorter-element
   .tabulator-arrow:hover {
   cursor: pointer;
-  border-bottom: 6px solid #555;
+  border-bottom: 6px solid var(--tmx-text-secondary);
 }
 
 .tabulator
@@ -260,7 +260,7 @@
   .tabulator-col-sorter.tabulator-col-sorter-element
   .tabulator-arrow:hover {
   cursor: pointer;
-  border-bottom: 6px solid #555;
+  border-bottom: 6px solid var(--tmx-text-secondary);
 }
 
 .tabulator
@@ -288,7 +288,7 @@
   .tabulator-col-sorter.tabulator-col-sorter-element
   .tabulator-arrow:hover {
   cursor: pointer;
-  border-top: 6px solid #555;
+  border-top: 6px solid var(--tmx-text-secondary);
 }
 
 .tabulator
@@ -351,13 +351,13 @@
 
 .tabulator .tabulator-header .tabulator-calcs-holder {
   box-sizing: border-box;
-  background: rgba(13, 13, 13, 0) !important;
+  background: transparent !important;
   border-top: 1px solid var(--tmx-tab-border);
   border-bottom: 1px solid var(--tmx-tab-border);
 }
 
 .tabulator .tabulator-header .tabulator-calcs-holder .tabulator-row {
-  background: rgba(13, 13, 13, 0) !important;
+  background: transparent !important;
 }
 
 .tabulator .tabulator-header .tabulator-calcs-holder .tabulator-row .tabulator-col-resize-handle {
@@ -454,7 +454,7 @@
   box-sizing: border-box;
   width: 100%;
   text-align: left;
-  background: rgba(13, 13, 13, 0) !important;
+  background: transparent !important;
   border-bottom: 1px solid var(--tmx-tab-border);
   border-top: 1px solid var(--tmx-tab-border);
   overflow: hidden;
@@ -462,7 +462,7 @@
 
 .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
   display: inline-block;
-  background: rgba(13, 13, 13, 0) !important;
+  background: transparent !important;
 }
 
 .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row .tabulator-col-resize-handle {
@@ -509,7 +509,7 @@
   padding: 2px 5px;
   border: 1px solid var(--tmx-tab-border);
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--tmx-bg-secondary);
 }
 
 .tabulator .tabulator-footer .tabulator-page.active {
@@ -522,7 +522,7 @@
 
 .tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--tmx-text-secondary);
   color: var(--tmx-text-inverse);
 }
 
@@ -554,7 +554,7 @@
   z-index: 100;
   height: 100%;
   width: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--chc-bg-overlay);
   text-align: center;
 }
 
@@ -599,11 +599,11 @@
 }
 
 .tabulator-row.tabulator-selected {
-  background-color: rgba(0, 209, 178, 0.36);
+  background-color: var(--tmx-tab-selected-bg);
 }
 
 .tabulator-row.tabulator-selected:hover {
-  background-color: rgba(0, 209, 178, 0.46);
+  background-color: color-mix(in srgb, var(--tmx-tab-selected-bg) 88%, var(--tmx-text-primary));
   cursor: pointer;
 }
 
@@ -766,13 +766,13 @@
   margin-right: 5px;
   border: 1px solid var(--tmx-tab-text);
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--tmx-text-primary) 10%, transparent);
   overflow: hidden;
 }
 
 .tabulator-row .tabulator-cell .tabulator-data-tree-control:hover {
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--tmx-text-primary) 20%, transparent);
 }
 
 .tabulator-row .tabulator-cell .tabulator-data-tree-control .tabulator-data-tree-control-collapse {
@@ -886,7 +886,7 @@
 
 .tabulator-row.tabulator-group:hover {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--tmx-tab-row-hover-bg);
 }
 
 .tabulator-row.tabulator-group.tabulator-group-visible .tabulator-arrow {
@@ -1028,11 +1028,11 @@
 }
 
 .tabulator-edit-list .tabulator-edit-list-item.active.focused {
-  outline: 1px solid rgba(0, 0, 0, 0.5);
+  outline: 1px solid var(--chc-border-strong);
 }
 
 .tabulator-edit-list .tabulator-edit-list-item.focused {
-  outline: 1px solid #1d68cd;
+  outline: 1px solid var(--tmx-border-focus);
 }
 
 .tabulator-edit-list .tabulator-edit-list-item:hover {
@@ -1185,7 +1185,7 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator-print-table .tabulator-print-table-group:hover {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--tmx-tab-row-hover-bg);
 }
 
 .tabulator-print-table .tabulator-print-table-group.tabulator-group-visible .tabulator-arrow {
@@ -1247,13 +1247,13 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
   margin-right: 5px;
   border: 1px solid var(--tmx-tab-text);
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--tmx-text-primary) 10%, transparent);
   overflow: hidden;
 }
 
 .tabulator-print-table .tabulator-data-tree-control:hover {
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--tmx-text-primary) 20%, transparent);
 }
 
 .tabulator-print-table .tabulator-data-tree-control .tabulator-data-tree-control-collapse {
@@ -1424,11 +1424,11 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 */
 
 .tabulator-row.tabulator-selected {
-  background-color: #00d1b25c !important;
+  background-color: var(--tmx-tab-selected-bg) !important;
 }
 
 .tabulator-row.tabulator-selected:hover {
-  background-color: #00d1b275 !important;
+  background-color: color-mix(in srgb, var(--tmx-tab-selected-bg) 88%, var(--tmx-text-primary)) !important;
 }
 
 .tabulator-row .tabulator-cell {
@@ -1462,4 +1462,11 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 
 .tabulator-edit-list .tabulator-edit-list-item:hover {
   color: var(--tmx-text-inverse);
+}
+
+/* Participants rendered into table cells (renderParticipant with sideContainer) carry the bracket card's
+   --chc-color-matchup fill. Inside a row that fill reads as a box wherever the palette's card surface differs
+   from its table surface (Linen: white cards on an off-white row), so a cell lets the row's own background show. */
+.tabulator-cell .chc-participant-container {
+  background-color: transparent;
 }

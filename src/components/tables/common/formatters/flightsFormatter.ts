@@ -58,7 +58,7 @@ function createPill({
   if (stageLabel) {
     const badge = document.createElement('span');
     badge.style.cssText =
-      'display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;background:rgba(0,0,0,0.15);margin-right:4px;flex-shrink:0';
+      'display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;background:color-mix(in srgb, var(--tmx-text-primary) 15%, transparent);margin-right:4px;flex-shrink:0';
     badge.textContent = stageLabel;
     pill.appendChild(badge);
     const nameSpan = document.createElement('span');

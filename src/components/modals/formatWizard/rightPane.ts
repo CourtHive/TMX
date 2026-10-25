@@ -44,7 +44,7 @@ const BAND_HEADER_ROW_STYLE =
 const BAND_HEADER_ROW_FIRST_STYLE = 'display: flex; align-items: baseline; gap: 8px; padding-bottom: 4px;';
 const BAND_HEADING_STYLE = 'font-size: 13px; font-weight: 600; color: var(--tmx-text-primary, #222);';
 const BAND_TARGET_TAG_STYLE =
-  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-accent-teal, #00b8a9); color: #fff; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
+  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-container-primary); color: var(--chc-on-primary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
 // Responsive 2-column grid; reflows to a single column when the
 // pane is narrower than ~720 px.
 const BAND_GRID_STYLE = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px;';

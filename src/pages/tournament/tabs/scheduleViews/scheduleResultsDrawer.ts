@@ -1,8 +1,9 @@
 /**
  * Schedule 2 — Results Drawer
  *
- * Opens a modal that surfaces the full return value of `scheduleProfileRounds`
- * after Apply Schedule runs. The factory hands back a per-date breakdown for
+ * Opens a modal that surfaces the full return value of a scheduling run: the timed
+ * pipeline's `scheduleProfileRounds` after Apply Schedule, or the grid's
+ * `scheduleProfileGrid` when it placed matchUps over a daily limit. The factory hands back a per-date breakdown for
  * every category of outcome (scheduled / over-limit / no-time / deferred for
  * recovery / deferred for dependencies / request conflicts), all of which were
  * previously discarded by the lone success toast.
@@ -19,6 +20,7 @@ import {
   describeRecoveryDeferred,
   describeDependencyDeferred,
   describePlayedOrderDeferred,
+  conflictRows,
   type PlayedOrderDeferral,
   type MatchUpLookup,
   type ParticipantLookup,
@@ -36,10 +38,30 @@ const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: fl
  * count itself reads cleanly.
  */
 const INTENT_TOKENS: Record<Intent, { text: string; bg: string; border: string; dot: string }> = {
-  success: { text: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.45)', dot: '#10b981' },
-  warning: { text: '#d97706', bg: 'rgba(245, 158, 11, 0.18)', border: 'rgba(245, 158, 11, 0.5)', dot: '#f59e0b' },
-  danger: { text: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.45)', dot: '#ef4444' },
-  neutral: { text: '#64748b', bg: 'rgba(148, 163, 184, 0.2)', border: 'rgba(148, 163, 184, 0.5)', dot: '#94a3b8' },
+  success: {
+    text: 'var(--tmx-status-success)',
+    bg: 'color-mix(in srgb, var(--tmx-status-success) 15%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-status-success) 45%, transparent)',
+    dot: 'var(--tmx-status-success)',
+  },
+  warning: {
+    text: 'var(--tmx-status-warning)',
+    bg: 'color-mix(in srgb, var(--tmx-container-warning) 18%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-container-warning) 50%, transparent)',
+    dot: 'var(--tmx-container-warning)',
+  },
+  danger: {
+    text: 'var(--tmx-status-error)',
+    bg: 'color-mix(in srgb, var(--tmx-status-error) 15%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-status-error) 45%, transparent)',
+    dot: 'var(--tmx-status-error)',
+  },
+  neutral: {
+    text: 'var(--tmx-text-secondary)',
+    bg: 'color-mix(in srgb, var(--tmx-text-muted) 20%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-text-muted) 50%, transparent)',
+    dot: 'var(--tmx-text-muted)',
+  },
 };
 
 interface Lookups {
@@ -49,7 +71,8 @@ interface Lookups {
 
 export type { OverLimitAttempt };
 
-export type ScheduleProfileRoundsResult = {
+/** what either scheduling pipeline returns: `scheduleProfileRounds` or `scheduleProfileGrid` */
+export type ScheduleRunResult = {
   scheduledMatchUpIds?: { [date: string]: string[] };
   overLimitMatchUpIds?: { [date: string]: string[] };
   overLimitMatchUpDetails?: { [date: string]: OverLimitAttempt[] };
@@ -63,13 +86,14 @@ export type ScheduleProfileRoundsResult = {
     [date: string]: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] };
   };
   playedOrderDeferredMatchUpIds?: { [date: string]: { [matchUpId: string]: PlayedOrderDeferral } };
+  /** grid only: placed over a daily limit when the limits are reported, not enforced ("No policy" sends `{}`) */
   dailyLimitWarningMatchUpIds?: { [date: string]: string[] };
   noFormatMatchUpIds?: { [date: string]: string[] };
   requestConflicts?: { [date: string]: any[] };
   scheduledDates?: string[];
 };
 
-export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): void {
+export function openScheduleResultsDrawer(result: ScheduleRunResult): void {
   const lookups: Lookups = {
     matchUps: buildMatchUpLookup(),
     participants: buildParticipantLookup(),
@@ -164,7 +188,7 @@ function buildParticipantLookup(): ParticipantLookup {
 // Date collection
 // ---------------------------------------------------------------------------
 
-function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
+function collectAllDates(result: ScheduleRunResult): string[] {
   const set = new Set<string>();
   for (const date of result.scheduledDates ?? []) set.add(date);
   for (const date of Object.keys(result.scheduledMatchUpIds ?? {})) set.add(date);
@@ -183,7 +207,7 @@ function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
 // Section builders
 // ---------------------------------------------------------------------------
 
-function buildDateSection(date: string, result: ScheduleProfileRoundsResult, lookups: Lookups): HTMLElement {
+function buildDateSection(date: string, result: ScheduleRunResult, lookups: Lookups): HTMLElement {
   const section = document.createElement('section');
   section.style.cssText =
     'border: 1px solid var(--sp-line, var(--tmx-border-secondary)); border-radius: 8px; padding: 12px; background: var(--sp-panel-bg, var(--tmx-bg-primary));';
@@ -350,24 +374,15 @@ function buildDependencyDeferredBlock(
 function buildConflictsBlock(conflicts: any[], lookup: MatchUpLookup): HTMLElement {
   const list = document.createElement('ul');
   list.style.cssText = LIST_STYLE;
-  for (const conflict of conflicts) {
-    const matchUpId = conflict?.matchUpId;
-    const detail = describeConflict(conflict);
+  const rows = conflicts.flatMap(conflictRows);
+  for (const { matchUpId, detail } of rows) {
     if (matchUpId) {
       list.appendChild(buildMatchUpRow(matchUpId, lookup, detail));
     } else {
       list.appendChild(buildDetailOnlyRow(detail || 'Conflict'));
     }
   }
-  return buildCollapsibleSection('Conflicts', conflicts.length, 'danger', list);
-}
-
-function describeConflict(conflict: any): string {
-  if (!conflict) return '';
-  const reason = conflict.reason || conflict.type || conflict.requestType;
-  const time = conflict.scheduleTime ? `@ ${conflict.scheduleTime}` : '';
-  const participant = conflict.participantName ? `(${conflict.participantName})` : '';
-  return [reason, time, participant].filter(Boolean).join(' ');
+  return buildCollapsibleSection('Conflicts', rows.length, 'danger', list);
 }
 
 /**

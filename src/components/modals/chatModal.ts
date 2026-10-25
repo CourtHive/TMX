@@ -2,8 +2,16 @@
  * Tournament chat panel.
  * Floating panel (not a modal) so the user can keep it open while working.
  */
-import { getMessages, getOnlineCount, sendMessage, setChatModalOpen, onChatUpdate } from 'services/chat/chatService';
 import { t } from 'i18n';
+import {
+  getMessages,
+  getOnlineCount,
+  onChatUpdate,
+  retryMessage,
+  sendMessage,
+  setChatModalOpen,
+  type ChatMessage,
+} from 'services/chat/chatService';
 
 const PANEL_ID = 'chatPanel';
 const PANEL_WIDTH = 340;
@@ -50,6 +58,39 @@ function clampPosition(pos: PanelPosition): PanelPosition {
   };
 }
 
+/**
+ * Delivery state on an own message: \u23f1 sending, \u2713 delivered, \u26a0 not delivered. A failed message's mark
+ * names the reason (the server's refusal, or the transport's, e.g. `HTTP 405`) and resends it on click or Enter.
+ */
+function deliveryMark(msg: ChatMessage): HTMLElement {
+  const mark = document.createElement('span');
+  if (msg.deliveryState === 'sending') {
+    mark.textContent = ' \u00b7 \u23f1';
+    mark.title = t('chat.sending');
+    return mark;
+  }
+  if (msg.deliveryState === 'accepted') {
+    mark.textContent = ' \u00b7 \u2713';
+    mark.title = t('chat.delivered');
+    return mark;
+  }
+  const reason = msg.deliveryError ? `: ${msg.deliveryError}` : '';
+  mark.textContent = ` \u00b7 \u26a0 ${t('chat.retry')}`;
+  mark.title = `${t('chat.notDelivered')}${reason}. ${t('chat.clickToRetry')}`;
+  mark.setAttribute('role', 'button');
+  mark.tabIndex = 0;
+  mark.style.cssText = 'cursor: pointer; color: var(--chc-status-error); text-decoration: underline dotted;';
+  const retry = () => msg.clientMsgId && retryMessage(msg.clientMsgId);
+  mark.addEventListener('click', retry);
+  mark.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      retry();
+    }
+  });
+  return mark;
+}
+
 export function openChatModal(): void {
   // Toggle — if already open, close it
   if (document.getElementById(PANEL_ID)) {
@@ -86,8 +127,8 @@ export function openChatModal(): void {
 
       const bubble = document.createElement('div');
       bubble.style.cssText = [
-        `background: ${msg.isOwn ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--chc-bg-secondary, #f0f0f0)'}`,
-        `color: ${msg.isOwn ? '#fff' : 'var(--chc-text-primary, #333)'}`,
+        `background: ${msg.isOwn ? 'var(--tmx-fill-accent)' : 'var(--chc-bg-secondary)'}`,
+        `color: ${msg.isOwn ? 'var(--chc-on-link)' : 'var(--chc-text-primary)'}`,
         'padding: 6px 12px',
         'border-radius: 12px',
         'max-width: 85%',
@@ -100,17 +141,8 @@ export function openChatModal(): void {
       meta.style.cssText =
         'font-size: 0.7rem; color: var(--chc-text-secondary, #888); margin-top: 2px; padding: 0 4px;';
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      // Delivery state on own messages: \u23f1 sending, \u2713 accepted, \u26a0 failed.
-      const deliveryMark =
-        msg.isOwn && msg.deliveryState === 'sending'
-          ? ' \u00b7 \u23f1'
-          : msg.isOwn && msg.deliveryState === 'failed'
-            ? ' \u00b7 \u26a0'
-            : msg.isOwn && msg.deliveryState === 'accepted'
-              ? ' \u00b7 \u2713'
-              : '';
-      meta.textContent = msg.isOwn ? `${time}${deliveryMark}` : `${msg.userName} \u00b7 ${time}`;
-
+      meta.textContent = msg.isOwn ? time : `${msg.userName} \u00b7 ${time}`;
+      if (msg.isOwn && msg.deliveryState) meta.appendChild(deliveryMark(msg));
       row.appendChild(bubble);
       row.appendChild(meta);
       messagesContainer.appendChild(row);

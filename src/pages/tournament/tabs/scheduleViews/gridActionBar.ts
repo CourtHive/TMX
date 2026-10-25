@@ -211,7 +211,7 @@ function ensurePublishGlowStyle(): void {
   const style = document.createElement('style');
   style.id = PUBLISH_GLOW_STYLE_ID;
   style.textContent =
-    '@keyframes spl-publish-glow{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:0 0 8px 2px rgba(34,197,94,0.55)}}' +
+    '@keyframes spl-publish-glow{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 8px 2px color-mix(in srgb,var(--tmx-status-success) 55%,transparent)}}' +
     '.spl-publish-pill--on{animation:spl-publish-glow 2.6s ease-in-out infinite}' +
     '@media (prefers-reduced-motion: reduce){.spl-publish-pill--on{animation:none}}';
   document.head.appendChild(style);
@@ -264,7 +264,7 @@ function ensureTimingGlowStyle(): void {
   const style = document.createElement('style');
   style.id = TIMING_GLOW_STYLE_ID;
   style.textContent =
-    '@keyframes spl-timing-glow{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}50%{box-shadow:0 0 9px 2px rgba(59,130,246,0.55)}}' +
+    '@keyframes spl-timing-glow{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 9px 2px color-mix(in srgb,var(--tmx-status-info) 55%,transparent)}}' +
     '.spl-timing-report-btn{animation:spl-timing-glow 2.4s ease-in-out infinite}' +
     '@media (prefers-reduced-motion: reduce){.spl-timing-report-btn{animation:none}}';
   document.head.appendChild(style);
@@ -434,13 +434,17 @@ function buildIssuesPopover(issues: ScheduleIssue[], warningBars?: WarningBarsCo
   container.appendChild(header);
 
   const severityColors: Record<string, { bg: string; color: string }> = {
-    ERROR: { bg: 'rgba(239,68,68,0.15)', color: '#ef4444' },
-    WARN: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
-    INFO: { bg: 'rgba(59,130,246,0.15)', color: '#3b82f6' },
+    ERROR: { bg: 'color-mix(in srgb, var(--tmx-status-error) 15%, transparent)', color: 'var(--tmx-status-error)' },
+    WARN: {
+      bg: 'color-mix(in srgb, var(--tmx-container-warning) 15%, transparent)',
+      color: 'var(--tmx-status-warning)',
+    },
+    INFO: { bg: 'color-mix(in srgb, var(--tmx-status-info) 15%, transparent)', color: 'var(--tmx-status-info)' },
   };
 
-  const P1_COLOR = '#4fc3f7';
-  const P2_COLOR = '#ffb74d';
+  // The two sides of an issue, told apart by hue: the palette's categorical blue and orange.
+  const P1_COLOR = 'var(--tmx-accent-blue)';
+  const P2_COLOR = 'var(--tmx-accent-orange)';
   const MUTED = 'opacity: 0.7';
 
   for (const issue of issues.slice(0, 30)) {

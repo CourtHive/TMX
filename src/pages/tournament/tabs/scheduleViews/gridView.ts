@@ -19,14 +19,15 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: restore the draft baseline while retaining concurrent changes
  */
+import { venueClock, venueNowClock, venueNowOnDate, venueToday, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
-import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { scheduleErrorMessage } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import { autoCallStamp, computeDueMatchUps, planAutoCalls } from './autoCallDueMatches';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
 import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
@@ -34,7 +35,6 @@ import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusa
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { isRunningDesk } from 'services/authentication/isRunningDesk';
@@ -186,6 +186,7 @@ const STRIP_DROP_BLOCKED_CLASS = 'tmx-strip-drop-blocked';
 const POSITION_STICKY = 'position: sticky';
 const FONT_SIZE_11 = 'font-size: 0.6875rem';
 const DISPLAY_FLEX = 'display: flex';
+const PLACEMENT_BOTTOM_START = 'bottom-start';
 
 // Grid layout constants — shared with the active strip so its leading spacer
 // matches the row-number column and its court cells align with grid columns.
@@ -216,13 +217,14 @@ function ensurePlanModeStyles(): void {
   style.id = 'tmx-plan-mode-styles';
   style.textContent =
     '.tmx-planned-cell{box-shadow:inset 3px 0 0 var(--tmx-accent-blue,#2563eb);' +
-    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}' +
+    'background:color-mix(in srgb, var(--tmx-accent-blue) 12%, transparent) !important;}' +
     // Plan mode: the catalog stays visible for reference but is inert — the plan
     // never pulls matchUps out of the catalog until it is made official.
     '.tmx-plan-catalog-inert{pointer-events:none;opacity:0.55;filter:grayscale(0.3);position:relative;}' +
     ".tmx-plan-catalog-inert::before{content:'Plan mode — reference only';position:sticky;top:0;left:0;right:0;" +
     'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
-    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}' +
+    // The warning FILL with its ink: --tmx-status-warning is a text color, too dark to carry ink.
+    'padding:3px 4px;background:var(--tmx-container-warning);color:var(--chc-on-warning);}' +
     // Completed matchUps can't be re-planned (a commit skips them) — render them
     // visibly pinned in Plan mode. The PIN glyph, not a padlock: 🔒 means a
     // director's schedule lock (below), and one glyph cannot mean both.
@@ -280,6 +282,8 @@ let activeStripUnsubscribe: (() => void) | null = null;
 let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
 // a moved competition clock refreshes the strip at once, not on the next 30s tick
 let activeStripClockUnsubscribe: (() => void) | null = null;
+// matchUps the last auto-call pass held back only for their time; calling one next is time-triggered
+let awaitingAutoCall = new Set<string>();
 // Per-court record of which matchUp currently occupies the "Now" strip cell.
 let catalogStateUnsubscribe: (() => void) | null = null;
 
@@ -740,14 +744,13 @@ export function renderGridView(
     content: presentationActions,
     interactive: true,
     trigger: 'click',
-    placement: 'bottom-end',
+    placement: PLACEMENT_BOTTOM_START,
     appendTo: () => document.body,
   });
   disposePresentationActions = () => layoutTip.destroy();
-  const headerActions = [config.headerActions ?? []].flat();
-  const printIndex = headerActions.findIndex((action) => action.dataset.schedulePrint === 'true');
-  headerActions.splice(printIndex < 0 ? headerActions.length : printIndex, 0, showInspector);
-  config.headerActions = [...headerActions, layoutButton];
+  // Inspector and layout sit with the catalog toggle: the three arrange the workspace, and the
+  // trailing actions (strip, shift, resolve, print) act on the schedule.
+  config.titleLeadingActions = [...[config.titleLeadingActions ?? []].flat(), showInspector, layoutButton];
   activeControl = createSchedulePage(config, panelArea);
   activeControl.setCatalogVisible(sidebarVisible);
   let inspectorShown = activeControl.inspectorVisible;
@@ -949,16 +952,16 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       'border: 1px solid transparent',
       'white-space: nowrap',
       active
-        ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;'
-        : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
+        ? 'background: var(--tmx-fill-accent); color: var(--chc-on-link); font-weight: 600;'
+        : 'background: var(--sp-chip-bg); color: inherit;',
     ].join('; ');
   // Both Unscheduled and Scheduled tabs carry an inline (n) count badge —
   // populated on initial render and refreshed whenever the store ticks. The
   // badges give operators an at-a-glance hint of how much work remains on
-  // each side without switching tabs. Translucent-white background reads
-  // legibly against both the active (blue) and inactive (gray) tab fills.
+  // each side without switching tabs. A tint of the tab's own text color reads
+  // against both the active (accent) and inactive (chip) tab fills, in every palette.
   const badgeCss =
-    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: color-mix(in srgb, currentColor 20%, transparent); color: inherit; min-width: 16px; text-align: center;';
 
   unschedTab.textContent = t('schedule.unscheduled');
   unschedTab.appendChild(document.createTextNode(' '));
@@ -1273,7 +1276,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     destroyScheduledFilterTip();
     scheduledFilterTip = tippy(scheduledFilterBtn, {
       content: buildScheduledFilterPopover(),
-      placement: currentCatalogPlacement === 'bottom' ? 'top-start' : 'bottom-start',
+      placement: currentCatalogPlacement === 'bottom' ? 'top-start' : PLACEMENT_BOTTOM_START,
       interactive: true,
       trigger: 'manual',
       appendTo: () => document.body,
@@ -1713,6 +1716,7 @@ export function destroyGridView(): void {
   }
   activeStripClockUnsubscribe?.();
   activeStripClockUnsubscribe = null;
+  awaitingAutoCall = new Set();
   activeStrip = null;
   latestStripSnapshot = null;
   if (activeControl) {
@@ -1808,7 +1812,7 @@ function ensureSearchHighlightStyle(): void {
   if (document.getElementById('sch2-search-style')) return;
   const style = document.createElement('style');
   style.id = 'sch2-search-style';
-  style.textContent = `.${SEARCH_HIGHLIGHT_CLASS} { outline: 2px solid #f59e0b; outline-offset: -2px; background: rgba(245, 158, 11, 0.15) !important; }`;
+  style.textContent = `.${SEARCH_HIGHLIGHT_CLASS} { outline: 2px solid var(--tmx-container-warning); outline-offset: -2px; background: color-mix(in srgb, var(--tmx-container-warning) 15%, transparent) !important; }`;
   document.head.appendChild(style);
 }
 
@@ -2524,7 +2528,7 @@ function buildGridHeaders(params: {
   if (hiddenCourtIds.size > 0) {
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-fill-accent, #2563eb); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-fill-accent); color: var(--chc-on-link); border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
     badge.textContent = String(hiddenCourtIds.size);
     corner.appendChild(badge);
   }
@@ -2538,7 +2542,7 @@ function buildGridHeaders(params: {
         theme: 'light-border',
         trigger: 'manual',
         interactive: true,
-        placement: 'bottom-start',
+        placement: PLACEMENT_BOTTOM_START,
         appendTo: () => document.body,
       });
       visibilityTip.show();
@@ -3180,7 +3184,7 @@ function refreshActiveStrip(date: string): void {
   latestStripData = data;
   activeStrip?.setData(data);
   // "Now" only means something today: never auto-call on another date.
-  if (date === todayIso()) runAutoCallPass(data.grid.columns);
+  if (date === todayIso()) runAutoCallPass(data.grid.columns, date);
 }
 
 /**
@@ -3188,11 +3192,11 @@ function refreshActiveStrip(date: string): void {
  * match — unless that match's scheduledTime is strictly in the future. Runs on
  * every strip refresh (mutation + the 30s ticker), so a match is called both the
  * moment its court frees up and the moment its scheduledTime arrives. The pure
- * decision lives in computeAutoCalls; here we fire the mutation.
+ * decision lives in planAutoCalls; here we stamp and fire the mutation.
  *
  * FUTURE: notify the called matchUp's participants (email / push) from here.
  */
-function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void {
+function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns'], date: string): void {
   if (suppressAutoCall || !currentRefresh) return;
   // Auto-call is a running-desk action, not a viewer side effect: on a provider's
   // tournament only that provider's staff trigger it, so a super-admin (or any
@@ -3206,14 +3210,22 @@ function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void
   const now = competitionNow();
   // Compared against `scheduledTime`, which is a venue wall clock — so "now"
   // has to be one too, or the desk auto-calls on the operator's clock.
-  const calls = computeAutoCalls(columns as any, venueClock(now));
+  const { calls, awaiting } = planAutoCalls(columns as any, venueClock(now));
+  const awaitedBefore = awaitingAutoCall;
+  awaitingAutoCall = new Set(awaiting);
   if (!calls.length) return;
 
-  const calledAt = now.toISOString();
-  const methods = calls.map((call) => ({
-    method: SET_MATCHUP_CALLED_AT,
-    params: { matchUpId: call.matchUpId, drawId: call.drawId, calledAt },
-  }));
+  // A match the last pass held back for its time was called by the clock, not by its court freeing:
+  // stamp its scheduled instant, not the tick that noticed (30s cadence, slower in a hidden tab).
+  const nowMs = now.getTime();
+  const methods = calls.map((call) => {
+    const scheduledMs = call.scheduledTime ? venueWallClockToMs(date, call.scheduledTime) : undefined;
+    const stampMs = autoCallStamp({ nowMs, scheduledMs, awaited: awaitedBefore.has(call.matchUpId) });
+    return {
+      method: SET_MATCHUP_CALLED_AT,
+      params: { matchUpId: call.matchUpId, drawId: call.drawId, calledAt: new Date(stampMs).toISOString() },
+    };
+  });
   executeMethods(methods, currentRefresh);
 }
 

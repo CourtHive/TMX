@@ -13,7 +13,8 @@ body {
 body {
   font-size: 1.4rem;
   color: var(--tmx-text-primary);
-  background-color: var(--tmx-bg-primary);
+  /* The canvas behind surfaces; cards, tables and panels paint --tmx-bg-primary over it. */
+  background-color: var(--tmx-canvas);
   /* min-height, not height: a page taller than the window must grow the box it
      scrolls in. `height: 100vh` pinned body to the viewport and let content
      overflow it, which is half of why the shell never lined up with the fold. */
@@ -488,8 +489,9 @@ body {
 }
 
 #dnav {
-  background-color: var(--tmx-bg-primary);
-  color: var(--tmx-text-primary);
+  /* App chrome: its own palette role, so a palette can give the navbar a band (Courtside's navy). */
+  background-color: var(--tmx-chrome-bg);
+  color: var(--tmx-chrome-text);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -499,7 +501,7 @@ body {
   justify-content: space-between;
   min-height: 52px;
   transition: top 500ms ease-in-out;
-  border-bottom: 1px solid var(--tmx-border-primary);
+  border-bottom: 1px solid var(--tmx-chrome-border);
   font-size: 18px; /* Fixed — nav bar should not scale with --tmx-font-size */
 }
 
@@ -542,8 +544,8 @@ body {
   opacity: 1;
 }
 
-.nav-icon { width: 2em; text-align: center; }
-.home-nav-icon { width: 2em; text-align: center; cursor: pointer; }
+.nav-icon { width: 2em; text-align: center; color: var(--tmx-chrome-icon); }
+.home-nav-icon { width: 2em; text-align: center; cursor: pointer; color: var(--tmx-chrome-icon); }
 
 #provider {
   cursor: pointer;
@@ -572,7 +574,7 @@ body {
 }
 @keyframes live-score-flash {
   0%, 100% { background-color: transparent; }
-  50% { background-color: rgba(16, 185, 129, 0.15); }
+  50% { background-color: color-mix(in srgb, var(--tmx-container-success) 15%, transparent); }
 }
 
 /* Phase 4 — three-dot icon glow when the matchUp has active crowd-scoring sessions. */
@@ -581,8 +583,8 @@ body {
   animation: three-dot-glow-pulse 2.5s ease-in-out infinite;
 }
 @keyframes three-dot-glow-pulse {
-  0%, 100% { text-shadow: 0 0 0 rgba(50, 115, 220, 0); }
-  50%      { text-shadow: 0 0 6px rgba(50, 115, 220, 0.7); }
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50%      { text-shadow: 0 0 6px color-mix(in srgb, var(--tmx-status-info) 70%, transparent); }
 }
 
 /* Live-tracked score (unofficial, from /tracker) and crowd-session badges — table score cells and bracket cells. */
@@ -611,8 +613,8 @@ body {
   margin-right: 4px;
   padding: 0 4px;
   border-radius: 8px;
-  background: var(--tmx-status-info, #3273dc);
-  color: var(--tmx-text-inverse, #fff);
+  background: var(--tmx-container-info);
+  color: var(--chc-on-info);
   font-size: 0.65rem;
   font-weight: 600;
   line-height: 1.4;
@@ -891,9 +893,9 @@ img {
 }
 .tpl-nav-chip:hover { border-color: var(--sp-border-hover, #aaa); }
 .tpl-nav-chip.active {
-  background: var(--tmx-accent-blue, #3273dc);
-  border-color: var(--tmx-accent-blue, #3273dc);
-  color: #fff;
+  background: var(--tmx-fill-accent);
+  border-color: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
 }
 
 /* ── Tie format catalog badges ────────────────────────────────────── */
@@ -916,9 +918,9 @@ img {
   color: var(--tmx-text-secondary, #555);
 }
 .tpl-tf-badge--male {
-  border-color: #3273dc;
-  color: #3273dc;
-  background: rgba(50, 115, 220, .08);
+  border-color: var(--chc-gender-male);
+  color: var(--chc-gender-male);
+  background: color-mix(in srgb, var(--chc-gender-male) 8%, transparent);
 }
 .tpl-tf-badge--female {
   border-color: var(--tmx-female-color);
@@ -931,9 +933,9 @@ img {
   background: var(--tmx-mixed-bg);
 }
 .tpl-tf-badge--count {
-  border-color: #48c774;
-  color: #257942;
-  background: rgba(72, 199, 116, .08);
+  border-color: var(--tmx-status-success);
+  color: var(--tmx-status-success);
+  background: color-mix(in srgb, var(--tmx-status-success) 8%, transparent);
 }
 
 /* ── Tie format preview pill ──────────────────────────────────────── */
@@ -950,8 +952,8 @@ img {
   white-space: nowrap;
 }
 .tpl-format-pill:hover {
-  background: var(--tmx-accent-blue, #3273dc);
-  color: #fff;
+  background: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
 }
 
 @media (max-width: 767px) {
@@ -1045,7 +1047,7 @@ img {
   font-weight: 800;
 }
 .tfp-type-badge--singles {
-  background: rgba(50, 115, 220, .12);
+  background: color-mix(in srgb, var(--chc-eventtype-singles) 12%, transparent);
   color: var(--sp-accent-text, #3273dc);
 }
 .tfp-type-badge--doubles {
@@ -1077,7 +1079,7 @@ img {
 .tfp-gender-badge--male {
   border-color: var(--sp-accent-text, #3273dc);
   color: var(--sp-accent-text, #3273dc);
-  background: rgba(50, 115, 220, .08);
+  background: color-mix(in srgb, var(--chc-gender-male) 8%, transparent);
 }
 .tfp-gender-badge--female {
   border-color: var(--tmx-female-color);
@@ -1271,8 +1273,8 @@ img {
 
 /* ── Filter icon active state ────────────────────────────────────────── */
 #filterPopoverButton.filter-active {
-  color: #e67e22 !important;
-  border-color: #e67e22 !important;
+  color: var(--tmx-status-warning) !important;
+  border-color: var(--tmx-status-warning) !important;
   animation: filter-pulse 1.5s ease-in-out infinite;
 }
 
@@ -1296,7 +1298,7 @@ img {
   font-weight: 600;
   margin-bottom: 0.25em;
   font-size: 0.85em;
-  color: #888;
+  color: var(--tmx-text-muted);
 }
 
 .filter-popover-select {
@@ -1306,12 +1308,12 @@ img {
 }
 
 .filter-popover-row.is-filtering .filter-popover-label {
-  color: #e67e22;
+  color: var(--tmx-status-warning);
 }
 
 .filter-popover-row.is-filtering .filter-popover-select {
-  border-color: #e67e22;
-  color: #e67e22;
+  border-color: var(--tmx-status-warning);
+  color: var(--tmx-status-warning);
 }
 
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */
@@ -1321,14 +1323,14 @@ img {
   padding: 0.4em 1.2em;
   font-size: 0.85em;
   font-weight: 600;
-  color: #fff;
-  background: #e67e22;
+  color: var(--chc-on-warning);
+  background: var(--tmx-container-warning);
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 .clear-filters-btn:hover {
-  background: #cf6d17;
+  background: color-mix(in srgb, var(--tmx-container-warning) 88%, black);
 }
 
 /* ── Schedule2 header bar (responsive) ───────────────────────────────── */

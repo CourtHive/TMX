@@ -168,7 +168,7 @@ export function openChatMonitorModal(): void {
   const sendBtn = document.createElement('button');
   sendBtn.textContent = t('phrases.send');
   sendBtn.style.cssText =
-    'padding: 6px 12px; border: none; border-radius: 8px; background: var(--tmx-accent-blue, #3273dc); color: #fff; cursor: pointer; font-size: 0.85rem;';
+    'padding: 6px 12px; border: none; border-radius: 8px; background: var(--tmx-fill-accent); color: var(--chc-on-link); cursor: pointer; font-size: 0.85rem;';
   sendBtn.onclick = handleReply;
   replyRow.appendChild(replyInput);
   replyRow.appendChild(sendBtn);
@@ -218,8 +218,8 @@ function buildMessageRow(msg: AdminChatMessage): HTMLElement {
 
   const bubble = document.createElement('div');
   bubble.style.cssText = [
-    `background: ${msg.isAdmin ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--chc-bg-secondary, #f0f0f0)'}`,
-    `color: ${msg.isAdmin ? '#fff' : 'var(--chc-text-primary, #333)'}`,
+    `background: ${msg.isAdmin ? 'var(--tmx-fill-accent)' : 'var(--chc-bg-secondary)'}`,
+    `color: ${msg.isAdmin ? 'var(--chc-on-link)' : 'var(--chc-text-primary)'}`,
     'padding: 6px 12px',
     'border-radius: 12px',
     'max-width: 90%',

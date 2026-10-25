@@ -102,7 +102,7 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
 function segmentBtnStyle(active: boolean): string {
   const base = `font-size: 0.75rem; padding: 5px 12px; ${BORDER_PRIMARY}; ${CURSOR_POINTER}; ${DISPLAY_INLINE_FLEX}; ${ALIGN_CENTER}; transition: background 0.15s;`;
   if (active) {
-    return base + 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;';
+    return base + 'background: var(--tmx-fill-accent); color: var(--chc-on-link); font-weight: 600;';
   }
   return base + `${BG_PRIMARY}; ${COLOR_PRIMARY};`;
 }

@@ -1,6 +1,6 @@
 /**
  * Button styles — .button + intent variants for TMX.
- * Uses --tmx-* custom properties.
+ * Uses --tmx-* custom properties (aliases of the library's --chc-* palette tokens).
  */
 
 .button {
@@ -40,100 +40,17 @@
   pointer-events: none;
 }
 
-/* Intent variants */
-.button.is-info {
-  background-color: #2a75b0;
-  border-color: transparent;
-  color: #fff;
-}
-.button.is-info:hover {
-  background-color: #2569a3;
-}
-.button.is-info.is-outlined {
-  background-color: transparent;
-  border-color: #2a75b0;
-  color: #2a75b0;
-}
-.button.is-info.is-outlined:hover {
-  background-color: #2a75b0;
-  color: #fff;
-}
-.button.is-info.is-light {
-  background-color: #eff5fb;
-  color: #296fa8;
-}
-
-.button.is-success {
-  background-color: #2ea872;
-  border-color: transparent;
-  color: #fff;
-}
-.button.is-success:hover {
-  background-color: #279966;
-}
-.button.is-success.is-outlined {
-  background-color: transparent;
-  border-color: #2ea872;
-  color: #2ea872;
-}
-.button.is-success.is-outlined:hover {
-  background-color: #2ea872;
-  color: #fff;
-}
-
-.button.is-danger {
-  background-color: #d43054;
-  border-color: transparent;
-  color: #fff;
-}
-.button.is-danger:hover {
-  background-color: #c42848;
-}
-.button.is-danger.is-outlined {
-  background-color: transparent;
-  border-color: #d43054;
-  color: #d43054;
-}
-.button.is-danger.is-outlined:hover {
-  background-color: #d43054;
-  color: #fff;
-}
-
-.button.is-warning {
-  background-color: #ffe08a;
-  border-color: transparent;
-  color: rgba(0, 0, 0, 0.7);
-}
-.button.is-warning:hover {
-  background-color: #ffdc7d;
-}
-.button.is-warning.is-light {
-  background-color: #fffaeb;
-  color: #946c00;
-}
-
-.button.is-primary {
-  background-color: #00a08a;
-  border-color: transparent;
-  color: #fff;
-}
-.button.is-primary:hover {
-  background-color: #00917d;
-}
-
-.button.is-link {
-  background-color: #485fc7;
-  border-color: transparent;
-  color: #fff;
-}
-.button.is-link:hover {
-  background-color: #3e56c4;
-}
+/* Intent variants (.is-info, .is-success, …) come from courthive-components' buttons.css, which derives every
+ * shade from the palette's --chc-container-* / --chc-on-* tokens. A copy here with literal colors would override
+ * them and pin every palette to one set of hexes. */
 
 .button.is-white {
-  background-color: #fff;
+  background-color: var(--tmx-bg-elevated);
   border-color: transparent;
-  color: #0a0a0a;
+  color: var(--tmx-text-primary);
+}
+.button.is-white:hover {
+  background-color: var(--tmx-bg-secondary);
 }
 
 .button.is-small {
@@ -159,7 +76,7 @@
 /* Delete button (X dismiss) */
 .delete {
   appearance: none;
-  background-color: rgba(10, 10, 10, 0.2);
+  background-color: color-mix(in srgb, var(--tmx-text-primary) 20%, transparent);
   border: none;
   border-radius: 9999px;
   cursor: pointer;
@@ -177,7 +94,7 @@
 }
 .delete::before,
 .delete::after {
-  background-color: #fff;
+  background-color: var(--tmx-bg-primary);
   content: '';
   display: block;
   left: 50%;
@@ -194,5 +111,5 @@
   width: 2px;
 }
 .delete:hover {
-  background-color: rgba(10, 10, 10, 0.3);
+  background-color: color-mix(in srgb, var(--tmx-text-primary) 30%, transparent);
 }

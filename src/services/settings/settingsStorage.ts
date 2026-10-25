@@ -17,13 +17,11 @@ const SETTINGS_KEY = 'tmx_settings';
 
 export type TMXSettings = {
   activeScale?: 'wtn' | 'utr';
-  scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
+  scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad';
   saveLocal?: boolean;
-  smartComplements?: boolean;
   formatWizard?: boolean;
   schedulePlan?: boolean;
   linkedTournaments?: boolean;
-  scoreEntryDialog?: boolean;
   /** Settings → Pipeline features: per-call outcome-pipeline overrides (dev/testing; see config/pipelineConfig). */
   pipelineFeatures?: Partial<PipelineCallOverrides>;
   /**
@@ -66,6 +64,10 @@ export type TMXSettings = {
    */
   languageExplicit?: boolean;
   theme?: 'light' | 'dark' | 'system';
+  /** Palette shown in light mode (courthive-components THEME_PALETTES id). Unset → the light default. */
+  lightPalette?: string;
+  /** Palette shown in dark mode. Unset → the dark default. */
+  darkPalette?: string;
   fontFamily?: string;
   fontSize?: string;
   /**
@@ -149,7 +151,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   const prefsPatch: Record<string, any> = {};
   if (settings.activeScale) prefsPatch.activeScale = settings.activeScale;
   if (settings.scoringApproach) prefsPatch.scoringApproach = settings.scoringApproach;
-  if (settings.smartComplements !== undefined) prefsPatch.smartComplements = settings.smartComplements;
   if (settings.drawMinimapVisible !== undefined) prefsPatch.drawMinimapVisible = settings.drawMinimapVisible;
   if (settings.officialsBoard !== undefined) prefsPatch.officialsBoard = settings.officialsBoard;
   if (Object.keys(prefsPatch).length) {
@@ -161,7 +162,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
   if (settings.schedulePlan !== undefined) flagsPatch.schedulePlan = settings.schedulePlan;
   if (settings.linkedTournaments !== undefined) flagsPatch.linkedTournaments = settings.linkedTournaments;
-  if (settings.scoreEntryDialog !== undefined) flagsPatch.scoreEntryDialog = settings.scoreEntryDialog;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -189,14 +189,12 @@ export function persistConfigToStorage(
   saveSettings({
     activeScale: prefs.activeScale as TMXSettings['activeScale'],
     scoringApproach: prefs.scoringApproach,
-    smartComplements: prefs.smartComplements,
     drawMinimapVisible: prefs.drawMinimapVisible,
     officialsBoard: prefs.officialsBoard,
     saveLocal: server.saveLocal,
     formatWizard: flags.formatWizard,
     schedulePlan: flags.schedulePlan,
     linkedTournaments: flags.linkedTournaments,
-    scoreEntryDialog: flags.scoreEntryDialog,
     pipelineFeatures: { ...pipelineConfig.get() },
     ...extras,
   });

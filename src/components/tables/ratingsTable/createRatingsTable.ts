@@ -19,6 +19,10 @@ import tippy, { type Instance } from 'tippy.js';
 import { DRAWS_VIEW } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
+// Win / gain and loss / decline marks: palette status colors, text-safe in every theme
+const GAIN_COLOR = 'var(--tmx-status-success)';
+const LOSS_COLOR = 'var(--tmx-status-error)';
+
 const { ratingsParameters } = fixtures;
 const ELO_RANGE = ratingsParameters.ELO?.range || [0, 3000];
 
@@ -265,7 +269,7 @@ function buildScorelineFormatter(drawId: string) {
 
       const span = document.createElement('span');
       span.style.cursor = 'pointer';
-      const color = entry.result === 'W' ? 'green' : entry.result === 'L' ? 'red' : '';
+      const color = entry.result === 'W' ? GAIN_COLOR : entry.result === 'L' ? LOSS_COLOR : '';
       const prefix = entry.result ? `<span style="color:${color};font-weight:bold;">${entry.result}</span> ` : '';
       span.innerHTML = `${prefix}${escapeHtml(entry.score)}`;
       span.addEventListener('click', (e) => {
@@ -291,7 +295,7 @@ function buildRoundColumn(rn: number, drawId: string): any {
       const score = rowData[`r${rn}_score`];
       const opponent = rowData[`r${rn}_opponent`] || '';
       const matchUpId = rowData[`r${rn}_matchUpId`];
-      const color = val === 'W' ? 'green' : val === 'L' ? 'red' : '';
+      const color = val === 'W' ? GAIN_COLOR : val === 'L' ? LOSS_COLOR : '';
       const tooltip = escapeHtml(`${opponent}${score ? ' ' + score : ''}`);
       const cursor = matchUpId && val ? 'cursor:pointer;' : '';
       return `<span style="color:${color}; font-weight:bold; ${cursor}" title="${tooltip}">${escapeHtml(val || '-')}</span>`;
@@ -333,7 +337,7 @@ function buildDynamicColumns(isEloDynamic: boolean, activeScale: string, ascendi
         const pctAscending = isEloDynamic ? false : ascending;
         const isImprovement = pctAscending ? val < 0 : val > 0;
         const isDecline = pctAscending ? val > 0 : val < 0;
-        const color = isImprovement ? 'green' : isDecline ? 'red' : '';
+        const color = isImprovement ? GAIN_COLOR : isDecline ? LOSS_COLOR : '';
         const prefix = val > 0 ? '+' : '';
         return `<span style="color: ${color}; font-weight: bold;">${prefix}${val.toFixed(1)}%</span>`;
       },

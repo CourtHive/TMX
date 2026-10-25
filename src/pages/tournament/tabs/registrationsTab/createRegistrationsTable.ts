@@ -19,19 +19,21 @@ interface CreateRegistrationsTableParams {
   onRowAction: (action: 'accept' | 'waitlist' | 'reject', registrationId: string) => void;
 }
 
-const STATUS_PILL_COLORS: Record<string, string> = {
-  applied: '#3273dc',
-  accepted: '#23d160',
-  seeded: '#23d160',
-  waitlisted: '#ffdd57',
-  rejected: '#ff3860',
-  withdrawn: '#ff3860',
+// Each status is a palette fill with the ink the palette contrast test holds against it.
+const STATUS_PILL_COLORS: Record<string, [bg: string, ink: string]> = {
+  applied: ['var(--tmx-container-info)', 'var(--chc-on-info)'],
+  accepted: ['var(--tmx-container-success)', 'var(--chc-on-success)'],
+  seeded: ['var(--tmx-container-success)', 'var(--chc-on-success)'],
+  waitlisted: ['var(--tmx-container-warning)', 'var(--chc-on-warning)'],
+  rejected: ['var(--tmx-container-danger)', 'var(--chc-on-danger)'],
+  withdrawn: ['var(--tmx-container-danger)', 'var(--chc-on-danger)'],
 };
+const NEUTRAL_PILL: [string, string] = ['var(--chc-pill-bg-dark)', 'var(--chc-pill-text)'];
 
 function statusPillFormatter(cell: any): string {
   const status = String(cell.getValue() ?? '');
-  const color = STATUS_PILL_COLORS[status] ?? '#7a7a7a';
-  return `<span style="background:${color};color:#fff;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">${escapeHtml(status)}</span>`;
+  const [bg, ink] = STATUS_PILL_COLORS[status] ?? NEUTRAL_PILL;
+  return `<span style="background:${bg};color:${ink};padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">${escapeHtml(status)}</span>`;
 }
 
 function actionsFormatter(cell: any): string {

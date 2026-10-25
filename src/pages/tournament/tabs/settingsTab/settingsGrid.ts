@@ -22,7 +22,7 @@ import { setBaseURL } from 'services/apis/baseApi';
 import { featureFlags } from 'config/featureFlags';
 import { serverConfig } from 'config/serverConfig';
 import { deviceConfig } from 'config/deviceConfig';
-import { renderForm } from 'courthive-components';
+import { getThemePalettes, renderForm, type ThemeMode } from 'courthive-components';
 import { tmx2db } from 'services/storage/tmx2db';
 import { context } from 'services/context';
 import { platform } from 'platform';
@@ -30,10 +30,14 @@ import { i18next, t } from 'i18n';
 import {
   applyFont,
   applyFontSize,
+  applyTheme,
   fontOptions,
   fontSizeOptions,
   getFontPreference,
   getFontSizePreference,
+  getPalettePreference,
+  getThemePreference,
+  setPalettePreference,
 } from 'services/theme/themeService';
 
 // constants
@@ -48,6 +52,51 @@ function fixRadioWrapping(formEl: HTMLElement): void {
       label.appendChild(span);
     }
   }
+}
+
+/**
+ * Mode (light / dark / system) and the palette for each mode. A user keeps one light and one dark palette, like
+ * a language choice; the mode decides which shows. Palette names are proper names and are not translated.
+ */
+function buildThemePanel(): HTMLElement {
+  const panel = document.createElement('div');
+  panel.className = RATINGS_PANEL_BLUE;
+  panel.innerHTML = `<h3><i class="fa-solid fa-palette"></i> ${t('modals.settings.theme')}</h3>`;
+
+  const currentMode = getThemePreference();
+  const modeForm = document.createElement('div');
+  renderForm(modeForm, [
+    {
+      label: t('modals.settings.themeMode'),
+      options: (['light', 'dark', 'system'] as const).map((mode) => ({
+        value: mode,
+        label: t(`modals.settings.theme${mode[0].toUpperCase()}${mode.slice(1)}`),
+        selected: mode === currentMode,
+      })),
+      onChange: (e: Event) => applyTheme((e.target as HTMLSelectElement).value as 'light' | 'dark' | 'system'),
+      field: 'themeMode',
+      id: 'themeMode',
+    },
+  ]);
+  panel.appendChild(modeForm);
+
+  for (const mode of ['light', 'dark'] as ThemeMode[]) {
+    const current = getPalettePreference(mode);
+    const form = document.createElement('div');
+    form.style.marginTop = '8px';
+    renderForm(form, [
+      {
+        label: t(mode === 'dark' ? 'modals.settings.darkPalette' : 'modals.settings.lightPalette'),
+        options: getThemePalettes(mode).map(({ id, name }) => ({ value: id, label: name, selected: id === current })),
+        onChange: (e: Event) => setPalettePreference(mode, (e.target as HTMLSelectElement).value),
+        field: `${mode}Palette`,
+        id: `${mode}Palette`,
+      },
+    ]);
+    panel.appendChild(form);
+  }
+
+  return panel;
 }
 
 const { ratingsParameters } = fixtures;
@@ -69,7 +118,6 @@ async function persistAll(
     formatWizard: displayInputs.formatWizard?.checked || false,
     schedulePlan: displayInputs.schedulePlan?.checked || false,
     linkedTournaments: displayInputs.linkedTournaments?.checked || false,
-    scoreEntryDialog: displayInputs.scoreEntryDialog?.checked ?? true,
   });
 
   let scoringApproach: PreferencesConfig['scoringApproach'];
@@ -79,14 +127,11 @@ async function persistAll(
     scoringApproach = 'dialPad';
   } else if (scoringInputs.freeScore.checked) {
     scoringApproach = 'freeScore';
-  } else if (scoringInputs.inlineScoring?.checked) {
-    scoringApproach = 'inlineScoring';
   } else {
     scoringApproach = 'dynamicSets';
   }
   preferencesConfig.set({
     scoringApproach,
-    smartComplements: scoringInputs.smartComplements?.checked || false,
     // A preference, not a feature flag: the board is finished, this is only
     // whether it is offered. Hence Options rather than Beta features.
     officialsBoard: optionsInputs.officialsBoard?.checked || false,
@@ -130,8 +175,6 @@ export async function renderSettingsGrid(
   container: HTMLElement,
   options?: { excludeTournament?: boolean },
 ): Promise<void> {
-  const currentSettings = loadSettings();
-
   // These are populated after renderForm calls; persist closure captures the refs.
   let languageInputs: any;
   let ratingInputs: any;
@@ -287,24 +330,11 @@ export async function renderSettingsGrid(
           field: 'freeScore',
           checked: preferencesConfig.get().scoringApproach === 'freeScore',
         },
-        {
-          text: t('modals.settings.inlineScoring'),
-          field: 'inlineScoring',
-          checked: preferencesConfig.get().scoringApproach === 'inlineScoring',
-        },
       ],
       onChange: persist,
       field: 'scoringApproach',
       id: 'scoringApproach',
       radio: true,
-    },
-    {
-      label: t('modals.settings.smartComplements'),
-      checked: currentSettings?.smartComplements || false,
-      field: 'smartComplements',
-      id: 'smartComplements',
-      onChange: persist,
-      checkbox: true,
     },
   ]);
   // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
@@ -314,6 +344,9 @@ export async function renderSettingsGrid(
   fixRadioWrapping(scoringForm);
   scoringPanel.appendChild(scoringForm);
   grid.appendChild(scoringPanel);
+
+  // --- Theme panel (blue, 1 col): mode, plus one palette per mode ---
+  grid.appendChild(buildThemePanel());
 
   // --- Font panel (blue, 1 col) ---
   const fontPanel = document.createElement('div');
@@ -410,14 +443,6 @@ export async function renderSettingsGrid(
       checked: featureFlags.get().schedulePlan || false,
       field: 'schedulePlan',
       id: 'schedulePlan',
-      onChange: persist,
-      checkbox: true,
-    },
-    {
-      label: t('settingsGrid.scoreEntryDialog'),
-      checked: featureFlags.get().scoreEntryDialog,
-      field: 'scoreEntryDialog',
-      id: 'scoreEntryDialog',
       onChange: persist,
       checkbox: true,
     },
@@ -522,7 +547,7 @@ export async function renderSettingsGrid(
     const statusDot = document.createElement('span');
     const updateStatus = () => {
       const isConnected = connected();
-      statusDot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${isConnected ? '#48c774' : '#f14668'}`;
+      statusDot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${isConnected ? 'var(--tmx-status-success)' : 'var(--tmx-status-error)'}`;
     };
     updateStatus();
 

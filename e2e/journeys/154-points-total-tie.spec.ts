@@ -1,4 +1,4 @@
-import { initDevBridge, resetState, seedFeatureFlagInitScript, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
@@ -73,7 +73,6 @@ async function enterInDialog(page: Page, matchUpId: string, side1: string, side2
 
 test.describe('journey 154 — a points-total tie', () => {
   test.beforeEach(async ({ page }) => {
-    await seedFeatureFlagInitScript(page, 'scoreEntryDialog', true);
     await page.goto('/');
     await waitForAppReady(page);
     await initDevBridge(page);

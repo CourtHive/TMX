@@ -2,7 +2,18 @@ html {
   font-size: var(--tmx-font-size, 16px);
 }
 
-/* ===== Light theme (default) ===== */
+/* ===== Theme tokens =====
+ *
+ * Palettes are owned by courthive-components (theme.css: Courtside light + Midnight dark defaults;
+ * palettes.css: Linen, Slate, Graphite), selected by `data-theme` + `data-palette` on <html>
+ * (services/theme/themeService.ts). The core `--tmx-*` tokens below are ALIASES of the library's `--chc-*`
+ * tokens, so a palette is defined once and TMX follows it — the reverse of the old bridge, which mapped
+ * `--chc-*` onto TMX values and so made every theme a TMX-only theme.
+ *
+ * TMX keeps its own values only for what the library has no concept of: categorical accents, panel tints and
+ * schedule-cell states. Those are declared per palette below. Rationale and measurements:
+ * Mentat/planning/themes/THEME_AUDIT_AND_PROPOSALS.md.
+ */
 :root {
   /* Typography */
   --tmx-font-family:
@@ -11,47 +22,43 @@ html {
   --tmx-font-size: 16px;
 
   /* Backgrounds */
-  --tmx-bg-primary: #ffffff;
-  --tmx-bg-secondary: #f5f5f5;
-  --tmx-bg-tertiary: #e7e6e7;
-  --tmx-bg-elevated: #ffffff;
-  --tmx-bg-highlight: lightyellow;
-  --tmx-bg-panel-header: rgb(192, 193, 211);
+  --tmx-canvas: var(--chc-canvas);
+  --tmx-bg-primary: var(--chc-bg-primary);
+  --tmx-bg-secondary: var(--chc-bg-secondary);
+  --tmx-bg-tertiary: var(--chc-bg-tertiary);
+  --tmx-bg-elevated: var(--chc-bg-elevated);
+  --tmx-bg-highlight: var(--chc-bg-highlight);
+  --tmx-bg-panel-header: var(--chc-panel-header-bg);
+
+  /* App chrome (navbar) */
+  --tmx-chrome-bg: var(--chc-chrome-bg);
+  --tmx-chrome-text: var(--chc-chrome-text);
+  --tmx-chrome-icon: var(--chc-chrome-icon);
+  --tmx-chrome-active: var(--chc-chrome-active);
+  --tmx-chrome-border: var(--chc-chrome-border);
+  --tmx-chrome-danger: var(--chc-chrome-danger);
+  --tmx-chrome-success: var(--chc-chrome-success);
 
   /* Text */
-  --tmx-text-primary: #363636;
-  --tmx-text-secondary: #666666;
-  --tmx-text-muted: #999999;
-  --tmx-text-inverse: #ffffff;
+  --tmx-text-primary: var(--chc-text-primary);
+  --tmx-text-secondary: var(--chc-text-secondary);
+  --tmx-text-muted: var(--chc-text-muted);
+  --tmx-text-inverse: var(--chc-text-inverse);
 
   /* Borders */
-  --tmx-border-primary: #dbdbdb;
-  --tmx-border-secondary: #e0e0e0;
-  --tmx-border-focus: #4a90d9;
+  --tmx-border-primary: var(--chc-border-primary);
+  --tmx-border-secondary: var(--chc-border-secondary);
+  --tmx-border-focus: var(--chc-border-focus);
 
-  /* Accents — tuned for foreground / border / decorative use against the
-   * page background. Do NOT pair these with white text as a fill; use the
-   * `--tmx-fill-*` family below for that. */
-  --tmx-accent-blue: #4a90d9;
-  --tmx-accent-green: #48c774;
-  --tmx-accent-purple: #b86bff;
-  --tmx-accent-red: #ff6b6b;
-  --tmx-accent-orange: #ff9f43;
-  --tmx-accent-teal: #00b8a9;
-  --tmx-accent-pink: #aa336a;
-
-  /* Fills — solid backgrounds that pair with white text and pass WCAG AA
-   * (4.5:1) in both light and dark mode. Use these for badges, active
-   * pills, selected chips, and toggle buttons — anywhere the existing
-   * accent color was being used as a filled background. */
-  --tmx-fill-accent: #2563eb; /* 4.69 vs white — AA */
+  /* Fills — solid backgrounds that pair with white text (badges, active pills, selected chips, toggles). */
+  --tmx-fill-accent: var(--chc-fill-accent);
   --tmx-fill-warning: #c2410c; /* 5.30 vs white — AA */
 
   /* Severity fills for count badges. `--tmx-fill-warning` above reads as an
    * error at a glance (it is a burnt orange-red), so it cannot also stand for
    * "there is nothing wrong here, only advisories" — these two exist to be told
-   * apart. Same hex in light and dark, like the fills above, because a severity
-   * that changed colour with the theme would not be learnable.
+   * apart. Same hex in every palette, because a severity that changed colour
+   * with the theme would not be learnable.
    *   error   — white ink,  6.47:1 — AA
    *   caution — dark ink,   8.14:1 — AAA. A caution fill bright enough to READ
    *             as amber cannot carry white text at AA, so it carries ink. */
@@ -59,503 +66,226 @@ html {
   --tmx-fill-caution: #f59e0b;
   --tmx-fill-caution-ink: #1c1917;
 
-  /* Status */
-  --tmx-status-success: #48c774;
-  --tmx-status-warning: #ffdd57;
-  --tmx-status-error: #f14668;
-  --tmx-status-info: #3e8ed0;
+  /* Status — text-safe on the page in every palette */
+  --tmx-status-success: var(--chc-status-success);
+  --tmx-status-warning: var(--chc-status-warning);
+  --tmx-status-error: var(--chc-status-error);
+  --tmx-status-info: var(--chc-status-info);
 
-  /* Container fills — in light mode, reuse standard intent colors */
-  --tmx-container-primary: #00d1b2;
-  --tmx-container-link: #485fc7;
-  --tmx-container-info: #3e8ed0;
-  --tmx-container-danger: #f14668;
-  --tmx-container-success: #48c78e;
-  --tmx-container-warning: #ffe08a;
-
-  /* Panels */
-  --tmx-panel-blue-bg: #eef4fb;
-  --tmx-panel-blue-border: #4a90d9;
-  --tmx-panel-green-bg: #effaf3;
-  --tmx-panel-green-border: #48c774;
-  --tmx-panel-red-bg: #fef0f0;
-  --tmx-panel-red-border: #ff6b6b;
-  --tmx-panel-purple-bg: #f5eeff;
-  --tmx-panel-purple-border: #b86bff;
-  --tmx-panel-orange-bg: #fff5eb;
-  --tmx-panel-orange-border: #ff9f43;
-  --tmx-panel-teal-bg: #e6faf8;
-  --tmx-panel-teal-border: #00b8a9;
-  --tmx-panel-indigo-bg: #eef0fb;
-  --tmx-panel-indigo-border: #5c6bc0;
-  --tmx-panel-yellow-bg: #fffaeb;
-  --tmx-panel-yellow-border: #e6c84e;
-
-  /* Schedule cell states */
-  --sch-neutral: white;
-  --sch-error: #c01a1a;
-  --sch-issue: #faa774;
-  --sch-conflict: #f5a9a9;
-  --sch-warning: lightyellow;
-  --sch-complete: #e0ecf8;
-  --sch-inprogress: #cef6ce;
-  --sch-abandoned: #f7be81;
+  /* Container fills — solid intent backgrounds; pair with --chc-on-* */
+  --tmx-container-primary: var(--chc-container-primary);
+  --tmx-container-link: var(--chc-container-link);
+  --tmx-container-info: var(--chc-container-info);
+  --tmx-container-danger: var(--chc-container-danger);
+  --tmx-container-success: var(--chc-container-success);
+  --tmx-container-warning: var(--chc-container-warning);
 
   /* Tabulator */
-  --tmx-tab-bg: #ffffff;
-  --tmx-tab-header-bg: #f5f5f5;
-  --tmx-tab-row-alt-bg: #fafafa;
-  --tmx-tab-row-hover-bg: #f0f0f0;
-  --tmx-tab-text: #363636;
-  --tmx-tab-text-muted: #bbbbbb;
-  --tmx-tab-border: #dbdbdb;
-  --tmx-tab-selected-bg: #e7e6e7;
-  --tmx-tab-selected-text: #363636;
+  --tmx-tab-bg: var(--chc-bg-primary);
+  --tmx-tab-header-bg: var(--chc-bg-secondary);
+  --tmx-tab-row-alt-bg: var(--chc-row-alt-bg);
+  --tmx-tab-row-hover-bg: var(--chc-hover-bg);
+  --tmx-tab-text: var(--chc-text-primary);
+  --tmx-tab-text-muted: var(--chc-text-muted);
+  --tmx-tab-border: var(--chc-border-secondary);
+  --tmx-tab-selected-bg: var(--chc-selected-bg);
+  --tmx-tab-selected-text: var(--chc-text-primary);
 
-  /* ── courthive-components bridge ────────────────────── */
-  /* Map --chc-* vars to TMX values so the component library */
-  /* inherits the host app palette. See courthive-components  */
-  /* theme.css for the full variable catalog.                 */
-  --chc-bg-primary: var(--tmx-bg-primary);
-  --chc-bg-secondary: var(--tmx-bg-secondary);
-  --chc-bg-elevated: var(--tmx-bg-elevated);
-  --chc-text-primary: var(--tmx-text-primary);
-  --chc-text-secondary: var(--tmx-text-secondary);
-  --chc-text-muted: var(--tmx-text-muted);
-  --chc-text-inverse: var(--tmx-text-inverse);
-  --chc-border-primary: var(--tmx-border-primary);
-  --chc-border-secondary: var(--tmx-border-secondary);
-  --chc-border-focus: var(--tmx-border-focus);
-  --chc-input-bg: var(--tmx-bg-primary);
-  --chc-input-border: var(--tmx-border-primary);
-  --chc-panel-header-bg: var(--tmx-bg-panel-header);
-  --chc-container-primary: var(--tmx-container-primary);
-  --chc-container-link: var(--tmx-container-link);
-  --chc-container-info: var(--tmx-container-info);
-  --chc-container-danger: var(--tmx-container-danger);
-  --chc-container-success: var(--tmx-container-success);
-  --chc-container-warning: var(--tmx-container-warning);
-
-  /* ── sp-* bridge (scheduling-profile, policy-catalog, etc.) ── */
-  --sp-bg: var(--tmx-bg-secondary);
-  --sp-panel: var(--tmx-bg-primary);
-  --sp-text: var(--tmx-text-primary);
-  --sp-muted: var(--tmx-text-muted);
-  --sp-line: var(--tmx-border-secondary);
-  --sp-accent: var(--tmx-accent-blue);
-  --sp-ok: var(--tmx-status-success);
-  --sp-warn: var(--tmx-status-warning);
-  --sp-err: var(--tmx-status-error);
-  --sp-input-bg: var(--tmx-bg-primary);
-  --sp-panel-bg: var(--tmx-bg-primary);
-  --sp-card-bg: var(--tmx-bg-secondary);
-  --sp-action-btn-bg: var(--tmx-bg-secondary);
-
-  /* ── temporal-grid accent ── */
+  /* Temporal-grid accent, derived so it follows the palette's teal */
   --tg-accent: var(--tmx-accent-teal);
-  --tg-accent-hover: #009e92;
-  --tg-accent-bg-light: rgba(0, 184, 169, 0.08);
-  --tg-accent-bg-medium: rgba(0, 184, 169, 0.25);
+  --tg-accent-hover: color-mix(in srgb, var(--tmx-accent-teal) 85%, black);
+  --tg-accent-bg-light: color-mix(in srgb, var(--tmx-accent-teal) 10%, transparent);
+  --tg-accent-bg-medium: color-mix(in srgb, var(--tmx-accent-teal) 28%, transparent);
+
+  /* Dropdown scoring */
+  --dd-active: var(--chc-text-muted);
+  --dd-active-color: var(--chc-text-primary);
+  --dd-notactive-color: var(--chc-bg-primary);
+  --dd-span-background: var(--chc-panel-header-bg);
+  --dd-span-hover: var(--chc-hover-bg);
+  --dd-li-background: var(--chc-bg-elevated);
+  --dd-label-color: var(--chc-text-primary);
+  --dd-hasvalue: var(--chc-text-secondary);
+  --dd-novalue: var(--chc-bg-elevated);
+
+  /* ── Courtside (default light): accents, panels, schedule cells ── */
+  --tmx-accent-blue: #1747c2;
+  --tmx-accent-green: #0f6a33;
+  --tmx-accent-purple: #6427c8;
+  --tmx-accent-red: #b01c1c;
+  --tmx-accent-orange: #9a4a07;
+  --tmx-accent-teal: #0f5f59;
+  --tmx-accent-pink: #a3134f;
+  --tmx-panel-blue-bg: #e5ebf8;
+  --tmx-panel-blue-border: #1747c2;
+  --tmx-panel-green-bg: #e5efe9;
+  --tmx-panel-green-border: #0f6a33;
+  --tmx-panel-red-bg: #f6e6e6;
+  --tmx-panel-red-border: #b01c1c;
+  --tmx-panel-purple-bg: #eee7f9;
+  --tmx-panel-purple-border: #6427c8;
+  --tmx-panel-orange-bg: #f4ebe4;
+  --tmx-panel-orange-border: #9a4a07;
+  --tmx-panel-teal-bg: #e5eded;
+  --tmx-panel-teal-border: #0f5f59;
+  --tmx-panel-indigo-bg: #e9e8f5;
+  --tmx-panel-indigo-border: #3730a3;
+  --tmx-panel-yellow-bg: #f2ede3;
+  --tmx-panel-yellow-border: #8a5a00;
+  --sch-neutral: #ffffff;
+  --sch-complete: #d6e4f7;
+  --sch-inprogress: #cdebd7;
+  --sch-conflict: #f6cccc;
+  --sch-error: #efb3b3;
+  --sch-warning: #faeab0;
+  --sch-issue: #f8d4b0;
+  --sch-abandoned: #ead2b0;
 }
 
-/* ===== Dark theme ===== */
+/* ── Midnight (default dark) ── */
 [data-theme='dark'] {
-  /* Backgrounds */
-  --tmx-bg-primary: #1a1a2e;
-  --tmx-bg-secondary: #16213e;
-  --tmx-bg-tertiary: #0f3460;
-  --tmx-bg-elevated: #222244;
-  --tmx-bg-highlight: #3a3a1a;
-  --tmx-bg-panel-header: #2a2a4e;
-
-  /* Text */
-  --tmx-text-primary: #e0e0e0;
-  --tmx-text-secondary: #b0b0b0;
-  --tmx-text-muted: #808080;
-  --tmx-text-inverse: #1a1a2e;
-
-  /* Borders */
-  --tmx-border-primary: #444444;
-  --tmx-border-secondary: #333333;
-  --tmx-border-focus: #5b9bd5;
-
-  /* Accents — see comment in :root. These stay light/vivid for foreground
-   * use against the dark page background. */
-  --tmx-accent-blue: #5b9bd5;
-  --tmx-accent-green: #5cb878;
+  --tmx-accent-blue: #6aa6e0;
+  --tmx-accent-green: #6cc488;
   --tmx-accent-purple: #c88aff;
   --tmx-accent-red: #ff8a8a;
   --tmx-accent-orange: #ffb366;
-  --tmx-accent-teal: #1a9e8f;
-  --tmx-accent-pink: #cc4488;
-
-  /* Fills — same hex as :root so a "primary CTA blue" looks the same in
-   * both modes. The values are dark enough to pair with white text and
-   * pass WCAG AA against the page bg as well. */
-  --tmx-fill-accent: #2563eb;
-  --tmx-fill-warning: #c2410c;
-  --tmx-fill-error: #b91c1c;
-  --tmx-fill-caution: #f59e0b;
-  --tmx-fill-caution-ink: #1c1917;
-
-  /* Status */
-  --tmx-status-success: #5cb878;
-  --tmx-status-warning: #e6c84e;
-  --tmx-status-error: #e85d7a;
-  --tmx-status-info: #5ba3d9;
-
-  /* Container fills — darker for solid backgrounds with white text */
-  --tmx-container-primary: #0d7369;
-  --tmx-container-link: #3566a8;
-  --tmx-container-info: #3571b3;
-  --tmx-container-danger: #b83a3a;
-  --tmx-container-success: #287a4a;
-  --tmx-container-warning: #a08620;
-
-  /* Panels */
-  --tmx-panel-blue-bg: #1a2a4e;
-  --tmx-panel-blue-border: #5b9bd5;
-  --tmx-panel-green-bg: #1a3a2a;
-  --tmx-panel-green-border: #5cb878;
-  --tmx-panel-red-bg: #3a1a1a;
+  --tmx-accent-teal: #33c9bb;
+  --tmx-accent-pink: #e078a8;
+  --tmx-panel-blue-bg: #27304a;
+  --tmx-panel-blue-border: #6aa6e0;
+  --tmx-panel-green-bg: #27353c;
+  --tmx-panel-green-border: #6cc488;
+  --tmx-panel-red-bg: #3f2c3d;
   --tmx-panel-red-border: #ff8a8a;
-  --tmx-panel-purple-bg: #2a1a3e;
+  --tmx-panel-purple-bg: #362c4f;
   --tmx-panel-purple-border: #c88aff;
-  --tmx-panel-orange-bg: #3a2a1a;
+  --tmx-panel-orange-bg: #3f3237;
   --tmx-panel-orange-border: #ffb366;
-  --tmx-panel-teal-bg: #1a3a38;
+  --tmx-panel-teal-bg: #1e3645;
   --tmx-panel-teal-border: #33c9bb;
-  --tmx-panel-indigo-bg: #1a1e3e;
-  --tmx-panel-indigo-border: #7986cb;
-  --tmx-panel-yellow-bg: #3a3a1a;
+  --tmx-panel-indigo-bg: #2c2e49;
+  --tmx-panel-indigo-border: #8c96d8;
+  --tmx-panel-yellow-bg: #3b3633;
   --tmx-panel-yellow-border: #e6c84e;
-
-  /* Tabulator */
-  --tmx-tab-bg: #1a1a2e;
-  --tmx-tab-header-bg: #16213e;
-  --tmx-tab-row-alt-bg: #1e1e3a;
-  --tmx-tab-row-hover-bg: #222244;
-  --tmx-tab-text: #e0e0e0;
-  --tmx-tab-text-muted: #666666;
-  --tmx-tab-border: #444444;
-  --tmx-tab-selected-bg: #0f3460;
-  --tmx-tab-selected-text: #ffffff;
-
-  /* Schedule overrides */
   --sch-neutral: #222244;
   --sch-complete: #1a3a5c;
   --sch-inprogress: #1a4a2a;
-  --sch-warning: #4a3a1a;
-  --sch-error: #8b2020;
   --sch-conflict: #5c2a2a;
+  --sch-error: #8b2020;
+  --sch-warning: #4a3a1a;
   --sch-issue: #5c3a1a;
   --sch-abandoned: #5c4a2a;
-
-  /* Dropdown scoring overrides */
-  --dd-active: #666666;
-  --dd-active-color: #e0e0e0;
-  --dd-notactive-color: #1a1a2e;
-  --dd-span-background: #2a2a4e;
-  --dd-span-hover: #3a3a5e;
-  --dd-li-background: #222244;
-  --dd-label-color: #e0e0e0;
-  --dd-hasvalue: #c0c0c0;
-  --dd-novalue: #222244;
-
-  /* ── courthive-components bridge (dark) ────────────── */
-  --chc-bg-primary: var(--tmx-bg-primary);
-  --chc-bg-secondary: var(--tmx-bg-secondary);
-  --chc-bg-elevated: var(--tmx-bg-elevated);
-  --chc-text-primary: var(--tmx-text-primary);
-  --chc-text-secondary: var(--tmx-text-secondary);
-  --chc-text-muted: var(--tmx-text-muted);
-  --chc-text-inverse: var(--tmx-text-inverse);
-  --chc-border-primary: var(--tmx-border-primary);
-  --chc-border-secondary: var(--tmx-border-secondary);
-  --chc-border-focus: var(--tmx-border-focus);
-  --chc-modal-bg: var(--tmx-bg-elevated);
-  --chc-dropdown-bg: var(--tmx-bg-elevated);
-  --chc-input-bg: var(--tmx-bg-secondary);
-  --chc-panel-header-bg: var(--tmx-bg-panel-header);
-  --chc-hover-bg: var(--tmx-bg-panel-header);
-  --chc-format-code-color: var(--tmx-accent-blue);
-  --chc-status-success: var(--tmx-status-success);
-  --chc-status-warning: var(--tmx-status-warning);
-  --chc-status-error: var(--tmx-status-error);
-  --chc-status-info: var(--tmx-status-info);
-  --chc-container-primary: var(--tmx-container-primary);
-  --chc-container-link: var(--tmx-container-link);
-  --chc-container-info: var(--tmx-container-info);
-  --chc-container-danger: var(--tmx-container-danger);
-  --chc-container-success: var(--tmx-container-success);
-  --chc-container-warning: var(--tmx-container-warning);
-
-  /* ── sp-* bridge (dark) ── */
-  --sp-bg: #0f1318;
-  --sp-panel: var(--tmx-bg-primary);
-  --sp-text: var(--tmx-text-primary);
-  --sp-muted: var(--tmx-text-muted);
-  --sp-line: var(--tmx-border-secondary);
-  --sp-accent: var(--tmx-accent-blue);
-  --sp-ok: var(--tmx-status-success);
-  --sp-warn: var(--tmx-status-warning);
-  --sp-err: var(--tmx-status-error);
-  --sp-input-bg: var(--tmx-bg-secondary);
-  --sp-panel-bg: var(--tmx-bg-primary);
-  --sp-card-bg: var(--tmx-bg-secondary);
-  --sp-action-btn-bg: var(--tmx-bg-secondary);
-
-  /* ── temporal-grid accent (dark) ── */
-  --tg-accent: var(--tmx-accent-teal);
-  --tg-accent-hover: #178a7f;
-  --tg-accent-bg-light: rgba(26, 158, 143, 0.1);
-  --tg-accent-bg-medium: rgba(26, 158, 143, 0.3);
 }
 
-/*
- * Higher-specificity dark bridge — :root[data-theme='dark'] beats the library's
- * bare [data-theme='dark'] selector regardless of CSS load order.  This ensures
- * the component library always inherits TMX's dark palette.
- */
-:root[data-theme='dark'] {
-  --chc-bg-primary: var(--tmx-bg-primary);
-  --chc-bg-secondary: var(--tmx-bg-secondary);
-  --chc-bg-elevated: var(--tmx-bg-elevated);
-  --chc-bg-overlay: rgba(0, 0, 0, 0.5);
-  --chc-text-primary: var(--tmx-text-primary);
-  --chc-text-secondary: var(--tmx-text-secondary);
-  --chc-text-muted: var(--tmx-text-muted);
-  --chc-text-inverse: var(--tmx-text-inverse);
-  --chc-border-primary: var(--tmx-border-primary);
-  --chc-border-secondary: var(--tmx-border-secondary);
-  --chc-border-focus: var(--tmx-border-focus);
-  --chc-hover-bg: var(--tmx-bg-panel-header);
-  --chc-active-bg: var(--tmx-bg-tertiary);
-  --chc-modal-bg: var(--tmx-bg-elevated);
-  --chc-dropdown-bg: var(--tmx-bg-elevated);
-  --chc-input-bg: var(--tmx-bg-secondary);
-  --chc-input-border: var(--tmx-border-primary);
-  --chc-panel-header-bg: var(--tmx-bg-panel-header);
-  --chc-format-code-color: var(--tmx-accent-blue);
-  --chc-status-success: var(--tmx-status-success);
-  --chc-status-warning: var(--tmx-status-warning);
-  --chc-status-error: var(--tmx-status-error);
-  --chc-status-info: var(--tmx-status-info);
-  --chc-container-primary: var(--tmx-container-primary);
-  --chc-container-link: var(--tmx-container-link);
-  --chc-container-info: var(--tmx-container-info);
-  --chc-container-danger: var(--tmx-container-danger);
-  --chc-container-success: var(--tmx-container-success);
-  --chc-container-warning: var(--tmx-container-warning);
+/* ── Linen (light) ── */
+:root[data-theme='light'][data-palette='linen'] {
+  --tmx-accent-blue: #2f5fb3;
+  --tmx-accent-green: #2e7048;
+  --tmx-accent-purple: #7048a8;
+  --tmx-accent-red: #b3261e;
+  --tmx-accent-orange: #a55a12;
+  --tmx-accent-teal: #1f6d66;
+  --tmx-accent-pink: #a2386c;
+  --tmx-panel-blue-bg: #e9ecf1;
+  --tmx-panel-blue-border: #2f5fb3;
+  --tmx-panel-green-bg: #e9eee7;
+  --tmx-panel-green-border: #2e7048;
+  --tmx-panel-red-bg: #f5e7e3;
+  --tmx-panel-red-border: #b3261e;
+  --tmx-panel-purple-bg: #eeeaf0;
+  --tmx-panel-purple-border: #7048a8;
+  --tmx-panel-orange-bg: #f3ece2;
+  --tmx-panel-orange-border: #a55a12;
+  --tmx-panel-teal-bg: #e7edea;
+  --tmx-panel-teal-border: #1f6d66;
+  --tmx-panel-indigo-bg: #ebebef;
+  --tmx-panel-indigo-border: #4a55a2;
+  --tmx-panel-yellow-bg: #f4f0e3;
+  --tmx-panel-yellow-border: #b08a1a;
+  --sch-neutral: #ffffff;
+  --sch-complete: #e4ebf3;
+  --sch-inprogress: #dcefdf;
+  --sch-conflict: #f6d9d4;
+  --sch-error: #f2c7c2;
+  --sch-warning: #f8edc9;
+  --sch-issue: #f6dfc8;
+  --sch-abandoned: #eddcc4;
+}
 
-  /* ── sp-* bridge (high-specificity dark) ── */
-  --sp-bg: #0f1318;
-  --sp-panel: var(--tmx-bg-primary);
-  --sp-text: var(--tmx-text-primary);
-  --sp-muted: var(--tmx-text-muted);
-  --sp-line: var(--tmx-border-secondary);
-  --sp-accent: var(--tmx-accent-blue);
-  --sp-ok: var(--tmx-status-success);
-  --sp-warn: var(--tmx-status-warning);
-  --sp-err: var(--tmx-status-error);
-  --sp-input-bg: var(--tmx-bg-secondary);
-  --sp-panel-bg: var(--tmx-bg-primary);
-  --sp-card-bg: var(--tmx-bg-secondary);
-  --sp-action-btn-bg: var(--tmx-bg-secondary);
+/* ── Slate (light) ── */
+:root[data-theme='light'][data-palette='slate'] {
+  --tmx-accent-blue: #2563eb;
+  --tmx-accent-green: #15803d;
+  --tmx-accent-purple: #7c3aed;
+  --tmx-accent-red: #c0262d;
+  --tmx-accent-orange: #b45309;
+  --tmx-accent-teal: #0d6b64;
+  --tmx-accent-pink: #be185d;
+  --tmx-panel-blue-bg: #eef3fd;
+  --tmx-panel-blue-border: #2563eb;
+  --tmx-panel-green-bg: #ecf5ef;
+  --tmx-panel-green-border: #15803d;
+  --tmx-panel-red-bg: #faeeee;
+  --tmx-panel-red-border: #c0262d;
+  --tmx-panel-purple-bg: #f5effe;
+  --tmx-panel-purple-border: #7c3aed;
+  --tmx-panel-orange-bg: #f9f1eb;
+  --tmx-panel-orange-border: #b45309;
+  --tmx-panel-teal-bg: #ecf3f3;
+  --tmx-panel-teal-border: #0d6b64;
+  --tmx-panel-indigo-bg: #f1f0fd;
+  --tmx-panel-indigo-border: #4f46e5;
+  --tmx-panel-yellow-bg: #f7f2eb;
+  --tmx-panel-yellow-border: #a16207;
+  --sch-neutral: #ffffff;
+  --sch-complete: #e3ecf8;
+  --sch-inprogress: #dcf2e3;
+  --sch-conflict: #fadcdc;
+  --sch-error: #f6c9c9;
+  --sch-warning: #fbf1cc;
+  --sch-issue: #fbe2cc;
+  --sch-abandoned: #f1e0c8;
+}
 
-  /* ── temporal-grid accent (high-specificity dark) ── */
-  --tg-accent: var(--tmx-accent-teal);
-  --tg-accent-hover: #178a7f;
-  --tg-accent-bg-light: rgba(26, 158, 143, 0.1);
-  --tg-accent-bg-medium: rgba(26, 158, 143, 0.3);
+/* ── Graphite (dark) ── */
+:root[data-theme='dark'][data-palette='graphite'] {
+  --tmx-accent-blue: #7fb2ff;
+  --tmx-accent-green: #62c58a;
+  --tmx-accent-purple: #c49bff;
+  --tmx-accent-red: #f2808a;
+  --tmx-accent-orange: #f2a960;
+  --tmx-accent-teal: #4fc7ba;
+  --tmx-accent-pink: #e98bb8;
+  --tmx-panel-blue-bg: #2c3442;
+  --tmx-panel-blue-border: #7fb2ff;
+  --tmx-panel-green-bg: #273731;
+  --tmx-panel-green-border: #62c58a;
+  --tmx-panel-red-bg: #3d2d31;
+  --tmx-panel-red-border: #f2808a;
+  --tmx-panel-purple-bg: #363142;
+  --tmx-panel-purple-border: #c49bff;
+  --tmx-panel-orange-bg: #3d332a;
+  --tmx-panel-orange-border: #f2a960;
+  --tmx-panel-teal-bg: #253738;
+  --tmx-panel-teal-border: #4fc7ba;
+  --tmx-panel-indigo-bg: #303240;
+  --tmx-panel-indigo-border: #9aa3ef;
+  --tmx-panel-yellow-bg: #3b372a;
+  --tmx-panel-yellow-border: #e8c35a;
+  --sch-neutral: #2a2b30;
+  --sch-complete: #20344d;
+  --sch-inprogress: #1f3d2b;
+  --sch-conflict: #4d2a2c;
+  --sch-error: #7a2329;
+  --sch-warning: #433a20;
+  --sch-issue: #4a3320;
+  --sch-abandoned: #45392a;
 }
 
 /* ===== Dark theme element overrides ===== */
 
-/* --- Intent-colored button dark overrides --- */
-/* Info */
-[data-theme='dark'] .button.is-info {
-  background-color: var(--tmx-container-info);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-info:hover {
-  background-color: #3d82c4;
-}
-[data-theme='dark'] .button.is-info:active {
-  background-color: #2e6ea6;
-}
-[data-theme='dark'] .button.is-info.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-status-info);
-  color: var(--tmx-status-info);
-}
-[data-theme='dark'] .button.is-info.is-outlined:hover {
-  background-color: var(--tmx-status-info);
-  color: #fff;
-}
-[data-theme='dark'] .button.is-info.is-light {
-  background-color: rgba(91, 163, 217, 0.15);
-  color: var(--tmx-status-info);
-}
-[data-theme='dark'] .button.is-info.is-light:hover {
-  background-color: rgba(91, 163, 217, 0.25);
-}
-
-/* Success */
-[data-theme='dark'] .button.is-success {
-  background-color: var(--tmx-container-success);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-success:hover {
-  background-color: #2e8b55;
-}
-[data-theme='dark'] .button.is-success:active {
-  background-color: #236b42;
-}
-[data-theme='dark'] .button.is-success.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-status-success);
-  color: var(--tmx-status-success);
-}
-[data-theme='dark'] .button.is-success.is-outlined:hover {
-  background-color: var(--tmx-status-success);
-  color: #fff;
-}
-[data-theme='dark'] .button.is-success.is-light {
-  background-color: rgba(92, 184, 120, 0.15);
-  color: var(--tmx-status-success);
-}
-[data-theme='dark'] .button.is-success.is-light:hover {
-  background-color: rgba(92, 184, 120, 0.25);
-}
-
-/* Danger */
-[data-theme='dark'] .button.is-danger {
-  background-color: var(--tmx-container-danger);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-danger:hover {
-  background-color: #c74444;
-}
-[data-theme='dark'] .button.is-danger:active {
-  background-color: #a03232;
-}
-[data-theme='dark'] .button.is-danger.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-status-error);
-  color: var(--tmx-status-error);
-}
-[data-theme='dark'] .button.is-danger.is-outlined:hover {
-  background-color: var(--tmx-status-error);
-  color: #fff;
-}
-[data-theme='dark'] .button.is-danger.is-light {
-  background-color: rgba(232, 93, 122, 0.15);
-  color: var(--tmx-status-error);
-}
-[data-theme='dark'] .button.is-danger.is-light:hover {
-  background-color: rgba(232, 93, 122, 0.25);
-}
-
-/* Warning */
-[data-theme='dark'] .button.is-warning {
-  background-color: var(--tmx-container-warning);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-warning:hover {
-  background-color: #b8962e;
-}
-[data-theme='dark'] .button.is-warning:active {
-  background-color: #8a7118;
-}
-[data-theme='dark'] .button.is-warning.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-status-warning);
-  color: var(--tmx-status-warning);
-}
-[data-theme='dark'] .button.is-warning.is-outlined:hover {
-  background-color: var(--tmx-status-warning);
-  color: rgba(0, 0, 0, 0.7);
-}
-[data-theme='dark'] .button.is-warning.is-light {
-  background-color: rgba(230, 200, 78, 0.15);
-  color: var(--tmx-status-warning);
-}
-[data-theme='dark'] .button.is-warning.is-light:hover {
-  background-color: rgba(230, 200, 78, 0.25);
-}
-
-/* Primary */
-[data-theme='dark'] .button.is-primary {
-  background-color: var(--tmx-container-primary);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-primary:hover {
-  background-color: #108575;
-}
-[data-theme='dark'] .button.is-primary:active {
-  background-color: #0a5e53;
-}
-[data-theme='dark'] .button.is-primary.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-accent-teal);
-  color: var(--tmx-accent-teal);
-}
-[data-theme='dark'] .button.is-primary.is-outlined:hover {
-  background-color: var(--tmx-accent-teal);
-  color: #fff;
-}
-[data-theme='dark'] .button.is-primary.is-light {
-  background-color: rgba(26, 158, 143, 0.15);
-  color: var(--tmx-accent-teal);
-}
-[data-theme='dark'] .button.is-primary.is-light:hover {
-  background-color: rgba(26, 158, 143, 0.25);
-}
-
-/* Link */
-[data-theme='dark'] .button.is-link {
-  background-color: var(--tmx-container-link);
-  border-color: transparent;
-  color: #fff;
-}
-[data-theme='dark'] .button.is-link:hover {
-  background-color: #3e74b8;
-}
-[data-theme='dark'] .button.is-link:active {
-  background-color: #2c5892;
-}
-[data-theme='dark'] .button.is-link.is-outlined {
-  background-color: transparent;
-  border-color: var(--tmx-accent-blue);
-  color: var(--tmx-accent-blue);
-}
-[data-theme='dark'] .button.is-link.is-outlined:hover {
-  background-color: var(--tmx-accent-blue);
-  color: #fff;
-}
-[data-theme='dark'] .button.is-link.is-light {
-  background-color: rgba(91, 155, 213, 0.15);
-  color: var(--tmx-accent-blue);
-}
-[data-theme='dark'] .button.is-link.is-light:hover {
-  background-color: rgba(91, 155, 213, 0.25);
-}
-
-/* White */
-[data-theme='dark'] .button.is-white {
-  background-color: var(--tmx-bg-secondary);
-  border-color: transparent;
-  color: var(--tmx-text-primary);
-}
-[data-theme='dark'] .button.is-white:hover {
-  background-color: var(--tmx-bg-tertiary);
-}
+/* Intent-colored buttons need no dark overrides: courthive-components' buttons.css derives every shade from
+ * --chc-container-* / --chc-on-*, which each palette defines. */
 
 /* --- Tippy.js 'tippy' theme dark overrides --- */
 [data-theme='dark'] .tippy-box[data-theme~='tippy'] {
@@ -793,94 +523,12 @@ html {
   filter: invert(1);
 }
 
-/* --- CourtHive logo dark override --- */
-[data-theme='dark'] .courthive-logo path,
-[data-theme='dark'] .courthive-logo line {
-  stroke: #ffffff;
-}
-
-/* --- Tag/chip dark overrides --- */
-[data-theme='dark'] .tag:not(body) {
-  background-color: var(--tmx-bg-tertiary);
-  color: var(--tmx-text-primary);
-}
-[data-theme='dark'] .tag.is-link {
-  background-color: var(--tmx-container-link);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-link.is-light {
-  background-color: rgba(91, 155, 213, 0.15);
-  color: var(--tmx-accent-blue);
-}
-[data-theme='dark'] .tag.is-danger {
-  background-color: var(--tmx-container-danger);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-danger.is-light {
-  background-color: rgba(255, 138, 138, 0.15);
-  color: var(--tmx-accent-red);
-}
-[data-theme='dark'] .tag.is-primary {
-  background-color: var(--tmx-container-primary);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-primary.is-light {
-  background-color: rgba(51, 201, 187, 0.15);
-  color: var(--tmx-accent-teal);
-}
-[data-theme='dark'] .tag.is-info {
-  background-color: var(--tmx-container-info);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-info.is-light {
-  background-color: rgba(91, 163, 217, 0.15);
-  color: var(--tmx-status-info);
-}
-[data-theme='dark'] .tag.is-success {
-  background-color: var(--tmx-container-success);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-success.is-light {
-  background-color: rgba(92, 184, 120, 0.15);
-  color: var(--tmx-status-success);
-}
-[data-theme='dark'] .tag.is-warning {
-  background-color: var(--tmx-container-warning);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-warning.is-light {
-  background-color: rgba(230, 200, 78, 0.15);
-  color: var(--tmx-status-warning);
-}
-
-/* --- Notification dark overrides --- */
-[data-theme='dark'] .notification.is-info {
-  background-color: var(--tmx-container-info);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-success {
-  background-color: var(--tmx-container-success);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-danger {
-  background-color: var(--tmx-container-danger);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-warning {
-  background-color: var(--tmx-container-warning);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-primary {
-  background-color: var(--tmx-container-primary);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-link {
-  background-color: var(--tmx-container-link);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-info.is-light {
-  background-color: rgba(53, 113, 179, 0.15);
-  color: var(--tmx-status-info);
+/* CourtHive logo: its strokes follow the text color in every palette (the SVG defaults to currentColor).
+ * Tags and notifications derive their intent colors from palette tokens (components/tags.css, layout.css),
+ * so they need no dark overrides here. */
+.courthive-logo path,
+.courthive-logo line {
+  stroke: var(--tmx-text-primary);
 }
 
 /* --- Radio button / checkradio dark overrides --- */
@@ -907,19 +555,13 @@ html {
 
 /* Lucky draw: highlight completed pre-feed rounds needing loser selection */
 .lucky-needs-selection {
-  background-color: rgba(72, 199, 116, 0.18);
+  background-color: color-mix(in srgb, var(--tmx-container-success) 18%, transparent);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 .lucky-needs-selection:hover {
-  background-color: rgba(72, 199, 116, 0.28);
-}
-[data-theme='dark'] .lucky-needs-selection {
-  background-color: rgba(72, 199, 116, 0.2);
-}
-[data-theme='dark'] .lucky-needs-selection:hover {
-  background-color: rgba(72, 199, 116, 0.3);
+  background-color: color-mix(in srgb, var(--tmx-container-success) 28%, transparent);
 }
 
 /* Round Robin: subtle left-edge accent on completed groups. Bar sits
@@ -942,7 +584,8 @@ html {
   border-radius: 4px;
 }
 
-/* Draw position highlight: pulse to draw attention to a specific position */
+/* Draw position highlight: pulse to draw attention to a specific position. Amber in every palette: the
+   palette's warning fill, translucent so it reads over light and dark surfaces alike. */
 .draw-position-highlight {
   animation: draw-position-pulse 0.8s ease-in-out 3;
   border-radius: 4px;
@@ -953,19 +596,7 @@ html {
     background-color: transparent;
   }
   50% {
-    background-color: rgba(255, 166, 0, 0.35);
-  }
-}
-[data-theme='dark'] .draw-position-highlight {
-  animation: draw-position-pulse-dark 0.8s ease-in-out 3;
-}
-@keyframes draw-position-pulse-dark {
-  0%,
-  100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(255, 166, 0, 0.25);
+    background-color: color-mix(in srgb, var(--tmx-container-warning) 35%, transparent);
   }
 }
 
@@ -977,21 +608,9 @@ html {
 @keyframes matchup-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 166, 0, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
   50% {
-    box-shadow: 0 0 0 3px rgba(255, 166, 0, 0.55);
-  }
-}
-[data-theme='dark'] .matchup-highlight {
-  animation: matchup-pulse-dark 0.8s ease-in-out 3;
-}
-@keyframes matchup-pulse-dark {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 166, 0, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgba(255, 166, 0, 0.4);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tmx-container-warning) 55%, transparent);
   }
 }
