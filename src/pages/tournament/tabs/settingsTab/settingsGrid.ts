@@ -127,8 +127,6 @@ async function persistAll(
     scoringApproach = 'dialPad';
   } else if (scoringInputs.freeScore.checked) {
     scoringApproach = 'freeScore';
-  } else if (scoringInputs.inlineScoring?.checked) {
-    scoringApproach = 'inlineScoring';
   } else {
     scoringApproach = 'dynamicSets';
   }
@@ -331,11 +329,6 @@ export async function renderSettingsGrid(
           text: t('modals.settings.freeScore'),
           field: 'freeScore',
           checked: preferencesConfig.get().scoringApproach === 'freeScore',
-        },
-        {
-          text: t('modals.settings.inlineScoring'),
-          field: 'inlineScoring',
-          checked: preferencesConfig.get().scoringApproach === 'inlineScoring',
         },
       ],
       onChange: persist,

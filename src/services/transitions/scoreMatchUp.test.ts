@@ -169,8 +169,9 @@ describe('scoreMatchUp — the score entry dialog', () => {
     capturedDialogParams.onClose();
   });
 
-  it('leaves the approach to the dialog when the preference is one it does not offer', () => {
-    preferencesConfig.set({ scoringApproach: 'inlineScoring' });
+  it('leaves the approach to the dialog when the stored preference is one it does not offer', () => {
+    // 'inlineScoring' was a Settings choice until 2026-10-25 and can still be in a browser's storage.
+    preferencesConfig.set({ scoringApproach: 'inlineScoring' as any });
     enterMatchUpScore({ matchUpId: 'X', matchUp: MATCHUP });
     expect(capturedDialogParams.approach).toBeUndefined();
     capturedDialogParams.onClose();
