@@ -6,6 +6,7 @@
   "formats",
   "games",
   "getTournamentIds",
+  "light",
   "route",
   "segments",
   "setTime",

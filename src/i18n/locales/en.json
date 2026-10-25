@@ -1356,6 +1356,9 @@
       "themeLight": "Light",
       "themeDark": "Dark",
       "themeSystem": "System",
+      "themeMode": "Mode",
+      "lightPalette": "Light mode theme",
+      "darkPalette": "Dark mode theme",
       "font": "Font",
       "dangerZone": "Danger Zone"
     },
