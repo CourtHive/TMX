@@ -16,7 +16,8 @@ import { t } from 'i18n';
 
 import { BOTTOM, TMX_TOURNAMENTS, TEMPLATES, POLICIES, PROVIDER, SCHEDULE, SETTINGS } from 'constants/tmxConstants';
 
-const ACCENT_BLUE = 'var(--tmx-accent-blue)';
+// The navbar is app chrome: its active icon follows the palette's chrome role, not the content accent.
+const ACTIVE_NAV_COLOR = 'var(--tmx-chrome-active)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
 const MENU_OPEN_CLASS = 'mobile-nav-menu--open';
 const ARIA_EXPANDED = 'aria-expanded';
@@ -178,7 +179,7 @@ function setupScheduleNav(currentRoute?: string): void {
   }
 
   icon.style.display = '';
-  icon.style.color = currentRoute === SCHEDULE ? ACCENT_BLUE : '';
+  icon.style.color = currentRoute === SCHEDULE ? ACTIVE_NAV_COLOR : '';
   icon.onclick = () => openProviderSchedule(providerId);
 
   if ((icon as any)._tippy) (icon as any)._tippy.destroy();
@@ -252,7 +253,7 @@ function setupConsoleNav(): void {
 function navigateHomeRoute(id: string): void {
   document.querySelectorAll('.home-nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
   const element = document.getElementById(id);
-  if (element) element.style.color = ACCENT_BLUE;
+  if (element) element.style.color = ACTIVE_NAV_COLOR;
 
   const route = `/${homeRouteMap[id]}`;
   context.router?.navigate(route);
@@ -327,7 +328,7 @@ export function homeNavigation(currentRoute?: string): void {
 
     // Highlight current page
     if (homeRouteMap[id] === currentRoute || (!currentRoute && homeRouteMap[id] === TMX_TOURNAMENTS)) {
-      element.style.color = ACCENT_BLUE;
+      element.style.color = ACTIVE_NAV_COLOR;
     } else {
       element.style.color = '';
     }
@@ -357,7 +358,7 @@ export function highlightHomeTab(route: string): void {
   ids.forEach((id) => {
     const element = document.getElementById(id);
     if (element && homeRouteMap[id] === route) {
-      element.style.color = ACCENT_BLUE;
+      element.style.color = ACTIVE_NAV_COLOR;
 
       const toggle = document.getElementById(MOBILE_TOGGLE_ID);
       if (toggle) toggle.textContent = t(homeI18nKeys[id]);
