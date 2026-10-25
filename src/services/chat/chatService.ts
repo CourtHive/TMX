@@ -29,6 +29,8 @@ export interface ChatMessage {
   /** Reconciliation key for our own optimistic messages. */
   clientMsgId?: string;
   deliveryState?: 'sending' | 'accepted' | 'failed';
+  /** Why a `failed` own message was not delivered: the server's refusal, or the transport's (e.g. `HTTP 405`). */
+  deliveryError?: string;
 }
 
 interface IncomingMessage {
@@ -121,8 +123,27 @@ export function sendMessage(text: string): void {
   unreadCount = 0;
   notify();
 
+  dispatch(msg, tournamentId);
+}
+
+function dispatch(msg: ChatMessage, tournamentId: string): void {
   const meta = getProviderTournamentMeta();
-  sendFn({ tournamentId, userName, message: trimmed, clientMsgId, ...meta });
+  sendFn?.({ tournamentId, userName: msg.userName, message: msg.message, clientMsgId: msg.clientMsgId, ...meta });
+}
+
+/**
+ * Send a failed own message again. It keeps its `clientMsgId`, so whichever attempt the server accepts
+ * reconciles this one bubble rather than adding a second. Returns false when there is nothing to retry.
+ */
+export function retryMessage(clientMsgId: string): boolean {
+  const msg = messages.find((m) => m.isOwn && m.clientMsgId === clientMsgId && m.deliveryState === 'failed');
+  const tournamentId = getActiveTournamentId();
+  if (!msg || !tournamentId || !sendFn) return false;
+  msg.deliveryState = 'sending';
+  msg.deliveryError = undefined;
+  notify();
+  dispatch(msg, tournamentId);
+  return true;
 }
 
 /** Called by socketIo on a `chatMessage` event relayed from the server. */
@@ -158,10 +179,11 @@ export function receiveAccepted(data: { clientMsgId: string; seq: number; timest
 }
 
 /** Called by socketIo on a `chatRejected` event for one of our sent messages. */
-export function receiveRejected(data: { clientMsgId: string }): void {
+export function receiveRejected(data: { clientMsgId: string; error?: string }): void {
   const msg = messages.find((m) => m.clientMsgId === data.clientMsgId);
   if (msg) {
     msg.deliveryState = 'failed';
+    msg.deliveryError = data.error;
     notify();
   }
 }
@@ -258,6 +280,7 @@ function reconcileOwn(
   if (seq !== undefined) msg.seq = seq;
   if (timestamp !== undefined) msg.timestamp = timestamp;
   msg.deliveryState = deliveryState;
+  if (deliveryState === 'accepted') msg.deliveryError = undefined;
   // Re-sort now that it has a seq.
   if (seq !== undefined) {
     messages = [...messages].sort(bySeq);
