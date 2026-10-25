@@ -23,7 +23,6 @@ export type TMXSettings = {
   formatWizard?: boolean;
   schedulePlan?: boolean;
   linkedTournaments?: boolean;
-  scoreEntryDialog?: boolean;
   /** Settings → Pipeline features: per-call outcome-pipeline overrides (dev/testing; see config/pipelineConfig). */
   pipelineFeatures?: Partial<PipelineCallOverrides>;
   /**
@@ -165,7 +164,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   if (settings.formatWizard !== undefined) flagsPatch.formatWizard = settings.formatWizard;
   if (settings.schedulePlan !== undefined) flagsPatch.schedulePlan = settings.schedulePlan;
   if (settings.linkedTournaments !== undefined) flagsPatch.linkedTournaments = settings.linkedTournaments;
-  if (settings.scoreEntryDialog !== undefined) flagsPatch.scoreEntryDialog = settings.scoreEntryDialog;
   if (Object.keys(flagsPatch).length) {
     featureFlags.set(flagsPatch);
   }
@@ -200,7 +198,6 @@ export function persistConfigToStorage(
     formatWizard: flags.formatWizard,
     schedulePlan: flags.schedulePlan,
     linkedTournaments: flags.linkedTournaments,
-    scoreEntryDialog: flags.scoreEntryDialog,
     pipelineFeatures: { ...pipelineConfig.get() },
     ...extras,
   });

@@ -1,20 +1,17 @@
 /**
- * Enter matchUp score with scoring modal.
- * Handles score submission, parsing, and mutation with callback propagation.
+ * Enter a matchUp score through courthive-components' score-entry dialog.
+ * Handles score submission and mutation with callback propagation.
  */
 import { subscribeToMatchUp, unsubscribeFromMatchUp } from 'services/messaging/scoreRelay';
 import { getScoreEntryLabels } from 'components/modals/scoringV2/scoringLabels';
 import { persistConfigToStorage } from 'services/settings/settingsStorage';
 import { clearPermitted, isClearingOutcome } from './clearScorePermission';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { closeModal } from 'components/modals/baseModal/baseModal';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { openScoreEntryDialog } from 'courthive-components';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { scoringModal } from 'components/modals/scoringV2';
 import { tournamentEngine } from 'services/factory/engine';
 import { policyConstants } from 'tods-competition-factory';
-import { featureFlags } from 'config/featureFlags';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 import {
@@ -161,51 +158,14 @@ export function enterMatchUpScore(params: {
   const clearable = clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId });
   const disabledMatchUpStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
 
-  if (featureFlags.get().scoreEntryDialog) {
-    openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable, disabledMatchUpStatuses });
-    return;
-  }
-
-  const scoreSubmitted = (outcome: any) => {
-    const { matchUpStatus, matchUpFormat, winningSide, score, sets: outcomeSets, matchUpStatusCodes } = outcome;
-
-    // Use sets directly from outcome if available (e.g., from dialPad/dynamicSets with irregular endings)
-    // Otherwise parse the score string (e.g., from freeScore)
-    let sets = outcomeSets || [];
-    if (!sets.length && score) {
-      const parsedSets = tournamentEngine.parseScoreString({ scoreString: score });
-      sets = parsedSets || [];
-    }
-
-    dispatch({
-      outcome: {
-        score: { sets },
-        matchUpFormat,
-        matchUpStatus,
-        winningSide,
-        // Only when a reason was actually chosen. The factory reads an EMPTY array as an
-        // instruction to blank the codes, so sending `[]` for "no reason given" would erase
-        // whatever a previous edit recorded.
-        ...(matchUpStatusCodes?.length ? { matchUpStatusCodes } : {}),
-      },
-      onAccepted: closeModal,
-    });
-  };
-
-  scoringModal({
-    matchUp,
-    callback: scoreSubmitted,
-    onRelayCleanup,
-    matchUpStatusCodes: resolveStatusCodeGroups(matchUp),
-    clearable,
-    disabledMatchUpStatuses,
-  });
+  openNewScoreEntry({ matchUp, dispatch, onRelayCleanup, clearable, disabledMatchUpStatuses });
 }
 
 const DIALOG_APPROACHES: ScoreEntryApproach[] = ['dynamicSets', 'dialPad', 'freeScore'];
 
 /**
- * The beta front end: courthive-components' `openScoreEntryDialog`.
+ * The score-entry dialog: courthive-components' `openScoreEntryDialog`. It replaced the three separate
+ * scoring modals (Dynamic Sets, Dial Pad, Free Score), which now live on as approaches inside it.
  *
  * The dialog reports an engine-ready `outcome` (`score.sets`, positional `matchUpStatusCodes`, the clear
  * shape, a changed `matchUpFormat`), so there is nothing to translate here — it goes to `dispatch` as it

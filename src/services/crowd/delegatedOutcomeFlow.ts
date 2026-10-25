@@ -14,6 +14,14 @@
  * path). See Mentat `feedback_cfs_no_crowd_traffic`.
  */
 
+import { getSessionsByMatchUpId, promoteSession, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
+import { getScoreEntryLabels } from 'components/modals/scoringV2/scoringLabels';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { dialogSides } from 'services/transitions/scoreMatchUp';
+import { tournamentEngine } from 'tods-competition-factory';
+import { openScoreEntryDialog } from 'courthive-components';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { t } from 'i18n';
 import {
   buildAcceptMethods,
   buildConfirmMethods,
@@ -22,12 +30,6 @@ import {
   snapshotToSets,
   type DelegatedOutcomeScorer,
 } from 'services/crowd/delegatedOutcome';
-import { getSessionsByMatchUpId, promoteSession, type CrowdScoringSession } from 'services/crowd/scoreRelayClient';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tournamentEngine } from 'tods-competition-factory';
-import { scoringModal } from 'components/modals/scoringV2';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { t } from 'i18n';
 
 import { SET_DELEGATED_OUTCOME } from 'constants/mutationConstants';
 
@@ -89,7 +91,14 @@ export async function openSetDelegatedOutcome(args: {
     });
   };
 
-  scoringModal({ matchUp: prefillMatchUp, callback: onSubmit });
+  // The same score-entry dialog the TD scores with, opened on the scorer's sets; its engine-ready
+  // outcome carries them as `score.sets`, which onSubmit reads.
+  openScoreEntryDialog({
+    matchUp: prefillMatchUp,
+    sides: dialogSides(matchUp),
+    labels: getScoreEntryLabels(),
+    onSubmit: ({ outcome }) => onSubmit(outcome),
+  });
 }
 
 /**
