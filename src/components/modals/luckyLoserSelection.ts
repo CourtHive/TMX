@@ -38,7 +38,7 @@ function clearRow(row: HTMLElement) {
 
 function highlightRow(row: HTMLElement) {
   row.style.backgroundColor = SELECTED_BG;
-  row.querySelectorAll('span').forEach((s) => (s.style.color = '#fff'));
+  row.querySelectorAll('span').forEach((s) => (s.style.color = 'var(--chc-on-primary)'));
 }
 
 function formatRatio(value: number | undefined): string {
@@ -48,7 +48,7 @@ function formatRatio(value: number | undefined): string {
 
 const ROW_STYLE =
   'display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee);';
-const SELECTED_BG = 'var(--tmx-accent-teal, #00b8a9)';
+const SELECTED_BG = 'var(--tmx-container-primary)';
 
 export function luckyLoserSelection({ roundNumber, structureId, callback, drawId }: LuckyLoserSelectionParams) {
   const result = tournamentEngine.getLuckyDrawRoundStatus({ drawId, structureId });
@@ -91,7 +91,7 @@ export function luckyLoserSelection({ roundNumber, structureId, callback, drawId
             style="${ROW_STYLE} cursor: ${canAdvance ? 'pointer' : 'default'}; border-radius: 3px; transition: background-color 0.15s;">
             <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(l.participantName || 'Unknown')}</span>
             <span style="color: var(--tmx-text-secondary, #666); font-size: 13px; white-space: nowrap;">${escapeHtml(l.scoreString)}</span>
-            <span style="color: #2979ff; font-size: 12px; font-weight: 600; font-family: monospace; white-space: nowrap; min-width: 120px; text-align: right;">${ratios}</span>
+            <span style="color: var(--tmx-status-info); font-size: 12px; font-weight: 600; font-family: monospace; white-space: nowrap; min-width: 120px; text-align: right;">${ratios}</span>
           </div>`;
         })
         .join('')

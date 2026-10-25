@@ -265,8 +265,8 @@ export function matchUpActions({
       const li = document.createElement('li');
       li.style.cssText = 'padding:4px 8px; cursor:pointer; border-radius:4px;';
       if (official.participantId === currentOfficialId) {
-        li.style.backgroundColor = 'var(--tmx-accent-blue, #3273dc)';
-        li.style.color = '#fff';
+        li.style.backgroundColor = 'var(--tmx-fill-accent)';
+        li.style.color = 'var(--chc-on-link)';
       }
       const conflict = conflictByOfficial.get(official.participantId) ?? { level: 'none', reasons: [] };
       const isBlocked = conflict.level === 'blocked';

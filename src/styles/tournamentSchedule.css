@@ -8,13 +8,15 @@
   padding: 0.1em;
 }
 
+/* --sch-error is a tint in light palettes and a deep red in dark ones; --tmx-text-primary is the ink the
+   palette validator holds against it (≥ 4.5:1) in all five. */
 .matchup-error {
   background: var(--sch-error) !important;
-  border: 2px dotted white !important;
-  color: white !important;
+  border: 2px dotted var(--tmx-status-error) !important;
+  color: var(--tmx-text-primary) !important;
 }
 .matchup-error * {
-  color: white !important;
+  color: var(--tmx-text-primary) !important;
 }
 .matchup-complete {
   background: var(--sch-complete);
@@ -61,8 +63,8 @@
 
 /* Conflict highlight on hover */
 .conflict-highlight {
-  box-shadow: 0 0 10px 3px rgba(255, 215, 0, 0.8) !important;
-  border: 4px solid gold !important;
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--tmx-container-warning) 80%, transparent) !important;
+  border: 4px solid var(--tmx-container-warning) !important;
   z-index: 100;
   position: relative;
 }
@@ -189,8 +191,8 @@
     45deg,
     transparent,
     transparent 10px,
-    rgba(0, 0, 0, 0.05) 10px,
-    rgba(0, 0, 0, 0.05) 20px
+    color-mix(in srgb, var(--tmx-text-primary) 6%, transparent) 10px,
+    color-mix(in srgb, var(--tmx-text-primary) 6%, transparent) 20px
   );
   border: 2px dashed var(--tmx-border-primary) !important;
   opacity: 0.8;

@@ -287,16 +287,6 @@ html {
 /* Intent-colored buttons need no dark overrides: courthive-components' buttons.css derives every shade from
  * --chc-container-* / --chc-on-*, which each palette defines. */
 
-/* White */
-[data-theme='dark'] .button.is-white {
-  background-color: var(--tmx-bg-secondary);
-  border-color: transparent;
-  color: var(--tmx-text-primary);
-}
-[data-theme='dark'] .button.is-white:hover {
-  background-color: var(--tmx-bg-tertiary);
-}
-
 /* --- Tippy.js 'tippy' theme dark overrides --- */
 [data-theme='dark'] .tippy-box[data-theme~='tippy'] {
   background-color: var(--tmx-bg-elevated);
@@ -533,94 +523,12 @@ html {
   filter: invert(1);
 }
 
-/* --- CourtHive logo dark override --- */
-[data-theme='dark'] .courthive-logo path,
-[data-theme='dark'] .courthive-logo line {
-  stroke: #ffffff;
-}
-
-/* --- Tag/chip dark overrides --- */
-[data-theme='dark'] .tag:not(body) {
-  background-color: var(--tmx-bg-tertiary);
-  color: var(--tmx-text-primary);
-}
-[data-theme='dark'] .tag.is-link {
-  background-color: var(--tmx-container-link);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-link.is-light {
-  background-color: rgba(91, 155, 213, 0.15);
-  color: var(--tmx-accent-blue);
-}
-[data-theme='dark'] .tag.is-danger {
-  background-color: var(--tmx-container-danger);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-danger.is-light {
-  background-color: rgba(255, 138, 138, 0.15);
-  color: var(--tmx-accent-red);
-}
-[data-theme='dark'] .tag.is-primary {
-  background-color: var(--tmx-container-primary);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-primary.is-light {
-  background-color: rgba(51, 201, 187, 0.15);
-  color: var(--tmx-accent-teal);
-}
-[data-theme='dark'] .tag.is-info {
-  background-color: var(--tmx-container-info);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-info.is-light {
-  background-color: rgba(91, 163, 217, 0.15);
-  color: var(--tmx-status-info);
-}
-[data-theme='dark'] .tag.is-success {
-  background-color: var(--tmx-container-success);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-success.is-light {
-  background-color: rgba(92, 184, 120, 0.15);
-  color: var(--tmx-status-success);
-}
-[data-theme='dark'] .tag.is-warning {
-  background-color: var(--tmx-container-warning);
-  color: #fff;
-}
-[data-theme='dark'] .tag.is-warning.is-light {
-  background-color: rgba(230, 200, 78, 0.15);
-  color: var(--tmx-status-warning);
-}
-
-/* --- Notification dark overrides --- */
-[data-theme='dark'] .notification.is-info {
-  background-color: var(--tmx-container-info);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-success {
-  background-color: var(--tmx-container-success);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-danger {
-  background-color: var(--tmx-container-danger);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-warning {
-  background-color: var(--tmx-container-warning);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-primary {
-  background-color: var(--tmx-container-primary);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-link {
-  background-color: var(--tmx-container-link);
-  color: #fff;
-}
-[data-theme='dark'] .notification.is-info.is-light {
-  background-color: rgba(53, 113, 179, 0.15);
-  color: var(--tmx-status-info);
+/* CourtHive logo: its strokes follow the text color in every palette (the SVG defaults to currentColor).
+ * Tags and notifications derive their intent colors from palette tokens (components/tags.css, layout.css),
+ * so they need no dark overrides here. */
+.courthive-logo path,
+.courthive-logo line {
+  stroke: var(--tmx-text-primary);
 }
 
 /* --- Radio button / checkradio dark overrides --- */
@@ -647,19 +555,13 @@ html {
 
 /* Lucky draw: highlight completed pre-feed rounds needing loser selection */
 .lucky-needs-selection {
-  background-color: rgba(72, 199, 116, 0.18);
+  background-color: color-mix(in srgb, var(--tmx-container-success) 18%, transparent);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 .lucky-needs-selection:hover {
-  background-color: rgba(72, 199, 116, 0.28);
-}
-[data-theme='dark'] .lucky-needs-selection {
-  background-color: rgba(72, 199, 116, 0.2);
-}
-[data-theme='dark'] .lucky-needs-selection:hover {
-  background-color: rgba(72, 199, 116, 0.3);
+  background-color: color-mix(in srgb, var(--tmx-container-success) 28%, transparent);
 }
 
 /* Round Robin: subtle left-edge accent on completed groups. Bar sits
@@ -682,7 +584,8 @@ html {
   border-radius: 4px;
 }
 
-/* Draw position highlight: pulse to draw attention to a specific position */
+/* Draw position highlight: pulse to draw attention to a specific position. Amber in every palette: the
+   palette's warning fill, translucent so it reads over light and dark surfaces alike. */
 .draw-position-highlight {
   animation: draw-position-pulse 0.8s ease-in-out 3;
   border-radius: 4px;
@@ -693,19 +596,7 @@ html {
     background-color: transparent;
   }
   50% {
-    background-color: rgba(255, 166, 0, 0.35);
-  }
-}
-[data-theme='dark'] .draw-position-highlight {
-  animation: draw-position-pulse-dark 0.8s ease-in-out 3;
-}
-@keyframes draw-position-pulse-dark {
-  0%,
-  100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(255, 166, 0, 0.25);
+    background-color: color-mix(in srgb, var(--tmx-container-warning) 35%, transparent);
   }
 }
 
@@ -717,21 +608,9 @@ html {
 @keyframes matchup-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 166, 0, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
   50% {
-    box-shadow: 0 0 0 3px rgba(255, 166, 0, 0.55);
-  }
-}
-[data-theme='dark'] .matchup-highlight {
-  animation: matchup-pulse-dark 0.8s ease-in-out 3;
-}
-@keyframes matchup-pulse-dark {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 166, 0, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgba(255, 166, 0, 0.4);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tmx-container-warning) 55%, transparent);
   }
 }

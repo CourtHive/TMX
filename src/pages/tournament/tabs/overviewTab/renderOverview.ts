@@ -379,7 +379,7 @@ function createFormatWizardLauncher(tournamentId: string): HTMLElement {
   button.id = FORMAT_WIZARD_LAUNCHER;
   button.type = 'button';
   button.style.cssText =
-    'background: var(--tmx-accent-teal, #00b8a9); color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer;';
+    'background: var(--tmx-container-primary); color: var(--chc-on-primary); border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer;';
   button.textContent = t('formatWizard.launch');
   button.addEventListener('click', () => {
     context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/format-wizard`);

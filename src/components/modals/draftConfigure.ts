@@ -19,7 +19,21 @@ import { t } from 'i18n';
 
 const IS_WARNING = 'is-warning';
 const IS_PRIMARY = 'is-primary';
-const ACCENT_TEAL = 'var(--tmx-accent-teal, #00b8a9)';
+// Palette fills and the ink each one carries (Mentat/planning/themes/LONG_TAIL_RULES.md). Every pair is held to
+// WCAG AA by courthive-components' palette contrast test, so these read in every light and dark palette.
+const TEAL_TEXT = 'var(--chc-primary-text)';
+const FILL_TEAL = 'var(--tmx-container-primary)';
+const ON_TEAL = 'var(--chc-on-primary)';
+const FILL_SUCCESS = 'var(--tmx-container-success)';
+const ON_SUCCESS = 'var(--chc-on-success)';
+const FILL_WARNING = 'var(--tmx-container-warning)';
+const ON_WARNING = 'var(--chc-on-warning)';
+const FILL_DANGER = 'var(--tmx-container-danger)';
+const ON_DANGER = 'var(--chc-on-danger)';
+const SUCCESS_TEXT = 'var(--tmx-status-success)';
+const WARNING_TEXT = 'var(--tmx-status-warning)';
+const SECONDARY_TEXT = 'var(--tmx-text-secondary)';
+const MUTED_TEXT = 'var(--tmx-text-muted)';
 
 const ROW_STYLE =
   'display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-bottom: 1px solid var(--tmx-border-secondary, #eee); cursor: pointer; transition: background-color 0.15s;';
@@ -91,12 +105,12 @@ function buildConfigBarHtml(params: {
         <option value="desc" ${currentAscending ? '' : 'selected'}>Highest first</option>
       </select>
     </label>
-    <span id="draft-no-scales-msg" style="display: ${noScaleDisplay}; font-size: 12px; color: #e65100; font-style: italic;">No ${noScaleLabel} in tournament</span>
+    <span id="draft-no-scales-msg" style="display: ${noScaleDisplay}; font-size: 12px; color: ${WARNING_TEXT}; font-style: italic;">No ${noScaleLabel} in tournament</span>
     <label style="${labelStyle}">
       Max preferences:
       <select id="draft-pref-count" style="${selectStyle}"${disabledAttr}>${prefCountOptions(availableCount, preferencesCount)}</select>
     </label>
-    <button id="draft-clear-prefs-btn" ${configLocked ? '' : 'disabled'} style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid #e65100; background: transparent; color: #e65100; cursor: pointer; font-weight: 500; opacity: ${configLocked ? '1' : '0.4'};">
+    <button id="draft-clear-prefs-btn" ${configLocked ? '' : 'disabled'} style="padding: 3px 10px; font-size: 12px; border-radius: 3px; border: 1px solid ${WARNING_TEXT}; background: transparent; color: ${WARNING_TEXT}; cursor: pointer; font-weight: 500; opacity: ${configLocked ? '1' : '0.4'};">
       Clear preferences
     </button>
   </div>`;
@@ -173,7 +187,7 @@ export function openConfigureDraft({ drawId, eventId, callback }: ConfigureDraft
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: var(--tmx-panel-blue-bg, #e8f4fd); color: var(--tmx-panel-blue-text, #1a73e8);">
           ${availablePositions.length} available position${availablePositions.length === 1 ? '' : 's'}
         </span>
-        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: ${summary.preferencesSubmitted === summary.totalParticipants ? '#1b5e20' : '#e65100'}; color: #fff;">
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: ${summary.preferencesSubmitted === summary.totalParticipants ? FILL_SUCCESS : FILL_WARNING}; color: ${summary.preferencesSubmitted === summary.totalParticipants ? ON_SUCCESS : ON_WARNING};">
           ${summary.preferencesSubmitted} of ${summary.totalParticipants} submitted
         </span>
       </div>
@@ -427,10 +441,10 @@ function openPreferenceEntry({
         const idx = selected.indexOf(pos);
         const isSelected = idx >= 0;
         const rank = idx + 1;
-        const bg = isSelected ? ACCENT_TEAL : 'var(--tmx-bg-secondary, #f5f5f5)';
-        const color = isSelected ? '#fff' : 'var(--tmx-text-primary, #363636)';
+        const bg = isSelected ? FILL_TEAL : 'var(--tmx-bg-secondary)';
+        const color = isSelected ? ON_TEAL : 'var(--tmx-text-primary)';
         const badge = isSelected
-          ? `<span style="position:absolute;top:-2px;right:-2px;background:#e74c3c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;">${rank}</span>`
+          ? `<span style="position:absolute;top:-2px;right:-2px;background:${FILL_DANGER};color:${ON_DANGER};border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;">${rank}</span>`
           : '';
 
         return `<div class="draft-pos-btn" data-position="${pos}" style="position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:4px 8px; margin:3px; border-radius:4px; border:1px solid var(--tmx-border-secondary, #ccc); background:${bg}; color:${color}; cursor:pointer; font-size:14px; font-weight:600; transition: all 0.15s;">${pos}${badge}</div>`;
@@ -650,17 +664,19 @@ function openResolutionDetail({
     const assignedPos = resolution.assignedPosition;
     const prefMatch = resolution.preferenceMatch;
     const matchLabel = prefMatch ? `${ordinal(prefMatch)} choice` : 'Random placement';
-    const matchColor = prefMatch === 1 ? '#48c774' : prefMatch === 2 ? '#00b8a9' : prefMatch ? '#aaa' : '#999';
+    const matchColor =
+      prefMatch === 1 ? SUCCESS_TEXT : prefMatch === 2 ? TEAL_TEXT : prefMatch ? SECONDARY_TEXT : MUTED_TEXT;
 
     const selectionOrderHtml = prefs.length
       ? prefs
           .map((pos: number, idx: number) => {
             const isAssigned = pos === assignedPos;
-            const bg = isAssigned ? '#1b5e20' : ACCENT_TEAL;
+            const bg = isAssigned ? FILL_SUCCESS : FILL_TEAL;
+            const ink = isAssigned ? ON_SUCCESS : ON_TEAL;
             return `<div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--tmx-border-secondary, #333);">
-              <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 50%; background: #e74c3c; color: #fff; font-size: 11px; font-weight: 700;">${idx + 1}</span>
-              <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; padding: 0 10px; border-radius: 4px; background: ${bg}; color: #fff; font-size: 14px; font-weight: 700;">Position ${pos}</span>
-              ${isAssigned ? '<span style="font-size: 12px; font-weight: 600; color: #48c774;">← Assigned</span>' : ''}
+              <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; border-radius: 50%; background: ${FILL_DANGER}; color: ${ON_DANGER}; font-size: 11px; font-weight: 700;">${idx + 1}</span>
+              <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; padding: 0 10px; border-radius: 4px; background: ${bg}; color: ${ink}; font-size: 14px; font-weight: 700;">Position ${pos}</span>
+              ${isAssigned ? '<span style="font-size: 12px; font-weight: 600; color: var(--tmx-status-success);">← Assigned</span>' : ''}
             </div>`;
           })
           .join('')
@@ -668,9 +684,9 @@ function openResolutionDetail({
 
     const html = `
       <div style="font-size: 0.9em; overflow: hidden;">
-        <div style="margin-bottom: 12px; padding: 8px 12px; border-radius: 4px; background: #1b5e20; color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+        <div style="margin-bottom: 12px; padding: 8px 12px; border-radius: 4px; background: ${FILL_SUCCESS}; color: ${ON_SUCCESS}; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
           <span>Assigned position ${assignedPos}</span>
-          <span style="font-size: 12px; color: ${matchColor}; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 8px;">${matchLabel}</span>
+          <span style="font-size: 12px; color: ${matchColor}; background: var(--tmx-bg-tertiary); padding: 2px 8px; border-radius: 8px;">${matchLabel}</span>
         </div>
 
         <div style="display: flex; gap: 12px; margin-bottom: 12px;">
@@ -765,8 +781,11 @@ function applyModalGlow() {
   const dialogs = document.querySelectorAll('.chc-modal-dialog');
   const dialog = dialogs[dialogs.length - 1] as HTMLElement;
   if (dialog) {
-    dialog.style.boxShadow = '0 0 20px 4px rgba(0, 184, 169, 0.4), 0 0 60px 8px rgba(0, 184, 169, 0.15)';
-    dialog.style.border = '1px solid ${ACCENT_TEAL}';
+    const teal = 'var(--tmx-accent-teal)';
+    dialog.style.boxShadow = `0 0 20px 4px color-mix(in srgb, ${teal} 40%, transparent), 0 0 60px 8px color-mix(in srgb, ${teal} 15%, transparent)`;
+    // A template literal: this was a plain single-quoted string, so the browser received the placeholder text
+    // instead of a color and dropped the border.
+    dialog.style.border = `1px solid ${teal}`;
   }
 }
 
@@ -801,26 +820,20 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
               const match = res.preferenceMatch;
               const matchLabel = match ? `${ordinal(match)} choice` : 'Random';
               const matchColor =
-                match === 1
-                  ? '#48c774'
-                  : match === 2
-                    ? ACCENT_TEAL
-                    : match
-                      ? 'var(--tmx-text-secondary, #666)'
-                      : 'var(--tmx-text-muted, #999)';
+                match === 1 ? SUCCESS_TEXT : match === 2 ? TEAL_TEXT : match ? SECONDARY_TEXT : MUTED_TEXT;
               const prefsText = prefs?.length ? `(prefs: ${escapeHtml(prefs.join(', '))})` : '';
 
               return `<div class="draft-participant-row draft-participant-resolved" data-participant-id="${pid}" style="${ROW_STYLE}">
                 ${scaleBadge(pid)}<span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
                 <span style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-right: 4px;">${prefsText}</span>
                 <span style="font-size: 12px; font-weight: 600; color: ${matchColor};">${matchLabel}</span>
-                <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: #1b5e20; color: #fff;">${pos}</span>
+                <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: ${FILL_SUCCESS}; color: ${ON_SUCCESS};">${pos}</span>
               </div>`;
             }
 
             // Resolved but no resolution data (tier was resolved before resolutions tracking was added)
             const prefDisplay = prefs?.length
-              ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
+              ? `<span style="color: ${TEAL_TEXT}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
               : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
             return `<div class="draft-participant-row" style="${ROW_STYLE} cursor: default; opacity: 0.6;">
@@ -831,7 +844,7 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
 
           // Unresolved tier — editable
           const prefDisplay = prefs?.length
-            ? `<span style="color: ${ACCENT_TEAL}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
+            ? `<span style="color: ${TEAL_TEXT}; font-size: 12px;">${escapeHtml(prefs.join(', '))}</span>`
             : `<span style="color: var(--tmx-text-muted, #999); font-size: 12px; font-style: italic;">none</span>`;
 
           return `<div class="draft-participant-row draft-participant-clickable" data-participant-id="${pid}" style="${ROW_STYLE}">
@@ -845,13 +858,13 @@ function renderTiers(draftState: any, participants: Map<string, string>, scaleVa
       // Tier header with status/action
       let statusHtml: string;
       if (tier.resolved) {
-        statusHtml = `<span style="font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: #1b5e20; color: #fff;">Resolved</span>`;
+        statusHtml = `<span style="font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; background: ${FILL_SUCCESS}; color: ${ON_SUCCESS};">Resolved</span>`;
       } else if (canResolve) {
-        statusHtml = `<button class="draft-resolve-tier-btn" data-tier-index="${tierIdx}" style="font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; border: none; background: ${ACCENT_TEAL}; color: #fff; cursor: pointer;">Resolve tier</button>`;
+        statusHtml = `<button class="draft-resolve-tier-btn" data-tier-index="${tierIdx}" style="font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; border: none; background: ${FILL_TEAL}; color: ${ON_TEAL}; cursor: pointer;">Resolve tier</button>`;
       } else if (allSubmitted) {
         statusHtml = `<span style="font-size: 11px; color: var(--tmx-text-muted, #999);">waiting</span>`;
       } else {
-        statusHtml = `<span style="font-size: 11px; color: #e65100;">${submittedCount}/${totalCount} submitted</span>`;
+        statusHtml = `<span style="font-size: 11px; color: ${WARNING_TEXT};">${submittedCount}/${totalCount} submitted</span>`;
       }
 
       return `<div style="${TIER_HEADER} display: flex; align-items: center; justify-content: space-between;">
@@ -925,7 +938,9 @@ function refreshTierList({
     }
     if (pills.length >= 2 && summary) {
       pills[1].textContent = `${summary.preferencesSubmitted} of ${summary.totalParticipants} submitted`;
-      pills[1].style.background = summary.preferencesSubmitted === summary.totalParticipants ? '#1b5e20' : '#e65100';
+      const complete = summary.preferencesSubmitted === summary.totalParticipants;
+      pills[1].style.background = complete ? FILL_SUCCESS : FILL_WARNING;
+      pills[1].style.color = complete ? ON_SUCCESS : ON_WARNING;
     }
   }
 
@@ -990,9 +1005,9 @@ function openTransparencyReport({
   const gotOther = report.filter((r: any) => r.preferenceMatch && r.preferenceMatch > 3).length;
   const gotRandom = report.filter((r: any) => !r.preferenceMatch).length;
 
-  const statPill = (label: string, count: number, bg: string) =>
+  const statPill = (label: string, count: number, bg: string, ink: string) =>
     count
-      ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: ${bg}; color: #fff;">${count} ${label}</span>`
+      ? `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: ${bg}; color: ${ink};">${count} ${label}</span>`
       : '';
 
   const rows = report
@@ -1002,21 +1017,14 @@ function openTransparencyReport({
       const pos = entry.assignedPosition;
       const match = entry.preferenceMatch;
       const matchLabel = match ? `${ordinal(match)} choice` : 'Random';
-      const matchColor =
-        match === 1
-          ? '#48c774'
-          : match === 2
-            ? ACCENT_TEAL
-            : match
-              ? 'var(--tmx-text-secondary, #666)'
-              : 'var(--tmx-text-muted, #999)';
+      const matchColor = match === 1 ? SUCCESS_TEXT : match === 2 ? TEAL_TEXT : match ? SECONDARY_TEXT : MUTED_TEXT;
       const prefsText = prefs.length ? `(${escapeHtml(prefs.join(', '))})` : '';
 
       return `<div style="${ROW_STYLE} cursor: default;">
         <span style="flex: 1; color: var(--tmx-text-primary, #363636);">${escapeHtml(name)}</span>
         <span style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-right: 4px;">${prefsText}</span>
         <span style="font-size: 12px; font-weight: 600; color: ${matchColor};">${matchLabel}</span>
-        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: #1b5e20; color: #fff;">${pos}</span>
+        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: 700; border-radius: 4px; background: ${FILL_SUCCESS}; color: ${ON_SUCCESS};">${pos}</span>
       </div>`;
     })
     .join('');
@@ -1025,11 +1033,11 @@ function openTransparencyReport({
     <div style="font-size: 0.9em; overflow: hidden;">
       ${resolvedAt ? `<div style="font-size: 12px; color: var(--tmx-text-muted, #999); margin-bottom: 8px;">Resolved ${resolvedAt}</div>` : ''}
       <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-        ${statPill('1st choice', got1st, '#1b5e20')}
-        ${statPill('2nd choice', got2nd, ACCENT_TEAL)}
-        ${statPill('3rd choice', got3rd, '#1a73e8')}
-        ${statPill('other choice', gotOther, '#666')}
-        ${statPill('random', gotRandom, '#e65100')}
+        ${statPill('1st choice', got1st, FILL_SUCCESS, ON_SUCCESS)}
+        ${statPill('2nd choice', got2nd, FILL_TEAL, ON_TEAL)}
+        ${statPill('3rd choice', got3rd, 'var(--tmx-container-info)', 'var(--chc-on-info)')}
+        ${statPill('other choice', gotOther, 'var(--chc-pill-bg-dark)', 'var(--chc-pill-text)')}
+        ${statPill('random', gotRandom, FILL_WARNING, ON_WARNING)}
         <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; border-radius: 12px; background: var(--tmx-bg-secondary, #333); color: var(--tmx-text-secondary, #aaa);">${total} total</span>
       </div>
       <div style="max-height: 350px; overflow-y: auto; border: 1px solid var(--tmx-border-secondary, #eee); border-radius: 4px;">

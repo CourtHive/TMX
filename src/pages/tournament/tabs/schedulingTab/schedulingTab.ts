@@ -558,7 +558,7 @@ function refreshActionBar(): void {
   saveBtn.type = 'button';
   saveBtn.textContent = t('common.save');
   saveBtn.style.cssText =
-    'padding: 6px 14px; cursor: pointer; background: var(--tmx-fill-accent, #2563eb); color: #fff; border: 0; border-radius: 4px; font-weight: 600;';
+    'padding: 6px 14px; cursor: pointer; background: var(--tmx-fill-accent); color: var(--chc-on-link); border: 0; border-radius: 4px; font-weight: 600;';
   saveBtn.addEventListener('click', () => {
     void savePending();
   });

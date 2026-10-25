@@ -132,21 +132,25 @@ export function renderList(
   for (const session of sessions) list.appendChild(renderRow(session, participants, actions, ctx));
 }
 
-function makeBadge(text: string, bg: string): HTMLSpanElement {
+function makeBadge(text: string, { bg, ink }: BadgeColors): HTMLSpanElement {
   const badge = document.createElement('span');
-  badge.style.cssText = `margin-left:6px; padding:1px 5px; border-radius:3px; background:${bg}; color:#fff; font-size:0.7rem;`;
+  badge.style.cssText = `margin-left:6px; padding:1px 5px; border-radius:3px; background:${bg}; color:${ink}; font-size:0.7rem;`;
   badge.textContent = text;
   return badge;
 }
 
-const SUCCESS_GREEN = 'var(--tmx-status-success, #2bb673)';
+// Each badge is a palette fill with the ink the palette contrast test holds against it.
+type BadgeColors = { bg: string; ink: string };
+const SUCCESS_GREEN: BadgeColors = { bg: 'var(--tmx-container-success)', ink: 'var(--chc-on-success)' };
+const ACCENT: BadgeColors = { bg: 'var(--tmx-fill-accent)', ink: 'var(--chc-on-link)' };
+const NEUTRAL: BadgeColors = { bg: 'var(--chc-pill-bg-dark)', ink: 'var(--chc-pill-text)' };
 
-const CLASSIFICATION_BG: Record<string, string> = {
-  official: 'var(--tmx-accent-blue, #2d6cdf)',
+const CLASSIFICATION_BG: Record<string, BadgeColors> = {
+  official: ACCENT,
   scorekeeper: SUCCESS_GREEN,
-  participant: 'var(--tmx-accent-blue, #2d6cdf)',
-  crowd: 'var(--tmx-text-secondary, #666)',
-  anonymous: 'var(--tmx-text-secondary, #999)',
+  participant: ACCENT,
+  crowd: NEUTRAL,
+  anonymous: NEUTRAL,
 };
 
 function renderRow(

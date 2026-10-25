@@ -574,7 +574,7 @@ export async function renderSettingsGrid(
     const statusDot = document.createElement('span');
     const updateStatus = () => {
       const isConnected = connected();
-      statusDot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${isConnected ? '#48c774' : '#f14668'}`;
+      statusDot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${isConnected ? 'var(--tmx-status-success)' : 'var(--tmx-status-error)'}`;
     };
     updateStatus();
 

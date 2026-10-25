@@ -137,11 +137,11 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
       'cursor: pointer',
       'margin-bottom: 2px',
       'transition: background 0.15s',
-      isSelected ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff;' : '',
+      isSelected ? 'background: var(--tmx-fill-accent); color: var(--chc-on-link);' : '',
     ].join('; ');
 
     chip.addEventListener('mouseenter', () => {
-      if (!isSelected) chip.style.background = 'var(--tmx-bg-secondary, rgba(128,128,128,0.08))';
+      if (!isSelected) chip.style.background = 'var(--tmx-bg-secondary)';
     });
     chip.addEventListener('mouseleave', () => {
       if (!isSelected) chip.style.background = '';
@@ -152,7 +152,7 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
     dateLabel.style.cssText = 'font-weight: 700; font-size: 0.75rem;';
     dateLabel.textContent = formatDateLabel(d.date);
     const statusLabel = document.createElement('div');
-    statusLabel.style.cssText = `font-size: 0.6875rem; ${isSelected ? 'color: rgba(255,255,255,0.8);' : 'color: var(--tmx-muted);'}`;
+    statusLabel.style.cssText = `font-size: 0.6875rem; ${isSelected ? 'color: color-mix(in srgb, var(--chc-on-link) 80%, transparent);' : 'color: var(--tmx-text-muted);'}`;
     // Positive-only publish cue: append "· Published" when the date's order of
     // play is published; never a negative for unpublished dates.
     statusLabel.textContent = `${d.isActive ? 'Active' : 'Inactive'}${d.isPublished ? ' · Published' : ''}`;
@@ -166,19 +166,19 @@ function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect:
       const dot = document.createElement('span');
       dot.title = 'Order of play published';
       dot.style.cssText =
-        'width: 7px; height: 7px; border-radius: 50%; background: var(--tmx-accent-green, #22c55e); flex: 0 0 auto;';
+        'width: 7px; height: 7px; border-radius: 50%; background: var(--tmx-accent-green); flex: 0 0 auto;';
       badges.appendChild(dot);
     }
 
     if (d.matchUpCount != null && d.matchUpCount > 0) {
       const b = document.createElement('span');
-      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: rgba(127,127,127,0.25); color: currentColor;'}`;
+      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: color-mix(in srgb, var(--chc-on-link) 25%, transparent); color: var(--chc-on-link);' : 'background: color-mix(in srgb, var(--tmx-text-muted) 25%, transparent); color: currentColor;'}`;
       b.textContent = `${d.matchUpCount}`;
       badges.appendChild(b);
     }
     if (d.issueCount && d.issueCount > 0) {
       const b = document.createElement('span');
-      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: rgba(255,200,100,0.4); color: #fff;' : 'background: rgba(245, 158, 11, 0.15); color: var(--tmx-accent-orange, #f59e0b);'}`;
+      b.style.cssText = `font-size: 0.625rem; padding: 1px 6px; border-radius: 10px; font-weight: 600; ${isSelected ? 'background: var(--tmx-container-warning); color: var(--chc-on-warning);' : 'background: color-mix(in srgb, var(--tmx-container-warning) 15%, transparent); color: var(--tmx-status-warning);'}`;
       b.textContent = `${d.issueCount} !`;
       badges.appendChild(b);
     }

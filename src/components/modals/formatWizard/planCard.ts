@@ -14,15 +14,15 @@ const CARD_STYLE_STALE =
   'border: 2px solid var(--tmx-error-text, #d63031); border-radius: 6px; background: var(--tmx-bg-primary, #fff); padding: 11px 13px; display: flex; flex-direction: column; gap: 8px; opacity: 0.85;';
 const TOP_ROW_STYLE = 'display: flex; align-items: center; gap: 8px;';
 const RANK_BADGE_STYLE =
-  'min-width: 26px; height: 26px; border-radius: 50%; background: var(--tmx-accent-teal, #00b8a9); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;';
+  'min-width: 26px; height: 26px; border-radius: 50%; background: var(--tmx-container-primary); color: var(--chc-on-primary); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;';
 const ARCHETYPE_STYLE = 'font-size: 14px; font-weight: 600; color: var(--tmx-text-primary, #222); flex: 1;';
 const VARIANT_STYLE = 'font-size: 12px; color: var(--tmx-text-secondary, #777);';
 const VC_TAG_STYLE =
-  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-accent-teal, #00b8a9); color: #fff; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
+  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-container-primary); color: var(--chc-on-primary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
 const STALE_TAG_STYLE =
-  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-error-text, #d63031); color: #fff; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
+  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-container-danger); color: var(--chc-on-danger); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
 const CONSIDER_TAG_STYLE =
-  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-accent-teal, #00b8a9); color: #fff; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
+  'font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--tmx-container-primary); color: var(--chc-on-primary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;';
 const FLIGHTS_LINE_STYLE = 'font-size: 12px; color: var(--tmx-text-secondary, #555);';
 const NUMBERS_ROW_STYLE = 'display: flex; gap: 16px; flex-wrap: wrap;';
 const NUMBER_BLOCK_STYLE = 'display: flex; flex-direction: column; min-width: 96px;';
@@ -36,7 +36,7 @@ const FOOTER_ROW_STYLE =
   'display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;';
 const SCORE_FOOTER_STYLE = 'font-size: 11px; color: var(--tmx-text-muted, #999);';
 const APPLY_BUTTON_STYLE =
-  'background: var(--tmx-accent-teal, #00b8a9); color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer;';
+  'background: var(--tmx-container-primary); color: var(--chc-on-primary); border: none; border-radius: 4px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer;';
 const TRASH_BUTTON_STYLE =
   'background: none; color: var(--tmx-error-text, #d63031); border: 1px solid var(--tmx-error-text, #d63031); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer;';
 

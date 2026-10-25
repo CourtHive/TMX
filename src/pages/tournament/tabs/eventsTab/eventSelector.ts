@@ -8,10 +8,12 @@ import { tournamentEngine } from 'services/factory/engine';
 import { EVENTS_TABLE, EVENT_SELECTOR_TABLE, NONE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-const ACCENT_BLUE = 'var(--tmx-accent-blue, #3273dc)';
-const BORDER_PRIMARY = 'var(--tmx-border-primary, #ddd)';
-const TEXT_PRIMARY = 'var(--tmx-text-primary, #333)';
-const BG_PRIMARY = 'var(--tmx-bg-primary, #fff)';
+// A selected chip is a fill with its own ink: the accent itself lightens in dark palettes.
+const ACCENT_BLUE = 'var(--tmx-fill-accent)';
+const ON_ACCENT = 'var(--chc-on-link)';
+const BORDER_PRIMARY = 'var(--tmx-border-primary)';
+const TEXT_PRIMARY = 'var(--tmx-text-primary)';
+const BG_PRIMARY = 'var(--tmx-bg-primary)';
 
 function navButtonStyles(enabled: boolean): string {
   return [
@@ -35,7 +37,7 @@ function chipStyles(isSelected: boolean): string {
     'border-radius: 16px',
     `border: 1px solid ${isSelected ? ACCENT_BLUE : BORDER_PRIMARY}`,
     `background: ${isSelected ? ACCENT_BLUE : BG_PRIMARY}`,
-    `color: ${isSelected ? '#fff' : TEXT_PRIMARY}`,
+    `color: ${isSelected ? ON_ACCENT : TEXT_PRIMARY}`,
     'cursor: pointer',
     'font-size: 0.85em',
     'white-space: nowrap',

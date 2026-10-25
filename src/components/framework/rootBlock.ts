@@ -244,7 +244,7 @@ function newBlock(): HTMLDivElement {
       <i id='rg-route' class="nav-icon fa-solid fa-clipboard-list" style="display: none;"></i>
       <span id='chatIndicator' style="display:none; position:relative; cursor:pointer; align-items:center;" title="Tournament Chat">
         <i class="nav-icon fa-solid fa-comments"></i>
-        <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:#f59e0b; border-radius:50%; border:2px solid var(--chc-bg-primary, #fff);"></span>
+        <span id='chatBadge' style="display:none; position:absolute; top:0; right:-4px; width:10px; height:10px; background:var(--tmx-container-warning); border-radius:50%; border:2px solid var(--chc-bg-primary);"></span>
       </span>
       <i id='syncIndicator' class="nav-icon fa-solid fa-rotate" style="display:none; cursor:pointer;" title="Data updated — click to refresh"></i>
       <i id='c-route' class="nav-icon fa-solid fa-sliders"></i>

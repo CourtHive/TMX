@@ -82,33 +82,56 @@
   top: 0.5rem;
 }
 
+/* Intent variants derive from the palette, as buttons do (courthive-components buttons.css): the solid
+   fill is --chc-container-* with its --chc-on-* ink, and .is-light is the intent's text-safe ink on a 10%
+   tint. palette-contrast.test.ts holds both pairs in every palette, so no [data-theme] override is needed. */
 .notification.is-info {
-  background-color: #3e8ed0;
-  color: #fff;
+  background-color: var(--chc-container-info);
+  color: var(--chc-on-info);
 }
 .notification.is-info.is-light {
-  background-color: #eff5fb;
-  color: #296fa8;
+  background-color: color-mix(in srgb, var(--chc-container-info) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-info);
 }
 .notification.is-success {
-  background-color: #48c78e;
-  color: #fff;
+  background-color: var(--chc-container-success);
+  color: var(--chc-on-success);
+}
+.notification.is-success.is-light {
+  background-color: color-mix(in srgb, var(--chc-container-success) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-success);
 }
 .notification.is-danger {
-  background-color: #f14668;
-  color: #fff;
+  background-color: var(--chc-container-danger);
+  color: var(--chc-on-danger);
+}
+.notification.is-danger.is-light {
+  background-color: color-mix(in srgb, var(--chc-container-danger) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-error);
 }
 .notification.is-warning {
-  background-color: #ffe08a;
-  color: rgba(0, 0, 0, 0.7);
+  background-color: var(--chc-container-warning);
+  color: var(--chc-on-warning);
+}
+.notification.is-warning.is-light {
+  background-color: color-mix(in srgb, var(--chc-container-warning) 10%, var(--chc-bg-primary));
+  color: var(--chc-status-warning);
 }
 .notification.is-primary {
-  background-color: #00d1b2;
-  color: #fff;
+  background-color: var(--chc-container-primary);
+  color: var(--chc-on-primary);
+}
+.notification.is-primary.is-light {
+  background-color: color-mix(in srgb, var(--chc-container-primary) 10%, var(--chc-bg-primary));
+  color: var(--chc-primary-text);
 }
 .notification.is-link {
-  background-color: #485fc7;
-  color: #fff;
+  background-color: var(--chc-container-link);
+  color: var(--chc-on-link);
+}
+.notification.is-link.is-light {
+  background-color: color-mix(in srgb, var(--chc-container-link) 10%, var(--chc-bg-primary));
+  color: var(--chc-accent-text);
 }
 
 /* ── Navbar items ───────────────────────────────────────── */
@@ -128,7 +151,7 @@
   color: var(--tmx-status-success) !important;
 }
 .has-text-warning-dark {
-  color: #946c00 !important;
+  color: var(--tmx-status-warning) !important;
 }
 .has-text-centered {
   text-align: center !important;
