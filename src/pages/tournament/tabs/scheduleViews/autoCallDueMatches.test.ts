@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeAutoCalls, computeDueMatchUps, type StripColumn } from './autoCallDueMatches';
+import {
+  MAX_CALL_BACKDATE_MS,
+  computeDueMatchUps,
+  computeAutoCalls,
+  autoCallStamp,
+  planAutoCalls,
+  type StripColumn,
+} from './autoCallDueMatches';
 
 // A ready matchUp has two sides with participants; the raw factory cell rides on
 // `payload` (schedule.scheduledTime, sides).
@@ -151,7 +158,9 @@ describe('a due match sitting BEHIND a not-yet-due one', () => {
       ready({ matchUpId: 'overdue-row-1', scheduledTime: PAST }),
       ready({ matchUpId: 'later-row-2', scheduledTime: FUTURE }),
     ]);
-    expect(computeAutoCalls([col], AFTERNOON)).toEqual([{ matchUpId: 'overdue-row-1', drawId: 'd' }]);
+    expect(computeAutoCalls([col], AFTERNOON)).toEqual([
+      { matchUpId: 'overdue-row-1', drawId: 'd', scheduledTime: PAST },
+    ]);
   });
 });
 
@@ -285,5 +294,58 @@ describe('no venue clock, no action', () => {
   it('marks nothing as due', () => {
     expect(computeDueMatchUps(overdue, AFTERNOON)).toEqual(['M1']);
     expect(computeDueMatchUps(overdue, '')).toEqual([]);
+  });
+});
+
+describe('planAutoCalls — what a time-triggered call is stamped against', () => {
+  it("holds an idle court's not-yet-due candidate as awaiting, and calls it once its time arrives", () => {
+    const columns = [column(COURT, [ready({ matchUpId: 'm1', scheduledTime: '08:00' })])];
+    expect(planAutoCalls(columns, '07:59')).toEqual({ calls: [], awaiting: ['m1'] });
+    expect(planAutoCalls(columns, '08:00')).toEqual({
+      calls: [{ matchUpId: 'm1', drawId: 'd', scheduledTime: '08:00' }],
+      awaiting: [],
+    });
+  });
+
+  it('a candidate behind a live match is not awaiting — its call will be court-triggered', () => {
+    const columns = [
+      column(COURT, [
+        { matchUpId: 'live', matchUpStatus: 'IN_PROGRESS' },
+        ready({ matchUpId: 'm1', scheduledTime: '08:00' }),
+      ]),
+    ];
+    expect(planAutoCalls(columns, '07:59')).toEqual({ calls: [], awaiting: [] });
+  });
+
+  it('computeAutoCalls is the calls half of the plan', () => {
+    const columns = [column(COURT, [ready({ matchUpId: 'm1', scheduledTime: '08:00' })])];
+    expect(computeAutoCalls(columns, '08:00')).toEqual(planAutoCalls(columns, '08:00').calls);
+  });
+});
+
+describe('autoCallStamp', () => {
+  const scheduledMs = Date.parse('2026-10-24T12:00:00.000Z');
+
+  it('a call the clock triggered is stamped at its scheduled instant, not the tick that noticed', () => {
+    // The 30s ticker (or a throttled hidden tab) fires at 08:01:10 — the report must still read 0.
+    const nowMs = scheduledMs + 70_000;
+    expect(autoCallStamp({ nowMs, scheduledMs, awaited: true })).toBe(scheduledMs);
+  });
+
+  it('a call triggered by the court freeing up keeps the moment it happened', () => {
+    const nowMs = scheduledMs + 70_000;
+    expect(autoCallStamp({ nowMs, scheduledMs, awaited: false })).toBe(nowMs);
+  });
+
+  it('never backdates past the cap — a desk that was not watching does not claim an on-time call', () => {
+    const nowMs = scheduledMs + MAX_CALL_BACKDATE_MS + 1;
+    expect(autoCallStamp({ nowMs, scheduledMs, awaited: true })).toBe(nowMs);
+    expect(autoCallStamp({ nowMs: scheduledMs + MAX_CALL_BACKDATE_MS, scheduledMs, awaited: true })).toBe(scheduledMs);
+  });
+
+  it('never stamps a future instant, and falls back to now without a resolvable scheduled instant', () => {
+    expect(autoCallStamp({ nowMs: scheduledMs - 1, scheduledMs, awaited: true })).toBe(scheduledMs - 1);
+    expect(autoCallStamp({ nowMs: scheduledMs, scheduledMs: undefined, awaited: true })).toBe(scheduledMs);
+    expect(autoCallStamp({ nowMs: scheduledMs, scheduledMs: Number.NaN, awaited: true })).toBe(scheduledMs);
   });
 });

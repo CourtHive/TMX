@@ -41,6 +41,18 @@ export interface StripColumn {
 export interface AutoCall {
   matchUpId: string;
   drawId: string;
+  /** The candidate's `HH:MM` scheduledTime, when it has one — what a time-triggered call is stamped at. */
+  scheduledTime?: string;
+}
+
+export interface AutoCallPlan {
+  calls: AutoCall[];
+  /**
+   * Candidates on an idle court held back ONLY because their scheduledTime is still ahead. When one
+   * of these is called on a later pass, nothing changed but the clock: the call belongs to its
+   * scheduled time, not to whenever the timer happened to fire.
+   */
+  awaiting: string[];
 }
 
 const IN_PROGRESS_STATUSES = new Set(['IN_PROGRESS', 'SUSPENDED']);
@@ -158,17 +170,57 @@ export function computeDueMatchUps(columns: StripColumn[], nowHHMM: string): str
  * scheduledTime is strictly after `nowHHMM` (24h "HH:MM").
  */
 export function computeAutoCalls(columns: StripColumn[], nowHHMM: string): AutoCall[] {
+  return planAutoCalls(columns, nowHHMM).calls;
+}
+
+/** `computeAutoCalls`, plus the candidates it held back for their time — see `AutoCallPlan.awaiting`. */
+export function planAutoCalls(columns: StripColumn[], nowHHMM: string): AutoCallPlan {
   // No venue clock means no call. Without this, a matchUp with no scheduledTime is called on ANY
   // clock, including the '' a refused frame produces.
-  if (!nowHHMM) return [];
+  if (!nowHHMM) return { calls: [], awaiting: [] };
   const calls: AutoCall[] = [];
+  const awaiting: string[] = [];
   for (const column of columns) {
     if (courtOccupied(column)) continue;
     const candidate = column.cells.find(isCandidate);
     if (!candidate) continue;
     const scheduledTime = scheduledTimeOf(candidate);
-    if (scheduledTime && scheduledTime > nowHHMM) continue; // still in the future — keep waiting
-    calls.push({ matchUpId: candidate.matchUpId, drawId: candidate.drawId ?? '' });
+    if (scheduledTime && scheduledTime > nowHHMM) {
+      awaiting.push(candidate.matchUpId); // still in the future — keep waiting
+      continue;
+    }
+    calls.push({ matchUpId: candidate.matchUpId, drawId: candidate.drawId ?? '', scheduledTime });
   }
-  return calls;
+  return { calls, awaiting };
+}
+
+/**
+ * The longest a time-triggered call is backdated to its scheduled instant. The ticker runs every 30s
+ * and a hidden tab's timers are throttled to about once a minute, so a genuine time-triggered call
+ * lands within a minute or two. Past this the desk was not watching (a sleeping laptop, a tab closed
+ * and reopened) and claiming the call happened on time would be a fabrication.
+ */
+export const MAX_CALL_BACKDATE_MS = 5 * 60_000;
+
+/**
+ * The instant to stamp as `calledAt` for an auto-call.
+ *
+ * A call is time-triggered when the previous pass saw the match `awaiting` (idle court, time not
+ * yet arrived): it should read as called AT its scheduled time, not at the tick that noticed. The
+ * tick lag otherwise reports an on-time call as a minute late in the Call Timing Variance report.
+ * A call triggered by a court freeing up after the scheduled time keeps `nowMs` — that lateness is
+ * real. Never stamps a future instant.
+ */
+export function autoCallStamp({
+  nowMs,
+  scheduledMs,
+  awaited,
+}: {
+  nowMs: number;
+  scheduledMs?: number;
+  awaited: boolean;
+}): number {
+  if (!awaited || scheduledMs === undefined || Number.isNaN(scheduledMs)) return nowMs;
+  if (scheduledMs > nowMs || nowMs - scheduledMs > MAX_CALL_BACKDATE_MS) return nowMs;
+  return scheduledMs;
 }

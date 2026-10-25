@@ -19,14 +19,15 @@
  *  - On Save: all queued methods sent as single mutationRequest
  *  - On Discard: restore the draft baseline while retaining concurrent changes
  */
+import { venueClock, venueNowClock, venueNowOnDate, venueToday, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
-import { venueClock, venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { scheduleErrorMessage } from 'components/tables/matchUpsTable/setMatchUpSchedule';
+import { autoCallStamp, computeDueMatchUps, planAutoCalls } from './autoCallDueMatches';
 import { isScheduleLocked, lockedInDrop, scheduleLockReason } from './scheduleLocks';
 import { captureTournamentOperation } from 'services/tournament/operationOwnership';
 import { foldMethodsIntoScenario } from 'services/scheduleScenarios/planMutations';
@@ -34,7 +35,6 @@ import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusa
 import { getActiveRegistrationNamesByCourtId } from './practiceRegistrationStrip';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
-import { computeAutoCalls, computeDueMatchUps } from './autoCallDueMatches';
 import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { isRunningDesk } from 'services/authentication/isRunningDesk';
@@ -280,6 +280,8 @@ let activeStripUnsubscribe: (() => void) | null = null;
 let activeStripBlockTicker: ReturnType<typeof setInterval> | null = null;
 // a moved competition clock refreshes the strip at once, not on the next 30s tick
 let activeStripClockUnsubscribe: (() => void) | null = null;
+// matchUps the last auto-call pass held back only for their time; calling one next is time-triggered
+let awaitingAutoCall = new Set<string>();
 // Per-court record of which matchUp currently occupies the "Now" strip cell.
 let catalogStateUnsubscribe: (() => void) | null = null;
 
@@ -1713,6 +1715,7 @@ export function destroyGridView(): void {
   }
   activeStripClockUnsubscribe?.();
   activeStripClockUnsubscribe = null;
+  awaitingAutoCall = new Set();
   activeStrip = null;
   latestStripSnapshot = null;
   if (activeControl) {
@@ -3180,7 +3183,7 @@ function refreshActiveStrip(date: string): void {
   latestStripData = data;
   activeStrip?.setData(data);
   // "Now" only means something today: never auto-call on another date.
-  if (date === todayIso()) runAutoCallPass(data.grid.columns);
+  if (date === todayIso()) runAutoCallPass(data.grid.columns, date);
 }
 
 /**
@@ -3188,11 +3191,11 @@ function refreshActiveStrip(date: string): void {
  * match — unless that match's scheduledTime is strictly in the future. Runs on
  * every strip refresh (mutation + the 30s ticker), so a match is called both the
  * moment its court frees up and the moment its scheduledTime arrives. The pure
- * decision lives in computeAutoCalls; here we fire the mutation.
+ * decision lives in planAutoCalls; here we stamp and fire the mutation.
  *
  * FUTURE: notify the called matchUp's participants (email / push) from here.
  */
-function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void {
+function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns'], date: string): void {
   if (suppressAutoCall || !currentRefresh) return;
   // Auto-call is a running-desk action, not a viewer side effect: on a provider's
   // tournament only that provider's staff trigger it, so a super-admin (or any
@@ -3206,14 +3209,22 @@ function runAutoCallPass(columns: ActiveStripPanelData['grid']['columns']): void
   const now = competitionNow();
   // Compared against `scheduledTime`, which is a venue wall clock — so "now"
   // has to be one too, or the desk auto-calls on the operator's clock.
-  const calls = computeAutoCalls(columns as any, venueClock(now));
+  const { calls, awaiting } = planAutoCalls(columns as any, venueClock(now));
+  const awaitedBefore = awaitingAutoCall;
+  awaitingAutoCall = new Set(awaiting);
   if (!calls.length) return;
 
-  const calledAt = now.toISOString();
-  const methods = calls.map((call) => ({
-    method: SET_MATCHUP_CALLED_AT,
-    params: { matchUpId: call.matchUpId, drawId: call.drawId, calledAt },
-  }));
+  // A match the last pass held back for its time was called by the clock, not by its court freeing:
+  // stamp its scheduled instant, not the tick that noticed (30s cadence, slower in a hidden tab).
+  const nowMs = now.getTime();
+  const methods = calls.map((call) => {
+    const scheduledMs = call.scheduledTime ? venueWallClockToMs(date, call.scheduledTime) : undefined;
+    const stampMs = autoCallStamp({ nowMs, scheduledMs, awaited: awaitedBefore.has(call.matchUpId) });
+    return {
+      method: SET_MATCHUP_CALLED_AT,
+      params: { matchUpId: call.matchUpId, drawId: call.drawId, calledAt: new Date(stampMs).toISOString() },
+    };
+  });
   executeMethods(methods, currentRefresh);
 }
 
