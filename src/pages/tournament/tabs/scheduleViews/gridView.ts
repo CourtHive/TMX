@@ -186,6 +186,7 @@ const STRIP_DROP_BLOCKED_CLASS = 'tmx-strip-drop-blocked';
 const POSITION_STICKY = 'position: sticky';
 const FONT_SIZE_11 = 'font-size: 0.6875rem';
 const DISPLAY_FLEX = 'display: flex';
+const PLACEMENT_BOTTOM_START = 'bottom-start';
 
 // Grid layout constants — shared with the active strip so its leading spacer
 // matches the row-number column and its court cells align with grid columns.
@@ -740,14 +741,13 @@ export function renderGridView(
     content: presentationActions,
     interactive: true,
     trigger: 'click',
-    placement: 'bottom-end',
+    placement: PLACEMENT_BOTTOM_START,
     appendTo: () => document.body,
   });
   disposePresentationActions = () => layoutTip.destroy();
-  const headerActions = [config.headerActions ?? []].flat();
-  const printIndex = headerActions.findIndex((action) => action.dataset.schedulePrint === 'true');
-  headerActions.splice(printIndex < 0 ? headerActions.length : printIndex, 0, showInspector);
-  config.headerActions = [...headerActions, layoutButton];
+  // Inspector and layout sit with the catalog toggle: the three arrange the workspace, and the
+  // trailing actions (strip, shift, resolve, print) act on the schedule.
+  config.titleLeadingActions = [...[config.titleLeadingActions ?? []].flat(), showInspector, layoutButton];
   activeControl = createSchedulePage(config, panelArea);
   activeControl.setCatalogVisible(sidebarVisible);
   let inspectorShown = activeControl.inspectorVisible;
@@ -1273,7 +1273,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     destroyScheduledFilterTip();
     scheduledFilterTip = tippy(scheduledFilterBtn, {
       content: buildScheduledFilterPopover(),
-      placement: currentCatalogPlacement === 'bottom' ? 'top-start' : 'bottom-start',
+      placement: currentCatalogPlacement === 'bottom' ? 'top-start' : PLACEMENT_BOTTOM_START,
       interactive: true,
       trigger: 'manual',
       appendTo: () => document.body,
@@ -2538,7 +2538,7 @@ function buildGridHeaders(params: {
         theme: 'light-border',
         trigger: 'manual',
         interactive: true,
-        placement: 'bottom-start',
+        placement: PLACEMENT_BOTTOM_START,
         appendTo: () => document.body,
       });
       visibilityTip.show();
