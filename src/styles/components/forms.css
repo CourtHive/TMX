@@ -54,16 +54,16 @@ textarea {
 .input:focus {
   border-color: var(--tmx-border-focus);
   outline: none;
-  box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+  box-shadow: 0 0 0 0.125em color-mix(in srgb, var(--tmx-border-focus) 25%, transparent);
 }
 .input::placeholder {
   color: var(--tmx-text-muted);
 }
 .input.is-success {
-  border-color: #48c78e;
+  border-color: var(--tmx-status-success);
 }
 .input.is-danger {
-  border-color: #f14668;
+  border-color: var(--tmx-status-error);
 }
 
 .select {
@@ -103,10 +103,10 @@ textarea {
   margin-top: 0.25rem;
 }
 .help.is-danger {
-  color: #f14668;
+  color: var(--tmx-status-error);
 }
 .help.is-info {
-  color: #3e8ed0;
+  color: var(--tmx-status-info);
 }
 
 /* Icon positioning */

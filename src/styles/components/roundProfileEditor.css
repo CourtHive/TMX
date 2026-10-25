@@ -70,18 +70,13 @@
   margin-top: 0.15rem;
   padding: 0 0.3rem;
   border-radius: 8px;
-  background-color: var(--tmx-accent-blue);
-  color: var(--tmx-text-on-accent, white);
+  background-color: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
   white-space: nowrap;
 }
 
-/* Dark mode: --tmx-accent-blue is lightened (#5b9bd5) for surface
-   contrast, which then leaves the chip's white text at ~2.7:1 against
-   that background — well under WCAG AA. Use a saturated deep blue so
-   the chip stays in the same color family but reads cleanly (≈5:1). */
-[data-theme='dark'] .rpe__ll {
-  background-color: #1e6fc4;
-}
+/* --tmx-fill-accent is a fill that carries white ink at AA in every palette (light and dark), so the chip
+   needs no dark override — the old one existed because --tmx-accent-blue lightens in dark mode. */
 
 .rpe__error {
   color: var(--tmx-status-error, #c0392b);

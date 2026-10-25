@@ -45,9 +45,12 @@
  * them and pin every palette to one set of hexes. */
 
 .button.is-white {
-  background-color: #fff;
+  background-color: var(--tmx-bg-elevated);
   border-color: transparent;
-  color: #0a0a0a;
+  color: var(--tmx-text-primary);
+}
+.button.is-white:hover {
+  background-color: var(--tmx-bg-secondary);
 }
 
 .button.is-small {
@@ -73,7 +76,7 @@
 /* Delete button (X dismiss) */
 .delete {
   appearance: none;
-  background-color: rgba(10, 10, 10, 0.2);
+  background-color: color-mix(in srgb, var(--tmx-text-primary) 20%, transparent);
   border: none;
   border-radius: 9999px;
   cursor: pointer;
@@ -91,7 +94,7 @@
 }
 .delete::before,
 .delete::after {
-  background-color: #fff;
+  background-color: var(--tmx-bg-primary);
   content: '';
   display: block;
   left: 50%;
@@ -108,5 +111,5 @@
   width: 2px;
 }
 .delete:hover {
-  background-color: rgba(10, 10, 10, 0.3);
+  background-color: color-mix(in srgb, var(--tmx-text-primary) 30%, transparent);
 }

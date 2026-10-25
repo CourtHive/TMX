@@ -14,7 +14,7 @@ export interface CourtHiveLogoOptions {
 export function TMXlogoSVG(options: CourtHiveLogoOptions = {}): SVGSVGElement {
   const {
     maxWidth = '450px',
-    color = '#000000',
+    color = 'currentColor',
     strokeWidth = 5,
     lineWidth = 5,
     fill = 'none',
