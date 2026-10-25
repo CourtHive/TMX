@@ -19,7 +19,6 @@ export type TMXSettings = {
   activeScale?: 'wtn' | 'utr';
   scoringApproach?: 'dynamicSets' | 'freeScore' | 'dialPad' | 'inlineScoring';
   saveLocal?: boolean;
-  smartComplements?: boolean;
   formatWizard?: boolean;
   schedulePlan?: boolean;
   linkedTournaments?: boolean;
@@ -152,7 +151,6 @@ export function hydrateConfigFromStorage(): TMXSettings | null {
   const prefsPatch: Record<string, any> = {};
   if (settings.activeScale) prefsPatch.activeScale = settings.activeScale;
   if (settings.scoringApproach) prefsPatch.scoringApproach = settings.scoringApproach;
-  if (settings.smartComplements !== undefined) prefsPatch.smartComplements = settings.smartComplements;
   if (settings.drawMinimapVisible !== undefined) prefsPatch.drawMinimapVisible = settings.drawMinimapVisible;
   if (settings.officialsBoard !== undefined) prefsPatch.officialsBoard = settings.officialsBoard;
   if (Object.keys(prefsPatch).length) {
@@ -191,7 +189,6 @@ export function persistConfigToStorage(
   saveSettings({
     activeScale: prefs.activeScale as TMXSettings['activeScale'],
     scoringApproach: prefs.scoringApproach,
-    smartComplements: prefs.smartComplements,
     drawMinimapVisible: prefs.drawMinimapVisible,
     officialsBoard: prefs.officialsBoard,
     saveLocal: server.saveLocal,

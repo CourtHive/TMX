@@ -134,7 +134,6 @@ async function persistAll(
   }
   preferencesConfig.set({
     scoringApproach,
-    smartComplements: scoringInputs.smartComplements?.checked || false,
     // A preference, not a feature flag: the board is finished, this is only
     // whether it is offered. Hence Options rather than Beta features.
     officialsBoard: optionsInputs.officialsBoard?.checked || false,
@@ -178,8 +177,6 @@ export async function renderSettingsGrid(
   container: HTMLElement,
   options?: { excludeTournament?: boolean },
 ): Promise<void> {
-  const currentSettings = loadSettings();
-
   // These are populated after renderForm calls; persist closure captures the refs.
   let languageInputs: any;
   let ratingInputs: any;
@@ -345,14 +342,6 @@ export async function renderSettingsGrid(
       field: 'scoringApproach',
       id: 'scoringApproach',
       radio: true,
-    },
-    {
-      label: t('modals.settings.smartComplements'),
-      checked: currentSettings?.smartComplements || false,
-      field: 'smartComplements',
-      id: 'smartComplements',
-      onChange: persist,
-      checkbox: true,
     },
   ]);
   // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
