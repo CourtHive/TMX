@@ -66,6 +66,10 @@ export type TMXSettings = {
    */
   languageExplicit?: boolean;
   theme?: 'light' | 'dark' | 'system';
+  /** Palette shown in light mode (courthive-components THEME_PALETTES id). Unset → the light default. */
+  lightPalette?: string;
+  /** Palette shown in dark mode. Unset → the dark default. */
+  darkPalette?: string;
   fontFamily?: string;
   fontSize?: string;
   /**

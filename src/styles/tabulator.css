@@ -1463,3 +1463,10 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 .tabulator-edit-list .tabulator-edit-list-item:hover {
   color: var(--tmx-text-inverse);
 }
+
+/* Participants rendered into table cells (renderParticipant with sideContainer) carry the bracket card's
+   --chc-color-matchup fill. Inside a row that fill reads as a box wherever the palette's card surface differs
+   from its table surface (Linen: white cards on an off-white row), so a cell lets the row's own background show. */
+.tabulator-cell .chc-participant-container {
+  background-color: transparent;
+}

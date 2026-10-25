@@ -34,7 +34,8 @@ import {
   SETTINGS_TAB,
 } from 'constants/tmxConstants';
 
-const ACCENT_BLUE = 'var(--tmx-accent-blue)';
+// The navbar is app chrome: its active icon follows the palette's chrome role, not the content accent.
+const ACTIVE_NAV_COLOR = 'var(--tmx-chrome-active)';
 const ACTIVE_CLASS = 'mobile-nav-item--active';
 const MENU_OPEN_CLASS = 'mobile-nav-menu--open';
 const ARIA_EXPANDED = 'aria-expanded';
@@ -137,7 +138,7 @@ function navigateToRoute(id: string): void {
   clearSyncIndicator();
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
   const element = document.getElementById(id);
-  if (element) element.style.color = ACCENT_BLUE;
+  if (element) element.style.color = ACTIVE_NAV_COLOR;
 
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   const route = `/${TOURNAMENT}/${tournamentId}/${routeMap[id]}`;
@@ -273,7 +274,7 @@ export function tmxNavigation(): void {
     });
 
     if (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW)) {
-      element.style.color = ACCENT_BLUE;
+      element.style.color = ACTIVE_NAV_COLOR;
     }
 
     element.onclick = () => {
@@ -379,7 +380,7 @@ export function highlightTab(selectedTab: string): void {
   ids.forEach((id) => {
     const element = document.getElementById(id);
     if (element && (selectedTab === routeMap[id] || (!selectedTab && routeMap[id] === TOURNAMENT_OVERVIEW))) {
-      element.style.color = ACCENT_BLUE;
+      element.style.color = ACTIVE_NAV_COLOR;
 
       // Sync mobile nav
       const toggle = document.getElementById('mobileNavToggle');

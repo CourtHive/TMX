@@ -13,7 +13,8 @@ body {
 body {
   font-size: 1.4rem;
   color: var(--tmx-text-primary);
-  background-color: var(--tmx-bg-primary);
+  /* The canvas behind surfaces; cards, tables and panels paint --tmx-bg-primary over it. */
+  background-color: var(--tmx-canvas);
   /* min-height, not height: a page taller than the window must grow the box it
      scrolls in. `height: 100vh` pinned body to the viewport and let content
      overflow it, which is half of why the shell never lined up with the fold. */
@@ -488,8 +489,9 @@ body {
 }
 
 #dnav {
-  background-color: var(--tmx-bg-primary);
-  color: var(--tmx-text-primary);
+  /* App chrome: its own palette role, so a palette can give the navbar a band (Courtside's navy). */
+  background-color: var(--tmx-chrome-bg);
+  color: var(--tmx-chrome-text);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -499,7 +501,7 @@ body {
   justify-content: space-between;
   min-height: 52px;
   transition: top 500ms ease-in-out;
-  border-bottom: 1px solid var(--tmx-border-primary);
+  border-bottom: 1px solid var(--tmx-chrome-border);
   font-size: 18px; /* Fixed — nav bar should not scale with --tmx-font-size */
 }
 
@@ -542,8 +544,8 @@ body {
   opacity: 1;
 }
 
-.nav-icon { width: 2em; text-align: center; }
-.home-nav-icon { width: 2em; text-align: center; cursor: pointer; }
+.nav-icon { width: 2em; text-align: center; color: var(--tmx-chrome-icon); }
+.home-nav-icon { width: 2em; text-align: center; cursor: pointer; color: var(--tmx-chrome-icon); }
 
 #provider {
   cursor: pointer;
