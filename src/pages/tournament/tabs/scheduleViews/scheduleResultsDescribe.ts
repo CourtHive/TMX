@@ -123,6 +123,63 @@ export function describePlayedOrderDeferred(
   return `${phrase({ matchUp, when })}${more}${tried}`;
 }
 
+/** a participant short of the policy's overnight rest before a matchUp (the factory warns, it does not hold) */
+export type OvernightRestWarning = {
+  /** absent when the player is not yet known: whoever advances from `previousMatchUpId` */
+  participantId?: string;
+  matchUpId: string;
+  scheduleTime: string;
+  previousMatchUpId: string;
+  previousEndTime: string;
+  restMinutes: number;
+  requiredMinutes: number;
+};
+
+export function formatMinutes(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (!hours) return `${rest}m`;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+}
+
+/** the warnings of one date, one entry per matchUp warned, in the order of their start */
+export function groupOvernightRest(warnings: OvernightRestWarning[]): [string, OvernightRestWarning[]][] {
+  const byMatchUp = new Map<string, OvernightRestWarning[]>();
+  for (const warning of warnings) {
+    const group = byMatchUp.get(warning.matchUpId) ?? [];
+    group.push(warning);
+    byMatchUp.set(warning.matchUpId, group);
+  }
+  return [...byMatchUp.entries()].sort(([, [a]], [, [b]]) => a.scheduleTime.localeCompare(b.scheduleTime));
+}
+
+// "Amelie Paz rested 9h 30m after 22:30 (12h asked); the player advancing from R1 · A / B rested …"
+export function describeOvernightRest(
+  warnings: OvernightRestWarning[],
+  lookups: { participants: ParticipantLookup; matchUps: MatchUpLookup },
+  phrase: (params: { who: string; rest: string; end: string; required: string }) => string,
+  advancing: (params: { matchUp: string }) => string,
+): string {
+  return warnings
+    .map((warning) => {
+      const who = warning.participantId
+        ? (lookups.participants.get(warning.participantId) ?? warning.participantId)
+        : advancing({ matchUp: matchUpLabel(warning.previousMatchUpId, lookups.matchUps) });
+      return phrase({
+        required: formatMinutes(warning.requiredMinutes),
+        rest: formatMinutes(warning.restMinutes),
+        end: warning.previousEndTime,
+        who,
+      });
+    })
+    .join('; ');
+}
+
+function matchUpLabel(matchUpId: string, matchUps: MatchUpLookup): string {
+  const entry = matchUps.get(matchUpId);
+  return entry ? [entry.roundLabel, entry.participantsLabel].filter(Boolean).join(' · ') : matchUpId;
+}
+
 /**
  * One row per matchUp a conflict refused. The factory reports a date's conflicts as one entry per person request a
  * placement broke, `{ request, scheduleTimes, matchUpIds }`; releases before that reported `{ matchUpId, scheduleTime,

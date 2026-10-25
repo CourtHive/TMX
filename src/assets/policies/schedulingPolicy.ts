@@ -2,12 +2,15 @@ import { matchUpTypes, policyConstants } from 'tods-competition-factory';
 
 const { POLICY_TYPE_SCHEDULING } = policyConstants;
 const { DOUBLES, SINGLES } = matchUpTypes;
+const JUNIOR = 'JUNIOR';
 
 export const POLICY_SCHEDULING = {
   [POLICY_TYPE_SCHEDULING]: {
     defaultTimes: {
       recoveryTimes: [{ minutes: { [DOUBLES]: 30, default: 60 } }],
       averageTimes: [{ minutes: { default: 90 } }],
+      // a guideline, warned and never held: 12 hours from a junior's last end of play to their first start next day
+      overnightTimes: [{ categoryTypes: [JUNIOR], minutes: { default: 720 } }, { minutes: { default: 0 } }],
     },
     defaultDailyLimits: {
       [SINGLES]: 2,

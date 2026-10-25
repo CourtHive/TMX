@@ -3473,7 +3473,10 @@
     "noFormat": "No Format",
     "playedOrder": "Deferred — Played Order",
     "playedOrderDetail": "{{matchUp}} already played {{when}}",
-    "dailyLimitWarnings": "Placed Over Daily Limit"
+    "dailyLimitWarnings": "Placed Over Daily Limit",
+    "overnightRest": "Short Overnight Rest",
+    "overnightRestDetail": "{{who}} rested {{rest}} after {{end}} ({{required}} recommended)",
+    "overnightRestAdvancing": "the player from {{matchUp}}"
   },
   "schedulingTab": {
     "availability": "Availability",
