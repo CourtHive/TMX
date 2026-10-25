@@ -3255,7 +3255,12 @@
     "tournamentChat": "Tournament Chat",
     "noRecentActivity": "No chat activity in the recent window.",
     "monitorTitle": "Chat Monitor — all tournaments",
-    "selectGroup": "Select a group pill to reply into that tournament"
+    "selectGroup": "Select a group pill to reply into that tournament",
+    "sending": "Sending",
+    "delivered": "Delivered",
+    "notDelivered": "Not delivered",
+    "retry": "Retry",
+    "clickToRetry": "Click to send it again."
   },
   "drawActions": {
     "pagePlayoff": "Page Playoff",
