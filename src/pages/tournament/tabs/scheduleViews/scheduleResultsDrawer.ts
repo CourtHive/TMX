@@ -1,8 +1,9 @@
 /**
  * Schedule 2 — Results Drawer
  *
- * Opens a modal that surfaces the full return value of `scheduleProfileRounds`
- * after Apply Schedule runs. The factory hands back a per-date breakdown for
+ * Opens a modal that surfaces the full return value of a scheduling run: the timed
+ * pipeline's `scheduleProfileRounds` after Apply Schedule, or the grid's
+ * `scheduleProfileGrid` when it placed matchUps over a daily limit. The factory hands back a per-date breakdown for
  * every category of outcome (scheduled / over-limit / no-time / deferred for
  * recovery / deferred for dependencies / request conflicts), all of which were
  * previously discarded by the lone success toast.
@@ -50,7 +51,8 @@ interface Lookups {
 
 export type { OverLimitAttempt };
 
-export type ScheduleProfileRoundsResult = {
+/** what either scheduling pipeline returns: `scheduleProfileRounds` or `scheduleProfileGrid` */
+export type ScheduleRunResult = {
   scheduledMatchUpIds?: { [date: string]: string[] };
   overLimitMatchUpIds?: { [date: string]: string[] };
   overLimitMatchUpDetails?: { [date: string]: OverLimitAttempt[] };
@@ -64,13 +66,14 @@ export type ScheduleProfileRoundsResult = {
     [date: string]: { [matchUpId: string]: { scheduleTime: string; remainingDependencies?: string[] }[] };
   };
   playedOrderDeferredMatchUpIds?: { [date: string]: { [matchUpId: string]: PlayedOrderDeferral } };
+  /** grid only: placed over a daily limit when the limits are reported, not enforced ("No policy" sends `{}`) */
   dailyLimitWarningMatchUpIds?: { [date: string]: string[] };
   noFormatMatchUpIds?: { [date: string]: string[] };
   requestConflicts?: { [date: string]: any[] };
   scheduledDates?: string[];
 };
 
-export function openScheduleResultsDrawer(result: ScheduleProfileRoundsResult): void {
+export function openScheduleResultsDrawer(result: ScheduleRunResult): void {
   const lookups: Lookups = {
     matchUps: buildMatchUpLookup(),
     participants: buildParticipantLookup(),
@@ -165,7 +168,7 @@ function buildParticipantLookup(): ParticipantLookup {
 // Date collection
 // ---------------------------------------------------------------------------
 
-function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
+function collectAllDates(result: ScheduleRunResult): string[] {
   const set = new Set<string>();
   for (const date of result.scheduledDates ?? []) set.add(date);
   for (const date of Object.keys(result.scheduledMatchUpIds ?? {})) set.add(date);
@@ -184,7 +187,7 @@ function collectAllDates(result: ScheduleProfileRoundsResult): string[] {
 // Section builders
 // ---------------------------------------------------------------------------
 
-function buildDateSection(date: string, result: ScheduleProfileRoundsResult, lookups: Lookups): HTMLElement {
+function buildDateSection(date: string, result: ScheduleRunResult, lookups: Lookups): HTMLElement {
   const section = document.createElement('section');
   section.style.cssText =
     'border: 1px solid var(--sp-line, var(--tmx-border-secondary)); border-radius: 8px; padding: 12px; background: var(--sp-panel-bg, var(--tmx-bg-primary));';
