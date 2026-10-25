@@ -1,4 +1,4 @@
-import { initDevBridge, resetState, seedFeatureFlagInitScript, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
@@ -25,11 +25,14 @@ import { test, expect, type Page } from '@playwright/test';
  */
 
 const SCORING_POLICY_TYPE = 'scoring';
-const REASON_SELECT = '#statusCodeSelectV2';
-const OUTCOME_RADIO = 'input[name="matchOutcome"]';
-const WINNER_RADIO = 'input[name="irregularWinner"]';
-const SUBMIT = '#submitScoreV2';
-const SET_INPUT = (setIndex: number, side: number) => `input[data-set-index="${setIndex}"][data-side="${side}"]`;
+const DIALOG = '.chc-sec';
+const SUBMIT = `${DIALOG} button[data-action="submit"]`;
+const SET_INPUT = (set: number, side: number) => `input.chc-sec-set-input[data-set="${set}"][data-side="${side}"]`;
+// The participant's name opens "what happened to them?"; side 2 retires, so side 1 wins.
+const RETIRING_SIDE = 2;
+const ENDED_EARLY = `${DIALOG} button[data-action="endedEarly"][data-side="${RETIRING_SIDE}"]`;
+const RETIRED_OPTION = `${DIALOG} [data-panel-side="${RETIRING_SIDE}"] button[data-ending="RETIRED"]`;
+const REASON_CHIPS = `${DIALOG} [data-panel-side="${RETIRING_SIDE}"] .chc-sec-reasons button[data-reason]`;
 
 /** A retirement-through-injury, from the governing body's shipped vocabulary. */
 const INJURY_CODE = 'RJ';
@@ -74,22 +77,22 @@ async function seedTournament(page: Page, withPolicy: boolean): Promise<Seeded> 
 }
 
 /**
- * Open the real scoring modal and enter a partial set, which is what a retirement actually looks
- * like: someone retired at 3-2 in the first set.
+ * Open the real score entry dialog, enter a partial set — someone retired at 3-2 in the first set — and
+ * record that side 2 retired.
  *
- * The partial score is also what REVEALS the irregular-ending controls — dynamicSets keeps them
- * hidden until a score is in progress, on the reasoning that a matchUp nobody has started scoring
- * has no ending to describe. The radios are in the DOM from the start but not visible, so a journey
- * that only waited for them to be attached would hang on a control the operator cannot click.
+ * The partial score matters: a retirement cannot follow a finished score, so the dialog withholds the
+ * RETIRED ending until the score is one a retirement could interrupt.
  */
-async function openScoringModalWithPartialScore(page: Page, matchUpId: string): Promise<void> {
+async function enterRetirement(page: Page, matchUpId: string): Promise<void> {
   await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), matchUpId);
-  await page.locator(SET_INPUT(0, 1)).waitFor({ state: 'visible' });
+  await page.locator(SET_INPUT(1, 1)).waitFor({ state: 'visible' });
 
-  await page.locator(SET_INPUT(0, 1)).fill('3');
-  await page.locator(SET_INPUT(0, 2)).fill('2');
+  await page.locator(SET_INPUT(1, 1)).fill('3');
+  await page.locator(SET_INPUT(1, 2)).fill('2');
 
-  await page.locator(`${OUTCOME_RADIO}[value="RETIRED"]`).waitFor({ state: 'visible' });
+  await page.locator(ENDED_EARLY).click();
+  await expect(page.locator(RETIRED_OPTION)).toBeEnabled();
+  await page.locator(RETIRED_OPTION).click();
 }
 
 async function readStatusCodes(page: Page, matchUpId: string): Promise<any> {
@@ -102,9 +105,6 @@ async function readStatusCodes(page: Page, matchUpId: string): Promise<any> {
 }
 
 async function boot(page: Page): Promise<void> {
-  // This is the SHIPPED modal's acceptance test. The new score-entry dialog is on by default (CA,
-  // 2026-10-08), so the flag is turned off here to keep the fallback covered.
-  await seedFeatureFlagInitScript(page, 'scoreEntryDialog', false);
   await page.goto('/');
   await waitForAppReady(page);
   await initDevBridge(page);
@@ -116,18 +116,16 @@ test.describe('journey 126 — scoring reason codes', () => {
     await boot(page);
     const { matchUpId } = await seedTournament(page, true);
 
-    await openScoringModalWithPartialScore(page, matchUpId);
+    await enterRetirement(page, matchUpId);
 
-    // CONTROL: the picker must be populated from the policy before anything is asserted about it.
-    // An empty or absent select here would make every assertion below pass vacuously.
-    await page.locator(`${OUTCOME_RADIO}[value="RETIRED"]`).check();
-    await expect(page.locator(REASON_SELECT)).toBeVisible();
-    const offered = await page.locator(`${REASON_SELECT} option`).evaluateAll((o) => o.map((x: any) => x.value));
+    // CONTROL: the reasons must be populated from the policy before anything is asserted about them.
+    // No chips here would make every assertion below pass vacuously.
+    await expect(page.locator(REASON_CHIPS).first()).toBeVisible();
+    const offered = await page.locator(REASON_CHIPS).evaluateAll((b) => b.map((x: any) => x.dataset.reason));
     expect(offered.length).toBeGreaterThan(1);
     expect(offered).toContain(INJURY_CODE);
 
-    await page.locator(`${WINNER_RADIO}[value="1"]`).check();
-    await page.locator(REASON_SELECT).selectOption(INJURY_CODE);
+    await page.locator(`${REASON_CHIPS}[data-reason="${INJURY_CODE}"]`).click();
     await page.locator(SUBMIT).click();
 
     await expect
@@ -146,12 +144,10 @@ test.describe('journey 126 — scoring reason codes', () => {
     await boot(page);
     const { matchUpId } = await seedTournament(page, false);
 
-    await openScoringModalWithPartialScore(page, matchUpId);
-    await page.locator(`${OUTCOME_RADIO}[value="RETIRED"]`).check();
+    await enterRetirement(page, matchUpId);
 
-    await expect(page.locator(REASON_SELECT)).toBeHidden();
+    await expect(page.locator(REASON_CHIPS)).toHaveCount(0);
 
-    await page.locator(`${WINNER_RADIO}[value="1"]`).check();
     await page.locator(SUBMIT).click();
 
     await expect

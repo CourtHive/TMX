@@ -63,10 +63,10 @@ describe('clearPermitted', () => {
 });
 
 describe('isClearingOutcome', () => {
-  it('recognises the clear both dialogs send', () => {
+  it('recognises a clear, in either outcome shape', () => {
     // openScoreEntryDialog, via engineOutcome
     expect(isClearingOutcome({ score: { sets: [] }, matchUpStatusCodes: [] })).toBe(true);
-    // the older scoringModal, via scoreMatchUp's translation
+    // the engine's own shape for an emptied result
     expect(isClearingOutcome({ score: { sets: [] }, matchUpStatus: undefined, winningSide: undefined })).toBe(true);
     expect(isClearingOutcome({ score: { sets: [] }, matchUpStatus: 'TO_BE_PLAYED' })).toBe(true);
   });

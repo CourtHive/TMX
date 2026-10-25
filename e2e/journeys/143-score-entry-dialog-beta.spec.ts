@@ -1,22 +1,20 @@
-import { initDevBridge, resetState, seedFeatureFlagInitScript, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
- * Journey 143 — the new score entry dialog (beta flag, ON by default) records a result through the engine.
+ * Journey 143 — the score entry dialog records a result through the engine.
  *
- * CA, 2026-10-08: *"is the new score entry exported such that we could add it to TMX with a beta
- * flag?"* It is, and this is the flag. The dialog (courthive-components `openScoreEntryDialog`) reports
- * an outcome already in the shape `setMatchUpStatus` reads, so TMX forwards it as is. Asserted here,
- * through the app's real entry point (`dev.enterMatchUpScore` is `enterMatchUpScore`, not a stand-in):
- *  1. with the flag OFF the shipped modal opens and the new dialog does not;
- *  2. with the flag ON the new dialog opens, a result typed under Dynamic Sets reaches the matchUp as
- *     COMPLETED with both sets and the winner, and the dialog closes.
+ * The dialog (courthive-components `openScoreEntryDialog`) arrived behind a beta flag (CA, 2026-10-08)
+ * and is now TMX's only score entry: the three scoring modals it replaced are gone. It reports an outcome
+ * already in the shape `setMatchUpStatus` reads, so TMX forwards it as is. Asserted here, through the
+ * app's real entry point (`dev.enterMatchUpScore` is `enterMatchUpScore`, not a stand-in): the dialog
+ * opens, a result typed under Dynamic Sets reaches the matchUp as COMPLETED with both sets and the
+ * winner, and the dialog closes.
  */
 const NEW_DIALOG = '.chc-sec';
 const NEW_DIALOG_SUBMIT = '.chc-sec-btn-primary';
 const NEW_DIALOG_INPUT = (set: number, side: number) =>
   `input.chc-sec-set-input[data-set="${set}"][data-side="${side}"]`;
-const OLD_MODAL_SUBMIT = '#submitScoreV2';
 
 type Seeded = { tournamentId: string; matchUpId: string };
 type Recorded = { matchUpStatus?: string; winningSide?: number; sets: { side1Score?: number; side2Score?: number }[] };
@@ -60,34 +58,10 @@ async function boot(page: Page): Promise<void> {
   await resetState(page);
 }
 
-test.describe('journey 143 — score entry dialog behind the beta flag', () => {
-  test('by default the new dialog opens, with no flag set — CA: "automatically checked by default"', async ({
-    page,
-  }) => {
+test.describe('journey 143 — score entry dialog', () => {
+  test('the dialog opens and its result reaches the matchUp', async ({ page }) => {
     await boot(page);
-    const { matchUpId } = await seedTournament(page, 'e2e-score-entry-default');
-
-    await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), matchUpId);
-
-    await expect(page.locator(NEW_DIALOG)).toBeVisible();
-    await expect(page.locator(OLD_MODAL_SUBMIT)).toHaveCount(0);
-  });
-
-  test('flag off: the shipped scoring modal opens, not the new dialog — the fallback', async ({ page }) => {
-    await seedFeatureFlagInitScript(page, 'scoreEntryDialog', false);
-    await boot(page);
-    const { matchUpId } = await seedTournament(page, 'e2e-score-entry-flag-off');
-
-    await page.evaluate((id) => (dev as any).enterMatchUpScore({ matchUpId: id }), matchUpId);
-
-    await expect(page.locator(OLD_MODAL_SUBMIT)).toBeVisible();
-    await expect(page.locator(NEW_DIALOG)).toHaveCount(0);
-  });
-
-  test('flag on: the new dialog opens and its result reaches the matchUp', async ({ page }) => {
-    await seedFeatureFlagInitScript(page, 'scoreEntryDialog');
-    await boot(page);
-    const { matchUpId } = await seedTournament(page, 'e2e-score-entry-flag-on');
+    const { matchUpId } = await seedTournament(page, 'e2e-score-entry-dialog');
 
     // CONTROL: nothing recorded yet, so the assertions below cannot pass on seeded state
     expect((await readRecorded(page, matchUpId)).sets).toEqual([]);
@@ -96,7 +70,6 @@ test.describe('journey 143 — score entry dialog behind the beta flag', () => {
 
     const dialog = page.locator(NEW_DIALOG);
     await expect(dialog).toBeVisible();
-    await expect(page.locator(OLD_MODAL_SUBMIT)).toHaveCount(0);
 
     // a straight-sets result under Dynamic Sets: the second set's cells appear once the first is complete
     await page.locator(NEW_DIALOG_INPUT(1, 1)).fill('6');

@@ -6,19 +6,12 @@ import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { handleScoreClick } from './handleMatchUpScoreClick';
-import { featureFlags } from 'config/featureFlags';
 
 const toastMock = vi.fn();
-let capturedModalParams: any;
+let capturedDialogParams: any;
 
 vi.mock('services/factory/engine', async () => ({
   tournamentEngine: (await import('tods-competition-factory')).tournamentEngine,
-}));
-// The shipped score modal is replaced by a capture; everything between the click and the mutation is real TMX code.
-vi.mock('components/modals/scoringV2', () => ({
-  scoringModal: (params: any) => {
-    capturedModalParams = params;
-  },
 }));
 // Applies the methods to the local engine, as an acknowledged mutation would.
 const mutationRequestMock = vi.fn(({ methods, callback }: any) => callback(tournamentEngine.executionQueue(methods)));
@@ -26,7 +19,13 @@ vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest: (p: any) 
 vi.mock('components/modals/baseModal/baseModal', () => ({ closeModal: vi.fn() }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...a: any[]) => toastMock(...a) }));
 vi.mock('services/messaging/scoreRelay', () => ({ subscribeToMatchUp: vi.fn(), unsubscribeFromMatchUp: vi.fn() }));
-vi.mock('courthive-components', () => ({ openScoreEntryDialog: vi.fn() }));
+// The score entry dialog is replaced by a capture; everything between the click and the mutation is real TMX code.
+vi.mock('courthive-components', () => ({
+  openScoreEntryDialog: (params: any) => {
+    capturedDialogParams = params;
+    return { close: vi.fn() };
+  },
+}));
 vi.mock('services/settings/settingsStorage', () => ({ persistConfigToStorage: vi.fn() }));
 vi.mock('components/overlays/scorecard/scorecard', () => ({ openScorecard: vi.fn() }));
 vi.mock('services/transitions/recordExitBeforeArrival', () => ({
@@ -60,10 +59,10 @@ function completedOutcome(winningSide: number) {
   };
 }
 
-/** What the score modal hands back on submit. */
-function modalOutcome(winningSide: number) {
-  const { matchUpStatus, score } = completedOutcome(winningSide);
-  return { matchUpStatus, winningSide, sets: score.sets };
+/** What the score entry dialog hands back on submit: an engine-ready outcome and its sets. */
+function dialogResult(winningSide: number) {
+  const outcome = completedOutcome(winningSide);
+  return { outcome, sets: outcome.score.sets };
 }
 
 /** A first-round RETIRED result imported with no score, whose winner has already won the next match. */
@@ -113,18 +112,17 @@ function importedRetirement() {
 const sideIds = (matchUp: any) => matchUp?.sides?.map((side: any) => side.participantId);
 const cellFor = (data: any) => ({ getRow: () => ({ getData: () => data }) });
 
-/** Clicks the score cell, then submits `outcome` from the score modal the click opened. */
-function correctThroughTable(target: any, outcome: any) {
+/** Clicks the score cell, then submits `result` from the score entry dialog the click opened. */
+function correctThroughTable(target: any, result: any) {
   handleScoreClick(vi.fn(), vi.fn())({}, cellFor({ matchUp: target }));
-  expect(capturedModalParams?.matchUp?.matchUpId).toBe(target.matchUpId);
-  capturedModalParams.callback(outcome);
+  expect(capturedDialogParams?.matchUp?.matchUpId).toBe(target.matchUpId);
+  capturedDialogParams.onSubmit(result);
   expect(mutationRequestMock).toHaveBeenCalledTimes(1);
   return mutationRequestMock.mock.calls[0][0].methods;
 }
 
 beforeEach(() => {
-  featureFlags.set({ scoreEntryDialog: false });
-  capturedModalParams = undefined;
+  capturedDialogParams = undefined;
   vi.stubGlobal('document', {
     createElement: () => ({ classList: { add: vi.fn() }, style: {}, textContent: '', prepend: vi.fn() }),
   });
@@ -142,14 +140,14 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
     const { target } = importedRetirement();
     const setFocus = vi.fn();
     handleScoreClick(vi.fn(), setFocus)({}, cellFor({ matchUp: target }));
-    expect(capturedModalParams?.matchUp?.matchUpId).toBe(target.matchUpId);
+    expect(capturedDialogParams?.matchUp?.matchUpId).toBe(target.matchUpId);
     expect(setFocus).not.toHaveBeenCalled();
   });
 
   it('also opens scoreless corrections from the round table', () => {
     const { target } = importedRetirement();
     handleRoundScoreClick(vi.fn())({}, cellFor({ matchUp: target }));
-    expect(capturedModalParams?.matchUp?.matchUpId).toBe(target.matchUpId);
+    expect(capturedDialogParams?.matchUp?.matchUpId).toBe(target.matchUpId);
   });
 
   it('permits scoring but withholds result removal', () => {
@@ -161,7 +159,7 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
   it('sends a same-winner correction with change propagation and leaves the next match untouched', () => {
     const { target, nextId } = importedRetirement();
     const before = tournamentEngine.q.matchUp({ matchUpId: nextId });
-    let result: any = correctThroughTable(target, modalOutcome(2));
+    let result: any = correctThroughTable(target, dialogResult(2));
     expect(result).toEqual([
       expect.objectContaining({
         method: 'setMatchUpStatus',
@@ -178,7 +176,7 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
     const before: any = tournamentEngine.q.matchUp({ matchUpId: nextId });
     expect(sideIds(before)).toContain(oldWinner);
 
-    correctThroughTable(target, modalOutcome(1));
+    correctThroughTable(target, dialogResult(1));
     expect(toastMock).not.toHaveBeenCalledWith(expect.objectContaining({ intent: 'is-danger' }));
     expect(tournamentEngine.q.matchUp({ matchUpId: target.matchUpId })?.winningSide).toBe(1);
 
@@ -205,7 +203,7 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
     expect(scoreFormatter(cellFor({ matchUp, readyToScore: true, scorePermitted: false }))).toBeUndefined();
     const setFocus = vi.fn();
     handleScoreClick(vi.fn(), setFocus)({}, cellFor({ matchUp }));
-    expect(capturedModalParams).toBeUndefined();
+    expect(capturedDialogParams).toBeUndefined();
     expect(setFocus).not.toHaveBeenCalled();
     // The empty cell advertised nothing, so nothing is said.
     expect(toastMock).not.toHaveBeenCalled();
@@ -216,7 +214,7 @@ describe('a scoreless recorded retirement with a completed downstream match', ()
     const matchUp = { matchUpId: 'absent', drawId: 'absent', matchUpStatus: 'RETIRED' };
     handleScoreClick(vi.fn(), vi.fn())({}, cellFor({ matchUp }));
     handleRoundScoreClick(vi.fn())({}, cellFor({ matchUp }));
-    expect(capturedModalParams).toBeUndefined();
+    expect(capturedDialogParams).toBeUndefined();
     expect(toastMock).toHaveBeenCalledTimes(2);
     expect(toastMock).toHaveBeenCalledWith({ message: 'toasts.scoreRefused', intent: 'is-warning' });
   });
