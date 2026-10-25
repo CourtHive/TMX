@@ -100,12 +100,6 @@ export const env: any = {
   set scoringApproach(v: any) {
     preferencesConfig.set({ scoringApproach: v });
   },
-  get smartComplements() {
-    return preferencesConfig.get().smartComplements;
-  },
-  set smartComplements(v: boolean) {
-    preferencesConfig.set({ smartComplements: v });
-  },
   get hotkeys() {
     return preferencesConfig.get().hotkeys;
   },
