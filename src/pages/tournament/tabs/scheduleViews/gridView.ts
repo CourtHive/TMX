@@ -217,13 +217,14 @@ function ensurePlanModeStyles(): void {
   style.id = 'tmx-plan-mode-styles';
   style.textContent =
     '.tmx-planned-cell{box-shadow:inset 3px 0 0 var(--tmx-accent-blue,#2563eb);' +
-    'background:color-mix(in srgb, var(--tmx-accent-blue,#2563eb) 12%, transparent) !important;}' +
+    'background:color-mix(in srgb, var(--tmx-accent-blue) 12%, transparent) !important;}' +
     // Plan mode: the catalog stays visible for reference but is inert — the plan
     // never pulls matchUps out of the catalog until it is made official.
     '.tmx-plan-catalog-inert{pointer-events:none;opacity:0.55;filter:grayscale(0.3);position:relative;}' +
     ".tmx-plan-catalog-inert::before{content:'Plan mode — reference only';position:sticky;top:0;left:0;right:0;" +
     'display:block;z-index:5;font-size:0.625rem;font-weight:700;letter-spacing:0.03em;text-align:center;' +
-    'padding:3px 4px;background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;}' +
+    // The warning FILL with its ink: --tmx-status-warning is a text color, too dark to carry ink.
+    'padding:3px 4px;background:var(--tmx-container-warning);color:var(--chc-on-warning);}' +
     // Completed matchUps can't be re-planned (a commit skips them) — render them
     // visibly pinned in Plan mode. The PIN glyph, not a padlock: 🔒 means a
     // director's schedule lock (below), and one glyph cannot mean both.
@@ -951,16 +952,16 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
       'border: 1px solid transparent',
       'white-space: nowrap',
       active
-        ? 'background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600;'
-        : 'background: var(--sp-chip-bg, rgba(128,128,128,0.12)); color: inherit;',
+        ? 'background: var(--tmx-fill-accent); color: var(--chc-on-link); font-weight: 600;'
+        : 'background: var(--sp-chip-bg); color: inherit;',
     ].join('; ');
   // Both Unscheduled and Scheduled tabs carry an inline (n) count badge —
   // populated on initial render and refreshed whenever the store ticks. The
   // badges give operators an at-a-glance hint of how much work remains on
-  // each side without switching tabs. Translucent-white background reads
-  // legibly against both the active (blue) and inactive (gray) tab fills.
+  // each side without switching tabs. A tint of the tab's own text color reads
+  // against both the active (accent) and inactive (chip) tab fills, in every palette.
   const badgeCss =
-    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: rgba(255,255,255,0.25); color: inherit; min-width: 16px; text-align: center;';
+    'display: inline-block; font-size: 0.625rem; font-weight: 700; padding: 0 6px; border-radius: 9px; background: color-mix(in srgb, currentColor 20%, transparent); color: inherit; min-width: 16px; text-align: center;';
 
   unschedTab.textContent = t('schedule.unscheduled');
   unschedTab.appendChild(document.createTextNode(' '));
@@ -1811,7 +1812,7 @@ function ensureSearchHighlightStyle(): void {
   if (document.getElementById('sch2-search-style')) return;
   const style = document.createElement('style');
   style.id = 'sch2-search-style';
-  style.textContent = `.${SEARCH_HIGHLIGHT_CLASS} { outline: 2px solid #f59e0b; outline-offset: -2px; background: rgba(245, 158, 11, 0.15) !important; }`;
+  style.textContent = `.${SEARCH_HIGHLIGHT_CLASS} { outline: 2px solid var(--tmx-container-warning); outline-offset: -2px; background: color-mix(in srgb, var(--tmx-container-warning) 15%, transparent) !important; }`;
   document.head.appendChild(style);
 }
 
@@ -2527,7 +2528,7 @@ function buildGridHeaders(params: {
   if (hiddenCourtIds.size > 0) {
     const badge = document.createElement('span');
     badge.style.cssText =
-      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-fill-accent, #2563eb); color: #fff; border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
+      'font-size: 0.5625rem; font-weight: 700; background: var(--tmx-fill-accent); color: var(--chc-on-link); border-radius: 50%; min-width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;';
     badge.textContent = String(hiddenCourtIds.size);
     corner.appendChild(badge);
   }

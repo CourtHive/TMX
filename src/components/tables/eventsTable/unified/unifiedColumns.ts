@@ -37,11 +37,13 @@ const SPECIAL_STATUS_LABELS: Record<string, string> = {
 };
 
 const SEGMENT_COLORS: Record<number, { bg: string; text: string }> = {
-  0: { bg: 'var(--chc-success, hsl(141, 53%, 53%))', text: '#fff' },
-  1: { bg: 'var(--chc-info, hsl(217, 71%, 53%))', text: '#fff' },
-  2: { bg: 'var(--chc-warning, hsl(44, 100%, 77%))', text: 'rgba(0,0,0,.7)' },
-  3: { bg: 'var(--chc-light, hsl(0, 0%, 96%))', text: 'rgba(0,0,0,.7)' },
-  4: { bg: 'var(--chc-danger, hsl(348, 86%, 61%))', text: '#fff' },
+  // --chc-success / -info / -warning / -light / -danger were never defined, so only these fallbacks ever
+  // rendered, in every theme. Palette fills with their inks instead.
+  0: { bg: 'var(--chc-container-success)', text: 'var(--chc-on-success)' },
+  1: { bg: 'var(--chc-container-info)', text: 'var(--chc-on-info)' },
+  2: { bg: 'var(--chc-container-warning)', text: 'var(--chc-on-warning)' },
+  3: { bg: 'var(--chc-bg-tertiary)', text: 'var(--chc-text-primary)' },
+  4: { bg: 'var(--chc-container-danger)', text: 'var(--chc-on-danger)' },
 };
 
 function segmentFormatter(cell: any) {
@@ -75,7 +77,8 @@ function statusFormatter(cell: any) {
   if (!label) return ''; // conveyed by the Grouping chip (or a plain direct acceptance)
   const el = document.createElement('span');
   el.className = 'tag';
-  el.style.cssText = 'background:hsl(262, 52%, 56%);color:#fff;font-size:0.7rem;padding:2px 6px;border-radius:4px';
+  el.style.cssText =
+    'background:var(--tmx-accent-purple);color:var(--tmx-text-inverse);font-size:0.7rem;padding:2px 6px;border-radius:4px';
   el.textContent = label;
   el.title = data.entryStatus;
   return el;

@@ -193,7 +193,7 @@ function buildInlineForm(
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
-  saveBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-accent, #4a9eff); color:#fff; border-color:var(--tmx-accent, #4a9eff);`;
+  saveBtn.style.cssText = `${FORM_BTN_STYLE} background:var(--tmx-fill-accent); color:var(--chc-on-link); border-color:var(--tmx-fill-accent);`;
   saveBtn.textContent = t('common.save');
   saveBtn.addEventListener('click', () => {
     const requiredFields = fields.filter((f) => f.required);

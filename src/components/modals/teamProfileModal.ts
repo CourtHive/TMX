@@ -195,7 +195,12 @@ function staffColumns(): any[] {
 function formatSexBadge(sex?: string): string {
   if (!sex) return '';
   const upper = sex.toUpperCase();
-  const color = upper === 'FEMALE' ? '#c14070' : upper === 'MALE' ? '#3273dc' : '#888';
+  const color =
+    upper === 'FEMALE'
+      ? 'var(--chc-gender-female)'
+      : upper === 'MALE'
+        ? 'var(--chc-gender-male)'
+        : 'var(--tmx-text-muted)';
   const label = upper === 'FEMALE' ? 'F' : upper === 'MALE' ? 'M' : sex;
   return `<span style="display:inline-block; padding:0.1em 0.5em; border-radius:3px; font-size:0.85em; background:${color}22; border:1px solid ${color}66; color:var(--tmx-text-primary, #eee);">${escapeHtml(label)}</span>`;
 }

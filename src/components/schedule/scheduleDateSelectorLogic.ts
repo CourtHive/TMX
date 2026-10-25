@@ -55,7 +55,7 @@ export function formatDateLabel(dateStr: string): string {
 export function dateButtonHtml(selectedDate: string, count: number, isPublished = false): string {
   const badge =
     count > 0
-      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: rgba(127,127,127,0.25); color: currentColor;">${count}</span>`
+      ? ` <span style="font-size: 0.625rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; background: color-mix(in srgb, var(--tmx-text-muted) 25%, transparent); color: currentColor;">${count}</span>`
       : '';
   return (
     `<i class="fa-solid fa-calendar-days" style="font-size: 0.75rem;"></i>${formatDateLabel(selectedDate)}` +

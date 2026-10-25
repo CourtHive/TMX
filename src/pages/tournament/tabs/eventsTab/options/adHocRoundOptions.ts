@@ -50,16 +50,16 @@ export function getAdHocRoundOptions({
     {
       onClick: () => addAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
       label: addMatchUpsAction,
-      color: '#5ba0d0',
+      color: 'var(--tmx-status-info)',
     },
     {
       onClick: () => addAdHocRound({ drawId, structure, newRound: true, callback: refreshCallback }),
       label: addRoundAction,
-      color: '#5ba0d0',
+      color: 'var(--tmx-status-info)',
     },
     {
       label: deleteMatchUpsAction,
-      color: '#e06060',
+      color: 'var(--tmx-status-error)',
       onClick: () => deleteAdHocMatchUps({ drawId, structure, callback: refreshCallback }),
     },
   ];

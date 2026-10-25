@@ -73,7 +73,7 @@ export function openDisplayOptionsPopover({
     if (opt.disabled && opt.reason) {
       const reason = document.createElement('span');
       reason.textContent = opt.reason;
-      reason.style.cssText = 'font-size:0.75em; color:#888; margin-left:auto;';
+      reason.style.cssText = 'font-size:0.75em; color:var(--tmx-text-muted); margin-left:auto;';
       row.appendChild(reason);
     }
     container.appendChild(row);

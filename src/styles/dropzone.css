@@ -15,7 +15,8 @@
 }
 
 .dzx-dropzoneActive {
-  background-color: var(--tmx-status-success);
+  /* A tint, not the status color: the dropzone's own text sits on it. */
+  background-color: color-mix(in srgb, var(--tmx-container-success) 18%, var(--tmx-bg-primary));
   border-color: var(--tmx-border-focus);
 }
 

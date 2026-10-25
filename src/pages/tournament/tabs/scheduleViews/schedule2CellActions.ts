@@ -47,10 +47,11 @@ import {
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = timeItemConstants;
 const { IN_PROGRESS, SUSPENDED } = matchUpStatusConstants;
 
-const COLOR_ACCENT_BLUE = 'var(--tmx-accent-blue, #3b82f6)';
-const COLOR_ACCENT_ORANGE = 'var(--tmx-accent-orange, #f59e0b)';
+const COLOR_ACCENT_BLUE = 'var(--tmx-accent-blue)';
+const COLOR_ACCENT_ORANGE = 'var(--tmx-accent-orange)';
+const COLOR_ERROR = 'var(--tmx-status-error)';
 const ICON_BAN = 'fa-ban';
-const TINT_DANGER = 'rgba(244, 63, 94, 0.15)';
+const TINT_DANGER = 'color-mix(in srgb, var(--tmx-status-error) 15%, transparent)';
 
 // MatchUp statuses that are terminal/decided — excluded from bulk time + status
 // actions (a completed or walked-over match can't be started, suspended, etc.).
@@ -149,7 +150,7 @@ const SECTION_LABEL_CSS = [
   'font-weight: 700',
   'text-transform: uppercase',
   'letter-spacing: 0.5px',
-  'color: var(--sp-muted, var(--tmx-muted, #9ca3af))',
+  'color: var(--sp-muted)',
   'margin: 0 0 5px 0',
   'padding: 0',
 ].join('; ');
@@ -157,12 +158,12 @@ const SECTION_LABEL_CSS = [
 const PILL_ROW_CSS = 'display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;';
 
 // Pill background for default (non-colored) pills — semi-transparent so it works on any base
-const PILL_BG = 'var(--sp-chip-bg, rgba(128,128,128,0.12))';
+const PILL_BG = 'var(--sp-chip-bg)';
 
 function makePill(
   label: string,
   onClick: () => void,
-  opts?: { icon?: string; color?: string; outline?: boolean; tint?: string },
+  opts?: { icon?: string; color?: string; ink?: string; outline?: boolean; tint?: string },
 ): HTMLElement {
   const btn = document.createElement('button');
   const bg = opts?.tint ? opts.tint : opts?.outline ? 'transparent' : opts?.color ? opts.color : PILL_BG;
@@ -174,7 +175,7 @@ function makePill(
     : opts?.outline
       ? (opts?.color ?? 'inherit')
       : opts?.color
-        ? '#fff'
+        ? (opts?.ink ?? 'var(--chc-on-link)')
         : 'inherit';
   btn.style.cssText = [
     `background: ${bg}`,
@@ -717,8 +718,8 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     assignRow.appendChild(
       makePill(t('schedule.assignMatchUp'), assignMatchUp, {
         icon: 'fa-plus',
-        tint: 'rgba(16, 185, 129, 0.15)',
-        color: '#10b981',
+        tint: 'color-mix(in srgb, var(--tmx-status-success) 15%, transparent)',
+        color: 'var(--tmx-status-success)',
       }),
     );
     pop.appendChild(assignRow);
@@ -734,7 +735,7 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
       makePill(t('schedule.timeBlock.open'), () => openStripTimeBlock(ctx), {
         icon: ICON_BAN,
         tint: TINT_DANGER,
-        color: '#f43f5e',
+        color: COLOR_ERROR,
       }),
     );
     pop.appendChild(timeRow);
@@ -752,21 +753,21 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     makePill('1 row', () => blockCourt(1, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
-      color: '#f43f5e',
+      color: COLOR_ERROR,
     }),
   );
   blockRow.appendChild(
     makePill('2 rows', () => blockCourt(2, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
-      color: '#f43f5e',
+      color: COLOR_ERROR,
     }),
   );
   blockRow.appendChild(
     makePill('3 rows', () => blockCourt(3, BookingTypeEnum.BLOCKED), {
       icon: ICON_BAN,
       tint: TINT_DANGER,
-      color: '#f43f5e',
+      color: COLOR_ERROR,
     }),
   );
   pop.appendChild(blockRow);
@@ -778,15 +779,15 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   otherRow.appendChild(
     makePill(t('schedule.practice'), () => blockCourt(1, BookingTypeEnum.PRACTICE), {
       icon: 'fa-dumbbell',
-      tint: 'rgba(59, 130, 246, 0.15)',
-      color: '#3b82f6',
+      tint: 'color-mix(in srgb, var(--tmx-status-info) 15%, transparent)',
+      color: 'var(--tmx-status-info)',
     }),
   );
   otherRow.appendChild(
     makePill(t('schedule.maintenance'), () => blockCourt(1, BookingTypeEnum.MAINTENANCE), {
       icon: 'fa-wrench',
-      tint: 'rgba(245, 158, 11, 0.15)',
-      color: '#f59e0b',
+      tint: 'color-mix(in srgb, var(--tmx-container-warning) 15%, transparent)',
+      color: 'var(--tmx-status-warning)',
     }),
   );
   // Teal, deliberately not the maintenance amber: drying is reactive weather loss,
@@ -795,8 +796,8 @@ function showEmptyCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
   otherRow.appendChild(
     makePill(t('schedule.drying'), () => blockCourt(1, BookingTypeEnum.DRYING), {
       icon: 'fa-droplet',
-      tint: 'rgba(20, 184, 166, 0.15)',
-      color: '#14b8a6',
+      tint: 'color-mix(in srgb, var(--chc-primary-text) 15%, transparent)',
+      color: 'var(--chc-primary-text)',
     }),
   );
   pop.appendChild(otherRow);
@@ -1184,7 +1185,9 @@ export function handleActiveStripNowClick(e: MouseEvent, ctx: Schedule2NowContex
     statusRow.appendChild(
       makePill(startAllLabel(startable.length, startAllWarning), startAll, {
         icon: 'fa-play',
-        color: startAllWarning ? COLOR_ACCENT_ORANGE : COLOR_ACCENT_BLUE,
+        // A solid fill carries its own ink: the accents lighten in dark palettes, so white on them fails.
+        color: startAllWarning ? 'var(--tmx-container-warning)' : 'var(--tmx-fill-accent)',
+        ink: startAllWarning ? 'var(--chc-on-warning)' : 'var(--chc-on-link)',
       }),
     );
   }

@@ -11,7 +11,9 @@ import { EVENT_TABS_BAR } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const CURSOR_POINTER = 'cursor: pointer';
-const ACCENT_BLUE = 'var(--tmx-accent-blue, #3273dc)';
+// Used as a fill under its own ink: the accent itself lightens in dark palettes.
+const ACCENT_BLUE = 'var(--tmx-fill-accent)';
+const ON_ACCENT = 'var(--chc-on-link)';
 
 type ActiveTab = 'draws' | 'entries' | 'points';
 
@@ -117,7 +119,7 @@ export function renderEventTabsBar({
     ].join('; ');
     editBtn.onmouseenter = () => {
       editBtn.style.background = ACCENT_BLUE;
-      editBtn.style.color = '#fff';
+      editBtn.style.color = ON_ACCENT;
     };
     editBtn.onmouseleave = () => {
       editBtn.style.background = 'transparent';
@@ -162,7 +164,7 @@ export function renderNoDrawsPlaceholder({
     'padding: 0.6em 1.5em',
     'border: none',
     `background: ${ACCENT_BLUE}`,
-    'color: #fff',
+    `color: ${ON_ACCENT}`,
     'border-radius: 4px',
     CURSOR_POINTER,
     'font-size: 0.95em',

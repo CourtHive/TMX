@@ -86,8 +86,8 @@ export function openChatModal(): void {
 
       const bubble = document.createElement('div');
       bubble.style.cssText = [
-        `background: ${msg.isOwn ? 'var(--tmx-accent-blue, #3273dc)' : 'var(--chc-bg-secondary, #f0f0f0)'}`,
-        `color: ${msg.isOwn ? '#fff' : 'var(--chc-text-primary, #333)'}`,
+        `background: ${msg.isOwn ? 'var(--tmx-fill-accent)' : 'var(--chc-bg-secondary)'}`,
+        `color: ${msg.isOwn ? 'var(--chc-on-link)' : 'var(--chc-text-primary)'}`,
         'padding: 6px 12px',
         'border-radius: 12px',
         'max-width: 85%',

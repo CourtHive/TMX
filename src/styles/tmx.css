@@ -613,8 +613,8 @@ body {
   margin-right: 4px;
   padding: 0 4px;
   border-radius: 8px;
-  background: var(--tmx-status-info, #3273dc);
-  color: var(--tmx-text-inverse, #fff);
+  background: var(--tmx-container-info);
+  color: var(--chc-on-info);
   font-size: 0.65rem;
   font-weight: 600;
   line-height: 1.4;

@@ -37,10 +37,30 @@ const LIST_STYLE = 'list-style: none; padding: 0; margin: 6px 0 0 0; display: fl
  * count itself reads cleanly.
  */
 const INTENT_TOKENS: Record<Intent, { text: string; bg: string; border: string; dot: string }> = {
-  success: { text: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.45)', dot: '#10b981' },
-  warning: { text: '#d97706', bg: 'rgba(245, 158, 11, 0.18)', border: 'rgba(245, 158, 11, 0.5)', dot: '#f59e0b' },
-  danger: { text: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.45)', dot: '#ef4444' },
-  neutral: { text: '#64748b', bg: 'rgba(148, 163, 184, 0.2)', border: 'rgba(148, 163, 184, 0.5)', dot: '#94a3b8' },
+  success: {
+    text: 'var(--tmx-status-success)',
+    bg: 'color-mix(in srgb, var(--tmx-status-success) 15%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-status-success) 45%, transparent)',
+    dot: 'var(--tmx-status-success)',
+  },
+  warning: {
+    text: 'var(--tmx-status-warning)',
+    bg: 'color-mix(in srgb, var(--tmx-container-warning) 18%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-container-warning) 50%, transparent)',
+    dot: 'var(--tmx-container-warning)',
+  },
+  danger: {
+    text: 'var(--tmx-status-error)',
+    bg: 'color-mix(in srgb, var(--tmx-status-error) 15%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-status-error) 45%, transparent)',
+    dot: 'var(--tmx-status-error)',
+  },
+  neutral: {
+    text: 'var(--tmx-text-secondary)',
+    bg: 'color-mix(in srgb, var(--tmx-text-muted) 20%, transparent)',
+    border: 'color-mix(in srgb, var(--tmx-text-muted) 50%, transparent)',
+    dot: 'var(--tmx-text-muted)',
+  },
 };
 
 interface Lookups {

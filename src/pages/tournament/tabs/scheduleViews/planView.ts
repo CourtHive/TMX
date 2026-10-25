@@ -32,11 +32,12 @@ function styledButton(label: string, kind: 'default' | 'accent' | 'danger' = 'de
   btn.textContent = label;
   const bg =
     kind === 'accent'
-      ? 'var(--tmx-accent-blue,#2563eb)'
+      ? 'var(--tmx-fill-accent)'
       : kind === 'danger'
-        ? 'var(--tmx-status-danger,#dc2626)'
-        : 'var(--tmx-bg-secondary,#f3f4f6)';
-  const color = kind === 'default' ? 'var(--tmx-text-primary,#111)' : '#fff';
+        ? 'var(--tmx-container-danger)'
+        : 'var(--tmx-bg-secondary)';
+  const color =
+    kind === 'accent' ? 'var(--chc-on-link)' : kind === 'danger' ? 'var(--chc-on-danger)' : 'var(--tmx-text-primary)';
   btn.style.cssText = `padding:4px 10px;border-radius:6px;border:1px solid var(--tmx-border-primary,#d1d5db);background:${bg};color:${color};font-size:0.75rem;cursor:pointer;`;
   return btn;
 }
@@ -81,7 +82,7 @@ function buildPlanChrome(args: {
   badge.textContent = t('schedule.plan.badge');
   badge.style.cssText =
     'font-size:0.6875rem;font-weight:700;letter-spacing:0.04em;padding:3px 8px;border-radius:6px;' +
-    'background:var(--tmx-status-warning,#f59e0b);color:#1a1a1a;';
+    'background:var(--tmx-container-warning);color:var(--chc-on-warning);';
 
   const select = document.createElement('select');
   select.style.cssText =

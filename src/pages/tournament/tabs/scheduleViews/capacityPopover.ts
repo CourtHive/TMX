@@ -205,7 +205,7 @@ function buildPopoverContent(
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
   saveBtn.style.cssText =
-    'font-size: 0.75rem; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--tmx-fill-accent, #2563eb); background: var(--tmx-fill-accent, #2563eb); color: #fff; font-weight: 600; cursor: pointer;';
+    'font-size: 0.75rem; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--tmx-fill-accent); background: var(--tmx-fill-accent); color: var(--chc-on-link); font-weight: 600; cursor: pointer;';
   saveBtn.textContent = t('modals.courtAvailability.apply');
   saveBtn.addEventListener('click', () => {
     void applyChanges(rows, scheduledDate, tournamentRecord, onApplied);
