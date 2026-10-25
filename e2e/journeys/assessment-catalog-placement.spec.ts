@@ -45,9 +45,12 @@ test('catalog placement and floating inspector preserve selection across both ta
   await expect(page.locator('.spl-center-header [data-grid-rows-control]')).toHaveCount(0);
   const inspectorToggle = page.locator('[data-grid-inspector-toggle="true"]');
   await expect(inspectorToggle.locator('svg')).toHaveCount(1);
-  expect(
-    await inspectorToggle.evaluate((button) => (button.nextElementSibling as HTMLElement)?.dataset.schedulePrint),
-  ).toBe('true');
+  // The Inspector toggle sits with the layout control, which arranges the workspace (#1767); Print stays in the
+  // header with the actions that act on the schedule.
+  expect(await inspectorToggle.evaluate((button) => button.nextElementSibling?.getAttribute('aria-label'))).toBe(
+    'Scheduling layout',
+  );
+  await expect(page.locator('[data-schedule-print="true"]')).toBeVisible();
   await inspectorToggle.click();
   await expect(page.locator('[data-panel="inspector"]')).toBeHidden();
   await inspectorToggle.click();
