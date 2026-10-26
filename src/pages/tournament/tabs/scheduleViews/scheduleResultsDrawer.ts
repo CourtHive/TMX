@@ -20,7 +20,10 @@ import {
   describeRecoveryDeferred,
   describeDependencyDeferred,
   describePlayedOrderDeferred,
+  describeOvernightRest,
+  groupOvernightRest,
   conflictRows,
+  type OvernightRestWarning,
   type PlayedOrderDeferral,
   type MatchUpLookup,
   type ParticipantLookup,
@@ -88,6 +91,8 @@ export type ScheduleRunResult = {
   playedOrderDeferredMatchUpIds?: { [date: string]: { [matchUpId: string]: PlayedOrderDeferral } };
   /** grid only: placed over a daily limit when the limits are reported, not enforced ("No policy" sends `{}`) */
   dailyLimitWarningMatchUpIds?: { [date: string]: string[] };
+  /** placed with less than the policy's overnight rest after the day before (warned, never held) */
+  overnightRestWarnings?: { [date: string]: OvernightRestWarning[] };
   noFormatMatchUpIds?: { [date: string]: string[] };
   requestConflicts?: { [date: string]: any[] };
   scheduledDates?: string[];
@@ -200,6 +205,7 @@ function collectAllDates(result: ScheduleRunResult): string[] {
   for (const date of Object.keys(result.playedOrderDeferredMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.dailyLimitWarningMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.noFormatMatchUpIds ?? {})) set.add(date);
+  for (const date of Object.keys(result.overnightRestWarnings ?? {})) set.add(date);
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
@@ -228,8 +234,10 @@ function buildDateSection(date: string, result: ScheduleRunResult, lookups: Look
   const playedOrderDeferred = result.playedOrderDeferredMatchUpIds?.[date] ?? {};
   const dailyLimitWarnings = result.dailyLimitWarningMatchUpIds?.[date] ?? [];
   const noFormat = result.noFormatMatchUpIds?.[date] ?? [];
+  const overnightRest = result.overnightRestWarnings?.[date] ?? [];
 
   const empty =
+    !overnightRest.length &&
     !Object.keys(playedOrderDeferred).length &&
     !dailyLimitWarnings.length &&
     !noFormat.length &&
@@ -279,6 +287,9 @@ function buildDateSection(date: string, result: ScheduleRunResult, lookups: Look
   if (noFormat.length) {
     section.appendChild(buildCategoryBlock(t('scheduleResults.noFormat'), noFormat, lookups.matchUps, 'warning'));
   }
+  if (overnightRest.length) {
+    section.appendChild(buildOvernightRestBlock(overnightRest, lookups));
+  }
 
   return section;
 }
@@ -322,6 +333,21 @@ function buildPlayedOrderDeferredBlock(
     list.appendChild(buildMatchUpRow(id, lookups.matchUps, detail));
   }
   return buildCollapsibleSection(t('scheduleResults.playedOrder'), ids.length, 'neutral', list);
+}
+
+// Overnight rest is a guideline a player may waive: the factory places the matchUp and warns, one row per matchUp
+function buildOvernightRestBlock(warnings: OvernightRestWarning[], lookups: Lookups): HTMLElement {
+  const groups = groupOvernightRest(warnings);
+  const list = document.createElement('ul');
+  list.style.cssText = LIST_STYLE;
+  const phrase = (params: { who: string; rest: string; end: string; required: string }) =>
+    t('scheduleResults.overnightRestDetail', params);
+  const advancing = (params: { matchUp: string }) => t('scheduleResults.overnightRestAdvancing', params);
+  for (const [matchUpId, group] of groups) {
+    const detail = describeOvernightRest(group, lookups, phrase, advancing);
+    list.appendChild(buildMatchUpRow(matchUpId, lookups.matchUps, detail));
+  }
+  return buildCollapsibleSection(t('scheduleResults.overnightRest'), groups.length, 'warning', list);
 }
 
 function buildCategoryBlock(label: string, ids: string[], lookup: MatchUpLookup, intent: Intent): HTMLElement {

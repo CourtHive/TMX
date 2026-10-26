@@ -705,11 +705,13 @@ function runScheduleWithPolicy(
 
         const dateCount = (result?.scheduledDates || []).length;
         const overLimitSuffix = totalOverLimit > 0 ? ` ${totalOverLimit} over capacity limit.` : '';
-        const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}`;
+        const totalShortRest = countOvernightRest(result);
+        const shortRestSuffix = totalShortRest > 0 ? ` ${totalShortRest} short of overnight rest.` : '';
+        const message = `Scheduled ${totalScheduled} matchUps across ${dateCount} dates.${overLimitSuffix}${shortRestSuffix}`;
 
         scheduleToast({
           message,
-          intent: totalOverLimit > 0 ? INTENT_WARNING : INTENT_SUCCESS,
+          intent: totalOverLimit > 0 || totalShortRest > 0 ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;
@@ -733,8 +735,15 @@ function hasActionableResults(result: any): boolean {
     dateMapHasEntries(result.dependencyDeferredMatchUpIds) ||
     dateMapHasEntries(result.playedOrderDeferredMatchUpIds) ||
     dateMapHasEntries(result.noFormatMatchUpIds) ||
+    dateMapHasEntries(result.overnightRestWarnings) ||
     dateMapHasEntries(result.requestConflicts)
   );
+}
+
+/** matchUps placed short of the policy's overnight rest, across the run's dates (each warned once) */
+function countOvernightRest(result: any): number {
+  const warnings = Object.values(result?.overnightRestWarnings ?? {}).flat() as { matchUpId: string }[];
+  return new Set(warnings.map(({ matchUpId }) => matchUpId)).size;
 }
 
 /**
@@ -895,15 +904,18 @@ function runGridWithPolicy(
         if (totalOverLimit > 0) segments.push(`${totalOverLimit} over daily limit`);
         const totalWarned = countDateMap(result?.dailyLimitWarningMatchUpIds);
         if (totalWarned > 0) segments.push(`${totalWarned} placed over a daily limit`);
+        const totalShortRest = countOvernightRest(result);
+        if (totalShortRest > 0) segments.push(`${totalShortRest} short of overnight rest`);
         const message = segments.join(' — ') + '.';
+        const warned = totalWarned > 0 || totalShortRest > 0;
 
         scheduleToast({
           message,
-          intent: totalNotScheduled > 0 || totalOverLimit > 0 || totalWarned > 0 ? INTENT_WARNING : INTENT_SUCCESS,
+          intent: totalNotScheduled > 0 || totalOverLimit > 0 || warned ? INTENT_WARNING : INTENT_SUCCESS,
         });
 
         statusEl.textContent = message;
-        if (totalWarned > 0) openScheduleResultsDrawer(result);
+        if (warned) openScheduleResultsDrawer(result);
       },
     });
   });

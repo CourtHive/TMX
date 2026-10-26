@@ -3,7 +3,11 @@ import {
   describeRecoveryDeferred,
   describeDependencyDeferred,
   describePlayedOrderDeferred,
+  describeOvernightRest,
+  groupOvernightRest,
+  formatMinutes,
   conflictRows,
+  type OvernightRestWarning,
 } from './scheduleResultsDescribe';
 
 const SMITH_VS_JONES = 'Smith vs Jones';
@@ -140,6 +144,45 @@ describe('conflictRows', () => {
   it('still reads the earlier per-refusal shape', () => {
     expect(conflictRows({ matchUpId: 'm1', scheduleTime: '10:00', requestType: 'DO_NOT_SCHEDULE' })).toEqual([
       { matchUpId: 'm1', detail: 'DO_NOT_SCHEDULE @ 10:00' },
+    ]);
+  });
+});
+
+describe('overnight rest', () => {
+  const phrase = ({ who, rest, end, required }) => `${who} rested ${rest} after ${end} (${required})`;
+  const advancing = ({ matchUp }) => `from ${matchUp}`;
+  const warning = (overrides: Partial<OvernightRestWarning>): OvernightRestWarning => ({
+    matchUpId: 'm2',
+    scheduleTime: '08:00',
+    previousMatchUpId: 'm1',
+    previousEndTime: '22:30',
+    restMinutes: 570,
+    requiredMinutes: 720,
+    ...overrides,
+  });
+
+  it('formats minutes as hours and minutes', () => {
+    expect([45, 60, 570, 720].map(formatMinutes)).toEqual(['45m', '1h', '9h 30m', '12h']);
+  });
+
+  it('names a known player, and an undecided one by the matchUp they come from', () => {
+    const lookups = {
+      participants: participantLookup([['p1', 'Amelie Paz']]),
+      matchUps: matchUpLookup([['m1', { matchUpId: 'm1', roundLabel: 'SF', participantsLabel: 'A / B' }]]),
+    };
+    const text = describeOvernightRest([warning({ participantId: 'p1' }), warning({})], lookups, phrase, advancing);
+    expect(text).toBe('Amelie Paz rested 9h 30m after 22:30 (12h); from SF · A / B rested 9h 30m after 22:30 (12h)');
+  });
+
+  it('groups warnings by matchUp, earliest start first', () => {
+    const groups = groupOvernightRest([
+      warning({ matchUpId: 'late', scheduleTime: '10:00' }),
+      warning({ matchUpId: 'early', participantId: 'p1' }),
+      warning({ matchUpId: 'early', participantId: 'p2' }),
+    ]);
+    expect(groups.map(([id, group]) => [id, group.length])).toEqual([
+      ['early', 2],
+      ['late', 1],
     ]);
   });
 });
