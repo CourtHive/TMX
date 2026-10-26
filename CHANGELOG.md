@@ -1,5 +1,25 @@
 # Changelog
 
+## [8.44.0](https://github.com/CourtHive/TMX/compare/v8.43.0...v8.44.0) (2026-10-25)
+
+
+### Features
+
+* **chat:** say why a message was not delivered, and let it be sent again ([#1771](https://github.com/CourtHive/TMX/issues/1771)) ([e6517a9](https://github.com/CourtHive/TMX/commit/e6517a9b3bbf079cc155c52b830b84dd7f16bbfc))
+* **i18n:** translate the score entry dialog's own words ([#1777](https://github.com/CourtHive/TMX/issues/1777)) ([7dfa0ce](https://github.com/CourtHive/TMX/commit/7dfa0ce3d0834616e91a5261a5e5ff407779be3d))
+* **theme:** light and dark palette choice in settings; courtside and midnight by default ([#1768](https://github.com/CourtHive/TMX/issues/1768)) ([14bd527](https://github.com/CourtHive/TMX/commit/14bd5271ce9a006284988b9fee8175714e7931c8))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.0.0 ([#1782](https://github.com/CourtHive/TMX/issues/1782)) ([594f513](https://github.com/CourtHive/TMX/commit/594f5132eca53e8cba29b148f8138bd5074a016d))
+* **deps:** update dependency pdf-factory to v1.1.5 ([#1775](https://github.com/CourtHive/TMX/issues/1775)) ([7893c56](https://github.com/CourtHive/TMX/commit/7893c568a5699e66e839c5e9dc64e71bc182c6ff))
+* **deps:** update pdf-factory to 1.1.7 ([#1783](https://github.com/CourtHive/TMX/issues/1783)) ([68f3c64](https://github.com/CourtHive/TMX/commit/68f3c6413aea3e7a6fd082d12defc11f11ac1962))
+* **deps:** update tods-competition-factory to 7.22.0 ([#1781](https://github.com/CourtHive/TMX/issues/1781)) ([c880915](https://github.com/CourtHive/TMX/commit/c880915a2710f2d1362de15faac9b5acc734e372))
+* **schedule:** group the Inspector and layout toggles with the catalog toggle ([#1767](https://github.com/CourtHive/TMX/issues/1767)) ([5c883f3](https://github.com/CourtHive/TMX/commit/5c883f35e3f2b2400070c297fdecf77a0fd21912))
+* **schedule:** show request conflicts in the scheduling results drawer ([#1765](https://github.com/CourtHive/TMX/issues/1765)) ([db6784a](https://github.com/CourtHive/TMX/commit/db6784aa0134bf2a1b82246b9115d3be33171b4d))
+* **schedule:** stamp a time-triggered auto-call at its scheduled time ([#1766](https://github.com/CourtHive/TMX/issues/1766)) ([efbaa7c](https://github.com/CourtHive/TMX/commit/efbaa7cf37d4a521c43f6e8b5b0e95db52831dfd))
+
 ## [8.43.0](https://github.com/CourtHive/TMX/compare/v8.42.2...v8.43.0) (2026-10-24)
 
 
