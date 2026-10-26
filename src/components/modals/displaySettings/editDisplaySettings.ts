@@ -35,9 +35,18 @@ export async function editDisplaySettings(params) {
 
   const noScheduleInfo = new Set(['Wimbledon', 'French', 'ITF']);
   const saveId = 'saveDisplaySettings';
+  const initialName = scopedValue?.compositionName ?? displayConfig.get().composition?.compositionName ?? 'Australian';
+  // the saved snapshot belongs to the composition it was saved with, never to one chosen after it
+  const snapshotFor = (compositionName) =>
+    compositionName === scopedValue?.compositionName ? scopedValue?.configuration : undefined;
+  const initialConfiguration = snapshotFor(initialName) ?? resolveCompositionByName(initialName)?.configuration;
   const selections: any = {
-    compositionName: scopedValue?.compositionName ?? displayConfig.get().composition?.compositionName ?? 'Australian',
-    configuration: scopedValue?.configuration ?? {},
+    compositionName: initialName,
+    // only the form's own fields; everything else comes from the composition (or its saved snapshot)
+    configuration: {
+      scheduleInfo: !!initialConfiguration?.scheduleInfo,
+      participantDetail: initialConfiguration?.participantDetail,
+    },
     storedColors: scopedValue?.colors,
     composition: undefined,
     inputs: undefined,
@@ -110,8 +119,11 @@ export async function editDisplaySettings(params) {
     const resolved = resolveCompositionByName(compositionName);
     if (!resolved) return;
     selections.composition = resolved;
-    selections.composition.configuration ??= {};
-    Object.assign(selections.composition.configuration, configuration);
+    const compositionConfiguration = (selections.composition.configuration ??= {});
+    Object.assign(compositionConfiguration, snapshotFor(compositionName));
+    // the toggle turns the header on or off; when on, a composition's own header options (elapsed, layout) stand
+    const scheduleInfo = configuration.scheduleInfo ? compositionConfiguration.scheduleInfo || true : false;
+    Object.assign(compositionConfiguration, { ...configuration, scheduleInfo });
 
     // Extension-level colors (saved snapshot) win over the resolver's
     // user-composition colors so the displayed state survives later edits
@@ -157,7 +169,13 @@ export async function editDisplaySettings(params) {
   ];
 
   const onChange = () => {
-    selections.compositionName = selections.inputs.composition.value;
+    const compositionName = selections.inputs.composition.value;
+    if (compositionName !== selections.compositionName) {
+      // a newly chosen composition brings its own header setting
+      const chosen = snapshotFor(compositionName) ?? resolveCompositionByName(compositionName)?.configuration;
+      selections.inputs.showSchedule.checked = !!chosen?.scheduleInfo;
+    }
+    selections.compositionName = compositionName;
     selections.configuration.scheduleInfo =
       !noScheduleInfo.has(selections.compositionName) && selections.inputs.showSchedule.checked;
     selections.configuration.participantDetail = selections.inputs.detail.value;
@@ -221,10 +239,8 @@ export async function editDisplaySettings(params) {
     // only in TMX's IndexedDB). Saving the full configuration means
     // the public-side renderer reads every flag from the extension
     // and never needs to know what 'MyCustom' resolves to.
-    const fullConfiguration = {
-      ...(selections.composition.configuration || {}),
-      ...selections.configuration,
-    };
+    // render() has already merged the form's fields into it, keeping a composition's header options
+    const fullConfiguration = { ...(selections.composition.configuration || {}) };
     const extension = {
       value: {
         ...existingValue, // order is important!
