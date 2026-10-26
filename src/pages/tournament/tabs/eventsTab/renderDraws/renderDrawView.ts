@@ -5,9 +5,9 @@
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
 import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
+import { resolveCompositionByName, copyComposition } from 'services/compositions/resolveCompositionByName';
 import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
 import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
-import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
@@ -316,10 +316,13 @@ export function renderDrawView({
   const compositionName = display?.compositionName;
   const configuration = display?.configuration;
 
+  // a copy every time: this view changes the configuration in place, and those changes belong to this render only
   const composition =
     resolveCompositionByName(compositionName) ||
-    displayConfig.get().composition ||
-    compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'];
+    copyComposition(
+      displayConfig.get().composition ||
+        compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'],
+    );
 
   composition.configuration ??= {};
 

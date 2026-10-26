@@ -14,9 +14,11 @@
  * opens or draw renders would leak those mutations between unrelated
  * surfaces. The perf cost of constructing a small object is trivial.
  *
- * For BUILTIN compositions, returns the singleton from `courthive-
- * components` directly — the in-place mutation pattern is intended
- * there (matches existing TMX behavior).
+ * BUILTIN compositions get the same treatment: a fresh copy of the
+ * `courthive-components` preset, never the singleton itself. Handing out
+ * the singleton let one surface's in-place changes become every later
+ * surface's preset — a saved Scoreboard's settings were pasted onto
+ * Australian, National and the rest, for the life of the page.
  */
 import { getUserCompositionsSync } from 'pages/templates/compositionBridge';
 import { compositions } from 'courthive-components';
@@ -37,7 +39,17 @@ export function resolveCompositionByName(name: string | undefined): any | undefi
     return runtime;
   }
 
-  return (compositions as any)[name];
+  const builtin = (compositions as any)[name];
+  return builtin ? copyComposition(builtin) : undefined;
+}
+
+/** A copy whose `configuration` and `colors` can be changed in place without touching the source. */
+export function copyComposition(composition: any): any {
+  return {
+    ...composition,
+    configuration: { ...(composition.configuration || {}) },
+    ...(composition.colors ? { colors: { ...composition.colors } } : {}),
+  };
 }
 
 /**
