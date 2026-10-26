@@ -2588,7 +2588,41 @@
         "added": "Venue added from the registry",
         "searching": "Searching…"
       },
-      "addCourtsPreview": "Will add: {{names}}"
+      "addCourtsPreview": "Will add: {{names}}",
+      "transit": {
+        "button": "Transit times",
+        "back": "Venues",
+        "title": "Transit between venues",
+        "needsTwoVenues": "Add a second venue to set the transit between venues.",
+        "subtitle": "How long it takes to get from one venue to another. A player's next matchUp at another venue never starts before the earlier one ends plus the greater of their recovery and the transit.",
+        "defaultFromPolicy": "Default {{minutes}}, from the scheduling policy",
+        "noDefault": "No default: the scheduling policy states none",
+        "legendOneWay": "One way",
+        "networkLabel": "Venues and the transit between them",
+        "sameSite": "same site",
+        "matrixCaption": "Minutes from a venue (row) to a venue (column)",
+        "fromTo": "from ↓ to →",
+        "selectHint": "Select a line or a cell to set the time for that journey.",
+        "editTitle": "{{from}} → {{to}}",
+        "currently": "Now {{minutes}} ({{source}})",
+        "sanctionedFloor": "Sanctioned at {{minutes}}: it can be raised, never lowered",
+        "minutes": "Minutes",
+        "oneWay": "One way only ({{from}} → {{to}})",
+        "save": "Save",
+        "remove": "Use the default",
+        "cancel": "Close",
+        "source": {
+          "stated": "Set here",
+          "sanctioned": "Sanctioned",
+          "default": "Policy default",
+          "facility": "Same facility",
+          "none": "None"
+        },
+        "errors": {
+          "notWhole": "Enter whole minutes (0 or more)",
+          "belowSanctioned": "A sanctioning body set {{minutes}}; the time cannot go lower"
+        }
+      }
     },
     "events": {
       "title": "Events",
