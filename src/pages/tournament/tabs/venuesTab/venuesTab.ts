@@ -18,6 +18,7 @@ import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { renderVenuesGrid, readVenueCardData } from './createVenuesGrid';
 import { setTabHeader } from 'components/tables/common/setTabHeader';
 import { showCourtAvailabilityModal } from 'courthive-components';
+import { renderTransitView } from './transit/renderTransitView';
 import { destroyTable } from 'pages/tournament/destroyTable';
 import { tournamentEngine } from 'services/factory/engine';
 import { renderVenueDetail } from './renderVenueDetail';
@@ -36,6 +37,7 @@ import {
 
 const NONE = 'none';
 const AVAILABILITY = 'availability';
+const TRANSIT = 'transit';
 
 interface RenderVenueTabParams {
   venueView?: string;
@@ -68,6 +70,14 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     // button, and [Add Venue] / [View Availability] aren't scoped to a
     // single venue. Clear any leftovers from a prior list render.
     if (controlAnchor) controlAnchor.innerHTML = '';
+    return;
+  }
+
+  // ─── Transit view (venue-to-venue travel times) ─────────────────────────
+  if (venueView === TRANSIT && venuesAnchor) {
+    // the transit view owns its header and back button; the list's control bar does not apply
+    if (controlAnchor) controlAnchor.innerHTML = '';
+    renderTransitView({ anchor: venuesAnchor, onBack: () => navigateToVenues() });
     return;
   }
 
@@ -248,6 +258,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
       controlAnchor,
       updateVenueRow,
       onToggleGrid: onToggleAvailability,
+      onTransit: () => navigateToVenues(TRANSIT),
     });
     const btn = ctrlElements.viewAvailability;
     if (btn) btn.textContent = availabilityVisible ? t('pages.venues.viewTable') : t('pages.venues.viewAvailability');
@@ -261,4 +272,12 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     renderControls();
     refreshHeader(readVenueCardData().length);
   }
+}
+
+/** the venues list, or one of its views (`transit`) */
+function navigateToVenues(view?: string): void {
+  const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
+  if (!tournamentId) return;
+  const route = `/${TOURNAMENT}/${tournamentId}/${VENUES_TAB}`;
+  context.router?.navigate(view ? `${route}/${view}` : route);
 }

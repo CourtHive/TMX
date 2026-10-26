@@ -1,0 +1,475 @@
+/* Venues tab — Transit view: a network of the venues and a from × to matrix. Theme tokens only (light and dark). */
+
+.tmx-transit {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: var(--tmx-text-primary);
+}
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+
+.tmx-transit__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'back titles policy'
+    'legend legend legend';
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.tmx-transit__back {
+  grid-area: back;
+  align-self: start;
+  padding: 0.35rem 0.7rem;
+  background: transparent;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 0.375rem;
+  color: var(--tmx-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tmx-transit__back:hover {
+  background: var(--tmx-bg-highlight);
+  color: var(--tmx-text-primary);
+}
+
+.tmx-transit__titles {
+  grid-area: titles;
+}
+
+.tmx-transit__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tmx-transit__subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--tmx-text-secondary);
+  font-size: 0.85rem;
+  max-width: 62ch;
+}
+
+.tmx-transit__policy {
+  grid-area: policy;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--tmx-panel-blue-border);
+  background: var(--tmx-panel-blue-bg);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.tmx-transit__legend {
+  grid-area: legend;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-transit__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tmx-transit__swatch {
+  display: inline-block;
+  width: 1.6rem;
+  height: 0;
+  border-top: 2.5px solid var(--tmx-accent-blue);
+}
+
+.tmx-transit__legend-item--sanctioned .tmx-transit__swatch {
+  border-top-color: var(--tmx-accent-purple);
+}
+
+.tmx-transit__legend-item--default .tmx-transit__swatch {
+  border-top: 2px dashed var(--tmx-text-muted);
+}
+
+.tmx-transit__legend-item--facility .tmx-transit__swatch {
+  border-top: 2px dotted var(--tmx-accent-green);
+}
+
+.tmx-transit__legend-item--one-way .tmx-transit__swatch {
+  position: relative;
+}
+
+.tmx-transit__legend-item--one-way .tmx-transit__swatch::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -6px;
+  border: 5px solid transparent;
+  border-left: 7px solid var(--tmx-accent-blue);
+}
+
+.tmx-transit__empty {
+  color: var(--tmx-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── body ───────────────────────────────────────────────────────────────── */
+
+.tmx-transit__body {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.3fr) minmax(280px, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .tmx-transit__body {
+    grid-template-columns: 1fr;
+  }
+
+  .tmx-transit__header {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'back' 'titles' 'policy' 'legend';
+  }
+}
+
+.tmx-transit__network {
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 1px 1px, var(--tmx-border-secondary) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--tmx-bg-secondary);
+  overflow: hidden;
+}
+
+.tmx-transit__network svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* edges */
+
+.tmx-transit__edge {
+  cursor: pointer;
+  outline: none;
+}
+
+.tmx-transit__edge-line {
+  fill: none;
+  stroke: var(--tmx-accent-blue);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition:
+    stroke-width 0.12s ease,
+    opacity 0.15s ease;
+}
+
+.tmx-transit__edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+}
+
+.tmx-transit__edge--sanctioned .tmx-transit__edge-line {
+  stroke: var(--tmx-accent-purple);
+}
+
+.tmx-transit__edge--default .tmx-transit__edge-line {
+  stroke: var(--tmx-text-muted);
+  stroke-width: 1.75;
+  stroke-dasharray: 6 5;
+}
+
+.tmx-transit__edge--facility .tmx-transit__edge-line {
+  stroke: var(--tmx-accent-green);
+  stroke-width: 2;
+  stroke-dasharray: 2 5;
+}
+
+.tmx-transit__edge--none .tmx-transit__edge-line {
+  stroke: var(--tmx-border-secondary);
+  stroke-width: 1.25;
+  stroke-dasharray: 2 6;
+}
+
+.tmx-transit__arrowhead {
+  fill: var(--tmx-accent-blue);
+}
+
+.tmx-transit__edge:hover .tmx-transit__edge-line,
+.tmx-transit__edge:focus-visible .tmx-transit__edge-line,
+.tmx-transit__edge.is-selected .tmx-transit__edge-line {
+  stroke-width: 4;
+}
+
+.has-hover .tmx-transit__edge:not(.is-related) {
+  opacity: 0.25;
+}
+
+.tmx-transit__pill rect {
+  fill: var(--tmx-bg-elevated);
+  stroke: var(--tmx-border-primary);
+  stroke-width: 1;
+}
+
+.tmx-transit__pill text {
+  fill: var(--tmx-text-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tmx-transit__edge--default .tmx-transit__pill text,
+.tmx-transit__edge--none .tmx-transit__pill text {
+  fill: var(--tmx-text-secondary);
+  font-weight: 500;
+}
+
+.tmx-transit__edge.is-selected .tmx-transit__pill rect,
+.tmx-transit__edge:focus-visible .tmx-transit__pill rect {
+  stroke: var(--tmx-border-focus);
+  stroke-width: 2;
+}
+
+.tmx-transit__lock rect {
+  fill: var(--tmx-accent-purple);
+}
+
+.tmx-transit__lock path {
+  stroke: var(--tmx-accent-purple);
+  stroke-width: 1.4;
+}
+
+/* nodes */
+
+.tmx-transit__node circle {
+  fill: var(--tmx-bg-elevated);
+  stroke: var(--tmx-text-primary);
+  stroke-width: 2;
+  transition:
+    stroke-width 0.12s ease,
+    fill 0.12s ease;
+}
+
+.tmx-transit__node:hover circle,
+.tmx-transit__node.is-hovered circle {
+  stroke-width: 3;
+  fill: var(--tmx-bg-highlight);
+}
+
+.tmx-transit__node-initials {
+  fill: var(--tmx-text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.tmx-transit__node-label {
+  fill: var(--tmx-text-secondary);
+  font-size: 11.5px;
+  paint-order: stroke;
+  stroke: var(--tmx-bg-secondary);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* ── matrix ─────────────────────────────────────────────────────────────── */
+
+.tmx-transit__side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tmx-transit__matrix {
+  overflow-x: auto;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 0.75rem;
+  background: var(--tmx-bg-primary);
+}
+
+.tmx-transit__matrix table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tmx-transit__matrix caption {
+  text-align: left;
+  padding: 0.6rem 0.8rem 0.2rem;
+  color: var(--tmx-text-secondary);
+  font-size: 0.78rem;
+}
+
+.tmx-transit__matrix th {
+  padding: 0.45rem 0.6rem;
+  color: var(--tmx-text-secondary);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tmx-transit__corner {
+  font-weight: 500;
+  font-size: 0.72rem;
+}
+
+.tmx-transit__cell {
+  padding: 0.45rem 0.6rem;
+  text-align: center;
+  border-top: 1px solid var(--tmx-border-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tmx-transit__cell:hover,
+.tmx-transit__cell:focus-visible {
+  background: var(--tmx-bg-highlight);
+  outline: none;
+}
+
+.tmx-transit__cell--self {
+  color: var(--tmx-text-muted);
+  cursor: default;
+}
+
+.tmx-transit__cell--stated {
+  color: var(--tmx-text-primary);
+  font-weight: 650;
+  box-shadow: inset 3px 0 0 var(--tmx-accent-blue);
+}
+
+.tmx-transit__cell--sanctioned {
+  font-weight: 650;
+  box-shadow: inset 3px 0 0 var(--tmx-accent-purple);
+}
+
+.tmx-transit__cell--default,
+.tmx-transit__cell--none {
+  color: var(--tmx-text-muted);
+}
+
+.tmx-transit__cell--facility {
+  color: var(--tmx-accent-green);
+}
+
+.tmx-transit__cell.is-selected {
+  background: var(--tmx-panel-blue-bg);
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: -2px;
+}
+
+/* ── editor ─────────────────────────────────────────────────────────────── */
+
+.tmx-transit__editor {
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 0.75rem;
+  background: var(--tmx-bg-elevated);
+  padding: 0.9rem 1rem;
+}
+
+.tmx-transit__hint {
+  margin: 0;
+  color: var(--tmx-text-secondary);
+  font-size: 0.85rem;
+}
+
+.tmx-transit__editor-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.tmx-transit__editor-now,
+.tmx-transit__editor-sanctioned {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-transit__editor-sanctioned {
+  color: var(--tmx-accent-purple);
+}
+
+.tmx-transit__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tmx-transit__field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.tmx-transit__field input {
+  width: 6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 0.375rem;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tmx-transit__field input:focus {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: 1px;
+}
+
+.tmx-transit__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--tmx-text-secondary);
+}
+
+.tmx-transit__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tmx-transit__actions button {
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--tmx-border-primary);
+  background: transparent;
+  color: var(--tmx-text-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.tmx-transit__actions .tmx-transit__save {
+  background: var(--tmx-container-primary);
+  border-color: var(--tmx-container-primary);
+  color: var(--tmx-text-inverse);
+}
+
+.tmx-transit__actions .tmx-transit__remove {
+  color: var(--tmx-status-error);
+}
+
+.tmx-transit__message {
+  margin: 0;
+  min-height: 1.1em;
+  font-size: 0.8rem;
+  color: var(--tmx-status-error);
+}
