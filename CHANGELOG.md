@@ -1,5 +1,21 @@
 # Changelog
 
+## [8.45.0](https://github.com/CourtHive/TMX/compare/v8.44.0...v8.45.0) (2026-10-26)
+
+
+### Features
+
+* **scheduling:** junior overnight rest in the built-in policy; results drawer shows its warnings ([#1788](https://github.com/CourtHive/TMX/issues/1788)) ([9b62f62](https://github.com/CourtHive/TMX/commit/9b62f6267c1bbed7896acec501a51c804f14c7c2))
+* **venues:** a Transit view for the time between venues ([#1778](https://github.com/CourtHive/TMX/issues/1778)) ([824e868](https://github.com/CourtHive/TMX/commit/824e86836db15d5698faab4b8c611f230f5430c2))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.1.0 ([#1792](https://github.com/CourtHive/TMX/issues/1792)) ([e116877](https://github.com/CourtHive/TMX/commit/e116877448ffeb2283c044ad0edc30c35cdaafbb))
+* **deps:** update courthive-components to 7.1.1 ([#1793](https://github.com/CourtHive/TMX/issues/1793)) ([384228c](https://github.com/CourtHive/TMX/commit/384228c0695ceac110b7a6884f09fc0aacab7f27))
+* **deps:** update dependency tabulator-tables to v6.7.1 ([#1780](https://github.com/CourtHive/TMX/issues/1780)) ([b42d498](https://github.com/CourtHive/TMX/commit/b42d498e251915dc50fef1c76ad7d3515129f77c))
+* **deps:** update tods-competition-factory to 7.23.0 ([#1791](https://github.com/CourtHive/TMX/issues/1791)) ([2055b63](https://github.com/CourtHive/TMX/commit/2055b63dbb638cb162d4d861b2259357fa31c7df))
+
 ## [8.44.0](https://github.com/CourtHive/TMX/compare/v8.43.0...v8.44.0) (2026-10-25)
 
 
