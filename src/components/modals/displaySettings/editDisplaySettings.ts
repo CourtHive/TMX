@@ -1,7 +1,7 @@
 import { getUserCompositionsSync, loadUserCompositions } from 'pages/templates/compositionBridge';
 import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { compositions, renderMatchUp, renderForm } from 'courthive-components';
+import { compositions, renderMatchUp, renderForm, showsConnectors } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { removeAllChildNodes } from 'services/dom/transformers';
@@ -40,12 +40,22 @@ export async function editDisplaySettings(params) {
   const snapshotFor = (compositionName) =>
     compositionName === scopedValue?.compositionName ? scopedValue?.configuration : undefined;
   const initialConfiguration = snapshotFor(initialName) ?? resolveCompositionByName(initialName)?.configuration;
+  // whether a composition draws its connectors: its saved choice, else the theme's own (BasicCard hides them)
+  const connectorsFor = (compositionName, configuration) => {
+    const theme =
+      compositionName === scopedValue?.compositionName && scopedValue?.theme
+        ? scopedValue.theme
+        : resolveCompositionByName(compositionName)?.theme;
+    return showsConnectors({ theme, configuration });
+  };
   const selections: any = {
     compositionName: initialName,
     // only the form's own fields; everything else comes from the composition (or its saved snapshot)
     configuration: {
       scheduleInfo: !!initialConfiguration?.scheduleInfo,
       pathHighlight: !!initialConfiguration?.pathHighlight,
+      connectors: connectorsFor(initialName, initialConfiguration),
+      flags: !!initialConfiguration?.flags,
       participantDetail: initialConfiguration?.participantDetail,
     },
     storedColors: scopedValue?.colors,
@@ -176,11 +186,15 @@ export async function editDisplaySettings(params) {
       const chosen = snapshotFor(compositionName) ?? resolveCompositionByName(compositionName)?.configuration;
       selections.inputs.showSchedule.checked = !!chosen?.scheduleInfo;
       selections.inputs.pathHighlight.checked = !!chosen?.pathHighlight;
+      selections.inputs.showConnectors.checked = connectorsFor(compositionName, chosen);
+      selections.inputs.showFlags.checked = !!chosen?.flags;
     }
     selections.compositionName = compositionName;
     selections.configuration.scheduleInfo =
       !noScheduleInfo.has(selections.compositionName) && selections.inputs.showSchedule.checked;
     selections.configuration.pathHighlight = selections.inputs.pathHighlight.checked;
+    selections.configuration.connectors = selections.inputs.showConnectors.checked;
+    selections.configuration.flags = selections.inputs.showFlags.checked;
     selections.configuration.participantDetail = selections.inputs.detail.value;
     render(selections);
   };
@@ -193,7 +207,6 @@ export async function editDisplaySettings(params) {
       onChange,
     },
     {
-      controlVisible: !noScheduleInfo.has(selections.compositionName),
       checked: selections.configuration.scheduleInfo,
       controlId: 'scheduleToggle',
       label: t('modals.displaySettings.showSchedule'),
@@ -211,6 +224,22 @@ export async function editDisplaySettings(params) {
       onChange,
     },
     {
+      checked: selections.configuration.connectors,
+      label: t('modals.displaySettings.showConnectors'),
+      field: 'showConnectors',
+      id: 'showConnectors',
+      checkbox: true,
+      onChange,
+    },
+    {
+      checked: selections.configuration.flags,
+      label: t('modals.displaySettings.showFlags'),
+      field: 'showFlags',
+      id: 'showFlags',
+      checkbox: true,
+      onChange,
+    },
+    {
       options: detailOptions,
       label: t('modals.displaySettings.detail'),
       field: 'detail',
@@ -219,17 +248,23 @@ export async function editDisplaySettings(params) {
   ];
   const formElement = document.createElement('div');
   content.appendChild(formElement);
-  const relationships = [
-    {
-      onChange: ({ e }) => {
-        const display = !noScheduleInfo.has(e.target.value);
-        const elem = document.getElementById('scheduleToggle');
-        if (elem) elem.style.display = display ? 'block' : NONE;
-      },
-      control: 'composition',
-    },
-  ];
+  // the whole field, so the checkboxes beside it close up rather than leave a gap
+  const showScheduleField = (compositionName) => {
+    const field = document.getElementById('scheduleToggle')?.closest<HTMLElement>('.field');
+    if (field) field.style.display = noScheduleInfo.has(compositionName) ? NONE : '';
+  };
+  const relationships = [{ onChange: ({ e }) => showScheduleField(e.target.value), control: 'composition' }];
   selections.inputs = renderForm(formElement, formElements, relationships);
+
+  // the checkboxes in two columns, without lines between them
+  const checkboxGrid = document.createElement('div');
+  checkboxGrid.style.cssText = 'display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem;';
+  const checkboxFields = ['showSchedule', 'pathHighlight', 'showConnectors', 'showFlags']
+    .map((field) => selections.inputs[field]?.closest('.field'))
+    .filter(Boolean);
+  checkboxFields[0]?.before(checkboxGrid);
+  checkboxGrid.append(...checkboxFields);
+  showScheduleField(selections.compositionName);
 
   const saveComposition = () => {
     const postMutation = () => {

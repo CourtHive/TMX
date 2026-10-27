@@ -2043,6 +2043,8 @@
       "google": "Google",
       "showSchedule": "Show Schedule",
       "pathHighlight": "Highlight participant path",
+      "showConnectors": "Show connectors",
+      "showFlags": "Show flags",
       "detail": "Detail",
       "title": "Edit display settings"
     }
