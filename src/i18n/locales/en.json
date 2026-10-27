@@ -2042,6 +2042,7 @@
     "displaySettings": {
       "google": "Google",
       "showSchedule": "Show Schedule",
+      "pathHighlight": "Highlight participant path",
       "detail": "Detail",
       "title": "Edit display settings"
     }
