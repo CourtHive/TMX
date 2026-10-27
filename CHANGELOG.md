@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.46.0](https://github.com/CourtHive/TMX/compare/v8.45.0...v8.46.0) (2026-10-27)
+
+
+### Features
+
+* **display:** a display-settings toggle to highlight a participant's path ([#1801](https://github.com/CourtHive/TMX/issues/1801)) ([b1b326d](https://github.com/CourtHive/TMX/commit/b1b326d9bd2adb879c6db9e78d1548a160ca207f))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.1.2 ([#1800](https://github.com/CourtHive/TMX/issues/1800)) ([139517b](https://github.com/CourtHive/TMX/commit/139517b678c473c43730a5c3be281d273d3fd45a))
+* **display:** a newly chosen composition renders as itself ([#1797](https://github.com/CourtHive/TMX/issues/1797)) ([2e4b6c5](https://github.com/CourtHive/TMX/commit/2e4b6c5fbd9a11c71f07c2e901aef3dc779c8dae))
+* **display:** the path highlight checkbox can be clicked ([#1802](https://github.com/CourtHive/TMX/issues/1802)) ([7f147b0](https://github.com/CourtHive/TMX/commit/7f147b0c07389313cd6babb9ba2d033e33395c1a))
+
 ## [8.45.0](https://github.com/CourtHive/TMX/compare/v8.44.0...v8.45.0) (2026-10-26)
 
 
