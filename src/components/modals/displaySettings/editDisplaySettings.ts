@@ -45,6 +45,7 @@ export async function editDisplaySettings(params) {
     // only the form's own fields; everything else comes from the composition (or its saved snapshot)
     configuration: {
       scheduleInfo: !!initialConfiguration?.scheduleInfo,
+      pathHighlight: !!initialConfiguration?.pathHighlight,
       participantDetail: initialConfiguration?.participantDetail,
     },
     storedColors: scopedValue?.colors,
@@ -174,10 +175,12 @@ export async function editDisplaySettings(params) {
       // a newly chosen composition brings its own header setting
       const chosen = snapshotFor(compositionName) ?? resolveCompositionByName(compositionName)?.configuration;
       selections.inputs.showSchedule.checked = !!chosen?.scheduleInfo;
+      selections.inputs.pathHighlight.checked = !!chosen?.pathHighlight;
     }
     selections.compositionName = compositionName;
     selections.configuration.scheduleInfo =
       !noScheduleInfo.has(selections.compositionName) && selections.inputs.showSchedule.checked;
+    selections.configuration.pathHighlight = selections.inputs.pathHighlight.checked;
     selections.configuration.participantDetail = selections.inputs.detail.value;
     render(selections);
   };
@@ -196,6 +199,13 @@ export async function editDisplaySettings(params) {
       label: t('modals.displaySettings.showSchedule'),
       field: 'showSchedule',
       id: 'showSchedule',
+      checkbox: true,
+      onChange,
+    },
+    {
+      checked: selections.configuration.pathHighlight,
+      label: t('modals.displaySettings.pathHighlight'),
+      field: 'pathHighlight',
       checkbox: true,
       onChange,
     },
