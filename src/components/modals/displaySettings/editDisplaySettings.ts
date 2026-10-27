@@ -206,6 +206,7 @@ export async function editDisplaySettings(params) {
       checked: selections.configuration.pathHighlight,
       label: t('modals.displaySettings.pathHighlight'),
       field: 'pathHighlight',
+      id: 'pathHighlight',
       checkbox: true,
       onChange,
     },
