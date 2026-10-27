@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.47.0](https://github.com/CourtHive/TMX/compare/v8.46.0...v8.47.0) (2026-10-27)
+
+
+### Features
+
+* **display:** connectors and flags checkboxes in display settings, in a 2x2 grid ([#1805](https://github.com/CourtHive/TMX/issues/1805)) ([749daf0](https://github.com/CourtHive/TMX/commit/749daf0c10af9b6dd68555e4e8b0bf2514d0f2d7))
+
 ## [8.46.0](https://github.com/CourtHive/TMX/compare/v8.45.0...v8.46.0) (2026-10-27)
 
 
