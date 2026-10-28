@@ -9,6 +9,7 @@
 import { HTTP_COMMANDS, postCommand, resumeCommands } from 'services/messaging/transport/httpCommands';
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
+import { chatOnAms, closeAmsChat, installAmsChat } from 'services/chat/amsChatTransport';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
@@ -147,23 +148,13 @@ export function connectSocket(callback?: () => void): void {
   transport.on(TMX_DIRECTIVE, processDirective);
   transport.on('tournamentMutation', handleTournamentMutation);
   transport.on('facilityScheduleChanged', handleFacilityScheduleChanged);
-  transport.on('chatMessage', receiveMessage);
-  transport.on('chatAccepted', receiveAccepted);
-  transport.on('chatRejected', receiveRejected);
-  transport.on('chatHistory', receiveHistory);
-  transport.on('roomPresence', setOnlineCount);
-  transport.on('adminChatFeed', receiveAdminChatFeed);
-  transport.on('adminChatHistory', receiveAdminChatHistory);
   transport.on('exception', handleException);
   transport.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
 
-  setChatSendFn((data: any) => socketEmit('chatMessage', data));
-  setChatGapFn((data: any) => socketEmit('chatSince', data));
-  setAdminMonitorFns({
-    join: () => socketEmit('joinChatMonitor', {}),
-    leave: () => socketEmit('leaveChatMonitor', {}),
-    reply: (data: any) => socketEmit('adminChatReply', data),
-  });
+  // Chat runs on AMS and the relay (amsChatTransport.ts). Nothing chat-shaped is taken from CFS's socket then: its
+  // `roomPresence` counts the mutation room, not the chat room, and would overwrite the chat's "N online".
+  if (chatOnAms()) installAmsChat();
+  else wireCfsChat(transport);
 
   restorePersistedOutbox();
 
@@ -243,8 +234,28 @@ export function socketExists(): boolean {
   return !!oi.connection;
 }
 
+/** Chat on CFS's `/tmx` socket: `serverConfig.chatBackend: 'cfs'`, kept for one release (CHAT_TO_AMS.md § 7). */
+function wireCfsChat(transport: { on: (event: string, handler: (data: any) => void) => void }): void {
+  transport.on('chatMessage', receiveMessage);
+  transport.on('chatAccepted', receiveAccepted);
+  transport.on('chatRejected', receiveRejected);
+  transport.on('chatHistory', receiveHistory);
+  transport.on('roomPresence', setOnlineCount);
+  transport.on('adminChatFeed', receiveAdminChatFeed);
+  transport.on('adminChatHistory', receiveAdminChatHistory);
+
+  setChatSendFn((data: any) => socketEmit('chatMessage', data));
+  setChatGapFn((data: any) => socketEmit('chatSince', data));
+  setAdminMonitorFns({
+    join: () => socketEmit('joinChatMonitor', {}),
+    leave: () => socketEmit('leaveChatMonitor', {}),
+    reply: (data: any) => socketEmit('adminChatReply', data),
+  });
+}
+
 export function disconnectSocket(): void {
   slog('[socket] disconnectSocket called');
+  if (chatOnAms()) closeAmsChat();
   oi.connection?.disconnect();
   setTimeout(() => delete oi.connection, 1000);
 }
