@@ -6,7 +6,7 @@
  * - Production: same host, /relay path (nginx proxy)
  * - Local dev: same host, port 8384
  */
-import { configuredRelayURL, isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
+import { configuredRelayURL, isCrowdScoringEnabled, isScoreRelayConfigured } from 'services/apis/scoreRelayApi';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { io, Socket } from 'socket.io-client';
@@ -48,6 +48,14 @@ function getRelayConfig(): { origin: string; path: string } {
   // is no /socket.io/ nginx block, so a default-path handshake lands on CFS
   // instead and fails with "Invalid namespace". Mirrors epixodic's producer.
   return { origin: serverUrl, path: '/relay/socket.io/' };
+}
+
+/**
+ * Where a socket to score-relay connects, for a namespace other than `/live` (tournament chat's `/chat`). Undefined
+ * when this deployment has no relay (the disabled sentinel): such a client opens no relay socket at all.
+ */
+export function relaySocketTarget(): { origin: string; path: string } | undefined {
+  return isScoreRelayConfigured() ? getRelayConfig() : undefined;
 }
 
 export function connectRelay(tournamentId: string): void {
