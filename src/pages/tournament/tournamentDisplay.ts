@@ -14,6 +14,7 @@ import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSetti
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
 import { resetScheduledCatalogFilters } from './tabs/scheduleViews/gridViewStorage';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
+import { chatOnAms, enterChat, leaveChat } from 'services/chat/amsChatTransport';
 import { requestTournament, removeTournament } from 'services/apis/servicesApi';
 import { tournamentHeader } from '../../components/popovers/tournamentHeader';
 import { serverIsAhead, setServerSync } from 'services/staleness/serverSync';
@@ -98,6 +99,7 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     slog('[tournament] switching from %s to %s (loggedIn=%s)', prevId, config.tournamentId, !!getLoginState());
     context.ee.emit(LEAVE_TOURNAMENT, prevId);
     if (prevId && getLoginState()) leaveTournamentRoom(prevId);
+    if (chatOnAms()) leaveChat();
     disconnectRelay();
     stopTournamentCrowdPoller();
     clearActiveLiveTrackedScores();
@@ -132,6 +134,7 @@ export function renderTournament({ config }: { config: any }): void {
   if (config.tournamentId && getLoginState()) {
     slog('[tournament] renderTournament — joining room for', config.tournamentId);
     joinTournamentRoom(config.tournamentId);
+    if (chatOnAms()) enterChat(config.tournamentId);
   } else {
     slog(
       '[tournament] renderTournament — skipping room join (tournamentId=%s, loggedIn=%s)',
