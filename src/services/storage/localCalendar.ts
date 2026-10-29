@@ -10,7 +10,7 @@
  * The entry shape is derived by the factory (`getTournamentCalendarEntry`) so the
  * local entry is byte-identical to the one the server persists — no drift.
  */
-import { tournamentEngine } from 'services/factory/engine';
+import { tournamentGovernor } from 'tods-competition-factory';
 import { visibleToSession } from './offlineCustody';
 import { tmx2db } from './tmx2db';
 
@@ -31,7 +31,9 @@ function providerBucket(tournamentRecord: any): string {
 export async function maintainLocalCalendarEntry(tournamentRecord: any): Promise<void> {
   if (!tournamentRecord?.tournamentId) return;
   try {
-    const entry = tournamentEngine.getTournamentCalendarEntry({ tournamentRecord });
+    // the record saved need not be the one the engine holds: the governor reads the record given (an engine call
+    // works only on the records the engine holds)
+    const entry = tournamentGovernor.getTournamentCalendarEntry({ tournamentRecord });
     if (entry?.tournamentId) await tmx2db.upsertCalendarEntry(providerBucket(tournamentRecord), entry);
   } catch (err) {
     console.error('[localCalendar] failed to maintain entry', err);
