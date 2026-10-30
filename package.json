@@ -117,7 +117,7 @@
     "@courthive/scoring-visualizations": "^0.2.24",
     "@eslint/js": "^10.0.1",
     "animate.css": "4.1.1",
-    "axios": "1.20.0",
+    "axios": "1.21.0",
     "camelcase": "10.0.0",
     "classnames": "2.5.1",
     "courthive-components": "7.3.2",
