@@ -15,7 +15,16 @@ describe('matchUpMenuGates', () => {
   it('offers an item exactly when its action is offered', () => {
     const gates = matchUpMenuGates({
       matchUp: toBePlayed,
-      validActions: actions('REFEREE', 'SCHEDULE_DATE', 'SCHEDULE_TIME', 'START', 'END', 'CHECK_IN'),
+      validActions: actions(
+        'REFEREE',
+        'SCHEDULE_DATE',
+        'SCHEDULE_TIME',
+        'START',
+        'END',
+        'CHECK_IN',
+        'PENALTY',
+        'STATUS',
+      ),
     });
     expect(Object.keys(gates).filter((key) => key !== 'hidePrint' && gates[key])).toEqual([
       'scheduleDate',
@@ -24,14 +33,16 @@ describe('matchUpMenuGates', () => {
       'referee',
       'start',
       'end',
+      'penalty',
+      'status',
     ]);
     expect(gates.clearSchedule).toBeUndefined();
     expect(gates.scheduleLock).toBeUndefined();
     expect(gates.scorekeeper).toBeUndefined();
   });
 
-  it('offers nothing the factory does not, as a factory that predates the actions', () => {
-    const gates = matchUpMenuGates({ matchUp: toBePlayed, validActions: actions('SCORE', 'STATUS', 'SCHEDULE') });
+  it('offers no item for an action the menu has none for', () => {
+    const gates = matchUpMenuGates({ matchUp: toBePlayed, validActions: actions('SCORE', 'SCHEDULE') });
     expect(Object.values(gates).filter((value) => typeof value === 'object')).toEqual([]);
   });
 

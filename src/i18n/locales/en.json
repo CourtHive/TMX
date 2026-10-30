@@ -2039,6 +2039,17 @@
       "previous": "← Previous",
       "next": "Next →"
     },
+    "penalty": {
+      "participant": "Participant",
+      "selectParticipant": "Select participant",
+      "penaltyType": "Penalty",
+      "selectType": "Select penalty",
+      "notes": "Notes",
+      "assess": "Assess",
+      "incomplete": "Choose a participant and a penalty",
+      "added": "Penalty recorded",
+      "failed": "Penalty not recorded"
+    },
     "displaySettings": {
       "google": "Google",
       "showSchedule": "Show Schedule",

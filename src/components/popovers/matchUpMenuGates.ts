@@ -1,8 +1,19 @@
 import { matchUpActionConstants } from 'tods-competition-factory';
 import { hasFinalResult } from 'functions/hasFinalResult';
 
-const { SCHEDULE_DATE, SCHEDULE_TIME, CLEAR_SCHEDULE, SCHEDULE_LOCK, SCOREKEEPER, CHECK_IN, REFEREE, START, END } =
-  matchUpActionConstants;
+const {
+  SCHEDULE_DATE,
+  SCHEDULE_TIME,
+  CLEAR_SCHEDULE,
+  SCHEDULE_LOCK,
+  SCOREKEEPER,
+  CHECK_IN,
+  REFEREE,
+  PENALTY,
+  STATUS,
+  START,
+  END,
+} = matchUpActionConstants;
 
 const UNPLAYED_STATUSES = new Set([
   'BYE',
@@ -45,6 +56,8 @@ export type MatchUpMenuGates = {
   referee?: MenuAction;
   start?: MenuAction;
   end?: MenuAction;
+  penalty?: MenuAction;
+  status?: MenuAction;
   /** the match card is TMX's own: printed for a match still to be played (CA, 2026-10-30) */
   hidePrint: boolean;
 };
@@ -73,6 +86,8 @@ export function matchUpMenuGates({
     referee: action(REFEREE),
     start: action(START),
     end: action(END),
+    penalty: action(PENALTY),
+    status: action(STATUS),
     hidePrint: !matchUp || hasFinalResult(matchUp) || UNPLAYED_STATUSES.has(matchUp.matchUpStatus),
   };
 }

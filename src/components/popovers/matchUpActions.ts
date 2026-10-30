@@ -21,9 +21,11 @@ import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
+import { addPenaltyModal } from 'components/modals/addPenaltyModal';
 import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -583,6 +585,17 @@ export function matchUpActions({
       onClick: () => void selectOfficial(),
       text: t('officiating.selectOfficial'),
       hide: !gates.referee,
+    },
+    {
+      onClick: () =>
+        enterMatchUpScore({ matchUp, matchUpId: matchUp.matchUpId, callback: () => callback?.({ refresh: true }) }),
+      text: t('draws.changestatus'),
+      hide: !gates.status,
+    },
+    {
+      onClick: () => gates.penalty && addPenaltyModal({ action: gates.penalty }),
+      text: t('draws.penalty'),
+      hide: !gates.penalty,
     },
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
