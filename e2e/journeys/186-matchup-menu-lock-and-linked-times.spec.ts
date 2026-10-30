@@ -1,6 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
