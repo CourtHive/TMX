@@ -11,8 +11,9 @@ const h = vi.hoisted(() => ({
 
 vi.mock('services/authentication/sessionIdentity', () => ({ getSessionEmail: () => h.sessionEmail() }));
 
-vi.mock('services/factory/engine', () => ({
-  tournamentEngine: { getTournamentCalendarEntry: h.getTournamentCalendarEntry },
+vi.mock('tods-competition-factory', async (original) => ({
+  ...(await original<any>()),
+  tournamentGovernor: { getTournamentCalendarEntry: h.getTournamentCalendarEntry },
 }));
 vi.mock('./tmx2db', () => ({
   tmx2db: {
