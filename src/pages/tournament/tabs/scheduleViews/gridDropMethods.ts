@@ -74,6 +74,7 @@ interface ScheduleMethod {
     schedule: any;
     removePriorValues: boolean;
     overrideScheduleLock?: boolean;
+    plannedOrder?: boolean;
   };
 }
 
@@ -91,8 +92,11 @@ function clearSchedule(matchUpId: string, drawId: string): ScheduleMethod {
   };
 }
 
+// A grid drag is held to the PLAYED order only, not yet to the planned one (CA 2026-10-30: grid drags are scoped
+// separately). Older engines ignore the parameter.
 function assignSchedule(matchUpId: string, drawId: string, schedule: any): ScheduleMethod {
-  return { method: ADD_MATCHUP_SCHEDULE_ITEMS, params: { matchUpId, drawId, schedule, removePriorValues: true } };
+  const params = { matchUpId, drawId, schedule, removePriorValues: true, plannedOrder: false };
+  return { method: ADD_MATCHUP_SCHEDULE_ITEMS, params };
 }
 
 /**
