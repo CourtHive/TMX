@@ -1,17 +1,8 @@
+import { matchUpActionConstants } from 'tods-competition-factory';
 import { hasFinalResult } from 'functions/hasFinalResult';
 
-// The factory's `matchUpActions` types for the popover's items (factory #5988). Spelled here rather than read from
-// `matchUpActionConstants` so the menu type-checks against a factory that predates them; such a factory offers none of
-// them, and the menu then offers none of these items.
-export const SCHEDULE_DATE = 'SCHEDULE_DATE';
-export const SCHEDULE_TIME = 'SCHEDULE_TIME';
-export const CLEAR_SCHEDULE = 'CLEAR_SCHEDULE';
-export const SCHEDULE_LOCK = 'SCHEDULE_LOCK';
-export const SCOREKEEPER = 'SCOREKEEPER';
-export const CHECK_IN = 'CHECK_IN';
-export const REFEREE = 'REFEREE';
-export const START = 'START';
-export const END = 'END';
+const { SCHEDULE_DATE, SCHEDULE_TIME, CLEAR_SCHEDULE, SCHEDULE_LOCK, SCOREKEEPER, CHECK_IN, REFEREE, START, END } =
+  matchUpActionConstants;
 
 const UNPLAYED_STATUSES = new Set([
   'BYE',
