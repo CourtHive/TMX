@@ -223,8 +223,8 @@ importers:
         specifier: ^3.4.12
         version: 3.4.17
       focus-trap:
-        specifier: 8.2.3
-        version: 8.2.3
+        specifier: 8.2.4
+        version: 8.2.4
       hotkeys-js:
         specifier: 4.0.8
         version: 4.0.8
@@ -3206,8 +3206,8 @@ packages:
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
 
-  focus-trap@8.2.3:
-    resolution: {integrity: sha512-LTNHZwcFM7bSdU1cG1ExoaTEzoGmdjw+EzDotolZmLTCbm0ll2k6J3NL+WfqP14nGLxAp+XDJgwlT2DtNhcukA==}
+  focus-trap@8.2.4:
+    resolution: {integrity: sha512-oy6dj7WZYgMbbpoOA29K5W++473F1zEzdI1oJgPb6x7yWT36YaWedUe6i6YPWEt5quSh0pRMohVyHLWXUxtdxg==}
 
   follow-redirects@1.16.1:
     resolution: {integrity: sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==}
@@ -8288,7 +8288,7 @@ snapshots:
 
   flatted@3.4.4: {}
 
-  focus-trap@8.2.3:
+  focus-trap@8.2.4:
     dependencies:
       tabbable: 6.5.1
 
