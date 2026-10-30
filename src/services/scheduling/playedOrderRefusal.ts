@@ -8,18 +8,21 @@ import type { ErrorCode } from 'tods-competition-factory';
 const ANACHRONISM: ErrorCode = 'ANACHRONISM';
 
 type BlockingMatchUp = {
-  relation: 'playedSource' | 'dependent';
+  relation: 'source' | 'playedSource' | 'dependent';
   scheduledDate?: string;
   scheduledTime?: string;
+  startTime?: string;
+  endTime?: string;
   roundNumber?: number;
   matchUpId: string;
 };
 
 /**
- * The factory refuses a schedule write that would put a matchUp at or before a PLAYED matchUp it depends on, or a
- * played matchUp after one that depends on it (`ANACHRONISM`, with `context.blockingMatchUps`). This says which match
- * stands in the way, so a refused drag or save does not simply snap back. Undefined for any other result, so a caller
- * falls back to its own message.
+ * The factory refuses a schedule write that breaks the order of linked matchUps (`ANACHRONISM`, with
+ * `context.blockingMatchUps`): a matchUp placed at or before one it depends on, played or only scheduled, or after one
+ * that depends on it; or recorded start and end times that overlap a linked match's (CA 2026-10-30). This says which
+ * match stands in the way, so a refused drag or save does not simply snap back. Undefined for any other result, so a
+ * caller falls back to its own message.
  */
 export function playedOrderRefusalMessage(
   result: any,
@@ -32,12 +35,27 @@ export function playedOrderRefusalMessage(
 
   const matchUp =
     labelOf(first.matchUpId) ?? t('toasts.schedule.roundLabel', { roundNumber: first.roundNumber ?? '?' });
-  const when = [first.scheduledDate, first.scheduledTime].filter(Boolean).join(' ');
-  const key = first.relation === 'dependent' ? 'toasts.schedule.afterDependent' : 'toasts.schedule.beforePlayedSource';
-  const message = t(key, { matchUp, when });
+  const message = t(refusalKey(result, first), { matchUp, when: whenOf(result, first) });
   return blocking.length > 1
     ? `${message} ${t('toasts.schedule.moreBlocking', { count: blocking.length - 1 })}`
     : message;
+}
+
+// a refusal of recorded times names the times it judged; a refusal of a placement does not
+const isRecorded = (result: any) => !!(result?.context?.startTime || result?.context?.endTime);
+
+function refusalKey(result: any, first: BlockingMatchUp): string {
+  if (isRecorded(result)) {
+    return first.relation === 'dependent' ? 'toasts.schedule.overlapsDependent' : 'toasts.schedule.overlapsSource';
+  }
+  if (first.relation === 'dependent') return 'toasts.schedule.afterDependent';
+  if (first.relation === 'source') return 'toasts.schedule.beforeSource';
+  return 'toasts.schedule.beforePlayedSource';
+}
+
+function whenOf(result: any, first: BlockingMatchUp): string {
+  if (isRecorded(result)) return [first.startTime, first.endTime].filter(Boolean).join('–');
+  return [first.scheduledDate, first.scheduledTime].filter(Boolean).join(' ');
 }
 
 function engineMatchUpLabel(matchUpId: string): string | undefined {
