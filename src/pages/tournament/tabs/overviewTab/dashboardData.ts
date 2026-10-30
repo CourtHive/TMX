@@ -4,12 +4,13 @@ import { tournamentEngine } from 'services/factory/engine';
 
 const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
 
+/** a structure as `getTournamentInfo` lists it (`withStructureDetails`): its names are present when the record holds them */
 export type StructureInfo = {
   structureId: string;
-  structureName: string;
+  structureName?: string;
   drawId: string;
-  drawName: string;
-  eventName: string;
+  drawName?: string;
+  eventName?: string;
   eventId: string;
 };
 
@@ -111,15 +112,15 @@ export function getDashboardData(): DashboardData {
   );
 
   const info = {
-    participantCount: tournamentInfo?.participantCount || tournamentInfo?.individualParticipantCount || 0,
+    participantCount: tournamentInfo?.individualParticipantCount || 0,
     teamParticipantCount: tournamentInfo?.teamParticipantCount || 0,
     courtSvgSport: courtSvgResource?.identifier,
-    tournamentName: tournamentInfo?.tournamentName,
+    tournamentName: tournamentInfo?.tournamentName ?? '',
     matchUpStats: tournamentInfo?.matchUpStats || { total: 0, completed: 0, scheduled: 0, percentComplete: 0 },
-    eventCount: tournamentInfo?.eventCount,
-    startDate: tournamentInfo?.startDate,
+    eventCount: tournamentInfo?.eventCount ?? 0,
+    startDate: tournamentInfo?.startDate ?? '',
     imageUrl: tournamentInfo?.imageUrl,
-    endDate: tournamentInfo?.endDate,
+    endDate: tournamentInfo?.endDate ?? '',
     notes: tournamentInfo?.notes,
     drawDefinitionCount,
     publishingStats,
