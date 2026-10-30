@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from '@playwright/test';
+import { test, type BrowserContext, type Page } from '@playwright/test';
 
 /**
  * Initialize the dev bridge on a page.
@@ -110,6 +110,20 @@ export async function waitForAppReady(page: Page): Promise<void> {
 
   // Wait for the navbar (#dnav) — it's always visible once the app is ready
   await page.waitForSelector('#dnav', { state: 'visible', timeout: 15_000 });
+}
+
+/**
+ * Wait until the router hears hash changes again, before a `page.goto` to a hash route that follows an in-app
+ * navigation (a nav-tab click, a row click).
+ *
+ * Navigo 8's `navigate()` sets `__freezeListening` and clears it in a `setTimeout(…, 1)`; a `popstate` arriving in
+ * between is dropped. A spec that clicks a tab and then `page.goto`s a hash route at once can land in that window:
+ * the URL changes, nothing resolves, and the page stays on the tab. Journey 177 did this one run in four on a loaded
+ * host (Button, 2026-10-30) — router idle, `lastResolved()` still `/events`, hash already the structure route. A 1 ms
+ * timer queued in the page now fires after Navigo's, so listening has resumed when this returns.
+ */
+export async function settleRouter(page: Page): Promise<void> {
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 1)));
 }
 
 /**
@@ -250,20 +264,36 @@ const isolatedContexts = new WeakSet<BrowserContext>();
  * Tracked per context, so the second and later calls install nothing — a spec
  * that isolates explicitly and then logs in through a helper gets one route.
  *
- * Scope is the CFS ORIGIN, deliberately. A bare path glob such as
+ * Scope is by ORIGIN, deliberately. A bare path glob such as
  * `**\/tournaments/search*` also matches the app's own source modules served by
  * the dev server, which breaks boot instead of isolating anything.
  *
- * Override the origin with `E2E_API_BASE`, as `role-fixtures.ts` does.
+ * ## Every local backend, not only CFS
+ *
+ * On localhost the app reaches its sibling services on their dev ports
+ * (`siblingServiceBaseUrl`: declarations :3120, facilities :3130, …) and the
+ * read model at `QUERY_SERVER` (:3150 in `.env.development`). Each of them 401s
+ * the unsigned token just as CFS does. Aborting CFS alone left them reachable:
+ * on a host running the full stack (Button, 2026-10-30) journeys 30, 61, 179 and
+ * assessment-bulk-draft opened on "Your session has expired" and failed every
+ * run, while a laptop with nothing on those ports passed them. So every
+ * localhost origin other than the app's own is aborted too.
+ *
+ * Override the CFS origin with `E2E_API_BASE`, as `role-fixtures.ts` does.
  */
 export async function isolateFromCfs(page: Page): Promise<void> {
   const context = page.context();
   if (isolatedContexts.has(context)) return;
   isolatedContexts.add(context);
 
-  const cfs = process.env.E2E_API_BASE ?? 'http://localhost:8383';
-  await context.route(`${cfs}/**`, (route) => route.abort());
+  const cfsOrigin = new URL(process.env.E2E_API_BASE ?? 'http://localhost:8383').origin;
+  const appOrigin = new URL(test.info().project.use.baseURL ?? 'http://localhost:5173').origin;
+  const isBackend = (url: URL) =>
+    url.origin === cfsOrigin || (LOCAL_HOSTS.has(url.hostname) && url.origin !== appOrigin);
+  await context.route(isBackend, (route) => route.abort());
 }
+
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 /**
  * Seed a NON-super-admin JWT whose `providerAssociations` tie the user to a
