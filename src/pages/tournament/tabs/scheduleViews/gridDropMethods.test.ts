@@ -19,6 +19,20 @@ const catalogPayload = (): GridDropPayload => ({
 });
 
 describe('buildGridDropMethods', () => {
+  // the factory holds schedule writes to the planned order (CA 2026-10-30); grid drags are scoped separately, so their
+  // placements keep the played order only
+  it('every placing write keeps the played order only', () => {
+    const methods = buildGridDropMethods({
+      payload: gridPayload(),
+      target,
+      occupant: { matchUpId: 'occupant', drawId: 'drawO' },
+      scheduledDate: DATE,
+    });
+    const [clearOccupant, clearDragged, assignDragged, assignOccupant] = methods;
+    expect([assignDragged, assignOccupant].map((m) => m.params.plannedOrder)).toEqual([false, false]);
+    expect([clearOccupant, clearDragged].map((m) => m.params.plannedOrder)).toEqual([undefined, undefined]);
+  });
+
   it('swaps two grid matchUps — trading court + order, each keeping its own time', () => {
     const methods = buildGridDropMethods({
       payload: gridPayload(),
