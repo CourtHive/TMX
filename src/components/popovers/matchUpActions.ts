@@ -18,6 +18,7 @@ import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getSettlementContext } from 'services/rotatingPartners/settlement';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
+import { matchUpMenuGates } from 'components/popovers/matchUpMenuGates';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
 import { fetchOfficialRecords } from 'services/apis/officiatingApi';
@@ -505,19 +506,7 @@ export function matchUpActions({
     render();
   };
 
-  const matchUpStatus = matchUp?.matchUpStatus;
-  const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId);
-  const terminalStatuses = [
-    'BYE',
-    'WALKOVER',
-    'DOUBLE_WALKOVER',
-    'CANCELLED',
-    'ABANDONED',
-    'DOUBLE_DEFAULT',
-    'DEFAULTED',
-  ];
-  const isTerminal = terminalStatuses.includes(matchUpStatus);
-  const hideTimeOptions = noParticipants || isTerminal;
+  const { noParticipants, hideTimeOptions, hidePrePlay, hideCheckIn } = matchUpMenuGates(matchUp);
 
   const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
   const hasDelegatedOutcome = !!readDelegatedOutcome(matchUp);
@@ -543,7 +532,7 @@ export function matchUpActions({
     {
       onClick: clearSchedule,
       text: t('pages.schedule.clearSchedule'),
-      hide: !hasSchedule,
+      hide: !hasSchedule || hidePrePlay,
     },
     {
       onClick: toggleScheduleLock,
@@ -573,7 +562,7 @@ export function matchUpActions({
       // signing in is arrival at the tournament and is tournament-wide (D4a).
       onClick: openCheckInPanel,
       text: `${t('checkIn.action')} (${checkInSummary(getMatchUpCheckInState(matchUp))})`,
-      hide: noParticipants || isTerminal,
+      hide: hideCheckIn,
     },
     {
       onClick: () => void selectOfficial(),
@@ -582,6 +571,7 @@ export function matchUpActions({
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
       text: t('matchUpActions.printMatchCard'),
+      hide: hidePrePlay,
     },
     {
       onClick: () =>
@@ -595,7 +585,7 @@ export function matchUpActions({
     {
       onClick: () => openNominateScorekeeper({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
       text: t('crowd.nominateScorekeeper'),
-      hide: noParticipants,
+      hide: noParticipants || hidePrePlay,
     },
     {
       onClick: () => removeScorekeeperNomination({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),

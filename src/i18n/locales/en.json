@@ -2258,7 +2258,10 @@
       "beforePlayedSource": "Not scheduled: it depends on {{matchUp}}, which was already played ({{when}}). Move that match first if its time is wrong.",
       "afterDependent": "Not moved: a played match cannot come after {{matchUp}} ({{when}}), which depends on it.",
       "moreBlocking": "(+{{count}} more)",
-      "roundLabel": "a round {{roundNumber}} match"
+      "roundLabel": "a round {{roundNumber}} match",
+      "locked": "Schedule change not saved: this match's schedule is locked. Unlock it first.",
+      "skipped": "Schedule change not saved: this match cannot be scheduled.",
+      "matchUpNotFound": "Schedule change not saved: the match was not found. Refresh the tournament and try again."
     },
     "statusOutOfScope": "This status is unavailable for this match",
     "durableCommandNotStored": "Durable command could not be stored for this session",

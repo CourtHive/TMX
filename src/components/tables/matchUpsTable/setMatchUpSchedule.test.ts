@@ -11,7 +11,7 @@ const { mutationRequest, tmxToast } = vi.hoisted(() => ({
 vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast }));
 
-import { scheduleErrorMessage, setMatchUpSchedule } from './setMatchUpSchedule';
+import { notScheduledMessage, scheduleErrorMessage, setMatchUpSchedule } from './setMatchUpSchedule';
 
 /**
  * `mutationRequest` toasts a failure only when NO callback is supplied, and this module always
@@ -67,10 +67,71 @@ describe('setMatchUpSchedule', () => {
     setMatchUpSchedule({ matchUpId: 'm1', schedule: { endTime: '14:29' } });
     expect(mutationRequest.mock.calls[0][0].methods).toEqual([
       {
-        params: { matchUpIds: ['m1'], schedule: { endTime: '14:29' }, removePriorValues: true },
+        params: {
+          matchUpIds: ['m1'],
+          schedule: { endTime: '14:29' },
+          removePriorValues: true,
+          scheduleCompletedMatchUps: true,
+        },
         method: 'bulkScheduleMatchUps',
       },
     ]);
+  });
+});
+
+describe('setMatchUpSchedule: a write the engine did not make', () => {
+  beforeEach(() => {
+    mutationRequest.mockClear();
+    tmxToast.mockClear();
+  });
+
+  // The engine skipped a completed matchUp and still answered success, so the popover showed a date that was never
+  // stored and vanished on refresh (CA, 2026-10-30).
+  it('refuses a skipped matchUp instead of reporting it saved', () => {
+    const callback = vi.fn();
+    setMatchUpSchedule({ matchUpId: 'm1', schedule: { scheduledDate: '2026-11-02' }, callback });
+
+    lastCallback()({ success: true, results: [{ success: true, scheduled: 0, skippedMatchUpIds: ['m1'] }] });
+
+    expect(callback).not.toHaveBeenCalled();
+    expect(tmxToast).toHaveBeenCalledTimes(1);
+    expect(tmxToast.mock.calls[0][0]).toMatchObject({ message: 'toasts.schedule.skipped', intent: 'is-danger' });
+  });
+
+  it('refuses a locked matchUp', () => {
+    const callback = vi.fn();
+    setMatchUpSchedule({ matchUpId: 'm1', schedule: { scheduledTime: '10:00' }, callback });
+
+    lastCallback()({ success: true, results: [{ success: true, scheduled: 0, lockedMatchUpIds: ['m1'] }] });
+
+    expect(callback).not.toHaveBeenCalled();
+    expect(tmxToast.mock.calls[0][0].message).toBe('toasts.schedule.locked');
+  });
+
+  it('runs the callback when the write landed', () => {
+    const callback = vi.fn();
+    setMatchUpSchedule({ matchUpId: 'm1', schedule: { scheduledDate: '2026-11-02' }, callback });
+
+    lastCallback()({ success: true, results: [{ success: true, scheduled: 1 }] });
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(tmxToast).not.toHaveBeenCalled();
+  });
+});
+
+describe('notScheduledMessage', () => {
+  it('names the reason a single write was not made', () => {
+    const outcome = (extra: any) => ({ results: [{ success: true, scheduled: 0, ...extra }] });
+    expect(notScheduledMessage(outcome({ lockedMatchUpIds: ['m1'] }))).toBe('toasts.schedule.locked');
+    expect(notScheduledMessage(outcome({ skippedMatchUpIds: ['m1'] }))).toBe('toasts.schedule.skipped');
+    expect(notScheduledMessage(outcome({ notFoundMatchUpIds: ['m1'] }))).toBe('toasts.schedule.matchUpNotFound');
+  });
+
+  it('says nothing when the write landed or there is no per-method outcome to judge', () => {
+    expect(notScheduledMessage({ results: [{ success: true, scheduled: 1 }] })).toBeUndefined();
+    // the server-first refresh and recovery paths complete without results
+    expect(notScheduledMessage({ success: true, refreshRequired: true })).toBeUndefined();
+    expect(notScheduledMessage(undefined)).toBeUndefined();
   });
 });
 
