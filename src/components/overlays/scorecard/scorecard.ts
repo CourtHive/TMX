@@ -97,7 +97,8 @@ export function renderScorecard({
   const composition = compositionOverride || resolveComposition(matchUp);
   const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
 
-  const container = renderScorecardLayout({ matchUp, composition, eventHandlers });
+  const labels = { orderOfFinish: t('overlays.scorecard.orderOfFinish') };
+  const container = renderScorecardLayout({ matchUp, composition, eventHandlers, labels });
   container.classList.add('overlay-content-container');
 
   return container;
