@@ -2046,6 +2046,17 @@
       "previous": "← Previous",
       "next": "Next →"
     },
+    "penalties": {
+      "title": "Penalties",
+      "none": "This participant has no penalties",
+      "edit": "Edit",
+      "remove": "Remove",
+      "removeConfirm": "Remove the {{penaltyType}} penalty? This cannot be undone.",
+      "updated": "Penalty updated",
+      "updateFailed": "Penalty could not be updated",
+      "removed": "Penalty removed",
+      "removeFailed": "Penalty could not be removed"
+    },
     "penalty": {
       "participant": "Participant",
       "selectParticipant": "Select participant",

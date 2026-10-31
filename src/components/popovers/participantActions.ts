@@ -7,6 +7,7 @@ import { isApprovedScorekeeper } from 'services/crowd/classifyScorer';
 import { editGroupingParticipant } from 'pages/tournament/tabs/participantTab/editGroupingParticipant';
 import { deleteParticipants } from 'pages/tournament/tabs/participantTab/deleteParticipants';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
+import { penaltiesModal } from 'components/modals/penalties/penaltiesModal';
 import { editPlayer } from 'pages/tournament/tabs/participantTab/editPlayer';
 import { groupProfileModal } from 'components/modals/groupProfileModal';
 import { teamProfileModal } from 'components/modals/teamProfileModal';
@@ -44,6 +45,11 @@ export const participantActions =
         hide: !isIndividual,
         text: `<i class='fas fa-address-card'></i> ${t('pages.participants.rowActions.participantProfile')}`,
         onClick: () => participantProfileModal({ participantId }),
+      },
+      {
+        hide: !individualParticipant?.penalties?.length,
+        text: `<i class='fas fa-gavel'></i> ${t('modals.penalties.title')}`,
+        onClick: () => penaltiesModal({ participantId, callback: replaceTableData }),
       },
       {
         hide: !isIndividual,
