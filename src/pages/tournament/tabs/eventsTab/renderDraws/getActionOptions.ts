@@ -176,8 +176,13 @@ export function getActionOptions({
       close: true,
     },
     {
-      onClick: () => deleteFlights({ eventData, drawIds: [drawId] }),
+      // the flight stays, so the draw can be generated again
+      onClick: () => deleteFlights({ eventData, drawIds: [drawId], keepFlight: true }),
       label: t('pages.events.actionOptions.deleteDraw'),
+    },
+    {
+      onClick: () => deleteFlights({ eventData, drawIds: [drawId] }),
+      label: t('pages.events.actionOptions.deleteDrawAndFlight'),
     },
     {
       onClick: () => resetDraws({ eventData, drawIds: [drawId] }),
