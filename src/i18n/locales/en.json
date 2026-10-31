@@ -2046,6 +2046,12 @@
       "previous": "← Previous",
       "next": "Next →"
     },
+    "deleteFlights": {
+      "confirmUngenerated_one": "Delete this flight? It has no draw yet; its participants stay entered in the event.",
+      "confirmUngenerated_other": "Delete these {{count}} flights? None has a draw yet; their participants stay entered in the event.",
+      "keepFlightReason": "Please provide a reason for draw deletion. The flight is kept, so the draw can be generated again.",
+      "confirmAll": "Delete all of this event's flights? None has a draw yet; their participants stay entered in the event."
+    },
     "penalties": {
       "title": "Penalties",
       "none": "This participant has no penalties",
@@ -2705,6 +2711,7 @@
         "printDraw": "Print draw",
         "recalculateStats": "Recalculate stats",
         "deleteDraw": "Delete draw",
+        "deleteDrawAndFlight": "Delete draw and flight",
         "resetDraw": "Reset draw",
         "cannotRemoveScores": "Cannot remove when scores are present",
         "removePlayers": "Remove players",
@@ -3335,6 +3342,7 @@
     "noMatches": "No matches",
     "ok": "Ok",
     "deleteFlights": "Delete flights",
+    "deleteAllFlights": "Delete all flights",
     "totalMatchUps": "Total MatchUps",
     "grid": "Grid",
     "policyLabel": "Policy:",

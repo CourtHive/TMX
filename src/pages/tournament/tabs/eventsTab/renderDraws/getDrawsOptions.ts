@@ -2,12 +2,28 @@
  * Get draw navigation options for event.
  * Provides menu options to navigate to draws or delete flights.
  */
+import { canDeleteAllFlights, deleteAllFlightsMethod } from 'components/modals/flights/flightDeletion';
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { defaultStructureId } from './defaultStructureId';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
+
+function deleteAllFlights(eventId: string): void {
+  confirmModal({
+    okAction: () =>
+      mutationRequest({
+        methods: [deleteAllFlightsMethod(eventId)],
+        callback: (result: any) => result?.success && navigateToEvent({ eventId, renderDraw: true }),
+      }),
+    query: t('modals.deleteFlights.confirmAll'),
+    title: t('ui.deleteAllFlights'),
+    okIntent: 'is-danger',
+  });
+}
 
 export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
   const deleteFlights = () => selectAndDeleteEventFlights({ eventData });
@@ -43,10 +59,20 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
     });
   }
 
-  if (totalDrawItems > 1) {
+  if (totalDrawItems > 0) {
     options.push({
       onClick: deleteFlights,
       label: t('ui.deleteFlights'),
+      modifyLabel: false,
+      close: true,
+    });
+  }
+
+  // only while no flight has a draw: draws are deleted explicitly, with a reason, first
+  if (canDeleteAllFlights({ event, flightProfile })) {
+    options.push({
+      onClick: () => deleteAllFlights(eventId),
+      label: t('ui.deleteAllFlights'),
       modifyLabel: false,
       close: true,
     });
