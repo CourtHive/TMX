@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
+import { test, expect } from '@playwright/test';
+import { todayLocal } from '../helpers/dates';
 
 /**
  * Journey 98 — Schedule2 participant rest.
@@ -124,7 +124,9 @@ async function seedRest(page: import('@playwright/test').Page): Promise<Seed> {
 
         // Control: an R1 matchUp nobody has played yet, so no participant on it
         // has any prior match today.
-        const fresh = r1.find((m: any) => m.matchUpId !== target.matchUpId && !idsOf(m).some((id) => winnerIds.includes(id)));
+        const fresh = r1.find(
+          (m: any) => m.matchUpId !== target.matchUpId && !idsOf(m).some((id) => winnerIds.includes(id)),
+        );
         if (!fresh) throw new Error('seed produced no untouched R1 matchUp for the control case');
 
         await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
@@ -192,7 +194,9 @@ test.describe('Journey 98 — Schedule2 participant rest', () => {
     // (rest has not started for it at all). Its detail line is deliberately empty
     // — nobody is known, so there is no provenance and no daily load to print —
     // so picking the first non-`none` row here would assert about the wrong row.
-    const played = page.locator(`${INSPECTOR} ${REST_ROW}:not([data-pending-upstream]):not([data-status="none"])`).first();
+    const played = page
+      .locator(`${INSPECTOR} ${REST_ROW}:not([data-pending-upstream]):not([data-status="none"])`)
+      .first();
     await expect(played.locator('.tmx-rest-figure')).not.toBeEmpty();
     await expect(played.locator('.tmx-rest-detail')).toContainText(/recorded end time|score entry|projected/i);
   });
@@ -288,5 +292,163 @@ test.describe('Journey 98 — Schedule2 participant rest', () => {
     // theme, so identical colours mean the badge is reading a hard-coded value
     // or the theme never switched.
     expect(`${light.color}|${light.border}`).not.toBe(`${dark.color}|${dark.border}`);
+  });
+});
+
+/**
+ * Catalog order — the card to call is listed first.
+ *
+ * Every R1 matchUp is played. The one feeding R2 position 1 ends ten minutes before the pinned
+ * noon; the other three end at 09:30. So R2 position 1 carries a player still recovering, and R2
+ * position 2 carries two rested players. Draw order would list position 1 first, and the old
+ * `matchUpId` tie-break listed them at random. Readiness must list position 2 first. That is why
+ * the recovering card sits first in draw order: a check that passes in draw order proves nothing.
+ *
+ * The clock is pinned (as in journey 131) because "ten minutes ago" and "09:30" have to fall on
+ * the same day in the same order on every run, including one shortly after midnight.
+ */
+const ORDER_PINNED_TIME = '12:00:00';
+const SCHEDULED_PANEL = '[data-sidebar-panel="scheduled"]';
+const SCHEDULED_TAB = 'button[data-sidebar-tab="scheduled"]';
+
+type OrderSeed = { tournamentId: string; recoveringMatchUpId: string; readyMatchUpId: string };
+
+async function seedOrder(page: import('@playwright/test').Page, date: string, scheduleR2: boolean): Promise<OrderSeed> {
+  return page.evaluate(
+    async ({ date, scheduleR2 }) => {
+      await dev.tmx2db.initDB();
+
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: 'E2E Catalog Order',
+        tournamentAttributes: { tournamentId: 'e2e-catalog-order', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [{ eventName: 'Singles', drawSize: 8, seedsCount: 2, drawType: 'SINGLE_ELIMINATION' }],
+        venueProfiles: [{ courtsCount: 2, venueName: 'Order Venue' }],
+      });
+
+      const must = (label: string, result: any) => {
+        if (result?.error) throw new Error(`${label} failed: ${JSON.stringify(result.error)}`);
+        return result;
+      };
+      const all = () => dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const round = (n: number) =>
+        all()
+          .filter((m: any) => m.roundNumber === n && m.matchUpStatus !== 'BYE')
+          .sort((a: any, b: any) => a.roundPosition - b.roundPosition);
+
+      const r1 = round(1);
+      if (r1.length !== 4) throw new Error(`expected 4 R1 matchUps, found ${r1.length}`);
+
+      // R1 positions 1 and 2 feed R2 position 1; position 1 is the late finisher.
+      r1.forEach((m: any, i: number) => {
+        const late = i === 0;
+        must(
+          'addMatchUpScheduleItems',
+          dev.factory.tournamentEngine.addMatchUpScheduleItems({
+            matchUpId: m.matchUpId,
+            drawId: m.drawId,
+            schedule: {
+              scheduledDate: date,
+              scheduledTime: late ? '10:30' : '08:00',
+              endTime: late ? '11:50' : '09:30',
+            },
+          }),
+        );
+        const { outcome } = dev.factory.mocksEngine.generateOutcomeFromScoreString({
+          matchUpFormat: m.matchUpFormat,
+          scoreString: '6-1 6-2',
+          winningSide: 1,
+        });
+        must(
+          'setMatchUpStatus',
+          dev.factory.tournamentEngine.setMatchUpStatus({
+            matchUpId: m.matchUpId,
+            drawId: m.drawId,
+            outcome: { ...outcome, matchUpStatus: 'COMPLETED' },
+          }),
+        );
+      });
+
+      const r2 = round(2);
+      const ready = (m: any) => (m.sides || []).filter((s: any) => s.participantId).length === 2;
+      if (r2.length !== 2 || !r2.every(ready)) throw new Error('R2 did not fill with both R1 winners per matchUp');
+
+      // Same time, no court: the Scheduled panel lists both in one time group.
+      if (scheduleR2) {
+        for (const m of r2) {
+          must(
+            'addMatchUpScheduleItems',
+            dev.factory.tournamentEngine.addMatchUpScheduleItems({
+              matchUpId: m.matchUpId,
+              drawId: m.drawId,
+              schedule: { scheduledDate: date, scheduledTime: '13:00' },
+            }),
+          );
+        }
+      }
+
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+      return {
+        tournamentId: tournamentRecord.tournamentId as string,
+        recoveringMatchUpId: r2[0].matchUpId as string,
+        readyMatchUpId: r2[1].matchUpId as string,
+      };
+    },
+    { date, scheduleR2 },
+  );
+}
+
+/** The matchUpIds of the cards in `panel`, in the order they are listed. */
+async function listedIds(page: import('@playwright/test').Page, panel: string): Promise<string[]> {
+  return page
+    .locator(`${panel} ${CARD}`)
+    .evaluateAll((cards) => cards.map((card) => (card as HTMLElement).dataset.matchupId ?? ''));
+}
+
+test.describe('Journey 98 — catalog cards are ordered by rest readiness', () => {
+  async function open(page: import('@playwright/test').Page, scheduleR2: boolean): Promise<OrderSeed> {
+    const date = todayLocal();
+    await page.clock.setFixedTime(new Date(`${date}T${ORDER_PINNED_TIME}`));
+    await page.goto('/');
+    await waitForAppReady(page);
+    await initDevBridge(page);
+    await resetState(page);
+    await page.evaluate(() => localStorage.clear());
+    const seeded = await seedOrder(page, date, scheduleR2);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seeded.tournamentId);
+    await tournament.navigateToScheduling();
+    return seeded;
+  }
+
+  /** The premise: the badges must disagree, or the order below would be tested against nothing. */
+  async function expectPremise(page: import('@playwright/test').Page, panel: string, seeded: OrderSeed) {
+    const badge = (id: string) => page.locator(`${panel} ${CARD}[data-matchup-id="${id}"] ${REST_BADGE}`);
+    await expect(badge(seeded.recoveringMatchUpId)).toHaveAttribute('data-rest-status', 'resting');
+    await expect(badge(seeded.readyMatchUpId)).toHaveAttribute('data-rest-status', 'rested');
+  }
+
+  test('the Scheduled panel lists the ready card above the recovering one at the same time', async ({ page }) => {
+    const seeded = await open(page, true);
+    await page.locator(SCHEDULED_TAB).click();
+    await page.locator(`${SCHEDULED_PANEL} ${CARD}`).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await expectPremise(page, SCHEDULED_PANEL, seeded);
+
+    const ids = await listedIds(page, SCHEDULED_PANEL);
+    expect(ids.indexOf(seeded.readyMatchUpId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(seeded.readyMatchUpId)).toBeLessThan(ids.indexOf(seeded.recoveringMatchUpId));
+  });
+
+  test('the Unscheduled catalog lists the ready card above the recovering one', async ({ page }) => {
+    const seeded = await open(page, false);
+    await page.locator(UNSCHEDULED_TAB).click();
+    await page.locator(`${CATALOG_PANEL} ${CARD}`).first().waitFor({ state: 'visible', timeout: 10_000 });
+    await expectPremise(page, CATALOG_PANEL, seeded);
+
+    const ids = await listedIds(page, CATALOG_PANEL);
+    expect(ids.indexOf(seeded.readyMatchUpId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(seeded.readyMatchUpId)).toBeLessThan(ids.indexOf(seeded.recoveringMatchUpId));
   });
 });
