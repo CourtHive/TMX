@@ -1,9 +1,11 @@
+import { mocksEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
   compareStructure,
   orderByReadiness,
   readinessKey,
   readinessRank,
+  structureSequences,
   ON_COURT,
   READY,
   RECOVERING,
@@ -150,5 +152,53 @@ describe('readinessRank — the key as the one number the catalog groups by', ()
     expect(readinessRank({ band: RECOVERING, shortfall: 24 * 60 })).toBeLessThan(
       readinessRank({ band: ON_COURT, shortfall: 0 }),
     );
+  });
+});
+
+describe('structureSequences — each structure’s place in its draw’s play order', () => {
+  // Real draws from the factory, so the test is about the order the generators and `structureSort` produce.
+  const structuresOf = (drawProfile: any): any[] => {
+    const { tournamentRecord } = mocksEngine.generateTournamentRecord({ drawProfiles: [drawProfile] });
+    return tournamentRecord.events[0].drawDefinitions[0].structures;
+  };
+  const named = (structures: any[]) => {
+    const sequences = structureSequences(structures);
+    return structures
+      .toSorted((a, b) => (sequences.get(a.structureId) ?? 0) - (sequences.get(b.structureId) ?? 0))
+      .map((s) => `${s.structureName}:${sequences.get(s.structureId)}`);
+  };
+
+  it('runs a compass draw outward from East, the order its structures go onto the grid', () => {
+    // Stored and sorted orders differ (Southwest and Southeast), so this reads the sort, not the array.
+    expect(named(structuresOf({ drawSize: 32, drawType: 'COMPASS' }))).toEqual([
+      'East:0',
+      'West:1',
+      'North:2',
+      'South:3',
+      'Northeast:4',
+      'Northwest:5',
+      'Southwest:6',
+      'Southeast:7',
+    ]);
+  });
+
+  it('counts qualifying on its own, so the main structure is position 0 either way', () => {
+    const structures = structuresOf({
+      drawSize: 16,
+      qualifyingProfiles: [{ structureProfiles: [{ drawSize: 16, qualifyingPositions: 4 }] }],
+    });
+    expect(named(structures)).toEqual(['Qualifying:0', 'Main:0']);
+  });
+
+  it('puts a consolation after the main draw it is fed from', () => {
+    expect(named(structuresOf({ drawSize: 16, drawType: 'FEED_IN_CHAMPIONSHIP' }))).toEqual([
+      'Main:0',
+      'Consolation:1',
+    ]);
+  });
+
+  it('does not depend on the order the structures arrive in', () => {
+    const structures = structuresOf({ drawSize: 32, drawType: 'COMPASS' });
+    expect(structureSequences(structures.toReversed())).toEqual(structureSequences(structures));
   });
 });
