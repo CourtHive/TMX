@@ -1085,7 +1085,9 @@
         "tooltipNone": "{{name}} — no prior match today",
         "tooltipPending": "Winner of {{label}} — still to be decided, no rest yet",
         "tooltipPendingReady": "Winner of {{label}} — still to be decided, ready {{time}}",
-        "tooltipUnknown": "{{name}} — prior match has no recorded finish"
+        "tooltipUnknown": "{{name}} — prior match has no recorded finish",
+        "tooltipAtLimit": "match {{ordinal}} of {{limit}} today",
+        "tooltipOverLimit": "match {{ordinal}} today, over the limit of {{limit}}"
       },
       "time": {
         "ok": "This time looks achievable.",
