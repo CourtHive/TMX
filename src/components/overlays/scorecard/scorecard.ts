@@ -6,14 +6,17 @@
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { completedMatchUpStatuses, extensionConstants } from 'tods-competition-factory';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { extensionConstants } from 'tods-competition-factory';
+import { completedLineOrderMethod } from './orderOfFinish';
 import { tournamentEngine } from 'services/factory/engine';
+import { orderOfFinishModal } from './orderOfFinishModal';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -100,6 +103,26 @@ export function renderScorecard({
   return container;
 }
 
+// a line just completed from the scorecard finishes after the dual's other completed lines of its matchUpType
+function recordOrderOfFinish({
+  wasCompleted,
+  tieMatchUpId,
+  onRefresh,
+  matchUpId,
+  drawId,
+}: {
+  wasCompleted: boolean;
+  tieMatchUpId: string;
+  onRefresh?: () => void;
+  matchUpId: string;
+  drawId: string;
+}): void {
+  const dual = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+  const method = completedLineOrderMethod({ dual, matchUpId: tieMatchUpId, wasCompleted });
+  if (!method) return onRefresh?.();
+  mutationRequest({ methods: [method], callback: () => onRefresh?.() });
+}
+
 function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; onRefresh?: () => void }): any {
   const { drawId } = matchUp;
 
@@ -129,6 +152,7 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
 
     const readyToScore = validActions?.find(({ type }: any) => type === 'SCORE');
     if (readyToScore) {
+      const wasCompleted = completedMatchUpStatuses.includes(tieMatchUp.matchUpStatus);
       enterMatchUpScore({
         matchUpId: tieMatchUp.matchUpId,
         callback: (result: any) => {
@@ -137,7 +161,13 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
               ({ methodName }: any) => methodName === SET_MATCHUP_STATUS,
             )?.tieMatchUpResult;
             if (tieResult) updateTieScore(tieResult);
-            onRefresh?.();
+            recordOrderOfFinish({
+              drawId,
+              matchUpId: matchUp.matchUpId,
+              tieMatchUpId: tieMatchUp.matchUpId,
+              wasCompleted,
+              onRefresh,
+            });
           }
         },
       });
@@ -223,6 +253,14 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
     mutationRequest({ methods, callback: postMutation });
   };
 
+  const orderOfFinish = document.createElement('button');
+  orderOfFinish.className = 'button is-info is-light button-spacer';
+  orderOfFinish.textContent = t('overlays.scorecard.orderOfFinish');
+  orderOfFinish.onclick = () => {
+    const dual = tournamentEngine.findMatchUp({ drawId, matchUpId, participantsProfile: { withISO2: true } })?.matchUp;
+    orderOfFinishModal({ dual, callback: postMutation });
+  };
+
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
   clear.innerHTML = 'Clear results';
@@ -250,6 +288,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   footer.className = 'overlay-footer-wrap';
   footer.appendChild(edit);
   footer.appendChild(removePlayers);
+  footer.appendChild(orderOfFinish);
   footer.appendChild(clear);
   footer.appendChild(close);
 
