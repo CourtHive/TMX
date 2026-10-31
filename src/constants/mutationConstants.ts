@@ -99,6 +99,7 @@ export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_SCHEDULE_LOCK = 'setMatchUpScheduleLock';
 export const COMPLETE_DRAW_MATCHUPS = 'completeDrawMatchUps';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
+export const SET_ORDER_OF_FINISH = 'setOrderOfFinish';
 export const SET_DELEGATED_OUTCOME = 'setDelegatedOutcome';
 export const SET_DRAW_POSITION_PREFERENCES = 'setDrawPositionPreferences';
 export const SET_POSITION_ASSIGNMENTS = 'setPositionAssignments';

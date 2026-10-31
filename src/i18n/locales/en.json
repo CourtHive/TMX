@@ -2831,6 +2831,14 @@
     }
   },
   "overlays": {
+    "scorecard": {
+      "orderOfFinish": "Order of finish",
+      "orderOfFinishHint": "The order in which each line finished, numbered from 1 within singles and within doubles",
+      "orderOfFinishInvalid": "Give each line a different number, from 1 up",
+      "orderOfFinishSaved": "Order of finish saved",
+      "orderOfFinishFailed": "Order of finish could not be saved",
+      "noCompletedLines": "No line has been completed yet"
+    },
     "tieFormat": {
       "editScorecard": "Edit scorecard",
       "noChanges": "No changes",
