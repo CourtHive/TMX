@@ -211,6 +211,7 @@ export const NONE = 'none';
 export const IS_OPEN = 'isOpen';
 
 export const COLLECTION_VALUE = 'Collection value';
+export const LINE_VALUES = 'Line values';
 export const MATCH_VALUE = 'Match value';
 export const SCORE_VALUE = 'Score value';
 export const SET_VALUE = 'Set value';
