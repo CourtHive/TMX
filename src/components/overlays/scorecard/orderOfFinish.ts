@@ -4,9 +4,9 @@
  * export reads it.
  *
  * A line completed from the scorecard finishes after the cohort's other completed lines; the Order of finish modal
- * corrects the order. The factory does not clear `orderOfFinish` when a line's score is cleared, so a line that is no
- * longer complete can still carry a number: everything here counts completed lines only, and a line completed again
- * goes to the end.
+ * corrects the order. The factory removes a line's `orderOfFinish` when its score is cleared (factory #6030); records
+ * written before that can still carry one on an incomplete line, so everything here counts completed lines only, and a
+ * line completed again goes to the end.
  *
  * Lives in its own module so it can be tested without importing the overlay, which pulls courthive-components.
  */

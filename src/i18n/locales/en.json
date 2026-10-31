@@ -1719,7 +1719,14 @@
       "existingProfile": "This event already has flights",
       "replaceTitle": "Replace flights",
       "replaceExisting_one": "This event already has {{count}} flight. Replace it?",
-      "replaceExisting_other": "This event already has {{count}} flights. Replace them?"
+      "replaceExisting_other": "This event already has {{count}} flights. Replace them?",
+      "ratingFrom": "Rating from (optional)",
+      "ratingTo": "Rating to (optional)",
+      "remainingTitle": "Flights for the remaining participants",
+      "remaining": "Generate flights for the remaining participants ({{count}})",
+      "noneRemaining": "Every participant is already in a flight",
+      "noneInBand": "No remaining participant is rated within that band",
+      "alreadyFlighted": "Already in a flight: {{names}}. Add them to these flights anyway?"
     },
     "addConsolation": {
       "title": "Add voluntary consolation",
