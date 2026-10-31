@@ -1,4 +1,4 @@
-import { badgeModel, badgeText, badgeTooltip, headlineRow, shouldRender } from './restBadge';
+import { badgeModel, badgeText, badgeTooltip, headlineRow, limitRow, shouldRender } from './restBadge';
 import { describe, expect, it } from 'vitest';
 
 // constants and types
@@ -224,5 +224,68 @@ describe('badge for a side that has not been decided yet', () => {
     const model = badgeModel({ evaluated: true, ...MEASURED, rows: [pending] });
     expect(model?.pendingUpstream).toBe(true);
     expect(model?.text).toBe('0m');
+  });
+});
+
+describe('daily limit — marked from whichever participant meets it', () => {
+  const asResult = (rows: RestRow[]): RestResult => ({ evaluated: true, ...MEASURED, rows });
+  const AT_LIMIT = { singles: 2, doubles: 0, total: 2, ordinal: 3, atLimit: ['total'] as const, limit: 3 };
+
+  // The headline is the worst-RESTED participant; the limit belongs to whoever has played most. On
+  // this card they are different people, and the marker used to read only the headline's load.
+  const recovering = row({ participantId: 'p1', participantName: 'Alice', status: 'resting', restMinutes: 20 });
+  const onLastMatch = row({
+    participantId: 'p2',
+    participantName: 'Bob',
+    status: 'rested',
+    restMinutes: 150,
+    load: { ...AT_LIMIT, atLimit: [...AT_LIMIT.atLimit] },
+  });
+
+  it('marks a limit met by a participant who does not head the badge', () => {
+    const model = badgeModel(asResult([recovering, onLastMatch]));
+    expect(model?.status).toBe('resting');
+    expect(model?.atLimit).toBe('total');
+    expect(model?.limitText).toContain('3');
+  });
+
+  it('picks the first row at a limit, and none when no row is', () => {
+    expect(limitRow([recovering, onLastMatch])?.participantId).toBe('p2');
+    expect(limitRow([recovering])).toBeUndefined();
+  });
+
+  it('never marks a side still to be decided, whose load is all zeros', () => {
+    const pending = row({ status: 'onCourt', pendingUpstream: true, load: { ...LOAD, atLimit: [] } });
+    expect(limitRow([pending])).toBeUndefined();
+  });
+
+  it('names the load on the limited participant’s line of the hover, and only there', () => {
+    const lines = badgeTooltip([recovering, onLastMatch]).split('\n');
+    expect(lines[0]).toContain('Alice');
+    expect(lines[0]).not.toContain('3');
+    expect(lines[1]).toContain('Bob');
+    expect(lines[1]).toContain('3');
+    expect(lines.join('\n')).not.toContain('{{');
+  });
+
+  it('says so when the match would go over the limit, not merely reach it', () => {
+    const at = (ordinal: number) =>
+      row({ status: 'rested', restMinutes: 90, load: { ...AT_LIMIT, atLimit: ['total'], ordinal } });
+    const masked = (text: string) => text.replaceAll(/\d+/g, 'N');
+    const reached = badgeTooltip([at(3)]);
+    const exceeded = badgeTooltip([at(4)]);
+    expect(exceeded).toContain('4');
+    // Same participant, same figures bar the ordinal: only the wording can tell the two apart.
+    expect(masked(exceeded)).not.toBe(masked(reached));
+  });
+
+  it('draws the badge for a limit even when nobody on the card has played today', () => {
+    // Under a limit of one, the first match is already the last.
+    const first = row({
+      status: 'none',
+      load: { singles: 0, doubles: 0, total: 0, ordinal: 1, atLimit: ['total'], limit: 1 },
+    });
+    expect(shouldRender(asResult([first, row({ status: 'none', participantId: 'p2' })]))).toBe(true);
+    expect(badgeModel(asResult([first]))?.limitText).toContain('1');
   });
 });

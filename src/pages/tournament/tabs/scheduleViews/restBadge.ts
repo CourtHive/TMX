@@ -65,6 +65,28 @@ export function headlineRow(rows: RestRow[]): RestRow | undefined {
 }
 
 /**
+ * The participant whose daily limit the badge marks: the first row at a limit, whoever's rest heads
+ * the badge.
+ *
+ * Not the headline row's own load. The headline is the worst-RESTED participant, and the daily limit
+ * belongs to whoever has played the most — on a card where one player is still recovering and the
+ * other is on their last allowed match, reading the headline's load showed no marker at all. Rows
+ * arrive worst-first, so the first at a limit is also the least rested of those that are. A side not
+ * yet decided carries an all-zero load and never matches.
+ */
+export function limitRow(rows: RestRow[]): RestRow | undefined {
+  return rows.find((row) => row.load.atLimit.length > 0);
+}
+
+/** This participant's daily-limit clause for the hover, or '' when no limit is met. */
+function limitClause(row: RestRow): string {
+  const { atLimit, ordinal, limit } = row.load;
+  if (!atLimit.length || limit === undefined) return '';
+  const key = ordinal > limit ? 'schedule.card.rest.tooltipOverLimit' : 'schedule.card.rest.tooltipAtLimit';
+  return t(key, { ordinal, limit });
+}
+
+/**
  * Badge text for a headline row. Short enough to sit in a chip: the duration
  * alone for a resting/rested player, a word for the states where a duration
  * would be a fiction.
@@ -87,32 +109,43 @@ export function badgeText(row: RestRow): string {
 export function badgeTooltip(rows: RestRow[]): string {
   return rows
     .map((row) => {
-      if (row.pendingUpstream) {
-        const key = row.readyAt ? 'schedule.card.rest.tooltipPendingReady' : 'schedule.card.rest.tooltipPending';
-        return t(key, { label: row.participantName, time: row.readyAt ?? '' });
-      }
-      if (row.status === 'onCourt') {
-        const key = row.overrun ? 'schedule.card.rest.tooltipOnCourtOverrun' : 'schedule.card.rest.tooltipOnCourt';
-        return t(key, { name: row.participantName });
-      }
-      if (row.status === 'none') return t('schedule.card.rest.tooltipNone', { name: row.participantName });
-      if (row.anchorUnreliable) return t('schedule.card.rest.tooltipUnknown', { name: row.participantName });
-      return t('schedule.card.rest.tooltipRest', {
-        name: row.participantName,
-        rested: formatDuration(row.restMinutes ?? 0),
-        required: formatDuration(row.requiredMinutes),
-      });
+      const clause = limitClause(row);
+      const line = restLine(row);
+      return clause ? `${line} · ${clause}` : line;
     })
     .join('\n');
+}
+
+/** One participant's rest, as the hover states it. */
+function restLine(row: RestRow): string {
+  if (row.pendingUpstream) {
+    const key = row.readyAt ? 'schedule.card.rest.tooltipPendingReady' : 'schedule.card.rest.tooltipPending';
+    return t(key, { label: row.participantName, time: row.readyAt ?? '' });
+  }
+  if (row.status === 'onCourt') {
+    const key = row.overrun ? 'schedule.card.rest.tooltipOnCourtOverrun' : 'schedule.card.rest.tooltipOnCourt';
+    return t(key, { name: row.participantName });
+  }
+  if (row.status === 'none') return t('schedule.card.rest.tooltipNone', { name: row.participantName });
+  if (row.anchorUnreliable) return t('schedule.card.rest.tooltipUnknown', { name: row.participantName });
+  return t('schedule.card.rest.tooltipRest', {
+    name: row.participantName,
+    rested: formatDuration(row.restMinutes ?? 0),
+    required: formatDuration(row.requiredMinutes),
+  });
 }
 
 /**
  * True when the badge is worth drawing at all. A card where nobody has played
  * today carries no information — and that is most of the catalog on day one, so
  * badging it would be pure noise.
+ *
+ * A daily limit is the exception: under a limit of one, a participant's first
+ * match is already their last, and nobody on the card has played. The marker is
+ * the one thing a director must not miss, so it draws the badge on its own.
  */
 export function shouldRender(result: RestResult): boolean {
-  return result.evaluated && result.rows.some((row) => row.status !== 'none');
+  return result.evaluated && result.rows.some((row) => row.status !== 'none' || row.load.atLimit.length > 0);
 }
 
 /**
@@ -139,16 +172,18 @@ export function badgeModel(result: RestResult): RestBadgeModel | null {
   if (!shouldRender(result) || !result.evaluated) return null;
   const row = headlineRow(result.rows);
   if (!row) return null;
+  const limited = limitRow(result.rows);
 
   return {
     status: row.status,
     pendingUpstream: !!row.pendingUpstream,
     text: badgeText(row),
     title: badgeTooltip(result.rows),
-    atLimit: row.load.atLimit.join(','),
+    atLimit: limited?.load.atLimit.join(',') ?? '',
     // The daily-limit signal is the one thing a director must not miss while
-    // scanning, so it rides the badge rather than waiting for the Inspector.
-    limitText: row.load.atLimit.length ? t('schedule.card.rest.limit', { ordinal: row.load.ordinal }) : '',
+    // scanning, so it rides the badge rather than waiting for the Inspector —
+    // from whichever participant meets it, not only the headline's.
+    limitText: limited ? t('schedule.card.rest.limit', { ordinal: limited.load.ordinal }) : '',
   };
 }
 
