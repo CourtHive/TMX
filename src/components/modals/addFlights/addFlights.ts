@@ -1,18 +1,32 @@
-import { factoryConstants, matchUpTypes, tools } from 'tods-competition-factory';
+import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { matchUpTypes, tools } from 'tods-competition-factory';
 import { getFlightProfileModal } from 'courthive-components';
-import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-import { ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
+import {
+  attachFlightProfileMethod,
+  flightProfileFailureKey,
+  flightProfileWrite,
+  REPLACE_PROFILE,
+  HAS_DRAWS,
+} from './flightProfileMethods';
 
 const { SINGLES } = matchUpTypes;
 
 export function addFlights({ eventId, callback }) {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
+
+  const existingProfile = tournamentEngine.q.flightProfile({ eventId });
+  const write = flightProfileWrite({ event, flightProfile: existingProfile });
+  if (write === HAS_DRAWS) {
+    tmxToast({ message: t('modals.addFlights.existingDraws'), intent: 'is-danger' });
+    return;
+  }
 
   const generateFlightProfile = (values: any) => {
     const scaleAttributes = {
@@ -31,22 +45,29 @@ export function addFlights({ eventId, callback }) {
     const result = tournamentEngine.generateFlightProfile(generateParams);
 
     if (result.success) {
-      const extension = {
-        name: factoryConstants.extensionConstants.FLIGHT_PROFILE,
-        value: result.flightProfile,
-      };
-      const method = ADD_EVENT_EXTENSION;
-      const methods = [{ method, params: { eventId, extension } }];
+      const deleteExisting = write === REPLACE_PROFILE;
+      const methods = [attachFlightProfileMethod({ eventId, flightProfile: result.flightProfile, deleteExisting })];
       const postMutation = (mutationResult: any) => {
         if (mutationResult.success) {
           tmxToast({ message: t('modals.addFlights.flightsGenerated'), intent: 'is-success' });
           if (isFunction(callback)) callback({ generated: true, result });
         } else {
-          tmxToast({ message: t('modals.addFlights.generationFailed'), intent: 'is-danger' });
+          tmxToast({ message: t(flightProfileFailureKey(mutationResult)), intent: 'is-danger' });
           if (isFunction(callback)) callback({ generated: false, result: mutationResult });
         }
       };
-      mutationRequest({ methods, callback: postMutation });
+      const submit = () => mutationRequest({ methods, callback: postMutation });
+
+      if (deleteExisting) {
+        confirmModal({
+          query: t('modals.addFlights.replaceExisting', { count: existingProfile?.flights?.length ?? 0 }),
+          title: t('modals.addFlights.replaceTitle'),
+          okIntent: 'is-danger',
+          okAction: submit,
+        });
+      } else {
+        submit();
+      }
     } else if (isFunction(callback)) {
       callback({ generated: false, result });
     }

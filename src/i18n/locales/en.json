@@ -1714,7 +1714,12 @@
     },
     "addFlights": {
       "flightsGenerated": "Flights generated",
-      "generationFailed": "Flight profile generation failed"
+      "generationFailed": "Flight profile generation failed",
+      "existingDraws": "Flights cannot be generated once the event has a draw",
+      "existingProfile": "This event already has flights",
+      "replaceTitle": "Replace flights",
+      "replaceExisting_one": "This event already has {{count}} flight. Replace it?",
+      "replaceExisting_other": "This event already has {{count}} flights. Replace them?"
     },
     "addConsolation": {
       "title": "Add voluntary consolation",
