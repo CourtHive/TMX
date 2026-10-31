@@ -452,3 +452,122 @@ test.describe('Journey 98 — catalog cards are ordered by rest readiness', () =
     expect(ids.indexOf(seeded.readyMatchUpId)).toBeLessThan(ids.indexOf(seeded.recoveringMatchUpId));
   });
 });
+
+/**
+ * Group order — readiness places groups that structure leaves unordered.
+ *
+ * Two events, grouped by event (no structural order between events). Each is a 4-draw with both
+ * semifinals played: "Singles A" semis end ten minutes before the pinned noon, "Singles B" semis
+ * at 09:30. So A's final carries players still recovering and B's carries rested ones. By label A
+ * is listed first; readiness must list B first.
+ */
+type GroupSeed = { tournamentId: string; recoveringFinalId: string; readyFinalId: string };
+
+async function seedGroupOrder(page: import('@playwright/test').Page, date: string): Promise<GroupSeed> {
+  return page.evaluate(
+    async ({ date }) => {
+      await dev.tmx2db.initDB();
+
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentName: 'E2E Catalog Group Order',
+        tournamentAttributes: { tournamentId: 'e2e-catalog-group-order', startDate: date, endDate: date },
+        participantsProfile: { scaledParticipantsCount: 16 },
+        drawProfiles: [
+          { eventName: 'Singles A', drawSize: 4, drawType: 'SINGLE_ELIMINATION', uniqueParticipants: true },
+          { eventName: 'Singles B', drawSize: 4, drawType: 'SINGLE_ELIMINATION', uniqueParticipants: true },
+        ],
+        venueProfiles: [{ courtsCount: 2, venueName: 'Group Order Venue' }],
+      });
+
+      const must = (label: string, result: any) => {
+        if (result?.error) throw new Error(`${label} failed: ${JSON.stringify(result.error)}`);
+        return result;
+      };
+      const all = () => dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || [];
+      const ids = (m: any): string[] => (m.sides || []).map((s: any) => s.participantId).filter(Boolean);
+
+      const finals: Record<string, any> = {};
+      for (const eventName of ['Singles A', 'Singles B']) {
+        const late = eventName === 'Singles A';
+        const semis = all().filter((m: any) => m.eventName === eventName && m.roundNumber === 1);
+        if (semis.length !== 2) throw new Error(`${eventName}: expected 2 semifinals, found ${semis.length}`);
+        for (const m of semis) {
+          must(
+            'addMatchUpScheduleItems',
+            dev.factory.tournamentEngine.addMatchUpScheduleItems({
+              matchUpId: m.matchUpId,
+              drawId: m.drawId,
+              schedule: {
+                scheduledDate: date,
+                scheduledTime: late ? '10:30' : '08:00',
+                endTime: late ? '11:50' : '09:30',
+              },
+            }),
+          );
+          const { outcome } = dev.factory.mocksEngine.generateOutcomeFromScoreString({
+            matchUpFormat: m.matchUpFormat,
+            scoreString: '6-1 6-2',
+            winningSide: 1,
+          });
+          must(
+            'setMatchUpStatus',
+            dev.factory.tournamentEngine.setMatchUpStatus({
+              matchUpId: m.matchUpId,
+              drawId: m.drawId,
+              outcome: { ...outcome, matchUpStatus: 'COMPLETED' },
+            }),
+          );
+        }
+        finals[eventName] = all().find((m: any) => m.eventName === eventName && m.roundNumber === 2);
+        if (ids(finals[eventName]).length !== 2) throw new Error(`${eventName}: the final did not fill`);
+      }
+
+      // A player in both events would carry A's late finish into B and void the premise.
+      const playedA = new Set(
+        all()
+          .filter((m: any) => m.eventName === 'Singles A')
+          .flatMap(ids),
+      );
+      if (all().some((m: any) => m.eventName === 'Singles B' && ids(m).some((id) => playedA.has(id)))) {
+        throw new Error('the two events share a participant — the group-order premise would not hold');
+      }
+
+      await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+      return {
+        tournamentId: tournamentRecord.tournamentId as string,
+        recoveringFinalId: finals['Singles A'].matchUpId as string,
+        readyFinalId: finals['Singles B'].matchUpId as string,
+      };
+    },
+    { date },
+  );
+}
+
+test.describe('Journey 98 — catalog groups are ordered by rest readiness below structure', () => {
+  test('grouped by event, the event whose card is ready is listed above the one still recovering', async ({ page }) => {
+    const date = todayLocal();
+    await page.clock.setFixedTime(new Date(`${date}T${ORDER_PINNED_TIME}`));
+    await page.goto('/');
+    await waitForAppReady(page);
+    await initDevBridge(page);
+    await resetState(page);
+    await page.evaluate(() => localStorage.clear());
+    const seeded = await seedGroupOrder(page, date);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(seeded.tournamentId);
+    await tournament.navigateToScheduling();
+    await page.locator(UNSCHEDULED_TAB).click();
+    await page.locator(`${CATALOG_PANEL} ${CARD}`).first().waitFor({ state: 'visible', timeout: 10_000 });
+
+    // The premise: the two finals' badges disagree.
+    const badge = (id: string) => page.locator(`${CATALOG_PANEL} ${CARD}[data-matchup-id="${id}"] ${REST_BADGE}`);
+    await expect(badge(seeded.recoveringFinalId)).toHaveAttribute('data-rest-status', 'resting');
+    await expect(badge(seeded.readyFinalId)).toHaveAttribute('data-rest-status', 'rested');
+
+    const ids = await listedIds(page, CATALOG_PANEL);
+    expect(ids.indexOf(seeded.readyFinalId)).toBeGreaterThanOrEqual(0);
+    expect(ids.indexOf(seeded.readyFinalId)).toBeLessThan(ids.indexOf(seeded.recoveringFinalId));
+  });
+});

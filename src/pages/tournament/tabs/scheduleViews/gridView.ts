@@ -310,6 +310,7 @@ function catalogOnScreen(): boolean {
 import { createCollapseAllButton, everyGroupCollapsed, toggledCollapsedGroups } from './catalogCollapseAll';
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
+import { compareStructure, orderByReadiness, readinessKey, readinessRank } from './catalogOrder';
 import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
@@ -319,7 +320,6 @@ import { pickLiveScore, withLiveScore } from 'services/messaging/liveScoreDispla
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
-import { compareStructure, orderByReadiness } from './catalogOrder';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
@@ -3988,7 +3988,8 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
 
   // Rest is measured against the official schedule, not a Plan scenario's projection: a planned
   // match has not been played, so it cannot have tired anyone.
-  const listed = ordered ? orderByReadiness(onDate, (id) => evaluateRest(id, selectedDate)) : onDate;
+  const evaluate = (id: string) => evaluateRest(id, selectedDate);
+  const listed = ordered ? orderByReadiness(onDate, evaluate) : onDate;
 
   return listed.map((m: any) => {
     // After the filter above, any `scheduledDate` we see is the selected
@@ -4024,6 +4025,9 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
       isScheduled,
       scheduledTime: isScheduled ? schedule?.scheduledTime : undefined,
       scheduledCourtName: isScheduled ? schedule?.courtName : undefined,
+      // Lets the catalog order GROUPS by readiness too, below structure. The pass's evaluator has
+      // already answered for this matchUp, so this is a lookup, not a second evaluation.
+      readinessRank: ordered ? readinessRank(readinessKey(evaluate(m.matchUpId))) : undefined,
     } satisfies CatalogMatchUpItem;
   });
 }

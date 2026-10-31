@@ -60,6 +60,15 @@ export function readinessKey(result: RestResult): ReadinessKey {
   return { band: RECOVERING, shortfall: Math.max(row.requiredMinutes - rested, 0) };
 }
 
+/**
+ * A readiness key as one number, lower first: the `readinessRank` the catalog groups by. The catalog
+ * orders groups — and the cards within one — by it after structure and side readiness, and never
+ * reads it; a shortfall is minutes, far below the band step.
+ */
+export function readinessRank(key: ReadinessKey): number {
+  return key.band * 100_000 + key.shortfall;
+}
+
 /** The fields ordering reads off a matchUp. Structural, so hydrated factory matchUps pass directly. */
 export interface OrderableMatchUp {
   matchUpId: string;
