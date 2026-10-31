@@ -307,7 +307,6 @@ function catalogOnScreen(): boolean {
 // filters) lives in `gridViewStorage.ts` — extracted so the localStorage
 // round-trips + default / malformed paths can be unit-tested without
 // spinning up this entire module.
-import { compareStructure, orderByReadiness, readinessKey, readinessRank, structureSequences } from './catalogOrder';
 import { createCollapseAllButton, everyGroupCollapsed, toggledCollapsedGroups } from './catalogCollapseAll';
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
@@ -352,6 +351,13 @@ import {
   writeGridWarningBars,
   type SidebarTab,
 } from './gridViewStorage';
+import {
+  compareStructure,
+  matchUpStructureSequences,
+  orderByReadiness,
+  readinessKey,
+  readinessRank,
+} from './catalogOrder';
 
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
@@ -3963,18 +3969,9 @@ function effectiveMatchUpSchedule(m: any, placements: { [matchUpId: string]: any
   return completed ? m.schedule : override;
 }
 
-/**
- * Play-order position of every structure in the draws `matchUps` belong to, keyed by structureId (see
- * `structureSequences`). One draw lookup per draw, not per matchUp, and only on the rebuilds that draw.
- */
-function drawStructureSequences(matchUps: any[]): Map<string, number> {
-  const sequences = new Map<string, number>();
-  const drawIds = new Set<string>(matchUps.map((m: any) => m.drawId).filter(Boolean));
-  for (const drawId of drawIds) {
-    const structures = competitionEngine.getEvent({ drawId })?.drawDefinition?.structures ?? [];
-    for (const [structureId, sequence] of structureSequences(structures)) sequences.set(structureId, sequence);
-  }
-  return sequences;
+/** A draw's top-level structures, for `matchUpStructureSequences`. */
+function drawStructures(drawId: string): any[] {
+  return competitionEngine.getEvent({ drawId })?.drawDefinition?.structures ?? [];
 }
 
 /**
@@ -4004,7 +4001,7 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
   // match has not been played, so it cannot have tired anyone.
   const evaluate = (id: string) => evaluateRest(id, selectedDate);
   const listed = ordered ? orderByReadiness(onDate, evaluate) : onDate;
-  const sequenceOf = ordered ? drawStructureSequences(onDate) : new Map<string, number>();
+  const sequenceOf = ordered ? matchUpStructureSequences(onDate, drawStructures) : new Map<string, number>();
 
   return listed.map((m: any) => {
     // After the filter above, any `scheduledDate` we see is the selected
@@ -4043,8 +4040,7 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
       // Lets the catalog order GROUPS by readiness too, below structure. The pass's evaluator has
       // already answered for this matchUp, so this is a lookup, not a second evaluation.
       readinessRank: ordered ? readinessRank(readinessKey(evaluate(m.matchUpId))) : undefined,
-      // A round robin's groups are not top-level structures; its container is the one the draw orders.
-      structureSequence: sequenceOf.get(m.containerStructureId ?? m.structureId),
+      structureSequence: sequenceOf.get(m.matchUpId),
     } satisfies CatalogMatchUpItem;
   });
 }

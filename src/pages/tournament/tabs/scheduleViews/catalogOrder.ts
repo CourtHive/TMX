@@ -152,3 +152,36 @@ export function structureSequences(structures: SequencedStructure[]): Map<string
   }
   return sequences;
 }
+
+/** The fields the draw lookup reads off a hydrated matchUp. */
+export interface DrawMatchUp {
+  drawId?: string;
+  structureId?: string;
+  containerStructureId?: string;
+}
+
+/**
+ * `structureSequence` for each matchUp, keyed by matchUpId (see `structureSequences`). `structuresOf`
+ * is the engine's draw lookup, injected so this stays testable; it is called once per draw, not per
+ * matchUp.
+ *
+ * A round robin's groups are not top-level structures — `structureSort` orders the container — so a
+ * group matchUp takes its container's position.
+ */
+export function matchUpStructureSequences(
+  matchUps: (DrawMatchUp & { matchUpId: string })[],
+  structuresOf: (drawId: string) => SequencedStructure[],
+): Map<string, number> {
+  const byStructure = new Map<string, number>();
+  for (const drawId of new Set(matchUps.map((m) => m.drawId).filter((id): id is string => !!id))) {
+    for (const [structureId, sequence] of structureSequences(structuresOf(drawId))) {
+      byStructure.set(structureId, sequence);
+    }
+  }
+  const byMatchUp = new Map<string, number>();
+  for (const m of matchUps) {
+    const sequence = byStructure.get(m.containerStructureId ?? m.structureId ?? '');
+    if (sequence !== undefined) byMatchUp.set(m.matchUpId, sequence);
+  }
+  return byMatchUp;
+}

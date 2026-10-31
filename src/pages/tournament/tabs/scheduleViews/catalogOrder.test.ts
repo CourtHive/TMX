@@ -1,10 +1,11 @@
-import { mocksEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
   compareStructure,
   orderByReadiness,
   readinessKey,
   readinessRank,
+  matchUpStructureSequences,
   structureSequences,
   ON_COURT,
   READY,
@@ -56,6 +57,13 @@ describe('readinessKey — the band comes from the worst participant on the card
   it('lets one recovering participant hold back a card the other is ready for', () => {
     const mixed = result(row({ status: 'rested', restMinutes: 120 }), row({ status: 'resting', restMinutes: 50 }));
     expect(readinessKey(mixed)).toEqual({ band: RECOVERING, shortfall: 10 });
+  });
+
+  it('counts the whole requirement as outstanding when a recovering row reports no rest figure', () => {
+    expect(readinessKey(result(row({ status: 'resting', restMinutes: undefined })))).toEqual({
+      band: RECOVERING,
+      shortfall: 60,
+    });
   });
 
   it('counts the whole requirement as outstanding when the anchor is unreliable', () => {
@@ -200,5 +208,51 @@ describe('structureSequences — each structure’s place in its draw’s play o
   it('does not depend on the order the structures arrive in', () => {
     const structures = structuresOf({ drawSize: 32, drawType: 'COMPASS' });
     expect(structureSequences(structures.toReversed())).toEqual(structureSequences(structures));
+  });
+});
+
+describe('matchUpStructureSequences — the draw lookup, per matchUp', () => {
+  const seed = (drawProfiles: any[]) => {
+    mocksEngine.generateTournamentRecord({ setState: true, drawProfiles });
+    const matchUps: any[] = tournamentEngine.allTournamentMatchUps({ inContext: true }).matchUps ?? [];
+    const calls: string[] = [];
+    const structuresOf = (drawId: string) => {
+      calls.push(drawId);
+      return tournamentEngine.getEvent({ drawId }).drawDefinition.structures;
+    };
+    return { matchUps, calls, structuresOf };
+  };
+
+  it('gives a round robin group’s matchUps their container’s position, not none', () => {
+    const { matchUps, structuresOf } = seed([{ drawSize: 8, drawType: 'ROUND_ROBIN_WITH_PLAYOFF' }]);
+    const sequences = matchUpStructureSequences(matchUps, structuresOf);
+    const group = matchUps.find((m: any) => m.containerStructureId);
+    const playoff = matchUps.find((m: any) => !m.containerStructureId);
+    // The premise: a group matchUp's own structureId is not a top-level structure.
+    expect(group.structureId).not.toBe(group.containerStructureId);
+    expect(sequences.get(group.matchUpId)).toBe(0);
+    expect(sequences.get(playoff.matchUpId)).toBe(1);
+  });
+
+  it('looks each draw up once, however many matchUps it has', () => {
+    const { matchUps, calls, structuresOf } = seed([
+      { drawSize: 16, drawType: 'COMPASS' },
+      { drawSize: 16, drawType: 'FEED_IN_CHAMPIONSHIP' },
+    ]);
+    const sequences = matchUpStructureSequences(matchUps, structuresOf);
+    expect(calls).toHaveLength(2);
+    expect(sequences.size).toBe(matchUps.length);
+  });
+
+  it('leaves a matchUp with no known structure unsequenced rather than guessing', () => {
+    const sequences = matchUpStructureSequences(
+      [
+        { matchUpId: 'orphan', drawId: 'd', structureId: 's' },
+        { matchUpId: 'bare', drawId: 'd' },
+      ],
+      () => [{ structureId: 'other' }],
+    );
+    expect(sequences.has('orphan')).toBe(false);
+    expect(sequences.has('bare')).toBe(false);
   });
 });
