@@ -2039,6 +2039,17 @@
       "previous": "← Previous",
       "next": "Next →"
     },
+    "penalty": {
+      "participant": "Participant",
+      "selectParticipant": "Select participant",
+      "penaltyType": "Penalty",
+      "selectType": "Select penalty",
+      "notes": "Notes",
+      "assess": "Assess",
+      "incomplete": "Choose a participant and a penalty",
+      "added": "Penalty recorded",
+      "failed": "Penalty not recorded"
+    },
     "displaySettings": {
       "google": "Google",
       "showSchedule": "Show Schedule",
@@ -2256,9 +2267,18 @@
       "courtNotFound": "That court no longer exists. Refresh the tournament and try again.",
       "notSaved": "Schedule change was not saved: {{reason}}",
       "beforePlayedSource": "Not scheduled: it depends on {{matchUp}}, which was already played ({{when}}). Move that match first if its time is wrong.",
-      "afterDependent": "Not moved: a played match cannot come after {{matchUp}} ({{when}}), which depends on it.",
+      "beforeSource": "Not scheduled: it depends on {{matchUp}} ({{when}}), so it must come after that match. Move that match first if its time is wrong.",
+      "afterDependent": "Not scheduled: {{matchUp}} ({{when}}) depends on this match, so this match must come before it.",
+      "overlapsSource": "Times not saved: they overlap {{matchUp}} ({{when}}), which this match follows.",
+      "overlapsDependent": "Times not saved: they overlap {{matchUp}} ({{when}}), which follows this match.",
+      "timeBeforeBound": "{{time}} not saved: on {{date}} it must come after {{boundTime}}, set by a linked match.",
+      "timeAfterBound": "{{time}} not saved: on {{date}} it must come before {{boundTime}}, set by a linked match.",
+      "noValidDate": "No tournament date fits this match between the matches it is linked to.",
       "moreBlocking": "(+{{count}} more)",
-      "roundLabel": "a round {{roundNumber}} match"
+      "roundLabel": "a round {{roundNumber}} match",
+      "locked": "Schedule change not saved: this match's schedule is locked. Unlock it first.",
+      "skipped": "Schedule change not saved: this match cannot be scheduled.",
+      "matchUpNotFound": "Schedule change not saved: the match was not found. Refresh the tournament and try again."
     },
     "statusOutOfScope": "This status is unavailable for this match",
     "durableCommandNotStored": "Durable command could not be stored for this session",

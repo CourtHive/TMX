@@ -10,6 +10,7 @@ import {
   policyConstants,
 } from 'tods-competition-factory';
 import { selectParticipant } from 'components/modals/selectParticipant';
+import { addPenaltyModal } from 'components/modals/addPenaltyModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
@@ -63,7 +64,7 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
       method: assignOrReplace,
     },
     [PENALTY]: {
-      onClick: () => console.log({ data }),
+      method: ({ action }: any) => addPenaltyModal({ action, sideNumber }),
       text: t('draws.penalty'),
     },
     [REMOVE_PARTICIPANT]: {
@@ -90,6 +91,7 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
     .map((action: any) => {
       const item = itemMap[action.type];
       return {
+        type: action.type,
         onClick: () => {
           isFunction(item.method)
             ? item.method({ ...item.params, action })
@@ -99,7 +101,8 @@ export function participantMatchUpActions(e: Event, cell: any, callback?: (resul
       };
     });
 
-  if (items.length === 1) {
+  // a lone placement action runs at once; a penalty is never assessed by clicking a name, so it is always offered
+  if (items.length === 1 && items[0].type !== PENALTY) {
     items[0].onClick();
   } else if (items.length > 0 && e?.target) {
     tipster({ items, target: e.target as HTMLElement, config: { placement: BOTTOM } });

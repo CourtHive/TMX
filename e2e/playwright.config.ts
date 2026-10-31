@@ -54,11 +54,16 @@ export default defineConfig({
     // on long e2e runs (Vite's module graph + HMR state grow over hundreds
     // of page navigations). Without this, mid-suite specs near the tail
     // intermittently hit ERR_CONNECTION_REFUSED or slow renders.
+    //
+    // Vite directly, not `pnpm start`: that script first runs `config --check`, which on a checkout without
+    // `.env.local` (a fresh clone, a worktree, CI) stops at an interactive prompt that nothing answers, and the
+    // run dies on the 30 s timeout below before any spec starts. `.env.development` already holds the defaults.
+    // `--strictPort` because the `url` below is fixed: a busy 5173 must fail, not drift to 5174.
     command: process.env.TEST_PROD
       ? 'pnpm build && pnpm preview'
-      : 'NODE_OPTIONS=--max-old-space-size=4096 pnpm start',
+      : 'NODE_OPTIONS=--max-old-space-size=4096 pnpm exec vite --strictPort',
     // Playwright defaults `cwd` to the CONFIG file's directory, which is `e2e/`
-    // — and `e2e/` has no package.json, so `pnpm start` there dies with
+    // — and `e2e/` has no package.json, so `pnpm` there dies with
     // ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND and Playwright reports only
     // "Process from config.webServer was not able to start. Exit code: 1".
     //

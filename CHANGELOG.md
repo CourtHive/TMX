@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.48.0](https://github.com/CourtHive/TMX/compare/v8.47.0...v8.48.0) (2026-10-29)
+
+
+### Features
+
+* **chat:** tournament chat on courthive-ams and score-relay; CFS out of the path ([#1810](https://github.com/CourtHive/TMX/issues/1810)) ([708b494](https://github.com/CourtHive/TMX/commit/708b494247ee51abacf657cc5d3823a7b4f5f68d))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.3.1 ([#1817](https://github.com/CourtHive/TMX/issues/1817)) ([2202211](https://github.com/CourtHive/TMX/commit/220221105120c562a45a28fa6f083b30d950d36a))
+* **deps:** update tods-competition-factory to 7.24.0 ([#1814](https://github.com/CourtHive/TMX/issues/1814)) ([f14947d](https://github.com/CourtHive/TMX/commit/f14947df13e419d2f0ac1f3702e8f41eead5d4b0))
+* **draws:** complete all matchUps that can be completed in a lucky draw ([#1812](https://github.com/CourtHive/TMX/issues/1812)) ([46e3aeb](https://github.com/CourtHive/TMX/commit/46e3aeba5acaed539eda951fd3fd87e58fa88f32))
+
 ## [8.47.0](https://github.com/CourtHive/TMX/compare/v8.46.0...v8.47.0) (2026-10-27)
 
 
