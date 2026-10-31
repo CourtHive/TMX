@@ -92,14 +92,14 @@ describe('order of finish', () => {
     completeFromScorecard(s1.matchUpId);
     completeFromScorecard(s2.matchUpId);
 
-    // the factory leaves a cleared line its number; only completed lines count
+    // the factory removes a cleared line's number (factory #6030); only completed lines count
     const result: any = tournamentEngine.setMatchUpStatus({
       drawId: dual().drawId,
       matchUpId: s1.matchUpId,
       outcome: clearedOutcome,
     });
     expect(result.success).toEqual(true);
-    expect(orderOf(s1.matchUpId)).toEqual(1);
+    expect(orderOf(s1.matchUpId)).toBeUndefined();
     expect(orderOfFinishCohorts(dual()).find(({ matchUpType }) => matchUpType === 'SINGLES')?.matchUps.length).toEqual(
       1,
     );
