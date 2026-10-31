@@ -1,5 +1,13 @@
-import { compareStructure, orderByReadiness, readinessKey, ON_COURT, READY, RECOVERING } from './catalogOrder';
 import { describe, expect, it } from 'vitest';
+import {
+  compareStructure,
+  orderByReadiness,
+  readinessKey,
+  readinessRank,
+  ON_COURT,
+  READY,
+  RECOVERING,
+} from './catalogOrder';
 
 // constants and types
 import type { RestResult, RestRow } from 'tods-competition-factory';
@@ -120,5 +128,27 @@ describe('compareStructure', () => {
       compareStructure({ matchUpId: 'a', roundNumber: 1, roundPosition: 3 }, { matchUpId: 'b', roundNumber: 1 }),
     ).toBeLessThan(0);
     expect(compareStructure({ matchUpId: 'a' }, { matchUpId: 'b' })).toBe(0);
+  });
+});
+
+describe('readinessRank — the key as the one number the catalog groups by', () => {
+  it('orders exactly as the key does: band first, then shortfall', () => {
+    const keys = [
+      readinessKey(onCourt()),
+      readinessKey(resting(5)),
+      readinessKey(rested()),
+      readinessKey(resting(50)),
+      readinessKey({ evaluated: false, reason: 'noAsOf' }),
+    ];
+    const byKey = [...keys].sort((a, b) => a.band - b.band || a.shortfall - b.shortfall);
+    const byRank = [...keys].sort((a, b) => readinessRank(a) - readinessRank(b));
+    expect(byRank).toEqual(byKey);
+  });
+
+  it('keeps the longest plausible shortfall inside its band', () => {
+    // A full day of required recovery still ranks ahead of anyone on court.
+    expect(readinessRank({ band: RECOVERING, shortfall: 24 * 60 })).toBeLessThan(
+      readinessRank({ band: ON_COURT, shortfall: 0 }),
+    );
   });
 });
