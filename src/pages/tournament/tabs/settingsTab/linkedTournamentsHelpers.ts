@@ -10,12 +10,6 @@ export interface SiblingTournament {
   endDate?: string;
 }
 
-/** Peer links stored on a record, excluding the record itself (the factory stores self in the list). */
-export function getPeerLinkedIds(record: any): string[] {
-  const self = record?.tournamentId;
-  return (record?.linkedTournamentIds ?? []).filter((id: string) => id && id !== self);
-}
-
 /** The full link group to persist: primary + existing peers + newly selected ids (unique, non-empty). */
 export function buildLinkGroup(primaryId: string, existingPeerIds: string[], addIds: string[]): string[] {
   return Array.from(new Set([primaryId, ...existingPeerIds, ...addIds])).filter(Boolean);
