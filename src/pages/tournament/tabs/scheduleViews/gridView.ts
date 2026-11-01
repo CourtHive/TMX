@@ -320,7 +320,6 @@ function catalogOnScreen(): boolean {
 import { createCollapseAllButton, everyGroupCollapsed, toggledCollapsedGroups } from './catalogCollapseAll';
 import { registerScheduleMutationControl, resetScheduleMutationControl } from './scheduleMutationControl';
 import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from './gridSearchIndex';
-import { compareStructure, orderByReadiness, readinessKey, readinessRank } from './catalogOrder';
 import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
@@ -362,6 +361,13 @@ import {
   writeGridWarningBars,
   type SidebarTab,
 } from './gridViewStorage';
+import {
+  compareStructure,
+  matchUpStructureSequences,
+  orderByReadiness,
+  readinessKey,
+  readinessRank,
+} from './catalogOrder';
 
 // Latest schedule snapshot used by the strip — also consulted by the strip's
 // click handler so popovers open against the same row data the cell renders.
@@ -4027,6 +4033,11 @@ function effectiveMatchUpSchedule(m: any, placements: { [matchUpId: string]: any
   return completed ? m.schedule : override;
 }
 
+/** A draw's top-level structures, for `matchUpStructureSequences`. */
+function drawStructures(drawId: string): any[] {
+  return competitionEngine.getEvent({ drawId })?.drawDefinition?.structures ?? [];
+}
+
 /**
  * `ordered` lists the catalog by rest readiness (see `catalogOrder.ts`). Only the pushes that draw the
  * catalog ask for it: lookups and counts read `buildCatalog` too, and have no use for an order that
@@ -4054,6 +4065,7 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
   // match has not been played, so it cannot have tired anyone.
   const evaluate = (id: string) => evaluateRest(id, selectedDate);
   const listed = ordered ? orderByReadiness(onDate, evaluate) : onDate;
+  const sequenceOf = ordered ? matchUpStructureSequences(onDate, drawStructures) : new Map<string, number>();
 
   return listed.map((m: any) => {
     // After the filter above, any `scheduledDate` we see is the selected
@@ -4092,6 +4104,7 @@ function buildCatalog(selectedDate: string, { ordered = false }: { ordered?: boo
       // Lets the catalog order GROUPS by readiness too, below structure. The pass's evaluator has
       // already answered for this matchUp, so this is a lookup, not a second evaluation.
       readinessRank: ordered ? readinessRank(readinessKey(evaluate(m.matchUpId))) : undefined,
+      structureSequence: sequenceOf.get(m.matchUpId),
     } satisfies CatalogMatchUpItem;
   });
 }

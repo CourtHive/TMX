@@ -571,3 +571,54 @@ test.describe('Journey 98 — catalog groups are ordered by rest readiness below
     expect(ids.indexOf(seeded.readyFinalId)).toBeLessThan(ids.indexOf(seeded.recoveringFinalId));
   });
 });
+
+/**
+ * Structure order — grouped by structure, a draw's structures follow its play order.
+ *
+ * One unplayed compass draw. Every direction but East is TBD v TBD, so readiness ties and, without a
+ * play order, the label decides: North, Northeast, Northwest, South, Southeast, Southwest, West, with
+ * West last. The play order (the factory's `structureSort`) is East, West, North, South, and that is
+ * the order structures go onto the grid.
+ */
+test.describe('Journey 98 — grouped by structure, a draw follows its play order', () => {
+  test('compass structures are listed East, West, North, South', async ({ page }) => {
+    const date = todayLocal();
+    await page.goto('/');
+    await waitForAppReady(page);
+    await initDevBridge(page);
+    await resetState(page);
+    await page.evaluate(() => localStorage.clear());
+    const tournamentId = await page.evaluate(
+      async ({ date }) => {
+        await dev.tmx2db.initDB();
+        const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+          nonRandom: 1,
+          setState: true,
+          tournamentName: 'E2E Catalog Structure Order',
+          tournamentAttributes: { tournamentId: 'e2e-catalog-structure-order', startDate: date, endDate: date },
+          drawProfiles: [{ eventName: 'Compass', drawSize: 16, drawType: 'COMPASS' }],
+        });
+        await dev.tmx2db.addTournament(dev.factory.tournamentEngine.getTournament().tournamentRecord);
+        return tournamentRecord.tournamentId as string;
+      },
+      { date },
+    );
+
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToScheduling();
+    await page.locator(UNSCHEDULED_TAB).click();
+    await page.locator(`${CATALOG_PANEL} select[aria-label="Group matchUps"]`).selectOption('structure');
+
+    const headers = page.locator(`${CATALOG_PANEL} .sp-group-header`);
+    await expect(headers.first()).toContainText('East');
+    const labels = (await headers.allInnerTexts()).map((text) => text.replace(/\s*\(\d+\)\s*$/, '').trim());
+    const position = (direction: string) => labels.findIndex((label) => label.endsWith(`— ${direction}`));
+
+    // The premise: all four directions are listed, or the order below would compare nothing.
+    for (const direction of ['East', 'West', 'North', 'South']) expect(position(direction)).toBeGreaterThanOrEqual(0);
+    expect(position('East')).toBeLessThan(position('West'));
+    expect(position('West')).toBeLessThan(position('North'));
+    expect(position('North')).toBeLessThan(position('South'));
+  });
+});

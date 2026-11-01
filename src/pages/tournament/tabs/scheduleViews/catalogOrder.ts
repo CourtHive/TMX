@@ -24,10 +24,13 @@
  * order is a mild inconvenience; a card that jumps as it is grabbed is a mis-drop.
  */
 
+import { tools } from 'tods-competition-factory';
 import { headlineRow } from './restBadge';
 
 // constants and types
-import type { RestResult } from 'tods-competition-factory';
+import { drawDefinitionConstants, type RestResult } from 'tods-competition-factory';
+
+const { QUALIFYING } = drawDefinitionConstants;
 
 /** Ready to call, still recovering, still on court. Lower is listed first. */
 export const READY = 0;
@@ -123,4 +126,62 @@ export function orderByReadiness<T extends OrderableMatchUp>(
         a.index - b.index,
     )
     .map((entry) => entry.matchUp);
+}
+
+/** The fields play order reads off a top-level structure. */
+export interface SequencedStructure {
+  structureId: string;
+  stage?: string;
+}
+
+/**
+ * Each structure's 0-based position in its draw's play order — the `structureSequence` the catalog
+ * groups by — keyed by structureId.
+ *
+ * The order is the factory's `structureSort`, not one worked out here: compass runs East, West, North,
+ * South, Northeast, Northwest, Southwest, Southeast; double elimination Main, Backdraw, Decider.
+ * Qualifying structures are counted on their own, so a draw's main structure is position 0 whether or
+ * not the draw has a qualifying stage, and sits beside every other draw's main structure.
+ */
+export function structureSequences(structures: SequencedStructure[]): Map<string, number> {
+  const sequences = new Map<string, number>();
+  let qualifying = 0;
+  let rest = 0;
+  for (const structure of structures.toSorted((a: any, b: any) => tools.structureSort(a, b))) {
+    sequences.set(structure.structureId, structure.stage === QUALIFYING ? qualifying++ : rest++);
+  }
+  return sequences;
+}
+
+/** The fields the draw lookup reads off a hydrated matchUp. */
+export interface DrawMatchUp {
+  drawId?: string;
+  structureId?: string;
+  containerStructureId?: string;
+}
+
+/**
+ * `structureSequence` for each matchUp, keyed by matchUpId (see `structureSequences`). `structuresOf`
+ * is the engine's draw lookup, injected so this stays testable; it is called once per draw, not per
+ * matchUp.
+ *
+ * A round robin's groups are not top-level structures — `structureSort` orders the container — so a
+ * group matchUp takes its container's position.
+ */
+export function matchUpStructureSequences(
+  matchUps: (DrawMatchUp & { matchUpId: string })[],
+  structuresOf: (drawId: string) => SequencedStructure[],
+): Map<string, number> {
+  const byStructure = new Map<string, number>();
+  for (const drawId of new Set(matchUps.map((m) => m.drawId).filter((id): id is string => !!id))) {
+    for (const [structureId, sequence] of structureSequences(structuresOf(drawId))) {
+      byStructure.set(structureId, sequence);
+    }
+  }
+  const byMatchUp = new Map<string, number>();
+  for (const m of matchUps) {
+    const sequence = byStructure.get(m.containerStructureId ?? m.structureId ?? '');
+    if (sequence !== undefined) byMatchUp.set(m.matchUpId, sequence);
+  }
+  return byMatchUp;
 }
