@@ -330,6 +330,7 @@ import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness
 import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
+import { expectedAverageMinutes } from './matchUpExpectedMinutes';
 import { buildCheckInModeToggle } from './checkInModeToggle';
 import { scheduledTimeModel } from './scheduledTimeStatus';
 import { type TimeBlockCourt } from './timeBlockModal';
@@ -3226,20 +3227,9 @@ function defaultAverageMinutes(): number {
   }
 }
 
-/** The average for one strip cell's matchUp, or undefined when its format cannot be resolved. */
+/** The average for one strip cell's matchUp (its event's timing), or undefined when its format cannot be resolved. */
 function matchUpAverageMinutes(cell: any): number | undefined {
-  const matchUpFormat = resolveMatchUpFormat(cell.payload);
-  if (!matchUpFormat) return undefined;
-  try {
-    const timing = competitionEngine.getMatchUpFormatTiming?.({
-      matchUpFormat,
-      eventType: cell.payload?.matchUpType,
-    }) as any;
-    const average = Number(timing?.averageMinutes);
-    return Number.isFinite(average) && average > 0 ? average : undefined;
-  } catch {
-    return undefined;
-  }
+  return expectedAverageMinutes(cell.payload);
 }
 
 /**
@@ -3822,20 +3812,6 @@ function buildUnstartOnRemoveMethods(matchUpId: string, drawId: string): any[] {
  * often lacks a matchUpFormat (inherited from the drawDefinition); fall back
  * to that draw's format so downstream timing lookups work.
  */
-function resolveMatchUpFormat(matchUp: any): string | undefined {
-  if (matchUp?.matchUpFormat) return matchUp.matchUpFormat;
-  const drawId = matchUp?.drawId;
-  if (!drawId) return undefined;
-  const { tournamentRecord } = tournamentEngine.getTournament() || {};
-  if (!tournamentRecord) return undefined;
-  for (const event of tournamentRecord.events || []) {
-    for (const draw of event.drawDefinitions || []) {
-      if (draw.drawId === drawId) return draw.matchUpFormat;
-    }
-  }
-  return undefined;
-}
-
 interface BlockInterruptionWarning {
   /** 'active' when the block is in effect right now; 'upcoming' when it starts later. */
   kind: 'active' | 'upcoming';
@@ -3858,21 +3834,9 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
   const { tournamentRecord } = tournamentEngine.getTournament() || {};
   if (!tournamentRecord) return undefined;
 
-  const matchUpFormat = resolveMatchUpFormat(matchUp);
-  if (!matchUpFormat) return undefined;
-
-  // Average minutes for this matchUp format under the active scheduling timing.
-  let timing: any;
-  try {
-    timing = competitionEngine.getMatchUpFormatTiming?.({
-      matchUpFormat,
-      eventType: matchUp.matchUpType,
-    });
-  } catch {
-    return undefined;
-  }
-  const averageMinutes = Number(timing?.averageMinutes);
-  if (!averageMinutes || !Number.isFinite(averageMinutes) || averageMinutes <= 0) return undefined;
+  // Average minutes for this matchUp under the active scheduling timing, its event's own included.
+  const averageMinutes = expectedAverageMinutes(matchUp);
+  if (!averageMinutes) return undefined;
 
   let engine: any;
   try {
