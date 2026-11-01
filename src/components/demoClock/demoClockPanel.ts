@@ -1,4 +1,5 @@
 import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
+import { schedulerPeriodLength, withPeriodLength } from 'services/schedulePreferences/schedulingPeriodLength';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
@@ -188,6 +189,13 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     scenes.append(scene);
   }
 
+  /** the timed scheduler takes the tournament's period length; the grid assigns no times */
+  function schedulerParams(method: string, scheduleDates: string[]) {
+    if (method !== SCHEDULE_PROFILE_ROUNDS) return { scheduleDates };
+    const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
+    return withPeriodLength({ scheduleDates }, schedulerPeriodLength(tournamentRecord));
+  }
+
   async function runScheduler(day: number, method: typeof SCHEDULE_PROFILE_ROUNDS | typeof SCHEDULE_PROFILE_GRID) {
     if (!canUseDemoClock() || getDemoClock()?.busy) return;
     if (hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty()) {
@@ -198,7 +206,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     try {
       await mutationRequest({
         engine: COMPETITION_ENGINE,
-        methods: [{ method, params: { scheduleDates: [dates[day]] } }],
+        methods: [{ method, params: schedulerParams(method, [dates[day]]) }],
         callback: (result) => {
           if (!getDemoClock() || !canUseDemoClock()) return;
           status.textContent = t(result?.error ? 'demoClock.failed' : 'demoClock.applied');
