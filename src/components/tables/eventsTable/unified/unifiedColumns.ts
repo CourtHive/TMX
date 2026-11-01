@@ -2,7 +2,7 @@
  * Column definitions for the unified entries table.
  * Superset of existing entry columns plus segment chip and hidden sort rank.
  */
-import { ENTRY_POSITION_FIELD, entryPositionLabel, hasEntryPositions } from './entryPosition';
+import { ENTRY_POSITION_FIELD, entryPositionBadge, hasEntryPositions } from './entryPosition';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../../common/formatters/participantFormatter';
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
@@ -86,6 +86,20 @@ function statusFormatter(cell: any) {
   return el;
 }
 
+// The "#" cell: the group position as a badge tinted by the entry's group, named in words for hover and
+// assistive tech (title + aria-label). Rows with no position stay blank.
+function entryPositionFormatter(cell: any) {
+  const badge = entryPositionBadge(cell.getRow().getData());
+  if (!badge) return '';
+  const el = document.createElement('span');
+  el.className = `tmx-entry-position-badge is-${badge.group}`;
+  el.dataset.entryGroup = badge.group;
+  el.textContent = badge.text;
+  el.title = badge.tooltip;
+  el.setAttribute('aria-label', badge.tooltip);
+  return el;
+}
+
 type UnifiedColumnsParams = {
   entries: any[];
   hasDrawDefinitions?: boolean;
@@ -119,7 +133,7 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
       // participants / matchUps tables). The header is drawn by titleFormatter, not `title`, so the
       // column stays out of the toggle menu and the saved visibility map: hiding it would take the menu
       // with it. A record with no positions at all keeps the row number, so the column never goes blank.
-      formatter: showPositions ? (cell: any) => entryPositionLabel(cell.getRow().getData()) : 'rownum',
+      formatter: showPositions ? entryPositionFormatter : 'rownum',
       headerMenu: headerMenu({}),
       field: ENTRY_POSITION_FIELD,
       titleFormatter: () => '#',

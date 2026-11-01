@@ -1,12 +1,21 @@
-import { entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { compareSegmentRows, withSegmentRanks, type SortState } from './segmentSorter';
-import { entryPositionLabel, hasEntryPositions, withEntryIndex, withStatusOrdinals } from './entryPosition';
 import { describe, expect, it } from 'vitest';
+import {
+  entryPositionBadge,
+  entryPositionGroup,
+  entryPositionLabel,
+  hasEntryPositions,
+  withEntryIndex,
+  withStatusOrdinals,
+} from './entryPosition';
 
 // constants
-import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
+import { ADD_EVENT, ADD_EVENT_ENTRIES, ADD_PARTICIPANTS, MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
-const { ALTERNATE, DIRECT_ACCEPTANCE, STRUCTURE_SELECTED_STATUSES, WILDCARD } = entryStatusConstants;
+const { ALTERNATE, DIRECT_ACCEPTANCE, STRUCTURE_SELECTED_STATUSES, UNGROUPED, WILDCARD, WITHDRAWN } =
+  entryStatusConstants;
+const { QUALIFYING } = drawDefinitionConstants;
 
 const ALTERNATES_RANK = 2;
 const ACCEPTED_RANK = 0;
@@ -139,5 +148,90 @@ describe('entries table "#" column and alternates order', () => {
     expect(
       segment(withStatusOrdinals(displayRows(eventId)), ALTERNATES_RANK).some((row) => row._statusOrdinal),
     ).toEqual(false);
+  });
+});
+
+describe('entries table "#" badge: group tint, words and no duplicated number', () => {
+  it('classifies every entry by its group and names the group and position in words', () => {
+    const eventId = setup();
+    const qualifierId = 'qualifier1';
+    const qualifier = {
+      participantId: qualifierId,
+      participantType: 'INDIVIDUAL',
+      participantRole: 'COMPETITOR',
+      person: { standardGivenName: 'Quinn', standardFamilyName: 'Qualifier' },
+    };
+    const result = tournamentEngine.executionQueue([
+      { method: ADD_PARTICIPANTS, params: { participants: [qualifier] } },
+      { method: ADD_EVENT_ENTRIES, params: { eventId, participantIds: [qualifierId], entryStage: QUALIFYING } },
+    ]);
+    expect(result.success).toEqual(true);
+    const [, , last] = segment(displayRows(eventId), ALTERNATES_RANK);
+    modifyEntriesStatus(eventId, [last.participantId], WITHDRAWN);
+
+    const rows = withStatusOrdinals(displayRows(eventId));
+    const groupOf = (rank: number) => [...new Set(segment(rows, rank).map(entryPositionGroup))];
+    expect(groupOf(ACCEPTED_RANK)).toEqual(['accepted']);
+    expect(groupOf(1)).toEqual(['qualifying']);
+    expect(groupOf(ALTERNATES_RANK)).toEqual(['alternate']);
+    expect(groupOf(4)).toEqual(['withdrawn']);
+
+    const words: Record<string, string> = {
+      accepted: 'Accepted',
+      qualifying: 'Qualifying',
+      alternate: 'Alternate',
+      withdrawn: 'Withdrawn',
+    };
+    for (const row of rows) {
+      const badge = entryPositionBadge(row);
+      expect(badge?.text).toEqual(String(row.entryPosition));
+      expect(badge?.group).toEqual(entryPositionGroup(row));
+      expect(badge?.tooltip).toEqual(`${words[badge?.group ?? '']} #${row.entryPosition}`);
+    }
+  });
+
+  it('tells "#n accepted" from "#n alternate" when the two positions are equal', () => {
+    const eventId = setup();
+    const rows = displayRows(eventId);
+    const accepted = segment(rows, ACCEPTED_RANK).find((row) => row.entryPosition === 1);
+    const alternate = segment(rows, ALTERNATES_RANK).find((row) => row.entryPosition === 1);
+    const a = entryPositionBadge(accepted);
+    const b = entryPositionBadge(alternate);
+    expect(a?.text).toEqual(b?.text);
+    expect(a?.group).not.toEqual(b?.group);
+    expect(a?.tooltip).not.toEqual(b?.tooltip);
+  });
+
+  it('adds the status ordinal to the words only, never a second number on the badge', () => {
+    const eventId = setup();
+    const [, second, , fourth] = segment(displayRows(eventId), ACCEPTED_RANK);
+    modifyEntriesStatus(eventId, [fourth.participantId, second.participantId], WILDCARD);
+
+    const accepted = segment(withStatusOrdinals(displayRows(eventId)), ACCEPTED_RANK);
+    const wildcards = accepted
+      .filter((row) => row.entryStatus === WILDCARD)
+      .sort((a, b) => a.entryPosition - b.entryPosition);
+    expect(wildcards.length).toEqual(2);
+    wildcards.forEach((row, index) => {
+      const badge = entryPositionBadge(row);
+      expect(badge?.text).toEqual(String(row.entryPosition));
+      expect(badge?.tooltip).toEqual(`Accepted #${row.entryPosition} · Wildcard ${index + 1}`);
+    });
+    // a plain direct acceptance carries no status chip, so its words carry no ordinal
+    const direct = accepted.find((row) => row.entryStatus === DIRECT_ACCEPTANCE);
+    expect(entryPositionBadge(direct)?.tooltip).toEqual(`Accepted #${direct?.entryPosition}`);
+  });
+
+  it('puts Ungrouped and unknown statuses in "other", and gives virtual or unpositioned rows no badge', () => {
+    const [ungrouped, unknown] = withSegmentRanks([
+      { participantId: 'u', entryStatus: UNGROUPED, entryPosition: 2 },
+      { participantId: 'k', entryStatus: 'SOMETHING_ELSE', entryPosition: 4 },
+    ]);
+    expect(entryPositionBadge(ungrouped)).toEqual({ group: 'other', text: '2', tooltip: 'Ungrouped #2' });
+    expect(entryPositionBadge(unknown)).toEqual({ group: 'other', text: '4', tooltip: 'Position #4' });
+
+    expect(entryPositionBadge({ entryPosition: 3, _segmentRank: 0, _grouped: true })).toBeNull();
+    expect(entryPositionBadge({ entryPosition: 3, _segmentRank: 0, _eventOnly: true })).toBeNull();
+    expect(entryPositionBadge({ participantId: 'y', _segmentRank: 0 })).toBeNull();
   });
 });

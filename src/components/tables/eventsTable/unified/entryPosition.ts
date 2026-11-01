@@ -7,6 +7,9 @@
  * every other segment keeps the entries' array order unless the TD picks a column.
  */
 
+import { entryStatusConstants } from 'tods-competition-factory';
+import { t } from 'i18n';
+
 export const ALTERNATES_RANK = 2;
 export const ENTRY_POSITION_FIELD = 'entryPosition';
 
@@ -66,4 +69,65 @@ export function withStatusOrdinals<T extends Record<string, any>>(rows: T[]): T[
     group.sort(compareEntryPosition).forEach((row, index) => Object.assign(row, { _statusOrdinal: index + 1 }));
   }
   return rows;
+}
+
+const { WILDCARD, SPECIAL_EXEMPT, JUNIOR_EXEMPT, ORGANISER_ACCEPTANCE, UNGROUPED } = entryStatusConstants;
+
+/**
+ * The "#" badge's tint names the entry's group, so "#5 accepted" and "#5 alternate" read apart in the one
+ * table. The tint never stands alone: the badge's tooltip and accessible label say the group in words.
+ */
+export type EntryPositionGroup = 'accepted' | 'qualifying' | 'alternate' | 'withdrawn' | 'other';
+
+// keyed by _segmentRank (segmentSorter.segmentRank); Ungrouped and unknown statuses are 'other'
+const GROUP_BY_RANK: Record<number, EntryPositionGroup> = {
+  0: 'accepted',
+  1: 'qualifying',
+  [ALTERNATES_RANK]: 'alternate',
+  4: 'withdrawn',
+};
+
+export function entryPositionGroup(row: any): EntryPositionGroup {
+  return GROUP_BY_RANK[row?._segmentRank] ?? 'other';
+}
+
+const GROUP_LABEL_KEYS: Record<EntryPositionGroup, string> = {
+  accepted: 'entries.positionBadge.accepted',
+  qualifying: 'entries.positionBadge.qualifying',
+  alternate: 'entries.positionBadge.alternate',
+  withdrawn: 'entries.positionBadge.withdrawn',
+  other: 'entries.positionBadge.other',
+};
+
+// The special acceptance statuses that carry a status chip ("WC 2"); their ordinal joins the tooltip.
+const STATUS_NAME_KEYS: Record<string, string> = {
+  [WILDCARD]: 'entries.positionBadge.status.wildcard',
+  [SPECIAL_EXEMPT]: 'entries.positionBadge.status.specialExempt',
+  [JUNIOR_EXEMPT]: 'entries.positionBadge.status.juniorExempt',
+  [ORGANISER_ACCEPTANCE]: 'entries.positionBadge.status.organiserAcceptance',
+};
+
+/** Everything the "#" badge shows: the number, the group its tint names, and the same in words. */
+export interface EntryPositionBadge {
+  group: EntryPositionGroup;
+  /** The group position only; the status chip keeps the status ordinal, so no number shows twice. */
+  text: string;
+  /** e.g. "Alternate #3" or "Accepted #12 · Wildcard 2"; also the accessible label. */
+  tooltip: string;
+}
+
+/** The badge for one row, or null when the row has no position to show (virtual rows never do). */
+export function entryPositionBadge(row: any): EntryPositionBadge | null {
+  const text = entryPositionLabel(row);
+  if (!text) return null;
+  const group = entryPositionGroup(row);
+  const labelKey =
+    group === 'other' && row.entryStatus === UNGROUPED ? 'entries.positionBadge.ungrouped' : GROUP_LABEL_KEYS[group];
+  const label = t(labelKey, { position: text });
+  const statusKey = STATUS_NAME_KEYS[row.entryStatus];
+  const tooltip =
+    statusKey && row._statusOrdinal
+      ? t('entries.positionBadge.withStatus', { label, status: t(statusKey), ordinal: row._statusOrdinal })
+      : label;
+  return { group, text, tooltip };
 }
