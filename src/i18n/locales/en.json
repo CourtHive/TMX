@@ -2737,7 +2737,7 @@
         "activeDatesLabel": "Active dates",
         "activeDatesPlaceholder": "All dates in range",
         "weekdaysLabel": "Days of the week",
-        "eventDatesHint": "Saved with the event. Scheduling does not use active dates or days of the week yet.",
+        "eventDatesSchedulingHint": "Scheduling honours these: auto-scheduling skips the days this event does not play, and the grid warns when a match is placed on one.",
         "eventDatesRefusal": {
           "INVALID_DATE": "Dates must be valid calendar days (YYYY-MM-DD)",
           "START_AFTER_END": "The start date cannot be after the end date",
@@ -3729,6 +3729,27 @@
   "venueDetail": {
     "noCourts": "No courts at this venue yet.",
     "notFound": "Venue not found."
+  },
+  "eventDates": {
+    "placementWarning": "{{event}} does not play on {{date}} (plays {{playing}}). Placed anyway.",
+    "noPlayingDays": "no days",
+    "andMore": "(+{{count}} more)",
+    "issue": "{{participants}}: {{event}} does not play on {{date}} ({{reason}})",
+    "reason": {
+      "outsideEventDates": "outside the event's dates",
+      "outsideTournamentDates": "outside the tournament's dates",
+      "eventInactiveDate": "not one of the event's active dates",
+      "eventWeekday": "not one of the event's days of the week",
+      "tournamentInactiveDate": "not one of the tournament's active dates",
+      "tournamentWeekday": "not one of the tournament's days of the week",
+      "notPlaying": "not a playing day"
+    },
+    "skippedTitle": "Skipped (event not playing that day)",
+    "skippedIntro": "MatchUps not scheduled because their event does not play on the day: {{count}}",
+    "scheduleAnyway": "Schedule anyway",
+    "extendEventDates": "Extend event dates",
+    "extended": "Event dates extended. Apply the schedule again to place the skipped matchUps.",
+    "extendFailed": "Could not extend the event dates"
   },
   "courtUse": {
     "disable": "Don't use",

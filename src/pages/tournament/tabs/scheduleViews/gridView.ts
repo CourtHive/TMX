@@ -39,7 +39,9 @@ import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { isRunningDesk } from 'services/authentication/isRunningDesk';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { eventDateGridIssues, eventDateIssueIds, warnInactiveEventDates } from './eventDateGrid';
 import { decoratesCell, severityOf } from './scheduleIssueSeverity';
+import { EVENT_DATE_INACTIVE } from './eventDateScheduling';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { getLoginState } from 'services/authentication/loginState';
@@ -1960,6 +1962,8 @@ function showStaleDrawBanner(droppedCount: number): void {
 function executeMethods(methods: any[], onRefresh: () => void): void {
   // Every grid placement funnels through here: none may land on a court not in use on its date.
   if (refuseDisabledPlacement(methods, currentDate)) return;
+  // A placement on a day its event does not play lands, with a warning (never refused).
+  warnInactiveEventDates(methods);
   // Plan mode: a drop edits the SCENARIO, never the official schedule. Fold the
   // drop's methods into the scenario's placements and persist via
   // updateScheduleScenario (which touches scheduling.scenarios, not matchUps);
@@ -4267,6 +4271,9 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
   });
 
   const matchUpIssueMap = buildMatchUpIssueMap(courtIssues, rowIssues);
+  // a matchUp on a day its event does not play: decorated only when proConflicts gave it nothing
+  const eventDateIds = eventDateIssueIds();
+  const WARNING = scheduleConstants.SCHEDULE_WARNING;
 
   // Annotate each cellData with the issue info that mapMatchUpToCellData reads
   const warningBarsVisible = readGridWarningBars();
@@ -4276,6 +4283,10 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
       cellData.scheduleState = issue.issue;
       cellData.issueType = issue.issueType;
       cellData.issueIds = issue.issueIds;
+    } else if (!issue && eventDateIds.has(cellData.matchUpId) && decoratesCell(WARNING, warningBarsVisible)) {
+      cellData.scheduleState = WARNING;
+      cellData.issueType = EVENT_DATE_INACTIVE;
+      delete cellData.issueIds;
     } else {
       delete cellData.scheduleState;
       delete cellData.issueType;
@@ -4311,7 +4322,8 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
   // lack fields that proConflicts needs to detect certain conflict types.
   const conflictResult = getCachedProConflicts(selectedDate);
-  if (!conflictResult.evaluated) return [];
+  // matchUps on a day their event does not play: persistent, whoever placed them
+  if (!conflictResult.evaluated) return eventDateGridIssues(selectedDate);
   const { scheduledMatchUps } = conflictResult;
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
@@ -4358,7 +4370,7 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
     }
   }
 
-  return issues;
+  return [...issues, ...eventDateGridIssues(selectedDate)];
 }
 
 // ── Helpers ──
