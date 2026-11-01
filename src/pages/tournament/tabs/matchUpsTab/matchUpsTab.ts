@@ -15,6 +15,7 @@ import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTy
 import { getMatchUpDateFilter } from 'components/tables/common/filters/matchUpDateFilter';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { getActionsItem } from 'pages/tournament/tabs/matchUpsTab/abandonMatchUpsAction';
+import { getBulkStatusItem } from 'pages/tournament/tabs/matchUpsTab/bulkStatusAction';
 import { getPresentRatings } from 'components/tables/matchUpsTable/getPresentRatings';
 import { mountMatchUpBars } from 'pages/tournament/tabs/matchUpsTab/matchUpBars';
 import { preferencesConfig } from 'config/preferencesConfig';
@@ -142,6 +143,8 @@ export function renderMatchUpTab(): void {
       stateChange: true,
       location: OVERLAY,
     },
+    // Weather day: one no-score status on every selected matchUp, refused whole if any row would be refused
+    getBulkStatusItem(table, replaceTableData),
     {
       onKeyDown: (e: any) => e.keyCode === 8 && e.target.value.length === 1 && setSearchFilter(''),
       onChange: (e: any) => setSearchFilter(e.target.value),
