@@ -1,6 +1,7 @@
-import { getPeerLinkedIds, buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
+import { buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
 import { LINK_TOURNAMENTS, UNLINK_TOURNAMENT } from 'constants/mutationConstants';
 import { getUserContext } from 'services/authentication/getUserContext';
+import { peerLinkedTournamentIds } from 'functions/peerLinkedTournamentIds';
 import { fetchMyCalendars } from 'services/apis/fetchMyCalendars';
 import { requestTournament } from 'services/apis/servicesApi';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
@@ -77,7 +78,7 @@ async function restorePrimary(primaryId: string): Promise<void> {
 async function dispatchLink(addIds: string[], onDone: () => void): Promise<void> {
   const primaryRecord = currentRecord();
   if (!primaryRecord?.tournamentId || !addIds.length) return;
-  const group = buildLinkGroup(primaryRecord.tournamentId, getPeerLinkedIds(primaryRecord), addIds);
+  const group = buildLinkGroup(primaryRecord.tournamentId, peerLinkedTournamentIds(primaryRecord), addIds);
   if (group.length < 2) return;
   if (!(await loadGroupIntoCompetitionEngine(group, primaryRecord))) return;
   await mutationRequest({
@@ -90,7 +91,7 @@ async function dispatchLink(addIds: string[], onDone: () => void): Promise<void>
 async function dispatchUnlink(removeId: string, onDone: () => void): Promise<void> {
   const primaryRecord = currentRecord();
   if (!primaryRecord?.tournamentId) return;
-  const group = buildLinkGroup(primaryRecord.tournamentId, getPeerLinkedIds(primaryRecord), []);
+  const group = buildLinkGroup(primaryRecord.tournamentId, peerLinkedTournamentIds(primaryRecord), []);
   if (!(await loadGroupIntoCompetitionEngine(group, primaryRecord))) return;
   await mutationRequest({
     methods: [{ method: UNLINK_TOURNAMENT, params: { tournamentId: removeId } }],
@@ -122,7 +123,7 @@ async function renderPanelContents(panel: HTMLElement): Promise<void> {
   const primaryId = primaryRecord?.tournamentId;
   const providerId = primaryRecord?.parentOrganisation?.organisationId;
   const providerAbbr = primaryRecord?.parentOrganisation?.organisationAbbreviation;
-  const peerIds = getPeerLinkedIds(primaryRecord);
+  const peerIds = peerLinkedTournamentIds(primaryRecord);
 
   const siblings = await fetchSiblings(providerAbbr);
   const rows = resolveLinkedRows(peerIds, siblings);
