@@ -75,6 +75,14 @@ export function resizeLineValues(values: number[], count: number): number[] {
   return Array.from({ length: Math.max(0, count) }, (_, i) => values[i] ?? 1);
 }
 
+/**
+ * The line count is typed a keystroke at a time (3, then empty, then 4), so while it changes the values only grow: a
+ * line past the count keeps its value until the count comes back, and saving drops it.
+ */
+export function growLineValues(values: number[], count: number): number[] {
+  return resizeLineValues(values, Math.max(count, values.length));
+}
+
 /** switching to line values starts every line at the collection's current per-match value */
 export function seedLineValues(row: CollectionRow): number[] {
   return resizeLineValues([], row.matchUpCount).map(() => row.awardValue);
