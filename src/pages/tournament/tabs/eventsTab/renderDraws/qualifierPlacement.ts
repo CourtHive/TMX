@@ -20,6 +20,8 @@ const QUALIFIER_ACTION = 'QUALIFIER';
 type Engine = { [method: string]: any };
 
 export type QualifierPlacementState = {
+  /** the main structure rounds qualifiers enter, from the links that feed it; usually only round 1 */
+  targetRoundNumbers: number[];
   qualifiedParticipantIds: string[];
   openQualifierPositions: number[];
   hasLinkedQualifying: boolean;
@@ -28,6 +30,7 @@ export type QualifierPlacementState = {
 };
 
 const NOT_ELIGIBLE: QualifierPlacementState = {
+  targetRoundNumbers: [],
   qualifiedParticipantIds: [],
   openQualifierPositions: [],
   hasLinkedQualifying: false,
@@ -59,10 +62,14 @@ export function getQualifierPlacementState({
   const qualifyingStructureIds = new Set(
     structures.filter(({ stage }) => stage === QUALIFYING).map(({ structureId }) => structureId),
   );
-  const hasLinkedQualifying = (drawDefinition?.links ?? []).some(
+  const qualifyingLinks = (drawDefinition?.links ?? []).filter(
     (link: any) =>
       link?.target?.structureId === mainStructureId && qualifyingStructureIds.has(link?.source?.structureId),
   );
+  const hasLinkedQualifying = qualifyingLinks.length > 0;
+  const targetRoundNumbers = [
+    ...new Set<number>(qualifyingLinks.map((link: any) => link.target.roundNumber ?? 1)),
+  ].sort((a, b) => a - b);
 
   const positionAssignments: any[] =
     engine.getPositionAssignments({ structureId: mainStructureId, drawId })?.positionAssignments ?? [];
@@ -87,6 +94,7 @@ export function getQualifierPlacementState({
     qualifiedParticipantIds,
     openQualifierPositions,
     hasLinkedQualifying,
+    targetRoundNumbers,
     mainStructureId,
   };
 }
@@ -109,6 +117,30 @@ export function buildPlaceQualifiersMethod({
 }) {
   const randomList = drawQualifierLot(positionsCount, shuffle);
   return { method: QUALIFIER_PROGRESSION, params: tools.definedAttributes({ drawId, eventId, randomList }) };
+}
+
+/**
+ * One placement per round qualifiers enter, each with its own lot: the factory fills a round's qualifier positions only
+ * with that round's qualifiers (a round 2 qualifier stands opposite a first round BYE).
+ */
+export function buildPlaceQualifiersMethods({
+  targetRoundNumbers,
+  positionsCount,
+  eventId,
+  drawId,
+  shuffle,
+}: {
+  shuffle?: (values: number[]) => number[];
+  targetRoundNumbers: number[];
+  positionsCount: number;
+  eventId?: string;
+  drawId: string;
+}) {
+  if (targetRoundNumbers.length < 2) return [buildPlaceQualifiersMethod({ positionsCount, eventId, drawId, shuffle })];
+  return targetRoundNumbers.map((targetRoundNumber) => {
+    const method = buildPlaceQualifiersMethod({ positionsCount, eventId, drawId, shuffle });
+    return { ...method, params: { ...method.params, targetRoundNumber } };
+  });
 }
 
 export type QualifierPlacementSummary = {
@@ -152,9 +184,11 @@ export function summarizeQualifierPlacement({
   return { placed, notPlaced, openPositionsRemaining, incomplete: notPlaced.length > 0 || openPositionsRemaining > 0 };
 }
 
-// executionQueue returns each method's result in `results`; a direct call returns it at the top level
+// executionQueue returns each method's result in `results` (one per round placed); a direct call returns it at the top
+// level
 function findAssignedParticipants(result: any) {
   if (Array.isArray(result?.assignedParticipants)) return result.assignedParticipants;
-  const fromResults = (result?.results ?? []).find((r: any) => Array.isArray(r?.assignedParticipants));
-  return fromResults?.assignedParticipants ?? [];
+  return (result?.results ?? []).flatMap((r: any) =>
+    Array.isArray(r?.assignedParticipants) ? r.assignedParticipants : [],
+  );
 }
