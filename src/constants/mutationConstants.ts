@@ -38,6 +38,7 @@ export const ATTACH_POLICIES = 'attachPolicies';
 export const REMOVE_POLICY = 'removePolicy';
 export const AUTOMATED_PLAYOFF_POSITIONING = 'automatedPlayoffPositioning';
 export const BULK_SCHEDULE_MATCHUPS = 'bulkScheduleMatchUps';
+export const BULK_MATCHUP_STATUS_UPDATE = 'bulkMatchUpStatusUpdate';
 export const DELETE_ADHOC_MATCHUPS = 'deleteAdHocMatchUps';
 export const DELETE_COURTS = 'deleteCourts';
 export const DELETE_DRAW_DEFINITIONS = 'deleteDrawDefinitions';
