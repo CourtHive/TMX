@@ -14,8 +14,11 @@ export interface CollectionRow {
   gender: string;
   awardType: string;
   awardValue: number;
-  /** one value per line (collectionPosition 1..matchUpCount), used when awardType is LINE_VALUES */
-  lineValues: number[];
+  /**
+   * one value per line (collectionPosition 1..matchUpCount), used when awardType is LINE_VALUES; a line with no value
+   * yet is undefined, and the tieFormat cannot be saved until every line has one
+   */
+  lineValues: (number | undefined)[];
   /** collection fields the editor does not manage, carried through unchanged */
   preserved: Record<string, any>;
 }
@@ -70,14 +73,34 @@ export function rowFromCollection(col: any, mintId: () => string): CollectionRow
   };
 }
 
-/** one value per line: extra lines are dropped, new lines are worth 1 */
-export function resizeLineValues(values: number[], count: number): number[] {
-  return Array.from({ length: Math.max(0, count) }, (_, i) => values[i] ?? 1);
+/** one value per line: extra lines are dropped, and a new line has no value until one is entered */
+export function resizeLineValues(values: (number | undefined)[], count: number): (number | undefined)[] {
+  return Array.from({ length: Math.max(0, count) }, (_, i) => values[i]);
 }
 
-/** switching to line values starts every line at the collection's current per-match value */
-export function seedLineValues(row: CollectionRow): number[] {
-  return resizeLineValues([], row.matchUpCount).map(() => row.awardValue);
+/**
+ * The line count is typed a keystroke at a time (3, then empty, then 4), so while it changes the values only grow: a
+ * line past the count keeps its value until the count comes back, and saving drops it.
+ */
+export function growLineValues(values: (number | undefined)[], count: number): (number | undefined)[] {
+  return resizeLineValues(values, Math.max(count, values.length));
+}
+
+/**
+ * Switching to line values: a match value is already what each line is worth, so every line starts there. Any other
+ * award (a collection, set or score value) says nothing about a single line, and copying it onto each would misstate
+ * the scorecard, so the lines start empty.
+ */
+export function seedLineValues(row: CollectionRow): (number | undefined)[] {
+  const value = row.awardType === MATCH_VALUE ? row.awardValue : undefined;
+  return resizeLineValues([], row.matchUpCount).map(() => value);
+}
+
+/** a line-values collection with a line that has no value yet: it cannot be saved */
+export function missingLineValues(row: CollectionRow): boolean {
+  return (
+    row.awardType === LINE_VALUES && resizeLineValues(row.lineValues, row.matchUpCount).some((v) => v === undefined)
+  );
 }
 
 export function collectionFromRow(row: CollectionRow): any {
@@ -108,5 +131,5 @@ export function collectionFromRow(row: CollectionRow): any {
 }
 
 export function lineValuesTotal(row: CollectionRow): number {
-  return resizeLineValues(row.lineValues, row.matchUpCount).reduce((sum, v) => sum + (v || 0), 0);
+  return resizeLineValues(row.lineValues, row.matchUpCount).reduce((sum: number, v) => sum + (v ?? 0), 0);
 }
