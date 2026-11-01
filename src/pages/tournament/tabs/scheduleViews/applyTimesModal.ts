@@ -16,8 +16,8 @@
  * `schedulingPolicyChoices.ts`. Creating or editing a scheduling policy is out
  * of scope here — that lives on the `/policies` page.
  */
-import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { effectivePeriodLength, periodLengthChoices } from 'services/schedulePreferences/schedulingPeriodLength';
+import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { escapeHtml } from 'utilities/escapeHtml';
 

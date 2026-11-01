@@ -11,11 +11,6 @@
  */
 import { getCachedCompetitionDateRange, getCachedTournamentInfo, invalidateMatchUpCaches } from './schedule2DataCache';
 import { planGuardRefusalCount, profileRepairOffer, schedulerResultOf } from 'services/scheduling/schedulingRefusals';
-import {
-  periodLengthWriteMethod,
-  schedulerPeriodLength,
-  withPeriodLength,
-} from 'services/schedulePreferences/schedulingPeriodLength';
 import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
@@ -31,6 +26,11 @@ import { openApplyGridModal } from './applyGridModal';
 import { hiddenCourtIds } from './visibilityState';
 import { scheduleToast } from './scheduleToast';
 import { context } from 'services/context';
+import {
+  periodLengthWriteMethod,
+  schedulerPeriodLength,
+  withPeriodLength,
+} from 'services/schedulePreferences/schedulingPeriodLength';
 import {
   createSchedulingProfile,
   type SchedulingProfileConfig,
