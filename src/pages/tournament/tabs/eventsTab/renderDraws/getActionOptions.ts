@@ -5,6 +5,7 @@
 import { eventConstants, policyConstants, drawDefinitionConstants } from 'tods-competition-factory';
 import { updateTieFormat } from 'components/overlays/editTieFormat.js/updateTieFormat';
 import { enterParticipantAssignmentMode } from './participantAssignmentMode';
+import { canOfferStructureReset, structureHasResults } from 'components/modals/resetStructure';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
@@ -203,6 +204,19 @@ export function getActionOptions({
     {
       onClick: () => resetDraws({ eventData, drawIds: [drawId] }),
       label: t('pages.events.actionOptions.resetDraw'),
+    },
+    {
+      // one qualifying or consolation structure; a main structure linked to others is reset with the draw
+      hide: !canOfferStructureReset({
+        hasResults: structureHasResults({
+          matchUps: tournamentEngine.allDrawMatchUps({ drawId, inContext: true }).matchUps ?? [],
+          structureId,
+        }),
+        drawDefinition,
+        structureId,
+      }),
+      onClick: () => resetDraws({ eventData, drawIds: [drawId], structureId, structureName: structure?.structureName }),
+      label: t('pages.events.actionOptions.resetStructure'),
     },
   ];
 
