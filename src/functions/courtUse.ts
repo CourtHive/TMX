@@ -1,13 +1,13 @@
 /**
- * Courts and venues out of service — the pure decisions behind the venue and court actions and the
- * schedule grid: is a court out of service on a date, which matchUps sit on it, which methods take it
+ * Courts and venues not in use — the pure decisions behind the venue and court actions and the
+ * schedule grid: is a court not in use on a date, which matchUps sit on it, which methods take it
  * out or put it back, and whether a placement lands on it.
  *
  * The factory stores the state as `disabled` on the court or venue: `true` for every date, or
  * `{ dates: [...] }` for a court taken out on some dates only. Records written before the first-class
  * attribute carry it as a `disabled` extension instead; both are read here.
  *
- * Nothing is moved: a matchUp already on a court that goes out of service keeps its placement, and the
+ * Nothing is moved: a matchUp already on a court that stops being used keeps its placement, and the
  * confirmation names it so the director can move it deliberately.
  */
 import { factoryConstants } from 'tods-competition-factory';
@@ -20,12 +20,12 @@ const COMPLETED_STATUSES = new Set<string>(completedMatchUpStatuses);
 const DISABLED = 'disabled';
 
 export type CourtServiceState = {
-  /** the court itself is out of service on every date */
+  /** the court itself is not in use on every date */
   allDates: boolean;
-  /** dates on which the court alone is out of service (empty when `allDates`) */
+  /** dates on which the court alone is not in use (empty when `allDates`) */
   dates: string[];
-  /** the court's venue is out of service, which takes every court in it out on every date */
-  venueOutOfService: boolean;
+  /** the court's venue is not in use, which takes every court in it out on every date */
+  venueDisabled: boolean;
 };
 
 /** The stored `disabled` value: first-class attribute first, then the legacy extension. */
@@ -34,35 +34,35 @@ export function readDisabled(element: any): any {
   return element?.extensions?.find((extension: any) => extension?.name === DISABLED)?.value;
 }
 
-export function isVenueOutOfService(venue: any): boolean {
+export function isVenueDisabled(venue: any): boolean {
   return !!readDisabled(venue);
 }
 
-export function courtServiceState({ court, venue }: { court: any; venue?: any }): CourtServiceState {
+export function courtUseState({ court, venue }: { court: any; venue?: any }): CourtServiceState {
   const value = readDisabled(court);
   const allDates = value === true;
   const dates: string[] = !allDates && Array.isArray(value?.dates) ? value.dates : [];
-  return { allDates, dates, venueOutOfService: isVenueOutOfService(venue) };
+  return { allDates, dates, venueDisabled: isVenueDisabled(venue) };
 }
 
-/** Out of service on `date`: the court on every date, the court on that date, or its venue. */
-export function isCourtOutOfService({ court, venue, date }: { court: any; venue?: any; date?: string }): boolean {
-  const state = courtServiceState({ court, venue });
-  if (state.venueOutOfService || state.allDates) return true;
+/** Not in use on `date`: the court on every date, the court on that date, or its venue. */
+export function isCourtDisabled({ court, venue, date }: { court: any; venue?: any; date?: string }): boolean {
+  const state = courtUseState({ court, venue });
+  if (state.venueDisabled || state.allDates) return true;
   return !!date && state.dates.includes(date);
 }
 
-/** The court is out of service on at least one date (or its venue is): the popover offers Return to service. */
-export function isCourtOutOfServiceAnyDate({ court, venue }: { court: any; venue?: any }): boolean {
-  const state = courtServiceState({ court, venue });
-  return state.venueOutOfService || state.allDates || state.dates.length > 0;
+/** The court is not in use on at least one date (or its venue is): the popover offers Use again. */
+export function isCourtDisabledAnyDate({ court, venue }: { court: any; venue?: any }): boolean {
+  const state = courtUseState({ court, venue });
+  return state.venueDisabled || state.allDates || state.dates.length > 0;
 }
 
 /**
- * The ids of the courts out of service on `date`. `courts` are the grid's court data (each carries its
+ * The ids of the courts not in use on `date`. `courts` are the grid's court data (each carries its
  * `venueId`); `venues` supply the venue-level flag.
  */
-export function outOfServiceCourtIds({
+export function disabledCourtIds({
   courts,
   venues,
   date,
@@ -75,7 +75,7 @@ export function outOfServiceCourtIds({
   const ids = new Set<string>();
   for (const court of courts ?? []) {
     const venue = venueById.get(court?.venueId);
-    if (court?.courtId && isCourtOutOfService({ court, venue, date })) ids.add(court.courtId);
+    if (court?.courtId && isCourtDisabled({ court, venue, date })) ids.add(court.courtId);
   }
   return ids;
 }
@@ -125,13 +125,13 @@ export function describeMatchUpOnCourt(matchUp: any): string {
 }
 
 /**
- * `date` scopes the change to that date; without it the court is out of service on every date.
+ * `date` scopes the change to that date; without it the court is not in use on every date.
  *
- * The factory REPLACES a court's out-of-service dates rather than adding to them, so a dated change
+ * The factory REPLACES a court's disabled dates rather than adding to them, so a dated change
  * carries the court's `existingDates` forward: taking a court out on a second date must not silently
- * return it to service on the first.
+ * use it again on the first.
  */
-export function buildCourtsOutOfServiceMethods({
+export function buildCourtsDisabledMethods({
   courtIds,
   date,
   existingDates = [],
@@ -146,20 +146,20 @@ export function buildCourtsOutOfServiceMethods({
 }
 
 /**
- * `date` returns the court for that date only; without it every out-of-service date is cleared. A court
- * out of service on every date can only be returned on every date, so a dated return is not built for it.
+ * `date` returns the court for that date only; without it every disabled date is cleared. A court
+ * not in use on every date can only be returned on every date, so a dated return is not built for it.
  */
-export function buildCourtsReturnToServiceMethods({ courtIds, date }: { courtIds: string[]; date?: string }): any[] {
+export function buildCourtsEnableMethods({ courtIds, date }: { courtIds: string[]; date?: string }): any[] {
   const params = date ? { courtIds, dates: [date] } : { courtIds };
   return [{ method: ENABLE_COURTS, params }];
 }
 
-/** Venues go out of service on every date: the factory's `disableVenues` takes no dates. */
-export function buildVenuesOutOfServiceMethods({ venueIds }: { venueIds: string[] }): any[] {
+/** Venues stop being used on every date: the factory's `disableVenues` takes no dates. */
+export function buildVenuesDisabledMethods({ venueIds }: { venueIds: string[] }): any[] {
   return [{ method: DISABLE_VENUES, params: { venueIds } }];
 }
 
-export function buildVenuesReturnToServiceMethods({ venueIds }: { venueIds: string[] }): any[] {
+export function buildVenuesEnableMethods({ venueIds }: { venueIds: string[] }): any[] {
   return [{ method: ENABLE_VENUES, params: { venueIds } }];
 }
 
@@ -190,7 +190,7 @@ export function refusedPlacementCourtIds({
     if (!court) continue;
     const venue = venueById.get(court.venueId ?? schedule.venueId);
     const placementDate = schedule.scheduledDate || date;
-    if (isCourtOutOfService({ court, venue, date: placementDate })) refused.add(courtId);
+    if (isCourtDisabled({ court, venue, date: placementDate })) refused.add(courtId);
   }
   return [...refused];
 }

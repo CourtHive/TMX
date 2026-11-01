@@ -1,18 +1,18 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  buildCourtsOutOfServiceMethods,
-  buildCourtsReturnToServiceMethods,
-  buildVenuesOutOfServiceMethods,
-  buildVenuesReturnToServiceMethods,
-  courtServiceState,
+  buildCourtsDisabledMethods,
+  buildCourtsEnableMethods,
+  buildVenuesDisabledMethods,
+  buildVenuesEnableMethods,
+  courtUseState,
   describeMatchUpOnCourt,
-  isCourtOutOfService,
-  isCourtOutOfServiceAnyDate,
+  isCourtDisabled,
+  isCourtDisabledAnyDate,
   matchUpsOnCourts,
-  outOfServiceCourtIds,
+  disabledCourtIds,
   refusedPlacementCourtIds,
-} from './courtOutOfService';
+} from './courtUse';
 
 // constants
 import { ADD_MATCHUP_SCHEDULE_ITEMS } from 'constants/mutationConstants';
@@ -66,8 +66,8 @@ beforeEach(() => {
   [courtA, courtB] = grid().courts.map((c: any) => c.courtId);
 });
 
-describe('taking a court out of service', () => {
-  it('on every date: the court is out of service on any date and its matchUps are listed, not moved', () => {
+describe('not using a court', () => {
+  it('on every date: the court is not in use on any date and its matchUps are listed, not moved', () => {
     const [m1, m2, m3] = firstRoundMatchUps();
     let result: any = tournamentEngine.executionQueue([
       placeMethod(m1, courtA, startDate, 1),
@@ -76,14 +76,14 @@ describe('taking a court out of service', () => {
     ]);
     expect(result.success).toEqual(true);
 
-    result = tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA] }));
+    result = tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA] }));
     expect(result.success).toEqual(true);
 
     const { court, venue } = courtWithVenue(courtA);
-    expect(courtServiceState({ court, venue })).toEqual({ allDates: true, dates: [], venueOutOfService: false });
-    expect(isCourtOutOfService({ court, venue, date: startDate })).toEqual(true);
-    expect(isCourtOutOfService({ court, venue, date: endDate })).toEqual(true);
-    expect([...outOfServiceCourtIds({ ...grid(), date: secondDate })]).toEqual([courtA]);
+    expect(courtUseState({ court, venue })).toEqual({ allDates: true, dates: [], venueDisabled: false });
+    expect(isCourtDisabled({ court, venue, date: startDate })).toEqual(true);
+    expect(isCourtDisabled({ court, venue, date: endDate })).toEqual(true);
+    expect([...disabledCourtIds({ ...grid(), date: secondDate })]).toEqual([courtA]);
 
     const matchUps: any[] = tournamentEngine.allTournamentMatchUps().matchUps ?? [];
     const listed = matchUpsOnCourts({ matchUps, courtIds: [courtA] });
@@ -94,22 +94,22 @@ describe('taking a court out of service', () => {
     expect(describeMatchUpOnCourt(listed[0])).toContain(startDate);
   });
 
-  it('on the selected date only: out of service on that date, in service on the others', () => {
+  it('on the selected date only: not in use on that date, in use on the others', () => {
     const result: any = tournamentEngine.executionQueue(
-      buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: startDate }),
+      buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate }),
     );
     expect(result.success).toEqual(true);
 
     const { court, venue } = courtWithVenue(courtA);
-    expect(courtServiceState({ court, venue })).toEqual({
+    expect(courtUseState({ court, venue })).toEqual({
       allDates: false,
       dates: [startDate],
-      venueOutOfService: false,
+      venueDisabled: false,
     });
-    expect(isCourtOutOfService({ court, venue, date: startDate })).toEqual(true);
-    expect(isCourtOutOfService({ court, venue, date: secondDate })).toEqual(false);
-    expect(isCourtOutOfServiceAnyDate({ court, venue })).toEqual(true);
-    expect([...outOfServiceCourtIds({ ...grid(), date: secondDate })]).toEqual([]);
+    expect(isCourtDisabled({ court, venue, date: startDate })).toEqual(true);
+    expect(isCourtDisabled({ court, venue, date: secondDate })).toEqual(false);
+    expect(isCourtDisabledAnyDate({ court, venue })).toEqual(true);
+    expect([...disabledCourtIds({ ...grid(), date: secondDate })]).toEqual([]);
   });
 
   it('excludes completed matchUps from the list', () => {
@@ -124,70 +124,70 @@ describe('taking a court out of service', () => {
   });
 });
 
-describe('returning a court to service', () => {
+describe('using a court again', () => {
   it('on every date clears a dated and an undated disable', () => {
-    tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA] }));
-    let result: any = tournamentEngine.executionQueue(buildCourtsReturnToServiceMethods({ courtIds: [courtA] }));
+    tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA] }));
+    let result: any = tournamentEngine.executionQueue(buildCourtsEnableMethods({ courtIds: [courtA] }));
     expect(result.success).toEqual(true);
     let { court, venue } = courtWithVenue(courtA);
-    expect(isCourtOutOfServiceAnyDate({ court, venue })).toEqual(false);
+    expect(isCourtDisabledAnyDate({ court, venue })).toEqual(false);
 
-    tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: startDate }));
-    result = tournamentEngine.executionQueue(buildCourtsReturnToServiceMethods({ courtIds: [courtA] }));
+    tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate }));
+    result = tournamentEngine.executionQueue(buildCourtsEnableMethods({ courtIds: [courtA] }));
     expect(result.success).toEqual(true);
     ({ court, venue } = courtWithVenue(courtA));
-    expect(isCourtOutOfServiceAnyDate({ court, venue })).toEqual(false);
+    expect(isCourtDisabledAnyDate({ court, venue })).toEqual(false);
   });
 
   it('on one date returns only that date', () => {
-    tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: startDate }));
-    tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: secondDate }));
+    tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate }));
+    tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA], date: secondDate }));
     let { court, venue } = courtWithVenue(courtA);
     // the factory replaces the stored dates rather than adding to them ...
-    expect(courtServiceState({ court, venue }).dates).toEqual([secondDate]);
+    expect(courtUseState({ court, venue }).dates).toEqual([secondDate]);
     // ... so the builder carries the existing dates forward
     tournamentEngine.executionQueue(
-      buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: startDate, existingDates: [secondDate] }),
+      buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate, existingDates: [secondDate] }),
     );
     ({ court, venue } = courtWithVenue(courtA));
-    expect(courtServiceState({ court, venue }).dates).toEqual([startDate, secondDate]);
+    expect(courtUseState({ court, venue }).dates).toEqual([startDate, secondDate]);
 
     const result: any = tournamentEngine.executionQueue(
-      buildCourtsReturnToServiceMethods({ courtIds: [courtA], date: secondDate }),
+      buildCourtsEnableMethods({ courtIds: [courtA], date: secondDate }),
     );
     expect(result.success).toEqual(true);
     ({ court, venue } = courtWithVenue(courtA));
-    expect(isCourtOutOfService({ court, venue, date: secondDate })).toEqual(false);
-    expect(isCourtOutOfService({ court, venue, date: startDate })).toEqual(true);
+    expect(isCourtDisabled({ court, venue, date: secondDate })).toEqual(false);
+    expect(isCourtDisabled({ court, venue, date: startDate })).toEqual(true);
   });
 });
 
-describe('venues out of service', () => {
+describe('venues not in use', () => {
   it('takes every court in the venue out on every date, and puts them back', () => {
-    let result: any = tournamentEngine.executionQueue(buildVenuesOutOfServiceMethods({ venueIds: [venueId] }));
+    let result: any = tournamentEngine.executionQueue(buildVenuesDisabledMethods({ venueIds: [venueId] }));
     expect(result.success).toEqual(true);
 
     const { court, venue } = courtWithVenue(courtB);
-    expect(courtServiceState({ court, venue }).venueOutOfService).toEqual(true);
-    expect(isCourtOutOfService({ court, venue, date: endDate })).toEqual(true);
-    expect([...outOfServiceCourtIds({ ...grid(), date: startDate })].sort((a, b) => a.localeCompare(b))).toEqual(
+    expect(courtUseState({ court, venue }).venueDisabled).toEqual(true);
+    expect(isCourtDisabled({ court, venue, date: endDate })).toEqual(true);
+    expect([...disabledCourtIds({ ...grid(), date: startDate })].sort((a, b) => a.localeCompare(b))).toEqual(
       [courtA, courtB].sort((a, b) => a.localeCompare(b)),
     );
 
-    result = tournamentEngine.executionQueue(buildVenuesReturnToServiceMethods({ venueIds: [venueId] }));
+    result = tournamentEngine.executionQueue(buildVenuesEnableMethods({ venueIds: [venueId] }));
     expect(result.success).toEqual(true);
-    expect(outOfServiceCourtIds({ ...grid(), date: startDate }).size).toEqual(0);
+    expect(disabledCourtIds({ ...grid(), date: startDate }).size).toEqual(0);
   });
 });
 
 describe('refusing placements', () => {
   it('refuses a placement onto an out-of-service court and allows it elsewhere or once returned', () => {
     const [m1] = firstRoundMatchUps();
-    tournamentEngine.executionQueue(buildCourtsOutOfServiceMethods({ courtIds: [courtA], date: startDate }));
+    tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate }));
 
     const ontoA = [placeMethod(m1, courtA, startDate, 1)];
     expect(refusedPlacementCourtIds({ methods: ontoA, ...grid(), date: startDate })).toEqual([courtA]);
-    // the placement's own date decides: courtA is in service on the second date
+    // the placement's own date decides: courtA is in use on the second date
     expect(
       refusedPlacementCourtIds({ methods: [placeMethod(m1, courtA, secondDate, 1)], ...grid(), date: startDate }),
     ).toEqual([]);
@@ -195,14 +195,14 @@ describe('refusing placements', () => {
       refusedPlacementCourtIds({ methods: [placeMethod(m1, courtB, startDate, 1)], ...grid(), date: startDate }),
     ).toEqual([]);
 
-    tournamentEngine.executionQueue(buildCourtsReturnToServiceMethods({ courtIds: [courtA] }));
+    tournamentEngine.executionQueue(buildCourtsEnableMethods({ courtIds: [courtA] }));
     expect(refusedPlacementCourtIds({ methods: ontoA, ...grid(), date: startDate })).toEqual([]);
   });
 
   it('never refuses clearing a placement, so a matchUp can always leave the court', () => {
     const [m1] = firstRoundMatchUps();
     tournamentEngine.executionQueue([placeMethod(m1, courtA, startDate, 1)]);
-    tournamentEngine.executionQueue(buildVenuesOutOfServiceMethods({ venueIds: [venueId] }));
+    tournamentEngine.executionQueue(buildVenuesDisabledMethods({ venueIds: [venueId] }));
     const clear = [
       {
         method: ADD_MATCHUP_SCHEDULE_ITEMS,
@@ -219,7 +219,7 @@ describe('refusing placements', () => {
 
   it('reads the legacy disabled extension as well as the first-class attribute', () => {
     const court = { courtId: 'c', extensions: [{ name: 'disabled', value: { dates: [startDate] } }] };
-    expect(isCourtOutOfService({ court, date: startDate })).toEqual(true);
-    expect(isCourtOutOfService({ court, date: secondDate })).toEqual(false);
+    expect(isCourtDisabled({ court, date: startDate })).toEqual(true);
+    expect(isCourtDisabled({ court, date: secondDate })).toEqual(false);
   });
 });

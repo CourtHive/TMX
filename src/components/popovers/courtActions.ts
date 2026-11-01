@@ -1,11 +1,11 @@
 /**
- * Court actions popover: edit, and take out of / return to service (every date — the venues table has
+ * Court actions popover: edit, and don't use / use again (every date — the venues table has
  * no selected date; the schedule grid's court header offers the dated change).
  * Shows tipster menu for court management actions from table rows.
  */
 import { editCourt, type CourtEditResult } from 'pages/tournament/tabs/venuesTab/editCourt';
-import { confirmCourtOutOfService, returnCourtToService } from './courtServiceActions';
-import { courtServiceState } from 'functions/courtOutOfService';
+import { confirmCourtDisabled, enableCourt } from './courtUseActions';
+import { courtUseState } from 'functions/courtUse';
 import { competitionEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -47,8 +47,8 @@ export const courtActions =
       }
     };
 
-    // Re-read the court's service state from the engine and redraw the row's tag.
-    const doneService = ({ success }: { success: boolean }) => {
+    // Re-read the court's use state from the engine and redraw the row's tag.
+    const doneUse = ({ success }: { success: boolean }) => {
       if (!success) return;
       const updated = competitionEngine.getVenuesAndCourts().courts?.find((c: any) => c.courtId === courtRow.courtId);
       courtRow.disabled = updated?.disabled;
@@ -61,21 +61,21 @@ export const courtActions =
         onClick: () => editCourt({ court: courtRow, callback: doneEditing }),
         text: t('tournaments.edit'),
       },
-      ...courtServiceItems(courtRow, doneService),
+      ...courtUseItems(courtRow, doneUse),
     ];
 
     tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
   };
 
-function courtServiceItems(courtRow: any, onDone: (result: { success: boolean }) => void): any[] {
+function courtUseItems(courtRow: any, onDone: (result: { success: boolean }) => void): any[] {
   const { courtId, courtName } = courtRow;
-  const { allDates, dates } = courtServiceState({ court: courtRow });
+  const { allDates, dates } = courtUseState({ court: courtRow });
   const items: any[] = [];
   if (!allDates) {
     items.push({
-      text: t('courtService.takeOutOfServiceAllDates'),
+      text: t('courtUse.disableAllDates'),
       onClick: () =>
-        confirmCourtOutOfService({
+        confirmCourtDisabled({
           matchUps: competitionEngine.allCompetitionMatchUps().matchUps ?? [],
           courtName: courtName || courtId,
           courtId,
@@ -85,8 +85,8 @@ function courtServiceItems(courtRow: any, onDone: (result: { success: boolean })
   }
   if (allDates || dates.length) {
     items.push({
-      text: t('courtService.returnToServiceAllDates'),
-      onClick: () => returnCourtToService({ courtId, onDone }),
+      text: t('courtUse.enableAllDates'),
+      onClick: () => enableCourt({ courtId, onDone }),
     });
   }
   return items;

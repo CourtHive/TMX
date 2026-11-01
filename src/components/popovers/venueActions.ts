@@ -1,11 +1,11 @@
 /**
- * Venue actions popover: edit, and take out of / return to service. A venue goes out of service on
+ * Venue actions popover: edit, and don't use / use again. A venue stops being used on
  * every date — the factory's `disableVenues` takes no dates.
  * Shows tipster menu for venue management actions from table rows.
  */
 import { editVenue, type VenueEditResult } from 'pages/tournament/tabs/venuesTab/editVenue';
-import { confirmVenueOutOfService, returnVenueToService } from './courtServiceActions';
-import { isVenueOutOfService } from 'functions/courtOutOfService';
+import { confirmVenueDisabled, enableVenue } from './courtUseActions';
+import { isVenueDisabled } from 'functions/courtUse';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -48,8 +48,8 @@ export const venueActions =
       }
     };
 
-    // Re-read the venue so the row's tag (and the next popover) reflect the new service state.
-    const doneService = ({ success }: { success: boolean }) => {
+    // Re-read the venue so the row's tag (and the next popover) reflect the new use state.
+    const doneUse = ({ success }: { success: boolean }) => {
       if (!success) return;
       const { venue } = tournamentEngine.findVenue({ venueId: data.venueId });
       if (venue) venueRow.venue = venue;
@@ -62,21 +62,21 @@ export const venueActions =
         onClick: () => editVenue({ venue: data, callback: doneEditing }),
         text: t('tournaments.edit'),
       },
-      venueServiceItem(venueRow, doneService),
+      venueUseItem(venueRow, doneUse),
     ];
 
     tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
   };
 
-function venueServiceItem(venueRow: any, onDone: (result: { success: boolean }) => void): any {
+function venueUseItem(venueRow: any, onDone: (result: { success: boolean }) => void): any {
   const { venueId, venueName } = venueRow;
-  if (isVenueOutOfService(venueRow.venue)) {
-    return { text: t('courtService.returnToService'), onClick: () => returnVenueToService({ venueId, onDone }) };
+  if (isVenueDisabled(venueRow.venue)) {
+    return { text: t('courtUse.enable'), onClick: () => enableVenue({ venueId, onDone }) };
   }
   return {
-    text: t('courtService.takeOutOfService'),
+    text: t('courtUse.disable'),
     onClick: () =>
-      confirmVenueOutOfService({
+      confirmVenueDisabled({
         courtIds: (venueRow.venue?.courts ?? venueRow.courts ?? []).map((court: any) => court.courtId),
         matchUps: tournamentEngine.allTournamentMatchUps().matchUps ?? [],
         venueName: venueName || venueId,

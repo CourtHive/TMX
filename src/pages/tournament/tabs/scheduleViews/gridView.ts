@@ -133,13 +133,13 @@ import { getReservedCellsForDate } from 'services/facilitySchedule/reservedCells
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
 import {
-  courtServiceMenuOptions,
-  decorateOutOfServiceCell,
-  decorateOutOfServiceHeader,
-  gridOutOfServiceCourtIds,
-  refuseOutOfServiceCourt,
-  refuseOutOfServicePlacement,
-} from './courtServiceGrid';
+  courtUseMenuOptions,
+  decorateDisabledCell,
+  decorateDisabledHeader,
+  gridDisabledCourtIds,
+  refuseDisabledCourt,
+  refuseDisabledPlacement,
+} from './courtUseGrid';
 import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
@@ -600,7 +600,7 @@ export function renderGridView(
 
       if (!courtId || !venueId || !courtOrder) return;
       // An out-of-service court takes no drops; refuse before any confirmation is shown for it.
-      if (refuseOutOfServiceCourt(courtId, currentDate)) return;
+      if (refuseDisabledCourt(courtId, currentDate)) return;
 
       const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
       const existingDrawId = target?.getAttribute(DATA_DRAW_ID);
@@ -1946,8 +1946,8 @@ function showStaleDrawBanner(droppedCount: number): void {
  * In bulk mode: runs locally on competitionEngine, queues for batch send.
  */
 function executeMethods(methods: any[], onRefresh: () => void): void {
-  // Every grid placement funnels through here: none may land on a court out of service on its date.
-  if (refuseOutOfServicePlacement(methods, currentDate)) return;
+  // Every grid placement funnels through here: none may land on a court not in use on its date.
+  if (refuseDisabledPlacement(methods, currentDate)) return;
   // Plan mode: a drop edits the SCENARIO, never the official schedule. Fold the
   // drop's methods into the scenario's placements and persist via
   // updateScheduleScenario (which touches scheduling.scenarios, not matchUps);
@@ -2199,9 +2199,9 @@ function buildRowCourtCells(params: {
   emptyCellStyle: string;
   allRows: any[];
   callbacks: GridCallbacks;
-  outOfServiceIds: Set<string>;
+  disabledIds: Set<string>;
 }): void {
-  const { grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle, allRows, callbacks, outOfServiceIds } = params;
+  const { grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle, allRows, callbacks, disabledIds } = params;
   for (const visibleCourt of visibleCourts) {
     if (!row) {
       const emptyCell = document.createElement('div');
@@ -2269,8 +2269,8 @@ function buildRowCourtCells(params: {
     }
 
     // Greyed, not hidden: the matchUps already on an out-of-service court stay visible where they are.
-    if (outOfServiceIds.has(courtInfo?.courtId)) {
-      decorateOutOfServiceCell(cell);
+    if (disabledIds.has(courtInfo?.courtId)) {
+      decorateDisabledCell(cell);
     } else if (!cellData?.isBlocked) {
       attachCellDropTarget(cell);
     }
@@ -2521,7 +2521,7 @@ function buildGridHeaders(params: {
   matchUpCounts?: Map<string, number>;
   onVisibilityChanged?: () => void;
   scheduledDate?: string;
-  outOfServiceIds?: Set<string>;
+  disabledIds?: Set<string>;
   onServiceChanged?: () => void;
 }): HTMLElement[] {
   const {
@@ -2535,7 +2535,7 @@ function buildGridHeaders(params: {
     matchUpCounts,
     onVisibilityChanged,
     scheduledDate,
-    outOfServiceIds,
+    disabledIds,
     onServiceChanged,
   } = params;
   const corner = document.createElement('div');
@@ -2585,7 +2585,7 @@ function buildGridHeaders(params: {
     th.style.cssText = stickyHeader + '; cursor: pointer;';
     th.title = courtName;
     th.textContent = showCourtIdentifiers() ? courtName : '';
-    if (outOfServiceIds?.has(court.courtId)) decorateOutOfServiceHeader(th, courtName);
+    if (disabledIds?.has(court.courtId)) decorateDisabledHeader(th, courtName);
     th.addEventListener('click', (e: MouseEvent) => {
       e.stopPropagation();
       const visible = showCourtIdentifiers();
@@ -2650,7 +2650,7 @@ function buildGridHeaders(params: {
   return courtHeaders;
 }
 
-/** Take out of / return to service — official schedule only, so Plan mode (a scenario) offers none. */
+/** Don't use / use again — official schedule only, so Plan mode (a scenario) offers none. */
 function headerServiceOptions(
   courtId: string,
   courtName: string,
@@ -2658,7 +2658,7 @@ function headerServiceOptions(
   onServiceChanged?: () => void,
 ): { option: string; onClick: () => void }[] {
   if (planContext || !scheduledDate || !onServiceChanged) return [];
-  return courtServiceMenuOptions({
+  return courtUseMenuOptions({
     matchUps: getCachedAllMatchUps().matchUps ?? [],
     onDone: onServiceChanged,
     date: scheduledDate,
@@ -2709,7 +2709,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const rows: any[] = (scheduleResult.rows || []).map((row: any) => ({ ...row }));
     const allCourtsData: any[] = scheduleResult.courtsData || [];
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
-    const outOfServiceIds = gridOutOfServiceCourtIds(date);
+    const disabledIds = gridDisabledCourtIds(date);
 
     // Overlay read-only reserved cells (other facility-sharing tournaments' court occupancy) into the
     // empty slots of the owned grid. Data is a slim projection cached by reservedCells — no records
@@ -2804,9 +2804,9 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       matchUpCounts,
       onVisibilityChanged,
       scheduledDate: date,
-      outOfServiceIds,
+      disabledIds,
       onServiceChanged: () => {
-        // a court or venue changed service state: re-read courts and matchUps, then redraw
+        // a court or venue changed use state: re-read courts and matchUps, then redraw
         invalidateMatchUpCaches();
         callbacks.onRefresh();
       },
@@ -2844,7 +2844,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
         emptyCellStyle: EMPTY_CELL,
         allRows: rows,
         callbacks,
-        outOfServiceIds,
+        disabledIds,
       });
 
       // Placeholder cells for empty columns
@@ -3567,7 +3567,7 @@ function handleActiveStripDrop(
   refresh: () => void,
   event?: DragEvent,
 ): void {
-  if (refuseOutOfServiceCourt(target.courtId, currentDate)) return;
+  if (refuseDisabledCourt(target.courtId, currentDate)) return;
   // A matchUp dragged FROM the grid may only land on an EMPTY Now-strip cell.
   // If the court's Now slot already shows a live/next matchUp, reject the drop —
   // the strip is what's imminent and shouldn't be displaced by a grid drag.

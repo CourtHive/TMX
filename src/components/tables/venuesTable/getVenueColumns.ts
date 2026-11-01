@@ -1,6 +1,6 @@
-import { outOfServiceNameFormatter } from '../common/formatters/outOfServiceName';
+import { disabledNameFormatter } from '../common/formatters/disabledName';
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
-import { isVenueOutOfService } from 'functions/courtOutOfService';
+import { isVenueDisabled } from 'functions/courtUse';
 import { venueActions } from '../../popovers/venueActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -62,7 +62,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     },
     {
       cellClick: toggleOpenClose,
-      formatter: outOfServiceNameFormatter((row) => isVenueOutOfService(row?.venue)),
+      formatter: disabledNameFormatter((row) => isVenueDisabled(row?.venue)),
       field: 'venueName',
       title: t('tables.venues.venue'),
       visible: true,

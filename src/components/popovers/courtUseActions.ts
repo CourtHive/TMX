@@ -1,20 +1,20 @@
 /**
- * Take courts and venues out of service, and return them — the confirmation and the mutation, shared by
+ * Stop using courts and venues, and use them again — the confirmation and the mutation, shared by
  * the venues table popovers and the schedule grid's court header menu. The decisions (which matchUps,
- * which methods) live in `functions/courtOutOfService`; this module only shows and sends.
+ * which methods) live in `functions/courtUse`; this module only shows and sends.
  */
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 import {
-  buildCourtsOutOfServiceMethods,
-  buildCourtsReturnToServiceMethods,
-  buildVenuesOutOfServiceMethods,
-  buildVenuesReturnToServiceMethods,
+  buildCourtsDisabledMethods,
+  buildCourtsEnableMethods,
+  buildVenuesDisabledMethods,
+  buildVenuesEnableMethods,
   describeMatchUpOnCourt,
   matchUpsOnCourts,
-} from 'functions/courtOutOfService';
+} from 'functions/courtUse';
 
 const LIST_LIMIT = 12;
 
@@ -26,13 +26,13 @@ function send(methods: any[], engine: string | undefined, onDone?: Done): void {
     engine,
     callback: (result: any) => {
       const success = !!result?.success;
-      if (!success && !result?.notified) tmxToast({ message: t('courtService.failed'), intent: 'is-danger' });
+      if (!success && !result?.notified) tmxToast({ message: t('courtUse.failed'), intent: 'is-danger' });
       onDone?.({ success });
     },
   });
 }
 
-/** The confirmation body: what goes out of service, then the unfinished matchUps that stay where they are. */
+/** The confirmation body: what stops being used, then the unfinished matchUps that stay where they are. */
 function buildConfirmContent(message: string, listed: any[]): HTMLElement {
   const content = document.createElement('div');
   content.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
@@ -43,9 +43,7 @@ function buildConfirmContent(message: string, listed: any[]): HTMLElement {
 
   const note = document.createElement('p');
   note.style.cssText = 'color: var(--chc-text-secondary);';
-  note.textContent = listed.length
-    ? t('courtService.matchUpsStay', { count: listed.length })
-    : t('courtService.noMatchUps');
+  note.textContent = listed.length ? t('courtUse.matchUpsStay', { count: listed.length }) : t('courtUse.noMatchUps');
   content.appendChild(note);
 
   if (listed.length) {
@@ -67,13 +65,13 @@ function buildConfirmContent(message: string, listed: any[]): HTMLElement {
   return content;
 }
 
-export function confirmCourtOutOfService(params: {
+export function confirmCourtDisabled(params: {
   courtId: string;
   courtName: string;
   matchUps: any[];
   /** the selected schedule date; omitted takes the court out on every date */
   date?: string;
-  /** the court's current out-of-service dates, carried forward by a dated change */
+  /** the court's current disabled dates, carried forward by a dated change */
   existingDates?: string[];
   engine?: string;
   onDone?: Done;
@@ -81,22 +79,22 @@ export function confirmCourtOutOfService(params: {
   const { courtId, courtName, matchUps, date, existingDates, engine, onDone } = params;
   const listed = matchUpsOnCourts({ matchUps, courtIds: [courtId], date });
   const message = date
-    ? t('courtService.confirmCourtOnDate', { courtName, date })
-    : t('courtService.confirmCourtAllDates', { courtName });
+    ? t('courtUse.confirmCourtOnDate', { courtName, date })
+    : t('courtUse.confirmCourtAllDates', { courtName });
   confirmModal({
-    title: t('courtService.courtTitle', { courtName }),
+    title: t('courtUse.courtTitle', { courtName }),
     query: buildConfirmContent(message, listed),
-    okAction: () => send(buildCourtsOutOfServiceMethods({ courtIds: [courtId], date, existingDates }), engine, onDone),
+    okAction: () => send(buildCourtsDisabledMethods({ courtIds: [courtId], date, existingDates }), engine, onDone),
   });
 }
 
-/** Without `date` every out-of-service date is cleared. Returning a court needs no confirmation. */
-export function returnCourtToService(params: { courtId: string; date?: string; engine?: string; onDone?: Done }): void {
+/** Without `date` every disabled date is cleared. Returning a court needs no confirmation. */
+export function enableCourt(params: { courtId: string; date?: string; engine?: string; onDone?: Done }): void {
   const { courtId, date, engine, onDone } = params;
-  send(buildCourtsReturnToServiceMethods({ courtIds: [courtId], date }), engine, onDone);
+  send(buildCourtsEnableMethods({ courtIds: [courtId], date }), engine, onDone);
 }
 
-export function confirmVenueOutOfService(params: {
+export function confirmVenueDisabled(params: {
   venueId: string;
   venueName: string;
   courtIds: string[];
@@ -107,13 +105,13 @@ export function confirmVenueOutOfService(params: {
   const { venueId, venueName, courtIds, matchUps, engine, onDone } = params;
   const listed = matchUpsOnCourts({ matchUps, courtIds });
   confirmModal({
-    title: t('courtService.venueTitle', { venueName }),
-    query: buildConfirmContent(t('courtService.confirmVenue', { venueName }), listed),
-    okAction: () => send(buildVenuesOutOfServiceMethods({ venueIds: [venueId] }), engine, onDone),
+    title: t('courtUse.venueTitle', { venueName }),
+    query: buildConfirmContent(t('courtUse.confirmVenue', { venueName }), listed),
+    okAction: () => send(buildVenuesDisabledMethods({ venueIds: [venueId] }), engine, onDone),
   });
 }
 
-export function returnVenueToService(params: { venueId: string; engine?: string; onDone?: Done }): void {
+export function enableVenue(params: { venueId: string; engine?: string; onDone?: Done }): void {
   const { venueId, engine, onDone } = params;
-  send(buildVenuesReturnToServiceMethods({ venueIds: [venueId] }), engine, onDone);
+  send(buildVenuesEnableMethods({ venueIds: [venueId] }), engine, onDone);
 }

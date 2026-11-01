@@ -1,5 +1,5 @@
-import { outOfServiceNameFormatter } from '../common/formatters/outOfServiceName';
-import { isCourtOutOfServiceAnyDate } from 'functions/courtOutOfService';
+import { disabledNameFormatter } from '../common/formatters/disabledName';
+import { isCourtDisabledAnyDate } from 'functions/courtUse';
 import { courtActions } from '../../popovers/courtActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -46,7 +46,7 @@ export function getCourtColumns(): any[] {
       width: 65,
     },
     {
-      formatter: outOfServiceNameFormatter((court) => isCourtOutOfServiceAnyDate({ court })),
+      formatter: disabledNameFormatter((court) => isCourtDisabledAnyDate({ court })),
       title: t('tables.courts.courtName'),
       field: 'courtName',
       editor: true,
