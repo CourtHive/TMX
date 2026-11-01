@@ -15,7 +15,9 @@ import { setCompetitionClock } from 'services/clock/competitionClock';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
+import { anonymizedCopy } from 'services/dev/anonymizedCopy';
 import { getLoginState } from './authentication/loginState';
+import { downloadJSON } from 'services/export/download';
 import { setScoreRelayURL } from './apis/scoreRelayApi';
 import * as outboxStore from './messaging/outboxStore';
 import { providerConfig } from 'config/providerConfig';
@@ -31,6 +33,8 @@ import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT } from 'constants/tmxConstants';
+
+const MISSING_TOURNAMENT = 'toasts.missingTournament';
 
 const subscriptions: Record<string, (results: any) => void> = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
@@ -91,7 +95,7 @@ export function setDev(): void {
 
       mutationRequest({ methods, callback });
     } else {
-      tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
+      tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
     }
   };
 
@@ -141,6 +145,8 @@ export function setDev(): void {
   addDev({ fetchUserContext, getUserContext });
   addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
   addDev({ tmx2db, load, build, exportTournamentRecord });
+  // dev.exportAnonymized(): downloads an anonymized deep copy of the current record; the live record is untouched
+  addDev({ exportAnonymized });
   addDev({ env, tournamentContext: context });
   // drive TMX's competition clock for demos and journeys: dev.setCompetitionClock({ nowMs: () => ms })
   addDev({ setCompetitionClock });
@@ -149,7 +155,7 @@ export function setDev(): void {
     mutationRequest: (params: any) => {
       const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
       if (!tournamentId) {
-        tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
+        tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
         return;
       }
       return mutationRequest(params);
@@ -277,6 +283,22 @@ function build(sources: any): any {
   }
   load(record);
   return record;
+}
+
+function exportAnonymized(): any {
+  const tournamentRecord = factory.tournamentEngine.q.tournament();
+  if (!tournamentRecord) {
+    tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
+    return undefined;
+  }
+  // Never through the engine or mutationRequest: the anonymizer rewrites whatever record it is handed.
+  const { tournamentRecord: copy, error } = anonymizedCopy(tournamentRecord);
+  if (error) {
+    console.error('[dev.exportAnonymized]', error);
+    return undefined;
+  }
+  downloadJSON(`${copy.tournamentId}.anonymized.codes.json`, copy);
+  return copy;
 }
 
 function generateMockTournament(params: any): void {
