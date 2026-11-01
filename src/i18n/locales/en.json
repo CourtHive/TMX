@@ -2722,7 +2722,22 @@
         "autoPlaceParticipants": "Auto place participants",
         "configureDraft": "Configure draft",
         "resolveDraft": "Resolve draft",
-        "draftStatus": "Draft"
+        "draftStatus": "Draft",
+        "placeQualifiers": "Place qualifiers"
+      },
+      "placeQualifiers": {
+        "title": "Place qualifiers",
+        "confirm": "Qualified participants: {{qualifiedCount}}. Open qualifier positions: {{positionsCount}}. The qualifiers will be drawn into the qualifier positions by lot.",
+        "nothingToPlace": "There are no qualified participants to place",
+        "failed": "Qualifiers could not be placed",
+        "nonePlaced": "No qualifiers were placed.",
+        "placedCount_one": "{{count}} qualifier placed:",
+        "placedCount_other": "{{count}} qualifiers placed:",
+        "placedAt": "{{name}}: position {{drawPosition}}",
+        "notPlaced_one": "{{count}} qualified participant could not be placed: {{names}}.",
+        "notPlaced_other": "{{count}} qualified participants could not be placed: {{names}}.",
+        "positionsOpen_one": "{{count}} qualifier position is still open.",
+        "positionsOpen_other": "{{count}} qualifier positions are still open."
       }
     },
     "participants": {
