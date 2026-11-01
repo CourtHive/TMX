@@ -21,6 +21,7 @@ import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { openCapacityPopover } from './capacityPopover';
+import { profileRoundCatalog } from './profileRoundCatalog';
 import { openApplyGridModal } from './applyGridModal';
 import { hiddenCourtIds } from './visibilityState';
 import { scheduleToast } from './scheduleToast';
@@ -181,29 +182,8 @@ function buildProfileSetup(): ProfileSetup | null {
   });
   if (!factoryRounds.length) return null;
 
-  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
-    // Prefer structureName (e.g. "Main Draw", "Consolation"); fall back to drawName only if it's not a UUID
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r.drawName || '');
-    const drawName = r.structureName || (isUUID ? '' : r.drawName) || '';
-
-    // Build a human-readable round name from matchUps if factory gives raw format
-    const rawRound = r.roundName || '';
-    const roundName = rawRound.startsWith('rn=')
-      ? r.matchUps?.[0]?.roundName || `Round ${r.roundNumber}`
-      : rawRound || `Round ${r.roundNumber}`;
-
-    return {
-      tournamentId: r.tournamentId || tournamentId,
-      eventId: r.eventId,
-      eventName: r.eventName || '',
-      drawId: r.drawId,
-      drawName,
-      structureId: r.structureId,
-      roundNumber: r.roundNumber,
-      roundName,
-      matchCountEstimate: r.matchUpsCount,
-    };
-  });
+  // Each round carries its event's playingDates when the event's own dates narrow the tournament's
+  const roundCatalog = profileRoundCatalog(factoryRounds, tournamentId);
 
   // Schedulable dates (respects activeDates when present)
   const schedulableDates = getScheduleDateRange();
