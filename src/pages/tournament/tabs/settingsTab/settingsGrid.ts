@@ -2,10 +2,11 @@ import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 's
 import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
 import { buildLinkedTournamentsPanel, LINKED_TOURNAMENTS_PANEL_ID } from './linkedTournaments';
+import { getSettingsLayout, isLinkedTournamentsEligible, type SettingsPanelId } from './settingsLayout';
 import { buildSeedingPolicyPanel } from './seedingPolicyPanel';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';
-import { preferencesConfig, type PreferencesConfig } from 'config/preferencesConfig';
+import { preferencesConfig } from 'config/preferencesConfig';
 import { buildLanguageOptions, resolveCurrentLanguageCode } from './languageOptions';
 import { resolveActiveProvider } from 'services/provider/resolveActiveProvider';
 import { ensureLocaleCurrent, fetchManifest } from 'i18n/runtime-loader';
@@ -43,24 +44,13 @@ import {
 // constants
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
-/** Move text spans into their preceding label.radio so radio+text wrap as a unit. */
-function fixRadioWrapping(formEl: HTMLElement): void {
-  const labels = formEl.querySelectorAll('label.radio');
-  for (const label of labels) {
-    const span = label.nextElementSibling;
-    if (span?.tagName === 'SPAN') {
-      label.appendChild(span);
-    }
-  }
-}
-
 /**
  * Mode (light / dark / system) and the palette for each mode. A user keeps one light and one dark palette, like
  * a language choice; the mode decides which shows. Palette names are proper names and are not translated.
  */
 function buildThemePanel(): HTMLElement {
   const panel = document.createElement('div');
-  panel.className = RATINGS_PANEL_BLUE;
+  panel.className = SETTINGS_PANEL;
   panel.innerHTML = `<h3><i class="fa-solid fa-palette"></i> ${t('modals.settings.theme')}</h3>`;
 
   const currentMode = getThemePreference();
@@ -102,13 +92,12 @@ function buildThemePanel(): HTMLElement {
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
 
-const RATINGS_PANEL_BLUE = 'settings-panel panel-blue';
+const SETTINGS_PANEL = 'settings-panel';
 
 async function persistAll(
   availableLanguages: string[],
   languageInputs: any,
   ratingInputs: any,
-  scoringInputs: any,
   optionsInputs: any,
   displayInputs: any,
 ): Promise<void> {
@@ -120,18 +109,9 @@ async function persistAll(
     linkedTournaments: displayInputs.linkedTournaments?.checked || false,
   });
 
-  let scoringApproach: PreferencesConfig['scoringApproach'];
-  if (scoringInputs.dynamicSets.checked) {
-    scoringApproach = 'dynamicSets';
-  } else if (scoringInputs.dialPad.checked) {
-    scoringApproach = 'dialPad';
-  } else if (scoringInputs.freeScore.checked) {
-    scoringApproach = 'freeScore';
-  } else {
-    scoringApproach = 'dynamicSets';
-  }
+  // `scoringApproach` is no longer set here: score entry offers its own approach switcher and writes the
+  // preference itself (scoreMatchUp.ts), so a stored choice survives saving any other setting.
   preferencesConfig.set({
-    scoringApproach,
     // A preference, not a feature flag: the board is finished, this is only
     // whether it is offered. Hence Options rather than Beta features.
     officialsBoard: optionsInputs.officialsBoard?.checked || false,
@@ -178,18 +158,21 @@ export async function renderSettingsGrid(
   // These are populated after renderForm calls; persist closure captures the refs.
   let languageInputs: any;
   let ratingInputs: any;
-  let scoringInputs: any;
   let optionsInputs: any;
   let displayInputs: any;
 
   let availableLanguages: string[] = [];
-  const persist = () =>
-    persistAll(availableLanguages, languageInputs, ratingInputs, scoringInputs, optionsInputs, displayInputs);
+  const persist = () => persistAll(availableLanguages, languageInputs, ratingInputs, optionsInputs, displayInputs);
 
   const grid = document.createElement('div');
   grid.className = 'settings-grid';
 
-  // --- Linked tournaments (teal, full width) — first row of the grid ---
+  // Panels are built into this map and placed by `getSettingsLayout` at the end, so which panels appear,
+  // in which row and how wide, is decided in one pure (tested) place rather than by build order.
+  const panels = new Map<SettingsPanelId, HTMLElement>();
+  const loggedIn = !!getLoginState();
+
+  // --- Linked tournaments (full width) — first row of the grid, added and removed in place ---
   // Tournament-scoped, and provider-authenticated (it fetches /provider/my-calendars),
   // so it stays hidden when logged out: the panel would 401 and baseApi's interceptor
   // turns a 401 into a full logout, which was breaking the settings tab entirely.
@@ -204,7 +187,7 @@ export async function renderSettingsGrid(
   // `await ensureUserContext()`: that would fire /auth/me for logged-out users, and
   // baseApi's interceptor turns a 401 into a FULL LOGOUT, which is the exact cascade
   // #1218/#1370 were fixing.
-  const linkedEligible = !options?.excludeTournament && !!getLoginState();
+  const linkedEligible = isLinkedTournamentsEligible({ excludeTournament: options?.excludeTournament, loggedIn });
   const syncLinkedPanel = () => {
     const existing = grid.querySelector(`#${LINKED_TOURNAMENTS_PANEL_ID}`);
     const enabled = linkedEligible && featureFlags.get().linkedTournaments;
@@ -216,19 +199,21 @@ export async function renderSettingsGrid(
   };
   syncLinkedPanel();
 
-  // Tournament-scoped: a seeding policy is attached to the tournamentRecord, so it has nothing to
-  // bind to on the app-level settings screen. Unlike the linked-tournaments panel this needs no
-  // authentication — the catalog is local and the mutation is an ordinary tournament mutation.
-  if (!options?.excludeTournament) {
-    grid.appendChild(buildSeedingPolicyPanel());
-  }
+  const deleteContext = resolveDeleteContext(options?.excludeTournament);
+  const layout = getSettingsLayout({
+    excludeTournament: options?.excludeTournament,
+    pipelineEligible: isPipelineEligible(tournamentEngine.q.tournament(), loggedIn),
+    canDeleteTournament: !!deleteContext,
+    isElectron: !!deviceConfig.get().isElectron,
+  });
+  const inLayout = (id: SettingsPanelId) => layout.some((row) => row.some((panel) => panel.id === id));
 
-  // --- Pipeline features (orange, full width) — with the other full-width panels, after Seeding policy ---
-  // Exit-propagation options for testing: tournament-scoped, offered only logged out or on a mock tournament.
-  // Placed here, not beside Beta features: a full-width panel in the middle of the column grid splits it.
-  if (!options?.excludeTournament && isPipelineEligible(tournamentEngine.q.tournament(), !!getLoginState())) {
-    grid.appendChild(buildPipelineFeaturesPanel());
-  }
+  // Tournament-scoped: a seeding policy is attached to the tournamentRecord. Unlike the linked-tournaments
+  // panel this needs no authentication — the catalog is local and the mutation is an ordinary one.
+  if (inLayout('seedingPolicy')) panels.set('seedingPolicy', buildSeedingPolicyPanel());
+
+  // Exit-propagation options for testing: offered only logged out or on a mock tournament.
+  if (inLayout('pipelineFeatures')) panels.set('pipelineFeatures', buildPipelineFeaturesPanel());
 
   // --- Language panel (blue, 1 col) ---
   // Source the language list from the CFS manifest so newly-added locales
@@ -242,7 +227,7 @@ export async function renderSettingsGrid(
   availableLanguages = languageOptions.map((option) => option.value);
 
   const languagePanel = document.createElement('div');
-  languagePanel.className = RATINGS_PANEL_BLUE;
+  languagePanel.className = SETTINGS_PANEL;
   languagePanel.innerHTML = `<h3><i class="fa-solid fa-globe"></i> ${t('modals.settings.language')}</h3>`;
 
   const languageForm = document.createElement('div');
@@ -303,54 +288,14 @@ export async function renderSettingsGrid(
     languagePanel.appendChild(ratingForm);
   }
 
-  grid.appendChild(languagePanel);
+  panels.set('language', languagePanel);
 
-  // --- Scoring panel (green, cols 3-4) ---
-  const scoringPanel = document.createElement('div');
-  scoringPanel.className = 'settings-panel panel-green';
-  scoringPanel.style.gridColumn = '2 / 5';
-  scoringPanel.innerHTML = `<h3><i class="fa-solid fa-table-tennis-paddle-ball"></i> ${t('modals.settings.scoringApproach')}</h3>`;
+  // --- Theme panel: mode, plus one palette per mode ---
+  panels.set('theme', buildThemePanel());
 
-  const scoringForm = document.createElement('div');
-  scoringInputs = renderForm(scoringForm, [
-    {
-      options: [
-        {
-          text: t('modals.settings.dynamicSets'),
-          field: 'dynamicSets',
-          checked: preferencesConfig.get().scoringApproach === 'dynamicSets',
-        },
-        {
-          text: t('modals.settings.dialPad'),
-          field: 'dialPad',
-          checked: preferencesConfig.get().scoringApproach === 'dialPad',
-        },
-        {
-          text: t('modals.settings.freeScore'),
-          field: 'freeScore',
-          checked: preferencesConfig.get().scoringApproach === 'freeScore',
-        },
-      ],
-      onChange: persist,
-      field: 'scoringApproach',
-      id: 'scoringApproach',
-      radio: true,
-    },
-  ]);
-  // workaround: courthive-components <=0.9.27 doesn't wire onChange for radios
-  scoringInputs.dynamicSets.addEventListener('change', persist);
-  scoringInputs.dialPad.addEventListener('change', persist);
-  scoringInputs.freeScore.addEventListener('change', persist);
-  fixRadioWrapping(scoringForm);
-  scoringPanel.appendChild(scoringForm);
-  grid.appendChild(scoringPanel);
-
-  // --- Theme panel (blue, 1 col): mode, plus one palette per mode ---
-  grid.appendChild(buildThemePanel());
-
-  // --- Font panel (blue, 1 col) ---
+  // --- Font panel ---
   const fontPanel = document.createElement('div');
-  fontPanel.className = RATINGS_PANEL_BLUE;
+  fontPanel.className = SETTINGS_PANEL;
   fontPanel.innerHTML = `<h3><i class="fa-solid fa-font"></i> ${t('modals.settings.font')}</h3>`;
 
   const currentFont = getFontPreference();
@@ -421,11 +366,11 @@ export async function renderSettingsGrid(
   ]);
   fontPanel.appendChild(pdfFontForm);
 
-  grid.appendChild(fontPanel);
+  panels.set('font', fontPanel);
 
-  // --- Beta Features panel (orange, 1 col) — placed between Font and Storage ---
+  // --- Beta Features panel ---
   const displayPanel = document.createElement('div');
-  displayPanel.className = 'settings-panel panel-orange';
+  displayPanel.className = SETTINGS_PANEL;
   displayPanel.innerHTML = `<h3><i class="fa-solid fa-display"></i> ${t('modals.settings.betaFeatures')}</h3>`;
 
   const displayForm = document.createElement('div');
@@ -489,14 +434,13 @@ export async function renderSettingsGrid(
     displayForm.appendChild(notifRow);
   }
   displayPanel.appendChild(displayForm);
-  grid.appendChild(displayPanel);
+  panels.set('betaFeatures', displayPanel);
 
-  // --- Options panel (purple, cols 3-4) ---
+  // --- Options panel ---
   // Was "Storage" when it held one saveLocal checkbox. Widened rather than a new
   // panel added, so settings that are neither beta nor storage have a home.
   const optionsPanel = document.createElement('div');
-  optionsPanel.className = 'settings-panel panel-purple';
-  optionsPanel.style.gridColumn = '3 / 5';
+  optionsPanel.className = SETTINGS_PANEL;
   optionsPanel.innerHTML = `<h3><i class="fa-solid fa-sliders"></i> ${t('modals.settings.options')}</h3>`;
 
   const optionsForm = document.createElement('div');
@@ -524,13 +468,12 @@ export async function renderSettingsGrid(
     },
   ]);
   optionsPanel.appendChild(optionsForm);
-  grid.appendChild(optionsPanel);
+  panels.set('options', optionsPanel);
 
-  // --- Connection panel (indigo, cols 3-4) — Electron only ---
-  if (deviceConfig.get().isElectron) {
+  // --- Connection panel — Electron only ---
+  if (inLayout('connection')) {
     const connectionPanel = document.createElement('div');
-    connectionPanel.className = 'settings-panel panel-indigo';
-    connectionPanel.style.gridColumn = '3 / 5';
+    connectionPanel.className = SETTINGS_PANEL;
     connectionPanel.innerHTML = `<h3><i class="fa-solid fa-server"></i> Connection</h3>`;
 
     const serverUrlLabel = document.createElement('label');
@@ -623,96 +566,111 @@ export async function renderSettingsGrid(
     connectionPanel.appendChild(serverUrlInput);
     connectionPanel.appendChild(statusRow);
     connectionPanel.appendChild(offlineRow);
-    grid.appendChild(connectionPanel);
+    panels.set('connection', connectionPanel);
   }
 
-  // --- Delete Tournament panel (red, full width) — tournament-specific ---
-  if (!options?.excludeTournament) {
-    const tournamentRecord = tournamentEngine.q.tournament();
-    const provider = tournamentRecord?.parentOrganisation;
-    const providerId = provider?.organisationId;
-    const state = getLoginState();
-    const superAdmin = state?.roles?.includes(SUPER_ADMIN);
-    const createdByUserId = tournamentRecord?.extensions?.find((e) => e?.name === 'createdByUserId')?.value;
-    const isCreator = !!createdByUserId && createdByUserId === state?.userId;
-    const canDeleteOnServer = superAdmin || isCreator || state?.permissions?.includes('deleteTournament');
-    const activeProvider = resolveActiveProvider(state, context.provider);
+  // --- Danger Zone: delete the tournament — tournament-specific ---
+  // The one panel that keeps a colour: `panel-red` draws the danger border and header (and e2e journey 82
+  // finds the delete button by it).
+  if (deleteContext && inLayout('dangerZone')) {
+    const { tournamentRecord, providerId, state, canDeleteOnServer, activeProvider } = deleteContext;
+    const deletePanel = document.createElement('div');
+    deletePanel.className = `${SETTINGS_PANEL} panel-red`;
+    deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
 
-    const isProviderTournament = !!(activeProvider && providerId);
-    if (tournamentRecord && (!isProviderTournament || canDeleteOnServer)) {
-      const deletePanel = document.createElement('div');
-      deletePanel.className = 'settings-panel panel-red';
-      deletePanel.style.gridColumn = '3 / 5';
-      deletePanel.innerHTML = `<h3><i class="fa-solid fa-trash"></i> ${t('modals.settings.dangerZone')}</h3>`;
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'button is-danger is-outlined';
+    deleteBtn.style.marginTop = '8px';
+    deleteBtn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px"></i>${t('modals.tournamentActions.deleteTournament')}`;
+    deleteBtn.addEventListener('click', () => {
+      const tournamentId = tournamentRecord.tournamentId;
+      const provId = state?.providerId || providerId;
+      const navigateAway = async () => {
+        tournamentEngine.reset();
+        if (provId) await removeProviderTournament({ tournamentId, providerId: provId });
+        context.router?.navigate(`/${TMX_TOURNAMENTS}`);
+      };
+      const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'button is-danger is-outlined';
-      deleteBtn.style.marginTop = '8px';
-      deleteBtn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px"></i>${t('modals.tournamentActions.deleteTournament')}`;
-      deleteBtn.addEventListener('click', () => {
-        const tournamentId = tournamentRecord.tournamentId;
-        const provId = state?.providerId || providerId;
-        const navigateAway = async () => {
-          tournamentEngine.reset();
-          if (provId) await removeProviderTournament({ tournamentId, providerId: provId });
-          context.router?.navigate(`/${TMX_TOURNAMENTS}`);
-        };
-        const localDelete = () => tmx2db.deleteTournament(tournamentId).then(navigateAway);
-
-        const showServerError = (body: any) => {
-          const messageKey =
-            body?.errorCode === 'ERR_TOURNAMENT_NOT_ENDED'
-              ? 'toasts.tournamentNotEnded'
-              : body?.errorCode === 'ERR_DELETE_FORBIDDEN'
-                ? 'toasts.deleteForbidden'
-                : undefined;
-          tmxToast({
-            message: messageKey ? t(messageKey) : body?.error || t('toasts.cannotDeleteTournament'),
-            intent: 'is-danger',
-            pauseOnHover: true,
-            duration: 6000,
-          });
-        };
-
+      const showServerError = (body: any) => {
+        const messageKey =
+          body?.errorCode === 'ERR_TOURNAMENT_NOT_ENDED'
+            ? 'toasts.tournamentNotEnded'
+            : body?.errorCode === 'ERR_DELETE_FORBIDDEN'
+              ? 'toasts.deleteForbidden'
+              : undefined;
         tmxToast({
-          action: {
-            onClick: async () => {
-              if (!(activeProvider && provId && canDeleteOnServer)) {
-                await localDelete();
-                return;
-              }
-              let response: any;
-              try {
-                response = await removeTournament({ providerId: provId, tournamentId });
-              } catch (err) {
-                // Network/transport failure: keep local copy intact so the
-                // user can retry once connectivity returns.
-                console.error('[deleteTournament] server error:', err);
-                tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
-                return;
-              }
-              // baseApi resolves to `undefined` on non-2xx (interceptor); the
-              // server returns 200 with { error, errorCode } when the delete
-              // is rejected. Either way, do NOT run localDelete — the user
-              // needs the local copy to fix endDate or retry.
-              const body = response?.data;
-              if (!response || body?.error) {
-                showServerError(body);
-                return;
-              }
-              await localDelete();
-            },
-            text: t('common.confirm'),
-          },
-          message: t('modals.tournamentActions.deleteTournament'),
+          message: messageKey ? t(messageKey) : body?.error || t('toasts.cannotDeleteTournament'),
           intent: 'is-danger',
+          pauseOnHover: true,
+          duration: 6000,
         });
-      });
+      };
 
-      deletePanel.appendChild(deleteBtn);
-      grid.appendChild(deletePanel);
+      tmxToast({
+        action: {
+          onClick: async () => {
+            if (!(activeProvider && provId && canDeleteOnServer)) {
+              await localDelete();
+              return;
+            }
+            let response: any;
+            try {
+              response = await removeTournament({ providerId: provId, tournamentId });
+            } catch (err) {
+              // Network/transport failure: keep local copy intact so the
+              // user can retry once connectivity returns.
+              console.error('[deleteTournament] server error:', err);
+              tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
+              return;
+            }
+            // baseApi resolves to `undefined` on non-2xx (interceptor); the
+            // server returns 200 with { error, errorCode } when the delete
+            // is rejected. Either way, do NOT run localDelete — the user
+            // needs the local copy to fix endDate or retry.
+            const body = response?.data;
+            if (!response || body?.error) {
+              showServerError(body);
+              return;
+            }
+            await localDelete();
+          },
+          text: t('common.confirm'),
+        },
+        message: t('modals.tournamentActions.deleteTournament'),
+        intent: 'is-danger',
+      });
+    });
+
+    deletePanel.appendChild(deleteBtn);
+    panels.set('dangerZone', deletePanel);
+  }
+
+  for (const row of layout) {
+    for (const { id, span } of row) {
+      const panel = panels.get(id);
+      if (!panel) continue;
+      panel.style.gridColumn = `span ${span}`;
+      grid.appendChild(panel);
     }
   }
 
   container.appendChild(grid);
+}
+
+/** Who may delete the loaded tournament; undefined when the Danger Zone is not offered. */
+function resolveDeleteContext(excludeTournament?: boolean) {
+  if (excludeTournament) return undefined;
+  const tournamentRecord = tournamentEngine.q.tournament();
+  const providerId = tournamentRecord?.parentOrganisation?.organisationId;
+  const state = getLoginState();
+  const superAdmin = state?.roles?.includes(SUPER_ADMIN);
+  const createdByUserId = tournamentRecord?.extensions?.find((e) => e?.name === 'createdByUserId')?.value;
+  const isCreator = !!createdByUserId && createdByUserId === state?.userId;
+  const canDeleteOnServer = superAdmin || isCreator || state?.permissions?.includes('deleteTournament');
+  const activeProvider = resolveActiveProvider(state, context.provider);
+
+  const isProviderTournament = !!(activeProvider && providerId);
+  if (!tournamentRecord || (isProviderTournament && !canDeleteOnServer)) return undefined;
+  return { tournamentRecord, providerId, state, canDeleteOnServer, activeProvider };
 }

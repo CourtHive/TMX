@@ -36,8 +36,8 @@ const MUTED = 'margin: 0 0 10px 0; color: var(--tmx-text-secondary); font-size: 
 export function buildPipelineFeaturesPanel(): HTMLElement {
   const panel = document.createElement('div');
   panel.id = PIPELINE_FEATURES_PANEL_ID;
-  panel.className = 'settings-panel panel-orange';
-  panel.style.gridColumn = '1 / -1';
+  // Neutral; its width and row come from getSettingsLayout.
+  panel.className = 'settings-panel';
   renderPanelContents(panel);
   return panel;
 }
