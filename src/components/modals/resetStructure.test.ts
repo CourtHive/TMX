@@ -19,8 +19,8 @@ const structureIdOf = (drawId: string, stage: string) =>
 const statusesOf = (stage: string) =>
   tournamentEngine
     .allTournamentMatchUps()
-    .matchUps.filter((matchUp: any) => matchUp.stage === stage)
-    .map(({ matchUpStatus }: any) => matchUpStatus);
+    .matchUps?.filter((matchUp: any) => matchUp.stage === stage)
+    .map(({ matchUpStatus }: any) => matchUpStatus) ?? [];
 
 function reset(drawId: string, structureId: string) {
   return tournamentEngine.executionQueue([resetStructureMethod({ drawId, structureId })]);
@@ -43,7 +43,7 @@ describe('reset structure', () => {
     expect(canOfferStructureReset({ drawDefinition, structureId: consolationId, hasResults: false })).toEqual(false);
     expect(canOfferStructureReset({ drawDefinition, structureId: consolationId, hasResults: true })).toEqual(true);
 
-    const drawMatchUps = () => tournamentEngine.allDrawMatchUps({ drawId, inContext: true }).matchUps;
+    const drawMatchUps = () => tournamentEngine.allDrawMatchUps({ drawId, inContext: true }).matchUps ?? [];
     expect(structureHasResults({ matchUps: drawMatchUps(), structureId: consolationId })).toEqual(true);
 
     const mainBefore = statusesOf(MAIN);
