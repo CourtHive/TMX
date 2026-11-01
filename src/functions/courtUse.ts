@@ -164,7 +164,7 @@ export function buildVenuesEnableMethods({ venueIds }: { venueIds: string[] }): 
 }
 
 /**
- * The out-of-service courts a batch of methods would place a matchUp on. Any method whose
+ * The courts not in use that a batch of methods would place a matchUp on. Any method whose
  * `params.schedule` names a court counts; its own `scheduledDate` decides the date, else `date`.
  * Clearing a placement (an empty `courtId`) is never refused, so a matchUp can always leave the court.
  */

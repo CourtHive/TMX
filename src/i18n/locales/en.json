@@ -3285,7 +3285,7 @@
     "savedTitle": "Scheduling profile saved",
     "saved": "Profile saved.",
     "noRounds": "No rounds in the Day Plan. Drag rounds from the catalog into venue lanes first.",
-    "failed": "The change was not applied",
+    "failed": "Scheduling failed. Check console for details.",
     "gridFailed": "Grid scheduling failed.",
     "repairTitle": "Scheduling profile needs repair",
     "repairIntro": "The scheduling profile names {{count}} round(s) whose venue, event or draw no longer exists. Nothing was scheduled. Repair the profile (remove those rounds) and apply again?",
@@ -3625,7 +3625,7 @@
     "disabled": "Not in use",
     "venueDisabled": "Venue not in use",
     "dropRefused": "{{courtName}} is not in use on this date. Use it again first.",
-    "failed": "The service change was not applied"
+    "failed": "The change was not applied"
   },
   "tournamentDisplay": {
     "refreshed": "Tournament data refreshed from server"

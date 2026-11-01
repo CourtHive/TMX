@@ -15,21 +15,21 @@ import { confirmCourtDisabled, enableCourt, enableVenue } from 'components/popov
 // constants
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
 
-export const OUT_OF_SERVICE_CLASS = 'tmx-court-out-of-service';
-const OUT_OF_SERVICE_HEADER_CLASS = 'tmx-court-out-of-service-header';
-const STYLE_ID = 'tmx-court-service-styles';
+export const DISABLED_COURT_CLASS = 'tmx-court-disabled';
+const DISABLED_COURT_HEADER_CLASS = 'tmx-court-disabled-header';
+const STYLE_ID = 'tmx-court-use-styles';
 
 /** Theme variables only, so the greying reads in light and dark mode alike. */
-function ensureCourtServiceStyles(): void {
+function ensureCourtUseStyles(): void {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent =
-    `.${OUT_OF_SERVICE_CLASS}{background-color:var(--sp-panel-bg);` +
+    `.${DISABLED_COURT_CLASS}{background-color:var(--sp-panel-bg);` +
     'background-image:repeating-linear-gradient(135deg,var(--sp-chip-bg) 0 6px,transparent 6px 12px);' +
     'cursor:not-allowed !important;}' +
-    `.${OUT_OF_SERVICE_CLASS} > *{opacity:0.5;filter:grayscale(1);}` +
-    `.${OUT_OF_SERVICE_HEADER_CLASS}{color:var(--sp-muted) !important;` +
+    `.${DISABLED_COURT_CLASS} > *{opacity:0.5;filter:grayscale(1);}` +
+    `.${DISABLED_COURT_HEADER_CLASS}{color:var(--sp-muted) !important;` +
     'background-image:repeating-linear-gradient(135deg,var(--sp-chip-bg) 0 6px,transparent 6px 12px);}';
   document.head.appendChild(style);
 }
@@ -41,18 +41,18 @@ function venuesAndCourts(): { courts: any[]; venues: any[] } {
 
 /** The courts not in use on `date`, read from the engine (the grid's own court data may be a plan view). */
 export function gridDisabledCourtIds(date: string): Set<string> {
-  ensureCourtServiceStyles();
+  ensureCourtUseStyles();
   return disabledCourtIds({ ...venuesAndCourts(), date });
 }
 
 export function decorateDisabledHeader(th: HTMLElement, courtName: string): void {
-  th.classList.add(OUT_OF_SERVICE_HEADER_CLASS);
+  th.classList.add(DISABLED_COURT_HEADER_CLASS);
   th.title = `${courtName} — ${t('courtUse.disabled')}`;
 }
 
 /** Greys the cell and shows the not-allowed cursor while something is dragged over it. */
 export function decorateDisabledCell(cell: HTMLElement): void {
-  cell.classList.add(OUT_OF_SERVICE_CLASS);
+  cell.classList.add(DISABLED_COURT_CLASS);
   cell.title = t('courtUse.disabled');
   cell.addEventListener('dragover', (e) => {
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
@@ -60,8 +60,8 @@ export function decorateDisabledCell(cell: HTMLElement): void {
 }
 
 /**
- * True (and the director is told why) when `methods` would place a matchUp on a court that is out of
- * service on its date. Every grid placement — drop, type-ahead, Now strip — passes through here.
+ * True (and the director is told why) when `methods` would place a matchUp on a court not in use on its
+ * date. Every grid placement — drop, type-ahead, Now strip — passes through here.
  */
 export function refuseDisabledPlacement(methods: any[], date: string): boolean {
   const { courts, venues } = venuesAndCourts();
@@ -79,7 +79,7 @@ export function refuseDisabledCourt(courtId: string, date: string): boolean {
 }
 
 /**
- * The court header menu's service options for `date`: not in use on that date or on every date,
+ * The court header menu's use options for `date`: not in use on that date or on every date,
  * and the matching returns. A court whose venue is not in use offers only the venue's return.
  */
 export function courtUseMenuOptions(params: {

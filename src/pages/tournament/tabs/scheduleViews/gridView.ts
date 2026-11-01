@@ -599,7 +599,7 @@ export function renderGridView(
       const courtOrder = target?.getAttribute(DATA_COURT_ORDER);
 
       if (!courtId || !venueId || !courtOrder) return;
-      // An out-of-service court takes no drops; refuse before any confirmation is shown for it.
+      // A court not in use takes no drops; refuse before any confirmation is shown for it.
       if (refuseDisabledCourt(courtId, currentDate)) return;
 
       const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
@@ -2268,7 +2268,7 @@ function buildRowCourtCells(params: {
       attachCellDragSource(cell, cellData);
     }
 
-    // Greyed, not hidden: the matchUps already on an out-of-service court stay visible where they are.
+    // Greyed, not hidden: the matchUps already on a court not in use stay visible where they are.
     if (disabledIds.has(courtInfo?.courtId)) {
       decorateDisabledCell(cell);
     } else if (!cellData?.isBlocked) {
@@ -2522,7 +2522,7 @@ function buildGridHeaders(params: {
   onVisibilityChanged?: () => void;
   scheduledDate?: string;
   disabledIds?: Set<string>;
-  onServiceChanged?: () => void;
+  onUseChanged?: () => void;
 }): HTMLElement[] {
   const {
     grid,
@@ -2536,7 +2536,7 @@ function buildGridHeaders(params: {
     onVisibilityChanged,
     scheduledDate,
     disabledIds,
-    onServiceChanged,
+    onUseChanged,
   } = params;
   const corner = document.createElement('div');
   corner.style.cssText =
@@ -2620,7 +2620,7 @@ function buildGridHeaders(params: {
             option: 'Print court card(s)',
             onClick: () => printCourtMatchUpCards({ courtId: court.courtId, courtName, scheduledDate }),
           },
-          ...headerServiceOptions(court.courtId, courtName, scheduledDate, onServiceChanged),
+          ...headerUseOptions(court.courtId, courtName, scheduledDate, onUseChanged),
         ],
       });
     });
@@ -2651,16 +2651,16 @@ function buildGridHeaders(params: {
 }
 
 /** Don't use / use again — official schedule only, so Plan mode (a scenario) offers none. */
-function headerServiceOptions(
+function headerUseOptions(
   courtId: string,
   courtName: string,
   scheduledDate?: string,
-  onServiceChanged?: () => void,
+  onUseChanged?: () => void,
 ): { option: string; onClick: () => void }[] {
-  if (planContext || !scheduledDate || !onServiceChanged) return [];
+  if (planContext || !scheduledDate || !onUseChanged) return [];
   return courtUseMenuOptions({
     matchUps: getCachedAllMatchUps().matchUps ?? [],
-    onDone: onServiceChanged,
+    onDone: onUseChanged,
     date: scheduledDate,
     courtName,
     courtId,
@@ -2805,7 +2805,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       onVisibilityChanged,
       scheduledDate: date,
       disabledIds,
-      onServiceChanged: () => {
+      onUseChanged: () => {
         // a court or venue changed use state: re-read courts and matchUps, then redraw
         invalidateMatchUpCaches();
         callbacks.onRefresh();
