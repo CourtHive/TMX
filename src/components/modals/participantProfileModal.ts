@@ -1,6 +1,7 @@
 /**
  * Participant Profile Modal — shows participant info, event entries,
- * ratings/rankings, and ranking point breakdown with policy + level selectors.
+ * ratings/rankings, the pairs / teams / groups an individual belongs to
+ * (or a pair's players), and ranking point breakdown with policy + level selectors.
  */
 import { getAvailablePolicies, getLevelDisplayLabel } from 'components/tables/pointsTable/policyUtils';
 import { headerSortElement } from 'components/tables/common/sorters/headerSortElement';
@@ -15,9 +16,18 @@ import { controlBar, cModal } from 'courthive-components';
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
+import {
+  affiliationIsMembership,
+  getGroupingMembers,
+  getParticipantGroupings,
+  type GroupingEvent,
+  type GroupingMember,
+  type ParticipantGroupings,
+} from './participantGroupings';
 
 const { ratingsParameters } = fixtures;
 const { SINGLES } = factoryConstants.eventConstants;
+const { PAIR } = factoryConstants.participantConstants;
 
 function getPointsColumns(onEventClick: (eventId: string) => void): any[] {
   return [
@@ -204,12 +214,21 @@ function buildRatingsSection(participant: any): HTMLElement | undefined {
  * (the import wizard writes them there). Section is omitted entirely
  * when neither field has a value so individual participants who aren't
  * team-affiliated see no change.
+ *
+ * Affiliation is a free-text attribute on the person, not TEAM membership —
+ * membership is the Teams section, read from the TEAM participants that hold
+ * this individual. The chip is labelled "Affiliation" so the two never read as
+ * one claim, and the affiliation name is dropped when it names a team the
+ * Teams section already lists.
  */
-function buildTeamAffiliationSection(participant: any): HTMLElement | undefined {
+function buildTeamAffiliationSection(
+  participant: any,
+  memberTeams: ParticipantGroupings['teams'],
+): HTMLElement | undefined {
   const teamAttribute = participant.person?.biographicalInformation?.teamAttributes?.[0];
-  const teamName = teamAttribute?.teamName;
+  const teamName = affiliationIsMembership(teamAttribute?.teamName, memberTeams) ? undefined : teamAttribute?.teamName;
   const jerseyNumber = teamAttribute?.jerseyNumber;
-  if (!teamName && !jerseyNumber) return undefined;
+  if (!teamName && (jerseyNumber == null || jerseyNumber === '')) return undefined;
 
   const section = document.createElement('div');
   section.style.cssText = 'display: flex; gap: 0.75em; flex-wrap: wrap; margin-bottom: 1em;';
@@ -220,10 +239,14 @@ function buildTeamAffiliationSection(participant: any): HTMLElement | undefined 
   const teamAccent = 'var(--tmx-accent-orange, #ff9f00)';
 
   if (teamName) {
-    section.appendChild(createChip(teamName, 'TEAM', teamAccent));
+    section.appendChild(
+      createChip(teamName, t('modals.participantProfile.affiliation').toLocaleUpperCase(), teamAccent),
+    );
   }
   if (jerseyNumber != null && jerseyNumber !== '') {
-    section.appendChild(createChip(`#${jerseyNumber}`, 'JERSEY', teamAccent));
+    section.appendChild(
+      createChip(`#${jerseyNumber}`, t('modals.participantProfile.jersey').toLocaleUpperCase(), teamAccent),
+    );
   }
 
   return section;
@@ -252,11 +275,15 @@ function buildEventChips(participant: any, allEvents: any[]): HTMLElement | unde
 }
 
 function createChip(text: string, subtitle?: string, color?: string): HTMLElement {
+  // Accents are theme vars (`var(--tmx-accent-*)`), so the tint is mixed rather than built by
+  // appending a hex alpha, which is invalid CSS on a var() and left every chip untinted.
+  const tint = color || 'var(--tmx-text-secondary, #666)';
   const chip = document.createElement('span');
   chip.style.cssText = `
     display: inline-flex; align-items: center; gap: 0.3em;
     padding: 0.25em 0.6em; border-radius: 4px; font-size: 0.85em;
-    background: ${color || '#eee'}22; border: 1px solid ${color || '#ccc'}44;
+    background: color-mix(in srgb, ${tint} 13%, transparent);
+    border: 1px solid color-mix(in srgb, ${tint} 27%, transparent);
     color: var(--tmx-text-primary, #333);
   `;
   if (subtitle) {
@@ -270,6 +297,140 @@ function createChip(text: string, subtitle?: string, color?: string): HTMLElemen
   val.textContent = text;
   chip.appendChild(val);
   return chip;
+}
+
+// --- Pairs / teams / groups ---
+
+function buildSectionLabel(text: string): HTMLElement {
+  const label = document.createElement('div');
+  label.style.cssText = 'font-weight: 600; margin-bottom: 0.4em; font-size: 0.95em;';
+  label.textContent = text;
+  return label;
+}
+
+function eventChip(event: GroupingEvent): HTMLElement {
+  const statusAbbrev = (entryStatusMapping as any)[event.entryStatus ?? ''] || event.entryStatus || '';
+  const label = statusAbbrev ? `${event.eventName} (${statusAbbrev})` : event.eventName;
+  return createChip(label, undefined, 'var(--tmx-accent-purple, #b86bff)');
+}
+
+type GroupingRow = {
+  events?: GroupingEvent[];
+  entered?: boolean;
+  onOpen: () => void;
+  accent: string;
+  title: string;
+  name: string;
+};
+
+/** One clickable row: the grouping's name, then its events, or "Not entered" when it has none. */
+function buildGroupingRow({ name, title, accent, events, entered, onOpen }: GroupingRow): HTMLElement {
+  const row = document.createElement('div');
+  row.setAttribute('role', 'button');
+  row.tabIndex = 0;
+  row.title = title;
+  row.setAttribute('aria-label', t('modals.participantProfile.openProfile', { name: title }));
+  row.style.cssText = `
+    display: flex; align-items: center; gap: 0.5em; flex-wrap: wrap; cursor: pointer;
+    padding: 0.35em 0.5em; border-radius: 4px;
+    border: 1px solid var(--tmx-border-secondary, #ccc); border-left: 3px solid ${accent};
+    background: var(--tmx-bg-secondary, transparent); color: var(--tmx-text-primary, #333);
+  `;
+
+  const nameEl = document.createElement('span');
+  nameEl.style.cssText = 'font-weight: 600; font-size: 0.9em;';
+  nameEl.textContent = name;
+  row.appendChild(nameEl);
+
+  for (const event of events ?? []) row.appendChild(eventChip(event));
+  if (events && !entered && !events.length) {
+    const notEntered = document.createElement('span');
+    notEntered.style.cssText = 'font-size: 0.85em; font-style: italic; color: var(--tmx-text-muted, #999);';
+    notEntered.textContent = t('modals.participantProfile.notEntered');
+    row.appendChild(notEntered);
+  }
+
+  row.addEventListener('click', onOpen);
+  row.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpen();
+    }
+  });
+  return row;
+}
+
+function buildGroupingSection(label: string, rows: HTMLElement[]): HTMLElement | undefined {
+  if (!rows.length) return undefined;
+  const section = document.createElement('div');
+  section.style.cssText = 'margin-bottom: 1em;';
+  section.appendChild(buildSectionLabel(label));
+  const list = document.createElement('div');
+  list.style.cssText = 'display: flex; flex-direction: column; gap: 0.35em;';
+  for (const row of rows) list.appendChild(row);
+  section.appendChild(list);
+  return section;
+}
+
+type OpenHandlers = {
+  openParticipant: (participantId: string) => void;
+  openTeam: (participantId: string) => void;
+  openGroup: (participantId: string) => void;
+};
+
+/** The Pairs, Teams and Groups sections of an individual's card; each omitted when empty. */
+function buildMembershipSections(groupings: ParticipantGroupings, open: OpenHandlers): HTMLElement[] {
+  const pairAccent = 'var(--tmx-accent-teal, #1f6d66)';
+  const teamAccent = 'var(--tmx-accent-orange, #ff9f00)';
+  const groupAccent = 'var(--tmx-accent-pink, #a3134f)';
+
+  const pairRows = groupings.pairs.map((pair) => {
+    const partner = pair.partners.map(({ participantName }) => participantName).join(', ');
+    return buildGroupingRow({
+      name: partner ? t('modals.participantProfile.withPartner', { partner }) : pair.participantName,
+      onOpen: () => open.openParticipant(pair.participantId),
+      title: pair.participantName,
+      entered: pair.entered,
+      events: pair.events,
+      accent: pairAccent,
+    });
+  });
+  const groupingRows = (memberships: ParticipantGroupings['teams'], accent: string, onOpen: (id: string) => void) =>
+    memberships.map((membership) =>
+      buildGroupingRow({
+        onOpen: () => onOpen(membership.participantId),
+        title: membership.participantName,
+        name: membership.participantName,
+        entered: membership.entered,
+        events: membership.events,
+        accent,
+      }),
+    );
+
+  return [
+    buildGroupingSection(t('modals.participantProfile.pairs'), pairRows),
+    buildGroupingSection(
+      t('modals.participantProfile.teams'),
+      groupingRows(groupings.teams, teamAccent, open.openTeam),
+    ),
+    buildGroupingSection(
+      t('modals.participantProfile.groups'),
+      groupingRows(groupings.groups, groupAccent, open.openGroup),
+    ),
+  ].filter((section): section is HTMLElement => !!section);
+}
+
+/** A pair's card lists its players, each opening that player's card. */
+function buildPlayersSection(members: GroupingMember[], openParticipant: (id: string) => void) {
+  const rows = members.map((member) =>
+    buildGroupingRow({
+      onOpen: () => openParticipant(member.participantId),
+      accent: 'var(--tmx-accent-blue, #3273dc)',
+      title: member.participantName,
+      name: member.participantName,
+    }),
+  );
+  return buildGroupingSection(t('modals.participantProfile.players'), rows);
 }
 
 // --- Main export ---
@@ -303,6 +464,32 @@ export function participantProfileModal({ participantId, participantIds, readOnl
   let lastData: any[] = [];
 
   const getSelectedPolicy = () => availablePolicies.find((p) => p.id === selectedPolicyId);
+
+  // Pairs / teams / groups come from the participantMap the same query returned: it holds every
+  // participant, with the factory's groupings on each individual and event entries on each grouping.
+  const groupingArgs = { participantId, participantMap: result.participantMap, events: allEvents };
+  const groupings = getParticipantGroupings(groupingArgs);
+  const pairMembers = participant.participantType === PAIR ? getGroupingMembers(groupingArgs) : [];
+
+  // Same close-then-open the prev/next navigation uses: one card at a time.
+  const switchTo = (open: () => unknown) => {
+    table?.destroy();
+    cModal.close();
+    open();
+  };
+  const openHandlers: OpenHandlers = {
+    openParticipant: (id) => switchTo(() => participantProfileModal({ participantId: id, readOnly })),
+    // Loaded on demand: the group profile edits membership, so a static import would pull the
+    // mutation stack into every module that opens a participant card.
+    openTeam: (id) =>
+      switchTo(() =>
+        import('./teamProfileModal').then(({ teamProfileModal }) => teamProfileModal({ participantId: id })),
+      ),
+    openGroup: (id) =>
+      switchTo(() =>
+        import('./groupProfileModal').then(({ groupProfileModal }) => groupProfileModal({ participantId: id })),
+      ),
+  };
 
   const computeData = () => {
     const policy = getSelectedPolicy();
@@ -357,12 +544,17 @@ export function participantProfileModal({ participantId, participantIds, readOnl
 
   // Team affiliation + jersey number chips (only for individuals carrying
   // a teamAttributes[0] entry — set by the import wizard).
-  const teamAffiliationSection = buildTeamAffiliationSection(participant);
+  const teamAffiliationSection = buildTeamAffiliationSection(participant, groupings.teams);
   if (teamAffiliationSection) content.appendChild(teamAffiliationSection);
 
   // Event entry chips
   const eventChips = buildEventChips(participant, allEvents);
   if (eventChips) content.appendChild(eventChips);
+
+  // A pair's players; an individual's pairs, teams and groups — each section omitted when empty
+  const playersSection = buildPlayersSection(pairMembers, openHandlers.openParticipant);
+  if (playersSection) content.appendChild(playersSection);
+  for (const section of buildMembershipSections(groupings, openHandlers)) content.appendChild(section);
 
   // Ranking points section (only if policies available)
   if (availablePolicies.length) {
