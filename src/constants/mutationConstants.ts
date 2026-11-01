@@ -78,6 +78,7 @@ export const REBASE_SCHEDULE_SCENARIO = 'rebaseScheduleScenario';
 export const APPLY_SCHEDULE_SCENARIO = 'applyScheduleScenario';
 export const PRO_COLUMN_RESOLVE = 'proColumnResolve';
 export const PUBLISH_EVENT = 'publishEvent';
+export const QUALIFIER_PROGRESSION = 'qualifierProgression';
 export const REMOVE_INDIVIDUAL_PARTICIPANT_IDS = 'removeIndividualParticipantIds';
 export const REMOVE_ONLINE_RESOURCE = 'removeOnlineResource';
 export const REMOVE_DRAW_POSITION_ASSIGNMENT = 'removeDrawPositionAssignment';

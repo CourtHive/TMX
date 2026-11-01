@@ -9,6 +9,7 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getQualifierPlacementState } from './qualifierPlacement';
 import { openResolveDraft } from 'components/modals/draftResolve';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { deleteFlights } from 'components/modals/deleteFlights';
@@ -17,6 +18,7 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { resetDraws } from 'components/modals/resetDraws';
 import { printDraw } from 'components/modals/printDraw';
 import { positionStructure } from './positionStructure';
+import { placeQualifiers } from './placeQualifiers';
 import { removeStructure } from './removeStructure';
 import { renderDrawView } from './renderDrawView';
 import { t } from 'i18n';
@@ -78,6 +80,13 @@ export function getActionOptions({
   const isEmptyDraw = positionAssignments?.every((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier);
   const hasUnassignedPositions = positionAssignments?.some((pa: any) => !pa.participantId && !pa.bye && !pa.qualifier);
 
+  // qualifiers are drawn into the main structure's qualifier positions once some have qualified
+  const isMainStructure = structure?.stage === MAIN && structure?.stageSequence === 1;
+  const canPlaceQualifiers =
+    isMainStructure &&
+    !!hasQualifying &&
+    getQualifierPlacementState({ engine: tournamentEngine, drawId, eventId }).eligible;
+
   const scorecardUpdated = () => {
     const matchUpId = dualMatchUp.matchUpId;
     const matchUp = tournamentEngine.q.matchUp({ drawId, matchUpId });
@@ -106,6 +115,13 @@ export function getActionOptions({
           drawId,
         }),
       label: t('pages.events.actionOptions.autoPlaceParticipants'),
+      close: true,
+    },
+    {
+      hide: !canPlaceQualifiers,
+      onClick: () =>
+        placeQualifiers({ onPlaced: () => renderDrawView({ eventId, drawId, structureId }), eventId, drawId }),
+      label: t('pages.events.actionOptions.placeQualifiers'),
       close: true,
     },
     {
