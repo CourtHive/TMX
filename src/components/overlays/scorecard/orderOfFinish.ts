@@ -32,3 +32,42 @@ export function finishingOrderMethod({
 }): any {
   return { method: SET_ORDER_OF_FINISH, params: { drawId, finishingOrder } };
 }
+
+type SaveFinishingOrderParams = {
+  send: (params: { methods: any[]; callback: (result: any) => void }) => Promise<void> | void;
+  notify: (success: boolean) => void;
+  finishingOrder: FinishingOrderEntry[];
+  onRefresh?: () => void;
+  drawId: string;
+};
+
+/**
+ * Save a collection's order and resolve to whether it was accepted. The collection card keeps the edits and offers
+ * Save again when this resolves false, so a refusal refreshes nothing: the card stays as the director left it.
+ */
+export function saveFinishingOrder({
+  finishingOrder,
+  onRefresh,
+  drawId,
+  notify,
+  send,
+}: SaveFinishingOrderParams): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const settle = (success: boolean) => {
+      notify(success);
+      if (success) onRefresh?.();
+      resolve(success);
+    };
+    try {
+      // every path through the mutation calls back; a throw is settled here so the card never waits forever
+      Promise.resolve(
+        send({
+          methods: [finishingOrderMethod({ drawId, finishingOrder })],
+          callback: (result: any) => settle(!!result?.success),
+        }),
+      ).catch(() => settle(false));
+    } catch {
+      settle(false);
+    }
+  });
+}

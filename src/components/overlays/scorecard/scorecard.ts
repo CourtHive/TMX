@@ -7,7 +7,7 @@ import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalc
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { finishingOrderCollections, finishingOrderMethod } from './orderOfFinish';
+import { finishingOrderCollections, saveFinishingOrder } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
@@ -123,16 +123,18 @@ export function renderScorecard({
 
   // the collection card's order-of-finish entry mode: Save sends the whole order, Cancel leaves it as it was
   const finishingOrder = {
+    // resolves to whether the server accepted it: on a refusal the card keeps the edits and offers Save again
     onSave: (order: any[]) =>
-      mutationRequest({
-        methods: [finishingOrderMethod({ drawId, finishingOrder: order })],
-        callback: (result: any) => {
-          const message = result?.success
-            ? t('overlays.scorecard.orderOfFinishSaved')
-            : t('overlays.scorecard.orderOfFinishFailed');
-          tmxToast({ message, intent: result?.success ? 'is-success' : 'is-danger' });
-          onRefresh?.();
-        },
+      saveFinishingOrder({
+        notify: (success) =>
+          tmxToast({
+            message: t(success ? 'overlays.scorecard.orderOfFinishSaved' : 'overlays.scorecard.orderOfFinishFailed'),
+            intent: success ? 'is-success' : 'is-danger',
+          }),
+        send: mutationRequest,
+        finishingOrder: order,
+        onRefresh,
+        drawId,
       }),
     onCancel: () => onRefresh?.(),
     editingCollectionId,
