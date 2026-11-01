@@ -1,5 +1,6 @@
-import { peerLinkedIds, primaryVenueIds } from './facilityScheduleHelpers';
+import { peerLinkedTournamentIds } from 'functions/peerLinkedTournamentIds';
 import { fetchScheduleProjection } from 'services/apis/servicesApi';
+import { primaryVenueIds } from './facilityScheduleHelpers';
 
 /**
  * Shared-facility reserved cells.
@@ -39,7 +40,7 @@ export async function loadReservedCells(primaryRecord: any): Promise<number> {
   if (!primaryId) return 0;
 
   // No linked peers → nothing to coordinate around; skip the server round-trip.
-  if (!peerLinkedIds(primaryRecord).length) {
+  if (!peerLinkedTournamentIds(primaryRecord).length) {
     cache = { tournamentId: primaryId, cells: [] };
     return 0;
   }

@@ -19,6 +19,14 @@ import { providerConfig } from 'config/providerConfig';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  EVENT_WEEKDAYS,
+  buildSetEventDatesMethod,
+  eventDatesRefusal,
+  normalizeWeekdays,
+  parseActiveDates,
+  weekdayLabelKey,
+} from './eventDates';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -143,7 +151,11 @@ export function editEvent({
     eventType: event?.eventType || SINGLES,
     gender: event?.gender || ANY,
     competitionFormatKey: suggestCompetitionFormatKey(event),
+    activeDates: parseActiveDates(event?.activeDates),
+    weekdays: normalizeWeekdays(event?.weekdays),
   };
+  const selectedWeekdays = new Set<string>(values.weekdays);
+  const tournamentDayCount = tools.generateDateRange(tournamentInfo.startDate, tournamentInfo.endDate).length;
 
   const enteredParticipantIds = event?.entries
     ?.filter(({ entryStatus }: any) => [...STRUCTURE_SELECTED_STATUSES, ALTERNATE].includes(entryStatus))
@@ -352,14 +364,42 @@ export function editEvent({
           field: 'endDate',
         },
         {
+          maxNumberOfDates: Math.max(tournamentDayCount, 2),
+          placeholder: t('pages.events.editEvent.activeDatesPlaceholder'),
+          label: t('pages.events.editEvent.activeDatesLabel'),
+          minDate: values.startDate,
+          maxDate: values.endDate,
+          field: 'activeDates',
+          date: true,
+        },
+        {
           hide: event || participants,
           divider: true,
         },
       ],
       relationships,
     );
+    attachActiveDatesPicker(formInputs, values.activeDates);
+    elem.appendChild(renderWeekdayChips(selectedWeekdays));
     return formInputs;
   };
+
+  const readEventDates = () => {
+    const content = context.drawer.attributes.content;
+    return {
+      startDate: content.startDate.value,
+      endDate: content.endDate.value,
+      activeDates: parseActiveDates(content.activeDates?.value),
+      weekdays: normalizeWeekdays(Array.from(selectedWeekdays)),
+    };
+  };
+
+  const datesRefusal = () =>
+    eventDatesRefusal({
+      tournamentStartDate: tournamentInfo.startDate,
+      tournamentEndDate: tournamentInfo.endDate,
+      ...readEventDates(),
+    });
 
   const saveEvent = () => {
     const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
@@ -369,6 +409,12 @@ export function editEvent({
     // Validation
     if (!eventName || eventName.length < 5) {
       tmxToast({ message: t('pages.events.editEvent.eventNameRequired'), intent: 'is-danger' });
+      return;
+    }
+    // refuse before anything is sent: the factory would refuse setEventDates after modifyEvent had applied
+    const refusal = datesRefusal();
+    if (refusal) {
+      tmxToast({ message: t(`pages.events.editEvent.eventDatesRefusal.${refusal}`), intent: 'is-danger' });
       return;
     }
 
@@ -476,9 +522,14 @@ export function editEvent({
       }
     };
 
+    const eventDatesMethod = (eventId: string) =>
+      buildSetEventDatesMethod({ eventId, ...readEventDates(), previous: event });
+
     if (event) {
       const eventId = event.eventId;
-      const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
+      const methods: any[] = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
+      const setDates = eventDatesMethod(eventId);
+      if (setDates) methods.push(setDates);
       mutationRequest({ methods, callback: postMutation });
     } else {
       const eventCategory =
@@ -520,6 +571,8 @@ export function editEvent({
         };
         methods.push(method);
       }
+      const setDates = eventDatesMethod(eventId);
+      if (setDates) methods.push(setDates);
       mutationRequest({ methods, callback: postMutation });
     }
   };
@@ -531,7 +584,7 @@ export function editEvent({
 
   const shouldClose = () => {
     const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
-    return ageCategoryCode !== 'custom' && isValidForSave();
+    return ageCategoryCode !== 'custom' && isValidForSave() && !datesRefusal();
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
@@ -553,4 +606,57 @@ export function editEvent({
     content,
     footer,
   });
+}
+
+// The active-dates picker is limited to the event's date range, and follows it when the range changes.
+function attachActiveDatesPicker(formInputs: any, activeDates: string[]): void {
+  const picker = formInputs?.['activeDates.date'];
+  if (!picker) return;
+  if (activeDates.length) picker.setDate(activeDates, { clear: true });
+  const followRange = () =>
+    picker.setOptions({ minDate: formInputs.startDate?.value || null, maxDate: formInputs.endDate?.value || null });
+  for (const field of ['startDate', 'endDate']) {
+    formInputs[field]?.addEventListener('changeDate', followRange);
+    formInputs[field]?.addEventListener('change', followRange);
+  }
+}
+
+function renderWeekdayChips(selected: Set<string>): HTMLElement {
+  const field = document.createElement('div');
+  field.className = 'field font-medium';
+
+  const label = document.createElement('label');
+  label.className = 'label';
+  label.textContent = t('pages.events.editEvent.weekdaysLabel');
+  field.appendChild(label);
+
+  const chips = document.createElement('div');
+  chips.className = 'tmx-weekday-chips';
+  for (const weekday of EVENT_WEEKDAYS) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'tmx-weekday-chip';
+    chip.dataset.weekday = weekday;
+    chip.textContent = t(weekdayLabelKey(weekday));
+    const render = () => {
+      chip.classList.toggle('active', selected.has(weekday));
+      chip.setAttribute('aria-pressed', String(selected.has(weekday)));
+    };
+    chip.addEventListener('click', () => {
+      if (selected.has(weekday)) selected.delete(weekday);
+      else selected.add(weekday);
+      render();
+    });
+    render();
+    chips.appendChild(chip);
+  }
+  field.appendChild(chips);
+
+  // the scheduler does not read these yet; say so rather than imply they restrict scheduling
+  const hint = document.createElement('p');
+  hint.className = 'help font-medium';
+  hint.textContent = t('pages.events.editEvent.eventDatesHint');
+  field.appendChild(hint);
+
+  return field;
 }

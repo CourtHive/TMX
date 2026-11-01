@@ -1,5 +1,4 @@
 import {
-  peerLinkedIds,
   primaryVenueIds,
   peerOccupancyForDate,
   conflictsForDate,
@@ -55,11 +54,6 @@ const grid = {
 };
 
 describe('facilityScheduleHelpers', () => {
-  it('peerLinkedIds excludes self', () => {
-    expect(peerLinkedIds({ tournamentId: 'P', linkedTournamentIds: ['P', 'B', 'C'] })).toEqual(['B', 'C']);
-    expect(peerLinkedIds({ tournamentId: 'P' })).toEqual([]);
-  });
-
   it('primaryVenueIds returns distinct venue ids', () => {
     expect(primaryVenueIds({ venues: [{ venueId: 'v1' }, { venueId: 'v2' }, { venueId: 'v1' }] })).toEqual([
       'v1',
