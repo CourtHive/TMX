@@ -690,7 +690,7 @@ function renderTimingSummary(eventId: string): HTMLElement {
   edit.id = EVENT_TIMING_EDIT;
   edit.className = 'button is-small';
   edit.textContent = t('pages.events.editEvent.timing.edit');
-  edit.addEventListener('click', () => editEventTiming({ eventId, onSaved: refresh }));
+  edit.addEventListener('click', () => editEventTiming({ eventId, onSave: refresh }));
 
   row.append(summary, edit);
   return row;

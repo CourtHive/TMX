@@ -51,7 +51,7 @@ function headerCell(text: string): HTMLElement {
   return cell;
 }
 
-export function editEventTiming({ eventId, onSaved }: { eventId: string; onSaved?: () => void }): void {
+export function editEventTiming({ eventId, onSave }: { eventId: string; onSave?: () => void }): void {
   const rows: EventTimingRow[] = eventTimingRows({ eventId });
   const edits: Record<string, TimingEdit> = {};
   const container = document.createElement('div');
@@ -165,7 +165,7 @@ export function editEventTiming({ eventId, onSaved }: { eventId: string; onSaved
           return;
         }
         tmxToast({ message: t(`${KEY}.saved`), intent: 'is-success' });
-        onSaved?.();
+        onSave?.();
       },
     });
   };
@@ -179,7 +179,7 @@ export function editEventTiming({ eventId, onSaved }: { eventId: string; onSaved
         mutationRequest({
           methods: [buildUseDefaultsMethod(eventId)],
           callback: (result: any) => {
-            if (result?.success) onSaved?.();
+            if (result?.success) onSave?.();
           },
         });
       },
