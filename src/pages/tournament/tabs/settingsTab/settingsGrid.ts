@@ -1,8 +1,8 @@
 import { isDesktopNotificationsEnabled, setDesktopNotificationsEnabled } from 'services/notifications/osNotification';
+import { getSettingsLayout, isLinkedTournamentsEligible, type SettingsPanelId } from './settingsLayout';
 import { persistConfigToStorage, loadSettings, saveSettings } from 'services/settings/settingsStorage';
 import { getCachedFontCatalog, ensurePdfFontReady, PROVIDER_DEFAULT_FONT } from 'services/pdf/pdfFont';
 import { buildLinkedTournamentsPanel, LINKED_TOURNAMENTS_PANEL_ID } from './linkedTournaments';
-import { getSettingsLayout, isLinkedTournamentsEligible, type SettingsPanelId } from './settingsLayout';
 import { buildSeedingPolicyPanel } from './seedingPolicyPanel';
 import { connectSocket, connected, disconnectSocket } from 'services/messaging/socketIo';
 import { removeProviderTournament } from 'services/storage/removeProviderTournament';

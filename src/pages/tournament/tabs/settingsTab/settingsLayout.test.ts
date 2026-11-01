@@ -1,6 +1,6 @@
 import { getSettingsLayout, isLinkedTournamentsEligible, SETTINGS_GRID_COLUMNS } from './settingsLayout';
-import { isPipelineEligible } from 'services/pipeline/pipelineFeatures';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { isPipelineEligible } from 'services/pipeline/pipelineFeatures';
 import { describe, expect, it } from 'vitest';
 
 import type { SettingsLayoutRow } from './settingsLayout';
