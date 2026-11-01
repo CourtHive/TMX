@@ -3,6 +3,7 @@
  * Uses renderScorecard from courthive-components for the layout,
  * wires TMX-specific event handlers for scoring and substitution.
  */
+import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
@@ -97,11 +98,55 @@ export function renderScorecard({
   const composition = compositionOverride || resolveComposition(matchUp);
   const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
 
-  const labels = { orderOfFinish: t('overlays.scorecard.orderOfFinish') };
-  const container = renderScorecardLayout({ matchUp, composition, eventHandlers, labels });
+  const { drawId, matchUpId } = matchUp;
+  const send = (methods: any[]) => mutationRequest({ methods, callback: () => onRefresh?.() });
+  const issueActions = {
+    DUAL_DECIDED: {
+      label: t('overlays.scorecard.recordDeadRubbers'),
+      onClick: ({ matchUpIds }: any) => send(deadRubberMethods({ drawId, matchUpIds })),
+    },
+  };
+  const teamScore = {
+    onOverride: (score: any) => send([overrideTeamScoreMethod({ drawId, matchUpId, teamScore: score })]),
+    onRestore: () => send([restoreAutoCalcMethod({ drawId, matchUpId })]),
+  };
+
+  const container = renderScorecardLayout({
+    issues: dualIssues({ drawId, matchUpId }),
+    labels: scorecardLabels(),
+    eventHandlers,
+    issueActions,
+    composition,
+    teamScore,
+    matchUp,
+  });
   container.classList.add('overlay-content-container');
 
   return container;
+}
+
+function scorecardLabels(): any {
+  return {
+    issues: {
+      LINEUP_INCOMPLETE: t('overlays.scorecard.issues.LINEUP_INCOMPLETE'),
+      DUPLICATE_IN_COLLECTION: t('overlays.scorecard.issues.DUPLICATE_IN_COLLECTION'),
+      INELIGIBLE_GENDER: t('overlays.scorecard.issues.INELIGIBLE_GENDER'),
+      INELIGIBLE_CATEGORY: t('overlays.scorecard.issues.INELIGIBLE_CATEGORY'),
+      SCORE_INCOMPLETE: t('overlays.scorecard.issues.SCORE_INCOMPLETE'),
+      MISSING_REASON: t('overlays.scorecard.issues.MISSING_REASON'),
+      DUAL_DECIDED: t('overlays.scorecard.issues.DUAL_DECIDED'),
+      MANUAL_SCORE: t('overlays.scorecard.issues.MANUAL_SCORE'),
+      MANUAL_SCORE_DIVERGES: t('overlays.scorecard.issues.MANUAL_SCORE_DIVERGES'),
+    },
+    orderOfFinish: t('overlays.scorecard.orderOfFinish'),
+    issueCount: t('overlays.scorecard.issueCount'),
+    override: t('overlays.scorecard.overrideScore'),
+    restore: t('overlays.scorecard.restoreAutoScore'),
+    manual: t('overlays.scorecard.manualScore'),
+    winner: t('overlays.scorecard.winner'),
+    cancel: t('common.cancel'),
+    save: t('common.save'),
+  };
 }
 
 // a line just completed from the scorecard finishes after the dual's other completed lines of its matchUpType

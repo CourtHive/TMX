@@ -2888,7 +2888,24 @@
       "orderOfFinishInvalid": "Give each line a different number, from 1 up",
       "orderOfFinishSaved": "Order of finish saved",
       "orderOfFinishFailed": "Order of finish could not be saved",
-      "noCompletedLines": "No line has been completed yet"
+      "noCompletedLines": "No line has been completed yet",
+      "issueCount": "Lines with issues",
+      "issues": {
+        "LINEUP_INCOMPLETE": "Line-up incomplete",
+        "DUPLICATE_IN_COLLECTION": "Player on more than one line",
+        "INELIGIBLE_GENDER": "Player does not fit the gender",
+        "INELIGIBLE_CATEGORY": "Player outside the category",
+        "SCORE_INCOMPLETE": "Score incomplete",
+        "MISSING_REASON": "No reason given",
+        "DUAL_DECIDED": "Decided with lines unplayed",
+        "MANUAL_SCORE": "Team score set by hand",
+        "MANUAL_SCORE_DIVERGES": "The lines produce"
+      },
+      "recordDeadRubbers": "Record as dead rubbers",
+      "overrideScore": "Override",
+      "restoreAutoScore": "Restore automatic scoring",
+      "manualScore": "Set by hand",
+      "winner": "Winner"
     },
     "tieFormat": {
       "editScorecard": "Edit scorecard",

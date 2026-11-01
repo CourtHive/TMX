@@ -104,6 +104,7 @@ export const SET_MATCHUP_SCHEDULE_LOCK = 'setMatchUpScheduleLock';
 export const COMPLETE_DRAW_MATCHUPS = 'completeDrawMatchUps';
 export const SET_MATCHUP_STATUS = 'setMatchUpStatus';
 export const SET_ORDER_OF_FINISH = 'setOrderOfFinish';
+export const ENABLE_TIE_AUTO_CALC = 'enableTieAutoCalc';
 export const MODIFY_PENALTY = 'modifyPenalty';
 export const REMOVE_PENALTY = 'removePenalty';
 export const SET_DELEGATED_OUTCOME = 'setDelegatedOutcome';
