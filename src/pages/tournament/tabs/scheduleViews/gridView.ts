@@ -1365,11 +1365,24 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // Hidden with the sidebar: built when it is shown again (`onSidebarShown`).
     if (!sidebarVisible) return;
     scheduledCardsContainer.innerHTML = '';
+    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
+    const filterItems = (list: CatalogMatchUpItem[]) =>
+      filterMatchUpCatalog(list, scheduledSearchQuery, 'dim', scheduledFilters, showCompleted);
+
     // Readiness separates cards placed at the same time; it does not reorder the day. Ordered here, on
-    // the panel's rebuild, and never by the badge ticker — see `catalogOrder.ts`.
-    const scheduled = orderByReadiness(getScheduledNotPlacedOnCourt(), (id) => evaluateRest(id, currentDate), {
-      byTime: (m) => scheduledTimeToMinutes(m.schedule?.scheduledTime),
-    });
+    // the panel's rebuild, and never by the badge ticker — see `catalogOrder.ts`. Ordering costs a rest
+    // pass, and the order is only seen on drawn cards: when the search, the filters and the collapsed
+    // groups leave none, the pass is skipped. One pass answers the whole day, so when any card is drawn
+    // the hidden ones are ordered in it at no extra cost.
+    const candidates = getScheduledNotPlacedOnCourt();
+    const drawsCards = [
+      ...groupMatchUpCatalog(filterItems(candidates.map(scheduledMatchUpToCatalogItem)), scheduledGroupBy),
+    ].some(([gk, groupItems]) => groupItems.length > 0 && !scheduledCollapsedGroups.has(gk));
+    const scheduled = drawsCards
+      ? orderByReadiness(candidates, (id) => evaluateRest(id, currentDate), {
+          byTime: (m) => scheduledTimeToMinutes(m.schedule?.scheduledTime),
+        })
+      : candidates;
     const items = scheduled.map((m) => scheduledMatchUpToCatalogItem(m));
 
     // Round-emphasis base per event — computed off the FULL items list
@@ -1389,8 +1402,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // honors it (so completed orphans reach this step), but
     // `filterMatchUpCatalog` re-applies `isCompletedStatus` internally and
     // would drop them again if we left the default `false`.
-    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
-    const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters, showCompleted);
+    const filtered = filterItems(items);
 
     // Match the unscheduled catalog meta line ("{N} unscheduled") on the
     // Scheduled side so the panel header carries the same shape and the

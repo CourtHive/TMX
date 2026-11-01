@@ -898,6 +898,29 @@ img {
   color: var(--chc-on-link);
 }
 
+/* ── Event drawer: days-of-the-week chips ──────────────────────────── */
+.tmx-weekday-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tmx-weekday-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--tmx-border-secondary);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--tmx-text-secondary);
+}
+.tmx-weekday-chip:hover { border-color: var(--tmx-border-primary); }
+.tmx-weekday-chip.active {
+  background: var(--tmx-fill-accent);
+  border-color: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
+}
+
 /* ── Tie format catalog badges ────────────────────────────────────── */
 .tpl-tf-badges {
   display: inline-flex;
@@ -1198,6 +1221,10 @@ img {
 .tfe-inline-input--number {
   width: 56px;
   text-align: center;
+}
+/* a line of a line-values collection with no value yet: the scorecard cannot be saved until it has one */
+.tfe-inline-input--missing {
+  border-color: var(--tmx-status-error);
 }
 .tfe-inline-select {
   border: 1px solid var(--sp-border, var(--tmx-border-color, #e0e0e0));

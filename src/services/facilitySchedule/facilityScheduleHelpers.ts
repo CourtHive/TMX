@@ -7,12 +7,6 @@ export interface FacilityCourtOccupancy {
   cells: any[]; // ScheduleCell[] for the date, primary + peers, sorted by the factory merge
 }
 
-/** Peer link ids on a record, excluding the record itself (the factory stores self in the list). */
-export function peerLinkedIds(record: any): string[] {
-  const self = record?.tournamentId;
-  return (record?.linkedTournamentIds ?? []).filter((id: string) => id && id !== self);
-}
-
 /** Distinct venueIds the primary tournament uses — the shared-court scope for the projection. */
 export function primaryVenueIds(record: any): string[] {
   return Array.from(new Set((record?.venues ?? []).map((venue: any) => venue?.venueId).filter(Boolean)));
