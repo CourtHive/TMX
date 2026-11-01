@@ -5,6 +5,7 @@
 import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
+import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { fetchUserContext, getUserContext } from './authentication/getUserContext';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
@@ -146,7 +147,7 @@ export function setDev(): void {
   addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   // dev.exportAnonymized(): downloads an anonymized deep copy of the current record; the live record is untouched
-  addDev({ exportAnonymized });
+  addDev({ exportAnonymized, validate });
   addDev({ env, tournamentContext: context });
   // drive TMX's competition clock for demos and journeys: dev.setCompetitionClock({ nowMs: () => ms })
   addDev({ setCompetitionClock });
@@ -237,6 +238,10 @@ function load(json: any): Promise<void> | void {
   // Without this, navigation to the tournament finds an empty engine and
   // re-fetches via tmx2db, which returns nothing — tabs render with no data.
   factory.tournamentEngine.setState(tournamentRecord);
+  // Validation follows the load and never blocks it; findings are reported to the console only.
+  validateTournamentRecord({ tournamentRecord }).then((summary) => {
+    if (summary.count) console.warn(`[dev.load] ${summary.count} validation finding(s); run dev.validate()`, summary);
+  });
   if (tournamentRecord.parentOrganisation?.organisationId && !serverConfig.get().saveLocal) {
     console.log(
       '%c[dev.load] session-only — not persisted to IndexedDB (parentOrganisation present + saveLocal off)',
@@ -299,6 +304,24 @@ function exportAnonymized(): any {
   }
   downloadJSON(`${copy.tournamentId}.anonymized.codes.json`, copy);
   return copy;
+}
+
+// Run the CODES schema check and the factory's getTournamentInconsistencies on the loaded record and
+// log a structured result. Returns the summary so a console caller can inspect it.
+async function validate(): Promise<any> {
+  const tournamentRecord = factory.tournamentEngine.q.tournament();
+  if (!tournamentRecord) {
+    tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
+    return undefined;
+  }
+  const summary = await validateTournamentRecord({ tournamentRecord });
+  const { count, schemaErrorCount, inconsistencyCount, findings, schemaUnavailable } = summary;
+  if (count) {
+    console.warn('[dev.validate]', { count, schemaErrorCount, inconsistencyCount, schemaUnavailable, findings });
+  } else {
+    console.log('[dev.validate] no findings', schemaUnavailable ? { schemaUnavailable } : '');
+  }
+  return summary;
 }
 
 function generateMockTournament(params: any): void {
