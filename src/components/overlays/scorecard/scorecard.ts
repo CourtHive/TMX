@@ -7,14 +7,15 @@ import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalc
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { completedMatchUpStatuses, extensionConstants } from 'tods-competition-factory';
+import { finishingOrderCollections, finishingOrderMethod } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { completedLineOrderMethod } from './orderOfFinish';
+import { extensionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
-import { orderOfFinishModal } from './orderOfFinishModal';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tipster } from 'components/popovers/tipster';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
@@ -74,7 +75,10 @@ export function openScorecard({ title, drawId, matchUpId, onClose }: ScorecardPa
   return openOverlay({ title, content, footer });
 }
 
-function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: string }): void {
+type RefreshParams = { drawId: string; matchUpId: string; editingCollectionId?: string };
+
+// the collection whose order of finish is being corrected is the only state the scorecard keeps between renders
+function refreshScorecard({ drawId, matchUpId, editingCollectionId }: RefreshParams): void {
   const matchUp = tournamentEngine.findMatchUp({
     drawId,
     matchUpId,
@@ -82,17 +86,23 @@ function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: st
   })?.matchUp;
   if (!matchUp) return;
 
-  const content = renderScorecard({ matchUp, onRefresh: () => refreshScorecard({ drawId, matchUpId }) });
+  const content = renderScorecard({
+    onRefresh: () => refreshScorecard({ drawId, matchUpId }),
+    editingCollectionId,
+    matchUp,
+  });
   setOverlayContent({ content });
 }
 
 export function renderScorecard({
   matchUp,
   composition: compositionOverride,
+  editingCollectionId,
   onRefresh,
 }: {
   matchUp: any;
   composition?: any;
+  editingCollectionId?: string;
   onRefresh?: () => void;
 }): HTMLDivElement {
   const composition = compositionOverride || resolveComposition(matchUp);
@@ -111,8 +121,26 @@ export function renderScorecard({
     onRestore: () => send([restoreAutoCalcMethod({ drawId, matchUpId })]),
   };
 
+  // the collection card's order-of-finish entry mode: Save sends the whole order, Cancel leaves it as it was
+  const finishingOrder = {
+    onSave: (order: any[]) =>
+      mutationRequest({
+        methods: [finishingOrderMethod({ drawId, finishingOrder: order })],
+        callback: (result: any) => {
+          const message = result?.success
+            ? t('overlays.scorecard.orderOfFinishSaved')
+            : t('overlays.scorecard.orderOfFinishFailed');
+          tmxToast({ message, intent: result?.success ? 'is-success' : 'is-danger' });
+          onRefresh?.();
+        },
+      }),
+    onCancel: () => onRefresh?.(),
+    editingCollectionId,
+  };
+
   const container = renderScorecardLayout({
     issues: dualIssues({ drawId, matchUpId }),
+    finishingOrder,
     labels: scorecardLabels(),
     eventHandlers,
     issueActions,
@@ -149,26 +177,6 @@ function scorecardLabels(): any {
   };
 }
 
-// a line just completed from the scorecard finishes after the dual's other completed lines of its matchUpType
-function recordOrderOfFinish({
-  wasCompleted,
-  tieMatchUpId,
-  onRefresh,
-  matchUpId,
-  drawId,
-}: {
-  wasCompleted: boolean;
-  tieMatchUpId: string;
-  onRefresh?: () => void;
-  matchUpId: string;
-  drawId: string;
-}): void {
-  const dual = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
-  const method = completedLineOrderMethod({ dual, matchUpId: tieMatchUpId, wasCompleted });
-  if (!method) return onRefresh?.();
-  mutationRequest({ methods: [method], callback: () => onRefresh?.() });
-}
-
 function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; onRefresh?: () => void }): any {
   const { drawId } = matchUp;
 
@@ -198,7 +206,6 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
 
     const readyToScore = validActions?.find(({ type }: any) => type === 'SCORE');
     if (readyToScore) {
-      const wasCompleted = completedMatchUpStatuses.includes(tieMatchUp.matchUpStatus);
       enterMatchUpScore({
         matchUpId: tieMatchUp.matchUpId,
         callback: (result: any) => {
@@ -207,13 +214,8 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
               ({ methodName }: any) => methodName === SET_MATCHUP_STATUS,
             )?.tieMatchUpResult;
             if (tieResult) updateTieScore(tieResult);
-            recordOrderOfFinish({
-              drawId,
-              matchUpId: matchUp.matchUpId,
-              tieMatchUpId: tieMatchUp.matchUpId,
-              wasCompleted,
-              onRefresh,
-            });
+            // the factory numbers the line in its collection's order of finish; the refresh shows it
+            onRefresh?.();
           }
         },
       });
@@ -301,10 +303,28 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
 
   const orderOfFinish = document.createElement('button');
   orderOfFinish.className = 'button is-info is-light button-spacer';
-  orderOfFinish.textContent = t('overlays.scorecard.orderOfFinish');
+  const orderOfFinishLabel = t('overlays.scorecard.orderOfFinish');
+  orderOfFinish.textContent = orderOfFinishLabel;
   orderOfFinish.onclick = () => {
-    const dual = tournamentEngine.findMatchUp({ drawId, matchUpId, participantsProfile: { withISO2: true } })?.matchUp;
-    orderOfFinishModal({ dual, callback: postMutation });
+    const dual = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+    const collections = finishingOrderCollections(dual);
+    const edit = (editingCollectionId: string) => refreshScorecard({ drawId, matchUpId, editingCollectionId });
+    if (!collections.length) {
+      tmxToast({ message: t('overlays.scorecard.noLinesToOrder'), intent: 'is-warning' });
+    } else if (collections.length === 1) {
+      edit(collections[0].collectionId);
+    } else {
+      const options = collections.map(({ collectionId, collectionName }) => ({
+        option: collectionName ?? collectionId,
+        onClick: () => edit(collectionId),
+      }));
+      tipster({
+        options,
+        target: orderOfFinish,
+        title: orderOfFinishLabel,
+        config: { arrow: false },
+      });
+    }
   };
 
   const clear = document.createElement('button');
