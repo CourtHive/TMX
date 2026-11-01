@@ -102,7 +102,7 @@ describe('anonymizedCopy', () => {
     expect(participant.person.personId).not.toEqual(snapshot.participants[position].person.personId);
 
     expect(copy.venues[0].contacts).toBeUndefined();
-    expect(copy.venues[0].addresses).toEqual([]);
+    expect(copy.venues[0].addresses).toBeUndefined();
     expect(copy.venues[0].courts[0].latitude).toBeUndefined();
     expect(copy.venues[0].courts[0].longitude).toBeUndefined();
   });
