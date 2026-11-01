@@ -6,7 +6,7 @@ import {
   CollectionRow,
   collectionFromRow,
   lineValuesTotal,
-  resizeLineValues,
+  growLineValues,
   rowFromCollection,
   seedLineValues,
 } from './tieFormatRows';
@@ -275,7 +275,7 @@ function buildCollectionCard(
     max: '20',
     onInput: (val) => {
       row.matchUpCount = val;
-      row.lineValues = resizeLineValues(row.lineValues, val);
+      row.lineValues = growLineValues(row.lineValues, val);
     },
     onBlur: refresh,
   });
@@ -339,7 +339,7 @@ function buildCollectionCard(
 /** one value input per line, labelled as lines are named on a scorecard: S1, S2 / D1, D2, D3 */
 function lineValuesRow(row: CollectionRow, refresh: () => void): HTMLElement {
   const prefix = row.matchUpType.charAt(0).toUpperCase();
-  const inputs = row.lineValues.map((value, i) =>
+  const inputs = row.lineValues.slice(0, row.matchUpCount).map((value, i) =>
     fieldGroup(
       `${prefix}${i + 1}`,
       numberInput({

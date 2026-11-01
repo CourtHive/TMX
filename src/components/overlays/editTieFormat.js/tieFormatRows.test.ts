@@ -1,5 +1,6 @@
 import {
   collectionFromRow,
+  growLineValues,
   lineValuesTotal,
   resizeLineValues,
   rowFromCollection,
@@ -105,5 +106,25 @@ describe('tieFormatRows', () => {
 
     const result = scoreGovernor.validateTieFormat({ tieFormat: { collectionDefinitions, winCriteria } });
     expect(result.error).toBeUndefined();
+  });
+
+  it('retyping the line count keeps the values entered; saving drops lines past the count', () => {
+    const row = rowFromCollection(doubles, mintId);
+    // 3 -> cleared -> 4, one keystroke at a time
+    for (const count of [0, 4]) {
+      row.matchUpCount = count;
+      row.lineValues = growLineValues(row.lineValues, count);
+    }
+    expect(row.lineValues).toEqual([5, 4, 3, 1]);
+    expect(lineValuesTotal(row)).toBe(13);
+
+    row.matchUpCount = 2;
+    row.lineValues = growLineValues(row.lineValues, 2);
+    expect(row.lineValues).toEqual([5, 4, 3, 1]);
+    expect(lineValuesTotal(row)).toBe(9);
+    expect(collectionFromRow(row).collectionValueProfiles).toEqual([
+      { collectionPosition: 1, matchUpValue: 5 },
+      { collectionPosition: 2, matchUpValue: 4 },
+    ]);
   });
 });
