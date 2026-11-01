@@ -1222,6 +1222,10 @@ img {
   width: 56px;
   text-align: center;
 }
+/* a line of a line-values collection with no value yet: the scorecard cannot be saved until it has one */
+.tfe-inline-input--missing {
+  border-color: var(--tmx-status-error);
+}
 .tfe-inline-select {
   border: 1px solid var(--sp-border, var(--tmx-border-color, #e0e0e0));
   border-radius: 8px;
