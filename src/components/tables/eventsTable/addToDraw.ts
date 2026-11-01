@@ -13,6 +13,7 @@
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tmxToast } from 'services/notifications/tmxToast';
 
 import { ADD_DRAW_ENTRIES } from 'constants/mutationConstants';
@@ -83,7 +84,7 @@ export const addToDraw =
   (event: any, drawId?: string, entryStage: string = MAIN) =>
   (table: any): any => {
     const selected = table.getSelectedData().filter((r: any) => !r._isSeparator);
-    const allDraws = (event.drawDefinitions || []).filter(Boolean);
+    const allDraws = orderedDrawDefinitions(event).filter(Boolean);
 
     // A draw is offered when at least one selected participant is not yet
     // entered in it. With no selection, fall back to all draws so the

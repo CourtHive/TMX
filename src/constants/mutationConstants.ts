@@ -71,6 +71,7 @@ export const ADD_PRACTICE_REGISTRATION = 'addPracticeRegistration';
 export const REMOVE_PRACTICE_REGISTRATION = 'removePracticeRegistration';
 export const UPDATE_PRACTICE_REGISTRATION = 'updatePracticeRegistration';
 export const UPDATE_PARTICIPANT_RESULTS = 'updateParticipantResults';
+export const UPDATE_DRAW_IDS_ORDER = 'updateDrawIdsOrder';
 export const SET_PRACTICE_DEFAULT_CAPACITY = 'setPracticeDefaultCapacity';
 export const PRO_AUTO_SCHEDULE = 'proAutoSchedule';
 export const ADD_SCHEDULE_SCENARIO = 'addScheduleScenario';

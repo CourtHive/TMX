@@ -16,6 +16,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -205,7 +206,7 @@ export function createUnifiedEntriesPanel({
       { drawId: string; drawName: string; entryStage?: string; eventId: string }[]
     > = {};
     if (hasDrawDefinitions) {
-      for (const dd of event.drawDefinitions) {
+      for (const dd of orderedDrawDefinitions(event)) {
         for (const entry of dd.entries || []) {
           if (!participantDrawsMap[entry.participantId]) participantDrawsMap[entry.participantId] = [];
           participantDrawsMap[entry.participantId].push({
@@ -521,7 +522,7 @@ export function createUnifiedEntriesPanel({
 
     const ALL_ENTRIES = 'All entries';
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = (freshEvent?.drawDefinitions || [])
+    const entriesOptions = orderedDrawDefinitions(freshEvent)
       .map((dd: any) => ({
         onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
         label: escapeHtml(dd?.drawName),
