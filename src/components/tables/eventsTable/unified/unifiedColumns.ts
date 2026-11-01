@@ -2,6 +2,7 @@
  * Column definitions for the unified entries table.
  * Superset of existing entry columns plus segment chip and hidden sort rank.
  */
+import { ENTRY_POSITION_FIELD, entryPositionBadge, hasEntryPositions } from './entryPosition';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../../common/formatters/participantFormatter';
 import { flightsFormatter } from '../../common/formatters/flightsFormatter';
@@ -79,8 +80,23 @@ function statusFormatter(cell: any) {
   el.className = 'tag';
   el.style.cssText =
     'background:var(--tmx-accent-purple);color:var(--tmx-text-inverse);font-size:0.7rem;padding:2px 6px;border-radius:4px';
-  el.textContent = label;
+  // the entry's place within its own status, e.g. "WC 2"
+  el.textContent = data._statusOrdinal ? `${label} ${data._statusOrdinal}` : label;
   el.title = data.entryStatus;
+  return el;
+}
+
+// The "#" cell: the group position as a badge tinted by the entry's group, named in words for hover and
+// assistive tech (title + aria-label). Rows with no position stay blank.
+function entryPositionFormatter(cell: any) {
+  const badge = entryPositionBadge(cell.getRow().getData());
+  if (!badge) return '';
+  const el = document.createElement('span');
+  el.className = `tmx-entry-position-badge is-${badge.group}`;
+  el.dataset.entryGroup = badge.group;
+  el.textContent = badge.text;
+  el.title = badge.tooltip;
+  el.setAttribute('aria-label', badge.tooltip);
   return el;
 }
 
@@ -96,6 +112,7 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
   const hasDrawPosition = entries.some((entry) => entry.drawPosition);
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
+  const showPositions = hasEntryPositions(entries);
 
   return applyColumnVisibility([
     {
@@ -112,11 +129,15 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
       width: 5,
     },
     {
-      // Row number + column-selector menu (matches participants / matchUps tables).
-      // The last numbered row gives the entry count at a glance.
+      // Each entry's entryPosition, as the record holds it, plus the column-selector menu (matches the
+      // participants / matchUps tables). The header is drawn by titleFormatter, not `title`, so the
+      // column stays out of the toggle menu and the saved visibility map: hiding it would take the menu
+      // with it. A record with no positions at all keeps the row number, so the column never goes blank.
+      formatter: showPositions ? entryPositionFormatter : 'rownum',
       headerMenu: headerMenu({}),
-      formatter: 'rownum',
-      headerSort: false,
+      field: ENTRY_POSITION_FIELD,
+      titleFormatter: () => '#',
+      headerSort: showPositions,
       headerHozAlign: CENTER,
       hozAlign: CENTER,
       responsive: false,

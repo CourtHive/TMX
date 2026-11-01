@@ -2697,7 +2697,18 @@
         "competitionFormatLabel": "Sport rules",
         "competitionFormatNone": "None",
         "competitionFormatTennis": "Tennis (standard)",
-        "competitionFormatIntennse": "INTENNSE (standard)"
+        "competitionFormatIntennse": "INTENNSE (standard)",
+        "activeDatesLabel": "Active dates",
+        "activeDatesPlaceholder": "All dates in range",
+        "weekdaysLabel": "Days of the week",
+        "eventDatesHint": "Saved with the event. Scheduling does not use active dates or days of the week yet.",
+        "eventDatesRefusal": {
+          "INVALID_DATE": "Dates must be valid calendar days (YYYY-MM-DD)",
+          "START_AFTER_END": "The start date cannot be after the end date",
+          "OUTSIDE_TOURNAMENT": "Event dates must fall within the tournament dates",
+          "ACTIVE_DATE_OUTSIDE_EVENT": "Active dates must fall within the event dates",
+          "INVALID_WEEKDAYS": "Days of the week are not valid"
+        }
       },
       "editFormat": {
         "noChanges": "No changes",
@@ -3442,7 +3453,8 @@
   "tieFormatEditor": {
     "scorecardName": "Scorecard Name",
     "addCollection": "Add Collection",
-    "noCollections": "No collections — click Add Collection to start"
+    "noCollections": "No collections — click Add Collection to start",
+    "lineValuesMissing": "Give every line of {{name}} a value"
   },
   "matchUpActions": {
     "scheduleDate": "Schedule date",
@@ -3489,7 +3501,22 @@
     "noIndividualParticipants": "No individual participants",
     "addPlayers": "Add players",
     "noRatingData": "No rating data available",
-    "scheduledMatches": "Scheduled matches"
+    "scheduledMatches": "Scheduled matches",
+    "positionBadge": {
+      "accepted": "Accepted #{{position}}",
+      "qualifying": "Qualifying #{{position}}",
+      "alternate": "Alternate #{{position}}",
+      "withdrawn": "Withdrawn #{{position}}",
+      "ungrouped": "Ungrouped #{{position}}",
+      "other": "Position #{{position}}",
+      "withStatus": "{{label}} · {{status}} {{ordinal}}",
+      "status": {
+        "wildcard": "Wildcard",
+        "specialExempt": "Special exempt",
+        "juniorExempt": "Junior exempt",
+        "organiserAcceptance": "Organiser acceptance"
+      }
+    }
   },
   "ageCategories": {
     "u10": "10 and Under",
@@ -3525,7 +3552,20 @@
     "abandonRemaining": "Abandon remaining matches",
     "republishExplain": "Republish this tournament to the public rankings list. Points are recomputed from its decided matches.",
     "rankingsNotConfigured": "Rankings pipeline is not configured",
-    "republishRankings": "Republish rankings"
+    "republishRankings": "Republish rankings",
+    "bulkStatus": {
+      "label": "Set status",
+      "confirmTitle": "Set {{status}}",
+      "confirmExplain_one": "Set {{status}} on {{count}} match. No score is recorded.",
+      "confirmExplain_other": "Set {{status}} on {{count}} matches. No score is recorded.",
+      "applied_one": "{{status}} set on {{count}} match",
+      "applied_other": "{{status}} set on {{count}} matches",
+      "refusedTitle": "{{status}} cannot be set",
+      "refusedExplain_one": "Nothing was changed. {{count}} selected match would be refused:",
+      "refusedExplain_other": "Nothing was changed. {{count}} selected matches would be refused:",
+      "notScorable": "not ready to score",
+      "refusedByFactory": "refused"
+    }
   },
   "groupings": {
     "generateMockTeams": "Generate Mock Teams",
