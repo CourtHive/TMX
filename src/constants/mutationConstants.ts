@@ -58,6 +58,7 @@ export const RESOLVE_DRAFT_POSITIONS = 'resolveDraftPositions';
 export const MODIFY_COURT = 'modifyCourt';
 export const MODIFY_COURT_AVAILABILITY = 'modifyCourtAvailability';
 export const MODIFY_EVENT = 'modifyEvent';
+export const SET_EVENT_DATES = 'setEventDates';
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
