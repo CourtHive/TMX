@@ -27,6 +27,12 @@ import {
   parseActiveDates,
   weekdayLabelKey,
 } from './eventDates';
+import {
+  buildEntryProfileMethod,
+  entryProfileFields,
+  entryProfileFormValues,
+  readEntryProfileForm,
+} from './eventEntryProfile';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -155,6 +161,7 @@ export function editEvent({
     weekdays: normalizeWeekdays(event?.weekdays),
   };
   const selectedWeekdays = new Set<string>(values.weekdays);
+  const entryProfileValues = entryProfileFormValues(event);
   const tournamentDayCount = tools.generateDateRange(tournamentInfo.startDate, tournamentInfo.endDate).length;
 
   const enteredParticipantIds = event?.entries
@@ -372,6 +379,12 @@ export function editEvent({
           field: 'activeDates',
           date: true,
         },
+        { divider: true },
+        { text: t('pages.events.editEvent.entriesHeading'), header: true },
+        ...entryProfileFields(event).map((field) => ({
+          text: t(`pages.events.editEvent.entryProfile.${field}`),
+          fieldPair: { field, type: 'number', value: entryProfileValues[field], width: '5em' },
+        })),
         {
           hide: event || participants,
           divider: true,
@@ -392,6 +405,12 @@ export function editEvent({
       activeDates: parseActiveDates(content.activeDates?.value),
       weekdays: normalizeWeekdays(Array.from(selectedWeekdays)),
     };
+  };
+
+  const readEntryProfile = () => {
+    const content = context.drawer.attributes.content;
+    const form = Object.fromEntries(entryProfileFields(event).map((field) => [field, content[field]?.value]));
+    return readEntryProfileForm({ form, event });
   };
 
   const datesRefusal = () =>
@@ -415,6 +434,14 @@ export function editEvent({
     const refusal = datesRefusal();
     if (refusal) {
       tmxToast({ message: t(`pages.events.editEvent.eventDatesRefusal.${refusal}`), intent: 'is-danger' });
+      return;
+    }
+    const entryProfileRefusal = readEntryProfile().refusal;
+    if (entryProfileRefusal) {
+      tmxToast({
+        message: t(`pages.events.editEvent.entryProfileRefusal.${entryProfileRefusal}`),
+        intent: 'is-danger',
+      });
       return;
     }
 
@@ -524,9 +551,11 @@ export function editEvent({
 
     const eventDatesMethod = (eventId: string) =>
       buildSetEventDatesMethod({ eventId, ...readEventDates(), previous: event });
+    const { entryProfile } = readEntryProfile();
 
     if (event) {
       const eventId = event.eventId;
+      if (entryProfile) eventUpdates.entryProfile = entryProfile;
       const methods: any[] = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
       const setDates = eventDatesMethod(eventId);
       if (setDates) methods.push(setDates);
@@ -571,6 +600,9 @@ export function editEvent({
         };
         methods.push(method);
       }
+      // through modifyEvent, which validates the profile, rather than unchecked on the new event
+      const entryProfileMethod = buildEntryProfileMethod({ eventId, entryProfile });
+      if (entryProfileMethod) methods.push(entryProfileMethod as any);
       const setDates = eventDatesMethod(eventId);
       if (setDates) methods.push(setDates);
       mutationRequest({ methods, callback: postMutation });
@@ -584,7 +616,7 @@ export function editEvent({
 
   const shouldClose = () => {
     const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
-    return ageCategoryCode !== 'custom' && isValidForSave() && !datesRefusal();
+    return ageCategoryCode !== 'custom' && isValidForSave() && !datesRefusal() && !readEntryProfile().refusal;
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
