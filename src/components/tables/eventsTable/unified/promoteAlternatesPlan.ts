@@ -2,14 +2,18 @@
  * Promote alternates — the pure part: who the alternates are, in promotion order, how many places are open
  * among the accepted entries, and the default and bounds of the count the TD chooses.
  *
- * Open places = the event's entry limit minus its accepted MAIN entries. The limit is the event's
- * `entryProfile.entriesLimit` (how many entries it accepts), else `entryProfile.targetDrawSize` (the intended
- * draw size before a draw exists). Accepted = the factory's STRUCTURE_SELECTED_STATUSES, the same set the
- * entries table counts as Accepted; WITHDRAWN is not among them, so a withdrawal frees a place. With no limit
- * there is nothing to count against: no open-places figure, and the default is 1.
+ * Open places come from the factory's `getEventEntrySpace`: the MAIN draw positions (the generated structure,
+ * else `entryProfile.targetDrawSize`, else the sanctioned draw size) less the places held for qualifiers and
+ * wildcards, less the entries accepted directly. A withdrawal frees a place.
+ *
+ * When that query states no draw size, the event's `entryProfile.entriesLimit` (how many entries it accepts)
+ * is the limit, counted against STRUCTURE_SELECTED_STATUSES, the same set the entries table counts as
+ * Accepted — the query deliberately leaves `entriesLimit` out, since it need not equal the draw's places. With
+ * neither there is nothing to count against: no open-places figure, and the default is 1.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
 import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
+import { tournamentEngine } from 'services/factory/engine';
 
 // constants
 import { PROMOTE_ALTERNATES } from 'constants/mutationConstants';
@@ -17,7 +21,24 @@ import { PROMOTE_ALTERNATES } from 'constants/mutationConstants';
 const { ALTERNATE } = entryStatusConstants;
 const { MAIN } = drawDefinitionConstants;
 
-export type PromotionLimitSource = 'entriesLimit' | 'targetDrawSize';
+export type PromotionLimitSource = 'entriesLimit' | 'targetDrawSize' | 'drawPositions' | 'sanctionedDrawSize';
+
+/** what `getEventEntrySpace` returns, as far as the plan reads it */
+export type EntrySpace = {
+  basis: 'STRUCTURE' | 'TARGET_DRAW_SIZE' | 'SANCTIONING_CONSTRAINTS' | 'NONE';
+  drawPositions: number;
+  qualifierPositions: number;
+  wildcardPositions: number;
+  directAcceptedCount: number;
+  directAcceptancePlaces?: number;
+  openPlaces?: number;
+};
+
+const LIMIT_SOURCE: Record<string, PromotionLimitSource> = {
+  STRUCTURE: 'drawPositions',
+  TARGET_DRAW_SIZE: 'targetDrawSize',
+  SANCTIONING_CONSTRAINTS: 'sanctionedDrawSize',
+};
 
 export type PromotionPlan = {
   /** MAIN alternates' participantIds in promotion order */
@@ -25,6 +46,10 @@ export type PromotionPlan = {
   acceptedCount: number;
   limit?: number;
   limitSource?: PromotionLimitSource;
+  /** the draw positions and the places held back from them, when the limit came from getEventEntrySpace */
+  drawPositions?: number;
+  qualifierPositions?: number;
+  wildcardPositions?: number;
   /** open places among the accepted entries; undefined when the event states no limit */
   openSlots?: number;
   defaultCount: number;
@@ -57,29 +82,79 @@ export function orderedAlternateIds(entries: any[] = []): string[] {
     .map(({ entry }) => entry.participantId);
 }
 
-function getEntryLimit(event: any): { limit?: number; limitSource?: PromotionLimitSource } {
-  const { entriesLimit, targetDrawSize } = event?.entryProfile ?? {};
+/** The factory's count of the event's direct-acceptance places; undefined when it cannot answer. */
+export function getEntrySpace(event: any): EntrySpace | undefined {
+  if (!event?.eventId) return undefined;
+  const result: any = tournamentEngine.getEventEntrySpace({ eventId: event.eventId });
+  return result?.success ? result : undefined;
+}
+
+type Limit = Pick<
+  PromotionPlan,
+  'limit' | 'limitSource' | 'openSlots' | 'drawPositions' | 'qualifierPositions' | 'wildcardPositions'
+> & { acceptedCount?: number };
+
+function getLimit(event: any, entrySpace?: EntrySpace): Limit {
+  if (entrySpace && entrySpace.basis !== 'NONE' && entrySpace.openPlaces !== undefined) {
+    return {
+      limit: entrySpace.directAcceptancePlaces,
+      limitSource: LIMIT_SOURCE[entrySpace.basis],
+      openSlots: entrySpace.openPlaces,
+      acceptedCount: entrySpace.directAcceptedCount,
+      drawPositions: entrySpace.drawPositions,
+      qualifierPositions: entrySpace.qualifierPositions,
+      wildcardPositions: entrySpace.wildcardPositions,
+    };
+  }
+  const { entriesLimit } = event?.entryProfile ?? {};
   if (Number.isSafeInteger(entriesLimit) && entriesLimit > 0)
     return { limit: entriesLimit, limitSource: 'entriesLimit' };
-  if (Number.isSafeInteger(targetDrawSize) && targetDrawSize > 0)
-    return { limit: targetDrawSize, limitSource: 'targetDrawSize' };
   return {};
 }
 
-export function getPromotionPlan({ event }: { event: any }): PromotionPlan {
+/**
+ * `entrySpace` is the event's `getEventEntrySpace` result; when it is not passed, the plan asks the engine for
+ * it, so the event must be the engine's.
+ */
+export function getPromotionPlan({ event, entrySpace }: { event: any; entrySpace?: EntrySpace }): PromotionPlan {
   const entries = event?.entries ?? [];
   const alternateIds = orderedAlternateIds(entries);
-  const acceptedCount = entries.filter(
-    (entry: any) => stageOf(entry) === MAIN && acceptedStatusSet.has(entry.entryStatus),
-  ).length;
-  const { limit, limitSource } = getEntryLimit(event);
-  const openSlots = limit === undefined ? undefined : Math.max(0, limit - acceptedCount);
+  const { acceptedCount: directAcceptedCount, ...limit } = getLimit(event, entrySpace ?? getEntrySpace(event));
+  const acceptedCount =
+    directAcceptedCount ??
+    entries.filter((entry: any) => stageOf(entry) === MAIN && acceptedStatusSet.has(entry.entryStatus)).length;
+  const openSlots =
+    limit.openSlots ?? (limit.limit === undefined ? undefined : Math.max(0, limit.limit - acceptedCount));
 
   const max = alternateIds.length;
   const min = max ? 1 : 0;
   const defaultCount = clampPromoteCount(openSlots ?? 1, { min, max });
 
-  return { alternateIds, acceptedCount, limit, limitSource, openSlots, defaultCount, min, max };
+  return { alternateIds, acceptedCount, ...limit, openSlots, defaultCount, min, max };
+}
+
+const SLOTS_KEY: Record<PromotionLimitSource, string> = {
+  entriesLimit: 'entries.promoteAlternates.openSlotsEntriesLimit',
+  targetDrawSize: 'entries.promoteAlternates.openSlotsTargetDrawSize',
+  drawPositions: 'entries.promoteAlternates.openSlotsDrawPositions',
+  sanctionedDrawSize: 'entries.promoteAlternates.openSlotsSanctionedDrawSize',
+};
+
+/** The i18n key and values that explain the open-places figure. */
+export function openSlotsMessage(plan: PromotionPlan): { key: string; values?: Record<string, number | undefined> } {
+  if (plan.openSlots === undefined || !plan.limitSource) return { key: 'entries.promoteAlternates.noLimit' };
+  const values = { limit: plan.limit, accepted: plan.acceptedCount, open: plan.openSlots };
+  if (plan.qualifierPositions || plan.wildcardPositions)
+    return {
+      key: 'entries.promoteAlternates.openSlotsHeld',
+      values: {
+        ...values,
+        drawPositions: plan.drawPositions,
+        qualifiers: plan.qualifierPositions ?? 0,
+        wildcards: plan.wildcardPositions ?? 0,
+      },
+    };
+  return { key: SLOTS_KEY[plan.limitSource], values };
 }
 
 /** Whole numbers within [min, max]; anything unreadable falls back to min. */

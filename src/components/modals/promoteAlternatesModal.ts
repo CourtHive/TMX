@@ -1,7 +1,7 @@
 /**
  * Promote alternates — choose how many of the event's alternates to accept, in their order.
  *
- * The count starts at the open places among the accepted entries (see promoteAlternatesPlan), within 1 and the
+ * The count starts at the open places the factory's getEventEntrySpace reports (see promoteAlternatesPlan), within 1 and the
  * number of alternates; the list below it shows who will be promoted as the count changes.
  */
 import {
@@ -9,6 +9,7 @@ import {
   alternatesToPromote,
   clampPromoteCount,
   getPromotionPlan,
+  openSlotsMessage,
 } from 'components/tables/eventsTable/unified/promoteAlternatesPlan';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -43,19 +44,8 @@ export function promoteAlternatesModal({
 
   const slots = document.createElement('p');
   slots.style.color = 'var(--tmx-text-secondary)';
-  slots.textContent =
-    plan.openSlots === undefined
-      ? t('entries.promoteAlternates.noLimit')
-      : t(
-          plan.limitSource === 'targetDrawSize'
-            ? 'entries.promoteAlternates.openSlotsTargetDrawSize'
-            : 'entries.promoteAlternates.openSlotsEntriesLimit',
-          {
-            limit: plan.limit,
-            accepted: plan.acceptedCount,
-            open: plan.openSlots,
-          },
-        );
+  const message = openSlotsMessage(plan);
+  slots.textContent = t(message.key, message.values);
   content.appendChild(slots);
 
   const label = document.createElement('label');

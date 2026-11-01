@@ -6,6 +6,8 @@ import {
   orderedAlternateIds,
   clampPromoteCount,
   getPromotionPlan,
+  openSlotsMessage,
+  getEntrySpace,
 } from './promoteAlternatesPlan';
 
 // constants
@@ -147,5 +149,91 @@ describe('promoting through the engine', () => {
       drawId: 'd',
       participantIds: ['p'],
     });
+  });
+});
+
+// the director's way to set the profile: modifyEvent, which validates and merges it
+const modifyEntryProfile = (eventId: string, entryProfile: any) => {
+  const result: any = tournamentEngine.modifyEvent({ eventId, eventUpdates: { entryProfile } });
+  expect(result.success).toEqual(true);
+};
+
+describe('open places from getEventEntrySpace', () => {
+  it('holds back the places for qualifiers and wildcards', () => {
+    const { eventId } = seedEvent();
+    modifyEntryProfile(eventId, { targetDrawSize: 16, qualifyingDrawSize: 8, qualifiersCount: 4, wildcardCount: 2 });
+    const plan = getPromotionPlan({ event: getEvent(eventId) });
+    expect(plan).toMatchObject({
+      limitSource: 'targetDrawSize',
+      drawPositions: 16,
+      qualifierPositions: 4,
+      wildcardPositions: 2,
+      limit: 10,
+      acceptedCount: 6,
+      openSlots: 4,
+      defaultCount: 3,
+    });
+    expect(openSlotsMessage(plan)).toEqual({
+      key: 'entries.promoteAlternates.openSlotsHeld',
+      values: { limit: 10, accepted: 6, open: 4, drawPositions: 16, qualifiers: 4, wildcards: 2 },
+    });
+  });
+
+  it('the draw size wins over entriesLimit, which only counts when no draw size is stated', () => {
+    const { eventId } = seedEvent();
+    modifyEntryProfile(eventId, { entriesLimit: 8, targetDrawSize: 12 });
+    const plan = getPromotionPlan({ event: getEvent(eventId) });
+    expect(plan).toMatchObject({ limit: 12, limitSource: 'targetDrawSize', openSlots: 6 });
+    expect(openSlotsMessage(plan)).toEqual({
+      key: 'entries.promoteAlternates.openSlotsTargetDrawSize',
+      values: { limit: 12, accepted: 6, open: 6 },
+    });
+  });
+
+  it('counts against the sanctioned draw size when the event states none', () => {
+    const { eventId } = seedEvent();
+    const event = getEvent(eventId);
+    const result: any = tournamentEngine.addTournamentExtension({
+      extension: { name: 'sanctioningConstraints', value: { events: [{ eventType: event.eventType, drawSize: 8 }] } },
+    });
+    expect(result.success).toEqual(true);
+    const plan = getPromotionPlan({ event });
+    expect(plan).toMatchObject({ limit: 8, limitSource: 'sanctionedDrawSize', openSlots: 2 });
+    expect(openSlotsMessage(plan).key).toEqual('entries.promoteAlternates.openSlotsSanctionedDrawSize');
+  });
+
+  it('uses a passed entrySpace as given, e.g. a generated draw', () => {
+    const { eventId } = seedEvent();
+    const entrySpace = {
+      basis: 'STRUCTURE' as const,
+      drawPositions: 8,
+      qualifierPositions: 0,
+      wildcardPositions: 0,
+      directAcceptedCount: 6,
+      directAcceptancePlaces: 8,
+      openPlaces: 2,
+    };
+    const plan = getPromotionPlan({ event: getEvent(eventId), entrySpace });
+    expect(plan).toMatchObject({ limit: 8, limitSource: 'drawPositions', openSlots: 2, defaultCount: 2 });
+    expect(openSlotsMessage(plan)).toEqual({
+      key: 'entries.promoteAlternates.openSlotsDrawPositions',
+      values: { limit: 8, accepted: 6, open: 2 },
+    });
+  });
+
+  it('explains entriesLimit and no limit', () => {
+    const { eventId } = seedEvent();
+    expect(openSlotsMessage(getPromotionPlan({ event: getEvent(eventId) }))).toEqual({
+      key: 'entries.promoteAlternates.noLimit',
+    });
+    modifyEntryProfile(eventId, { entriesLimit: 8 });
+    expect(openSlotsMessage(getPromotionPlan({ event: getEvent(eventId) })).key).toEqual(
+      'entries.promoteAlternates.openSlotsEntriesLimit',
+    );
+  });
+
+  it('asks the engine only for an event it holds', () => {
+    expect(getEntrySpace(undefined)).toBeUndefined();
+    expect(getEntrySpace({ eventId: 'unknown' })).toBeUndefined();
   });
 });
