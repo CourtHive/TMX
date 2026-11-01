@@ -91,6 +91,8 @@ pnpm test:e2e:prod        # Playwright against production build
 
 `dev.exportAnonymized()` downloads an anonymized deep copy of the loaded tournament record (persons, ids, venue details, contacts and external ids replaced or cleared) for sharing a record for support; the live record is never changed.
 
+`dev.validate()` checks the loaded tournament record against the CODES schema shipped with the installed factory (ajv, loaded on demand in its own chunk) and runs the factory's `getTournamentInconsistencies()`, then logs a structured result (`count`, `schemaErrorCount`, `inconsistencyCount`, `findings` as path + message) and returns it. The same check runs, non-blocking, after a file import (a warning toast with a Review modal) and after `dev.load()` (console only).
+
 ### E2E Testing (Playwright)
 
 E2E tests live in `e2e/`. See `Mentat/planning/PLAYWRIGHT_E2E_TESTING.md` for the full strategy.
