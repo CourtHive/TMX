@@ -93,6 +93,7 @@ export const RENAME_STRUCTURES = 'renameStructures';
 export const RESET_DRAW_DEFINITION = 'resetDrawDefinition';
 export const RESET_MATCHUP_LINEUPS = 'resetMatchUpLineUps';
 export const RESET_SCORECARD = 'resetScorecard';
+export const RESET_STRUCTURE = 'resetStructure';
 export const SET_MATCHUP_CALLED_AT = 'setMatchUpCalledAt';
 // Per-matchUp check-in — a participant presenting at the desk for THIS match. Distinct from
 // MODIFY_SIGN_IN_STATUS, which records first arrival at the tournament and is tournament-wide.
