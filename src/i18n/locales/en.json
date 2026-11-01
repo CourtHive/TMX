@@ -2697,7 +2697,18 @@
         "competitionFormatLabel": "Sport rules",
         "competitionFormatNone": "None",
         "competitionFormatTennis": "Tennis (standard)",
-        "competitionFormatIntennse": "INTENNSE (standard)"
+        "competitionFormatIntennse": "INTENNSE (standard)",
+        "activeDatesLabel": "Active dates",
+        "activeDatesPlaceholder": "All dates in range",
+        "weekdaysLabel": "Days of the week",
+        "eventDatesHint": "Saved with the event. Scheduling does not use active dates or days of the week yet.",
+        "eventDatesRefusal": {
+          "INVALID_DATE": "Dates must be valid calendar days (YYYY-MM-DD)",
+          "START_AFTER_END": "The start date cannot be after the end date",
+          "OUTSIDE_TOURNAMENT": "Event dates must fall within the tournament dates",
+          "ACTIVE_DATE_OUTSIDE_EVENT": "Active dates must fall within the event dates",
+          "INVALID_WEEKDAYS": "Days of the week are not valid"
+        }
       },
       "editFormat": {
         "noChanges": "No changes",
