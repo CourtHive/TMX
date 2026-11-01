@@ -14,6 +14,7 @@
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { collectEventDateSkips, eventDateReasonText } from './eventDateScheduling';
 import { t } from 'i18n';
 import {
   describeOverLimitAttempts,
@@ -95,10 +96,20 @@ export type ScheduleRunResult = {
   overnightRestWarnings?: { [date: string]: OvernightRestWarning[] };
   noFormatMatchUpIds?: { [date: string]: string[] };
   requestConflicts?: { [date: string]: any[] };
+  /** skipped because their event does not play on the day (also listed in noTimeMatchUpIds, shown once here) */
+  eventDateSkippedMatchUpIds?: { [date: string]: { matchUpId: string; eventId: string; reason: string }[] };
   scheduledDates?: string[];
 };
 
-export function openScheduleResultsDrawer(result: ScheduleRunResult): void {
+/** what the drawer offers for matchUps skipped because their event does not play on the day */
+export type EventDateSkipActions = {
+  /** re-run the same scheduler with `allowInactiveEventDates` */
+  scheduleAnyway?: () => void;
+  /** widen the event ranges that left the skipped days out; offered only when there is one to widen */
+  extendEventDates?: () => void;
+};
+
+export function openScheduleResultsDrawer(result: ScheduleRunResult, actions: EventDateSkipActions = {}): void {
   const lookups: Lookups = {
     matchUps: buildMatchUpLookup(),
     participants: buildParticipantLookup(),
@@ -108,6 +119,9 @@ export function openScheduleResultsDrawer(result: ScheduleRunResult): void {
   const content = document.createElement('div');
   content.style.cssText =
     'display: flex; flex-direction: column; gap: 12px; min-width: 480px; max-height: 60vh; overflow-y: auto; padding: 4px;';
+
+  const skips = collectEventDateSkips(result);
+  if (skips.count) content.appendChild(buildEventDateSkipActions(skips.count, actions));
 
   if (!dates.length) {
     content.appendChild(buildEmptyState());
@@ -206,6 +220,7 @@ function collectAllDates(result: ScheduleRunResult): string[] {
   for (const date of Object.keys(result.dailyLimitWarningMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.noFormatMatchUpIds ?? {})) set.add(date);
   for (const date of Object.keys(result.overnightRestWarnings ?? {})) set.add(date);
+  for (const date of Object.keys(result.eventDateSkippedMatchUpIds ?? {})) set.add(date);
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
@@ -227,7 +242,9 @@ function buildDateSection(date: string, result: ScheduleRunResult, lookups: Look
   const scheduled = result.scheduledMatchUpIds?.[date] ?? [];
   const overLimit = result.overLimitMatchUpIds?.[date] ?? [];
   const overLimitDetails = result.overLimitMatchUpDetails?.[date] ?? [];
-  const noTime = result.noTimeMatchUpIds?.[date] ?? [];
+  const eventDateSkipped = result.eventDateSkippedMatchUpIds?.[date] ?? [];
+  const skippedIds = new Set(eventDateSkipped.map((skip) => skip.matchUpId));
+  const noTime = (result.noTimeMatchUpIds?.[date] ?? []).filter((id) => !skippedIds.has(id));
   const recoveryDeferred = result.recoveryTimeDeferredMatchUpIds?.[date] ?? {};
   const dependencyDeferred = result.dependencyDeferredMatchUpIds?.[date] ?? {};
   const conflicts = result.requestConflicts?.[date] ?? [];
@@ -237,6 +254,7 @@ function buildDateSection(date: string, result: ScheduleRunResult, lookups: Look
   const overnightRest = result.overnightRestWarnings?.[date] ?? [];
 
   const empty =
+    !eventDateSkipped.length &&
     !overnightRest.length &&
     !Object.keys(playedOrderDeferred).length &&
     !dailyLimitWarnings.length &&
@@ -290,8 +308,52 @@ function buildDateSection(date: string, result: ScheduleRunResult, lookups: Look
   if (overnightRest.length) {
     section.appendChild(buildOvernightRestBlock(overnightRest, lookups));
   }
+  if (eventDateSkipped.length) {
+    section.appendChild(buildEventDateSkippedBlock(eventDateSkipped, lookups));
+  }
 
   return section;
+}
+
+function buildEventDateSkippedBlock(skips: { matchUpId: string; reason: string }[], lookups: Lookups): HTMLElement {
+  const list = document.createElement('ul');
+  list.style.cssText = LIST_STYLE;
+  for (const skip of skips) {
+    list.appendChild(buildMatchUpRow(skip.matchUpId, lookups.matchUps, eventDateReasonText(skip.reason)));
+  }
+  return buildCollapsibleSection(t('eventDates.skippedTitle'), skips.length, 'warning', list);
+}
+
+/** The run-level choice for skipped matchUps: schedule them anyway, or extend the event dates that left them out. */
+function buildEventDateSkipActions(count: number, actions: EventDateSkipActions): HTMLElement {
+  const panel = document.createElement('div');
+  const tokens = INTENT_TOKENS.warning;
+  panel.style.cssText = `display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid ${tokens.border}; background: ${tokens.bg};`;
+
+  const intro = document.createElement('p');
+  intro.style.cssText = 'margin: 0; font-size: 0.82rem; color: var(--tmx-text-primary);';
+  intro.textContent = t('eventDates.skippedIntro', { count });
+  panel.appendChild(intro);
+
+  const buttons = document.createElement('div');
+  buttons.style.cssText = 'display: flex; gap: 8px; flex-wrap: wrap;';
+  const addButton = (label: string, className: string, onClick?: () => void) => {
+    if (!onClick) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.textContent = label;
+    button.addEventListener('click', () => {
+      closeModal();
+      onClick();
+    });
+    buttons.appendChild(button);
+  };
+  addButton(t('eventDates.scheduleAnyway'), 'button is-warning is-small', actions.scheduleAnyway);
+  addButton(t('eventDates.extendEventDates'), 'button is-info is-small', actions.extendEventDates);
+  if (buttons.childElementCount) panel.appendChild(buttons);
+
+  return panel;
 }
 
 // Over-limit refusals get a richer treatment than the generic

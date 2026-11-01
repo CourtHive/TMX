@@ -684,10 +684,10 @@ function renderWeekdayChips(selected: Set<string>): HTMLElement {
   }
   field.appendChild(chips);
 
-  // the scheduler does not read these yet; say so rather than imply they restrict scheduling
+  // scheduling honours these days: auto-scheduling skips the others, a manual placement on one is warned about
   const hint = document.createElement('p');
   hint.className = 'help font-medium';
-  hint.textContent = t('pages.events.editEvent.eventDatesHint');
+  hint.textContent = t('pages.events.editEvent.eventDatesSchedulingHint');
   field.appendChild(hint);
 
   return field;
