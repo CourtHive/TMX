@@ -3,12 +3,15 @@
  * Provides menu options to navigate to draws or delete flights.
  */
 import { canDeleteAllFlights, deleteAllFlightsMethod } from 'components/modals/flights/flightDeletion';
+import { remainingParticipantIds } from 'components/modals/addFlights/remainingFlights';
 import { selectAndDeleteEventFlights } from 'components/modals/selectAndDeleteFlights';
+import { addRemainingFlights } from 'components/modals/addFlights/addFlights';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { defaultStructureId } from './defaultStructureId';
+import { sortByDrawOrder } from 'functions/drawOrder';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
@@ -47,7 +50,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
 
   const options: any[] = [allDrawsOption];
 
-  for (const draw of eventData.drawsData) {
+  for (const draw of sortByDrawOrder<any>({ items: eventData.drawsData, event })) {
     options.push({
       onClick: () => {
         const structureId = defaultStructureId(draw.structures);
@@ -63,6 +66,16 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
     options.push({
       onClick: deleteFlights,
       label: t('ui.deleteFlights'),
+      modifyLabel: false,
+      close: true,
+    });
+  }
+
+  const remaining = remainingParticipantIds({ event, flightProfile }).length;
+  if (flightProfile && remaining) {
+    options.push({
+      onClick: () => addRemainingFlights({ eventId, callback: () => navigateToEvent({ eventId, renderDraw: true }) }),
+      label: t('modals.addFlights.remaining', { count: remaining }),
       modifyLabel: false,
       close: true,
     });

@@ -1719,7 +1719,14 @@
       "existingProfile": "This event already has flights",
       "replaceTitle": "Replace flights",
       "replaceExisting_one": "This event already has {{count}} flight. Replace it?",
-      "replaceExisting_other": "This event already has {{count}} flights. Replace them?"
+      "replaceExisting_other": "This event already has {{count}} flights. Replace them?",
+      "ratingFrom": "Rating from (optional)",
+      "ratingTo": "Rating to (optional)",
+      "remainingTitle": "Flights for the remaining participants",
+      "remaining": "Generate flights for the remaining participants ({{count}})",
+      "noneRemaining": "Every participant is already in a flight",
+      "noneInBand": "No remaining participant is rated within that band",
+      "alreadyFlighted": "Already in a flight: {{names}}. Add them to these flights anyway?"
     },
     "addConsolation": {
       "title": "Add voluntary consolation",
@@ -2389,7 +2396,11 @@
     "draws": {
       "drawName": "Draw Name",
       "drawType": "Draw Type",
-      "flight": "Flight"
+      "flight": "Flight",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "dragToReorder": "Drag to reorder",
+      "drawActions": "Draw actions"
     },
     "selection": {
       "position": "Position",
@@ -2708,6 +2719,19 @@
           "OUTSIDE_TOURNAMENT": "Event dates must fall within the tournament dates",
           "ACTIVE_DATE_OUTSIDE_EVENT": "Active dates must fall within the event dates",
           "INVALID_WEEKDAYS": "Days of the week are not valid"
+        },
+        "entriesHeading": "Entries",
+        "entryProfile": {
+          "entriesLimit": "Entries limit",
+          "targetDrawSize": "Main draw size",
+          "qualifiersCount": "Qualifiers into main",
+          "qualifyingDrawSize": "Qualifying draw size",
+          "wildcardCount": "Wildcards"
+        },
+        "entryProfileRefusal": {
+          "NOT_A_WHOLE_NUMBER": "Entry sizes must be whole numbers (sizes above 0)",
+          "QUALIFIERS_NOT_FEWER_THAN_QUALIFYING_DRAW": "Qualifiers into main must be fewer than the qualifying draw size",
+          "RESERVED_PLACES_EXCEED_DRAW": "Qualifiers and wildcards together cannot exceed the main draw size"
         }
       },
       "editFormat": {
@@ -2878,11 +2902,26 @@
   "overlays": {
     "scorecard": {
       "orderOfFinish": "Order of finish",
-      "orderOfFinishHint": "The order in which each line finished, numbered from 1 within singles and within doubles",
-      "orderOfFinishInvalid": "Give each line a different number, from 1 up",
       "orderOfFinishSaved": "Order of finish saved",
       "orderOfFinishFailed": "Order of finish could not be saved",
-      "noCompletedLines": "No line has been completed yet"
+      "noLinesToOrder": "No collection has two lines finished yet",
+      "issueCount": "Lines with issues",
+      "issues": {
+        "LINEUP_INCOMPLETE": "Line-up incomplete",
+        "DUPLICATE_IN_COLLECTION": "Player on more than one line",
+        "INELIGIBLE_GENDER": "Player does not fit the gender",
+        "INELIGIBLE_CATEGORY": "Player outside the category",
+        "SCORE_INCOMPLETE": "Score incomplete",
+        "MISSING_REASON": "No reason given",
+        "DUAL_DECIDED": "Decided with lines unplayed",
+        "MANUAL_SCORE": "Team score set by hand",
+        "MANUAL_SCORE_DIVERGES": "The lines produce"
+      },
+      "recordDeadRubbers": "Record as dead rubbers",
+      "overrideScore": "Override",
+      "restoreAutoScore": "Restore automatic scoring",
+      "manualScore": "Set by hand",
+      "winner": "Winner"
     },
     "tieFormat": {
       "editScorecard": "Edit scorecard",
@@ -3473,6 +3512,22 @@
     "nickname": "Nickname "
   },
   "entries": {
+    "promoteAlternates": {
+      "button": "Promote alternates",
+      "title": "Promote alternates",
+      "openSlotsEntriesLimit": "{{open}} open places: entries limit {{limit}}, {{accepted}} accepted.",
+      "openSlotsTargetDrawSize": "{{open}} open places: target draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsDrawPositions": "{{open}} open places: a draw of {{limit}}, {{accepted}} accepted.",
+      "openSlotsSanctionedDrawSize": "{{open}} open places: sanctioned draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsHeld": "{{open}} open places: {{limit}} of {{drawPositions}} draw positions, after {{qualifiers}} for qualifiers and {{wildcards}} for wildcards; {{accepted}} accepted.",
+      "noLimit": "This event sets no entries limit or draw size, so no open places are counted.",
+      "count": "Alternates to promote (1 to {{max}})",
+      "willPromote": "Will be promoted, in order:",
+      "confirm": "Promote",
+      "promoted_one": "{{count}} alternate promoted",
+      "promoted_other": "{{count}} alternates promoted",
+      "failed": "Alternates could not be promoted"
+    },
     "alreadyInDraw": "All selected participants are already in this draw",
     "alreadyPartners": "These players are already partners in this event",
     "pairedWith": "with",
@@ -3649,6 +3704,27 @@
   "venueDetail": {
     "noCourts": "No courts at this venue yet.",
     "notFound": "Venue not found."
+  },
+  "courtUse": {
+    "disable": "Don't use",
+    "disableAllDates": "Don't use (all dates)",
+    "disableOnDate": "Don't use on {{date}}",
+    "enable": "Use again",
+    "enableAllDates": "Use again (all dates)",
+    "enableOnDate": "Use again on {{date}}",
+    "enableVenue": "Use venue again",
+    "courtTitle": "Don't use {{courtName}}",
+    "venueTitle": "Don't use {{venueName}}",
+    "confirmCourtAllDates": "{{courtName}} will not be used on any date. Nothing can be placed on it until it is used again.",
+    "confirmCourtOnDate": "{{courtName}} will not be used on {{date}}. Nothing can be placed on it that day until it is used again.",
+    "confirmVenue": "No court at {{venueName}} will be used, on any date. Nothing can be placed on them until the venue is used again.",
+    "matchUpsStay_one": "{{count}} unfinished match is already placed here and will stay where it is:",
+    "matchUpsStay_other": "{{count}} unfinished matches are already placed here and will stay where they are:",
+    "noMatchUps": "No unfinished matches are placed here.",
+    "disabled": "Not in use",
+    "venueDisabled": "Venue not in use",
+    "dropRefused": "{{courtName}} is not in use on this date. Use it again first.",
+    "failed": "The change was not applied"
   },
   "tournamentDisplay": {
     "refreshed": "Tournament data refreshed from server"
