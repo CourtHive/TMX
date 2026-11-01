@@ -3,7 +3,7 @@
  * methods the scorecard sends are run as the executionQueue runs them.
  */
 import { eventConstants, matchUpStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { deadRubberMethods, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
+import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
 import { describe, expect, it } from 'vitest';
 
 const { TEAM } = eventConstants;
@@ -63,6 +63,18 @@ describe('dual override', () => {
     expect(result.success).toEqual(true);
     expect(dual().score.sets[0]).toMatchObject({ side1Score: 2, side2Score: 0 });
     expect(dual().winningSide).toBeUndefined();
+  });
+
+  it("the scorecard's issues are the factory's: a held score is reported, and diverges from the lines", () => {
+    const { drawId, matchUpId, tieMatchUps } = unscoredDual();
+    expect(dualIssues({ drawId, matchUpId })).toEqual([]);
+    winLine(drawId, tieMatchUps[0].matchUpId);
+    run([overrideTeamScoreMethod({ drawId, matchUpId, teamScore: { side1Score: 0, side2Score: 3, winningSide: 2 } })]);
+    expect(dualIssues({ drawId, matchUpId }).map(({ code }) => code)).toEqual([
+      'MANUAL_SCORE',
+      'MANUAL_SCORE_DIVERGES',
+    ]);
+    expect(dualIssues({ drawId, matchUpId: 'nonexistent' })).toEqual([]);
   });
 
   it("a decided dual's unplayed lines are recorded as dead rubbers", () => {
