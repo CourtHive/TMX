@@ -3473,6 +3473,22 @@
     "nickname": "Nickname "
   },
   "entries": {
+    "promoteAlternates": {
+      "button": "Promote alternates",
+      "title": "Promote alternates",
+      "openSlotsEntriesLimit": "{{open}} open places: entries limit {{limit}}, {{accepted}} accepted.",
+      "openSlotsTargetDrawSize": "{{open}} open places: target draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsDrawPositions": "{{open}} open places: a draw of {{limit}}, {{accepted}} accepted.",
+      "openSlotsSanctionedDrawSize": "{{open}} open places: sanctioned draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsHeld": "{{open}} open places: {{limit}} of {{drawPositions}} draw positions, after {{qualifiers}} for qualifiers and {{wildcards}} for wildcards; {{accepted}} accepted.",
+      "noLimit": "This event sets no entries limit or draw size, so no open places are counted.",
+      "count": "Alternates to promote (1 to {{max}})",
+      "willPromote": "Will be promoted, in order:",
+      "confirm": "Promote",
+      "promoted_one": "{{count}} alternate promoted",
+      "promoted_other": "{{count}} alternates promoted",
+      "failed": "Alternates could not be promoted"
+    },
     "alreadyInDraw": "All selected participants are already in this draw",
     "alreadyPartners": "These players are already partners in this event",
     "pairedWith": "with",

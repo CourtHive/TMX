@@ -609,6 +609,7 @@ export function createUnifiedEntriesPanel({
     });
 
     const rightItems = getRightItems({
+      drawId,
       event,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,
