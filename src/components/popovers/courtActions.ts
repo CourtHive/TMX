@@ -1,8 +1,11 @@
 /**
- * Court actions popover with edit option.
+ * Court actions popover: edit, and take out of / return to service (every date — the venues table has
+ * no selected date; the schedule grid's court header offers the dated change).
  * Shows tipster menu for court management actions from table rows.
  */
 import { editCourt, type CourtEditResult } from 'pages/tournament/tabs/venuesTab/editCourt';
+import { confirmCourtOutOfService, returnCourtToService } from './courtServiceActions';
+import { courtServiceState } from 'functions/courtOutOfService';
 import { competitionEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -44,12 +47,47 @@ export const courtActions =
       }
     };
 
+    // Re-read the court's service state from the engine and redraw the row's tag.
+    const doneService = ({ success }: { success: boolean }) => {
+      if (!success) return;
+      const updated = competitionEngine.getVenuesAndCourts().courts?.find((c: any) => c.courtId === courtRow.courtId);
+      courtRow.disabled = updated?.disabled;
+      row.update(courtRow);
+      row.reformat();
+    };
+
     const items = [
       {
         onClick: () => editCourt({ court: courtRow, callback: doneEditing }),
         text: t('tournaments.edit'),
       },
+      ...courtServiceItems(courtRow, doneService),
     ];
 
     tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
   };
+
+function courtServiceItems(courtRow: any, onDone: (result: { success: boolean }) => void): any[] {
+  const { courtId, courtName } = courtRow;
+  const { allDates, dates } = courtServiceState({ court: courtRow });
+  const items: any[] = [];
+  if (!allDates) {
+    items.push({
+      text: t('courtService.takeOutOfServiceAllDates'),
+      onClick: () =>
+        confirmCourtOutOfService({
+          matchUps: competitionEngine.allCompetitionMatchUps().matchUps ?? [],
+          courtName: courtName || courtId,
+          courtId,
+          onDone,
+        }),
+    });
+  }
+  if (allDates || dates.length) {
+    items.push({
+      text: t('courtService.returnToServiceAllDates'),
+      onClick: () => returnCourtToService({ courtId, onDone }),
+    });
+  }
+  return items;
+}

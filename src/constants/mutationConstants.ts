@@ -136,3 +136,7 @@ export const GENERATE_ROTATING_PARTNER_ROUND = 'generateRotatingPartnerRound';
 
 export const SCHEDULE_PROFILE_ROUNDS = 'scheduleProfileRounds';
 export const SCHEDULE_PROFILE_GRID = 'scheduleProfileGrid';
+export const DISABLE_COURTS = 'disableCourts';
+export const ENABLE_COURTS = 'enableCourts';
+export const DISABLE_VENUES = 'disableVenues';
+export const ENABLE_VENUES = 'enableVenues';

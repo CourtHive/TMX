@@ -1,3 +1,5 @@
+import { outOfServiceNameFormatter } from '../common/formatters/outOfServiceName';
+import { isCourtOutOfServiceAnyDate } from 'functions/courtOutOfService';
 import { courtActions } from '../../popovers/courtActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -43,7 +45,12 @@ export function getCourtColumns(): any[] {
       hozAlign: CENTER,
       width: 65,
     },
-    { title: t('tables.courts.courtName'), field: 'courtName', editor: true },
+    {
+      formatter: outOfServiceNameFormatter((court) => isCourtOutOfServiceAnyDate({ court })),
+      title: t('tables.courts.courtName'),
+      field: 'courtName',
+      editor: true,
+    },
     {
       title: t('tables.courts.scheduledTime'),
       field: 'scheduledMinutes',

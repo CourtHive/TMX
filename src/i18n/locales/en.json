@@ -3591,6 +3591,27 @@
     "noCourts": "No courts at this venue yet.",
     "notFound": "Venue not found."
   },
+  "courtService": {
+    "takeOutOfService": "Take out of service",
+    "takeOutOfServiceAllDates": "Take out of service (all dates)",
+    "takeOutOfServiceOnDate": "Take out of service on {{date}}",
+    "returnToService": "Return to service",
+    "returnToServiceAllDates": "Return to service (all dates)",
+    "returnToServiceOnDate": "Return to service on {{date}}",
+    "returnVenueToService": "Return venue to service",
+    "courtTitle": "Take {{courtName}} out of service",
+    "venueTitle": "Take {{venueName}} out of service",
+    "confirmCourtAllDates": "{{courtName}} will be out of service on every date. Nothing can be placed on it until it returns to service.",
+    "confirmCourtOnDate": "{{courtName}} will be out of service on {{date}}. Nothing can be placed on it that day until it returns to service.",
+    "confirmVenue": "Every court at {{venueName}} will be out of service on every date. Nothing can be placed on them until the venue returns to service.",
+    "matchUpsStay_one": "{{count}} unfinished match is already placed here and will stay where it is:",
+    "matchUpsStay_other": "{{count}} unfinished matches are already placed here and will stay where they are:",
+    "noMatchUps": "No unfinished matches are placed here.",
+    "outOfService": "Out of service",
+    "venueOutOfService": "Venue out of service",
+    "dropRefused": "{{courtName}} is out of service on this date. Return it to service first.",
+    "failed": "The service change was not applied"
+  },
   "tournamentDisplay": {
     "refreshed": "Tournament data refreshed from server"
   },
