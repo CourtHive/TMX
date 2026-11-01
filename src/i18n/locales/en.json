@@ -3453,7 +3453,8 @@
   "tieFormatEditor": {
     "scorecardName": "Scorecard Name",
     "addCollection": "Add Collection",
-    "noCollections": "No collections — click Add Collection to start"
+    "noCollections": "No collections — click Add Collection to start",
+    "lineValuesMissing": "Give every line of {{name}} a value"
   },
   "matchUpActions": {
     "scheduleDate": "Schedule date",

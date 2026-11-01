@@ -1,5 +1,6 @@
 import {
   collectionFromRow,
+  missingLineValues,
   growLineValues,
   lineValuesTotal,
   resizeLineValues,
@@ -74,7 +75,8 @@ describe('tieFormatRows', () => {
 
   it('keeps one value per line when the number of lines changes', () => {
     expect(resizeLineValues([5, 4, 3], 2)).toEqual([5, 4]);
-    expect(resizeLineValues([5, 4], 4)).toEqual([5, 4, 1, 1]);
+    // a new line has no value until one is entered
+    expect(resizeLineValues([5, 4], 4)).toEqual([5, 4, undefined, undefined]);
     expect(resizeLineValues([5], 0)).toEqual([]);
 
     const row = rowFromCollection(doubles, mintId);
@@ -115,16 +117,31 @@ describe('tieFormatRows', () => {
       row.matchUpCount = count;
       row.lineValues = growLineValues(row.lineValues, count);
     }
-    expect(row.lineValues).toEqual([5, 4, 3, 1]);
-    expect(lineValuesTotal(row)).toBe(13);
+    // the new fourth line has no value until one is entered
+    expect(row.lineValues).toEqual([5, 4, 3, undefined]);
+    expect(missingLineValues(row)).toBe(true);
+    expect(lineValuesTotal(row)).toBe(12);
 
     row.matchUpCount = 2;
     row.lineValues = growLineValues(row.lineValues, 2);
-    expect(row.lineValues).toEqual([5, 4, 3, 1]);
+    expect(row.lineValues).toEqual([5, 4, 3, undefined]);
+    expect(missingLineValues(row)).toBe(false);
     expect(lineValuesTotal(row)).toBe(9);
     expect(collectionFromRow(row).collectionValueProfiles).toEqual([
       { collectionPosition: 1, matchUpValue: 5 },
       { collectionPosition: 2, matchUpValue: 4 },
     ]);
+  });
+
+  it('switching to line values starts from a match value, and leaves the lines empty for any other award', () => {
+    const base = rowFromCollection({ ...doubles, collectionValueProfiles: undefined }, mintId);
+    expect(seedLineValues({ ...base, awardType: MATCH_VALUE, awardValue: 2 })).toEqual([2, 2, 2]);
+    // a collection value is what the whole collection is worth, not each line: copying it would misstate the scorecard
+    const fromCollection = { ...base, awardType: COLLECTION_VALUE, awardValue: 3 };
+    expect(seedLineValues(fromCollection)).toEqual([undefined, undefined, undefined]);
+    expect(
+      missingLineValues({ ...fromCollection, awardType: LINE_VALUES, lineValues: seedLineValues(fromCollection) }),
+    ).toBe(true);
+    expect(missingLineValues({ ...fromCollection, awardType: COLLECTION_VALUE, lineValues: [] })).toBe(false);
   });
 });
