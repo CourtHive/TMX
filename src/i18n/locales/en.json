@@ -3484,7 +3484,22 @@
     "noIndividualParticipants": "No individual participants",
     "addPlayers": "Add players",
     "noRatingData": "No rating data available",
-    "scheduledMatches": "Scheduled matches"
+    "scheduledMatches": "Scheduled matches",
+    "positionBadge": {
+      "accepted": "Accepted #{{position}}",
+      "qualifying": "Qualifying #{{position}}",
+      "alternate": "Alternate #{{position}}",
+      "withdrawn": "Withdrawn #{{position}}",
+      "ungrouped": "Ungrouped #{{position}}",
+      "other": "Position #{{position}}",
+      "withStatus": "{{label}} · {{status}} {{ordinal}}",
+      "status": {
+        "wildcard": "Wildcard",
+        "specialExempt": "Special exempt",
+        "juniorExempt": "Junior exempt",
+        "organiserAcceptance": "Organiser acceptance"
+      }
+    }
   },
   "ageCategories": {
     "u10": "10 and Under",
