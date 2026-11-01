@@ -2708,6 +2708,19 @@
           "OUTSIDE_TOURNAMENT": "Event dates must fall within the tournament dates",
           "ACTIVE_DATE_OUTSIDE_EVENT": "Active dates must fall within the event dates",
           "INVALID_WEEKDAYS": "Days of the week are not valid"
+        },
+        "entriesHeading": "Entries",
+        "entryProfile": {
+          "entriesLimit": "Entries limit",
+          "targetDrawSize": "Main draw size",
+          "qualifiersCount": "Qualifiers into main",
+          "qualifyingDrawSize": "Qualifying draw size",
+          "wildcardCount": "Wildcards"
+        },
+        "entryProfileRefusal": {
+          "NOT_A_WHOLE_NUMBER": "Entry sizes must be whole numbers (sizes above 0)",
+          "QUALIFIERS_NOT_FEWER_THAN_QUALIFYING_DRAW": "Qualifiers into main must be fewer than the qualifying draw size",
+          "RESERVED_PLACES_EXCEED_DRAW": "Qualifiers and wildcards together cannot exceed the main draw size"
         }
       },
       "editFormat": {
