@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 /**
  * The anonymized export runs the factory's in-place anonymizer on a deep copy. The record the engine holds
  * must come out byte-identical: the live reference is passed in, so a missing clone would rewrite it.
+ *
+ * anonymizedCopy clears nothing itself, so every cleared-field check below proves the FACTORY cleared it.
  */
 describe('anonymizedCopy', () => {
   function seed() {
@@ -17,7 +19,7 @@ describe('anonymizedCopy', () => {
     });
     const tournamentId = tournamentRecord.tournamentId;
 
-    // Identifying fields the factory's anonymizer does not touch, added to the LIVE record.
+    // Identifying fields, added to the LIVE record.
     const live = globalState.getTournamentRecord(tournamentId);
     live.linkedTournamentIds = ['other-tournament-id'];
     live.onlineResources = [{ identifier: 'https://example.org/t', resourceType: 'URL' }];
@@ -73,7 +75,7 @@ describe('anonymizedCopy', () => {
     }
   });
 
-  it('clears the identifying fields the factory anonymizer leaves in place', () => {
+  it('the factory clears the identifying tournament, participant, venue and court fields', () => {
     const { live, individualId } = seed();
     const snapshot = structuredClone(live);
 
@@ -105,6 +107,70 @@ describe('anonymizedCopy', () => {
     expect(copy.venues[0].addresses).toBeUndefined();
     expect(copy.venues[0].courts[0].latitude).toBeUndefined();
     expect(copy.venues[0].courts[0].longitude).toBeUndefined();
+  });
+
+  it('the factory clears every field the copy used to clear by hand', () => {
+    const { live } = seed();
+    const tournamentFields = {
+      tournamentSeriesId: 'series-id',
+      registrationProfile: { entriesOpen: '2026-01-01' },
+      cancellationReason: 'rain',
+      promotionalName: 'Promo Name',
+    };
+    Object.assign(live, tournamentFields);
+    const individual = live.participants.find((p: any) => p.participantType === 'INDIVIDUAL');
+    individual.participantOtherName = 'Nickname';
+    const venue = live.venues[0];
+    Object.assign(venue, {
+      parentOrganisationId: 'venue-org',
+      venueOtherIds: [{ venueId: 'external-venue-id' }],
+      facilityId: 'facility-id',
+      notes: 'gate code 1234',
+    });
+    const court = venue.courts[0];
+    court.onlineResources = [{ identifier: 'https://example.org/court', resourceType: 'URL' }];
+    court.notes = 'court note';
+    const event = live.events[0];
+    Object.assign(event, {
+      cancellationReason: 'weather',
+      tennisOfficialIds: ['official-id'],
+      eventOtherIds: [{ eventId: 'external-event-id' }],
+      notes: 'event note',
+    });
+    const drawDefinition = event.drawDefinitions[0];
+    drawDefinition.notes = 'draw note';
+    const matchUp = drawDefinition.structures[0].matchUps[0];
+    matchUp.onlineResources = [{ identifier: 'https://example.org/stream', resourceType: 'URL' }];
+    matchUp.notes = 'matchUp note';
+    const snapshot = structuredClone(live);
+
+    let result: any = anonymizedCopy(live);
+    expect(result.error).toBeUndefined();
+    const copy = result.tournamentRecord;
+    expect(live).toEqual(snapshot);
+
+    for (const field of Object.keys(tournamentFields)) expect(copy[field]).toBeUndefined();
+
+    const participantPosition = snapshot.participants.findIndex(
+      (p: any) => p.participantId === individual.participantId,
+    );
+    expect(copy.participants[participantPosition].participantOtherName).toBeUndefined();
+
+    const copiedVenue = copy.venues[0];
+    for (const field of ['parentOrganisationId', 'venueOtherIds', 'facilityId', 'notes']) {
+      expect(copiedVenue[field]).toBeUndefined();
+    }
+    expect(copiedVenue.courts[0].onlineResources).toBeUndefined();
+    expect(copiedVenue.courts[0].notes).toBeUndefined();
+
+    const copiedEvent = copy.events[0];
+    for (const field of ['cancellationReason', 'tennisOfficialIds', 'eventOtherIds', 'notes']) {
+      expect(copiedEvent[field]).toBeUndefined();
+    }
+    expect(copiedEvent.drawDefinitions[0].notes).toBeUndefined();
+    const copiedMatchUp = copiedEvent.drawDefinitions[0].structures[0].matchUps[0];
+    expect(copiedMatchUp.onlineResources).toBeUndefined();
+    expect(copiedMatchUp.notes).toBeUndefined();
   });
 
   it('refuses a missing record', () => {
