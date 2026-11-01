@@ -10,7 +10,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { t } from 'i18n';
 import {
-  buildPlaceQualifiersMethod,
+  buildPlaceQualifiersMethods,
   getQualifierPlacementState,
   summarizeQualifierPlacement,
 } from './qualifierPlacement';
@@ -32,9 +32,9 @@ export function placeQualifiers({ drawId, eventId, onPlaced }: PlaceQualifiersPa
   const positionsCount = state.openQualifierPositions.length;
 
   const okAction = () => {
-    const method = buildPlaceQualifiersMethod({ positionsCount, eventId, drawId });
+    const { targetRoundNumbers } = state;
     mutationRequest({
-      methods: [method],
+      methods: buildPlaceQualifiersMethods({ targetRoundNumbers, positionsCount, eventId, drawId }),
       callback: (result: any) => {
         if (!result?.success) {
           tmxToast({

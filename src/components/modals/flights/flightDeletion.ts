@@ -9,13 +9,15 @@
  *
  * Lives in its own module so it can be tested without importing the modals, which pull courthive-components.
  */
+import { sortByDrawOrder } from 'functions/drawOrder';
+
 import { DELETE_DRAW_DEFINITIONS, DELETE_FLIGHT_AND_DRAW, DELETE_FLIGHT_PROFILE } from 'constants/mutationConstants';
 
 export type DeletableFlight = { drawId: string; drawName?: string; generated: boolean };
 
 const generatedDrawIds = (event: any) => new Set((event?.drawDefinitions ?? []).map(({ drawId }: any) => drawId));
 
-/** Every draw and every flight of the event: generated draws first, then flights that have no draw. */
+/** Every draw and every flight of the event, in draw order (flights that were never ordered follow the draws). */
 export function deletableFlights({ event, flightProfile }: { event: any; flightProfile?: any }): DeletableFlight[] {
   const generated = (event?.drawDefinitions ?? []).map(({ drawId, drawName }: any) => ({
     generated: true,
@@ -26,7 +28,7 @@ export function deletableFlights({ event, flightProfile }: { event: any; flightP
   const ungenerated = (flightProfile?.flights ?? [])
     .filter(({ drawId }: any) => !drawIds.has(drawId))
     .map(({ drawId, drawName }: any) => ({ generated: false, drawName, drawId }));
-  return [...generated, ...ungenerated];
+  return sortByDrawOrder({ items: [...generated, ...ungenerated], event, flightProfile });
 }
 
 /** A reason is asked for only when a generated draw would be deleted. */

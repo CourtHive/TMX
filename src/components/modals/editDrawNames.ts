@@ -15,6 +15,7 @@
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
+import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { escapeHtml } from 'utilities/escapeHtml';
@@ -36,7 +37,7 @@ export function editDrawNames({
   callback?: (renamed: RenamedDraw[]) => void;
 }): void {
   const event = tournamentEngine.q.event({ eventId });
-  const allDraws = (event?.drawDefinitions || []).filter(Boolean);
+  const allDraws = orderedDrawDefinitions(event).filter(Boolean);
   const draws = drawIds?.length ? allDraws.filter((dd: any) => drawIds.includes(dd.drawId)) : allDraws;
   if (!draws.length) return;
 
