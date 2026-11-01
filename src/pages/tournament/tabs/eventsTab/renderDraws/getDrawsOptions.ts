@@ -9,6 +9,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { defaultStructureId } from './defaultStructureId';
+import { sortByDrawOrder } from 'functions/drawOrder';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
@@ -47,7 +48,7 @@ export function getDrawsOptions({ eventData }: { eventData: any }): any[] {
 
   const options: any[] = [allDrawsOption];
 
-  for (const draw of eventData.drawsData) {
+  for (const draw of sortByDrawOrder<any>({ items: eventData.drawsData, event })) {
     options.push({
       onClick: () => {
         const structureId = defaultStructureId(draw.structures);

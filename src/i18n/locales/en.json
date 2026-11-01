@@ -2389,7 +2389,11 @@
     "draws": {
       "drawName": "Draw Name",
       "drawType": "Draw Type",
-      "flight": "Flight"
+      "flight": "Flight",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "dragToReorder": "Drag to reorder",
+      "drawActions": "Draw actions"
     },
     "selection": {
       "position": "Position",
