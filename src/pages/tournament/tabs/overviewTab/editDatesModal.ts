@@ -1,4 +1,5 @@
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
+import { showTournamentDateChanges } from 'components/modals/tournamentDateChangesNotice';
 import { submitTournamentDates } from 'services/mutation/submitTournamentDates';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
@@ -161,6 +162,8 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       if (result?.success) {
         closeModal();
         onSave();
+        // SET_TOURNAMENT_DATES is the first method
+        showTournamentDateChanges({ result: result.results?.[0], events: tournamentEngine.getEvents()?.events });
       } else if (result?.error) {
         // server-side rejection (the local dry-run already intercepts the
         // out-of-range-scheduling case) — surface it, keep the modal open.
