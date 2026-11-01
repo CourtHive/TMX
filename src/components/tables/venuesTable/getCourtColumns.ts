@@ -1,3 +1,5 @@
+import { disabledNameFormatter } from '../common/formatters/disabledName';
+import { isCourtDisabledAnyDate } from 'functions/courtUse';
 import { courtActions } from '../../popovers/courtActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -43,7 +45,12 @@ export function getCourtColumns(): any[] {
       hozAlign: CENTER,
       width: 65,
     },
-    { title: t('tables.courts.courtName'), field: 'courtName', editor: true },
+    {
+      formatter: disabledNameFormatter((court) => isCourtDisabledAnyDate({ court })),
+      title: t('tables.courts.courtName'),
+      field: 'courtName',
+      editor: true,
+    },
     {
       title: t('tables.courts.scheduledTime'),
       field: 'scheduledMinutes',

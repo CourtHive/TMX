@@ -24,6 +24,7 @@ import { publishingGovernor, entryStatusConstants } from 'tods-competition-facto
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
+import { sortByDrawOrder } from 'functions/drawOrder';
 
 import { buildDrawCardVisualization } from './buildDrawCardVisualization';
 import { DrawCardDisplayMode } from './drawCardDisplayMode';
@@ -170,7 +171,12 @@ export function readDrawCardData(eventId: string): DrawCardData[] {
   const { scaleValues } = (tournamentEngine as any).getRatingsStats?.({ eventId }) || {};
   const utrAvg = scaleValues?.ratingsStats?.UTR?.avg;
   const wtnAvg = scaleValues?.ratingsStats?.WTN?.avg;
-  return [...buildGeneratedRows(resolved, eventId, utrAvg, wtnAvg), ...buildUngeneratedRows(resolved, eventId)];
+  const flightProfile = tournamentEngine.q.flightProfile({ event: resolved.event });
+  return sortByDrawOrder({
+    items: [...buildGeneratedRows(resolved, eventId, utrAvg, wtnAvg), ...buildUngeneratedRows(resolved, eventId)],
+    event: resolved.event,
+    flightProfile,
+  });
 }
 
 function openDrawCard(data: DrawCardData): void {

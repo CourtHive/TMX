@@ -42,6 +42,9 @@ export const SYNC_INDICATOR = 'syncIndicator';
 export const SUPER_ADMIN = 'superadmin';
 export const ROTATING_SETTLEMENT_TREATMENT = 'rotatingSettlementTreatment';
 export const ROTATING_SETTLEMENT_REASON = 'rotatingSettlementReason';
+export const PROMOTE_ALTERNATES_BUTTON = 'promoteAlternatesButton';
+export const PROMOTE_ALTERNATES_COUNT = 'promoteAlternatesCount';
+export const PROMOTE_ALTERNATES_CONFIRM = 'promoteAlternatesConfirm';
 export const ROTATING_SETTLEMENT_ACTOR = 'rotatingSettlementActor';
 export const ROTATING_SETTLEMENT_WINNING_POINTS = 'rotatingSettlementWinningPoints';
 export const ROTATING_SETTLEMENT_LOSING_POINTS = 'rotatingSettlementLosingPoints';
@@ -211,6 +214,7 @@ export const NONE = 'none';
 export const IS_OPEN = 'isOpen';
 
 export const COLLECTION_VALUE = 'Collection value';
+export const LINE_VALUES = 'Line values';
 export const MATCH_VALUE = 'Match value';
 export const SCORE_VALUE = 'Score value';
 export const SET_VALUE = 'Set value';

@@ -3,17 +3,22 @@
  * Uses renderScorecard from courthive-components for the layout,
  * wires TMX-specific event handlers for scoring and substitution.
  */
+import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { finishingOrderCollections, finishingOrderMethod } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { extensionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tipster } from 'components/popovers/tipster';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
+import { t } from 'i18n';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -70,7 +75,10 @@ export function openScorecard({ title, drawId, matchUpId, onClose }: ScorecardPa
   return openOverlay({ title, content, footer });
 }
 
-function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: string }): void {
+type RefreshParams = { drawId: string; matchUpId: string; editingCollectionId?: string };
+
+// the collection whose order of finish is being corrected is the only state the scorecard keeps between renders
+function refreshScorecard({ drawId, matchUpId, editingCollectionId }: RefreshParams): void {
   const matchUp = tournamentEngine.findMatchUp({
     drawId,
     matchUpId,
@@ -78,26 +86,95 @@ function refreshScorecard({ drawId, matchUpId }: { drawId: string; matchUpId: st
   })?.matchUp;
   if (!matchUp) return;
 
-  const content = renderScorecard({ matchUp, onRefresh: () => refreshScorecard({ drawId, matchUpId }) });
+  const content = renderScorecard({
+    onRefresh: () => refreshScorecard({ drawId, matchUpId }),
+    editingCollectionId,
+    matchUp,
+  });
   setOverlayContent({ content });
 }
 
 export function renderScorecard({
   matchUp,
   composition: compositionOverride,
+  editingCollectionId,
   onRefresh,
 }: {
   matchUp: any;
   composition?: any;
+  editingCollectionId?: string;
   onRefresh?: () => void;
 }): HTMLDivElement {
   const composition = compositionOverride || resolveComposition(matchUp);
   const eventHandlers = buildCollectionEventHandlers({ matchUp, onRefresh });
 
-  const container = renderScorecardLayout({ matchUp, composition, eventHandlers });
+  const { drawId, matchUpId } = matchUp;
+  const send = (methods: any[]) => mutationRequest({ methods, callback: () => onRefresh?.() });
+  const issueActions = {
+    DUAL_DECIDED: {
+      label: t('overlays.scorecard.recordDeadRubbers'),
+      onClick: ({ matchUpIds }: any) => send(deadRubberMethods({ drawId, matchUpIds })),
+    },
+  };
+  const teamScore = {
+    onOverride: (score: any) => send([overrideTeamScoreMethod({ drawId, matchUpId, teamScore: score })]),
+    onRestore: () => send([restoreAutoCalcMethod({ drawId, matchUpId })]),
+  };
+
+  // the collection card's order-of-finish entry mode: Save sends the whole order, Cancel leaves it as it was
+  const finishingOrder = {
+    onSave: (order: any[]) =>
+      mutationRequest({
+        methods: [finishingOrderMethod({ drawId, finishingOrder: order })],
+        callback: (result: any) => {
+          const message = result?.success
+            ? t('overlays.scorecard.orderOfFinishSaved')
+            : t('overlays.scorecard.orderOfFinishFailed');
+          tmxToast({ message, intent: result?.success ? 'is-success' : 'is-danger' });
+          onRefresh?.();
+        },
+      }),
+    onCancel: () => onRefresh?.(),
+    editingCollectionId,
+  };
+
+  const container = renderScorecardLayout({
+    issues: dualIssues({ drawId, matchUpId }),
+    finishingOrder,
+    labels: scorecardLabels(),
+    eventHandlers,
+    issueActions,
+    composition,
+    teamScore,
+    matchUp,
+  });
   container.classList.add('overlay-content-container');
 
   return container;
+}
+
+function scorecardLabels(): any {
+  return {
+    issues: {
+      LINEUP_INCOMPLETE: t('overlays.scorecard.issues.LINEUP_INCOMPLETE'),
+      DUPLICATE_IN_COLLECTION: t('overlays.scorecard.issues.DUPLICATE_IN_COLLECTION'),
+      INELIGIBLE_GENDER: t('overlays.scorecard.issues.INELIGIBLE_GENDER'),
+      INELIGIBLE_CATEGORY: t('overlays.scorecard.issues.INELIGIBLE_CATEGORY'),
+      SCORE_INCOMPLETE: t('overlays.scorecard.issues.SCORE_INCOMPLETE'),
+      MISSING_REASON: t('overlays.scorecard.issues.MISSING_REASON'),
+      DUAL_DECIDED: t('overlays.scorecard.issues.DUAL_DECIDED'),
+      MANUAL_SCORE: t('overlays.scorecard.issues.MANUAL_SCORE'),
+      MANUAL_SCORE_DIVERGES: t('overlays.scorecard.issues.MANUAL_SCORE_DIVERGES'),
+    },
+    orderOfFinish: t('overlays.scorecard.orderOfFinish'),
+    issueCount: t('overlays.scorecard.issueCount'),
+    override: t('overlays.scorecard.overrideScore'),
+    restore: t('overlays.scorecard.restoreAutoScore'),
+    manual: t('overlays.scorecard.manualScore'),
+    winner: t('overlays.scorecard.winner'),
+    cancel: t('common.cancel'),
+    save: t('common.save'),
+  };
 }
 
 function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; onRefresh?: () => void }): any {
@@ -137,6 +214,7 @@ function buildCollectionEventHandlers({ matchUp, onRefresh }: { matchUp: any; on
               ({ methodName }: any) => methodName === SET_MATCHUP_STATUS,
             )?.tieMatchUpResult;
             if (tieResult) updateTieScore(tieResult);
+            // the factory numbers the line in its collection's order of finish; the refresh shows it
             onRefresh?.();
           }
         },
@@ -223,6 +301,32 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
     mutationRequest({ methods, callback: postMutation });
   };
 
+  const orderOfFinish = document.createElement('button');
+  orderOfFinish.className = 'button is-info is-light button-spacer';
+  const orderOfFinishLabel = t('overlays.scorecard.orderOfFinish');
+  orderOfFinish.textContent = orderOfFinishLabel;
+  orderOfFinish.onclick = () => {
+    const dual = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
+    const collections = finishingOrderCollections(dual);
+    const edit = (editingCollectionId: string) => refreshScorecard({ drawId, matchUpId, editingCollectionId });
+    if (!collections.length) {
+      tmxToast({ message: t('overlays.scorecard.noLinesToOrder'), intent: 'is-warning' });
+    } else if (collections.length === 1) {
+      edit(collections[0].collectionId);
+    } else {
+      const options = collections.map(({ collectionId, collectionName }) => ({
+        option: collectionName ?? collectionId,
+        onClick: () => edit(collectionId),
+      }));
+      tipster({
+        options,
+        target: orderOfFinish,
+        title: orderOfFinishLabel,
+        config: { arrow: false },
+      });
+    }
+  };
+
   const clear = document.createElement('button');
   clear.className = 'button is-info is-light button-spacer';
   clear.innerHTML = 'Clear results';
@@ -250,6 +354,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   footer.className = 'overlay-footer-wrap';
   footer.appendChild(edit);
   footer.appendChild(removePlayers);
+  footer.appendChild(orderOfFinish);
   footer.appendChild(clear);
   footer.appendChild(close);
 

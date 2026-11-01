@@ -39,7 +39,9 @@ import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { isRunningDesk } from 'services/authentication/isRunningDesk';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { eventDateGridIssues, eventDateIssueIds, warnInactiveEventDates } from './eventDateGrid';
 import { decoratesCell, severityOf } from './scheduleIssueSeverity';
+import { EVENT_DATE_INACTIVE } from './eventDateScheduling';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { getLoginState } from 'services/authentication/loginState';
@@ -132,6 +134,14 @@ import { mergeReservedCellsIntoRows } from 'services/facilitySchedule/facilitySc
 import { getReservedCellsForDate } from 'services/facilitySchedule/reservedCells';
 import { hiddenCourtIds, syncVisibilityDate } from './visibilityState';
 import { addVenue } from 'pages/tournament/tabs/venuesTab/addVenue';
+import {
+  courtUseMenuOptions,
+  decorateDisabledCell,
+  decorateDisabledHeader,
+  gridDisabledCourtIds,
+  refuseDisabledCourt,
+  refuseDisabledPlacement,
+} from './courtUseGrid';
 import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
@@ -597,6 +607,8 @@ export function renderGridView(
       const courtOrder = target?.getAttribute(DATA_COURT_ORDER);
 
       if (!courtId || !venueId || !courtOrder) return;
+      // A court not in use takes no drops; refuse before any confirmation is shown for it.
+      if (refuseDisabledCourt(courtId, currentDate)) return;
 
       const existingMatchUpId = target?.getAttribute(DATA_MATCHUP_ID);
       const existingDrawId = target?.getAttribute(DATA_DRAW_ID);
@@ -1371,11 +1383,24 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // Hidden with the sidebar: built when it is shown again (`onSidebarShown`).
     if (!sidebarVisible) return;
     scheduledCardsContainer.innerHTML = '';
+    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
+    const filterItems = (list: CatalogMatchUpItem[]) =>
+      filterMatchUpCatalog(list, scheduledSearchQuery, 'dim', scheduledFilters, showCompleted);
+
     // Readiness separates cards placed at the same time; it does not reorder the day. Ordered here, on
-    // the panel's rebuild, and never by the badge ticker — see `catalogOrder.ts`.
-    const scheduled = orderByReadiness(getScheduledNotPlacedOnCourt(), (id) => evaluateRest(id, currentDate), {
-      byTime: (m) => scheduledTimeToMinutes(m.schedule?.scheduledTime),
-    });
+    // the panel's rebuild, and never by the badge ticker — see `catalogOrder.ts`. Ordering costs a rest
+    // pass, and the order is only seen on drawn cards: when the search, the filters and the collapsed
+    // groups leave none, the pass is skipped. One pass answers the whole day, so when any card is drawn
+    // the hidden ones are ordered in it at no extra cost.
+    const candidates = getScheduledNotPlacedOnCourt();
+    const drawsCards = [
+      ...groupMatchUpCatalog(filterItems(candidates.map(scheduledMatchUpToCatalogItem)), scheduledGroupBy),
+    ].some(([gk, groupItems]) => groupItems.length > 0 && !scheduledCollapsedGroups.has(gk));
+    const scheduled = drawsCards
+      ? orderByReadiness(candidates, (id) => evaluateRest(id, currentDate), {
+          byTime: (m) => scheduledTimeToMinutes(m.schedule?.scheduledTime),
+        })
+      : candidates;
     const items = scheduled.map((m) => scheduledMatchUpToCatalogItem(m));
 
     // Round-emphasis base per event — computed off the FULL items list
@@ -1395,8 +1420,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     // honors it (so completed orphans reach this step), but
     // `filterMatchUpCatalog` re-applies `isCompletedStatus` internally and
     // would drop them again if we left the default `false`.
-    const showCompleted = activeControl?.getStore().getState().showCompleted ?? false;
-    const filtered = filterMatchUpCatalog(items, scheduledSearchQuery, 'dim', scheduledFilters, showCompleted);
+    const filtered = filterItems(items);
 
     // Match the unscheduled catalog meta line ("{N} unscheduled") on the
     // Scheduled side so the panel header carries the same shape and the
@@ -1942,6 +1966,10 @@ function showStaleDrawBanner(droppedCount: number): void {
  * In bulk mode: runs locally on competitionEngine, queues for batch send.
  */
 function executeMethods(methods: any[], onRefresh: () => void): void {
+  // Every grid placement funnels through here: none may land on a court not in use on its date.
+  if (refuseDisabledPlacement(methods, currentDate)) return;
+  // A placement on a day its event does not play lands, with a warning (never refused).
+  warnInactiveEventDates(methods);
   // Plan mode: a drop edits the SCENARIO, never the official schedule. Fold the
   // drop's methods into the scenario's placements and persist via
   // updateScheduleScenario (which touches scheduling.scenarios, not matchUps);
@@ -2193,8 +2221,9 @@ function buildRowCourtCells(params: {
   emptyCellStyle: string;
   allRows: any[];
   callbacks: GridCallbacks;
+  disabledIds: Set<string>;
 }): void {
-  const { grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle, allRows, callbacks } = params;
+  const { grid, row, ri, visibleCourts, courtPrefix, emptyCellStyle, allRows, callbacks, disabledIds } = params;
   for (const visibleCourt of visibleCourts) {
     if (!row) {
       const emptyCell = document.createElement('div');
@@ -2261,7 +2290,10 @@ function buildRowCourtCells(params: {
       attachCellDragSource(cell, cellData);
     }
 
-    if (!cellData?.isBlocked) {
+    // Greyed, not hidden: the matchUps already on a court not in use stay visible where they are.
+    if (disabledIds.has(courtInfo?.courtId)) {
+      decorateDisabledCell(cell);
+    } else if (!cellData?.isBlocked) {
       attachCellDropTarget(cell);
     }
 
@@ -2511,6 +2543,8 @@ function buildGridHeaders(params: {
   matchUpCounts?: Map<string, number>;
   onVisibilityChanged?: () => void;
   scheduledDate?: string;
+  disabledIds?: Set<string>;
+  onUseChanged?: () => void;
 }): HTMLElement[] {
   const {
     grid,
@@ -2523,6 +2557,8 @@ function buildGridHeaders(params: {
     matchUpCounts,
     onVisibilityChanged,
     scheduledDate,
+    disabledIds,
+    onUseChanged,
   } = params;
   const corner = document.createElement('div');
   corner.style.cssText =
@@ -2571,6 +2607,7 @@ function buildGridHeaders(params: {
     th.style.cssText = stickyHeader + '; cursor: pointer;';
     th.title = courtName;
     th.textContent = showCourtIdentifiers() ? courtName : '';
+    if (disabledIds?.has(court.courtId)) decorateDisabledHeader(th, courtName);
     th.addEventListener('click', (e: MouseEvent) => {
       e.stopPropagation();
       const visible = showCourtIdentifiers();
@@ -2605,6 +2642,7 @@ function buildGridHeaders(params: {
             option: 'Print court card(s)',
             onClick: () => printCourtMatchUpCards({ courtId: court.courtId, courtName, scheduledDate }),
           },
+          ...headerUseOptions(court.courtId, courtName, scheduledDate, onUseChanged),
         ],
       });
     });
@@ -2632,6 +2670,23 @@ function buildGridHeaders(params: {
   }
 
   return courtHeaders;
+}
+
+/** Don't use / use again — official schedule only, so Plan mode (a scenario) offers none. */
+function headerUseOptions(
+  courtId: string,
+  courtName: string,
+  scheduledDate?: string,
+  onUseChanged?: () => void,
+): { option: string; onClick: () => void }[] {
+  if (planContext || !scheduledDate || !onUseChanged) return [];
+  return courtUseMenuOptions({
+    matchUps: getCachedAllMatchUps().matchUps ?? [],
+    onDone: onUseChanged,
+    date: scheduledDate,
+    courtName,
+    courtId,
+  });
 }
 
 function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): InteractiveGrid {
@@ -2676,6 +2731,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
     const rows: any[] = (scheduleResult.rows || []).map((row: any) => ({ ...row }));
     const allCourtsData: any[] = scheduleResult.courtsData || [];
     const courtPrefix: string = scheduleResult.courtPrefix || 'C|';
+    const disabledIds = gridDisabledCourtIds(date);
 
     // Overlay read-only reserved cells (other facility-sharing tournaments' court occupancy) into the
     // empty slots of the owned grid. Data is a slim projection cached by reservedCells — no records
@@ -2770,6 +2826,12 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
       matchUpCounts,
       onVisibilityChanged,
       scheduledDate: date,
+      disabledIds,
+      onUseChanged: () => {
+        // a court or venue changed use state: re-read courts and matchUps, then redraw
+        invalidateMatchUpCaches();
+        callbacks.onRefresh();
+      },
     });
 
     // ── Data rows ──
@@ -2804,6 +2866,7 @@ function buildInteractiveGrid(selectedDate: string, callbacks: GridCallbacks): I
         emptyCellStyle: EMPTY_CELL,
         allRows: rows,
         callbacks,
+        disabledIds,
       });
 
       // Placeholder cells for empty columns
@@ -3526,6 +3589,7 @@ function handleActiveStripDrop(
   refresh: () => void,
   event?: DragEvent,
 ): void {
+  if (refuseDisabledCourt(target.courtId, currentDate)) return;
   // A matchUp dragged FROM the grid may only land on an EMPTY Now-strip cell.
   // If the court's Now slot already shows a live/next matchUp, reject the drop —
   // the strip is what's imminent and shouldn't be displaced by a grid drag.
@@ -4220,6 +4284,9 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
   });
 
   const matchUpIssueMap = buildMatchUpIssueMap(courtIssues, rowIssues);
+  // a matchUp on a day its event does not play: decorated only when proConflicts gave it nothing
+  const eventDateIds = eventDateIssueIds();
+  const WARNING = scheduleConstants.SCHEDULE_WARNING;
 
   // Annotate each cellData with the issue info that mapMatchUpToCellData reads
   const warningBarsVisible = readGridWarningBars();
@@ -4229,6 +4296,10 @@ function annotateConflicts(rows: any[], courtsData: any[], courtPrefix: string):
       cellData.scheduleState = issue.issue;
       cellData.issueType = issue.issueType;
       cellData.issueIds = issue.issueIds;
+    } else if (!issue && eventDateIds.has(cellData.matchUpId) && decoratesCell(WARNING, warningBarsVisible)) {
+      cellData.scheduleState = WARNING;
+      cellData.issueType = EVENT_DATE_INACTIVE;
+      delete cellData.issueIds;
     } else {
       delete cellData.scheduleState;
       delete cellData.issueType;
@@ -4264,7 +4335,8 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
   // Always use allTournamentMatchUps for conflict detection — the grid cell data objects
   // lack fields that proConflicts needs to detect certain conflict types.
   const conflictResult = getCachedProConflicts(selectedDate);
-  if (!conflictResult.evaluated) return [];
+  // matchUps on a day their event does not play: persistent, whoever placed them
+  if (!conflictResult.evaluated) return eventDateGridIssues(selectedDate);
   const { scheduledMatchUps } = conflictResult;
   const conflictsResult = { courtIssues: conflictResult.courtIssues || {}, rowIssues: conflictResult.rowIssues || {} };
 
@@ -4311,7 +4383,7 @@ export function buildIssues(selectedDate: string): ScheduleIssue[] {
     }
   }
 
-  return issues;
+  return [...issues, ...eventDateGridIssues(selectedDate)];
 }
 
 // ── Helpers ──

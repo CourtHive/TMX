@@ -1387,6 +1387,17 @@
       "endDateLabel": "End Date",
       "timeZoneDetectedHint": "Detected from your browser ({{zone}}). Confirm, change, or clear."
     },
+    "tournamentDateChanges": {
+      "title": "What else changed with the dates",
+      "tournament": "Tournament",
+      "eventTracked": "{{event}}: dates follow the tournament, now {{range}} (was {{previous}})",
+      "eventClamped": "{{event}}: dates cut to {{range}} (was {{previous}})",
+      "eventReset": "{{event}}: dates were outside the tournament, reset to {{range}} (was {{previous}})",
+      "activeDatesPruned": "{{target}}: active dates removed: {{dates}}",
+      "activeDatesUnset": "{{target}}: every active date was outside the new dates ({{dates}}), so it now plays every day; set active dates again if needed",
+      "profileTrimmed": "Scheduling profile: {{date}} removed, rounds: {{count}}",
+      "unscheduled": "MatchUps unscheduled: {{count}}"
+    },
     "invalidParticipants": {
       "title": "Invalid Participants"
     },
@@ -1430,6 +1441,20 @@
     },
     "dropzone": {
       "title": "Import tournament records"
+    },
+    "recordValidation": {
+      "title": "Tournament record validation",
+      "toast_one": "Imported record has {{count}} validation issue",
+      "toast_other": "Imported record has {{count}} validation issues",
+      "review": "Review",
+      "counts": "Schema errors: {{schema}} · Integrity findings: {{integrity}}",
+      "schemaUnavailable": "The schema validator could not be loaded; only integrity findings are shown.",
+      "showAll": "Show all ({{count}})",
+      "showFewer": "Show fewer",
+      "copyAll": "Copy all",
+      "copied_one": "Copied {{count}} issue",
+      "copied_other": "Copied {{count}} issues",
+      "copyFailed": "Could not copy to the clipboard"
     },
     "importParticipants": {
       "title": "Import participants",
@@ -1714,7 +1739,19 @@
     },
     "addFlights": {
       "flightsGenerated": "Flights generated",
-      "generationFailed": "Flight profile generation failed"
+      "generationFailed": "Flight profile generation failed",
+      "existingDraws": "Flights cannot be generated once the event has a draw",
+      "existingProfile": "This event already has flights",
+      "replaceTitle": "Replace flights",
+      "replaceExisting_one": "This event already has {{count}} flight. Replace it?",
+      "replaceExisting_other": "This event already has {{count}} flights. Replace them?",
+      "ratingFrom": "Rating from (optional)",
+      "ratingTo": "Rating to (optional)",
+      "remainingTitle": "Flights for the remaining participants",
+      "remaining": "Generate flights for the remaining participants ({{count}})",
+      "noneRemaining": "Every participant is already in a flight",
+      "noneInBand": "No remaining participant is rated within that band",
+      "alreadyFlighted": "Already in a flight: {{names}}. Add them to these flights anyway?"
     },
     "addConsolation": {
       "title": "Add voluntary consolation",
@@ -2040,6 +2077,23 @@
       "rankingPoints": "Ranking Points",
       "previous": "← Previous",
       "next": "Next →"
+    },
+    "deleteFlights": {
+      "confirmUngenerated_one": "Delete this flight? It has no draw yet; its participants stay entered in the event.",
+      "confirmUngenerated_other": "Delete these {{count}} flights? None has a draw yet; their participants stay entered in the event.",
+      "keepFlightReason": "Please provide a reason for draw deletion. The flight is kept, so the draw can be generated again.",
+      "confirmAll": "Delete all of this event's flights? None has a draw yet; their participants stay entered in the event."
+    },
+    "penalties": {
+      "title": "Penalties",
+      "none": "This participant has no penalties",
+      "edit": "Edit",
+      "remove": "Remove",
+      "removeConfirm": "Remove the {{penaltyType}} penalty? This cannot be undone.",
+      "updated": "Penalty updated",
+      "updateFailed": "Penalty could not be updated",
+      "removed": "Penalty removed",
+      "removeFailed": "Penalty could not be removed"
     },
     "penalty": {
       "participant": "Participant",
@@ -2367,7 +2421,11 @@
     "draws": {
       "drawName": "Draw Name",
       "drawType": "Draw Type",
-      "flight": "Flight"
+      "flight": "Flight",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "dragToReorder": "Drag to reorder",
+      "drawActions": "Draw actions"
     },
     "selection": {
       "position": "Position",
@@ -2675,7 +2733,31 @@
         "competitionFormatLabel": "Sport rules",
         "competitionFormatNone": "None",
         "competitionFormatTennis": "Tennis (standard)",
-        "competitionFormatIntennse": "INTENNSE (standard)"
+        "competitionFormatIntennse": "INTENNSE (standard)",
+        "activeDatesLabel": "Active dates",
+        "activeDatesPlaceholder": "All dates in range",
+        "weekdaysLabel": "Days of the week",
+        "eventDatesSchedulingHint": "Scheduling honours these: auto-scheduling skips the days this event does not play, and the grid warns when a match is placed on one.",
+        "eventDatesRefusal": {
+          "INVALID_DATE": "Dates must be valid calendar days (YYYY-MM-DD)",
+          "START_AFTER_END": "The start date cannot be after the end date",
+          "OUTSIDE_TOURNAMENT": "Event dates must fall within the tournament dates",
+          "ACTIVE_DATE_OUTSIDE_EVENT": "Active dates must fall within the event dates",
+          "INVALID_WEEKDAYS": "Days of the week are not valid"
+        },
+        "entriesHeading": "Entries",
+        "entryProfile": {
+          "entriesLimit": "Entries limit",
+          "targetDrawSize": "Main draw size",
+          "qualifiersCount": "Qualifiers into main",
+          "qualifyingDrawSize": "Qualifying draw size",
+          "wildcardCount": "Wildcards"
+        },
+        "entryProfileRefusal": {
+          "NOT_A_WHOLE_NUMBER": "Entry sizes must be whole numbers (sizes above 0)",
+          "QUALIFIERS_NOT_FEWER_THAN_QUALIFYING_DRAW": "Qualifiers into main must be fewer than the qualifying draw size",
+          "RESERVED_PLACES_EXCEED_DRAW": "Qualifiers and wildcards together cannot exceed the main draw size"
+        }
       },
       "editFormat": {
         "noChanges": "No changes",
@@ -2689,7 +2771,9 @@
         "printDraw": "Print draw",
         "recalculateStats": "Recalculate stats",
         "deleteDraw": "Delete draw",
+        "deleteDrawAndFlight": "Delete draw and flight",
         "resetDraw": "Reset draw",
+        "resetStructure": "Reset structure",
         "cannotRemoveScores": "Cannot remove when scores are present",
         "removePlayers": "Remove players",
         "clearResults": "Clear results",
@@ -2699,7 +2783,22 @@
         "autoPlaceParticipants": "Auto place participants",
         "configureDraft": "Configure draft",
         "resolveDraft": "Resolve draft",
-        "draftStatus": "Draft"
+        "draftStatus": "Draft",
+        "placeQualifiers": "Place qualifiers"
+      },
+      "placeQualifiers": {
+        "title": "Place qualifiers",
+        "confirm": "Qualified participants: {{qualifiedCount}}. Open qualifier positions: {{positionsCount}}. The qualifiers will be drawn into the qualifier positions by lot.",
+        "nothingToPlace": "There are no qualified participants to place",
+        "failed": "Qualifiers could not be placed",
+        "nonePlaced": "No qualifiers were placed.",
+        "placedCount_one": "{{count}} qualifier placed:",
+        "placedCount_other": "{{count}} qualifiers placed:",
+        "placedAt": "{{name}}: position {{drawPosition}}",
+        "notPlaced_one": "{{count}} qualified participant could not be placed: {{names}}.",
+        "notPlaced_other": "{{count}} qualified participants could not be placed: {{names}}.",
+        "positionsOpen_one": "{{count}} qualifier position is still open.",
+        "positionsOpen_other": "{{count}} qualifier positions are still open."
       }
     },
     "participants": {
@@ -2826,6 +2925,29 @@
     }
   },
   "overlays": {
+    "scorecard": {
+      "orderOfFinish": "Order of finish",
+      "orderOfFinishSaved": "Order of finish saved",
+      "orderOfFinishFailed": "Order of finish could not be saved",
+      "noLinesToOrder": "No collection has two lines finished yet",
+      "issueCount": "Lines with issues",
+      "issues": {
+        "LINEUP_INCOMPLETE": "Line-up incomplete",
+        "DUPLICATE_IN_COLLECTION": "Player on more than one line",
+        "INELIGIBLE_GENDER": "Player does not fit the gender",
+        "INELIGIBLE_CATEGORY": "Player outside the category",
+        "SCORE_INCOMPLETE": "Score incomplete",
+        "MISSING_REASON": "No reason given",
+        "DUAL_DECIDED": "Decided with lines unplayed",
+        "MANUAL_SCORE": "Team score set by hand",
+        "MANUAL_SCORE_DIVERGES": "The lines produce"
+      },
+      "recordDeadRubbers": "Record as dead rubbers",
+      "overrideScore": "Override",
+      "restoreAutoScore": "Restore automatic scoring",
+      "manualScore": "Set by hand",
+      "winner": "Winner"
+    },
     "tieFormat": {
       "editScorecard": "Edit scorecard",
       "noChanges": "No changes",
@@ -3311,6 +3433,7 @@
     "noMatches": "No matches",
     "ok": "Ok",
     "deleteFlights": "Delete flights",
+    "deleteAllFlights": "Delete all flights",
     "totalMatchUps": "Total MatchUps",
     "grid": "Grid",
     "policyLabel": "Policy:",
@@ -3372,6 +3495,9 @@
     "deleteReason": "Please provide a reason for draw deletion.",
     "noEntriesInDraw": "No entries in this draw",
     "resetReason": "Please provide a reason for resetting the draw.",
+    "resetStructureReason": "Please provide a reason for resetting this structure's results.",
+    "resetStructureLinked": "This structure feeds other structures: reset the whole draw instead",
+    "resetStructureDelivered": "Participants from this structure are already placed in the next structure: remove them there first",
     "removeAssignments": "Remove all position assignments",
     "noInvalidParticipants": "No invalid participants",
     "addQualifying": "Add qualifying",
@@ -3395,7 +3521,8 @@
   "tieFormatEditor": {
     "scorecardName": "Scorecard Name",
     "addCollection": "Add Collection",
-    "noCollections": "No collections — click Add Collection to start"
+    "noCollections": "No collections — click Add Collection to start",
+    "lineValuesMissing": "Give every line of {{name}} a value"
   },
   "matchUpActions": {
     "scheduleDate": "Schedule date",
@@ -3410,6 +3537,22 @@
     "nickname": "Nickname "
   },
   "entries": {
+    "promoteAlternates": {
+      "button": "Promote alternates",
+      "title": "Promote alternates",
+      "openSlotsEntriesLimit": "{{open}} open places: entries limit {{limit}}, {{accepted}} accepted.",
+      "openSlotsTargetDrawSize": "{{open}} open places: target draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsDrawPositions": "{{open}} open places: a draw of {{limit}}, {{accepted}} accepted.",
+      "openSlotsSanctionedDrawSize": "{{open}} open places: sanctioned draw size {{limit}}, {{accepted}} accepted.",
+      "openSlotsHeld": "{{open}} open places: {{limit}} of {{drawPositions}} draw positions, after {{qualifiers}} for qualifiers and {{wildcards}} for wildcards; {{accepted}} accepted.",
+      "noLimit": "This event sets no entries limit or draw size, so no open places are counted.",
+      "count": "Alternates to promote (1 to {{max}})",
+      "willPromote": "Will be promoted, in order:",
+      "confirm": "Promote",
+      "promoted_one": "{{count}} alternate promoted",
+      "promoted_other": "{{count}} alternates promoted",
+      "failed": "Alternates could not be promoted"
+    },
     "alreadyInDraw": "All selected participants are already in this draw",
     "alreadyPartners": "These players are already partners in this event",
     "pairedWith": "with",
@@ -3426,7 +3569,22 @@
     "noIndividualParticipants": "No individual participants",
     "addPlayers": "Add players",
     "noRatingData": "No rating data available",
-    "scheduledMatches": "Scheduled matches"
+    "scheduledMatches": "Scheduled matches",
+    "positionBadge": {
+      "accepted": "Accepted #{{position}}",
+      "qualifying": "Qualifying #{{position}}",
+      "alternate": "Alternate #{{position}}",
+      "withdrawn": "Withdrawn #{{position}}",
+      "ungrouped": "Ungrouped #{{position}}",
+      "other": "Position #{{position}}",
+      "withStatus": "{{label}} · {{status}} {{ordinal}}",
+      "status": {
+        "wildcard": "Wildcard",
+        "specialExempt": "Special exempt",
+        "juniorExempt": "Junior exempt",
+        "organiserAcceptance": "Organiser acceptance"
+      }
+    }
   },
   "ageCategories": {
     "u10": "10 and Under",
@@ -3462,7 +3620,20 @@
     "abandonRemaining": "Abandon remaining matches",
     "republishExplain": "Republish this tournament to the public rankings list. Points are recomputed from its decided matches.",
     "rankingsNotConfigured": "Rankings pipeline is not configured",
-    "republishRankings": "Republish rankings"
+    "republishRankings": "Republish rankings",
+    "bulkStatus": {
+      "label": "Set status",
+      "confirmTitle": "Set {{status}}",
+      "confirmExplain_one": "Set {{status}} on {{count}} match. No score is recorded.",
+      "confirmExplain_other": "Set {{status}} on {{count}} matches. No score is recorded.",
+      "applied_one": "{{status}} set on {{count}} match",
+      "applied_other": "{{status}} set on {{count}} matches",
+      "refusedTitle": "{{status}} cannot be set",
+      "refusedExplain_one": "Nothing was changed. {{count}} selected match would be refused:",
+      "refusedExplain_other": "Nothing was changed. {{count}} selected matches would be refused:",
+      "notScorable": "not ready to score",
+      "refusedByFactory": "refused"
+    }
   },
   "groupings": {
     "generateMockTeams": "Generate Mock Teams",
@@ -3558,6 +3729,48 @@
   "venueDetail": {
     "noCourts": "No courts at this venue yet.",
     "notFound": "Venue not found."
+  },
+  "eventDates": {
+    "placementWarning": "{{event}} does not play on {{date}} (plays {{playing}}). Placed anyway.",
+    "noPlayingDays": "no days",
+    "andMore": "(+{{count}} more)",
+    "issue": "{{participants}}: {{event}} does not play on {{date}} ({{reason}})",
+    "reason": {
+      "outsideEventDates": "outside the event's dates",
+      "outsideTournamentDates": "outside the tournament's dates",
+      "eventInactiveDate": "not one of the event's active dates",
+      "eventWeekday": "not one of the event's days of the week",
+      "tournamentInactiveDate": "not one of the tournament's active dates",
+      "tournamentWeekday": "not one of the tournament's days of the week",
+      "notPlaying": "not a playing day"
+    },
+    "skippedTitle": "Skipped (event not playing that day)",
+    "skippedIntro": "MatchUps not scheduled because their event does not play on the day: {{count}}",
+    "scheduleAnyway": "Schedule anyway",
+    "extendEventDates": "Extend event dates",
+    "extended": "Event dates extended. Apply the schedule again to place the skipped matchUps.",
+    "extendFailed": "Could not extend the event dates"
+  },
+  "courtUse": {
+    "disable": "Don't use",
+    "disableAllDates": "Don't use (all dates)",
+    "disableOnDate": "Don't use on {{date}}",
+    "enable": "Use again",
+    "enableAllDates": "Use again (all dates)",
+    "enableOnDate": "Use again on {{date}}",
+    "enableVenue": "Use venue again",
+    "courtTitle": "Don't use {{courtName}}",
+    "venueTitle": "Don't use {{venueName}}",
+    "confirmCourtAllDates": "{{courtName}} will not be used on any date. Nothing can be placed on it until it is used again.",
+    "confirmCourtOnDate": "{{courtName}} will not be used on {{date}}. Nothing can be placed on it that day until it is used again.",
+    "confirmVenue": "No court at {{venueName}} will be used, on any date. Nothing can be placed on them until the venue is used again.",
+    "matchUpsStay_one": "{{count}} unfinished match is already placed here and will stay where it is:",
+    "matchUpsStay_other": "{{count}} unfinished matches are already placed here and will stay where they are:",
+    "noMatchUps": "No unfinished matches are placed here.",
+    "disabled": "Not in use",
+    "venueDisabled": "Venue not in use",
+    "dropRefused": "{{courtName}} is not in use on this date. Use it again first.",
+    "failed": "The change was not applied"
   },
   "tournamentDisplay": {
     "refreshed": "Tournament data refreshed from server"

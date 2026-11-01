@@ -2,17 +2,27 @@
  * Edit tie format overlay with card-based collection editor.
  * Manages scorecard structure, win criteria, and collection configurations.
  */
+import {
+  CollectionRow,
+  collectionFromRow,
+  missingLineValues,
+  lineValuesTotal,
+  growLineValues,
+  rowFromCollection,
+  seedLineValues,
+} from './tieFormatRows';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
 import { getMatchUpFormatModal } from 'courthive-components';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { closeOverlay, openOverlay } from '../overlay';
 import { tools } from 'tods-competition-factory';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
 
-import { COLLECTION_VALUE, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
+import { COLLECTION_VALUE, LINE_VALUES, MATCH_VALUE, SCORE_VALUE, SET_VALUE } from 'constants/tmxConstants';
 
-const AWARD_TYPES = [MATCH_VALUE, COLLECTION_VALUE, SET_VALUE, SCORE_VALUE];
+const AWARD_TYPES = [MATCH_VALUE, LINE_VALUES, COLLECTION_VALUE, SET_VALUE, SCORE_VALUE];
 
 const TFE_FIELD_GROUP = 'tfe-field-group';
 const TFE_FIELD_LABEL = 'tfe-field-label';
@@ -29,62 +39,33 @@ const getGenders = (): SelectOption[] => [
   { value: 'Mixed', label: t('genders.mixed') },
 ];
 
-interface CollectionRow {
-  collectionName: string;
-  collectionId: string;
-  matchUpType: string;
-  matchUpCount: number;
-  matchUpFormat: string;
-  gender: string;
-  awardType: string;
-  awardValue: number;
-}
-
 export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFormat: any; onClose: any }): any {
-  const rows: CollectionRow[] = (tieFormat?.collectionDefinitions || []).map((col: any) => {
-    const awardType =
-      (col.collectionValue != null && COLLECTION_VALUE) ||
-      (col.scoreValue != null && SCORE_VALUE) ||
-      (col.setValue != null && SET_VALUE) ||
-      MATCH_VALUE;
-    const awardValue = col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue ?? 1;
-    return {
-      collectionName: col.collectionName || '',
-      collectionId: col.collectionId || tools.UUID(),
-      matchUpType: capitalize(col.matchUpType || 'SINGLES'),
-      matchUpCount: col.matchUpCount || 1,
-      matchUpFormat: col.matchUpFormat || '',
-      gender: capitalize(col.gender || 'ANY'),
-      awardType,
-      awardValue,
-    };
-  });
+  const rows: CollectionRow[] = (tieFormat?.collectionDefinitions || []).map((col: any) =>
+    rowFromCollection(col, tools.UUID),
+  );
+  // groups and the score source are not edited here, but dropping them would change how the tie is scored
+  const { collectionGroups, scoreSource } = tieFormat ?? {};
 
   let tieFormatName = tieFormat?.tieFormatName || 'Custom scorecard';
   let summaryEl: HTMLElement;
   let gridEl: HTMLElement;
 
   const constructTieFormat = () => {
-    const collectionDefinitions = rows.map((row) =>
-      tools.definedAttributes({
-        collectionValue: row.awardType === COLLECTION_VALUE ? row.awardValue : undefined,
-        matchUpValue: row.awardType === MATCH_VALUE ? row.awardValue : undefined,
-        scoreValue: row.awardType === SCORE_VALUE ? row.awardValue : undefined,
-        setValue: row.awardType === SET_VALUE ? row.awardValue : undefined,
-        matchUpType: row.matchUpType.toUpperCase(),
-        collectionName: row.collectionName,
-        matchUpFormat: row.matchUpFormat,
-        gender: row.gender.toUpperCase(),
-        collectionId: row.collectionId,
-        matchUpCount: row.matchUpCount,
-      }),
-    );
-    const winCriteria = tournamentEngine.calculateWinCriteria({ collectionDefinitions });
-    return { collectionDefinitions, tieFormatName, winCriteria };
+    const collectionDefinitions = rows.map(collectionFromRow);
+    const winCriteria = tournamentEngine.calculateWinCriteria({ collectionDefinitions, collectionGroups });
+    return tools.definedAttributes({
+      collectionDefinitions,
+      collectionGroups,
+      scoreSource,
+      tieFormatName,
+      winCriteria,
+    });
   };
 
+  const incomplete = () => rows.find(missingLineValues);
   const refresh = () => {
-    renderSummary(summaryEl, rows, constructTieFormat().winCriteria);
+    // a line without a value has no worth yet, so there is nothing to win until every line has one
+    renderSummary(summaryEl, rows, incomplete() ? undefined : constructTieFormat().winCriteria);
     renderGrid(gridEl, rows, refresh);
   };
 
@@ -130,6 +111,8 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
       gender: 'Any',
       awardType: MATCH_VALUE,
       awardValue: 1,
+      lineValues: [],
+      preserved: {},
     });
     refresh();
   };
@@ -158,6 +141,14 @@ export function editTieFormat({ title, tieFormat, onClose }: { title: any; tieFo
   done.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    const unvalued = incomplete();
+    if (unvalued) {
+      tmxToast({
+        intent: 'is-warning',
+        message: t('tieFormatEditor.lineValuesMissing', { name: unvalued.collectionName }),
+      });
+      return;
+    }
     closeOverlay();
     if (isFunction(onClose)) {
       const tf = constructTieFormat();
@@ -193,7 +184,7 @@ function renderSummary(container: HTMLElement, rows: CollectionRow[], winCriteri
 
   addStat('Collections', rows.length);
   addStat('Total Matches', totalMatchUps);
-  addStat('Win Criteria', goal ? `First to ${goal}` : aggregate ? 'Aggregate' : 'None');
+  addStat('Win Criteria', goal ? `First to ${goal}` : aggregate ? 'Aggregate' : winCriteria ? 'None' : '–');
 }
 
 // ---------------------------------------------------------------------------
@@ -296,6 +287,7 @@ function buildCollectionCard(
     max: '20',
     onInput: (val) => {
       row.matchUpCount = val;
+      row.lineValues = growLineValues(row.lineValues, val);
     },
     onBlur: refresh,
   });
@@ -325,6 +317,7 @@ function buildCollectionCard(
   };
 
   const awardTypeSelect = createSelect(AWARD_TYPES, row.awardType, (val) => {
+    if (val === LINE_VALUES && row.awardType !== LINE_VALUES) row.lineValues = seedLineValues(row);
     row.awardType = val;
     refresh();
   });
@@ -340,15 +333,47 @@ function buildCollectionCard(
     onBlur: refresh,
   });
 
+  const isLineValues = row.awardType === LINE_VALUES;
   card.appendChild(
-    statsRow(
-      fieldGroup('Format', formatPill),
-      fieldGroup('Award', awardTypeSelect),
-      fieldGroup('Value', awardValInput),
-    ),
+    isLineValues
+      ? statsRow(fieldGroup('Format', formatPill), fieldGroup('Award', awardTypeSelect))
+      : statsRow(
+          fieldGroup('Format', formatPill),
+          fieldGroup('Award', awardTypeSelect),
+          fieldGroup('Value', awardValInput),
+        ),
   );
+  if (isLineValues) card.appendChild(lineValuesRow(row, refresh));
 
   return card;
+}
+
+/** one value input per line, labelled as lines are named on a scorecard: S1, S2 / D1, D2, D3; a line with no value is empty */
+function lineValuesRow(row: CollectionRow, refresh: () => void): HTMLElement {
+  const prefix = row.matchUpType.charAt(0).toUpperCase();
+  const inputs = row.lineValues.slice(0, row.matchUpCount).map((value, i) => {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'tfe-inline-input tfe-inline-input--number';
+    input.classList.toggle('tfe-inline-input--missing', value === undefined);
+    input.value = value === undefined ? '' : String(value);
+    input.placeholder = '–';
+    input.min = '0';
+    input.max = '99';
+    input.oninput = () => {
+      const entered = Number.parseInt(input.value);
+      row.lineValues[i] = Number.isNaN(entered) ? undefined : Math.max(0, entered);
+    };
+    input.onblur = refresh;
+    return fieldGroup(`${prefix}${i + 1}`, input);
+  });
+  const total = document.createElement('span');
+  total.className = 'tfe-field-label';
+  // the total of the lines with a value, and a dash for those still without one
+  const entered = row.lineValues.slice(0, row.matchUpCount).some((v) => v !== undefined);
+  const missing = missingLineValues(row) ? '–' : '';
+  total.textContent = `= ${[entered ? lineValuesTotal(row) : '', missing].filter(Boolean).join(' + ')}`;
+  return statsRow(...inputs, total);
 }
 
 // ---------------------------------------------------------------------------
@@ -389,10 +414,4 @@ function createSelect(
   }
   select.onchange = () => onChange(select.value);
   return select;
-}
-
-function capitalize(str: string): string {
-  if (!str) return str;
-  const lower = str.toLowerCase();
-  return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
