@@ -1431,6 +1431,20 @@
     "dropzone": {
       "title": "Import tournament records"
     },
+    "recordValidation": {
+      "title": "Tournament record validation",
+      "toast_one": "Imported record has {{count}} validation issue",
+      "toast_other": "Imported record has {{count}} validation issues",
+      "review": "Review",
+      "counts": "Schema errors: {{schema}} · Integrity findings: {{integrity}}",
+      "schemaUnavailable": "The schema validator could not be loaded; only integrity findings are shown.",
+      "showAll": "Show all ({{count}})",
+      "showFewer": "Show fewer",
+      "copyAll": "Copy all",
+      "copied_one": "Copied {{count}} issue",
+      "copied_other": "Copied {{count}} issues",
+      "copyFailed": "Could not copy to the clipboard"
+    },
     "importParticipants": {
       "title": "Import participants",
       "summary": "{{count}} rows ready to import",
