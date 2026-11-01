@@ -1,8 +1,11 @@
 /**
- * Venue actions popover with edit option.
+ * Venue actions popover: edit, and don't use / use again. A venue stops being used on
+ * every date — the factory's `disableVenues` takes no dates.
  * Shows tipster menu for venue management actions from table rows.
  */
 import { editVenue, type VenueEditResult } from 'pages/tournament/tabs/venuesTab/editVenue';
+import { confirmVenueDisabled, enableVenue } from './courtUseActions';
+import { isVenueDisabled } from 'functions/courtUse';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 
@@ -45,12 +48,40 @@ export const venueActions =
       }
     };
 
+    // Re-read the venue so the row's tag (and the next popover) reflect the new use state.
+    const doneUse = ({ success }: { success: boolean }) => {
+      if (!success) return;
+      const { venue } = tournamentEngine.findVenue({ venueId: data.venueId });
+      if (venue) venueRow.venue = venue;
+      row.update(venueRow);
+      row.reformat();
+    };
+
     const items = [
       {
         onClick: () => editVenue({ venue: data, callback: doneEditing }),
         text: t('tournaments.edit'),
       },
+      venueUseItem(venueRow, doneUse),
     ];
 
     tipster({ items, target: target || (e.target as HTMLElement), config: { placement: BOTTOM } });
   };
+
+function venueUseItem(venueRow: any, onDone: (result: { success: boolean }) => void): any {
+  const { venueId, venueName } = venueRow;
+  if (isVenueDisabled(venueRow.venue)) {
+    return { text: t('courtUse.enable'), onClick: () => enableVenue({ venueId, onDone }) };
+  }
+  return {
+    text: t('courtUse.disable'),
+    onClick: () =>
+      confirmVenueDisabled({
+        courtIds: (venueRow.venue?.courts ?? venueRow.courts ?? []).map((court: any) => court.courtId),
+        matchUps: tournamentEngine.allTournamentMatchUps().matchUps ?? [],
+        venueName: venueName || venueId,
+        venueId,
+        onDone,
+      }),
+  };
+}
