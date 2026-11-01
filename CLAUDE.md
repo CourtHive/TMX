@@ -87,6 +87,10 @@ pnpm test:e2e:ui          # Playwright with interactive UI
 pnpm test:e2e:prod        # Playwright against production build
 ```
 
+### Dev console helpers
+
+`dev.exportAnonymized()` downloads an anonymized deep copy of the loaded tournament record (persons, ids, venue details, contacts and external ids replaced or cleared) for sharing a record for support; the live record is never changed.
+
 ### E2E Testing (Playwright)
 
 E2E tests live in `e2e/`. See `Mentat/planning/PLAYWRIGHT_E2E_TESTING.md` for the full strategy.
