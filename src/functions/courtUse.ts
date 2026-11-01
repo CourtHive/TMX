@@ -19,7 +19,7 @@ const { completedMatchUpStatuses } = factoryConstants;
 const COMPLETED_STATUSES = new Set<string>(completedMatchUpStatuses);
 const DISABLED = 'disabled';
 
-export type CourtServiceState = {
+export type CourtUseState = {
   /** the court itself is not in use on every date */
   allDates: boolean;
   /** dates on which the court alone is not in use (empty when `allDates`) */
@@ -38,7 +38,7 @@ export function isVenueDisabled(venue: any): boolean {
   return !!readDisabled(venue);
 }
 
-export function courtUseState({ court, venue }: { court: any; venue?: any }): CourtServiceState {
+export function courtUseState({ court, venue }: { court: any; venue?: any }): CourtUseState {
   const value = readDisabled(court);
   const allDates = value === true;
   const dates: string[] = !allDates && Array.isArray(value?.dates) ? value.dates : [];

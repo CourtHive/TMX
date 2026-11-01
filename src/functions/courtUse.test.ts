@@ -181,7 +181,7 @@ describe('venues not in use', () => {
 });
 
 describe('refusing placements', () => {
-  it('refuses a placement onto an out-of-service court and allows it elsewhere or once returned', () => {
+  it('refuses a placement onto a court not in use and allows it elsewhere or once used again', () => {
     const [m1] = firstRoundMatchUps();
     tournamentEngine.executionQueue(buildCourtsDisabledMethods({ courtIds: [courtA], date: startDate }));
 
