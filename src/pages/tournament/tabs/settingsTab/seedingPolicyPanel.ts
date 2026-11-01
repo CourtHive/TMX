@@ -39,8 +39,8 @@ function attachedPolicy(): Record<string, any> | null {
 export function buildSeedingPolicyPanel(): HTMLElement {
   const panel = document.createElement('div');
   panel.id = SEEDING_POLICY_PANEL_ID;
-  panel.className = 'settings-panel panel-indigo';
-  panel.style.gridColumn = '1 / -1';
+  // Neutral; its width and row come from getSettingsLayout.
+  panel.className = 'settings-panel';
   void renderPanelContents(panel);
   return panel;
 }
