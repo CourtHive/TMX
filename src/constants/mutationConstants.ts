@@ -60,6 +60,7 @@ export const MODIFY_COURT_AVAILABILITY = 'modifyCourtAvailability';
 export const MODIFY_EVENT = 'modifyEvent';
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
+export const PROMOTE_ALTERNATES = 'promoteAlternates';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
 export const MODIFY_PARTICIPANT_OTHER_NAME = 'modifyParticipantOtherName';
 export const MODIFY_SIGN_IN_STATUS = 'modifyParticipantsSignInStatus';
