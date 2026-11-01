@@ -174,6 +174,10 @@ export const QUALIFYING = 'QUALIFYING';
 export const ACCEPTED = 'ACCEPTED';
 
 export const EVENT_INFO = 'eventInfo';
+export const EVENT_TIMING_EDIT = 'eventTimingEdit';
+export const EVENT_TIMING_ADD_FORMAT = 'eventTimingAddFormat';
+export const EVENT_TIMING_SAVE = 'eventTimingSave';
+export const EVENT_TIMING_USE_DEFAULTS = 'eventTimingUseDefaults';
 export const DRAWS_HEADER = 'drawsHeader';
 export const ACCEPTED_PANEL = 'acceptedPanel';
 export const ALTERNATES_PANEL = 'alternatesPanel';

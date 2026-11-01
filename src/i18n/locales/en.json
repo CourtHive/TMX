@@ -1109,6 +1109,7 @@
         "recovery": "{{minutes}} recovery",
         "typeChange": "{{minutes}} after a type change",
         "source": {
+          "eventTiming": "set for this event",
           "event": "from this event's scheduling policy",
           "tournament": "from the tournament's scheduling policy",
           "default": "factory default — no scheduling policy attached"
@@ -2732,6 +2733,8 @@
       "editEvent": {
         "titleEdit": "Edit event",
         "titleAdd": "Add event",
+        "generalHeading": "General",
+        "datesHeading": "Dates & days",
         "eventNameLabel": "Event name",
         "eventNamePlaceholder": "Event name",
         "eventNameError": "minimum of 5 characters",
@@ -2766,6 +2769,37 @@
           "NOT_A_WHOLE_NUMBER": "Entry sizes must be whole numbers (sizes above 0)",
           "QUALIFIERS_NOT_FEWER_THAN_QUALIFYING_DRAW": "Qualifiers into main must be fewer than the qualifying draw size",
           "RESERVED_PLACES_EXCEED_DRAW": "Qualifiers and wildcards together cannot exceed the main draw size"
+        },
+        "timing": {
+          "heading": "Match timing",
+          "edit": "Edit",
+          "summaryDefaults": "Policy defaults",
+          "summaryCustomised_one": "{{count}} format customised",
+          "summaryCustomised_other": "{{count}} formats customised",
+          "title": "Match timing",
+          "intro": "How long a match in each format is expected to last, and the rest players get after it. Scheduling uses these for this event only.",
+          "format": "Format",
+          "average": "Average (min)",
+          "recovery": "Recovery (min)",
+          "source": "Source",
+          "policy": "Policy",
+          "own": "Event",
+          "useEvent": "Event default",
+          "useDraw": "Draw: {{name}}",
+          "useCollection": "Collection: {{name}}",
+          "useAdded": "Not yet in use",
+          "noFormats": "This event has no formats yet. Add one to set its timing.",
+          "addFormat": "Add format",
+          "useDefaults": "Use the defaults",
+          "useDefaultsConfirm": "Return every format to the scheduling policy timing?",
+          "saved": "Match timing saved",
+          "noChanges": "No changes",
+          "refusal": {
+            "INVALID_FORMAT": "That scoring format cannot be read",
+            "DUPLICATE_FORMAT": "That format is already listed",
+            "INVALID_AVERAGE": "Average minutes must be a whole number above 0",
+            "INVALID_RECOVERY": "Recovery minutes must be a whole number of 0 or more"
+          }
         }
       },
       "editFormat": {
