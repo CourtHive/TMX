@@ -1387,6 +1387,17 @@
       "endDateLabel": "End Date",
       "timeZoneDetectedHint": "Detected from your browser ({{zone}}). Confirm, change, or clear."
     },
+    "tournamentDateChanges": {
+      "title": "What else changed with the dates",
+      "tournament": "Tournament",
+      "eventTracked": "{{event}}: dates follow the tournament, now {{range}} (was {{previous}})",
+      "eventClamped": "{{event}}: dates cut to {{range}} (was {{previous}})",
+      "eventReset": "{{event}}: dates were outside the tournament, reset to {{range}} (was {{previous}})",
+      "activeDatesPruned": "{{target}}: active dates removed: {{dates}}",
+      "activeDatesUnset": "{{target}}: every active date was outside the new dates ({{dates}}), so it now plays every day; set active dates again if needed",
+      "profileTrimmed": "Scheduling profile: {{date}} removed, rounds: {{count}}",
+      "unscheduled": "MatchUps unscheduled: {{count}}"
+    },
     "invalidParticipants": {
       "title": "Invalid Participants"
     },
