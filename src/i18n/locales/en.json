@@ -2076,7 +2076,16 @@
       "quality": "Quality",
       "rankingPoints": "Ranking Points",
       "previous": "← Previous",
-      "next": "Next →"
+      "next": "Next →",
+      "pairs": "Pairs",
+      "teams": "Teams",
+      "groups": "Groups",
+      "players": "Players",
+      "withPartner": "with {{partner}}",
+      "notEntered": "Not entered",
+      "affiliation": "Affiliation",
+      "jersey": "Jersey",
+      "openProfile": "Open {{name}}"
     },
     "deleteFlights": {
       "confirmUngenerated_one": "Delete this flight? It has no draw yet; its participants stay entered in the event.",
