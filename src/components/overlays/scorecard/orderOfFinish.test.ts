@@ -3,9 +3,9 @@
  * collection; the scorecard offers a collection for correction once two of its lines are numbered, and the order the
  * collection card hands back replaces the collection's numbers.
  */
-import { finishingOrderCollections, finishingOrderMethod } from './orderOfFinish';
+import { finishingOrderCollections, finishingOrderMethod, saveFinishingOrder } from './orderOfFinish';
 import { eventConstants, matchUpStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const { TEAM } = eventConstants;
 const { TO_BE_PLAYED } = matchUpStatusConstants;
@@ -80,5 +80,69 @@ describe('order of finish', () => {
     ]);
     expect(result.success).toEqual(true);
     expect([orderOf(s2.matchUpId), orderOf(s3.matchUpId), orderOf(s1.matchUpId)]).toEqual([1, 2, 3]);
+  });
+});
+
+// the collection card treats anything but false as saved: the save resolves to whether the engine accepted it
+describe('saving an order of finish', () => {
+  const engineSend = ({ methods, callback }: { methods: any[]; callback: (result: any) => void }) =>
+    callback(tournamentEngine.executionQueue(methods));
+
+  it('resolves true, notifies success and refreshes when the order is accepted', async () => {
+    unscoredDual();
+    const [s1, s2, s3] = lines('SINGLES');
+    for (const { matchUpId } of [s1, s2, s3]) score(matchUpId);
+    const onRefresh = vi.fn();
+    const notify = vi.fn();
+
+    const finishingOrder = [s3, s1, s2].map(({ matchUpId }, index) => ({ matchUpId, orderOfFinish: index + 1 }));
+    const saved = await saveFinishingOrder({
+      drawId: dual().drawId,
+      finishingOrder,
+      send: engineSend,
+      notify,
+      onRefresh,
+    });
+
+    expect(saved).toEqual(true);
+    expect(notify).toHaveBeenCalledWith(true);
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(orderOf(s3.matchUpId)).toEqual(1);
+  });
+
+  it('resolves false, notifies failure and leaves the card alone when the order is refused', async () => {
+    unscoredDual();
+    const [s1, s2] = lines('SINGLES');
+    for (const { matchUpId } of [s1, s2]) score(matchUpId);
+    const onRefresh = vi.fn();
+    const notify = vi.fn();
+
+    // two lines given the same number: the factory refuses it
+    const finishingOrder = [s1, s2].map(({ matchUpId }) => ({ matchUpId, orderOfFinish: 1 }));
+    const saved = await saveFinishingOrder({
+      drawId: dual().drawId,
+      finishingOrder,
+      send: engineSend,
+      notify,
+      onRefresh,
+    });
+
+    expect(saved).toEqual(false);
+    expect(notify).toHaveBeenCalledWith(false);
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
+
+  it('resolves false when sending throws, so Save is never left disabled', async () => {
+    const onRefresh = vi.fn();
+    const throwing = () => Promise.reject(new Error('offline'));
+    const saved = await saveFinishingOrder({
+      drawId: 'd',
+      finishingOrder: [],
+      send: throwing,
+      notify: vi.fn(),
+      onRefresh,
+    });
+    expect(saved).toEqual(false);
+    expect(onRefresh).not.toHaveBeenCalled();
   });
 });
