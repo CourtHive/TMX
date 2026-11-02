@@ -3,7 +3,8 @@
  * Allows creating or editing individual participant details.
  */
 import { participantConstants, participantRoles, fixtures, tools } from 'tods-competition-factory';
-import { validators, renderButtons, renderForm } from 'courthive-components';
+import { participantNamesValid, nameIsAcceptable } from './participantNameRules';
+import { renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { primaryNumber } from 'services/contact/contactLinks';
@@ -206,11 +207,10 @@ export function editIndividualParticipant({
       .replace(/\s+/g, ' ')
       .trim();
 
-  const validValues = ({ firstName, lastName, nickname }: any) => {
-    const hasFullName = validators.nameValidator(2)(firstName || '') && validators.nameValidator(2)(lastName || '');
-    const hasNickname = nickname && nickname.trim().length >= 2;
-    return hasFullName || hasNickname;
-  };
+  // A name that is entered must be at least two characters even beside a nickname: the factory refuses a
+  // shorter one rather than dropping it. A stored name sent back unchanged is always accepted.
+  const storedNames = { firstName: values.firstName, lastName: values.lastName };
+  const validValues = (names: any) => participantNamesValid(names, storedNames);
 
   const enableSubmit = ({ inputs }: any) => {
     const valid = validValues({
@@ -367,7 +367,7 @@ export function editIndividualParticipant({
         {
           error: t('pages.participants.editParticipant.nameError'),
           value: values.firstName || '',
-          validator: validators.nameValidator(2),
+          validator: (value: string) => nameIsAcceptable(value, values.firstName),
           placeholder: t('pages.participants.editParticipant.firstNamePlaceholder'),
           label: t('pages.participants.editParticipant.firstName'),
           field: 'firstName',
@@ -376,7 +376,7 @@ export function editIndividualParticipant({
         {
           error: t('pages.participants.editParticipant.nameError'),
           value: values.lastName || '',
-          validator: validators.nameValidator(2),
+          validator: (value: string) => nameIsAcceptable(value, values.lastName),
           placeholder: t('pages.participants.editParticipant.lastNamePlaceholder'),
           label: t('pages.participants.editParticipant.lastName'),
           field: 'lastName',

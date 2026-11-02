@@ -2886,7 +2886,7 @@
         "firstNamePlaceholder": "Given name",
         "lastName": "Last name",
         "lastNamePlaceholder": "Family name",
-        "nameError": "Please enter a name of at least 3 characters",
+        "nameError": "Please enter a name of at least 2 characters",
         "sex": "Sex",
         "dateOfBirth": "Date of birth",
         "birthdayPlaceholder": "Birthday",
