@@ -48,6 +48,17 @@ export async function downloadText(filename: string, text: string): Promise<void
   download(filename, dataStr);
 }
 
+/** Save XML to a file — uses native dialog in Electron, browser download otherwise */
+export async function downloadXML(filename: string, xml: string): Promise<void> {
+  if (platform.canAccessFileSystem() && platform.saveFile) {
+    await saveNatively(t('exportFile.saveXml'), filename, 'XML Files', 'xml', xml);
+    return;
+  }
+
+  const dataStr = 'data:application/xml;charset=utf-8,' + encodeURIComponent(xml);
+  download(filename, dataStr);
+}
+
 export function downloadURI(uri: string, name: string): void {
   const link = document.createElement('a');
   link.download = name;

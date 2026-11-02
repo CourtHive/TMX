@@ -155,6 +155,7 @@ export const VENUE = 'venue';
 export const ENTRIES_COUNT = 'entriesCount';
 export const EVENTS_TABLE = 'eventsTable';
 export const TMX_OVERLAY = 'tmxOverlay';
+export const SCORECARD_STATCREW_EXPORT = 'scorecardStatCrewExport';
 export const TEAM_STATS = 'teamStats';
 
 export const DRAW_CONTROL = 'drawControl';

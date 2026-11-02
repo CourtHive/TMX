@@ -2989,7 +2989,16 @@
       "overrideScore": "Override",
       "restoreAutoScore": "Restore automatic scoring",
       "manualScore": "Set by hand",
-      "winner": "Winner"
+      "winner": "Winner",
+      "home": "Home",
+      "homeVenue": "Home (venue)",
+      "homeHostOrganisation": "Home (host organisation)",
+      "setHome": "Set as home",
+      "clearHome": "Clear",
+      "exportStatCrew": "Export StatCrew",
+      "statCrewNotComplete": "StatCrew can be exported once the dual is complete",
+      "statCrewAmbiguous": "These teams met more than once, so the StatCrew game cannot be told apart",
+      "statCrewFailed": "The StatCrew file could not be produced"
     },
     "tieFormat": {
       "editScorecard": "Edit scorecard",
@@ -3577,7 +3586,10 @@
     "substitution": "Substitution",
     "assignSeedNumber": "Assign seed number ",
     "seedNumber": "Seed number",
-    "nickname": "Nickname "
+    "nickname": "Nickname ",
+    "setHomeTeam": "Set home team",
+    "clearHomeTeam": "Clear home team",
+    "exportStatCrew": "Export StatCrew"
   },
   "entries": {
     "promoteAlternates": {
@@ -3833,7 +3845,8 @@
   },
   "exportFile": {
     "saveJson": "Save JSON",
-    "saveFile": "Save File"
+    "saveFile": "Save File",
+    "saveXml": "Save XML"
   },
   "remoteMutations": {
     "updateFailed": "Remote update failed — please reload"
