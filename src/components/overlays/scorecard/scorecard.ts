@@ -9,10 +9,13 @@ import { participantMatchUpActions } from 'components/popovers/participantMatchU
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { finishingOrderCollections, saveFinishingOrder } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
+import { clearHomeMethod, dualHome, setHomeMethod } from './homeTeam';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { exportStatCrew } from 'services/export/exportStatCrew';
 import { extensionConstants } from 'tods-competition-factory';
+import { canExportStatCrew } from 'services/export/statCrew';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tipster } from 'components/popovers/tipster';
@@ -22,6 +25,9 @@ import { t } from 'i18n';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
+import { SCORECARD_STATCREW_EXPORT } from 'constants/tmxConstants';
+
+const INFO_LIGHT_BUTTON = 'button is-info is-light button-spacer';
 
 function resolveComposition(matchUp: any): any {
   const { drawId, eventId } = matchUp;
@@ -92,6 +98,9 @@ function refreshScorecard({ drawId, matchUpId, editingCollectionId }: RefreshPar
     matchUp,
   });
   setOverlayContent({ content });
+  // the footer is built once; the export is offered once the dual is complete
+  const exportButton = document.getElementById(SCORECARD_STATCREW_EXPORT);
+  if (exportButton) exportButton.hidden = !canExportStatCrew(matchUp);
 }
 
 export function renderScorecard({
@@ -115,6 +124,12 @@ export function renderScorecard({
       label: t('overlays.scorecard.recordDeadRubbers'),
       onClick: ({ matchUpIds }: any) => send(deadRubberMethods({ drawId, matchUpIds })),
     },
+  };
+  // the home team is tagged where it falls; an explicit home can be set or cleared
+  const home = {
+    ...dualHome({ drawId, matchUpId }),
+    onSetHome: (participantId: string) => send([setHomeMethod({ drawId, matchUpId, participantId })]),
+    onClearHome: () => send([clearHomeMethod({ drawId, matchUpId })]),
   };
   const teamScore = {
     onOverride: (score: any) => send([overrideTeamScoreMethod({ drawId, matchUpId, teamScore: score })]),
@@ -149,6 +164,7 @@ export function renderScorecard({
     composition,
     teamScore,
     matchUp,
+    home,
   });
   container.classList.add('overlay-content-container');
 
@@ -174,6 +190,11 @@ function scorecardLabels(): any {
     restore: t('overlays.scorecard.restoreAutoScore'),
     manual: t('overlays.scorecard.manualScore'),
     winner: t('overlays.scorecard.winner'),
+    home: t('overlays.scorecard.home'),
+    homeVenue: t('overlays.scorecard.homeVenue'),
+    homeHostOrganisation: t('overlays.scorecard.homeHostOrganisation'),
+    setHome: t('overlays.scorecard.setHome'),
+    clearHome: t('overlays.scorecard.clearHome'),
     cancel: t('common.cancel'),
     save: t('common.save'),
   };
@@ -304,7 +325,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   };
 
   const orderOfFinish = document.createElement('button');
-  orderOfFinish.className = 'button is-info is-light button-spacer';
+  orderOfFinish.className = INFO_LIGHT_BUTTON;
   const orderOfFinishLabel = t('overlays.scorecard.orderOfFinish');
   orderOfFinish.textContent = orderOfFinishLabel;
   orderOfFinish.onclick = () => {
@@ -330,7 +351,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   };
 
   const clear = document.createElement('button');
-  clear.className = 'button is-info is-light button-spacer';
+  clear.className = INFO_LIGHT_BUTTON;
   clear.innerHTML = 'Clear results';
   clear.onclick = () => {
     const methods = [
@@ -341,6 +362,13 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
     ];
     mutationRequest({ methods, callback: postMutation });
   };
+
+  const statCrew = document.createElement('button');
+  statCrew.className = INFO_LIGHT_BUTTON;
+  statCrew.id = SCORECARD_STATCREW_EXPORT;
+  statCrew.textContent = t('overlays.scorecard.exportStatCrew');
+  statCrew.hidden = !canExportStatCrew(tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp);
+  statCrew.onclick = () => exportStatCrew({ drawId, matchUpId });
 
   const close = document.createElement('button');
   close.className = 'button is-info button-spacer';
@@ -358,6 +386,7 @@ export function renderScorecardFooter({ title, drawId, matchUpId, onClose }: Sco
   footer.appendChild(removePlayers);
   footer.appendChild(orderOfFinish);
   footer.appendChild(clear);
+  footer.appendChild(statCrew);
   footer.appendChild(close);
 
   return footer;
