@@ -18,7 +18,7 @@ export function renderTimezoneWarning(grid: HTMLElement): void {
   if (localTimeZone) return;
 
   const panel = document.createElement('div');
-  panel.className = 'pub-panel pub-panel-yellow pub-grid-full';
+  panel.className = 'pub-panel pub-panel-attention pub-grid-full';
 
   const header = document.createElement('h3');
   header.innerHTML = `<i class="fa fa-triangle-exclamation"></i> ${t('publishing.timeZoneNotSetTitle', {

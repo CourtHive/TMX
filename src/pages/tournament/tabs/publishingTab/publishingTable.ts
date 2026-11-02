@@ -444,7 +444,7 @@ function getColumns(): any[] {
 
 export function renderPublishingTable(grid: HTMLElement): void {
   const panel = document.createElement('div');
-  panel.className = 'pub-panel pub-panel-blue pub-grid-full';
+  panel.className = 'pub-panel pub-grid-full';
 
   const header = document.createElement('h3');
   header.innerHTML = `<i class="fa fa-sitemap"></i> ${t('publishing.eventsAndDraws')}`;

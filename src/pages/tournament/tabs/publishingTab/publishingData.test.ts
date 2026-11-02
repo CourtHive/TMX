@@ -19,7 +19,7 @@ vi.mock('tods-competition-factory', () => ({
 }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 
-import { resolvePublishState } from './publishingData';
+import { hasLiveEmbargo, resolvePublishState } from './publishingData';
 
 const futureDate = new Date(Date.now() + 60_000).toISOString();
 const pastDate = new Date(Date.now() - 60_000).toISOString();
@@ -43,5 +43,21 @@ describe('resolvePublishState', () => {
 
   it('returns embargoed when published with active embargo', () => {
     expect(resolvePublishState(true, futureDate)).toBe('embargoed');
+  });
+});
+
+describe('hasLiveEmbargo', () => {
+  const entry = (embargoActive: boolean) => ({ type: 'orderOfPlay', label: 'OOP', embargo: futureDate, embargoActive });
+
+  it('is false with no embargoes', () => {
+    expect(hasLiveEmbargo([])).toBe(false);
+  });
+
+  it('is false when every embargo has expired', () => {
+    expect(hasLiveEmbargo([entry(false), entry(false)])).toBe(false);
+  });
+
+  it('is true when any embargo is still live', () => {
+    expect(hasLiveEmbargo([entry(false), entry(true)])).toBe(true);
   });
 });
