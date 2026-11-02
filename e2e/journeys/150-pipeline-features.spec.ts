@@ -104,9 +104,13 @@ test.describe('Journey 150 — Pipeline features', () => {
     const tournamentId = await seed(page);
     await openSettings(page, tournamentId);
     const progression = () =>
-      page.evaluate(
-        () => dev.getTournament().extensions?.find((x: any) => x.name === 'appliedPolicies')?.value?.progression,
-      );
+      page.evaluate(() => {
+        // the tournament's own policies in either CODES form: the first-class attribute, else the extension
+        const tournament = dev.getTournament();
+        const policies =
+          tournament.appliedPolicies ?? tournament.extensions?.find((x: any) => x.name === 'appliedPolicies')?.value;
+        return policies?.progression;
+      });
 
     await page.locator(option('doubleExitPropagateBye')).selectOption('off');
     await expect
