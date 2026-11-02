@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.48.1](https://github.com/CourtHive/TMX/compare/v8.48.0...v8.48.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **storage:** read the local calendar entry through the tournament governor ([#1820](https://github.com/CourtHive/TMX/issues/1820)) ([d2eec63](https://github.com/CourtHive/TMX/commit/d2eec633724533b39c0580a891fb33ebb4d48bba))
+
 ## [8.48.0](https://github.com/CourtHive/TMX/compare/v8.47.0...v8.48.0) (2026-10-29)
 
 
