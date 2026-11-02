@@ -25,6 +25,7 @@ import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging
 import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
+import { peerLinkedTournamentIds } from 'functions/peerLinkedTournamentIds';
 import { tournamentEngine } from 'services/factory/engine';
 import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
@@ -63,11 +64,7 @@ import {
   setAvailabilityDirty,
   isAvailabilityDirty,
 } from 'services/schedulingWorkspace/queueService';
-import {
-  peerLinkedIds,
-  primaryVenueIds,
-  facilityEventTouchesVenues,
-} from 'services/facilitySchedule/facilityScheduleHelpers';
+import { primaryVenueIds, facilityEventTouchesVenues } from 'services/facilitySchedule/facilityScheduleHelpers';
 import {
   readScheduleDisplayConfig,
   writeScheduleDisplayConfig,
@@ -124,7 +121,7 @@ async function loadReservedCellsForGrid(tournamentId: string): Promise<void> {
   const count = await loadReservedCells(primary);
   if (reservedLoadedFor !== tournamentId) return; // tab moved on during the fetch
   if (count > 0) refreshGridView();
-  if (peerLinkedIds(primary).length) startReservedCellsLiveRefresh();
+  if (peerLinkedTournamentIds(primary).length) startReservedCellsLiveRefresh();
 }
 
 /** Re-fetch reserved cells for the currently-mounted linked-peer grid; re-render only on change. */

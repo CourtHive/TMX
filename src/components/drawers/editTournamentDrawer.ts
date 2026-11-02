@@ -4,6 +4,7 @@
  */
 import { getSupportedTimeZones, isValidTimeZone } from 'functions/getSupportedTimeZones';
 import { resolveCreationProviderId } from 'services/provider/resolveCreationProviderId';
+import { showTournamentDateChanges } from 'components/modals/tournamentDateChangesNotice';
 import { addTournament as tournamentAdd } from 'services/storage/importTournaments';
 import { submitTournamentDates } from 'services/mutation/submitTournamentDates';
 import { addOrUpdateTournament } from 'services/storage/addOrUpdateTournament';
@@ -258,6 +259,8 @@ export function editTournament({
       const postMutation = (result: any) => {
         if (result.success) {
           table?.updateData([mapTournamentRecord(updatedTournamentRecord)], true);
+          // SET_TOURNAMENT_DATES is the first method; the engine has already let go of the record here
+          showTournamentDateChanges({ result: result.results?.[0], events: updatedTournamentRecord.events });
         } else if (result?.error) {
           // e.g. matchUps scheduled outside the new tournament dates (message lists the
           // offending dates) so the user can unschedule/reschedule first.

@@ -3,9 +3,9 @@
  * Standard view for event entries. The legacy 5-panel approach remains
  * available behind the `legacyEntriesTable` setting as a power-user fallback.
  */
-import { drawDefinitionConstants, entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import type { PairingContext, PairingMode, RotatingPartnersMode } from './segmentOverlay';
-import { segmentRank, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
+import { withSegmentRanks, SEGMENT_LABELS, handleHeaderClick } from './segmentSorter';
+import { entryStatusConstants, eventConstants } from 'tods-competition-factory';
 import { editAvoidances } from 'components/drawers/avoidances/editAvoidances';
 import { headerSortElement } from '../../common/sorters/headerSortElement';
 import { addFlights } from 'components/modals/addFlights/addFlights';
@@ -16,10 +16,12 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getUnifiedColumns } from './unifiedColumns';
+import { ENTRY_POSITION_FIELD, withEntryIndex, withStatusOrdinals } from './entryPosition';
 import { inheritedEntryStage } from './pairSegment';
 import { pairFromUnified } from './pairFromUnified';
 import type { SortState } from './segmentSorter';
@@ -42,7 +44,6 @@ import {
 import { ACCEPTED, CONTROL_BAR, ENTRIES_VIEW, EVENT_CONTROL, LEFT, RIGHT, TMX_TABLE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-const { MAIN } = drawDefinitionConstants;
 const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 const { DOUBLES } = eventConstants;
 
@@ -205,7 +206,7 @@ export function createUnifiedEntriesPanel({
       { drawId: string; drawName: string; entryStage?: string; eventId: string }[]
     > = {};
     if (hasDrawDefinitions) {
-      for (const dd of event.drawDefinitions) {
+      for (const dd of orderedDrawDefinitions(event)) {
         for (const entry of dd.entries || []) {
           if (!participantDrawsMap[entry.participantId]) participantDrawsMap[entry.participantId] = [];
           participantDrawsMap[entry.participantId].push({
@@ -231,13 +232,10 @@ export function createUnifiedEntriesPanel({
       mapEntry({ ...mapParams, entry }),
     );
 
-    // Add segment rank to each entry
-    for (const entry of entries) {
-      const stage = entry.entryStage || MAIN;
-      entry._segmentRank = segmentRank(stage, entry.entryStatus);
-    }
-
+    withSegmentRanks(entries);
     entries.push(...getRotatingRows({ entries, event, drawDefinition, participants: participants ?? [], mapParams }));
+    // array order is the tiebreak for every within-segment sort, and the order of unpositioned alternates
+    withStatusOrdinals(withEntryIndex(entries));
 
     // Filter out ungrouped for singles events
     const filteredEntries = isDoubles ? entries : entries.filter((e: any) => e.entryStatus !== UNGROUPED);
@@ -381,6 +379,7 @@ export function createUnifiedEntriesPanel({
   table = new Tabulator(tableContainer, {
     headerSortElement: headerSortElement([
       ...ratingFields,
+      ENTRY_POSITION_FIELD,
       'drawPosition',
       'seedNumber',
       'ranking',
@@ -523,7 +522,7 @@ export function createUnifiedEntriesPanel({
 
     const ALL_ENTRIES = 'All entries';
     const eventEntries = { label: ALL_ENTRIES, onClick: () => navigateToEvent({ eventId }), close: true };
-    const entriesOptions = (freshEvent?.drawDefinitions || [])
+    const entriesOptions = orderedDrawDefinitions(freshEvent)
       .map((dd: any) => ({
         onClick: () => navigateToEvent({ eventId, drawId: dd.drawId }),
         label: escapeHtml(dd?.drawName),
@@ -610,6 +609,7 @@ export function createUnifiedEntriesPanel({
     });
 
     const rightItems = getRightItems({
+      drawId,
       event,
       drawCreated: drawCreated ?? false,
       isDoubles: isDoubles ?? false,

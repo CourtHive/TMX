@@ -4,9 +4,10 @@
  * then by a user-selected secondary column within each segment.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { compareEntryIndex, defaultSegmentCompare } from './entryPosition';
 import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 
-const { QUALIFYING } = drawDefinitionConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { ALTERNATE, UNGROUPED, WITHDRAWN } = entryStatusConstants;
 
 export function segmentRank(entryStage: string, entryStatus: string): number {
@@ -16,6 +17,13 @@ export function segmentRank(entryStage: string, entryStatus: string): number {
   if (entryStatus === UNGROUPED) return 3;
   if (entryStatus === WITHDRAWN) return 4;
   return 6; // unknown (5 is Grouped, which is assigned to virtual rows rather than derived from an entry)
+}
+
+/** Stamps each entry row with its segment rank (MAIN when the entry names no stage). */
+export function withSegmentRanks<T extends Record<string, any>>(entries: T[]): (T & { _segmentRank: number })[] {
+  return entries.map((entry) =>
+    Object.assign(entry, { _segmentRank: segmentRank(entry.entryStage || MAIN, entry.entryStatus) }),
+  );
 }
 
 export const SEGMENT_LABELS: Record<number, string> = {
@@ -33,38 +41,42 @@ export type SortState = {
 };
 
 export function createGroupedSorter(sortState: SortState) {
-  return (_a: any, _b: any, aRow: any, bRow: any) => {
-    const dataA = aRow.getData();
-    const dataB = bRow.getData();
+  return (_a: any, _b: any, aRow: any, bRow: any) => compareSegmentRows(aRow.getData(), bRow.getData(), sortState);
+}
 
-    const rankA = dataA._segmentRank ?? 6;
-    const rankB = dataB._segmentRank ?? 6;
-    if (rankA !== rankB) return rankA - rankB;
+/**
+ * Segment rank first; within a segment the TD's chosen column, otherwise the segment's default order
+ * (alternates by entryPosition, the rest in array order). Ties keep array order.
+ */
+export function compareSegmentRows(dataA: any, dataB: any, sortState: SortState): number {
+  const rankA = dataA._segmentRank ?? 6;
+  const rankB = dataB._segmentRank ?? 6;
+  if (rankA !== rankB) return rankA - rankB;
 
-    if (!sortState.secondaryField) return 0;
+  if (!sortState.secondaryField) return defaultSegmentCompare(dataA, dataB);
 
-    let valA = dataA[sortState.secondaryField];
-    let valB = dataB[sortState.secondaryField];
+  let valA = dataA[sortState.secondaryField];
+  let valB = dataB[sortState.secondaryField];
 
-    // Support nested fields like 'ratings.wtn'
-    if (sortState.secondaryField.includes('.')) {
-      const parts = sortState.secondaryField.split('.');
-      valA = parts.reduce((obj: any, key: string) => obj?.[key], dataA);
-      valB = parts.reduce((obj: any, key: string) => obj?.[key], dataB);
-    }
+  // Support nested fields like 'ratings.wtn'
+  if (sortState.secondaryField.includes('.')) {
+    const parts = sortState.secondaryField.split('.');
+    valA = parts.reduce((obj: any, key: string) => obj?.[key], dataA);
+    valB = parts.reduce((obj: any, key: string) => obj?.[key], dataB);
+  }
 
-    if (valA == null && valB == null) return 0;
-    if (valA == null) return 1;
-    if (valB == null) return -1;
+  if (valA == null && valB == null) return compareEntryIndex(dataA, dataB);
+  if (valA == null) return 1;
+  if (valB == null) return -1;
 
-    let cmp: number;
-    if (typeof valA === 'number' && typeof valB === 'number') {
-      cmp = valA - valB;
-    } else {
-      cmp = String(valA).localeCompare(String(valB));
-    }
-    return sortState.secondaryDir === 'desc' ? -cmp : cmp;
-  };
+  let cmp: number;
+  if (typeof valA === 'number' && typeof valB === 'number') {
+    cmp = valA - valB;
+  } else {
+    cmp = String(valA).localeCompare(String(valB));
+  }
+  if (cmp === 0) return compareEntryIndex(dataA, dataB);
+  return sortState.secondaryDir === 'desc' ? -cmp : cmp;
 }
 
 export function handleHeaderClick(sortState: SortState, field: string, applySort: () => void): void {

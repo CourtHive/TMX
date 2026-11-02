@@ -38,9 +38,11 @@ function groupsAfter(results: { side1Score: number; side2Score: number; winningS
     refreshResults: true,
     eventId,
   });
-  const structure = eventData.drawsData[0].structures[0];
+  const structure = eventData?.drawsData?.[0]?.structures?.[0];
+  if (!structure) throw new Error('getEventData returned no structure');
   const participantMap = Object.fromEntries((participants ?? []).map((p: any) => [p.participantId, p]));
-  return getBracketData({ structure, participantMap, participantResults: structure.participantResults, drawId });
+  const participantResults = structure.participantResults ?? [];
+  return getBracketData({ structure, participantMap, participantResults, drawId });
 }
 
 describe('a round-robin group with a drawn result', () => {

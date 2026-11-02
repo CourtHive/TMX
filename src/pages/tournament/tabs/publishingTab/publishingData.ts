@@ -5,6 +5,7 @@
 import { readTournamentDateRange, readEvents, readPublishState } from 'services/factory/passReads';
 import { publishingGovernor, tools } from 'tods-competition-factory';
 import { competitionNowMs } from 'services/clock/competitionClock';
+import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
 
@@ -297,7 +298,7 @@ export function getPublishingTableData(): PublishingRowData[] {
     const eventPubState = publishingGovernor.getPublishState({ event })?.publishState;
     const drawDetails = eventPubState?.status?.drawDetails || {};
     const eventPublished = !!eventPubState?.status?.published;
-    const drawDefinitions = event.drawDefinitions || [];
+    const drawDefinitions = orderedDrawDefinitions(event);
 
     const children: PublishingRowData[] = drawDefinitions.map((dd: any) =>
       buildDrawRow({ event, dd, drawDetails, eventPublished }),

@@ -78,8 +78,9 @@ export function getMatchUpDateFilter(table: any): {
   // Resolve active dates: prefer tournamentInfo.activeDates, fall back to date range.
   const { tournamentInfo } = competitionEngine.getTournamentInfo() ?? {};
   const { startDate, endDate } = competitionEngine.getCompetitionDateRange() ?? {};
+  // a record's activeDates are date strings; the type admits Date too, which is read as its calendar day
   const activeDates: string[] = tournamentInfo?.activeDates?.length
-    ? tournamentInfo.activeDates
+    ? tournamentInfo.activeDates.map((date) => (typeof date === 'string' ? date : date.toISOString().slice(0, 10)))
     : plainDateRange(startDate, endDate);
   const sortedDates = [...activeDates].sort((a, b) => a.localeCompare(b));
 

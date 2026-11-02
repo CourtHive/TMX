@@ -5,6 +5,7 @@
 import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
+import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
 import { loadTournament, renderTournament } from 'pages/tournament/tournamentDisplay';
 import { fetchUserContext, getUserContext } from './authentication/getUserContext';
 import { exportTournamentRecord } from 'components/modals/exportTournamentRecord';
@@ -15,7 +16,9 @@ import { setCompetitionClock } from 'services/clock/competitionClock';
 import { baseApi, setBaseURL, getBaseURL } from './apis/baseApi';
 import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
+import { anonymizedCopy } from 'services/dev/anonymizedCopy';
 import { getLoginState } from './authentication/loginState';
+import { downloadJSON } from 'services/export/download';
 import { setScoreRelayURL } from './apis/scoreRelayApi';
 import * as outboxStore from './messaging/outboxStore';
 import { providerConfig } from 'config/providerConfig';
@@ -31,6 +34,8 @@ import { t } from 'i18n';
 
 // constants
 import { TOURNAMENT } from 'constants/tmxConstants';
+
+const MISSING_TOURNAMENT = 'toasts.missingTournament';
 
 const subscriptions: Record<string, (results: any) => void> = {
   addDrawDefinition: (results) => functionOrLog('addDrawDefinition', results),
@@ -91,7 +96,7 @@ export function setDev(): void {
 
       mutationRequest({ methods, callback });
     } else {
-      tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
+      tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
     }
   };
 
@@ -141,6 +146,8 @@ export function setDev(): void {
   addDev({ fetchUserContext, getUserContext });
   addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
   addDev({ tmx2db, load, build, exportTournamentRecord });
+  // dev.exportAnonymized(): downloads an anonymized deep copy of the current record; the live record is untouched
+  addDev({ exportAnonymized, validate });
   addDev({ env, tournamentContext: context });
   // drive TMX's competition clock for demos and journeys: dev.setCompetitionClock({ nowMs: () => ms })
   addDev({ setCompetitionClock });
@@ -149,7 +156,7 @@ export function setDev(): void {
     mutationRequest: (params: any) => {
       const tournamentId = factory.tournamentEngine.q.tournament()?.tournamentId;
       if (!tournamentId) {
-        tmxToast({ message: t('toasts.missingTournament'), intent: 'is-danger' });
+        tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
         return;
       }
       return mutationRequest(params);
@@ -231,6 +238,10 @@ function load(json: any): Promise<void> | void {
   // Without this, navigation to the tournament finds an empty engine and
   // re-fetches via tmx2db, which returns nothing — tabs render with no data.
   factory.tournamentEngine.setState(tournamentRecord);
+  // Validation follows the load and never blocks it; findings are reported to the console only.
+  validateTournamentRecord({ tournamentRecord }).then((summary) => {
+    if (summary.count) console.warn(`[dev.load] ${summary.count} validation finding(s); run dev.validate()`, summary);
+  });
   if (tournamentRecord.parentOrganisation?.organisationId && !serverConfig.get().saveLocal) {
     console.log(
       '%c[dev.load] session-only — not persisted to IndexedDB (parentOrganisation present + saveLocal off)',
@@ -277,6 +288,40 @@ function build(sources: any): any {
   }
   load(record);
   return record;
+}
+
+function exportAnonymized(): any {
+  const tournamentRecord = factory.tournamentEngine.q.tournament();
+  if (!tournamentRecord) {
+    tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
+    return undefined;
+  }
+  // Never through the engine or mutationRequest: the anonymizer rewrites whatever record it is handed.
+  const { tournamentRecord: copy, error } = anonymizedCopy(tournamentRecord);
+  if (error) {
+    console.error('[dev.exportAnonymized]', error);
+    return undefined;
+  }
+  downloadJSON(`${copy.tournamentId}.anonymized.codes.json`, copy);
+  return copy;
+}
+
+// Run the CODES schema check and the factory's getTournamentInconsistencies on the loaded record and
+// log a structured result. Returns the summary so a console caller can inspect it.
+async function validate(): Promise<any> {
+  const tournamentRecord = factory.tournamentEngine.q.tournament();
+  if (!tournamentRecord) {
+    tmxToast({ message: t(MISSING_TOURNAMENT), intent: 'is-danger' });
+    return undefined;
+  }
+  const summary = await validateTournamentRecord({ tournamentRecord });
+  const { count, schemaErrorCount, inconsistencyCount, findings, schemaUnavailable } = summary;
+  if (count) {
+    console.warn('[dev.validate]', { count, schemaErrorCount, inconsistencyCount, schemaUnavailable, findings });
+  } else {
+    console.log('[dev.validate] no findings', schemaUnavailable ? { schemaUnavailable } : '');
+  }
+  return summary;
 }
 
 function generateMockTournament(params: any): void {

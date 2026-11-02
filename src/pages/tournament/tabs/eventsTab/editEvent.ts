@@ -2,6 +2,16 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
+import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
+import { customisedFormatCount, eventTimingRows } from './eventTimingRows';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
+import { providerConfig } from 'config/providerConfig';
+import { editEventTiming } from './editEventTiming';
+import { isFunction } from 'functions/typeOf';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -11,17 +21,23 @@ import {
   fixtures,
   tools,
 } from 'tods-competition-factory';
-import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine } from 'services/factory/engine';
-import { providerConfig } from 'config/providerConfig';
-import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
-import { t } from 'i18n';
+import {
+  EVENT_WEEKDAYS,
+  buildSetEventDatesMethod,
+  eventDatesRefusal,
+  normalizeWeekdays,
+  parseActiveDates,
+  weekdayLabelKey,
+} from './eventDates';
+import {
+  buildEntryProfileMethod,
+  entryProfileFields,
+  entryProfileFormValues,
+  readEntryProfileForm,
+} from './eventEntryProfile';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
-import { RIGHT } from 'constants/tmxConstants';
+import { EVENT_TIMING_EDIT, RIGHT } from 'constants/tmxConstants';
 
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { ANY, FEMALE, MALE, MIXED } = genderConstants;
@@ -143,7 +159,12 @@ export function editEvent({
     eventType: event?.eventType || SINGLES,
     gender: event?.gender || ANY,
     competitionFormatKey: suggestCompetitionFormatKey(event),
+    activeDates: parseActiveDates(event?.activeDates),
+    weekdays: normalizeWeekdays(event?.weekdays),
   };
+  const selectedWeekdays = new Set<string>(values.weekdays);
+  const entryProfileValues = entryProfileFormValues(event);
+  const tournamentDayCount = tools.generateDateRange(tournamentInfo.startDate, tournamentInfo.endDate).length;
 
   const enteredParticipantIds = event?.entries
     ?.filter(({ entryStatus }: any) => [...STRUCTURE_SELECTED_STATUSES, ALTERNATE].includes(entryStatus))
@@ -237,9 +258,10 @@ export function editEvent({
   let formInputs: any;
 
   const content = (elem: HTMLElement) => {
-    formInputs = renderForm(
+    const generalInputs = renderForm(
       elem,
       [
+        { text: t('pages.events.editEvent.generalHeading'), header: true },
         {
           error: t('pages.events.editEvent.eventNameError'),
           validator: validators.nameValidator(5),
@@ -339,6 +361,8 @@ export function editEvent({
           ],
           onChange: valueChange,
         },
+        { divider: true },
+        { text: t('pages.events.editEvent.datesHeading'), header: true },
         {
           value: event?.startDate ?? tournamentInfo.startDate,
           placeholder: 'YYYY-MM-DD',
@@ -352,14 +376,65 @@ export function editEvent({
           field: 'endDate',
         },
         {
-          hide: event || participants,
-          divider: true,
+          maxNumberOfDates: Math.max(tournamentDayCount, 2),
+          placeholder: t('pages.events.editEvent.activeDatesPlaceholder'),
+          label: t('pages.events.editEvent.activeDatesLabel'),
+          minDate: values.startDate,
+          maxDate: values.endDate,
+          field: 'activeDates',
+          date: true,
         },
       ],
       relationships,
     );
+    attachActiveDatesPicker(generalInputs, values.activeDates);
+    // the days of the week belong with the dates they narrow, not after the entry sizes
+    elem.appendChild(renderWeekdayChips(selectedWeekdays));
+
+    const entriesInputs = renderForm(elem, [
+      { divider: true },
+      { text: t('pages.events.editEvent.entriesHeading'), header: true },
+      ...entryProfileFields(event).map((field) => ({
+        text: t(`pages.events.editEvent.entryProfile.${field}`),
+        fieldPair: { field, type: 'number', value: entryProfileValues[field], width: '5em' },
+      })),
+      {
+        hide: event || participants,
+        divider: true,
+      },
+      ...(event?.eventId
+        ? [{ divider: true }, { text: t('pages.events.editEvent.timing.heading'), header: true }]
+        : []),
+    ]);
+    // edit only: a new event has no draws, and often no format, so there is nothing yet to time
+    if (event?.eventId) elem.appendChild(renderTimingSummary(event.eventId));
+
+    formInputs = { ...generalInputs, ...entriesInputs };
     return formInputs;
   };
+
+  const readEventDates = () => {
+    const content = context.drawer.attributes.content;
+    return {
+      startDate: content.startDate.value,
+      endDate: content.endDate.value,
+      activeDates: parseActiveDates(content.activeDates?.value),
+      weekdays: normalizeWeekdays(Array.from(selectedWeekdays)),
+    };
+  };
+
+  const readEntryProfile = () => {
+    const content = context.drawer.attributes.content;
+    const form = Object.fromEntries(entryProfileFields(event).map((field) => [field, content[field]?.value]));
+    return readEntryProfileForm({ form, event });
+  };
+
+  const datesRefusal = () =>
+    eventDatesRefusal({
+      tournamentStartDate: tournamentInfo.startDate,
+      tournamentEndDate: tournamentInfo.endDate,
+      ...readEventDates(),
+    });
 
   const saveEvent = () => {
     const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
@@ -369,6 +444,20 @@ export function editEvent({
     // Validation
     if (!eventName || eventName.length < 5) {
       tmxToast({ message: t('pages.events.editEvent.eventNameRequired'), intent: 'is-danger' });
+      return;
+    }
+    // refuse before anything is sent: the factory would refuse setEventDates after modifyEvent had applied
+    const refusal = datesRefusal();
+    if (refusal) {
+      tmxToast({ message: t(`pages.events.editEvent.eventDatesRefusal.${refusal}`), intent: 'is-danger' });
+      return;
+    }
+    const entryProfileRefusal = readEntryProfile().refusal;
+    if (entryProfileRefusal) {
+      tmxToast({
+        message: t(`pages.events.editEvent.entryProfileRefusal.${entryProfileRefusal}`),
+        intent: 'is-danger',
+      });
       return;
     }
 
@@ -476,9 +565,16 @@ export function editEvent({
       }
     };
 
+    const eventDatesMethod = (eventId: string) =>
+      buildSetEventDatesMethod({ eventId, ...readEventDates(), previous: event });
+    const { entryProfile } = readEntryProfile();
+
     if (event) {
       const eventId = event.eventId;
-      const methods = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
+      if (entryProfile) eventUpdates.entryProfile = entryProfile;
+      const methods: any[] = [{ method: MODIFY_EVENT, params: { eventId, eventUpdates } }];
+      const setDates = eventDatesMethod(eventId);
+      if (setDates) methods.push(setDates);
       mutationRequest({ methods, callback: postMutation });
     } else {
       const eventCategory =
@@ -520,6 +616,11 @@ export function editEvent({
         };
         methods.push(method);
       }
+      // through modifyEvent, which validates the profile, rather than unchecked on the new event
+      const entryProfileMethod = buildEntryProfileMethod({ eventId, entryProfile });
+      if (entryProfileMethod) methods.push(entryProfileMethod as any);
+      const setDates = eventDatesMethod(eventId);
+      if (setDates) methods.push(setDates);
       mutationRequest({ methods, callback: postMutation });
     }
   };
@@ -531,7 +632,7 @@ export function editEvent({
 
   const shouldClose = () => {
     const ageCategoryCode = context.drawer.attributes.content.ageCategoryCode.value;
-    return ageCategoryCode !== 'custom' && isValidForSave();
+    return ageCategoryCode !== 'custom' && isValidForSave() && !datesRefusal() && !readEntryProfile().refusal;
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
@@ -553,4 +654,84 @@ export function editEvent({
     content,
     footer,
   });
+}
+
+// The active-dates picker is limited to the event's date range, and follows it when the range changes.
+function attachActiveDatesPicker(formInputs: any, activeDates: string[]): void {
+  const picker = formInputs?.['activeDates.date'];
+  if (!picker) return;
+  if (activeDates.length) picker.setDate(activeDates, { clear: true });
+  const followRange = () =>
+    picker.setOptions({ minDate: formInputs.startDate?.value || null, maxDate: formInputs.endDate?.value || null });
+  for (const field of ['startDate', 'endDate']) {
+    formInputs[field]?.addEventListener('changeDate', followRange);
+    formInputs[field]?.addEventListener('change', followRange);
+  }
+}
+
+// The Match timing row: a one-line summary of the event's timing, and the button that opens its modal. The modal
+// saves on its own, so the summary refreshes from the engine when it does.
+function renderTimingSummary(eventId: string): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'tmx-event-timing-summary';
+
+  const summary = document.createElement('span');
+  summary.className = 'tmx-event-timing-summary-text';
+  const refresh = () => {
+    const count = customisedFormatCount(eventTimingRows({ eventId }));
+    summary.textContent = count
+      ? t('pages.events.editEvent.timing.summaryCustomised', { count })
+      : t('pages.events.editEvent.timing.summaryDefaults');
+  };
+  refresh();
+
+  const edit = document.createElement('button');
+  edit.type = 'button';
+  edit.id = EVENT_TIMING_EDIT;
+  edit.className = 'button is-small';
+  edit.textContent = t('pages.events.editEvent.timing.edit');
+  edit.addEventListener('click', () => editEventTiming({ eventId, onSave: refresh }));
+
+  row.append(summary, edit);
+  return row;
+}
+
+function renderWeekdayChips(selected: Set<string>): HTMLElement {
+  const field = document.createElement('div');
+  field.className = 'field font-medium';
+
+  const label = document.createElement('label');
+  label.className = 'label';
+  label.textContent = t('pages.events.editEvent.weekdaysLabel');
+  field.appendChild(label);
+
+  const chips = document.createElement('div');
+  chips.className = 'tmx-weekday-chips';
+  for (const weekday of EVENT_WEEKDAYS) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'tmx-weekday-chip';
+    chip.dataset.weekday = weekday;
+    chip.textContent = t(weekdayLabelKey(weekday));
+    const render = () => {
+      chip.classList.toggle('active', selected.has(weekday));
+      chip.setAttribute('aria-pressed', String(selected.has(weekday)));
+    };
+    chip.addEventListener('click', () => {
+      if (selected.has(weekday)) selected.delete(weekday);
+      else selected.add(weekday);
+      render();
+    });
+    render();
+    chips.appendChild(chip);
+  }
+  field.appendChild(chips);
+
+  // scheduling honours these days: auto-scheduling skips the others, a manual placement on one is warned about
+  const hint = document.createElement('p');
+  hint.className = 'help font-medium';
+  hint.textContent = t('pages.events.editEvent.eventDatesSchedulingHint');
+  field.appendChild(hint);
+
+  return field;
 }

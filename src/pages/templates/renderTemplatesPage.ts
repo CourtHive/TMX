@@ -24,7 +24,7 @@ import type { TieFormatCatalogItem } from './tieFormatBridge';
 import type { TopologyCatalogItem } from './topologyBridge';
 
 // constants
-import { TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
+import { LINE_VALUES, TMX_TEMPLATES, TEMPLATES } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const TPL_PANEL_TITLE = 'tpl-panel-title';
@@ -636,11 +636,16 @@ function buildCollectionCard(col: any): HTMLDivElement {
           : 'Set value'
         : 'Score value'
       : 'Collection value';
-  const awardVal = col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue;
+  const lineValues = [...(col.collectionValueProfiles ?? [])]
+    .sort((a: any, b: any) => a.collectionPosition - b.collectionPosition)
+    .map((profile: any) => profile.matchUpValue);
+  const awardVal = lineValues.length
+    ? lineValues.join(' · ')
+    : (col.collectionValue ?? col.scoreValue ?? col.setValue ?? col.matchUpValue);
   if (awardVal != null) {
     const award = document.createElement('div');
     award.className = 'tfp-collection__award';
-    award.textContent = `${awardLabel}: ${awardVal}`;
+    award.textContent = `${lineValues.length ? LINE_VALUES : awardLabel}: ${awardVal}`;
     card.appendChild(award);
   }
 

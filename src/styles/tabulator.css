@@ -1470,3 +1470,45 @@ body.tabulator-print-fullscreen-hide > *:not(.tabulator-print-fullscreen) {
 .tabulator-cell .chc-participant-container {
   background-color: transparent;
 }
+
+/* Entries table "#" badge: the tint names the entry's group (accepted, qualifying, alternate, withdrawn,
+   other) so equal positions in different groups read apart. Shape and token set mirror .tmx-rest-badge;
+   the accent tokens are defined for every light and dark palette. The group is also in the badge's
+   title and aria-label, never in the tint alone. */
+.tmx-entry-position-badge {
+  display: inline-block;
+  min-width: 1.6em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1px solid var(--tmx-border-secondary);
+  color: var(--tmx-text-secondary);
+  background: transparent;
+  text-align: center;
+}
+
+.tmx-entry-position-badge.is-accepted {
+  border-color: var(--tmx-accent-green);
+  color: var(--tmx-accent-green);
+}
+
+.tmx-entry-position-badge.is-qualifying {
+  border-color: var(--tmx-accent-blue);
+  color: var(--tmx-accent-blue);
+}
+
+.tmx-entry-position-badge.is-alternate {
+  border-color: var(--tmx-accent-orange);
+  color: var(--tmx-accent-orange);
+}
+
+.tmx-entry-position-badge.is-withdrawn {
+  border-color: var(--tmx-accent-red);
+  color: var(--tmx-accent-red);
+}
+
+.tmx-entry-position-badge.is-other {
+  border-style: dashed;
+}

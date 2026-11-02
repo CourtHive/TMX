@@ -16,6 +16,8 @@
  * Lives in its own module so it can be tested without importing the modal, which pulls Tabulator and
  * touches `document` at import time.
  */
+import { REMOVE_PARTICIPANT_EXTENSION } from 'constants/mutationConstants';
+
 export const CONTACT_PERSON_EXTENSION = 'contactPerson';
 
 /**
@@ -55,4 +57,18 @@ export function designatedContactPersonId(group: any): string | undefined {
 
   const extension = (group?.extensions ?? []).find((entry: any) => entry?.name === CONTACT_PERSON_EXTENSION);
   return firstMember([extension?.value].filter(Boolean), memberIds);
+}
+
+/**
+ * The method that removes the pre-#4683 extension from a group.
+ *
+ * `removeParticipantExtension` reads the extension's `name`. This was sent as `extensionName`, which the
+ * factory refuses with MISSING_VALUE, and the refusal failed the whole batch: on a group that still carried
+ * the extension, changing its contact person did nothing at all.
+ */
+export function removeContactPersonExtensionMethod(participantId: string) {
+  return {
+    method: REMOVE_PARTICIPANT_EXTENSION,
+    params: { participantId, name: CONTACT_PERSON_EXTENSION },
+  };
 }

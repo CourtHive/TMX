@@ -18,8 +18,8 @@
  * grouping under the ITF variant. That rule is otherwise invisible until an assignment is refused.
  */
 import { participantConstants, participantRoles, positionActionConstants, tools } from 'tods-competition-factory';
+import { ADD_INDIVIDUAL_PARTICIPANT_IDS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
 import { removeFromTeam } from 'pages/tournament/tabs/participantTab/controlBar/removeFromTeam';
-import { CONTACT_PERSON_EXTENSION, designatedContactPersonId, hasContactPersonExtension } from './groupContactPerson';
 import { roleBadge } from 'components/tables/common/formatters/roleBadge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -30,10 +30,10 @@ import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
 import {
-  ADD_INDIVIDUAL_PARTICIPANT_IDS,
-  MODIFY_PARTICIPANT,
-  REMOVE_PARTICIPANT_EXTENSION,
-} from 'constants/mutationConstants';
+  designatedContactPersonId,
+  hasContactPersonExtension,
+  removeContactPersonExtensionMethod,
+} from './groupContactPerson';
 
 const { ASSIGN_PARTICIPANT } = positionActionConstants;
 const { INDIVIDUAL } = participantConstants;
@@ -174,10 +174,7 @@ function buildContactPersonRow(group: any, onChanged: () => void): HTMLElement {
     // extension when the first-class field resolves to nothing, so clearing the contact on a
     // pre-migration group would otherwise RESURRECT the old pointer on the next read.
     if (hasContactPersonExtension(group)) {
-      methods.push({
-        method: REMOVE_PARTICIPANT_EXTENSION,
-        params: { participantId, extensionName: CONTACT_PERSON_EXTENSION },
-      });
+      methods.push(removeContactPersonExtensionMethod(participantId));
     }
     // Updates its own detail rather than re-rendering the modal: the select already shows the new
     // choice, and rebuilding the table underneath would drop any row selection the TD had made.

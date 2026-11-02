@@ -6,8 +6,9 @@
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { genderConstants, participantRoles } from 'tods-competition-factory';
-import { arrayLengthFormatter } from '../common/formatters/arrayLength';
+import { penaltiesModal } from 'components/modals/penalties/penaltiesModal';
 import { contactFormatter } from '../common/formatters/contactFormatter';
+import { arrayLengthFormatter } from '../common/formatters/arrayLength';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { participantActions } from '../../popovers/participantActions';
 import { eventsFormatter } from '../common/formatters/eventsFormatter';
@@ -283,6 +284,10 @@ export function getParticipantColumns({
       sorter: (a: any, b: any) => (a.length || 0) - (b?.length || 0),
       formatter: arrayLengthFormatter,
       title: t('tables.participants.penalties'),
+      cellClick: (_: Event, cell: any) => {
+        const { participantId, penalties } = cell.getRow().getData();
+        if (penalties?.length) penaltiesModal({ participantId, callback: replaceTableData });
+      },
       field: 'penalties',
       hozAlign: LEFT,
       visible: false,

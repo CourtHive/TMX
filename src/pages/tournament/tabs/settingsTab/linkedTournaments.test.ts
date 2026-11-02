@@ -1,4 +1,4 @@
-import { getPeerLinkedIds, buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
+import { buildLinkGroup, resolveLinkedRows, availableToLink } from './linkedTournamentsHelpers';
 import { describe, it, expect } from 'vitest';
 
 const siblings = [
@@ -8,12 +8,6 @@ const siblings = [
 ];
 
 describe('linkedTournaments pure helpers', () => {
-  it('getPeerLinkedIds excludes the record itself', () => {
-    expect(getPeerLinkedIds({ tournamentId: 'A', linkedTournamentIds: ['A', 'B', 'C'] })).toEqual(['B', 'C']);
-    expect(getPeerLinkedIds({ tournamentId: 'A', linkedTournamentIds: [] })).toEqual([]);
-    expect(getPeerLinkedIds({ tournamentId: 'A' })).toEqual([]);
-  });
-
   it('buildLinkGroup unions primary + existing peers + additions, deduped', () => {
     expect(buildLinkGroup('A', ['B'], ['C']).sort()).toEqual(['A', 'B', 'C']);
     // dedupe when an addition is already a peer or the primary

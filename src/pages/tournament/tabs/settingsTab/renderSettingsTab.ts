@@ -1,4 +1,5 @@
 import { removeAllChildNodes } from 'services/dom/transformers';
+import { SETTINGS_GRID_COLUMNS } from './settingsLayout';
 import { renderSettingsGrid } from './settingsGrid';
 
 import { TOURNAMENT_SETTINGS } from 'constants/tmxConstants';
@@ -10,16 +11,20 @@ export function ensureSettingsStyles(): void {
   const style = document.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
+    /* ${SETTINGS_GRID_COLUMNS} columns; getSettingsLayout sizes each panel so every row fills the grid. */
     .settings-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(${SETTINGS_GRID_COLUMNS}, minmax(0, 1fr));
       gap: 16px;
       padding: 16px;
     }
+    /* Neutral: one surface and border for every panel. Only the Danger Zone keeps a colour. */
     .settings-panel {
       border-radius: 8px;
       padding: 20px;
-      border-left: 4px solid;
+      border: 1px solid var(--tmx-border-primary);
+      background: var(--tmx-bg-elevated);
+      color: var(--tmx-text-primary);
     }
     .settings-panel h3 {
       margin: 0 0 12px 0;
@@ -31,19 +36,17 @@ export function ensureSettingsStyles(): void {
     }
     .settings-panel h3 i {
       font-size: 0.9rem;
+      color: var(--tmx-text-secondary);
     }
 
-    .panel-blue   { border-color: var(--tmx-panel-blue-border); background: var(--tmx-panel-blue-bg); }
-    .panel-green  { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
-    .panel-orange { border-color: var(--tmx-panel-orange-border); background: var(--tmx-panel-orange-bg); }
-    .panel-purple { border-color: var(--tmx-panel-purple-border); background: var(--tmx-panel-purple-bg); }
-    .panel-teal   { border-color: var(--tmx-panel-teal-border); background: var(--tmx-panel-teal-bg); }
-    .panel-indigo { border-color: var(--tmx-panel-indigo-border); background: var(--tmx-panel-indigo-bg); }
-    .panel-red    { border-color: var(--tmx-panel-red-border); background: var(--tmx-panel-red-bg); }
-    .panel-gray   { border-color: var(--tmx-border-primary); background: var(--tmx-bg-secondary); }
-
-    .settings-panel label.radio {
-      white-space: nowrap;
+    /* Danger Zone (journey 82 selects the delete button by this class). */
+    .settings-panel.panel-red {
+      border-color: var(--tmx-status-error);
+      border-left-width: 4px;
+    }
+    .settings-panel.panel-red h3,
+    .settings-panel.panel-red h3 i {
+      color: var(--tmx-status-error);
     }
 
     @media (max-width: 900px) {

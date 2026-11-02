@@ -1,5 +1,6 @@
-import { peerLinkedIds, primaryVenueIds } from './facilityScheduleHelpers';
+import { peerLinkedTournamentIds } from 'functions/peerLinkedTournamentIds';
 import { fetchScheduleProjection } from 'services/apis/servicesApi';
+import { primaryVenueIds } from './facilityScheduleHelpers';
 import { queryGovernor } from 'tods-competition-factory';
 
 /**
@@ -9,7 +10,7 @@ import { queryGovernor } from 'tods-competition-factory';
  * when the primary has no linked tournaments. Peer fetch failures degrade to primary-only.
  */
 export async function assembleFacilityGrid(primaryRecord: any): Promise<{ grid: any; peerIds: string[] } | null> {
-  const peerIds = peerLinkedIds(primaryRecord);
+  const peerIds = peerLinkedTournamentIds(primaryRecord);
   if (!peerIds.length) return null;
 
   const venueIds = primaryVenueIds(primaryRecord);

@@ -1,9 +1,12 @@
 /**
  * Reset draw definitions modal with audit reason.
  * Validates word count and resets draw to initial state with mutation.
+ * Given a structureId, resets that one structure's results instead (`resetStructure`).
  */
 import { renderEventsTab } from 'pages/tournament/tabs/eventsTab/eventsTab';
+import { resetStructureMethod, structureResetRefusalKey } from './resetStructure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { validators, renderForm } from 'courthive-components';
 import { isDev } from 'functions/isDev';
@@ -13,33 +16,49 @@ import { RESET_DRAW_DEFINITION } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
-export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: string[] }): void {
+export function resetDraws({
+  structureName,
+  structureId,
+  eventData,
+  drawIds,
+}: {
+  structureName?: string;
+  structureId?: string;
+  eventData: any;
+  drawIds: string[];
+}): void {
   const eventId = eventData.eventInfo.eventId;
   const devMode = isDev();
 
   const drawName =
     drawIds.length === 1 && eventData?.drawsData?.find((data: any) => drawIds.includes(data.drawId)).drawName;
-  const modalTitle = drawName ? `Reset ${drawName}` : 'Reset draws';
+  const name = structureId ? structureName : drawName;
+  const modalTitle = name ? `Reset ${name}` : 'Reset draws';
 
   let inputs: any;
   let modalHandle: any;
   const resetAction = () => {
     const auditData = devMode ? undefined : { auditReason: inputs['drawResetReason'].value };
     const removeAssignments = inputs['removeAssignments']?.checked ?? false;
-    const methods = drawIds.map((drawId) => ({
-      params: { eventId, drawId, auditData, removeAssignments, removeScheduling: true },
-      method: RESET_DRAW_DEFINITION,
-    }));
+    const methods = structureId
+      ? [resetStructureMethod({ drawId: drawIds[0], structureId, auditData })]
+      : drawIds.map((drawId) => ({
+          params: { eventId, drawId, auditData, removeAssignments, removeScheduling: true },
+          method: RESET_DRAW_DEFINITION,
+        }));
     const postMutation = (result: any) => {
       if (result.success) {
-        renderEventsTab({ eventId, drawId: drawIds[0], renderDraw: true });
+        renderEventsTab({ eventId, drawId: drawIds[0], structureId, renderDraw: true });
+        return;
       }
+      const refusalKey = structureResetRefusalKey(result);
+      if (refusalKey) tmxToast({ message: t(refusalKey), intent: 'is-warning', pauseOnHover: true });
     };
     mutationRequest({ methods, callback: postMutation });
   };
-  const items = [
+  const items: any[] = [
     {
-      text: t('drawActions.resetReason'),
+      text: t(structureId ? 'drawActions.resetStructureReason' : 'drawActions.resetReason'),
       style: 'height: 2.5em; padding-right: 1em; font-size: 0.9em;',
     },
     {
@@ -51,7 +70,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
       autocomplete: 'on',
       focus: true,
     },
-    {
+    !structureId && {
       label: t('drawActions.removeAssignments'),
       field: 'removeAssignments',
       id: 'removeAssignments',
@@ -73,7 +92,7 @@ export function resetDraws({ eventData, drawIds }: { eventData: any; drawIds: st
       onInput: enableSubmit,
     },
   ];
-  const content = (elem: HTMLElement) => (inputs = renderForm(elem, items, relationships));
+  const content = (elem: HTMLElement) => (inputs = renderForm(elem, items.filter(Boolean), relationships));
 
   modalHandle = openModal({
     title: modalTitle,

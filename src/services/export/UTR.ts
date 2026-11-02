@@ -10,13 +10,14 @@ import { DRAW_NAME, DRAW_TYPE, UTR } from 'constants/tmxConstants';
 
 export function downloadUTRmatches(): void {
   const zeroPad = (number: number) => (number.toString()[1] ? number : '0' + number);
-  const dateFormatUTR = (date: string) => {
+  const dateFormatUTR = (date?: string) => {
     if (!date) return '';
     const utrDate = new Date(date);
     return [zeroPad(utrDate.getMonth() + 1), zeroPad(utrDate.getDate()), utrDate.getFullYear()].join('/');
   };
 
   const { tournamentInfo } = tournamentEngine.getTournamentInfo();
+  if (!tournamentInfo) return;
   const { completedMatchUps = [] } = tournamentEngine.tournamentMatchUps({
     context: {
       tournamentSanctionBody: tournamentInfo.parentOrganisation?.organisationName,

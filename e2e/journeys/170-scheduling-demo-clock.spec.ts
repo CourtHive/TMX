@@ -3,6 +3,27 @@ import { initDevBridge, resetState } from '../helpers/dev-bridge';
 import { test, expect } from '@playwright/test';
 
 const PANEL = '#demoClockPanel';
+const DEMO_ZONE = 'America/New_York';
+
+/** The instant a wall time on a date reads in a zone, by Intl, independent of the app's clock helpers. */
+function zonedWallTimeToMs(date: string, time: string, timeZone: string): number {
+  const asUtc = Date.parse(`${date}T${time}:00Z`);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+      .formatToParts(asUtc)
+      .map((part) => [part.type, part.value]),
+  );
+  const zoneReading = Date.parse(`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:00Z`);
+  return asUtc - (zoneReading - asUtc);
+}
 
 test.beforeEach(async ({ page }) => {
   // Bypass the animated splash's delayed redirect while seeding a tournament.
@@ -99,8 +120,12 @@ test('steps both clocks, keeps centered controls usable, refuses rewind and clea
   await expect(panel.locator('output')).toContainText('09:55');
   await panel.getByRole('button', { name: '+5 min', exact: true }).click();
   await expect(panel.locator('output')).toContainText('10:00');
-  const stamp = await page.evaluate(() => dev.factory.tools.now().toISOString());
-  expect(stamp).toContain('T14:00:00');
+  const { stamp, date } = await page.evaluate(() => ({
+    stamp: dev.factory.tools.now().toISOString(),
+    date: dev.factory.tournamentEngine.getTournament().tournamentRecord.startDate as string,
+  }));
+  // 10:00 on the venue's wall clock on the clock's date; the UTC offset depends on the season.
+  expect(stamp).toBe(new Date(zonedWallTimeToMs(date, '10:00', DEMO_ZONE)).toISOString());
   await panel.getByLabel('Demo wall time').fill('09:00');
   await panel.getByRole('button', { name: 'Set time', exact: true }).click();
   await expect(panel.locator('p[role=status]')).toContainText('cannot be rewound');

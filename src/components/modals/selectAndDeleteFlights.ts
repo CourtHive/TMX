@@ -1,8 +1,10 @@
 /**
  * Select and delete event flights modal.
- * Renders checkbox list of flights with enabled/disabled delete button based on selection.
+ * Lists every draw and every flight that has no draw yet; the delete button is enabled once one is selected.
  */
 import { deleteFlights } from 'components/modals/deleteFlights';
+import { deletableFlights } from './flights/flightDeletion';
+import { tournamentEngine } from 'services/factory/engine';
 import { renderForm } from 'courthive-components';
 import { openModal } from './baseModal/baseModal';
 
@@ -11,8 +13,14 @@ import { NONE } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): void {
-  const options = eventData.drawsData.map(({ drawId, drawName }: any) => ({
-    label: escapeHtml(drawName),
+  const eventId = eventData?.eventInfo?.eventId;
+  const flights = deletableFlights({
+    flightProfile: tournamentEngine.q.flightProfile({ eventId }),
+    event: tournamentEngine.q.event({ eventId }),
+  });
+
+  const options = flights.map(({ drawId, drawName, generated }) => ({
+    label: generated ? escapeHtml(drawName ?? '') : `${escapeHtml(drawName ?? '')} (${t('ui.notGenerated')})`,
     checkbox: true,
     field: drawId,
     id: drawId,
@@ -20,19 +28,17 @@ export function selectAndDeleteEventFlights({ eventData }: { eventData: any }): 
 
   let inputs: any;
   let modalHandle: any;
+  const selectedDrawIds = () => flights.filter(({ drawId }) => inputs[drawId]?.checked).map(({ drawId }) => drawId);
   const onClick = () => {
-    const drawIds = eventData.drawsData
-      .filter(({ drawId }: any) => inputs[drawId]?.checked)
-      .map(({ drawId }: any) => drawId);
-    setTimeout(() => deleteFlights({ eventData, drawIds }), 200);
+    const drawIds = selectedDrawIds();
+    setTimeout(() => deleteFlights({ eventData, eventId, drawIds }), 200);
   };
 
   const checkChecked = () => {
-    const checkedFlights = eventData.drawsData.filter(({ drawId }: any) => inputs[drawId]?.checked).length;
-    modalHandle?.setButtonState('deleteSelected', { disabled: !checkedFlights });
+    modalHandle?.setButtonState('deleteSelected', { disabled: !selectedDrawIds().length });
   };
 
-  const relationships = eventData.drawsData.map(({ drawId }: any) => ({
+  const relationships = flights.map(({ drawId }) => ({
     onChange: checkChecked,
     control: drawId,
   }));

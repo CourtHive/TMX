@@ -1,4 +1,6 @@
+import { disabledNameFormatter } from '../common/formatters/disabledName';
 import { toggleOpenClose, openClose } from '../common/formatters/openClose';
+import { isVenueDisabled } from 'functions/courtUse';
 import { venueActions } from '../../popovers/venueActions';
 import { threeDots } from '../common/formatters/threeDots';
 import { headerMenu } from '../common/headerMenu';
@@ -60,6 +62,7 @@ export function getVenuesColumns(nestedTables: any): any[] {
     },
     {
       cellClick: toggleOpenClose,
+      formatter: disabledNameFormatter((row) => isVenueDisabled(row?.venue)),
       field: 'venueName',
       title: t('tables.venues.venue'),
       visible: true,

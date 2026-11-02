@@ -21,7 +21,9 @@ function drawData(drawType: string) {
     drawType === AD_HOC || drawType === SWISS ? { drawSize: 8, drawType, automated: true } : { drawSize: 8, drawType };
   const { eventIds } = mocksEngine.generateTournamentRecord({ drawProfiles: [drawProfile], setState: true });
   const { eventData } = tournamentEngine.getEventData({ eventId: eventIds?.[0] });
-  return eventData.drawsData[0];
+  const drawsData = eventData?.drawsData?.[0];
+  if (!drawsData?.structures) throw new Error('getEventData returned no structures');
+  return { ...drawsData, structures: drawsData.structures };
 }
 
 describe('getRoundsViews', () => {

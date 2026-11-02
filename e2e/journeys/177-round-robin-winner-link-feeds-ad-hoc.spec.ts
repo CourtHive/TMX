@@ -11,7 +11,7 @@
  * A finder that reads the link by its label finds no link for the WINNER shapes: the selection opens empty and
  * no round is made. Asserted on participantIds and group finishing order, never names.
  */
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, resetState, settleRouter, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
 
@@ -125,6 +125,7 @@ test.describe('Journey 177 — round robin link feeds an AD_HOC playoff, whateve
       const tournamentPage = new TournamentPage(page);
       await tournamentPage.goto(seeded.tournamentId);
       await tournamentPage.navigateToEvents();
+      await settleRouter(page);
       await page.goto(structureRoute(seeded));
       await page.getByRole('button', { name: 'Generate round', exact: true }).click();
 

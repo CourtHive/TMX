@@ -8,6 +8,7 @@ import { renderOfficialsTab, destroyOfficialsTab } from 'pages/tournament/tabs/o
 import { renderRegistrationsTab } from 'pages/tournament/tabs/registrationsTab/renderRegistrationsTab';
 import { notifyTournamentContextChanged } from 'services/tournament/tournamentContextObservers';
 import { renderPublishingTab } from 'pages/tournament/tabs/publishingTab/renderPublishingTab';
+import { clearAssignmentRole, loadAssignmentRole } from 'services/capability/assignmentRole';
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
@@ -338,6 +339,7 @@ export function loadTournament({
       Promise.all([
         requestTournament({ tournamentId: config.tournamentId, silent: true }),
         loadCallerGrants(config.tournamentId, isCurrent),
+        loadAssignmentRole(config.tournamentId, isCurrent),
       ]).then(([result]) => showResult(result), tryLocal);
     }
   } else {
@@ -351,6 +353,7 @@ export function loadTournament({
     // No server to ask, so no grants — but the mask is a singleton and the
     // previous tournament's would otherwise survive the navigation.
     clearCallerGrants();
+    clearAssignmentRole();
     tournamentEngine.setState(tournamentRecord);
     markTournamentRecordInstalled();
     notifyMutationApplied();

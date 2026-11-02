@@ -8,6 +8,7 @@ import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd
 import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
 import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
 import { openRotatingPartnerSettlement } from 'components/modals/rotatingPartnerSettlement';
+import { buildScheduleLockMethod } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { buildAttester, describeAttester } from 'services/checkIn/checkInAttribution';
@@ -20,9 +21,11 @@ import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
+import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
+import { addPenaltyModal } from 'components/modals/addPenaltyModal';
 import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -34,10 +37,11 @@ import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 import { t } from 'i18n';
 import {
-  buildScheduleLockMethod,
-  canToggleScheduleLock,
-  isScheduleLocked,
-} from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
+  datesWithinBounds,
+  matchUpMenuGates,
+  timeOutsideBounds,
+  type MenuAction,
+} from 'components/popovers/matchUpMenuGates';
 
 // constants
 import type { ScheduleTimeField } from 'components/tables/matchUpsTable/scheduleTimeFields';
@@ -90,11 +94,11 @@ export function matchUpActions({
   const target = cell && (pointerEvent.target as HTMLElement)?.getElementsByClassName('fa-ellipsis-vertical')[0];
   const data = cell?.getRow().getData() || matchUp;
 
-  const hasSchedule =
-    matchUp?.schedule?.scheduledTime ||
-    matchUp?.schedule?.scheduledDate ||
-    matchUp?.schedule?.venueId ||
-    matchUp?.schedule?.courtId;
+  // the factory decides which items a matchUp is offered (CA, 2026-10-30)
+  const { validActions = [] } =
+    (matchUp?.matchUpId && tournamentEngine.matchUpActions({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId })) ||
+    {};
+  const gates = matchUpMenuGates({ matchUp, validActions });
 
   const updateRow = (updates: any) => {
     if (!cell) {
@@ -122,7 +126,7 @@ export function matchUpActions({
   const toggleScheduleLock = () => {
     const drawId = matchUp?.drawId;
     if (!drawId) return;
-    const locked = isScheduleLocked(matchUp);
+    const locked = !!gates.scheduleLock?.scheduleLocked;
     mutationRequest({
       methods: [buildScheduleLockMethod({ matchUpId: matchUp.matchUpId, drawId, locked: !locked })],
       callback: () => updateRow({ scheduleLocked: !locked }),
@@ -131,7 +135,12 @@ export function matchUpActions({
 
   const setScheduleDate = () => {
     const existingDate = matchUp?.schedule?.scheduledDate || '';
-    const activeDates = getScheduleDateRange();
+    // limited to the dates the write accepts: none before a linked match it follows, none after one that follows it
+    const activeDates = datesWithinBounds(getScheduleDateRange(), gates.scheduleDate?.bounds);
+    if (!activeDates.length) {
+      tmxToast({ message: t('toasts.schedule.noValidDate'), intent: 'is-danger' });
+      return;
+    }
     datePicker({
       date: existingDate,
       activeDates,
@@ -162,12 +171,28 @@ export function matchUpActions({
       return;
     }
 
+    // linked matchUps bound the time; the factory refuses what falls outside, this says why before the round trip
+    const outside = timeOutsideBounds({
+      bounds: timeAction(field)?.bounds,
+      date: schedule.scheduledDate,
+      recorded: field !== 'scheduledTime',
+      time: converted,
+    });
+    if (outside) {
+      const { date, time } = outside.bound;
+      tmxToast({ message: t(outside.key, { time: converted, boundTime: time, date }), intent: 'is-danger' });
+      return;
+    }
+
     setMatchUpSchedule({
       matchUpId: matchUp.matchUpId,
       schedule: { [field]: converted },
       callback: () => updateRow({ [field]: converted }),
     });
   };
+
+  const timeAction = (field: ScheduleTimeField): MenuAction | undefined =>
+    ({ scheduledTime: gates.scheduleTime, startTime: gates.start, endTime: gates.end })[field];
 
   const setTimeField = (field: ScheduleTimeField) => {
     const schedule = matchUp?.schedule || {};
@@ -505,29 +530,8 @@ export function matchUpActions({
     render();
   };
 
-  const matchUpStatus = matchUp?.matchUpStatus;
-  const noParticipants = !matchUp?.sides?.some((s: any) => s?.participantId);
-  const terminalStatuses = [
-    'BYE',
-    'WALKOVER',
-    'DOUBLE_WALKOVER',
-    'CANCELLED',
-    'ABANDONED',
-    'DOUBLE_DEFAULT',
-    'DEFAULTED',
-  ];
-  const isTerminal = terminalStatuses.includes(matchUpStatus);
-  const hideTimeOptions = noParticipants || isTerminal;
-
   const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
   const hasDelegatedOutcome = !!readDelegatedOutcome(matchUp);
-
-  // Offered only where a lock would mean something — not completed, and actually
-  // placed. `canToggleScheduleLock` asks the factory rather than reusing the
-  // local `hasSchedule` above, which is looser: it omits courtOrder and
-  // allocatedCourts, so a TEAM matchUp with courts allocated but no date would
-  // be offered a lock the engine treats as inert.
-  const hideScheduleLock = !canToggleScheduleLock(matchUp);
 
   const items = [
     {
@@ -543,45 +547,60 @@ export function matchUpActions({
     {
       onClick: clearSchedule,
       text: t('pages.schedule.clearSchedule'),
-      hide: !hasSchedule,
+      hide: !gates.clearSchedule,
     },
     {
       onClick: toggleScheduleLock,
-      text: isScheduleLocked(matchUp) ? t('schedule.unlockSchedule') : t('schedule.lockSchedule'),
-      hide: hideScheduleLock,
+      text: gates.scheduleLock?.scheduleLocked ? t('schedule.unlockSchedule') : t('schedule.lockSchedule'),
+      hide: !gates.scheduleLock,
     },
     {
       onClick: setScheduleDate,
       text: t('matchUpActions.scheduleDate'),
+      hide: !gates.scheduleDate,
     },
     {
       onClick: () => setTimeField('scheduledTime'),
       text: t('matchUpActions.scheduleTime'),
+      hide: !gates.scheduleTime,
     },
     {
       onClick: () => setTimeField('startTime'),
       text: t('schedule.startTime'),
-      hide: hideTimeOptions,
+      hide: !gates.start,
     },
     {
       onClick: () => setTimeField('endTime'),
       text: t('schedule.endTime'),
-      hide: hideTimeOptions,
+      hide: !gates.end,
     },
     {
       // Per-matchUp check-in — the desk action. Deliberately worded "Check in", never "Sign in":
       // signing in is arrival at the tournament and is tournament-wide (D4a).
       onClick: openCheckInPanel,
       text: `${t('checkIn.action')} (${checkInSummary(getMatchUpCheckInState(matchUp))})`,
-      hide: noParticipants || isTerminal,
+      hide: !gates.checkIn,
     },
     {
       onClick: () => void selectOfficial(),
       text: t('officiating.selectOfficial'),
+      hide: !gates.referee,
+    },
+    {
+      onClick: () =>
+        enterMatchUpScore({ matchUp, matchUpId: matchUp.matchUpId, callback: () => callback?.({ refresh: true }) }),
+      text: t('draws.changestatus'),
+      hide: !gates.status,
+    },
+    {
+      onClick: () => gates.penalty && addPenaltyModal({ action: gates.penalty }),
+      text: t('draws.penalty'),
+      hide: !gates.penalty,
     },
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),
       text: t('matchUpActions.printMatchCard'),
+      hide: gates.hidePrint,
     },
     {
       onClick: () =>
@@ -595,7 +614,7 @@ export function matchUpActions({
     {
       onClick: () => openNominateScorekeeper({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),
       text: t('crowd.nominateScorekeeper'),
-      hide: noParticipants,
+      hide: !gates.scorekeeper,
     },
     {
       onClick: () => removeScorekeeperNomination({ matchUpId: matchUp.matchUpId, drawId: matchUp.drawId }),

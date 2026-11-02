@@ -14,16 +14,23 @@ import { planGuardRefusalCount, profileRepairOffer, schedulerResultOf } from 'se
 import { AvailabilityEngine, availability, unwrapOr } from 'tods-competition-factory';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
+import { collectEventDateSkips, eventDateExtensions } from './eventDateScheduling';
 import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionEngine } from 'services/factory/engine';
+import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { openApplyTimesModal } from './applyTimesModal';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { openCapacityPopover } from './capacityPopover';
+import { profileRoundCatalog } from './profileRoundCatalog';
 import { openApplyGridModal } from './applyGridModal';
 import { hiddenCourtIds } from './visibilityState';
 import { scheduleToast } from './scheduleToast';
 import { context } from 'services/context';
+import {
+  periodLengthWriteMethod,
+  schedulerPeriodLength,
+  withPeriodLength,
+} from 'services/schedulePreferences/schedulingPeriodLength';
 import {
   createSchedulingProfile,
   type SchedulingProfileConfig,
@@ -37,6 +44,7 @@ import {
 } from 'courthive-components';
 
 import { COMPETITION_ENGINE, SCHEDULING_TAB } from 'constants/tmxConstants';
+import { SET_EVENT_DATES } from 'constants/mutationConstants';
 import { t } from 'i18n';
 
 const { calculateCapacityStats } = availability;
@@ -179,29 +187,8 @@ function buildProfileSetup(): ProfileSetup | null {
   });
   if (!factoryRounds.length) return null;
 
-  const roundCatalog: CatalogRoundItem[] = factoryRounds.map((r: any) => {
-    // Prefer structureName (e.g. "Main Draw", "Consolation"); fall back to drawName only if it's not a UUID
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r.drawName || '');
-    const drawName = r.structureName || (isUUID ? '' : r.drawName) || '';
-
-    // Build a human-readable round name from matchUps if factory gives raw format
-    const rawRound = r.roundName || '';
-    const roundName = rawRound.startsWith('rn=')
-      ? r.matchUps?.[0]?.roundName || `Round ${r.roundNumber}`
-      : rawRound || `Round ${r.roundNumber}`;
-
-    return {
-      tournamentId: r.tournamentId || tournamentId,
-      eventId: r.eventId,
-      eventName: r.eventName || '',
-      drawId: r.drawId,
-      drawName,
-      structureId: r.structureId,
-      roundNumber: r.roundNumber,
-      roundName,
-      matchCountEstimate: r.matchUpsCount,
-    };
-  });
+  // Each round carries its event's playingDates when the event's own dates narrow the tournament's
+  const roundCatalog = profileRoundCatalog(factoryRounds, tournamentId);
 
   // Schedulable dates (respects activeDates when present)
   const schedulableDates = getScheduleDateRange();
@@ -643,7 +630,8 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   // Confirm policy choice before running the scheduler.
   openApplyTimesModal({
-    onApply: ({ selected, mustAttach }) => runScheduleWithPolicy(profile, statusEl, selected.definition, mustAttach),
+    onApply: ({ selected, mustAttach, periodLength }) =>
+      runScheduleWithPolicy(profile, statusEl, selected.definition, mustAttach, false, periodLength),
   });
 }
 
@@ -652,16 +640,23 @@ function runScheduleWithPolicy(
   statusEl: HTMLElement,
   policyDefinitions: Record<string, any>,
   mustAttach: boolean,
+  allowInactiveEventDates = false,
+  chosenPeriodLength?: number,
 ): void {
   // Save profile first, then optionally attach the chosen policy, then run
   // the factory scheduler.
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
-    const params: any = { scheduleDates };
+    const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
+    const periodLength = schedulerPeriodLength(tournamentRecord, chosenPeriodLength);
+    const params: any = withPeriodLength({ scheduleDates }, periodLength);
     if (courtIds) params.courtIds = courtIds;
+    if (allowInactiveEventDates) params.allowInactiveEventDates = true;
 
     const methods: any[] = [];
+    const periodLengthWrite = chosenPeriodLength && periodLengthWriteMethod(tournamentRecord, chosenPeriodLength);
+    if (periodLengthWrite) methods.push(periodLengthWrite);
     if (mustAttach) {
       methods.push({ method: 'attachPolicies', params: { policyDefinitions, allowReplacement: true } });
     }
@@ -719,7 +714,12 @@ function runScheduleWithPolicy(
         // Surface the full scheduler return value (deferred matchUps, conflicts,
         // no-time, etc.) — the toast only summarizes Scheduled + Over Limit.
         // Skip the drawer when nothing beyond Scheduled needs attention.
-        if (result && hasActionableResults(result)) openScheduleResultsDrawer(result);
+        if (result && hasActionableResults(result)) {
+          // "schedule anyway" re-runs with allowInactiveEventDates; the policy is attached by now
+          const rerun = () =>
+            runScheduleWithPolicy(profile, statusEl, policyDefinitions, false, true, chosenPeriodLength);
+          openScheduleResultsDrawer(result, eventDateSkipActions(result, rerun));
+        }
       },
     });
   });
@@ -736,6 +736,7 @@ function hasActionableResults(result: any): boolean {
     dateMapHasEntries(result.playedOrderDeferredMatchUpIds) ||
     dateMapHasEntries(result.noFormatMatchUpIds) ||
     dateMapHasEntries(result.overnightRestWarnings) ||
+    dateMapHasEntries(result.eventDateSkippedMatchUpIds) ||
     dateMapHasEntries(result.requestConflicts)
   );
 }
@@ -836,12 +837,14 @@ function runGridWithPolicy(
   statusEl: HTMLElement,
   selectedPolicy: { definition: Record<string, any> } | null,
   mustAttach: boolean,
+  allowInactiveEventDates = false,
 ): void {
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
     const params: any = { scheduleDates };
     if (courtIds) params.courtIds = courtIds;
+    if (allowInactiveEventDates) params.allowInactiveEventDates = true;
 
     // Daily limits (factory, CA 2026-10-23): with a policy chosen, none are sent and the grid resolves them as the
     // timed scheduler does (the attached policy, which is attached first below when it is not yet, the tournament's
@@ -907,7 +910,7 @@ function runGridWithPolicy(
         const totalShortRest = countOvernightRest(result);
         if (totalShortRest > 0) segments.push(`${totalShortRest} short of overnight rest`);
         const message = segments.join(' — ') + '.';
-        const warned = totalWarned > 0 || totalShortRest > 0;
+        const warned = totalWarned > 0 || totalShortRest > 0 || collectEventDateSkips(result).count > 0;
 
         scheduleToast({
           message,
@@ -915,13 +918,40 @@ function runGridWithPolicy(
         });
 
         statusEl.textContent = message;
-        if (warned) openScheduleResultsDrawer(result);
+        if (warned) {
+          const rerun = () => runGridWithPolicy(profile, statusEl, selectedPolicy, false, true);
+          openScheduleResultsDrawer(result, eventDateSkipActions(result, rerun));
+        }
       },
     });
   });
 }
 
 // ── Helpers ──
+
+/**
+ * The results drawer's actions for matchUps skipped because their event does not play on the day: re-run with
+ * `allowInactiveEventDates`, and, when a skipped day lies outside an event's own range, widen that range.
+ */
+function eventDateSkipActions(result: any, scheduleAnyway: () => void) {
+  const { byDate, count } = collectEventDateSkips(result);
+  if (!count) return {};
+  const eventOf = (eventId: string) => tournamentEngine.getEvent({ eventId })?.event;
+  const extensions = eventDateExtensions({ byDate, eventOf });
+  const extendEventDates = () =>
+    mutationRequest({
+      methods: extensions.map((params) => ({ method: SET_EVENT_DATES, params })),
+      callback: (extended: any) => {
+        if (extended?.error) {
+          scheduleToast({ message: t('eventDates.extendFailed'), intent: INTENT_DANGER });
+          return;
+        }
+        invalidateMatchUpCaches();
+        scheduleToast({ message: t('eventDates.extended'), intent: INTENT_SUCCESS });
+      },
+    });
+  return { scheduleAnyway, ...(extensions.length ? { extendEventDates } : {}) };
+}
 
 function countDateMap(dateMap?: { [date: string]: string[] }): number {
   return Object.values(dateMap ?? {}).reduce((count, ids) => count + (ids?.length ?? 0), 0);

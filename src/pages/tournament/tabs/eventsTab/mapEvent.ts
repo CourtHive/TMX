@@ -7,6 +7,7 @@ import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { tournamentEngine } from 'services/factory/engine';
 import { hasFinalResult } from 'functions/hasFinalResult';
 import { mapDrawDefinition } from './mapDrawDefinition';
+import { sortByDrawOrder } from 'functions/drawOrder';
 
 const { MAIN } = drawDefinitionConstants;
 
@@ -37,6 +38,7 @@ export function mapEvent({
     }
   });
 
+  const orderedDraws = sortByDrawOrder({ items: [...drawDefinitions, ...ungeneratedFlights], event, flightProfile });
   const publishState = publishingGovernor.getPublishState({ event }).publishState;
   const drawsCount = drawDefinitions.length;
 
@@ -52,16 +54,14 @@ export function mapEvent({
   let drawDefs: any[];
 
   if (lightMode) {
-    drawDefs = [...drawDefinitions, ...ungeneratedFlights].map(
-      ({ drawId, drawName, drawType, flightNumber, structures }: any) => ({
-        generated: structures?.length > 0,
-        flightNumber,
-        drawName,
-        drawType,
-        eventId,
-        drawId,
-      }),
-    );
+    drawDefs = orderedDraws.map(({ drawId, drawName, drawType, flightNumber, structures }: any) => ({
+      generated: structures?.length > 0,
+      flightNumber,
+      drawName,
+      drawType,
+      eventId,
+      drawId,
+    }));
   } else {
     // `inContext: false` — every column read below uses raw matchUp fields
     // (length, winningSide, schedule.scheduledTime). `inContext: true` was a
@@ -73,7 +73,7 @@ export function mapEvent({
     scheduledMatchUpsCount =
       matchUps?.filter((matchUp: any) => !hasFinalResult(matchUp) && matchUp.schedule?.scheduledTime)?.length || 0;
     completedMatchUpsCount = matchUps.filter((matchUp: any) => hasFinalResult(matchUp))?.length || 0;
-    drawDefs = [...drawDefinitions, ...ungeneratedFlights].map((drawDefinition: any) =>
+    drawDefs = orderedDraws.map((drawDefinition: any) =>
       mapDrawDefinition(eventId)({ drawDefinition, scaleValues: scaleValues?.draws?.[drawDefinition.drawId] }),
     );
   }

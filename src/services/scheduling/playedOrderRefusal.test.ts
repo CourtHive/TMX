@@ -31,6 +31,31 @@ describe('playedOrderRefusalMessage', () => {
     expect(message).toContain('toasts.schedule.afterDependent');
   });
 
+  // CA 2026-10-30: the order binds plans too, so the blocking source may only be scheduled. It used to read "already
+  // played".
+  it('a source that is only scheduled is not called played', () => {
+    const message = playedOrderRefusalMessage(
+      refusal([{ matchUpId: 'sf1', relation: 'source', scheduledDate: '2026-10-02', scheduledTime: '10:00' }]),
+      labelOf,
+    );
+    expect(message).toBe('toasts.schedule.beforeSource:{"matchUp":"SF: Alice vs Bob","when":"2026-10-02 10:00"}');
+  });
+
+  it('recorded times that overlap a linked match name its times', () => {
+    const recorded = (relation: string) => ({
+      error: { code: 'ANACHRONISM' },
+      context: {
+        matchUpId: 'qf',
+        startTime: '11:00',
+        blockingMatchUps: [{ matchUpId: 'sf1', relation, startTime: '10:30', endTime: '12:00' }],
+      },
+    });
+    expect(playedOrderRefusalMessage(recorded('dependent'), labelOf)).toBe(
+      'toasts.schedule.overlapsDependent:{"matchUp":"SF: Alice vs Bob","when":"10:30–12:00"}',
+    );
+    expect(playedOrderRefusalMessage(recorded('source'), labelOf)).toContain('toasts.schedule.overlapsSource');
+  });
+
   it('falls back to the round when the match cannot be labelled, and counts the rest', () => {
     const message = playedOrderRefusalMessage(
       refusal([

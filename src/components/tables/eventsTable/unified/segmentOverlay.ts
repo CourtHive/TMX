@@ -6,6 +6,7 @@
  */
 import { drawDefinitionConstants, entryStatusConstants, participantConstants } from 'tods-competition-factory';
 import { getPairability, pairOverlapsEntries, selectionHasNonDrawEntries } from './rotatingPartners';
+import { promoteAlternatesModal } from 'components/modals/promoteAlternatesModal';
 import { acceptedEntryStatuses } from 'constants/acceptedEntryStatuses';
 import { enableManualSeeding } from '../seeding/enableManualSeeding';
 import { cancelManualSeeding } from '../seeding/cancelManualSeeding';
@@ -14,6 +15,8 @@ import { inheritedEntryStage, PAIR_SEGMENTS } from './pairSegment';
 import { generateSeedValues } from '../seeding/generateSeedValues';
 import { modifyEntriesStatus } from '../modifyEntriesStatus';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { getPromotionPlan } from './promoteAlternatesPlan';
+import { tournamentEngine } from 'services/factory/engine';
 import { changeEntryStatus } from '../changeEntryStatus';
 import { clearSeeding } from '../seeding/removeSeeding';
 import { saveSeeding } from '../seeding/saveSeeding';
@@ -23,8 +26,8 @@ import { addEntries } from '../addEntries';
 import { addToDraw } from '../addToDraw';
 
 // Constants
+import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT, LEFT, PROMOTE_ALTERNATES_BUTTON } from 'constants/tmxConstants';
 import { REMOVE_DRAW_ENTRIES, REMOVE_EVENT_ENTRIES } from 'constants/mutationConstants';
-import { ACCEPTED, QUALIFYING, OVERLAY, RIGHT, LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const { MAIN, QUALIFYING: QUAL_STAGE } = drawDefinitionConstants;
@@ -357,6 +360,7 @@ type RightItemsParams = {
   pairingMode: PairingMode;
   rotatingMode?: RotatingPartnersMode;
   onRefresh: () => void;
+  drawId?: string;
 };
 
 export function getRightItems({
@@ -366,6 +370,7 @@ export function getRightItems({
   pairingMode,
   rotatingMode,
   onRefresh,
+  drawId,
 }: RightItemsParams): any[] {
   const items: any[] = [];
 
@@ -428,6 +433,21 @@ export function getRightItems({
     };
 
     items.push(addEntriesHandler);
+
+    // Promote alternates — read fresh on every render so it disappears once the last alternate is promoted.
+    // Not offered once the draw is generated: a promoted entry would not be placed in the structure.
+    items.push(() => {
+      const freshEvent = tournamentEngine.getEvent({ eventId: event.eventId })?.event;
+      const { max } = getPromotionPlan({ event: freshEvent });
+      return {
+        onClick: () => promoteAlternatesModal({ eventId: event.eventId, drawId, callback: onRefresh }),
+        label: t('entries.promoteAlternates.button'),
+        id: PROMOTE_ALTERNATES_BUTTON,
+        intent: 'is-info',
+        location: RIGHT,
+        hide: !max,
+      };
+    });
   }
 
   // ── Pairing row (doubles) ──

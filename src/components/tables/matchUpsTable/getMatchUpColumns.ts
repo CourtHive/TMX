@@ -388,7 +388,9 @@ export function getMatchUpColumns({
       };
     })(),
     {
-      cellClick: (e: Event, cell: any) => matchUpActions({ pointerEvent: e as PointerEvent, cell, ...cell.getData() }),
+      // the callback refreshes the table for what a row update cannot express: a status change, a settlement
+      cellClick: (e: Event, cell: any) =>
+        matchUpActions({ pointerEvent: e as PointerEvent, cell, ...cell.getData(), callback: replaceTableData }),
       formatter: matchUpThreeDotsFormatter,
       responsive: false,
       headerSort: false,

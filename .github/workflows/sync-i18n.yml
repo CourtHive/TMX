@@ -69,7 +69,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Merge en.json into courthive-i18n
         id: merge

@@ -176,7 +176,10 @@ test.describe('Journey 34 — row-number column + column-selector menu', () => {
     // Status chips appear ONLY for the two special acceptances (scoped to the status column).
     const statusChips = page.locator(`${S.ENTRIES_VIEW} .tabulator-cell[tabulator-field="status"] .tag`);
     const texts = (await statusChips.allTextContents()).map((t) => t.trim()).sort();
-    expect(texts).toEqual(['SE', 'WC']);
+    // Each chip reads its status code and the entry's place within that status (e.g. "WC 2").
+    expect(texts).toHaveLength(2);
+    expect(texts[0]).toMatch(/^SE \d+$/);
+    expect(texts[1]).toMatch(/^WC \d+$/);
 
     // The plain direct-acceptance rows render no status chip (info lives in Grouping).
     const statusCellsWithChip = await statusChips.count();

@@ -1,0 +1,187 @@
+/**
+ * Schedule2 — the order catalog cards are listed in.
+ *
+ * The question a director answers while scanning a group of cards is *which of these do I call
+ * next?* The rest badge answers it card by card; this answers it for the group, so the card to call
+ * is at the top instead of somewhere the eye has to find it.
+ *
+ *   1. Readiness, from the same rest evaluation the badge draws: every participant recovered (or
+ *      with no match today) first, then those still recovering by how soon they will be ready, then
+ *      cards with a participant still on court.
+ *   2. Structural order — roundNumber, then roundPosition — for cards readiness cannot separate.
+ *   3. The incoming (factory traversal) order, via a stable sort.
+ *
+ * `matchUpId` is never a key. It is a UUID: ordering by it is ordering at random, and that is what
+ * both panels did before this existed — a 27m-rested card listed above three ready ones because
+ * its id happened to sort first.
+ *
+ * ── Sorted on rebuild, never on the tick ──
+ *
+ * Rest counts up, and the badges repaint in place every 30 seconds. The order does not follow them:
+ * re-sorting on the tick would move cards under the operator's cursor and out from under an
+ * in-flight drag. Callers order once, when the catalog is rebuilt for some other reason (a mutation,
+ * a filter, a date change), so between rebuilds the order can lag the badges by a band. A stale
+ * order is a mild inconvenience; a card that jumps as it is grabbed is a mis-drop.
+ */
+
+import { tools } from 'tods-competition-factory';
+import { headlineRow } from './restBadge';
+
+// constants and types
+import { drawDefinitionConstants, type RestResult } from 'tods-competition-factory';
+
+const { QUALIFYING } = drawDefinitionConstants;
+
+/** Ready to call, still recovering, still on court. Lower is listed first. */
+export const READY = 0;
+export const RECOVERING = 1;
+export const ON_COURT = 2;
+
+export interface ReadinessKey {
+  band: number;
+  /** Minutes until the slowest participant on the card is recovered; 0 outside `RECOVERING`. */
+  shortfall: number;
+}
+
+/**
+ * A matchUp's place in the readiness order, from its rest evaluation.
+ *
+ * Decided by the badge's headline row — the worst participant on the card — so the order and the
+ * badge cannot disagree about a card. An unevaluated matchUp sorts with the ready ones: nothing is
+ * known that says to wait for it, and placing it is not a claim about it the way a badge would be.
+ * A side not yet decided reads as on court (whoever arrives is still playing upstream), which is
+ * where the factory bands it.
+ */
+export function readinessKey(result: RestResult): ReadinessKey {
+  if (!result.evaluated) return { band: READY, shortfall: 0 };
+  const row = headlineRow(result.rows);
+  if (!row || row.status === 'rested' || row.status === 'none') return { band: READY, shortfall: 0 };
+  if (row.status === 'onCourt') return { band: ON_COURT, shortfall: 0 };
+  // An unreliable anchor reports zero rest; treat the whole requirement as outstanding rather than
+  // reading the arithmetic zero as "just walked off" or as recovered.
+  const rested = row.anchorUnreliable ? 0 : (row.restMinutes ?? 0);
+  return { band: RECOVERING, shortfall: Math.max(row.requiredMinutes - rested, 0) };
+}
+
+/**
+ * A readiness key as one number, lower first: the `readinessRank` the catalog groups by. The catalog
+ * orders groups — and the cards within one — by it after structure and side readiness, and never
+ * reads it; a shortfall is minutes, far below the band step.
+ */
+export function readinessRank(key: ReadinessKey): number {
+  return key.band * 100_000 + key.shortfall;
+}
+
+/** The fields ordering reads off a matchUp. Structural, so hydrated factory matchUps pass directly. */
+export interface OrderableMatchUp {
+  matchUpId: string;
+  roundNumber?: number;
+  roundPosition?: number;
+  schedule?: { scheduledTime?: string } | null;
+}
+
+export interface OrderOptions {
+  /**
+   * Order by scheduled time ahead of readiness. For the Scheduled panel, whose cards carry the time
+   * they were placed at: readiness separates cards at the same time, it does not reorder the day.
+   */
+  byTime?: (matchUp: OrderableMatchUp) => number;
+}
+
+/** `undefined` (no round, no position) sorts after any real value. */
+function ascending(a: number | undefined, b: number | undefined): number {
+  if (a === b) return 0;
+  if (a === undefined) return 1;
+  if (b === undefined) return -1;
+  return a - b;
+}
+
+/** Draw order: roundNumber, then roundPosition. For an `Array.sort`, which keeps ties in input order. */
+export function compareStructure(a: OrderableMatchUp, b: OrderableMatchUp): number {
+  return ascending(a.roundNumber, b.roundNumber) || ascending(a.roundPosition, b.roundPosition);
+}
+
+/**
+ * A new array of `matchUps` in catalog order. `evaluate` is the rest evaluation for one matchUp —
+ * callers pass the render pass's evaluator so the order and the badges share one reading of the clock.
+ */
+export function orderByReadiness<T extends OrderableMatchUp>(
+  matchUps: T[],
+  evaluate: (matchUpId: string) => RestResult,
+  options: OrderOptions = {},
+): T[] {
+  return matchUps
+    .map((matchUp, index) => ({
+      matchUp,
+      index,
+      time: options.byTime?.(matchUp) ?? 0,
+      key: readinessKey(evaluate(matchUp.matchUpId)),
+    }))
+    .sort(
+      (a, b) =>
+        (a.time === b.time ? 0 : a.time - b.time) ||
+        a.key.band - b.key.band ||
+        a.key.shortfall - b.key.shortfall ||
+        compareStructure(a.matchUp, b.matchUp) ||
+        a.index - b.index,
+    )
+    .map((entry) => entry.matchUp);
+}
+
+/** The fields play order reads off a top-level structure. */
+export interface SequencedStructure {
+  structureId: string;
+  stage?: string;
+}
+
+/**
+ * Each structure's 0-based position in its draw's play order — the `structureSequence` the catalog
+ * groups by — keyed by structureId.
+ *
+ * The order is the factory's `structureSort`, not one worked out here: compass runs East, West, North,
+ * South, Northeast, Northwest, Southwest, Southeast; double elimination Main, Backdraw, Decider.
+ * Qualifying structures are counted on their own, so a draw's main structure is position 0 whether or
+ * not the draw has a qualifying stage, and sits beside every other draw's main structure.
+ */
+export function structureSequences(structures: SequencedStructure[]): Map<string, number> {
+  const sequences = new Map<string, number>();
+  let qualifying = 0;
+  let rest = 0;
+  for (const structure of structures.toSorted((a: any, b: any) => tools.structureSort(a, b))) {
+    sequences.set(structure.structureId, structure.stage === QUALIFYING ? qualifying++ : rest++);
+  }
+  return sequences;
+}
+
+/** The fields the draw lookup reads off a hydrated matchUp. */
+export interface DrawMatchUp {
+  drawId?: string;
+  structureId?: string;
+  containerStructureId?: string;
+}
+
+/**
+ * `structureSequence` for each matchUp, keyed by matchUpId (see `structureSequences`). `structuresOf`
+ * is the engine's draw lookup, injected so this stays testable; it is called once per draw, not per
+ * matchUp.
+ *
+ * A round robin's groups are not top-level structures — `structureSort` orders the container — so a
+ * group matchUp takes its container's position.
+ */
+export function matchUpStructureSequences(
+  matchUps: (DrawMatchUp & { matchUpId: string })[],
+  structuresOf: (drawId: string) => SequencedStructure[],
+): Map<string, number> {
+  const byStructure = new Map<string, number>();
+  for (const drawId of new Set(matchUps.map((m) => m.drawId).filter((id): id is string => !!id))) {
+    for (const [structureId, sequence] of structureSequences(structuresOf(drawId))) {
+      byStructure.set(structureId, sequence);
+    }
+  }
+  const byMatchUp = new Map<string, number>();
+  for (const m of matchUps) {
+    const sequence = byStructure.get(m.containerStructureId ?? m.structureId ?? '');
+    if (sequence !== undefined) byMatchUp.set(m.matchUpId, sequence);
+  }
+  return byMatchUp;
+}

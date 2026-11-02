@@ -1,33 +1,28 @@
 /**
  * Import tournament records from file via dropzone modal or native dialog.
- * Parses CODES JSON and adds tournaments to calendar table with conflict handling.
+ * Parses CODES JSON and adds tournaments to calendar table with conflict handling, then warns
+ * (without blocking) when the record fails CODES schema or integrity validation.
  */
+import { warnOnRecordValidation } from 'components/modals/recordValidationWarning';
 import { mapTournamentRecord } from 'pages/tournaments/mapTournamentRecord';
+import { loadImportedTournament } from './loadImportedTournament';
 import { addOrUpdateTournament } from './addOrUpdateTournament';
 import { dropzoneModal } from 'components/modals/dropzoneModal';
-import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import * as safeJSON from 'utilities/safeJSON';
 import { platform } from 'platform';
 import { t } from 'i18n';
 
 function processImportData(data: string, tournamentIds: string[], table: any): void {
-  const tournament = safeJSON.parse({ data });
-  if (tournament) {
-    let result, tournamentRecord;
-    if (tournament.tournamentId && tournament.startDate) {
-      tournamentRecord = tournament;
-    } else if (tournament.tuid && tournament.start) {
-      tmxToast({ message: t('toasts.tmxClassicNotConverted') });
-    }
-
-    result = tournamentEngine.setState(tournamentRecord);
-
-    if (result.success) {
-      addTournament({ tournamentRecord, tournamentIds, table });
-    } else {
-      console.log(result);
-    }
+  // Validation runs after the record is loaded and never blocks it; findings arrive as a warning.
+  const result = loadImportedTournament({
+    data,
+    onLoaded: (tournamentRecord) => addTournament({ tournamentRecord, tournamentIds, table }),
+    onValidated: warnOnRecordValidation,
+  });
+  if (result.classic) {
+    tmxToast({ message: t('toasts.tmxClassicNotConverted') });
+  } else if (result.error) {
+    console.log(result);
   }
 }
 

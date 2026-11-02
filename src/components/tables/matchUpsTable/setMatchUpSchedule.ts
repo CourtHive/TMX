@@ -35,11 +35,29 @@ export function scheduleErrorMessage(error: any): string {
   return t('toasts.schedule.notSaved', { reason });
 }
 
+/**
+ * `bulkScheduleMatchUps` reports a matchUp it did not write as a SUCCESS with `scheduled: 0`: a skipped one (a BYE, or a
+ * completed matchUp without the opt-in), a locked one, or one it could not find. For a single explicit edit that is a
+ * refusal, so it gets a message rather than a row showing a value that was never stored (CA, 2026-10-30).
+ * Undefined when the write landed, or when the result carries no per-method outcome to judge.
+ */
+export function notScheduledMessage(result: any): string | undefined {
+  const outcome = result?.results?.[0];
+  if (!outcome || outcome.scheduled !== 0) return undefined;
+  if (outcome.lockedMatchUpIds?.length) return t('toasts.schedule.locked');
+  if (outcome.skippedMatchUpIds?.length) return t('toasts.schedule.skipped');
+  if (outcome.notFoundMatchUpIds?.length) return t('toasts.schedule.matchUpNotFound');
+  return undefined;
+}
+
 export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
   const { matchUpId, schedule, callback } = params;
   const methods = [
     {
-      params: { matchUpIds: [matchUpId], schedule, removePriorValues: true },
+      // One explicit edit of one matchUp: a completed matchUp's date, times and official remain editable after the
+      // fact, so it opts in. Without it the engine skips the matchUp and still reports success. The played-order
+      // rule still applies to the write.
+      params: { matchUpIds: [matchUpId], schedule, removePriorValues: true, scheduleCompletedMatchUps: true },
       method: BULK_SCHEDULE_MATCHUPS,
     },
   ];
@@ -53,6 +71,11 @@ export function setMatchUpSchedule(params: SetMatchUpScheduleParams) {
         message: playedOrderRefusalMessage(result) ?? scheduleErrorMessage(result.error),
         intent: 'is-danger',
       });
+      return;
+    }
+    const notScheduled = notScheduledMessage(result);
+    if (notScheduled) {
+      tmxToast({ message: notScheduled, intent: 'is-danger' });
       return;
     }
     if (result?.success && callback && isFunction(callback)) {
