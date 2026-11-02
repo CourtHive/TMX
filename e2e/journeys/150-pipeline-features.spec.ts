@@ -69,12 +69,13 @@ test.describe('Journey 150 — Pipeline features', () => {
     await page.evaluate(() => globalThis.localStorage.removeItem('tmx_settings'));
   });
 
-  test('sits with the full-width panels, directly after Seeding policy', async ({ page }) => {
-    // CA, 2026-10-15: a full-width panel in the middle of the column grid "looks UGLY" — it goes 2nd or 3rd.
+  test('sits on its own row, directly after the preferences row', async ({ page }) => {
+    // CA, 2026-10-15: a full-width panel in the middle of the column grid "looks UGLY". Since the settings layout put
+    // the neutral panels in fixed rows (#1874), it follows the preferences row, whose last panel is Options.
     const tournamentId = await seed(page);
     await openSettings(page, tournamentId);
 
-    await expect(page.locator(`#seedingPolicyPanel + ${PANEL}`)).toBeVisible();
+    await expect(page.locator(`#optionsPanel + ${PANEL}`)).toBeVisible();
   });
 
   test('default: a main-draw walkover leaves the consolation match to be played', async ({ page }) => {
