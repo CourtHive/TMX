@@ -3713,7 +3713,11 @@
     "applyGridTitle": "Apply Grid — Scheduling Policy",
     "selectPolicy": "Select the scheduling policy to use for Apply Times:",
     "noPolicies": "No scheduling policies available",
-    "applyTimesTitle": "Apply Times — Scheduling Policy"
+    "applyTimesTitle": "Apply Times — Scheduling Policy",
+    "periodLength": "Period length:",
+    "periodMinutes_one": "{{count}} minute",
+    "periodMinutes_other": "{{count}} minutes",
+    "periodLengthHint": "Start times are rounded to this grid. Saved for the tournament and used every time times are applied."
   },
   "capacity": {
     "noCourts": "No courts configured for this tournament",

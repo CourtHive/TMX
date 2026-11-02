@@ -27,6 +27,11 @@ import { hiddenCourtIds } from './visibilityState';
 import { scheduleToast } from './scheduleToast';
 import { context } from 'services/context';
 import {
+  periodLengthWriteMethod,
+  schedulerPeriodLength,
+  withPeriodLength,
+} from 'services/schedulePreferences/schedulingPeriodLength';
+import {
   createSchedulingProfile,
   type SchedulingProfileConfig,
   type SchedulingProfileControl,
@@ -625,7 +630,8 @@ function applySchedule(_setup: ProfileSetup, statusEl: HTMLElement): void {
 
   // Confirm policy choice before running the scheduler.
   openApplyTimesModal({
-    onApply: ({ selected, mustAttach }) => runScheduleWithPolicy(profile, statusEl, selected.definition, mustAttach),
+    onApply: ({ selected, mustAttach, periodLength }) =>
+      runScheduleWithPolicy(profile, statusEl, selected.definition, mustAttach, false, periodLength),
   });
 }
 
@@ -635,17 +641,22 @@ function runScheduleWithPolicy(
   policyDefinitions: Record<string, any>,
   mustAttach: boolean,
   allowInactiveEventDates = false,
+  chosenPeriodLength?: number,
 ): void {
   // Save profile first, then optionally attach the chosen policy, then run
   // the factory scheduler.
   saveProfile(profile, () => {
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
-    const params: any = { scheduleDates };
+    const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
+    const periodLength = schedulerPeriodLength(tournamentRecord, chosenPeriodLength);
+    const params: any = withPeriodLength({ scheduleDates }, periodLength);
     if (courtIds) params.courtIds = courtIds;
     if (allowInactiveEventDates) params.allowInactiveEventDates = true;
 
     const methods: any[] = [];
+    const periodLengthWrite = chosenPeriodLength && periodLengthWriteMethod(tournamentRecord, chosenPeriodLength);
+    if (periodLengthWrite) methods.push(periodLengthWrite);
     if (mustAttach) {
       methods.push({ method: 'attachPolicies', params: { policyDefinitions, allowReplacement: true } });
     }
@@ -705,7 +716,8 @@ function runScheduleWithPolicy(
         // Skip the drawer when nothing beyond Scheduled needs attention.
         if (result && hasActionableResults(result)) {
           // "schedule anyway" re-runs with allowInactiveEventDates; the policy is attached by now
-          const rerun = () => runScheduleWithPolicy(profile, statusEl, policyDefinitions, false, true);
+          const rerun = () =>
+            runScheduleWithPolicy(profile, statusEl, policyDefinitions, false, true, chosenPeriodLength);
           openScheduleResultsDrawer(result, eventDateSkipActions(result, rerun));
         }
       },
