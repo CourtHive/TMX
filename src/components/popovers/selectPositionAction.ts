@@ -6,13 +6,16 @@ import { participantProfileModal } from 'components/modals/participantProfileMod
 import { additionalSeedAction } from 'components/popovers/additionalSeedAction';
 import { promptByeScheduling } from 'components/popovers/byeSchedulingPrompt';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { positionActionConstants, tools } from 'tods-competition-factory';
 import { isSchedulingAmbiguity } from 'functions/isSchedulingAmbiguity';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tipster } from 'components/popovers/tipster';
 import { validators } from 'courthive-components';
-import { tools } from 'tods-competition-factory';
 import { t } from 'i18n';
+
+const { REMOVE_SEED } = positionActionConstants;
+const noChoiceActions = new Set(['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT', 'ASSIGN_QUALIFIER', REMOVE_SEED]);
 
 const actionLabels: Record<string, string> = {
   ADDITIONAL_SEED: 'Seed as additional',
@@ -23,6 +26,7 @@ const actionLabels: Record<string, string> = {
   NICKNAME: 'Set nickname',
   REMOVE_PARTICIPANT: 'Remove assignment',
   REMOVE: 'Remove assignment',
+  [REMOVE_SEED]: 'Remove seed',
   QUALIFIER: 'Assign qualifier',
   LUCKY: 'Assign Lucky Loser',
   SEED_CASCADE: 'Withdraw seed (cascade)',
@@ -46,8 +50,7 @@ export function selectPositionAction({
 }): void {
   const target = pointerEvent.target as HTMLElement;
   const handleClick = (action: any) => {
-    if (['WITHDRAW', 'BYE', 'REMOVE', 'REMOVE_PARTICIPANT', 'ASSIGN_QUALIFIER'].includes(action.type))
-      noChoiceAction({ action, callback });
+    if (noChoiceActions.has(action.type)) noChoiceAction({ action, callback });
     if (['ASSIGN', 'ALTERNATE', 'SWAP', 'QUALIFIER', 'LUCKY'].includes(action.type))
       assignParticipant({ action, callback });
     if (['SEED_CASCADE'].includes(action.type)) seedCascadeAction({ action, callback });
