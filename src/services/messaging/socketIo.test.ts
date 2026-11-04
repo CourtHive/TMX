@@ -55,8 +55,7 @@ const fake = vi.hoisted(() => {
         },
       },
     });
-    state.chatSend = undefined as undefined | ((data: any) => void);
-    state.chatAccepted = vi.fn();
+    state.amsChat = { install: vi.fn(), close: vi.fn() };
     state.resumed = 0;
     state.store = {
       persistMessage: vi.fn(async (row: any) => {
@@ -110,26 +109,16 @@ vi.mock('services/messaging/outboxStore', () => ({
   claimMessage: (...args: any[]) => fake.store.claimMessage(...args),
   releaseMessage: (...args: any[]) => fake.store.releaseMessage(...args),
 }));
-vi.mock('services/chat/chatService', () => ({
-  setChatSendFn: (fn: any) => (fake.chatSend = fn),
-  setChatGapFn: vi.fn(),
-  receiveMessage: vi.fn(),
-  receiveAccepted: (data: any) => fake.chatAccepted(data),
-  receiveRejected: vi.fn(),
-  receiveHistory: vi.fn(),
-  setOnlineCount: vi.fn(),
+vi.mock('services/chat/amsChatTransport', () => ({
+  installAmsChat: () => fake.amsChat.install(),
+  closeAmsChat: () => fake.amsChat.close(),
 }));
-vi.mock('services/chat/adminChatService', () => ({
-  setAdminMonitorFns: vi.fn(),
-  receiveAdminChatFeed: vi.fn(),
-  receiveAdminChatHistory: vi.fn(),
-  rejoinChatMonitorIfActive: vi.fn(),
-}));
+vi.mock('services/chat/adminChatService', () => ({ rejoinChatMonitorIfActive: vi.fn() }));
 vi.mock('config/serverConfig', () => ({
   serverConfig: { get: () => ({ socketPath: 'http://server' }) },
 }));
 vi.mock('services/messaging/transport/httpCommands', () => ({
-  HTTP_COMMANDS: new Set(['executionQueue', 'chatMessage']),
+  HTTP_COMMANDS: new Set(['executionQueue']),
   postCommand: async (event: string, data: any) => {
     fake.posted.push({ event, data });
     fake.log.push(event);
@@ -654,8 +643,8 @@ describe('socketIo offline queue across a reload', () => {
   });
 });
 
-// Commands go over HTTP: executionQueue as POST /factory, chat as POST /tmx/chat, and the HTTP answer
-// is the ack. The socket carries only subscriptions and server push.
+// Commands go over HTTP: executionQueue as POST /factory, and the HTTP answer is the ack. Chat is not a
+// CFS command at all: it runs on courthive-ams and the relay (amsChatTransport.ts). The socket carries only subscriptions and server push.
 describe('socketIo commands over HTTP', () => {
   let socketIo: SocketIo;
   let warn: ReturnType<typeof vi.spyOn>;
@@ -692,17 +681,17 @@ describe('socketIo commands over HTTP', () => {
     expect(ackCallback).toHaveBeenCalledWith({ ackId, commandId, durableReceipt: true, success: true });
   });
 
-  it('sends a chat message over HTTP and hands the answer to the chat service as chatAccepted', async () => {
-    const accepted = { clientMsgId: 'c1', seq: 3, timestamp: 5 };
-    fake.answer = () => ({ deliver: { event: 'chatAccepted', payload: accepted } });
+  it('installs chat on courthive-ams and takes nothing chat-shaped from the CFS socket', async () => {
     socketIo.connectSocket();
     fake.up();
-    fake.chatSend?.({ tournamentId: 't1', message: 'hi', clientMsgId: 'c1' });
     await settle();
 
-    expect(fake.posted.map((p: any) => p.event)).toEqual(['chatMessage']);
-    expect(fake.sent.some((m: any) => m.event === 'chatMessage')).toBe(false);
-    expect(fake.chatAccepted).toHaveBeenCalledWith(accepted);
+    expect(fake.amsChat.install).toHaveBeenCalledTimes(1);
+    const chatEvents = Object.keys(fake.handlers).filter((event) => /chat|roomPresence/i.test(event));
+    expect(chatEvents).toEqual([]);
+
+    socketIo.disconnectSocket();
+    expect(fake.amsChat.close).toHaveBeenCalledTimes(1);
   });
 
   it("keeps everything else on the socket — the room, the server's clock", async () => {
