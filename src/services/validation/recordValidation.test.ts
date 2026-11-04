@@ -55,6 +55,32 @@ describe('record validation (real ajv + real factory engine)', () => {
     expect(summary.inconsistencyCount).toEqual(integrity.length);
   });
 
+  // factory 7.29.0: getTournamentInconsistencies reads every stored matchUpFormat, so the import warning list shows a
+  // malformed code as an error and a code refused for new use as a warning, each naming where it is stored
+  it('lists a malformed matchUpFormat as an integrity error, naming the code and where it is stored', async () => {
+    const tournamentRecord = mockRecord();
+    tournamentRecord.events[0].matchUpFormat = 'NOT-A-FORMAT';
+
+    const summary = await validateTournamentRecord({ tournamentRecord });
+    const finding = summary.findings.find((finding) => finding.issueType === 'MATCHUP_FORMAT_MALFORMED');
+    expect(finding).toMatchObject({ source: 'integrity', severity: 'error' });
+    expect(finding?.path).toContain(`event ${tournamentRecord.events[0].eventId}`);
+    expect(finding?.message).toContain('NOT-A-FORMAT (tournamentRecord.events[0].matchUpFormat)');
+    expect(summary.text).toContain('[error] MATCHUP_FORMAT_MALFORMED');
+  });
+
+  it('lists a matchUpFormat refused for new use as an integrity warning', async () => {
+    const tournamentRecord = mockRecord();
+    // well-formed, but an implicit best-of with an even count is refused when a format is set now
+    tournamentRecord.events[0].matchUpFormat = 'SET2-S:6/TB7';
+
+    const summary = await validateTournamentRecord({ tournamentRecord });
+    const finding = summary.findings.find((finding) => finding.issueType === 'MATCHUP_FORMAT_REFUSED_FOR_NEW_USE');
+    expect(finding).toMatchObject({ source: 'integrity', severity: 'warning' });
+    expect(finding?.message).toContain('SET2-S:6/TB7');
+    expect(summary.findings.some((finding) => finding.issueType === 'MATCHUP_FORMAT_MALFORMED')).toEqual(false);
+  });
+
   it('reuses one compiled validator across calls', async () => {
     const { loadSchemaValidator } = await import('./schemaValidator');
     expect(await loadSchemaValidator()).toBe(await loadSchemaValidator());
