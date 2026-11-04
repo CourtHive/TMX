@@ -9,7 +9,7 @@ import { publishingGovernor } from 'tods-competition-factory';
 import { venueLocaleString } from 'functions/venueTimeFrame';
 import { renderPublishingTab } from './renderPublishingTab';
 import { tournamentEngine } from 'services/factory/engine';
-import { getActiveEmbargoes } from './publishingData';
+import { getActiveEmbargoes, hasLiveEmbargo } from './publishingData';
 import { t } from 'i18n';
 
 // constants
@@ -123,7 +123,9 @@ export function renderEmbargoSummary(grid: HTMLElement): void {
   const embargoes = getActiveEmbargoes();
 
   const panel = document.createElement('div');
-  panel.className = 'pub-panel pub-panel-orange pub-grid-full';
+  panel.className = hasLiveEmbargo(embargoes)
+    ? 'pub-panel pub-panel-attention pub-grid-full'
+    : 'pub-panel pub-grid-full';
 
   const header = document.createElement('h3');
   header.innerHTML = `<i class="fa fa-clock"></i> ${t('publishing.activeEmbargoes')} (${embargoes.length})`;

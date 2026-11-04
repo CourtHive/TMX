@@ -4,7 +4,9 @@
  * the same line. View mode persists in `localStorage.tmx_events_view_mode`.
  */
 
+import { openEventDatesOutsideTournamentModal } from 'components/modals/eventDatesOutsideTournament';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
+import { getEventsWithDatesOutsideTournament } from './eventDatesOutsideTournament';
 import { createEventsTable } from 'components/tables/eventsTable/createEventsTable';
 import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { readEventsViewMode, writeEventsViewMode } from './eventsViewMode';
@@ -106,7 +108,15 @@ export function eventsView(): void {
   };
 
   function buildItems(): any[] {
+    const datesOutsideTournament = getEventsWithDatesOutsideTournament();
     return [
+      {
+        onClick: () => openEventDatesOutsideTournamentModal({ issues: datesOutsideTournament, onFixed: renderForMode }),
+        label: t('eventDates.outsideTournament.button', { count: datesOutsideTournament.length }),
+        hide: !datesOutsideTournament.length,
+        intent: 'is-warning',
+        location: RIGHT,
+      },
       {
         onClick: deleteAction,
         label: t('pages.events.deleteSelected'),

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import {
   PIPELINE_POLICY_NAME,
+  appliedPolicies,
   applyPipelineOverrides,
   callOverrideParams,
   hasForeignPolicy,
@@ -157,5 +158,29 @@ describe('local execution — CA: force local for a mock tournament in use', () 
     expect(isPipelineModified(mock(), DEFAULTS)).toBe(false);
     expect(isPipelineModified(mock(), modified)).toBe(true);
     expect(isPipelineModified(mock({ extensions: applied({ scoring: ours() }) }), DEFAULTS)).toBe(true);
+  });
+});
+
+describe('policies are read in either CODES form', () => {
+  const foreign = { policyName: 'USTA', propagateExitStatus: true };
+
+  it('reads the first-class appliedPolicies attribute, at tournament, event or draw level', () => {
+    expect(isPipelineActive(mock({ appliedPolicies: { scoring: foreign } }), false)).toBe(false);
+    expect(isPipelineActive(mock({ events: [{ appliedPolicies: { scoring: foreign } }] }), false)).toBe(false);
+    const draw = { appliedPolicies: { scoring: foreign } };
+    expect(isPipelineActive(mock({ events: [{ drawDefinitions: [draw] }] }), false)).toBe(false);
+    expect(hasForeignPolicy(mock({ appliedPolicies: { scoring: foreign } }), 'scoring')).toBe(true);
+  });
+
+  it('the attribute wins over the extension when an element carries both', () => {
+    const element = { appliedPolicies: { scoring: ours() }, extensions: applied({ scoring: foreign }) };
+    expect(appliedPolicies(element)).toEqual({ scoring: ours() });
+    expect(isPipelineActive(mock(element), false)).toBe(true);
+  });
+
+  it('falls back to the extension, and reads nothing from an element with neither', () => {
+    expect(appliedPolicies({ extensions: applied({ scoring: foreign }) })).toEqual({ scoring: foreign });
+    expect(appliedPolicies({})).toBeUndefined();
+    expect(appliedPolicies(undefined)).toBeUndefined();
   });
 });

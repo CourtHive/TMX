@@ -1,5 +1,78 @@
 # Changelog
 
+## [8.49.0](https://github.com/CourtHive/TMX/compare/v8.48.1...v8.49.0) (2026-11-02)
+
+
+### Features
+
+* **dev:** dev.exportAnonymized downloads an anonymized deep copy of the tournament record ([#1850](https://github.com/CourtHive/TMX/issues/1850)) ([faa2a96](https://github.com/CourtHive/TMX/commit/faa2a96db155ccac1a8c61873f6589103a128d20))
+* **draws:** place every qualifier into the main draw by lot ([#1851](https://github.com/CourtHive/TMX/issues/1851)) ([ef6fc1a](https://github.com/CourtHive/TMX/commit/ef6fc1a8fe68375b479c30e48d1312093275cb70))
+* **draws:** place qualifiers one round at a time when they enter at more than one round ([#1854](https://github.com/CourtHive/TMX/issues/1854)) ([3edb5df](https://github.com/CourtHive/TMX/commit/3edb5df09ba2112113883b78c19bbf41a33f463d))
+* **draws:** reorder an event's draws ([#1856](https://github.com/CourtHive/TMX/issues/1856)) ([91a4dde](https://github.com/CourtHive/TMX/commit/91a4dde862ed543f3f5d8c231226faf1c41efd56))
+* **draws:** reset the results of one qualifying or consolation structure ([#1853](https://github.com/CourtHive/TMX/issues/1853)) ([72a8cf0](https://github.com/CourtHive/TMX/commit/72a8cf0f78301a00582d35dc5774c0f2669e52a5))
+* **entries:** promote alternates from the entries view ([#1859](https://github.com/CourtHive/TMX/issues/1859)) ([0240a85](https://github.com/CourtHive/TMX/commit/0240a856c74974c99dca7d0ed54d94218e2d5cc4))
+* **entries:** show entryPosition in the entries table and list alternates by it ([#1861](https://github.com/CourtHive/TMX/issues/1861)) ([efa3096](https://github.com/CourtHive/TMX/commit/efa3096d42bdfbcea8b833c89bd19f7bce5ffa6a))
+* **entries:** tint the "#" position badge by entry group ([#1862](https://github.com/CourtHive/TMX/issues/1862)) ([e6cf53f](https://github.com/CourtHive/TMX/commit/e6cf53f09e1a8c6e95ea8a5757eb76f7136ede3a))
+* **events:** active dates and days of the week in the event drawer ([#1857](https://github.com/CourtHive/TMX/issues/1857)) ([bd91536](https://github.com/CourtHive/TMX/commit/bd915367ed727db3b50a61da658a6139a36c37da))
+* **events:** delete a draw and keep its flight; delete flights that never had a draw ([#1844](https://github.com/CourtHive/TMX/issues/1844)) ([b573800](https://github.com/CourtHive/TMX/commit/b573800eef635b3e7ebc54c8e95c1451fb1dfd83))
+* **events:** entries section in the event drawer sets the entry profile ([#1860](https://github.com/CourtHive/TMX/issues/1860)) ([48157bd](https://github.com/CourtHive/TMX/commit/48157bd9e5a64f4da79bfa992b4c503c9431eac7))
+* **events:** generate flights for the remaining participants, with an optional rating band ([fde5b71](https://github.com/CourtHive/TMX/commit/fde5b71597691d7878e5de69110c4ad3e54129a7))
+* **events:** per-event match timing, edited from the event drawer ([#1881](https://github.com/CourtHive/TMX/issues/1881)) ([b990844](https://github.com/CourtHive/TMX/commit/b99084430431483aead6076de04c04c925ac54a7))
+* **matchups:** set a no-score status on the selected matchUps at once ([#1858](https://github.com/CourtHive/TMX/issues/1858)) ([e2a30db](https://github.com/CourtHive/TMX/commit/e2a30db40cdb592e55c165c5356c5a8383ff26f9))
+* **matchUps:** the actions menu assesses penalties and changes status where the factory offers them ([#1836](https://github.com/CourtHive/TMX/issues/1836)) ([848257f](https://github.com/CourtHive/TMX/commit/848257ff26ec417c77da872212aa47c88f491bc5))
+* **matchUps:** the actions menu follows the factory's matchUpActions ([#1833](https://github.com/CourtHive/TMX/issues/1833)) ([3cc5c17](https://github.com/CourtHive/TMX/commit/3cc5c17f509388b57a3ca19521fe332e3fc41ebf))
+* **participants:** correct or withdraw an issued penalty ([#1843](https://github.com/CourtHive/TMX/issues/1843)) ([0adc0c1](https://github.com/CourtHive/TMX/commit/0adc0c11bc62a6830840908ed63e1ebe288c96b1))
+* **participants:** player card shows the pairs, teams and groups a player belongs to ([#1879](https://github.com/CourtHive/TMX/issues/1879)) ([3244caa](https://github.com/CourtHive/TMX/commit/3244caad6f1e19587a3930a89459d23cd378c187))
+* **schedule:** order catalog cards by participant rest readiness ([#1837](https://github.com/CourtHive/TMX/issues/1837)) ([ef36818](https://github.com/CourtHive/TMX/commit/ef3681835d144800d61b14deef6eedbba866ae57))
+* **schedule:** order Unscheduled catalog groups by rest readiness ([#1840](https://github.com/CourtHive/TMX/issues/1840)) ([16ac3b1](https://github.com/CourtHive/TMX/commit/16ac3b158add2b381029bc4206dfa5366c8501e2))
+* **schedule:** profile catalog offers a round only on its event's playing dates ([#1876](https://github.com/CourtHive/TMX/issues/1876)) ([a9c249d](https://github.com/CourtHive/TMX/commit/a9c249d984227f53676f2aca02794169c32a52b8))
+* **schedule:** structure groups follow each draw's play order ([#1873](https://github.com/CourtHive/TMX/issues/1873)) ([71096c3](https://github.com/CourtHive/TMX/commit/71096c369f7fd2bcce29fa71cdd3b22eb946178d))
+* **schedule:** warn when a match lands on a day its event does not play ([#1872](https://github.com/CourtHive/TMX/issues/1872)) ([d5b269a](https://github.com/CourtHive/TMX/commit/d5b269a9d26e508936d35b605fe38aa69f934dd5))
+* **scheduling:** set the tournament's scheduling period length ([#1882](https://github.com/CourtHive/TMX/issues/1882)) ([1209d3f](https://github.com/CourtHive/TMX/commit/1209d3fee3cbdc35743ee6594a837107b683de51))
+* **scorecard:** bump courthive-components to 7.5.0 and label the order-of-finish badge ([#1845](https://github.com/CourtHive/TMX/issues/1845)) ([b2384e6](https://github.com/CourtHive/TMX/commit/b2384e6ba815989d4ced1725a3cdf93bd004426f))
+* **scorecard:** dual issues, the team score set by hand and dead rubbers ([8f41dd0](https://github.com/CourtHive/TMX/commit/8f41dd079a0552bae1eb952233cba707ae928c5a))
+* **scorecard:** order of finish corrected inline on the collection card ([58a0590](https://github.com/CourtHive/TMX/commit/58a0590698ec7b8709167816a08232f24bdb623a))
+* **scorecard:** record the order in which a dual's lines finish ([#1842](https://github.com/CourtHive/TMX/issues/1842)) ([70c0d21](https://github.com/CourtHive/TMX/commit/70c0d21cea153471d190ca2079813d77a7be975b))
+* **settings:** neutral panels in fixed rows, scoring approach panel removed ([#1874](https://github.com/CourtHive/TMX/issues/1874)) ([089eeb6](https://github.com/CourtHive/TMX/commit/089eeb615aabf8c0798f9475332f95fd421edc85))
+* **tieFormat:** give each line of a collection its own value in the scorecard editor ([#1846](https://github.com/CourtHive/TMX/issues/1846)) ([3308b78](https://github.com/CourtHive/TMX/commit/3308b78ea4f70131470120b33e12e09ab8522546))
+* **tournament:** say what else changed when the tournament's dates move ([#1870](https://github.com/CourtHive/TMX/issues/1870)) ([307798c](https://github.com/CourtHive/TMX/commit/307798cbc6dde072f5891ae5194bc5a4301467ce))
+* **venues:** don't use a court or venue, for a date or every date ([#1852](https://github.com/CourtHive/TMX/issues/1852)) ([4a8aff0](https://github.com/CourtHive/TMX/commit/4a8aff0a6726621e227421bbc46b7302f620ea92))
+* warn on CODES schema and integrity issues after a tournament import ([#1871](https://github.com/CourtHive/TMX/issues/1871)) ([473c192](https://github.com/CourtHive/TMX/commit/473c19293e7504890c1b14a9ed31c978216ceadd))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.3.2 ([#1827](https://github.com/CourtHive/TMX/issues/1827)) ([4bb5f20](https://github.com/CourtHive/TMX/commit/4bb5f202f3119941739798d0204c0cf682605b7f))
+* **deps:** update courthive-components to 7.6.0 ([#1867](https://github.com/CourtHive/TMX/issues/1867)) ([2d518f3](https://github.com/CourtHive/TMX/commit/2d518f32d8d84142c8f876a7cc9002c7be6272c9))
+* **deps:** update courthive-components to 7.7.0 ([#1875](https://github.com/CourtHive/TMX/issues/1875)) ([b2eec43](https://github.com/CourtHive/TMX/commit/b2eec43fc10ac87877c68c1caa599e3ee116e17e))
+* **deps:** update courthive-components to 7.8.0 ([#1877](https://github.com/CourtHive/TMX/issues/1877)) ([9f18b57](https://github.com/CourtHive/TMX/commit/9f18b571007ec6d842ad14c12474d1136660fafb))
+* **deps:** update dependency axios to v1.21.0 ([#1824](https://github.com/CourtHive/TMX/issues/1824)) ([21f0413](https://github.com/CourtHive/TMX/commit/21f0413836a8a888d2a80d803560aee161a0d0c7))
+* **deps:** update dependency focus-trap to v8.2.4 ([#1821](https://github.com/CourtHive/TMX/issues/1821)) ([abb926c](https://github.com/CourtHive/TMX/commit/abb926c62e194ee6cdef64b4b092fb6d00fc64c9))
+* **deps:** update pdf-factory to 1.1.9 ([#1886](https://github.com/CourtHive/TMX/issues/1886)) ([c1c2270](https://github.com/CourtHive/TMX/commit/c1c2270ad9b2cd5a1d01909f5db879408e80a09c))
+* **deps:** update tods-competition-factory to 7.26.0 ([#1839](https://github.com/CourtHive/TMX/issues/1839)) ([b2ca632](https://github.com/CourtHive/TMX/commit/b2ca6321cf33997c82d470e4e2d6f2277f3c4bba))
+* **deps:** update tods-competition-factory to 7.27.0 ([#1866](https://github.com/CourtHive/TMX/issues/1866)) ([4c4a91b](https://github.com/CourtHive/TMX/commit/4c4a91b6f94a66806a6a907b3663ee3478425af2))
+* **dev:** let the factory anonymizer clear everything in the anonymized copy ([#1868](https://github.com/CourtHive/TMX/issues/1868)) ([bd29d9e](https://github.com/CourtHive/TMX/commit/bd29d9e356e58eaa8d1ce09d102f869fc155c039))
+* **e2e:** isolate every local backend, settle the router, start vite directly ([#1831](https://github.com/CourtHive/TMX/issues/1831)) ([b8b4a31](https://github.com/CourtHive/TMX/commit/b8b4a31aa53f0b84f1a72758eac4da3f8a7bcd73))
+* **events:** the Add flights modal writes the profile through attachFlightProfile ([#1841](https://github.com/CourtHive/TMX/issues/1841)) ([c193732](https://github.com/CourtHive/TMX/commit/c19373256c1b8f1d43a871ab01dea2c04414ba33))
+* **linked-tournaments:** read links from legacy records through the factory reader ([#1855](https://github.com/CourtHive/TMX/issues/1855)) ([20f026e](https://github.com/CourtHive/TMX/commit/20f026e7ff0dffd8b2e805baa02f16427b2d692f))
+* **participants:** changing a pre-migration group's contact person no longer fails ([#1811](https://github.com/CourtHive/TMX/issues/1811)) ([94f1ffe](https://github.com/CourtHive/TMX/commit/94f1ffed3382c6edd072a71ec25170c0e2b992fe))
+* **schedule:** completed matchUps keep editable times and lose pre-play actions ([#1830](https://github.com/CourtHive/TMX/issues/1830)) ([22a885b](https://github.com/CourtHive/TMX/commit/22a885b2490225bee8f386cc84773fe095f157d6))
+* **schedule:** grid drops keep the played order only ([#1832](https://github.com/CourtHive/TMX/issues/1832)) ([6213595](https://github.com/CourtHive/TMX/commit/62135954ef3e1ce066867348f9e0ffb818e3287f))
+* **schedule:** read the matchUp's event timing for grid durations ([#1878](https://github.com/CourtHive/TMX/issues/1878)) ([cc4aa77](https://github.com/CourtHive/TMX/commit/cc4aa77be123325be9fbc6e3510e652ba002defc))
+* **schedule:** rest badge marks a daily limit met by any participant ([#1838](https://github.com/CourtHive/TMX/issues/1838)) ([03db4bb](https://github.com/CourtHive/TMX/commit/03db4bb62939c6fb8949b61c08f72dcb8aed2248))
+* **schedule:** skip the scheduled panel's rest pass when no card is drawn ([#1863](https://github.com/CourtHive/TMX/issues/1863)) ([0a5ef96](https://github.com/CourtHive/TMX/commit/0a5ef96333df174d52742a5fb16c010a342d5194))
+* **scorecard:** order of finish Save resolves to whether it was accepted ([#1880](https://github.com/CourtHive/TMX/issues/1880)) ([7d41924](https://github.com/CourtHive/TMX/commit/7d41924cf795626007ddd3ac0fa3c50411b0a495))
+* **tieFormat:** line values never invent a value; a line without one blocks saving ([#1865](https://github.com/CourtHive/TMX/issues/1865)) ([fb0b54f](https://github.com/CourtHive/TMX/commit/fb0b54f1331ee468c9661ecb5ba7dd89dfc8bd9a))
+* **tieFormat:** retyping a collection's line count no longer resets its line values ([#1864](https://github.com/CourtHive/TMX/issues/1864)) ([c170adb](https://github.com/CourtHive/TMX/commit/c170adb1a83daf21515adf2a237a49c5d6b461dd))
+* **types:** adopt factory 7.25.0's result types ([#1834](https://github.com/CourtHive/TMX/issues/1834)) ([012f212](https://github.com/CourtHive/TMX/commit/012f2125bb02d3e2de9e5ed742665add5ae23c4a))
+
+## [8.48.1](https://github.com/CourtHive/TMX/compare/v8.48.0...v8.48.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **storage:** read the local calendar entry through the tournament governor ([#1820](https://github.com/CourtHive/TMX/issues/1820)) ([d2eec63](https://github.com/CourtHive/TMX/commit/d2eec633724533b39c0580a891fb33ebb4d48bba))
+
 ## [8.48.0](https://github.com/CourtHive/TMX/compare/v8.47.0...v8.48.0) (2026-10-29)
 
 

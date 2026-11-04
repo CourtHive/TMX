@@ -50,7 +50,12 @@ const FACTORY_DEFAULTS: Record<string, any> = {
 
 // ── Where policies sit on a record ──
 
-function appliedPolicies(element: any): Record<string, any> | undefined {
+/**
+ * An element's own policies, in either CODES form: the first-class `appliedPolicies` attribute when the record carries
+ * one, else the legacy `appliedPolicies` extension. The attribute wins when both are present, as the factory reads it.
+ */
+export function appliedPolicies(element: any): Record<string, any> | undefined {
+  if (element?.appliedPolicies !== undefined) return element.appliedPolicies;
   return element?.extensions?.find((extension: any) => extension?.name === APPLIED_POLICIES)?.value;
 }
 

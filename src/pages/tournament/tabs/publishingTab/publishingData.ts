@@ -321,6 +321,11 @@ export function getPublishingTableData(): PublishingRowData[] {
   return rows;
 }
 
+/** True when at least one embargo has not yet lifted: the only case the summary panel is highlighted. */
+export function hasLiveEmbargo(embargoes: EmbargoEntry[]): boolean {
+  return embargoes.some((entry) => entry.embargoActive);
+}
+
 export function getActiveEmbargoes(): EmbargoEntry[] {
   const embargoes: EmbargoEntry[] = [];
   const publishState = readPublishState();
