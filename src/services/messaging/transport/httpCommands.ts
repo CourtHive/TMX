@@ -3,17 +3,17 @@
  * (Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md).
  *
  * A command always goes over HTTP; the server accepts none on the socket (retired 2026-10-09, CA):
- * - an `executionQueue` goes to `POST /factory`;
- * - a `chatMessage` goes to `POST /tmx/chat`.
+ * an `executionQueue` goes to `POST /factory`. Chat is not a CFS command: it goes to courthive-ams
+ * (amsChatTransport.ts; CFS's `POST /tmx/chat` was removed in chat phase 4a).
  *
  * The HTTP answer is turned into the event the server would have emitted back on the socket
- * (`ack`, `chatAccepted`, `chatRejected`), and socketIo.ts hands it to the same handler. The socket
+ * (`ack`), and socketIo.ts hands it to the same handler. The socket
  * keeps the subscriptions and server push. Everything around the send stays in socketIo.ts: ack
  * correlation, the offline queue, its order and its persistence. Only the hop to the server changes.
  *
  * The server stamps identity on these routes exactly as on the socket, and broadcasts the sender's
- * `originClientId` / `clientMsgId`. With no connection to exclude, the sender recognises its own
- * mutation (remoteMutations.ts) and its own chat message (chatService.ts) that way.
+ * `originClientId`. With no connection to exclude, the sender recognises its own mutation
+ * (remoteMutations.ts) that way.
  */
 import { baseApi } from 'services/apis/baseApi';
 
@@ -77,7 +77,7 @@ export function toCommandOutcome(ackId: string | undefined, response: any, comma
   return { deliver: { event: 'ack', payload: ack } };
 }
 
-/** Map a `POST /tmx/chat` answer to the socket's `chatAccepted` / `chatRejected`. Exported for its tests. */
+/** Map a chat send's answer (courthive-ams `POST /chat/messages`) to `chatAccepted` / `chatRejected`. */
 export function toChatOutcome(clientMsgId: string | undefined, response: any): CommandOutcome {
   const unreachable = unreachableReason(response);
   if (unreachable) {
@@ -95,11 +95,6 @@ const ROUTES: Record<string, Route> = {
     path: '/factory',
     body: (data) => data?.payload ?? {},
     answer: (data, response) => toCommandOutcome(data?.payload?.ackId, response, data?.payload?.commandId),
-  },
-  chatMessage: {
-    path: '/tmx/chat',
-    body: (data) => data,
-    answer: (data, response) => toChatOutcome(data?.clientMsgId, response),
   },
 };
 
