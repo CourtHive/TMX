@@ -37,6 +37,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { fixtures, tools } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { parseRatingCell } from './parseRatingCell';
+import { applyUtrProfile } from './utrProfile';
 import { isFunction } from 'functions/typeOf';
 import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
@@ -725,21 +726,4 @@ function normalizeSex(sex: string): string | undefined {
   if (FEMALE_PREFIXES.has(sex[0]?.toUpperCase())) return 'FEMALE';
   if (MALE_PREFIXES.has(sex[0]?.toUpperCase())) return 'MALE';
   return undefined;
-}
-
-function applyUtrProfile(participant: any, utrProfile: string): void {
-  if (!participant.onlineResources) participant.onlineResources = [];
-  const identifier = utrProfile.split('profiles/').at(-1);
-  if (!identifier) return;
-
-  if (!participant.person.personOtherIds) participant.person.personOtherIds = [];
-  participant.person.personOtherIds.push({ uniqueOrganisationName: 'UTR', personId: identifier });
-  if (utrProfile.startsWith('http')) {
-    participant.onlineResources.push({
-      resourceSubType: 'PROFILE',
-      identifier: utrProfile,
-      name: 'UTR Profile',
-      resource: 'URL',
-    });
-  }
 }
