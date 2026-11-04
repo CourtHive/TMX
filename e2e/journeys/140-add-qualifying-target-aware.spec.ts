@@ -125,7 +125,8 @@ async function openMainStructureMenu(page: Page): Promise<void> {
   const eventControl = page.locator(S.EVENT_CONTROL);
   await eventControl.waitFor({ state: 'visible', timeout: 5_000 });
   // with a qualifying present the view may open on it, so select Main first
-  const structureMenu = eventControl.locator('.dropdown:has-text("Main")').first();
+  // the menu holding an item that is exactly "Main": the flights menu's "remaining" also contains "main"
+  const structureMenu = eventControl.locator('.dropdown:has(.dropdown-item:text-is("Main"))').first();
   await structureMenu.locator('.dropdown-trigger').first().click();
   await page
     .locator('.dropdown-menu .dropdown-item', { hasText: /^Main$/ })
