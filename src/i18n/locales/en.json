@@ -2186,6 +2186,7 @@
       "customScorecard": "Custom scorecard",
       "invalidDrawSize": "Invalid draw size",
       "feedInQualifiersInvalid": "A staggered entry qualifying of {{drawSize}} can produce only these numbers of qualifiers: {{counts}}",
+      "qualifyingDrawTooSmall": "A qualifying draw of {{drawSize}} cannot hold {{entriesCount}} qualifying entries. Choose a larger draw size or withdraw entries first.",
       "roundsCount": "Rounds to generate",
       "ratingScale": "Rating scale",
       "dynamicRatings": "Dynamic ratings",
