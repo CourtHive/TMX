@@ -2,6 +2,16 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
+import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
+import { customisedFormatCount, eventTimingRows } from './eventTimingRows';
+import { mutationRequest } from 'services/mutation/mutationRequest';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { tournamentEngine } from 'services/factory/engine';
+import { providerConfig } from 'config/providerConfig';
+import { editEventTiming } from './editEventTiming';
+import { isFunction } from 'functions/typeOf';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   drawDefinitionConstants,
   entryStatusConstants,
@@ -11,14 +21,6 @@ import {
   fixtures,
   tools,
 } from 'tods-competition-factory';
-import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
-import { mutationRequest } from 'services/mutation/mutationRequest';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { tournamentEngine } from 'services/factory/engine';
-import { providerConfig } from 'config/providerConfig';
-import { isFunction } from 'functions/typeOf';
-import { context } from 'services/context';
-import { t } from 'i18n';
 import {
   EVENT_WEEKDAYS,
   buildSetEventDatesMethod,
@@ -35,7 +37,7 @@ import {
 } from './eventEntryProfile';
 
 import { ADD_EVENT, ADD_EVENT_ENTRIES, MODIFY_EVENT, SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
-import { RIGHT } from 'constants/tmxConstants';
+import { EVENT_TIMING_EDIT, RIGHT } from 'constants/tmxConstants';
 
 const { ALTERNATE, DIRECT_ACCEPTANCE, UNGROUPED, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 const { ANY, FEMALE, MALE, MIXED } = genderConstants;
@@ -256,9 +258,10 @@ export function editEvent({
   let formInputs: any;
 
   const content = (elem: HTMLElement) => {
-    formInputs = renderForm(
+    const generalInputs = renderForm(
       elem,
       [
+        { text: t('pages.events.editEvent.generalHeading'), header: true },
         {
           error: t('pages.events.editEvent.eventNameError'),
           validator: validators.nameValidator(5),
@@ -358,6 +361,8 @@ export function editEvent({
           ],
           onChange: valueChange,
         },
+        { divider: true },
+        { text: t('pages.events.editEvent.datesHeading'), header: true },
         {
           value: event?.startDate ?? tournamentInfo.startDate,
           placeholder: 'YYYY-MM-DD',
@@ -379,21 +384,32 @@ export function editEvent({
           field: 'activeDates',
           date: true,
         },
-        { divider: true },
-        { text: t('pages.events.editEvent.entriesHeading'), header: true },
-        ...entryProfileFields(event).map((field) => ({
-          text: t(`pages.events.editEvent.entryProfile.${field}`),
-          fieldPair: { field, type: 'number', value: entryProfileValues[field], width: '5em' },
-        })),
-        {
-          hide: event || participants,
-          divider: true,
-        },
       ],
       relationships,
     );
-    attachActiveDatesPicker(formInputs, values.activeDates);
+    attachActiveDatesPicker(generalInputs, values.activeDates);
+    // the days of the week belong with the dates they narrow, not after the entry sizes
     elem.appendChild(renderWeekdayChips(selectedWeekdays));
+
+    const entriesInputs = renderForm(elem, [
+      { divider: true },
+      { text: t('pages.events.editEvent.entriesHeading'), header: true },
+      ...entryProfileFields(event).map((field) => ({
+        text: t(`pages.events.editEvent.entryProfile.${field}`),
+        fieldPair: { field, type: 'number', value: entryProfileValues[field], width: '5em' },
+      })),
+      {
+        hide: event || participants,
+        divider: true,
+      },
+      ...(event?.eventId
+        ? [{ divider: true }, { text: t('pages.events.editEvent.timing.heading'), header: true }]
+        : []),
+    ]);
+    // edit only: a new event has no draws, and often no format, so there is nothing yet to time
+    if (event?.eventId) elem.appendChild(renderTimingSummary(event.eventId));
+
+    formInputs = { ...generalInputs, ...entriesInputs };
     return formInputs;
   };
 
@@ -651,6 +667,33 @@ function attachActiveDatesPicker(formInputs: any, activeDates: string[]): void {
     formInputs[field]?.addEventListener('changeDate', followRange);
     formInputs[field]?.addEventListener('change', followRange);
   }
+}
+
+// The Match timing row: a one-line summary of the event's timing, and the button that opens its modal. The modal
+// saves on its own, so the summary refreshes from the engine when it does.
+function renderTimingSummary(eventId: string): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'tmx-event-timing-summary';
+
+  const summary = document.createElement('span');
+  summary.className = 'tmx-event-timing-summary-text';
+  const refresh = () => {
+    const count = customisedFormatCount(eventTimingRows({ eventId }));
+    summary.textContent = count
+      ? t('pages.events.editEvent.timing.summaryCustomised', { count })
+      : t('pages.events.editEvent.timing.summaryDefaults');
+  };
+  refresh();
+
+  const edit = document.createElement('button');
+  edit.type = 'button';
+  edit.id = EVENT_TIMING_EDIT;
+  edit.className = 'button is-small';
+  edit.textContent = t('pages.events.editEvent.timing.edit');
+  edit.addEventListener('click', () => editEventTiming({ eventId, onSave: refresh }));
+
+  row.append(summary, edit);
+  return row;
 }
 
 function renderWeekdayChips(selected: Set<string>): HTMLElement {

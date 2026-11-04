@@ -1,6 +1,6 @@
 /**
  * The TMX application protocol over the server connection: ack correlation,
- * tournament room membership, chat wiring, reconnect recovery.
+ * tournament room membership, chat installation, reconnect recovery.
  *
  * Realtime subscriptions and push use `MessageTransport`; commands are posted
  * directly over HTTP by httpCommands.ts. Socket.IO is the realtime implementation. The file
@@ -9,7 +9,7 @@
 import { HTTP_COMMANDS, postCommand, resumeCommands } from 'services/messaging/transport/httpCommands';
 import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/checkFactoryVersion';
 import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
-import { chatOnAms, closeAmsChat, installAmsChat } from 'services/chat/amsChatTransport';
+import { closeAmsChat, installAmsChat } from 'services/chat/amsChatTransport';
 import { showOSNotification } from 'services/notifications/osNotification';
 import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
@@ -23,21 +23,7 @@ import { version as tmxVersion } from 'config/version';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
-import {
-  setChatSendFn,
-  setChatGapFn,
-  receiveMessage,
-  receiveAccepted,
-  receiveRejected,
-  receiveHistory,
-  setOnlineCount,
-} from 'services/chat/chatService';
-import {
-  setAdminMonitorFns,
-  receiveAdminChatFeed,
-  receiveAdminChatHistory,
-  rejoinChatMonitorIfActive,
-} from 'services/chat/adminChatService';
+import { rejoinChatMonitorIfActive } from 'services/chat/adminChatService';
 import {
   persistMessage,
   forgetMessage,
@@ -151,10 +137,9 @@ export function connectSocket(callback?: () => void): void {
   transport.on('exception', handleException);
   transport.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
 
-  // Chat runs on AMS and the relay (amsChatTransport.ts). Nothing chat-shaped is taken from CFS's socket then: its
-  // `roomPresence` counts the mutation room, not the chat room, and would overwrite the chat's "N online".
-  if (chatOnAms()) installAmsChat();
-  else wireCfsChat(transport);
+  // Chat runs on AMS and the relay (amsChatTransport.ts); CFS carries none (Mentat planning/CHAT_TO_AMS.md, phase 4a).
+  // Nothing chat-shaped is taken from this socket: its `roomPresence` counts the mutation room, not the chat room.
+  installAmsChat();
 
   restorePersistedOutbox();
 
@@ -234,28 +219,9 @@ export function socketExists(): boolean {
   return !!oi.connection;
 }
 
-/** Chat on CFS's `/tmx` socket: `serverConfig.chatBackend: 'cfs'`, kept for one release (CHAT_TO_AMS.md § 7). */
-function wireCfsChat(transport: { on: (event: string, handler: (data: any) => void) => void }): void {
-  transport.on('chatMessage', receiveMessage);
-  transport.on('chatAccepted', receiveAccepted);
-  transport.on('chatRejected', receiveRejected);
-  transport.on('chatHistory', receiveHistory);
-  transport.on('roomPresence', setOnlineCount);
-  transport.on('adminChatFeed', receiveAdminChatFeed);
-  transport.on('adminChatHistory', receiveAdminChatHistory);
-
-  setChatSendFn((data: any) => socketEmit('chatMessage', data));
-  setChatGapFn((data: any) => socketEmit('chatSince', data));
-  setAdminMonitorFns({
-    join: () => socketEmit('joinChatMonitor', {}),
-    leave: () => socketEmit('leaveChatMonitor', {}),
-    reply: (data: any) => socketEmit('adminChatReply', data),
-  });
-}
-
 export function disconnectSocket(): void {
   slog('[socket] disconnectSocket called');
-  if (chatOnAms()) closeAmsChat();
+  closeAmsChat();
   oi.connection?.disconnect();
   setTimeout(() => delete oi.connection, 1000);
 }
@@ -504,7 +470,7 @@ function forget(entry: OutboxEntry | undefined): void {
 
 /**
  * Hand a message to the server; false when there is no live connection and the caller must queue
- * it. A command (`executionQueue`, `chatMessage`) always goes over HTTP (httpCommands.ts); the
+ * it. A command (`executionQueue`) always goes over HTTP (httpCommands.ts); the
  * server no longer accepts one on the socket, which carries subscriptions and server push only.
  * Online is still judged by the realtime connection, so the offline queue behaves as it always has.
  * A durable command the server never answered goes back to the head of the queue; any other is
@@ -525,8 +491,6 @@ function dispatch(event: string, data: any): boolean {
 function receiveOverHttp({ event, payload }: Delivery): void {
   const handler: ((data: any) => void) | undefined = {
     ack: receiveAcknowledgement,
-    chatAccepted: receiveAccepted,
-    chatRejected: receiveRejected,
   }[event];
   if (handler) {
     handler(payload);

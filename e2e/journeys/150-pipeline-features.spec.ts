@@ -69,12 +69,13 @@ test.describe('Journey 150 — Pipeline features', () => {
     await page.evaluate(() => globalThis.localStorage.removeItem('tmx_settings'));
   });
 
-  test('sits with the full-width panels, directly after Seeding policy', async ({ page }) => {
-    // CA, 2026-10-15: a full-width panel in the middle of the column grid "looks UGLY" — it goes 2nd or 3rd.
+  test('sits on its own row, directly after the preferences row', async ({ page }) => {
+    // CA, 2026-10-15: a full-width panel in the middle of the column grid "looks UGLY". Since the settings layout put
+    // the neutral panels in fixed rows (#1874), it follows the preferences row, whose last panel is Options.
     const tournamentId = await seed(page);
     await openSettings(page, tournamentId);
 
-    await expect(page.locator(`#seedingPolicyPanel + ${PANEL}`)).toBeVisible();
+    await expect(page.locator(`#optionsPanel + ${PANEL}`)).toBeVisible();
   });
 
   test('default: a main-draw walkover leaves the consolation match to be played', async ({ page }) => {
@@ -104,9 +105,13 @@ test.describe('Journey 150 — Pipeline features', () => {
     const tournamentId = await seed(page);
     await openSettings(page, tournamentId);
     const progression = () =>
-      page.evaluate(
-        () => dev.getTournament().extensions?.find((x: any) => x.name === 'appliedPolicies')?.value?.progression,
-      );
+      page.evaluate(() => {
+        // the tournament's own policies in either CODES form: the first-class attribute, else the extension
+        const tournament = dev.getTournament();
+        const policies =
+          tournament.appliedPolicies ?? tournament.extensions?.find((x: any) => x.name === 'appliedPolicies')?.value;
+        return policies?.progression;
+      });
 
     await page.locator(option('doubleExitPropagateBye')).selectOption('off');
     await expect

@@ -20,7 +20,6 @@ import { receiveAdminChatFeed, receiveAdminChatHistory, setAdminMonitorFns } fro
 import { toChatOutcome } from 'services/messaging/transport/httpCommands';
 import { authHeaders, getAmsBaseUrl } from 'services/apis/facilitiesApi';
 import { relaySocketTarget } from 'services/messaging/scoreRelay';
-import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { tools } from 'tods-competition-factory';
 import { io, Socket } from 'socket.io-client';
@@ -35,9 +34,6 @@ import {
 } from 'services/chat/chatService';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
-
-/** Whether chat runs on AMS and the relay (the default) rather than on CFS. */
-export const chatOnAms = (): boolean => serverConfig.get().chatBackend === 'ams';
 
 type AmsAnswer = { status: number; data: any } | undefined;
 

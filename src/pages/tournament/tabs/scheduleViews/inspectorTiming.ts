@@ -22,6 +22,7 @@
  * not without it means the event carries its own.
  */
 
+import { eventTimedFormats } from 'pages/tournament/tabs/eventsTab/eventTimingRows';
 import { makeTimingResolver } from './scheduleTimingResolver';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { policyConstants } from 'tods-competition-factory';
@@ -35,8 +36,11 @@ import type { RestTiming } from './scheduleTimingResolver';
 
 const { POLICY_TYPE_SCHEDULING } = policyConstants;
 
-/** Which level of policy answered — the panel says so rather than implying the numbers are universal. */
-export type TimingSource = 'event' | 'tournament' | 'default';
+/**
+ * Which level answered — the panel says so rather than implying the numbers are universal. `eventTiming` is the
+ * event's own timing for this format (set in the event's Match timing editor), which beats every policy.
+ */
+export type TimingSource = 'eventTiming' | 'event' | 'tournament' | 'default';
 
 export interface TimingModel {
   averageMinutes: number;
@@ -83,10 +87,11 @@ export function describeTiming(model: TimingModel): string {
   return parts.join(' · ');
 }
 
-/** Which scheduling policy answered, asked once with the event and once without. */
-function resolveSource(eventId?: string): TimingSource {
+/** The event's own timing for the format, else which scheduling policy answered, asked with the event and without. */
+function resolveSource(eventId?: string, matchUpFormat?: string): TimingSource {
   const { tournamentRecord }: any = tournamentEngine.getTournament() ?? {};
   const event = (tournamentRecord?.events ?? []).find((candidate: any) => candidate.eventId === eventId);
+  if (matchUpFormat && eventTimedFormats(event).has(matchUpFormat)) return 'eventTiming';
 
   const applied = (scope?: any) =>
     !!(
@@ -110,7 +115,11 @@ export function renderTimingSection(matchUpId: string): HTMLElement | null {
   const matchUp = ((matchUps ?? []) as ReadinessMatchUp[]).find((candidate) => candidate.matchUpId === matchUpId);
   if (!matchUp?.matchUpFormat) return null;
 
-  const model = buildTimingModel(matchUp, makeTimingResolver()(matchUp), resolveSource(matchUp.eventId));
+  const model = buildTimingModel(
+    matchUp,
+    makeTimingResolver()(matchUp),
+    resolveSource(matchUp.eventId, matchUp.matchUpFormat),
+  );
   if (!model) return null;
 
   const section = document.createElement('div');

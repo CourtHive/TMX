@@ -30,32 +30,41 @@ function ensureStyles(): void {
   style.textContent = `
     .pub-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
       gap: 16px;
       padding: 16px;
     }
     .pub-grid-full { grid-column: 1 / -1; }
+    /* Tournament Publishing beside Information, Order of Play beside Participants: never more than
+       two to a row, one to a row once a panel would be narrower than 320px */
+    .pub-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(max(320px, calc(50% - 8px)), 1fr));
+      gap: 16px;
+    }
     .pub-tz-set-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 6px 12px;
       border-radius: 6px;
-      border: 1px solid var(--tmx-accent-orange, #f59e0b);
+      border: 1px solid var(--tmx-status-warning);
       background: transparent;
       color: var(--tmx-text-primary);
       font-size: 0.85rem;
       cursor: pointer;
     }
-    .pub-tz-set-btn:hover { background: var(--tmx-panel-yellow-bg, rgba(245,158,11,0.12)); }
+    .pub-tz-set-btn:hover { background: var(--tmx-bg-secondary); }
+    /* Neutral: one surface and border for every panel, as on the settings tab. A panel that needs
+       attention (a live embargo, no time zone) takes a warning border. */
     .pub-panel {
       border-radius: 8px;
       padding: 20px;
-      border-left: 4px solid;
+      border: 1px solid var(--tmx-border-primary);
+      background: var(--tmx-bg-elevated);
+      color: var(--tmx-text-primary);
     }
-    .pub-panel-yellow { border-color: var(--tmx-panel-yellow-border); background: var(--tmx-panel-yellow-bg); }
-    .pub-panel-blue   { border-color: var(--tmx-panel-blue-border); background: var(--tmx-panel-blue-bg); }
-    .pub-panel-orange { border-color: var(--tmx-panel-orange-border); background: var(--tmx-panel-orange-bg); }
+    .pub-panel-attention { border: 2px solid var(--tmx-status-warning); }
     .pub-panel h3 {
       margin: 0 0 12px 0;
       font-size: 1rem;
@@ -206,7 +215,6 @@ function ensureStyles(): void {
       white-space: nowrap;
     }
 
-    .pub-panel-green { border-color: var(--tmx-panel-green-border); background: var(--tmx-panel-green-bg); }
     .pub-qr-panel {
       display: flex;
       flex-direction: column;
@@ -220,15 +228,15 @@ function ensureStyles(): void {
       align-items: center;
       gap: 6px;
       padding: 6px 14px;
-      border: 1px solid var(--tmx-panel-green-border);
+      border: 1px solid var(--tmx-border-primary);
       border-radius: 4px;
       background: transparent;
-      color: var(--tmx-accent-green);
+      color: var(--tmx-text-primary);
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 500;
     }
-    .pub-qr-download:hover { background: var(--tmx-panel-green-bg); }
+    .pub-qr-download:hover { background: var(--tmx-bg-secondary); }
     .pub-qr-placeholder {
       color: var(--tmx-text-muted);
       font-size: 0.85rem;
@@ -241,20 +249,20 @@ function ensureStyles(): void {
       padding: 16px 20px;
       margin: 16px 16px 0;
       border-radius: 6px;
-      background: var(--tmx-panel-green-bg);
-      border: 1px solid var(--tmx-panel-green-border);
+      background: var(--tmx-bg-elevated);
+      border: 1px solid var(--tmx-border-primary);
       color: var(--tmx-text-primary);
       font-size: 1.1rem;
       font-weight: 500;
     }
-    .pub-login-banner i { color: var(--tmx-accent-green); font-size: 1.2rem; }
+    .pub-login-banner i { font-size: 1.2rem; }
     .pub-grid-disabled {
       pointer-events: none;
       opacity: 0.6;
     }
 
     @media (max-width: 900px) {
-      .pub-grid { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+      .pub-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; }
       .pub-grid > * { grid-column: 1 / -1 !important; }
     }
   `;
@@ -273,7 +281,7 @@ function renderQRPanel(grid: HTMLElement): void {
   const tournamentName = tournamentRecord?.tournamentName || 'tournament';
 
   const panel = document.createElement('div');
-  panel.className = 'pub-panel pub-panel-green pub-qr-panel';
+  panel.className = 'pub-panel pub-qr-panel';
 
   const header = document.createElement('h3');
   header.innerHTML = `<i class="fa fa-qrcode"></i> ${t('phrases.qrcode')}`;

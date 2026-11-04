@@ -921,6 +921,89 @@ img {
   color: var(--chc-on-link);
 }
 
+/* ── Event drawer: sections, and the Match timing summary and modal ── */
+.tmx-event-timing-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+.tmx-event-timing-summary-text {
+  color: var(--tmx-text-secondary);
+  font-size: 0.9rem;
+}
+.tmx-event-timing-intro {
+  margin: 0 0 0.75em;
+  color: var(--tmx-text-secondary);
+  font-size: 0.85rem;
+}
+.tmx-event-timing-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6.5em 6.5em 5em;
+  gap: 0.4em 0.6em;
+  align-items: center;
+  margin-bottom: 0.75em;
+}
+.tmx-event-timing-row {
+  display: contents;
+}
+.tmx-event-timing-head {
+  color: var(--tmx-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--tmx-border-secondary);
+  padding-bottom: 0.25em;
+}
+.tmx-event-timing-format {
+  min-width: 0;
+}
+.tmx-event-timing-format code {
+  font-size: 0.85rem;
+  color: var(--tmx-text-primary);
+  background: var(--tmx-bg-secondary);
+  padding: 1px 4px;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+.tmx-event-timing-uses {
+  color: var(--tmx-text-muted);
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+.tmx-event-timing-input {
+  width: 100%;
+  padding: 2px 6px;
+  font-size: 0.9rem;
+  color: var(--tmx-text-primary);
+  background: var(--tmx-bg-primary);
+  border: 1px solid var(--tmx-border-secondary);
+  border-radius: 4px;
+}
+.tmx-event-timing-input:focus {
+  border-color: var(--tmx-border-focus);
+  outline: none;
+}
+.tmx-event-timing-badge {
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tmx-text-secondary);
+  border: 1px solid var(--tmx-border-secondary);
+}
+.tmx-event-timing-badge.own {
+  background: var(--tmx-fill-accent);
+  border-color: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
+}
+.tmx-event-timing-empty {
+  grid-column: 1 / -1;
+  color: var(--tmx-text-muted);
+  font-size: 0.85rem;
+}
+
 /* ── Tie format catalog badges ────────────────────────────────────── */
 .tpl-tf-badges {
   display: inline-flex;

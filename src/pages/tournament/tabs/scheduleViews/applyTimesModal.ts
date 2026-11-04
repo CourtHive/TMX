@@ -7,11 +7,18 @@
  * the policies registered with the `/policies` page (factory built-ins plus
  * any user policies persisted via `policyBridge.saveUserPolicy`) for switching.
  *
+ * It also sets the tournament's scheduling period length (the slot grid the
+ * scheduler rounds start times to). The choice is returned with the policy;
+ * the caller stores it on the tournament and passes it to the scheduler
+ * (`services/schedulePreferences/schedulingPeriodLength`).
+ *
  * Selection/identity/compare logic is shared with the Apply Grid modal in
  * `schedulingPolicyChoices.ts`. Creating or editing a scheduling policy is out
  * of scope here — that lives on the `/policies` page.
  */
+import { effectivePeriodLength, periodLengthChoices } from 'services/schedulePreferences/schedulingPeriodLength';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
+import { tournamentEngine } from 'services/factory/engine';
 import { escapeHtml } from 'utilities/escapeHtml';
 
 import {
@@ -28,7 +35,7 @@ import { t } from 'i18n';
 export type { PolicyChoice } from './schedulingPolicyChoices';
 
 export interface ApplyTimesModalParams {
-  onApply: (params: { selected: PolicyChoice; mustAttach: boolean }) => void;
+  onApply: (params: { selected: PolicyChoice; mustAttach: boolean; periodLength: number }) => void;
   onCancel?: () => void;
 }
 
@@ -47,6 +54,9 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
   // Default: the attached policy (iterative re-apply is a no-op), else the
   // matching catalog choice, else the first option.
   let selectedId = attachedChoice?.id ?? matchingChoiceId ?? choices[0]?.id ?? '';
+
+  const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
+  let periodLength = effectivePeriodLength(tournamentRecord);
 
   const content = (root: HTMLElement) => {
     root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 0.8125rem;';
@@ -101,7 +111,37 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     fieldRow.appendChild(fieldLabel);
     fieldRow.appendChild(select);
     root.appendChild(fieldRow);
+
+    root.appendChild(buildPeriodLengthRow(select.style.cssText));
   };
+
+  function buildPeriodLengthRow(selectStyle: string): HTMLElement {
+    const row = document.createElement('label');
+    row.style.cssText = 'display: flex; align-items: center; gap: 10px;';
+    const label = document.createElement('span');
+    label.style.cssText = 'flex: 0 0 auto; font-size: 0.75rem;';
+    label.textContent = t('applyScheduling.periodLength');
+    const periodSelect = document.createElement('select');
+    periodSelect.style.cssText = selectStyle;
+    for (const minutes of periodLengthChoices(tournamentRecord)) {
+      const option = document.createElement('option');
+      option.value = String(minutes);
+      option.textContent = t('applyScheduling.periodMinutes', { count: minutes });
+      option.selected = minutes === periodLength;
+      periodSelect.appendChild(option);
+    }
+    periodSelect.addEventListener('change', () => {
+      periodLength = Number(periodSelect.value);
+    });
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-text-secondary);';
+    hint.textContent = t('applyScheduling.periodLengthHint');
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display: flex; flex-direction: column; gap: 4px;';
+    row.append(label, periodSelect);
+    wrapper.append(row, hint);
+    return wrapper;
+  }
 
   openModal({
     title: t('applyScheduling.applyTimesTitle'),
@@ -127,7 +167,7 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
           // The "Attached" entry and the catalog choice that equals the
           // attached policy both re-apply what's already there → no re-attach.
           const mustAttach = selected.id !== ATTACHED_POLICY_ID && selected.id !== matchingChoiceId;
-          params.onApply({ selected, mustAttach });
+          params.onApply({ selected, mustAttach, periodLength });
         },
       },
     ],
