@@ -59,11 +59,10 @@ describe('getEntriesNotPlacedNotices', () => {
     expect(getEntriesNotPlacedNotices({ warnings: result.warnings, participants })).toEqual([]);
   });
 
-  it('names the qualifying entries left out when qualifying is generated into the placeholder, as the drawer does', () => {
+  it('names the qualifying entries left out when qualifying takes the event entries into a smaller draw', () => {
     const { eventId, qualifyingIds, participants, nameOf } = seedEvent({ mainCount: 12, qualifyingCount: 12 });
     const entries = tournamentEngine.getEvent({ eventId }).event.entries;
     const mainEntries = entries.filter(({ entryStage }: any) => entryStage !== 'QUALIFYING');
-    const qualifyingEntries = entries.filter(({ entryStage }: any) => entryStage === 'QUALIFYING');
 
     // the drawer's main draw with a qualifying placeholder (its drawOptions, as submitDrawParams builds them)
     const mainDrawOptions: any = {
@@ -80,10 +79,10 @@ describe('getEntriesNotPlacedNotices', () => {
     result = tournamentEngine.addDrawDefinition({ eventId, drawDefinition: result.drawDefinition });
     expect(result.success).toEqual(true);
 
-    // the drawer's qualifying generation: 12 qualifying entries into an 8 draw
+    // 12 qualifying entries into an 8 draw. The drawer blocks this before Generate (explicit entries that overfill are
+    // refused by the factory); with no drawEntries the factory takes the event's entries, the first that fit, and warns
     result = tournamentEngine.generateDrawDefinition({
       qualifyingProfiles: [{ structureProfiles: [{ qualifyingPositions: 4, drawSize: 8 }] }],
-      drawEntries: qualifyingEntries,
       ignoreStageSpace: true,
       drawId,
       eventId,
