@@ -3,6 +3,7 @@
  * Shows dynamic rating changes per participant across rounds.
  */
 import { formatParticipant } from '../common/formatters/participantFormatter';
+import { ratedMatchUpIds, ratingsPolicyCaption } from './ratingsTableLogic';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { renderMatchUp, compositions } from 'courthive-components';
@@ -133,8 +134,8 @@ function showMatchUpTipster(target: HTMLElement, drawId: string, matchUpId: stri
 function computeDynamicRatings(
   matchUps: any[],
   activeScale: string,
-): { computedRatings: Record<string, any>; isEloDynamic: boolean } {
-  const completedMatchUpIds = matchUps.filter((mu: any) => mu.winningSide).map((mu: any) => mu.matchUpId);
+): { computedRatings: Record<string, any>; isEloDynamic: boolean; policyCaption?: string } {
+  const completedMatchUpIds = ratedMatchUpIds(matchUps);
 
   if (!completedMatchUpIds.length) {
     return { computedRatings: {}, isEloDynamic: false };
@@ -153,6 +154,7 @@ function computeDynamicRatings(
     return {
       computedRatings: result.modifiedScaleValues,
       isEloDynamic: !!result.sourceRatingType,
+      policyCaption: ratingsPolicyCaption(result.ratingsPolicyNames),
     };
   }
 
@@ -311,10 +313,17 @@ function buildRoundColumn(rn: number, drawId: string): any {
   };
 }
 
-function buildDynamicColumns(isEloDynamic: boolean, activeScale: string, ascending: boolean): any[] {
+function buildDynamicColumns(
+  isEloDynamic: boolean,
+  activeScale: string,
+  ascending: boolean,
+  policyCaption?: string,
+): any[] {
   return [
     {
       title: isEloDynamic ? `ELO<br>(from ${activeScale})` : 'Dynamic',
+      // the factory's ratings policies that produced the values (proper names, not translated)
+      headerTooltip: policyCaption,
       field: 'dynamicRating',
       headerHozAlign: 'center',
       hozAlign: 'center',
@@ -387,7 +396,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     }
   }
 
-  const { computedRatings, isEloDynamic } = computeDynamicRatings(matchUps, activeScale);
+  const { computedRatings, isEloDynamic, policyCaption } = computeDynamicRatings(matchUps, activeScale);
 
   let hasDynamic = false;
   const tableData: any[] = [];
@@ -451,7 +460,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   }
 
   if (hasDynamic) {
-    columns.push(...buildDynamicColumns(isEloDynamic, activeScale, ascending));
+    columns.push(...buildDynamicColumns(isEloDynamic, activeScale, ascending, policyCaption));
   }
 
   destroyTable({ anchorId: DRAWS_VIEW });
