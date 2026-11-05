@@ -1665,6 +1665,13 @@ img {
   font-size: 0.8rem;
 }
 
+.tmx-demo-launcher p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--tmx-text-secondary);
+}
+
 .tmx-demo-heading {
   font-size: 0.7rem;
   font-weight: 700;
