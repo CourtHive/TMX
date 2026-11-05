@@ -3928,6 +3928,11 @@
       "rating": "Rating"
     }
   },
+  "tournamentClock": {
+    "label": "Tournament time",
+    "ariaLabel": "Time where the tournament is played",
+    "title": "Time in {{zone}}, where the tournament is played. Your time: {{local}}"
+  },
   "demoClock": {
     "title": "Demo Clock",
     "launch": "Open Demo Clock",

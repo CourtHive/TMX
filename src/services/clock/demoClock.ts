@@ -47,6 +47,11 @@ export function demoTournamentStartDate(): string | undefined {
   return demoTournaments.get(tournamentEngine.getTournamentId())?.startDate;
 }
 
+/** The loaded tournament is a demo tournament (a Scheduling Lab), whoever is signed in. */
+export function isDemoTournament(): boolean {
+  return demoTournaments.has(tournamentEngine.getTournamentId());
+}
+
 /** The loaded tournament is a demo tournament and nobody is signed in. */
 export function isDemoClockEligible(): boolean {
   return isDemoClockSessionEligible() && demoTournaments.has(tournamentEngine.getTournamentId());

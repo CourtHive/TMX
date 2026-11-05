@@ -12,6 +12,7 @@ import { clearAssignmentRole, loadAssignmentRole } from 'services/capability/ass
 import { formatParticipantTab } from 'pages/tournament/tabs/participantTab/participantsTab';
 import { runActiveScaleAutoSwitch } from 'services/activeScale/runActiveScaleAutoSwitch';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
+import { unmountTournamentClock } from 'components/tournamentClock/tournamentClock';
 import { renderReportsTab } from 'pages/tournament/tabs/reportsTab/renderReportsTab';
 import { resetScheduledCatalogFilters } from './tabs/scheduleViews/gridViewStorage';
 import { renderMatchUpTab } from 'pages/tournament/tabs/matchUpsTab/matchUpsTab';
@@ -187,6 +188,7 @@ let activeRenderedTab: string | null = null;
 export function destroyActiveTab(): void {
   if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
   if (activeRenderedTab === OFFICIALS_TAB) destroyOfficialsTab();
+  if (activeRenderedTab === SETTINGS_TAB) unmountTournamentClock();
   activeRenderedTab = null;
 }
 
