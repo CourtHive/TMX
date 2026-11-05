@@ -44,6 +44,7 @@ import { decoratesCell, severityOf } from './scheduleIssueSeverity';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { getLoginState } from 'services/authentication/loginState';
+import { getScheduleCellConfig } from './scheduleAnnotationLabels';
 import { isDemoClockEligible } from 'services/clock/demoClock';
 import { openScheduleLockMenu } from './scheduleLockActions';
 import { EVENT_DATE_INACTIVE } from './eventDateScheduling';
@@ -61,7 +62,6 @@ import {
   createSchedulePage,
   buildScheduleGridCell,
   mapMatchUpToCellData,
-  DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
   filterMatchUpCatalog,
   computeBaseRoundByEvent,
@@ -504,7 +504,7 @@ export function renderGridView(
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
         // `payload` already carries any live score (buildActiveStripData), so the cell shows it with LIVE.
-        const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
+        const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), getScheduleCellConfig());
         // The strip is where the call-to-court gesture happens, so the check-in state has to be
         // legible HERE and not only back on the catalog card. Never gated by the prompt mode:
         // `off` means "do not interrupt me", not "show me nothing".
@@ -2245,12 +2245,17 @@ function buildRowCourtCells(params: {
     // them directly (bypass the matchUp mapper) and carry no matchUpId, so no drag source is attached.
     const cellContent = cellData?.isReserved
       ? buildScheduleGridCell(
-          { matchUpId: '', isReserved: true, reservation: cellData.reservation, schedule: cellData.schedule },
-          DEFAULT_SCHEDULE_CELL_CONFIG,
+          {
+            matchUpId: '',
+            isReserved: true,
+            reservation: cellData.reservation,
+            schedule: cellData.schedule,
+          },
+          getScheduleCellConfig(),
         )
       : buildScheduleGridCell(
           mapMatchUpToCellData(withLiveScore(cellData || {}, liveScoreFor)),
-          DEFAULT_SCHEDULE_CELL_CONFIG,
+          getScheduleCellConfig(),
         );
 
     const cell = document.createElement('div');

@@ -18,6 +18,7 @@ import { cellPanelLayout, type CompletedTime } from './completedCellPanel';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
+import { getScheduleAnnotationLabels } from './scheduleAnnotationLabels';
 import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { venueNowClock, venueToday } from 'functions/venueTimeFrame';
@@ -36,7 +37,7 @@ import tippy, { type Instance } from 'tippy.js';
 import { i18next, t } from 'i18n';
 
 // constants
-import { timeModifierText, RIGHT } from 'constants/tmxConstants';
+import { RIGHT } from 'constants/tmxConstants';
 import {
   ADD_MATCHUP_SCHEDULE_ITEMS,
   BULK_SCHEDULE_MATCHUPS,
@@ -565,11 +566,12 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     pop.appendChild(makeSectionLabel(t('schedule.annotations')));
     const annoRow = document.createElement('div');
     annoRow.style.cssText = PILL_ROW_CSS;
-    annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
-    annoRow.appendChild(makePill(timeModifierText[NEXT_AVAILABLE], () => modifyTime(NEXT_AVAILABLE)));
-    annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
-    annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
-    annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
+    const annotationLabels = getScheduleAnnotationLabels();
+    annoRow.appendChild(makePill(annotationLabels.FOLLOWED_BY.label, () => modifyTime(FOLLOWED_BY)));
+    annoRow.appendChild(makePill(annotationLabels.NEXT_AVAILABLE.label, () => modifyTime(NEXT_AVAILABLE)));
+    annoRow.appendChild(makePill(annotationLabels.NOT_BEFORE.label, () => modifyTime(NOT_BEFORE)));
+    annoRow.appendChild(makePill(annotationLabels.AFTER_REST.label, () => modifyTime(AFTER_REST)));
+    annoRow.appendChild(makePill(annotationLabels.TO_BE_ANNOUNCED.label, () => modifyTime(TO_BE_ANNOUNCED)));
     annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
     pop.appendChild(annoRow);
   }
@@ -910,11 +912,12 @@ export function handleSchedule2RowClick(e: MouseEvent, ctx: Schedule2RowContext)
   pop.appendChild(makeSectionLabel(t('schedule.annotations')));
   const annoRow = document.createElement('div');
   annoRow.style.cssText = PILL_ROW_CSS;
-  annoRow.appendChild(makePill(timeModifierText[FOLLOWED_BY], () => modifyTime(FOLLOWED_BY)));
-  annoRow.appendChild(makePill(timeModifierText[NEXT_AVAILABLE], () => modifyTime(NEXT_AVAILABLE)));
-  annoRow.appendChild(makePill(timeModifierText[NOT_BEFORE], () => modifyTime(NOT_BEFORE)));
-  annoRow.appendChild(makePill(timeModifierText[AFTER_REST], () => modifyTime(AFTER_REST)));
-  annoRow.appendChild(makePill(timeModifierText[TO_BE_ANNOUNCED], () => modifyTime(TO_BE_ANNOUNCED)));
+  const annotationLabels = getScheduleAnnotationLabels();
+  annoRow.appendChild(makePill(annotationLabels.FOLLOWED_BY.label, () => modifyTime(FOLLOWED_BY)));
+  annoRow.appendChild(makePill(annotationLabels.NEXT_AVAILABLE.label, () => modifyTime(NEXT_AVAILABLE)));
+  annoRow.appendChild(makePill(annotationLabels.NOT_BEFORE.label, () => modifyTime(NOT_BEFORE)));
+  annoRow.appendChild(makePill(annotationLabels.AFTER_REST.label, () => modifyTime(AFTER_REST)));
+  annoRow.appendChild(makePill(annotationLabels.TO_BE_ANNOUNCED.label, () => modifyTime(TO_BE_ANNOUNCED)));
   annoRow.appendChild(makePill(t('schedule.clearTimeSettings'), clearTimeSettings, { icon: 'fa-xmark' }));
   pop.appendChild(annoRow);
 

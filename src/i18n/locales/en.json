@@ -875,6 +875,32 @@
     "logInAgain": "Log in again"
   },
   "schedule": {
+    "timeModifiers": {
+      "NOT_BEFORE": {
+        "label": "Not Before",
+        "short": "NB"
+      },
+      "FOLLOWED_BY": {
+        "label": "Followed by",
+        "short": "Followed by"
+      },
+      "NEXT_AVAILABLE": {
+        "label": "Next available",
+        "short": "Next available"
+      },
+      "AFTER_REST": {
+        "label": "After rest",
+        "short": "After rest"
+      },
+      "TO_BE_ANNOUNCED": {
+        "label": "To be announced",
+        "short": "TBA"
+      },
+      "RAIN_DELAY": {
+        "label": "Rain delay",
+        "short": "Rain delay"
+      }
+    },
     "plan": {
       "badge": "PLANNING — not live",
       "empty": "No alternate plans yet. Create one to stage a contingency schedule off the live grid.",
