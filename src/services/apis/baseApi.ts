@@ -87,9 +87,19 @@ async function performRefresh(): Promise<string | null> {
     return null;
   }
   try {
-    const { data } = await axiosInstance.post(authUrl('/auth/refresh'), { refreshToken }, {
+    // Resolve on every status: the response interceptor turns a refused request into `undefined`, which this
+    // destructured, so a rejected refresh logged "Right side of assignment cannot be destructured" in place of its 401.
+    const response: any = await axiosInstance.post(authUrl('/auth/refresh'), { refreshToken }, {
       silenceErrors: true,
+      validateStatus: () => true,
     } as any);
+    const status = response?.status;
+    const data = response?.data;
+    if (!response || status >= 400) {
+      const message = data?.message || data?.error || (response ? 'unknown' : 'no response');
+      console.warn(`[baseApi] performRefresh: server rejected refresh status=${status} message=${message}`);
+      return null;
+    }
     if (data?.token) {
       localStorage.setItem(JWT_TOKEN_STORAGE_NAME, data.token);
       // Rotation: the server returns a fresh refresh token on every refresh.

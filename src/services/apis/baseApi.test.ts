@@ -70,6 +70,41 @@ describe('baseApi.refreshAccessToken', () => {
     expect(localStorage.getItem('tmxToken')).toBeNull();
   });
 
+  it('reports a refused refresh by its status and message, not as a destructuring error', async () => {
+    localStorage.setItem('tmxRefreshToken', 'rtok_old');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    post.mockResolvedValue({ status: 401, data: { message: 'Refresh token reused' } });
+
+    const result = await refreshAccessToken();
+
+    expect(result).toBeNull();
+    // the refresh must resolve on any status, or the error interceptor hands back `undefined` instead
+    expect(post).toHaveBeenCalledWith(
+      '/auth/refresh',
+      { refreshToken: 'rtok_old' },
+      expect.objectContaining({ validateStatus: expect.any(Function) }),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      '[baseApi] performRefresh: server rejected refresh status=401 message=Refresh token reused',
+    );
+    expect(localStorage.getItem('tmxToken')).toBeNull();
+    warn.mockRestore();
+  });
+
+  it('survives the error interceptor resolving a refused refresh to undefined', async () => {
+    localStorage.setItem('tmxRefreshToken', 'rtok_old');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    post.mockResolvedValue(undefined);
+
+    const result = await refreshAccessToken();
+
+    expect(result).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      '[baseApi] performRefresh: server rejected refresh status=undefined message=no response',
+    );
+    warn.mockRestore();
+  });
+
   it('allows a fresh refresh after the previous one settled (flight resets)', async () => {
     localStorage.setItem('tmxRefreshToken', 'rtok_old');
     post.mockResolvedValueOnce({ data: { token: 'a1', refreshToken: 'r1' } });
