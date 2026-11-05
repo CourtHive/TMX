@@ -3929,9 +3929,8 @@
     }
   },
   "tournamentClock": {
-    "label": "Tournament time",
     "ariaLabel": "Time where the tournament is played",
-    "title": "Time in {{zone}}, where the tournament is played. Your time: {{local}}"
+    "title": "Tournament time: {{when}} ({{zone}}). Your time: {{local}}"
   },
   "demoClock": {
     "title": "Demo Clock",

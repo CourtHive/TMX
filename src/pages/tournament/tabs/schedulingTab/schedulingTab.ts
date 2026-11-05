@@ -19,6 +19,7 @@
  *   /tournament/:id/scheduling/:date/plan                         → only while featureFlags.schedulePlan is on
  */
 
+import { mountTournamentClock, unmountTournamentClock } from 'components/tournamentClock/tournamentClock';
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
 import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
 import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
@@ -270,6 +271,7 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   queueUnsubscribe?.();
   queueUnsubscribe = subscribeQueue(refreshActionBar);
   refreshActionBar();
+  mountTournamentClock();
 
   // Shared-facility overlay: in grid mode, fetch other tournaments' court occupancy once per tab
   // session so it renders as read-only reserved cells. Gated on tournamentId so a date change within
@@ -296,6 +298,7 @@ export function destroySchedulingTab(): void {
   // starts clean. The retired schedule2 shell did this in destroySchedule2Tab;
   // the workspace previously inherited it only by bouncing through that shell.
   invalidateAllScheduleCaches();
+  unmountTournamentClock();
 }
 
 function destroyCurrentMode(): void {

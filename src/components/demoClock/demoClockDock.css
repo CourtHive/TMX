@@ -1,0 +1,42 @@
+/* Docking: page bars offer a centre slot; pages without one get a fallback bottom bar. Shared by the demo clock and
+   the tournament clock, so it loads with the dock rather than with either panel. */
+
+/* Only pages without an existing bottom bar reserve room for the fallback dock. */
+html[data-tmx-demo-clock-dock='true'] .app_shell {
+  padding-bottom: 44px;
+}
+
+.tmx-demo-clock-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--tmx-fill-warning);
+}
+
+.tmx-demo-clock-host--active {
+  display: flex !important;
+}
+
+.tmx-demo-clock-host[data-clock-workspace='true'] > div:first-child:empty {
+  display: none;
+}
+
+.tabulator[data-demo-clock-fit='true'] {
+  min-height: 0;
+  max-height: var(--tmx-demo-clock-table-height);
+}
+
+.tmx-demo-clock-slot {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+}
+
+.tmx-demo-clock-slot:empty:not(.tmx-demo-clock-slot--spacer) {
+  display: none;
+}

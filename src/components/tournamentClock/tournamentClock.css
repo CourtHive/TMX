@@ -1,33 +1,26 @@
-/* Reserve room so the fixed bar never covers the last row of the Settings grid. */
-html[data-tmx-tournament-clock-dock='true'] .app_shell {
-  padding-bottom: 44px;
-}
-
-.tmx-tournament-clock-bar {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 1000;
+/* Docked in a Schedule tab bar's centre slot (shared with the demo clock), or in the fallback bottom bar. */
+.tmx-tournament-clock {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 4px 12px;
-  border-top: 1px solid var(--tmx-border-primary);
-  background: var(--tmx-bg-secondary);
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
   color: var(--tmx-text-primary);
   font-size: 0.75rem;
-  white-space: nowrap;
+  cursor: default;
 }
 
-.tmx-tournament-clock-bar output {
-  font-size: 0.9rem;
+.tmx-tournament-clock output {
+  font-size: 0.85rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.tmx-tournament-clock-label,
-.tmx-tournament-clock-detail {
+.tmx-tournament-clock-city {
   color: var(--tmx-text-secondary);
+}
+
+/* The fallback bar is the demo clock's; it keeps the neutral border, not the demo warning colour. */
+.tmx-tournament-clock-bar {
+  border-top-color: var(--tmx-border-primary);
+  background: var(--tmx-bg-secondary);
 }

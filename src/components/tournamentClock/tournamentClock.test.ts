@@ -1,4 +1,4 @@
-import { tournamentClockZone } from './tournamentClock';
+import { tournamentClockZone, zoneCity } from './tournamentClock';
 import { describe, expect, it } from 'vitest';
 
 const NEW_YORK = 'America/New_York';
@@ -36,5 +36,11 @@ describe('tournamentClockZone', () => {
   it('shows nothing for the browser fallback or a refused frame', () => {
     expect(tournamentClockZone({ timeZone: NEW_YORK, source: 'browser' }, JANUARY, 'UTC')).toBe(undefined);
     expect(tournamentClockZone({ source: 'error' }, JANUARY, 'UTC')).toBe(undefined);
+  });
+
+  it('names the place briefly', () => {
+    expect(zoneCity('America/Los_Angeles')).toBe('Los Angeles');
+    expect(zoneCity('America/Argentina/Buenos_Aires')).toBe('Buenos Aires');
+    expect(zoneCity('UTC')).toBe('UTC');
   });
 });

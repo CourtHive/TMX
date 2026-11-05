@@ -1,5 +1,7 @@
 import { t } from 'i18n';
 
+import './demoClockDock.css';
+
 const SLOT = '.tmx-demo-clock-slot';
 const ACTIVE_HOST = 'tmx-demo-clock-host--active';
 
@@ -14,8 +16,14 @@ export function createDemoClockSlot(bar: HTMLElement, { spacer = false, workspac
   return slot;
 }
 
-/** Follow page-owned bars across rerenders. Only pages without a bar receive a fallback dock. */
-export function mountDemoClock(panel: HTMLElement): () => void {
+/**
+ * Follow page-owned bars across rerenders. Only pages without a bar receive a fallback dock. The tournament clock
+ * shares this placement (never at the same time: it is not shown on a Scheduling Lab) with its own fallback styling.
+ */
+export function mountDemoClock(
+  panel: HTMLElement,
+  { fallbackClass = 'tmx-demo-clock-bar', fallbackLabel = 'demoClock.bottomBar' } = {},
+): () => void {
   const shell = document.querySelector<HTMLElement>('.app_shell') ?? document.body;
   let fallback: HTMLElement | undefined;
   let activeHost: HTMLElement | undefined;
@@ -79,8 +87,8 @@ export function mountDemoClock(panel: HTMLElement): () => void {
     } else {
       if (!fallback) {
         fallback = document.createElement('footer');
-        fallback.className = 'tmx-demo-clock-bar';
-        fallback.setAttribute('aria-label', t('demoClock.bottomBar'));
+        fallback.className = fallbackClass;
+        fallback.setAttribute('aria-label', t(fallbackLabel));
         shell.append(fallback);
       }
       if (panel.parentElement !== fallback) fallback.append(panel);

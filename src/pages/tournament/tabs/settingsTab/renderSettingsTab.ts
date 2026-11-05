@@ -1,4 +1,3 @@
-import { mountTournamentClock } from 'components/tournamentClock/tournamentClock';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { SETTINGS_GRID_COLUMNS } from './settingsLayout';
 import { renderSettingsGrid } from './settingsGrid';
@@ -65,5 +64,4 @@ export function renderSettingsTab(): void {
   ensureSettingsStyles();
   removeAllChildNodes(settingsContent);
   void renderSettingsGrid(settingsContent);
-  mountTournamentClock();
 }

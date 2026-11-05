@@ -9,46 +9,6 @@ html[data-tmx-demo-clock='true'] .tmx-demo-clock-bar {
   border-color: var(--tmx-fill-warning);
 }
 
-/* Only pages without an existing bottom bar reserve room for the fallback dock. */
-html[data-tmx-demo-clock-dock='true'] .app_shell {
-  padding-bottom: 44px;
-}
-
-.tmx-demo-clock-bar {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  min-height: 44px;
-  padding: 4px 12px;
-  border-top: 1px solid var(--tmx-fill-warning);
-}
-
-.tmx-demo-clock-host--active {
-  display: flex !important;
-}
-
-.tmx-demo-clock-host[data-clock-workspace='true'] > div:first-child:empty {
-  display: none;
-}
-
-.tabulator[data-demo-clock-fit='true'] {
-  min-height: 0;
-  max-height: var(--tmx-demo-clock-table-height);
-}
-
-.tmx-demo-clock-slot {
-  display: flex;
-  justify-content: center;
-  min-width: max-content;
-}
-
-.tmx-demo-clock-slot:empty:not(.tmx-demo-clock-slot--spacer) {
-  display: none;
-}
-
 .tmx-demo-clock {
   color: var(--tmx-text-primary);
   font-size: 0.75rem;
