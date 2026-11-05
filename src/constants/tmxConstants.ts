@@ -336,3 +336,4 @@ export const ROTATING_ROUNDS = 'rotatingRounds';
 export const ROTATING_ROSTER = 'rotatingRoster';
 
 export const DEMO_CLOCK_PANEL = 'demoClockPanel';
+export const TOURNAMENT_CLOCK = 'tournamentClock';
