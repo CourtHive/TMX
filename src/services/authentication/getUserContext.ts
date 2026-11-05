@@ -15,7 +15,7 @@
  * The cache is cleared on logout and on login (so the new user's context
  * is fetched fresh).
  */
-import { baseApi } from 'services/apis/baseApi';
+import { authUrl, baseApi } from 'services/apis/baseApi';
 
 import type { UserContext } from 'types/tmx';
 
@@ -34,7 +34,7 @@ export function fetchUserContext(): Promise<UserContext | undefined> {
   const request = generation;
   const pending = (async () => {
     try {
-      const response = await baseApi.get('/auth/me');
+      const response = await baseApi.get(authUrl('/auth/me'));
       if (request !== generation) return undefined;
       cached = response?.data?.userId ? (response.data as UserContext) : undefined;
     } catch {

@@ -1,5 +1,5 @@
 import { setServerSyncFrom } from 'services/staleness/serverSync';
-import { baseApi } from './baseApi';
+import { authUrl, baseApi } from './baseApi';
 
 import type { ProvidersResponse, UsersResponse } from 'types/tmx';
 
@@ -126,11 +126,11 @@ export async function getProviders(): Promise<ProvidersResponse> {
 }
 
 export async function getUsers(): Promise<UsersResponse> {
-  return await baseApi.post('/auth/allusers', {});
+  return await baseApi.post(authUrl('/auth/allusers'), {});
 }
 
 export async function removeUser({ email }: { email: string }) {
-  return await baseApi.post('/auth/remove', { email });
+  return await baseApi.post(authUrl('/auth/remove'), { email });
 }
 
 /**

@@ -1,6 +1,7 @@
 import { routeApiToCfs } from '../helpers/cfsProxy';
 import { test, expect } from '@playwright/test';
 import { waitForAppReady } from '../helpers/dev-bridge';
+import { AUTH_SERVER, signInSuperAdmin } from '../helpers/role-fixtures';
 
 const E2E_EMAIL = 'e2e-client@courthive.com';
 const E2E_PASSWORD = 'e2e-test-pass';
@@ -117,11 +118,9 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     }
     if (!cfsReachable) return;
 
-    // Admin session — needed to resolve the provider.
-    const adminLogin = await request.post(`${SERVER}/auth/login`, {
-      data: { email: 'axel@castle.com', password: 'castle' },
-    });
-    const adminToken = (await adminLogin.json()).token;
+    // Admin session — needed to resolve the provider. The seeded e2e super-admin, not CFS's built-in
+    // dev login: login belongs to the identity provider, which has no hard-coded account.
+    const adminToken = await signInSuperAdmin(request);
 
     // Resolve the provider by abbreviation, never by a literal id. A hardcoded providerId bound
     // this journey to one machine's database: the id belonged to "TMX Sandbox", accumulated dev
@@ -145,7 +144,7 @@ test.describe('Journey 28 — Authenticated server tournament creation', () => {
     // succeeds, so the dead path only ran on hosts where the account did not already exist — where
     // it 404'd and the failure surfaced as an unrelated assertion much later. The account is now
     // seeded alongside every other test identity; require it and say so when it is absent.
-    const login = await request.post(`${SERVER}/auth/login`, {
+    const login = await request.post(`${AUTH_SERVER}/auth/login`, {
       data: { email: E2E_EMAIL, password: E2E_PASSWORD },
     });
     expect(

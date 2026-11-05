@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { post } = vi.hoisted(() => ({ post: vi.fn() }));
-vi.mock('services/apis/baseApi', () => ({ baseApi: { post } }));
+vi.mock('services/apis/baseApi', () => ({ baseApi: { post }, authUrl: (path: string) => path }));
 
 import { requestMagicLink, consumeMagicLink } from './authApi';
 

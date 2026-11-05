@@ -1,14 +1,14 @@
-import { baseApi } from '../apis/baseApi';
+import { authUrl, baseApi } from '../apis/baseApi';
 
 export async function systemLogin(email, password) {
-  return baseApi.post('/auth/login', {
+  return baseApi.post(authUrl('/auth/login'), {
     password,
     email,
   });
 }
 
 export async function inviteUser(email, providerId, roles, permissions, services) {
-  return baseApi.post('/auth/invite', {
+  return baseApi.post(authUrl('/auth/invite'), {
     permissions,
     providerId,
     services,
@@ -18,7 +18,7 @@ export async function inviteUser(email, providerId, roles, permissions, services
 }
 
 export async function systemRegister(firstName, lastName, password, code) {
-  return baseApi.post('/auth/register', {
+  return baseApi.post(authUrl('/auth/register'), {
     firstName,
     lastName,
     password,
@@ -27,22 +27,22 @@ export async function systemRegister(firstName, lastName, password, code) {
 }
 
 export async function setPassword(password, setPasswordToken) {
-  return baseApi.post('/auth/set-password', {
+  return baseApi.post(authUrl('/auth/set-password'), {
     setPasswordToken,
     password,
   });
 }
 
 export async function confirmEmail(emailConfirmationId) {
-  return baseApi.get(`/auth/confirm/${emailConfirmationId}`);
+  return baseApi.get(authUrl(`/auth/confirm/${emailConfirmationId}`));
 }
 
 export async function forgotPassword(email) {
-  return baseApi.post('/auth/forgot-password', { email });
+  return baseApi.post(authUrl('/auth/forgot-password'), { email });
 }
 
 export async function resetPassword(email, password, code) {
-  return baseApi.post('/auth/reset-password', { email, password, code });
+  return baseApi.post(authUrl('/auth/reset-password'), { email, password, code });
 }
 
 export async function ssoLoginWithToken(token: string) {
@@ -50,7 +50,7 @@ export async function ssoLoginWithToken(token: string) {
 }
 
 export async function completeFirstLogin(limitedToken: string, newPassword: string) {
-  return baseApi.post('/auth/complete-first-login', { limitedToken, newPassword });
+  return baseApi.post(authUrl('/auth/complete-first-login'), { limitedToken, newPassword });
 }
 
 /**
@@ -59,17 +59,17 @@ export async function completeFirstLogin(limitedToken: string, newPassword: stri
  * refresh itself lives in baseApi (refreshAccessToken) to avoid an import cycle.
  */
 export async function revokeRefreshToken(refreshToken: string) {
-  return baseApi.post('/auth/logout', { refreshToken }, { silenceErrors: true });
+  return baseApi.post(authUrl('/auth/logout'), { refreshToken }, { silenceErrors: true });
 }
 
 /** Request a passwordless magic login link. Enumeration-defensive server-side. */
 export async function requestMagicLink(email: string) {
-  return baseApi.post('/auth/magic/request', { email });
+  return baseApi.post(authUrl('/auth/magic/request'), { email });
 }
 
 /** Exchange a single-use magic-link code for an access + refresh session. */
 export async function consumeMagicLink(code: string) {
-  return baseApi.post('/auth/magic/consume', { code }, { silenceErrors: true });
+  return baseApi.post(authUrl('/auth/magic/consume'), { code }, { silenceErrors: true });
 }
 
 /**
@@ -78,5 +78,9 @@ export async function consumeMagicLink(code: string) {
  * ordinary session ({ token, refreshToken }) for `logIn()`.
  */
 export async function selectProvider(providerId: string, bearer: string) {
-  return baseApi.post('/auth/select-provider', { providerId }, { headers: { Authorization: `Bearer ${bearer}` } });
+  return baseApi.post(
+    authUrl('/auth/select-provider'),
+    { providerId },
+    { headers: { Authorization: `Bearer ${bearer}` } },
+  );
 }
