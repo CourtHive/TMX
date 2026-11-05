@@ -27,7 +27,7 @@ const { fakeInstance, post } = vi.hoisted(() => {
 vi.mock('axios', () => ({ default: { create: () => fakeInstance }, create: () => fakeInstance }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 
-import { refreshAccessToken } from './baseApi';
+import { authUrl, refreshAccessToken } from './baseApi';
 
 beforeEach(() => {
   for (const k of Object.keys(memStore)) delete memStore[k];
@@ -78,5 +78,25 @@ describe('baseApi.refreshAccessToken', () => {
     const second = await refreshAccessToken();
     expect(second).toBe('a2');
     expect(post).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('baseApi.authUrl', () => {
+  const original = process.env.AUTH_SERVER;
+  const restore = () => {
+    if (original === undefined) delete process.env.AUTH_SERVER;
+    else process.env.AUTH_SERVER = original;
+  };
+
+  it('returns the path unchanged when AUTH_SERVER is empty (production: same origin, nginx routes it)', () => {
+    process.env.AUTH_SERVER = '';
+    expect(authUrl('/auth/login')).toBe('/auth/login');
+    restore();
+  });
+
+  it('prefixes the identity provider origin when AUTH_SERVER is set (development: hiveid on its own port)', () => {
+    process.env.AUTH_SERVER = 'http://localhost:3140';
+    expect(authUrl('/auth/me')).toBe('http://localhost:3140/auth/me');
+    restore();
   });
 });

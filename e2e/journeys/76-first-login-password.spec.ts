@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import {
+  AUTH_SERVER,
   SERVER,
   removeUser,
   ROLE_PASSWORD,
@@ -30,7 +31,7 @@ test.describe('Journey 76 — forced first-login password change', () => {
     if (!token) return;
     // Create the user but do NOT complete first-login, so the account is left in
     // the mustChangePassword state.
-    const res = await request.post(`${SERVER}/auth/admin-create-user`, {
+    const res = await request.post(`${AUTH_SERVER}/auth/admin-create-user`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { email, password: ROLE_PASSWORD, roles: [] },
     });

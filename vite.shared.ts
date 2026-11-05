@@ -61,9 +61,12 @@ export const emitVersionJson = (): Plugin => ({
  * origin from CFS in development — CFS on :8383, query on :3150. In production both
  * are same-origin behind nginx, which routes `/query/*` to the query service, so the
  * default empty string is correct there and only dev needs to set it.
+ *
+ * `AUTH_SERVER` is the identity provider (courthive-hiveid) — same shape: :3140 in development,
+ * same-origin in production, where nginx routes `/auth/*` and `/account/*` to it.
  */
 export const rendererPlugins = (): Plugin[] => [
-  EnvironmentPlugin({ SERVER: '', QUERY_SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
+  EnvironmentPlugin({ SERVER: '', QUERY_SERVER: '', AUTH_SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
   emitVersionJson(),
   precompiledSchemaValidator(),
 ];

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { isCfsApiPath, routeApiToCfs } from '../helpers/cfsProxy';
+import { apiOriginFor, isCfsApiPath, routeApiToCfs } from '../helpers/cfsProxy';
+import { AUTH_SERVER, SERVER } from '../helpers/role-fixtures';
 import { waitForAppReady } from '../helpers/dev-bridge';
 
 /**
@@ -87,6 +88,23 @@ test.describe('Journey 120 — CFS proxy scope', () => {
       '/',
     ]) {
       expect(isCfsApiPath(vitePath), `${vitePath} must be served by Vite`).toBe(false);
+    }
+  });
+
+  test('auth paths go to the identity provider, except the routes that read tournament data', () => {
+    for (const idpPath of ['/auth/login', '/auth/me', '/auth/magic/request', '/account/contact-email/set']) {
+      expect(apiOriginFor(idpPath), `${idpPath} should reach the identity provider`).toBe(AUTH_SERVER);
+    }
+    for (const cfsPath of [
+      '/auth/tracker-token',
+      '/auth/scorer-token',
+      '/auth/provider-scoring-token',
+      '/auth/sso/login-with-token',
+      '/auth/hiveid/me/claim',
+      '/auth/hiveid/me/claimable/t1',
+      '/factory/tournament',
+    ]) {
+      expect(apiOriginFor(cfsPath), `${cfsPath} should stay on CFS`).toBe(SERVER);
     }
   });
 });
