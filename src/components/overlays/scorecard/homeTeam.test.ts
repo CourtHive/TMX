@@ -3,7 +3,7 @@
  * the dual's ⋮ menu send, run as the executionQueue runs them.
  */
 import { eventConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { clearHomeMethod, dualHome, homeTeamMenu, setHomeMethod } from './homeTeam';
+import { clearHomeMethod, dualHome, homeTeamMenu, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { describe, expect, it } from 'vitest';
 
 const { TEAM } = eventConstants;
@@ -82,6 +82,41 @@ describe('dual home team', () => {
     expect(menu?.teams[0].isHome).toEqual(true);
     expect(menu?.basis).toEqual('VENUE');
     expect(menu?.canClear).toEqual(false);
+  });
+
+  it('says which home a set one gives way to, and nothing when none would be inferred', () => {
+    const { drawId, matchUpId, side1, side2 } = generateDual();
+    run([setHomeMethod({ drawId, matchUpId, participantId: side2 })]);
+    expect(inferredHome({ drawId, matchUpId })).toEqual({});
+
+    const venueId = 'home-venue';
+    tournamentEngine.addVenue({ venue: { venueId, venueName: 'Home courts' } });
+    const { tournamentRecord } = tournamentEngine.getTournament();
+    tournamentRecord.participants.find((p: any) => p.participantId === side1).homeVenueIds = [venueId];
+    tournamentEngine.setState(tournamentRecord);
+    tournamentEngine.addMatchUpScheduleItems({ drawId, matchUpId, schedule: { venueId } });
+
+    // the set home still wins; with it taken out, the venue makes side 1 home
+    expect(dualHome({ drawId, matchUpId })).toEqual({ basis: 'EXPLICIT', homeParticipantId: side2 });
+    expect(inferredHome({ drawId, matchUpId })).toEqual({ inferredParticipantId: side1, inferredBasis: 'VENUE' });
+    // and nothing was changed on the record by asking
+    expect(dualHome({ drawId, matchUpId }).homeParticipantId).toEqual(side2);
+  });
+
+  it('resolves a save to whether it was accepted, refreshing only when it was', async () => {
+    let refreshed = 0;
+    const onRefresh = () => (refreshed += 1);
+    const methods = [{ method: 'anything' }];
+
+    const accepted = (params: any) => params.callback({ success: true });
+    expect(await saveHomeTeam({ send: accepted, methods, onRefresh })).toEqual(true);
+    expect(refreshed).toEqual(1);
+
+    const refused = (params: any) => params.callback({ error: { message: 'no' } });
+    expect(await saveHomeTeam({ send: refused, methods, onRefresh })).toEqual(false);
+    const throwing = () => Promise.reject(new Error('offline'));
+    expect(await saveHomeTeam({ send: throwing, methods, onRefresh })).toEqual(false);
+    expect(refreshed).toEqual(1);
   });
 
   it('offers no menu for a dual whose teams are not both in', () => {

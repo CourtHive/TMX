@@ -9,7 +9,7 @@ import { participantMatchUpActions } from 'components/popovers/participantMatchU
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { finishingOrderCollections, saveFinishingOrder } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
-import { clearHomeMethod, dualHome, setHomeMethod } from './homeTeam';
+import { clearHomeMethod, dualHome, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -125,11 +125,15 @@ export function renderScorecard({
       onClick: ({ matchUpIds }: any) => send(deadRubberMethods({ drawId, matchUpIds })),
     },
   };
-  // the home team is tagged where it falls; an explicit home can be set or cleared
+  // the home team is labelled where it falls and edited from the header's gear; each save resolves to whether it was
+  // accepted, so a refusal keeps the edit open. A set home also says what would be inferred once it is cleared.
+  const resolvedHome = dualHome({ drawId, matchUpId });
+  const saveHome = (methods: any[]) => saveHomeTeam({ send: mutationRequest, methods, onRefresh });
   const home = {
-    ...dualHome({ drawId, matchUpId }),
-    onSetHome: (participantId: string) => send([setHomeMethod({ drawId, matchUpId, participantId })]),
-    onClearHome: () => send([clearHomeMethod({ drawId, matchUpId })]),
+    ...resolvedHome,
+    ...(resolvedHome.basis === 'EXPLICIT' ? inferredHome({ drawId, matchUpId }) : {}),
+    onSetHome: (participantId: string) => saveHome([setHomeMethod({ drawId, matchUpId, participantId })]),
+    onClearHome: () => saveHome([clearHomeMethod({ drawId, matchUpId })]),
   };
   const teamScore = {
     onOverride: (score: any) => send([overrideTeamScoreMethod({ drawId, matchUpId, teamScore: score })]),
@@ -193,8 +197,16 @@ function scorecardLabels(): any {
     home: t('overlays.scorecard.home'),
     homeVenue: t('overlays.scorecard.homeVenue'),
     homeHostOrganisation: t('overlays.scorecard.homeHostOrganisation'),
-    setHome: t('overlays.scorecard.setHome'),
-    clearHome: t('overlays.scorecard.clearHome'),
+    editHome: t('overlays.scorecard.editHome'),
+    saveHome: t('overlays.scorecard.saveHome'),
+    homeTeam: t('overlays.scorecard.homeTeam'),
+    homeEditHint: t('overlays.scorecard.homeEditHint'),
+    homeEditHintNoClear: t('overlays.scorecard.homeEditHintNoClear'),
+    homeInferredVenueHint: t('overlays.scorecard.homeInferredVenueHint'),
+    homeInferredHostHint: t('overlays.scorecard.homeInferredHostHint'),
+    homeDraft: t('overlays.scorecard.homeDraft', { skipInterpolation: true }),
+    homeDraftNone: t('overlays.scorecard.homeDraftNone'),
+    homeSaveFailed: t('overlays.scorecard.homeSaveFailed'),
     cancel: t('common.cancel'),
     save: t('common.save'),
   };

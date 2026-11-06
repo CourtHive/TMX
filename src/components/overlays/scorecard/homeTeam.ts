@@ -14,6 +14,8 @@ import { homeParticipantConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 
 const { EXPLICIT, NONE } = homeParticipantConstants;
+// the legacy time item a set home was once stored as; the factory's `timeItemConstants` object does not carry it
+const HOME_PARTICIPANT_ID = 'HOME_PARTICIPANT_ID';
 
 export type DualHome = { homeParticipantId?: string; basis: string };
 
@@ -38,6 +40,55 @@ export function dualHome({ drawId, matchUpId }: DualRef): DualHome {
   const result: any = tournamentEngine.resolveHomeParticipantId({ drawId, matchUpId });
   if (!result || result.error) return { basis: NONE };
   return { homeParticipantId: result.homeParticipantId, basis: result.basis ?? NONE };
+}
+
+/**
+ * The home team the venue or host organisation would give the dual with no home team set, so the scorecard can show
+ * it in place of a set home being cleared. Empty when the home team is not set, or when nothing would be inferred.
+ */
+export function inferredHome({ drawId, matchUpId }: DualRef): {
+  inferredParticipantId?: string;
+  inferredBasis?: string;
+} {
+  const matchUp: any = tournamentEngine.findMatchUp({ drawId, matchUpId, inContext: true })?.matchUp;
+  if (!matchUp) return {};
+  // the same dual with its set home taken out: the first-class value and the legacy time item both
+  const unset = {
+    ...matchUp,
+    hasContext: true,
+    schedule: { ...matchUp.schedule, homeParticipantId: undefined },
+    timeItems: (matchUp.timeItems ?? []).filter((item: any) => item?.itemType !== HOME_PARTICIPANT_ID),
+  };
+  const result: any = tournamentEngine.resolveHomeParticipantId({ drawId, matchUpId, matchUp: unset });
+  if (!result || result.error || !result.homeParticipantId || [EXPLICIT, NONE].includes(result.basis)) return {};
+  return { inferredParticipantId: result.homeParticipantId, inferredBasis: result.basis };
+}
+
+type SaveHomeParams = {
+  send: (params: { methods: any[]; callback: (result: any) => void }) => Promise<void> | void;
+  methods: any[];
+  onRefresh?: () => void;
+};
+
+/**
+ * Send a home team change and resolve to whether it was accepted. The scorecard keeps its edit open with the choice when
+ * this resolves false, so a refusal refreshes nothing.
+ */
+export function saveHomeTeam({ send, methods, onRefresh }: SaveHomeParams): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const settle = (success: boolean) => {
+      if (success) onRefresh?.();
+      resolve(success);
+    };
+    try {
+      // every path through the mutation calls back; a throw is settled here so the card never waits forever
+      Promise.resolve(send({ methods, callback: (result: any) => settle(!!result?.success) })).catch(() =>
+        settle(false),
+      );
+    } catch {
+      settle(false);
+    }
+  });
 }
 
 export function setHomeMethod({ drawId, matchUpId, participantId }: DualRef & { participantId: string }): any {
