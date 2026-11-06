@@ -24,6 +24,7 @@ import { listScheduleScenarios, updateScheduleScenario } from 'services/schedule
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
+import { eventDateGridIssues, eventDateIssueIds, warnInactiveEventDates } from './eventDateGrid';
 import { reconcileScheduledFilters, scheduledFilterSections } from './scheduledCatalogFilters';
 import { TOGGLE_BTN_BASE_STYLE, applyToggleState } from 'components/buttons/toggleIconButton';
 import { scheduleErrorMessage } from 'components/tables/matchUpsTable/setMatchUpSchedule';
@@ -39,14 +40,14 @@ import { printCourtMatchUpCards } from 'components/modals/printCourtCards';
 import { buildGridActionBar, type GridActionBar } from './gridActionBar';
 import { isRunningDesk } from 'services/authentication/isRunningDesk';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
-import { eventDateGridIssues, eventDateIssueIds, warnInactiveEventDates } from './eventDateGrid';
 import { decoratesCell, severityOf } from './scheduleIssueSeverity';
-import { EVENT_DATE_INACTIVE } from './eventDateScheduling';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { getLoginState } from 'services/authentication/loginState';
+import { getScheduleCellConfig } from './scheduleAnnotationLabels';
 import { isDemoClockEligible } from 'services/clock/demoClock';
 import { openScheduleLockMenu } from './scheduleLockActions';
+import { EVENT_DATE_INACTIVE } from './eventDateScheduling';
 import { renameCourt } from 'components/modals/renameCourt';
 import { plainDateRange } from 'functions/plainDateRange';
 import { hasFinalResult } from 'functions/hasFinalResult';
@@ -61,7 +62,6 @@ import {
   createSchedulePage,
   buildScheduleGridCell,
   mapMatchUpToCellData,
-  DEFAULT_SCHEDULE_CELL_CONFIG,
   matchUpLabel,
   filterMatchUpCatalog,
   computeBaseRoundByEvent,
@@ -504,7 +504,7 @@ export function renderGridView(
         const cellData = matchUp.payload as any;
         if (!cellData) return null;
         // `payload` already carries any live score (buildActiveStripData), so the cell shows it with LIVE.
-        const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), DEFAULT_SCHEDULE_CELL_CONFIG);
+        const cell = buildScheduleGridCell(mapMatchUpToCellData(cellData), getScheduleCellConfig());
         // The strip is where the call-to-court gesture happens, so the check-in state has to be
         // legible HERE and not only back on the catalog card. Never gated by the prompt mode:
         // `off` means "do not interrupt me", not "show me nothing".
@@ -2245,12 +2245,17 @@ function buildRowCourtCells(params: {
     // them directly (bypass the matchUp mapper) and carry no matchUpId, so no drag source is attached.
     const cellContent = cellData?.isReserved
       ? buildScheduleGridCell(
-          { matchUpId: '', isReserved: true, reservation: cellData.reservation, schedule: cellData.schedule },
-          DEFAULT_SCHEDULE_CELL_CONFIG,
+          {
+            matchUpId: '',
+            isReserved: true,
+            reservation: cellData.reservation,
+            schedule: cellData.schedule,
+          },
+          getScheduleCellConfig(),
         )
       : buildScheduleGridCell(
           mapMatchUpToCellData(withLiveScore(cellData || {}, liveScoreFor)),
-          DEFAULT_SCHEDULE_CELL_CONFIG,
+          getScheduleCellConfig(),
         );
 
     const cell = document.createElement('div');
@@ -3472,8 +3477,9 @@ function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh:
   const courtId = cellRoot.dataset.courtId ?? '';
   if (!courtId) return;
 
-  // `dataset` yields undefined where getAttribute yielded null — the absent case
-  // still means row 0, and an empty string still coerces to 0 as before.
+  // Free strip cells have no rowIndex: they show no matchUp, even when the grid
+  // holds completed or uncalled matches. Row 0 is only the placement fallback,
+  // never the identity of a matchUp to open on this surface.
   const rowAttr = cellRoot.dataset.rowIndex;
   const rowIndex = rowAttr === undefined ? 0 : Number(rowAttr);
 
@@ -3482,7 +3488,7 @@ function handleStripCellClick(event: MouseEvent, cellRoot: HTMLElement, refresh:
 
   const court = latestStripSnapshot.courtsData[courtIndex];
   const cellKey = `${latestStripSnapshot.courtPrefix}${courtIndex}`;
-  const cellData = latestStripSnapshot.rows[rowIndex]?.[cellKey];
+  const cellData = rowAttr === undefined ? undefined : latestStripSnapshot.rows[rowIndex]?.[cellKey];
   const courtOrder = cellData?.schedule?.courtOrder ?? rowIndex + 1;
 
   handleSchedule2CellClick(event, {

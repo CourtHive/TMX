@@ -12,6 +12,8 @@ import type { APIRequestContext } from '@playwright/test';
  * than fail CI when the seed admin is absent.
  */
 export const SERVER = process.env.E2E_API_BASE ?? 'http://localhost:8383';
+/** The identity provider (courthive-hiveid): login, sessions and user admin live there, not on CFS. */
+export const AUTH_SERVER = process.env.E2E_AUTH_BASE ?? 'http://localhost:3140';
 export const SUPERADMIN_EMAIL = process.env.E2E_SUPERADMIN_EMAIL ?? 'e2e-admin@courthive.test';
 export const SUPERADMIN_PASSWORD = process.env.E2E_SUPERADMIN_PASSWORD ?? 'e2e-test-password-do-not-reuse';
 export const ROLE_PASSWORD = process.env.E2E_ROLE_PASSWORD ?? 'e2e-role-password-do-not-reuse';
@@ -30,13 +32,13 @@ const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
  */
 export async function signInSuperAdmin(request: APIRequestContext): Promise<string | null> {
   try {
-    const res = await request.post(`${SERVER}/auth/login`, {
+    const res = await request.post(`${AUTH_SERVER}/auth/login`, {
       data: { email: SUPERADMIN_EMAIL, password: SUPERADMIN_PASSWORD },
       timeout: 5000,
     });
     if (!res.ok()) {
       const hint = res.status() === 429 ? ' — login throttle (10/60s); re-run after a pause' : '';
-      console.warn(`signInSuperAdmin: POST ${SERVER}/auth/login → ${res.status()}${hint}`);
+      console.warn(`signInSuperAdmin: POST ${AUTH_SERVER}/auth/login → ${res.status()}${hint}`);
       return null;
     }
     const body = await res.json();
@@ -148,7 +150,7 @@ export async function createLoginableUser(
   token: string,
   opts: CreateUserOpts,
 ): Promise<void> {
-  const createRes = await request.post(`${SERVER}/auth/admin-create-user`, {
+  const createRes = await request.post(`${AUTH_SERVER}/auth/admin-create-user`, {
     headers: authHeaders(token),
     data: {
       email: opts.email,
@@ -161,12 +163,12 @@ export async function createLoginableUser(
   if (!createRes.ok()) {
     throw new Error(`admin-create-user(${opts.email}) failed (${createRes.status()}): ${await createRes.text()}`);
   }
-  const loginRes = await request.post(`${SERVER}/auth/login`, {
+  const loginRes = await request.post(`${AUTH_SERVER}/auth/login`, {
     data: { email: opts.email, password: ROLE_PASSWORD },
   });
   const loginBody = await loginRes.json().catch(() => ({}));
   if (loginBody?.limitedToken) {
-    const completeRes = await request.post(`${SERVER}/auth/complete-first-login`, {
+    const completeRes = await request.post(`${AUTH_SERVER}/auth/complete-first-login`, {
       data: { limitedToken: loginBody.limitedToken, newPassword: ROLE_PASSWORD },
     });
     if (!completeRes.ok()) {
@@ -178,7 +180,7 @@ export async function createLoginableUser(
 export async function removeUser(request: APIRequestContext, token: string, email: string): Promise<void> {
   if (!email) return;
   await bestEffort(`removeUser(${email})`, async () => {
-    await request.post(`${SERVER}/auth/remove`, { headers: authHeaders(token), data: { email } });
+    await request.post(`${AUTH_SERVER}/auth/remove`, { headers: authHeaders(token), data: { email } });
   });
 }
 

@@ -36,7 +36,7 @@ import {
 } from 'constants/mutationConstants';
 
 const { ratingsParameters } = fixtures;
-const PUB_PANEL_YELLOW = 'pub-panel pub-panel-yellow';
+const PUB_PANEL = 'pub-panel';
 const PUB_TOGGLE_ROW = 'pub-toggle-row';
 const PUB_CONFIG_SECTION = 'width:100%; margin-top:8px;';
 const { SINGLES } = eventConstants;
@@ -166,19 +166,20 @@ export function renderTournamentControls(grid: HTMLElement): void {
   const publicUrl = tournamentId ? getPublicTournamentUrl(tournamentId) : undefined;
   const anythingPublished = isAnythingPublished();
 
-  // Wrapper keeps all three panels in the left grid column (beside the QR panel)
+  // Wrapper keeps the four panels in the left grid column (beside the QR panel), two to a row
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'display:flex; flex-direction:column; gap:16px;';
+  wrapper.className = 'pub-controls';
 
   // ============================================================
   // Panel 1 — Tournament Publishing (language + unpublish)
   // ============================================================
   const topPanel = document.createElement('div');
-  topPanel.className = PUB_PANEL_YELLOW;
+  topPanel.className = PUB_PANEL;
 
   // Header row: title left, unpublish button right
   const topHeaderRow = document.createElement('div');
-  topHeaderRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
+  topHeaderRow.style.cssText =
+    'display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;';
 
   const topHeader = document.createElement('h3');
   topHeader.style.margin = '0';
@@ -279,14 +280,14 @@ export function renderTournamentControls(grid: HTMLElement): void {
  * Every other publish needs something to exist first: an event needs a draw, the order of play a
  * schedule, the participant list entries. This is what makes a tournament public during its
  * registration phase — listed, with an information page and its event list — and it is why the panel
- * sits above the others rather than beside them.
+ * sits in the first row, beside Tournament Publishing, ahead of Order of Play and Participants.
  *
  * Publishing information does NOT open registration: that is `registrationProfile.entriesOpen` /
  * `entriesClose`, edited on the overview tab, and this never touches them.
  */
 function buildInformationPanel(data: any, publicUrl: string | undefined): HTMLElement {
   const infoPanel = document.createElement('div');
-  infoPanel.className = PUB_PANEL_YELLOW;
+  infoPanel.className = PUB_PANEL;
 
   const infoHeader = document.createElement('h3');
   infoHeader.innerHTML = `<i class="fa fa-circle-info"></i> ${t('publishing.tournamentInformation')}`;
@@ -411,7 +412,7 @@ function buildInformationEventSelector(data: any): { eventFormContainer?: HTMLEl
 
 function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
   const oopPanel = document.createElement('div');
-  oopPanel.className = PUB_PANEL_YELLOW;
+  oopPanel.className = PUB_PANEL;
 
   const oopHeader = document.createElement('h3');
   oopHeader.innerHTML = `<i class="fa fa-calendar"></i> ${t('publishing.orderOfPlay')}`;
@@ -491,7 +492,7 @@ function extractColumnsFromSelection(selectedValues: string[]): any {
 
 function buildParticipantsPanel(data: any, publicUrl: string | undefined): HTMLElement {
   const partPanel = document.createElement('div');
-  partPanel.className = PUB_PANEL_YELLOW;
+  partPanel.className = PUB_PANEL;
 
   const partHeader = document.createElement('h3');
   partHeader.innerHTML = `<i class="fa fa-users"></i> ${t('publishing.participants')}`;

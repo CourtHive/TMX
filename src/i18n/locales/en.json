@@ -875,6 +875,32 @@
     "logInAgain": "Log in again"
   },
   "schedule": {
+    "timeModifiers": {
+      "NOT_BEFORE": {
+        "label": "Not Before",
+        "short": "NB"
+      },
+      "FOLLOWED_BY": {
+        "label": "Followed by",
+        "short": "Followed by"
+      },
+      "NEXT_AVAILABLE": {
+        "label": "Next available",
+        "short": "Next available"
+      },
+      "AFTER_REST": {
+        "label": "After rest",
+        "short": "After rest"
+      },
+      "TO_BE_ANNOUNCED": {
+        "label": "To be announced",
+        "short": "TBA"
+      },
+      "RAIN_DELAY": {
+        "label": "Rain delay",
+        "short": "Rain delay"
+      }
+    },
     "plan": {
       "badge": "PLANNING — not live",
       "empty": "No alternate plans yet. Create one to stage a contingency schedule off the live grid.",
@@ -2186,6 +2212,11 @@
       "customScorecard": "Custom scorecard",
       "invalidDrawSize": "Invalid draw size",
       "feedInQualifiersInvalid": "A staggered entry qualifying of {{drawSize}} can produce only these numbers of qualifiers: {{counts}}",
+      "entriesNotPlaced_one": "{{count}} accepted entry was not placed in the draw (draw size {{drawSize}}): {{names}}",
+      "entriesNotPlaced_other": "{{count}} accepted entries were not placed in the draw (draw size {{drawSize}}): {{names}}",
+      "qualifyingEntriesNotPlaced_one": "{{count}} qualifying entry was not placed in qualifying (draw size {{drawSize}}): {{names}}",
+      "qualifyingEntriesNotPlaced_other": "{{count}} qualifying entries were not placed in qualifying (draw size {{drawSize}}): {{names}}",
+      "qualifyingDrawTooSmall": "A qualifying draw of {{drawSize}} cannot hold {{entriesCount}} qualifying entries. Choose a larger draw size or withdraw entries first.",
       "roundsCount": "Rounds to generate",
       "ratingScale": "Rating scale",
       "dynamicRatings": "Dynamic ratings",
@@ -2886,7 +2917,7 @@
         "firstNamePlaceholder": "Given name",
         "lastName": "Last name",
         "lastNamePlaceholder": "Family name",
-        "nameError": "Please enter a name of at least 3 characters",
+        "nameError": "Please enter a name of at least 2 characters",
         "sex": "Sex",
         "dateOfBirth": "Date of birth",
         "birthdayPlaceholder": "Birthday",
@@ -2989,7 +3020,24 @@
       "overrideScore": "Override",
       "restoreAutoScore": "Restore automatic scoring",
       "manualScore": "Set by hand",
-      "winner": "Winner"
+      "winner": "Winner",
+      "home": "Home",
+      "homeVenue": "Home (venue)",
+      "homeHostOrganisation": "Home (host organisation)",
+      "editHome": "Edit home team",
+      "saveHome": "Save home team",
+      "homeTeam": "Home team",
+      "homeEditHint": "Select the home team · select it again for no home team",
+      "homeEditHintNoClear": "Select the home team",
+      "homeInferredVenueHint": "Home comes from the venue — select a team to set it",
+      "homeInferredHostHint": "Home comes from the host organisation — select a team to set it",
+      "homeDraft": "Home: {{name}} (unsaved)",
+      "homeDraftNone": "No home team set (unsaved)",
+      "homeSaveFailed": "Not saved — save again or cancel",
+      "exportStatCrew": "Export StatCrew",
+      "statCrewNotComplete": "StatCrew can be exported once the dual is complete",
+      "statCrewAmbiguous": "These teams met more than once, so the StatCrew game cannot be told apart",
+      "statCrewFailed": "The StatCrew file could not be produced"
     },
     "tieFormat": {
       "editScorecard": "Edit scorecard",
@@ -3577,7 +3625,10 @@
     "substitution": "Substitution",
     "assignSeedNumber": "Assign seed number ",
     "seedNumber": "Seed number",
-    "nickname": "Nickname "
+    "nickname": "Nickname ",
+    "setHomeTeam": "Set home team",
+    "clearHomeTeam": "Clear home team",
+    "exportStatCrew": "Export StatCrew"
   },
   "entries": {
     "promoteAlternates": {
@@ -3796,7 +3847,19 @@
     "scheduleAnyway": "Schedule anyway",
     "extendEventDates": "Extend event dates",
     "extended": "Event dates extended. Apply the schedule again to place the skipped matchUps.",
-    "extendFailed": "Could not extend the event dates"
+    "extendFailed": "Could not extend the event dates",
+    "outsideTournament": {
+      "button_one": "{{count}} event outside tournament dates",
+      "button_other": "{{count}} events outside tournament dates",
+      "title": "Event dates outside the tournament",
+      "intro": "These events have dates outside the tournament's. Scheduling already uses only the tournament's days; fixing the dates makes the event say so.",
+      "disjoint": "Event dates {{event}} lie entirely outside the tournament ({{tournament}}). Scheduling uses the tournament's dates instead.",
+      "edge": "Event dates {{event}} extend outside the tournament ({{tournament}}). Scheduling uses only the days inside it.",
+      "setToTournament": "Set event dates to tournament dates ({{range}})",
+      "trim": "Trim event dates to {{range}}",
+      "fixed": "Event dates updated",
+      "failed": "Could not update the event dates"
+    }
   },
   "courtUse": {
     "disable": "Don't use",
@@ -3833,7 +3896,8 @@
   },
   "exportFile": {
     "saveJson": "Save JSON",
-    "saveFile": "Save File"
+    "saveFile": "Save File",
+    "saveXml": "Save XML"
   },
   "remoteMutations": {
     "updateFailed": "Remote update failed — please reload"
@@ -3871,6 +3935,10 @@
       "ranking": "Ranking",
       "rating": "Rating"
     }
+  },
+  "tournamentClock": {
+    "ariaLabel": "Time where the tournament is played",
+    "title": "Tournament time: {{when}} ({{zone}}). Your time: {{local}}"
   },
   "demoClock": {
     "title": "Demo Clock",

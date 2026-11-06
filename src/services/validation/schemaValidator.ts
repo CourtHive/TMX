@@ -1,11 +1,11 @@
 /**
  * On-demand CODES schema validation.
  *
- * ajv, ajv-formats and the tournament schema shipped with the INSTALLED factory
- * (`tods-competition-factory/schema/tournament.schema.json`) are reached only through
- * dynamic `import()`, so the bundler splits them into their own chunk. Nothing here is
- * loaded at startup: the first call to `validateAgainstSchema` fetches and compiles the
- * validator, later calls reuse it.
+ * The validator is compiled at build time from the tournament schema shipped with the INSTALLED factory
+ * (`tods-competition-factory/schema/tournament.schema.json`): see `precompiledSchemaValidator` in vite.shared.ts.
+ * Compiling in the browser would evaluate generated source, which the CSP forbids. The module is reached only
+ * through dynamic `import()`, so the bundler splits it into its own chunk. Nothing here is loaded at startup: the
+ * first call to `validateAgainstSchema` fetches the validator, later calls reuse it.
  */
 import type { ValidateFunction } from 'ajv';
 
@@ -24,30 +24,9 @@ export type SchemaValidationResult = {
 
 let validatorPromise: Promise<ValidateFunction> | undefined;
 
-// ajv and ajv-formats are CommonJS; depending on the interop layer the class arrives as
-// `module.default` or `module.default.default`.
-function interopDefault(mod: any): any {
-  const first = mod?.default ?? mod;
-  return typeof first === 'function' ? first : (first?.default ?? first);
-}
-
 async function createValidator(): Promise<ValidateFunction> {
-  const [ajvModule, formatsModule, schemaModule] = await Promise.all([
-    import('ajv'),
-    import('ajv-formats'),
-    import('tods-competition-factory/schema/tournament.schema.json'),
-  ]);
-  const Ajv = interopDefault(ajvModule);
-  const addFormats = interopDefault(formatsModule);
-  const schema = (schemaModule as any).default ?? schemaModule;
-
-  // The same options as the factory's own schema tests (src/tests/global/schemaValidation.test.ts),
-  // so TMX reports what the factory considers invalid: Ajv's default draft-07 and default strict
-  // mode, allowUnionTypes for the schema's ["string", "object"] date-time fields, and allErrors so
-  // one bad field does not hide the rest.
-  const ajv = new Ajv({ allowUnionTypes: true, allErrors: true });
-  addFormats(ajv);
-  return ajv.compile(schema);
+  const { default: validate } = await import('virtual:tournament-schema-validator');
+  return validate;
 }
 
 export function loadSchemaValidator(): Promise<ValidateFunction> {

@@ -44,6 +44,9 @@ import {
 // constants
 import { SUPER_ADMIN, TMX_TOURNAMENTS } from 'constants/tmxConstants';
 
+/** The Options panel (last of the preferences row), so a layout check can name it. */
+export const OPTIONS_PANEL_ID = 'optionsPanel';
+
 /**
  * Mode (light / dark / system) and the palette for each mode. A user keeps one light and one dark palette, like
  * a language choice; the mode decides which shows. Palette names are proper names and are not translated.
@@ -441,6 +444,7 @@ export async function renderSettingsGrid(
   // panel added, so settings that are neither beta nor storage have a home.
   const optionsPanel = document.createElement('div');
   optionsPanel.className = SETTINGS_PANEL;
+  optionsPanel.id = OPTIONS_PANEL_ID;
   optionsPanel.innerHTML = `<h3><i class="fa-solid fa-sliders"></i> ${t('modals.settings.options')}</h3>`;
 
   const optionsForm = document.createElement('div');

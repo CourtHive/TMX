@@ -10,6 +10,7 @@ import {
   uniqueSuffix,
   uniqueAbbr,
   removeUser,
+  AUTH_SERVER,
   SERVER,
 } from '../helpers/role-fixtures';
 
@@ -69,7 +70,7 @@ test.describe('Journey 136 — a multi-provider user chooses a provider at login
     });
     // the second association, as a super-admin
     const users = await (
-      await request.post(`${SERVER}/auth/allusers`, { headers: { Authorization: `Bearer ${adminToken}` } })
+      await request.post(`${AUTH_SERVER}/auth/allusers`, { headers: { Authorization: `Bearer ${adminToken}` } })
     ).json();
     const list = users?.users ?? users ?? [];
     const userId =

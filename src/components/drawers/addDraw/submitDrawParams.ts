@@ -8,6 +8,7 @@ import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieForma
 import type { RoundProfileEditorController } from './roundProfileEditor';
 import { getPlayoffDrawProps, getPlayoffGroups } from './playoffGroups';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getQualifyingOverfill } from './qualifyingDrawSize';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { feedInQualifierCounts } from './feedInQualifying';
@@ -181,6 +182,30 @@ function validatePagePlayoff(structureOptions: any, inputs: any, groupSize: numb
     });
     return false;
   }
+  return true;
+}
+
+/** Warns and returns true when a qualifying draw is smaller than the qualifying entries it would take. */
+function blocksUndersizedQualifying({
+  effectiveIsQualifying,
+  stageEntries,
+  drawSize,
+  drawId,
+}: {
+  effectiveIsQualifying: boolean;
+  stageEntries: any[];
+  drawSize: number;
+  drawId?: string;
+}): boolean {
+  if (!effectiveIsQualifying) return false;
+  const existingEntries = drawId ? tournamentEngine.getEvent({ drawId }).drawDefinition?.entries : undefined;
+  const overfill = getQualifyingOverfill({ existingEntries, stageEntries, drawSize });
+  if (!overfill) return false;
+  tmxToast({
+    message: t('drawers.addDraw.qualifyingDrawTooSmall', overfill),
+    intent: IS_WARNING,
+    pauseOnHover: true,
+  });
   return true;
 }
 
@@ -619,6 +644,8 @@ export function submitDrawParams({
     });
     return;
   }
+
+  if (blocksUndersizedQualifying({ effectiveIsQualifying, stageEntries, drawSize, drawId })) return;
 
   if (structureId && drawId) {
     // the round the qualifiers enter; absent (one open round) the factory's link targets round 1

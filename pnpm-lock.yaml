@@ -217,8 +217,8 @@ importers:
         specifier: link:../courthive-components
         version: link:../courthive-components
       d3-selection:
-        specifier: 3.0.0
-        version: 3.0.0
+        specifier: 3.0.1
+        version: 3.0.1
       dayjs:
         specifier: 1.11.23
         version: 1.11.23
@@ -232,8 +232,8 @@ importers:
         specifier: 8.2.4
         version: 8.2.4
       hotkeys-js:
-        specifier: 4.0.8
-        version: 4.0.8
+        specifier: 4.0.12
+        version: 4.0.12
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -242,7 +242,7 @@ importers:
         version: 1.0.0
       i18next:
         specifier: ^26.0.0
-        version: 26.5.11(typescript@6.0.3)
+        version: 26.7.1(typescript@6.0.3)
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
@@ -2831,8 +2831,8 @@ packages:
     resolution: {integrity: sha512-QjwlXZrGWsXQkyregBHhA2qNNGB2TCuf0ovkW1Q5OLgdJDs9Tq1yahfKpSMLyqOBjVRuv1iHBTDP83zJDBlJdg==}
     engines: {node: '>=v12.20.0'}
 
-  d3-selection@3.0.0:
-    resolution: {integrity: sha512-fmTRWbNMmsmWq6xJV8D19U/gw/bwrHfNXxrIN+HfZgnzqTHp9jOmKMhsTUjXOJnZOdZY9Q28y4yebKzqDKlxlQ==}
+  d3-selection@3.0.1:
+    resolution: {integrity: sha512-ODSf35vqCrlCfp7hrm0eZjvOosSXSYLjqvIlhMBV9q9VOx7EBJG6pc+uXBswEZNJgCGJ+qnKYcWutbZDIxe/Xg==}
     engines: {node: '>=12'}
 
   damerau-levenshtein@1.0.8:
@@ -3427,8 +3427,8 @@ packages:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
     engines: {node: '>=10'}
 
-  hotkeys-js@4.0.8:
-    resolution: {integrity: sha512-A0nu5ZU7cN8nEx3uGUHrv1WnJvjPFUw4Cfxj8pLyR5AIg14ACP4D0YZ+5JHAPjlvUbPbgok56+XTZWjscYCV4A==}
+  hotkeys-js@4.0.12:
+    resolution: {integrity: sha512-tPD3tqGBcErNhpW3IpJNEJ33n7uT++aL01LssJ53KdN7Xx0KwCrMXse+vmtZK8riFrkc8T1fnyGpeS8d1yI/pQ==}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -3464,8 +3464,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  i18next@26.5.11:
-    resolution: {integrity: sha512-Wc0klBPKxqZ2tL2qdAnF8xvvnWgr1IMGSY2ikTiAvaFVbz7xiFARtkoU4RidBDw1SyziGROp0qxu6qnJ7l2Wug==}
+  i18next@26.7.1:
+    resolution: {integrity: sha512-cX+3RRVczel/V2kCMTACckSGSpqgtWYEA6beXNYVms7dOQiHojdPYHD26lT4IKimNeoGWrLvtPgjftbRvmZJVw==}
     peerDependencies:
       typescript: 6.0.3
     peerDependenciesMeta:
@@ -7762,7 +7762,7 @@ snapshots:
 
   cz-git@1.14.0: {}
 
-  d3-selection@3.0.0: {}
+  d3-selection@3.0.1: {}
 
   damerau-levenshtein@1.0.8: {}
 
@@ -8563,7 +8563,7 @@ snapshots:
     dependencies:
       lru-cache: 6.0.0
 
-  hotkeys-js@4.0.8: {}
+  hotkeys-js@4.0.12: {}
 
   html-escaper@2.0.2: {}
 
@@ -8604,7 +8604,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  i18next@26.5.11(typescript@6.0.3):
+  i18next@26.7.1(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 

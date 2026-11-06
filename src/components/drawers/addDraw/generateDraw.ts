@@ -5,16 +5,19 @@
 import { getAutoCourtImageMethod } from 'services/courtSvg/autoCourtImage';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { getEntriesNotPlacedNotices } from './entriesNotPlaced';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
-import { scoreGovernor } from 'tods-competition-factory';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { scoreGovernor } from 'tods-competition-factory';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 
 // Constants
 import { ADD_DRAW_DEFINITION, ADD_DRAW_DEFINITION_EXTENSION, INITIALIZE_DRAFT } from 'constants/mutationConstants';
 import { t } from 'i18n';
+
+const IS_WARNING = 'is-warning';
 
 export function generateDraw({
   eventId,
@@ -35,7 +38,7 @@ export function generateDraw({
       title: t('addDrawForm.regenerate'),
       query:
         'This draw has completed matches. Regenerating will discard them. A recoverable snapshot is saved. Continue?',
-      okIntent: 'is-warning',
+      okIntent: IS_WARNING,
       okAction: () => generateDraw({ eventId, drawOptions: { ...drawOptions, confirmedReplace: true }, callback }),
     });
     return;
@@ -73,13 +76,34 @@ export function generateDraw({
       methods.push({ method: INITIALIZE_DRAFT, params: { drawId, eventId } });
     }
 
-    const postMutation = (result: any) => isFunction(callback) && callback({ drawDefinition, ...result });
+    // generation leaves out the entries a full stage has no place for; the director is told, nothing is blocked
+    const warnings = result.warnings;
+    const postMutation = (result: any) => {
+      if (isFunction(callback)) callback({ drawDefinition, ...result });
+      // after the callback, so a toast it raises does not replace the notice
+      if (result?.success) notifyEntriesNotPlaced(warnings);
+    };
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {
     tmxToast({
       message: result.error?.message || 'Error',
-      intent: 'is-warning',
+      intent: IS_WARNING,
       pauseOnHover: true,
+    });
+  }
+}
+
+function notifyEntriesNotPlaced(warnings: any[] | undefined): void {
+  if (!warnings?.length) return;
+  const participantIds = warnings.flatMap((warning: any) => warning?.participantIds ?? []);
+  const { participants = [] } = tournamentEngine.getParticipants({ participantFilters: { participantIds } }) || {};
+  for (const notice of getEntriesNotPlacedNotices({ warnings, participants })) {
+    const key = notice.isQualifying ? 'drawers.addDraw.qualifyingEntriesNotPlaced' : 'drawers.addDraw.entriesNotPlaced';
+    tmxToast({
+      message: t(key, { count: notice.count, drawSize: notice.drawSize, names: notice.names.join(', ') }),
+      intent: IS_WARNING,
+      pauseOnHover: true,
+      duration: 12000,
     });
   }
 }
