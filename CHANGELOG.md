@@ -1,5 +1,43 @@
 # Changelog
 
+## [8.50.0](https://github.com/CourtHive/TMX/compare/v8.49.0...v8.50.0) (2026-11-06)
+
+
+### Features
+
+* **auth:** send auth and account calls to the identity provider's origin ([#1910](https://github.com/CourtHive/TMX/issues/1910)) ([55c9563](https://github.com/CourtHive/TMX/commit/55c95633a8261d06c8354f940c74c06efa46f5d8))
+* **draws:** tell the director which entries a full draw left out ([#1883](https://github.com/CourtHive/TMX/issues/1883)) ([3bbd0cb](https://github.com/CourtHive/TMX/commit/3bbd0cbaf3a7b8bfb351ecf486567b9eb8e03696))
+* **events:** flag events whose dates lie outside the tournament, with a fix ([#1897](https://github.com/CourtHive/TMX/issues/1897)) ([c0a7a3b](https://github.com/CourtHive/TMX/commit/c0a7a3b4be1864d8afd14f8ea6b0971bbc5e43aa))
+* **pipeline:** read applied policies in either codes form ([#1892](https://github.com/CourtHive/TMX/issues/1892)) ([b671edc](https://github.com/CourtHive/TMX/commit/b671edcfb45ecdff62e40b3af8f211cb34253e14))
+* **publishing:** panels two to a row, neutral, embargoes highlighted only when live ([#1896](https://github.com/CourtHive/TMX/issues/1896)) ([687b394](https://github.com/CourtHive/TMX/commit/687b39454ea611e515ad0d540658865352399f85))
+* **ratings:** the ratings table names its ratings policy and rates completed draws ([#1912](https://github.com/CourtHive/TMX/issues/1912)) ([8d79176](https://github.com/CourtHive/TMX/commit/8d791764571c4b766841d48906b97e2d5a543845))
+* **schedule:** show the tournament's local time when it differs from the machine's ([#1909](https://github.com/CourtHive/TMX/issues/1909)) ([59a937f](https://github.com/CourtHive/TMX/commit/59a937fcd25c882621ed2f516b6363ec3592c395))
+* **scorecard:** home team of a dual and statcrew export ([#1887](https://github.com/CourtHive/TMX/issues/1887)) ([663c82f](https://github.com/CourtHive/TMX/commit/663c82faca6edb77d9f3834f06a95f0411c0d7fc))
+* **scorecard:** home team saves report whether they were accepted ([#1916](https://github.com/CourtHive/TMX/issues/1916)) ([4c9746e](https://github.com/CourtHive/TMX/commit/4c9746e39edc03f666fdcd078e639524d88c9212))
+
+
+### Bug Fixes
+
+* **demo:** size the Scheduling Lab hint like the rest of the demo drawer ([#1911](https://github.com/CourtHive/TMX/issues/1911)) ([14aaac4](https://github.com/CourtHive/TMX/commit/14aaac453994386eababe0b78a0e166a4f46b232))
+* **deps:** update courthive-components to 7.10.0 ([#1914](https://github.com/CourtHive/TMX/issues/1914)) ([45ff231](https://github.com/CourtHive/TMX/commit/45ff231b6ae2ef0c004ae2dcad9d2007d42b3cdc))
+* **deps:** update courthive-components to 7.11.0 ([#1917](https://github.com/CourtHive/TMX/issues/1917)) ([e008592](https://github.com/CourtHive/TMX/commit/e00859204d87182a2eb2e5d83b2a5072eacccc04))
+* **deps:** update courthive-components to 7.9.0 ([#1901](https://github.com/CourtHive/TMX/issues/1901)) ([2b8674b](https://github.com/CourtHive/TMX/commit/2b8674b5cf819df829787cf372a6a336ae57f354))
+* **deps:** update dependency d3-selection to v3.0.1 ([#1919](https://github.com/CourtHive/TMX/issues/1919)) ([7775757](https://github.com/CourtHive/TMX/commit/77757579bb81fdc0115da8092bdcfe9bf58c3313))
+* **deps:** update dependency hotkeys-js to v4.0.12 ([#1903](https://github.com/CourtHive/TMX/issues/1903)) ([6a2a6b7](https://github.com/CourtHive/TMX/commit/6a2a6b72b07ecf6bd3bd75001c471a8221326328))
+* **deps:** update dependency hotkeys-js to v4.0.9 ([#1891](https://github.com/CourtHive/TMX/issues/1891)) ([20c06f3](https://github.com/CourtHive/TMX/commit/20c06f37350ce4fdf01693b8651cfa5755b91638))
+* **deps:** update tods-competition-factory to 7.28.0 ([#1900](https://github.com/CourtHive/TMX/issues/1900)) ([b4f5e66](https://github.com/CourtHive/TMX/commit/b4f5e660e8318454f9086b906ccf28e205c966aa))
+* **deps:** update tods-competition-factory to 7.29.0 ([9151529](https://github.com/CourtHive/TMX/commit/915152914f1451e60feaff17bb3639ff674c2191))
+* **deps:** update tods-competition-factory to 7.30.0 ([#1913](https://github.com/CourtHive/TMX/issues/1913)) ([5d58936](https://github.com/CourtHive/TMX/commit/5d58936308396a0397e9d29953e19d3d567ea81d))
+* **draws:** block a qualifying draw smaller than its qualifying entries ([8bac9e4](https://github.com/CourtHive/TMX/commit/8bac9e41419e0f9d43c4e0be694e3cdfdded2e3d))
+* **events:** event drawer entry size labels at the inputs' size, not the drawer's ([#1920](https://github.com/CourtHive/TMX/issues/1920)) ([05849f2](https://github.com/CourtHive/TMX/commit/05849f2040b20f09df9cd93f2179471ba2339698))
+* expose Remove seed in the position action menu ([#1918](https://github.com/CourtHive/TMX/issues/1918)) ([b8c5978](https://github.com/CourtHive/TMX/commit/b8c59780ce9b88986b422cbf16343d6710006120))
+* **import:** write a UTR profile resource with the CODES resourceType key ([#1895](https://github.com/CourtHive/TMX/issues/1895)) ([a98c9bf](https://github.com/CourtHive/TMX/commit/a98c9bf41a672a72f3d1b059769cd9d9147f8d1d))
+* **participants:** name length check, tennisId clear and re-import tests ([#1893](https://github.com/CourtHive/TMX/issues/1893)) ([ddf9790](https://github.com/CourtHive/TMX/commit/ddf9790a2309794bca20d7cad7dfefec0f2a9156))
+* **schedule:** localize grid annotations and their actions ([#1908](https://github.com/CourtHive/TMX/issues/1908)) ([6255699](https://github.com/CourtHive/TMX/commit/62556993e5e84ece7ef6846f2c285f933fbb2acf))
+* **schedule:** open empty Now strip cells without grid history ([#1907](https://github.com/CourtHive/TMX/issues/1907)) ([27d713d](https://github.com/CourtHive/TMX/commit/27d713d0d83767e851ec3f8fa1521cbba5db856b))
+* theme-init loads under a path base, and a refused refresh logs its status ([#1915](https://github.com/CourtHive/TMX/issues/1915)) ([637dd80](https://github.com/CourtHive/TMX/commit/637dd80af765a4bca6ac4204ab368578c960cf85))
+* **validation:** precompile the CODES schema validator at build time ([#1904](https://github.com/CourtHive/TMX/issues/1904)) ([a7faa2d](https://github.com/CourtHive/TMX/commit/a7faa2daa94cf0a7bef491d60f5fb2d1dd562598))
+
 ## [8.49.0](https://github.com/CourtHive/TMX/compare/v8.48.1...v8.49.0) (2026-11-02)
 
 
