@@ -22,7 +22,9 @@ import EnvironmentPlugin from 'vite-plugin-environment';
 // package.json for import version"), breaking `pnpm electron:build` outright.
 // A cosmetic warning on one loader beats a hard failure on the other.
 import { version as pkgVersion } from './package.json';
+import { createRequire } from 'module';
 import { type Plugin } from 'vite';
+import { readFileSync } from 'fs';
 import path from 'path';
 
 // Emits `dist/version.json` at build time so a long-lived TMX tab can poll for
@@ -59,11 +61,98 @@ export const emitVersionJson = (): Plugin => ({
  * origin from CFS in development — CFS on :8383, query on :3150. In production both
  * are same-origin behind nginx, which routes `/query/*` to the query service, so the
  * default empty string is correct there and only dev needs to set it.
+ *
+ * `AUTH_SERVER` is the identity provider (courthive-hiveid) — same shape: :3140 in development,
+ * same-origin in production, where nginx routes `/auth/*` and `/account/*` to it.
  */
 export const rendererPlugins = (): Plugin[] => [
-  EnvironmentPlugin({ SERVER: '', QUERY_SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
+  EnvironmentPlugin({ SERVER: '', QUERY_SERVER: '', AUTH_SERVER: '', ENVIRONMENT: '', PUBLIC_URL: '' }),
   emitVersionJson(),
+  precompiledSchemaValidator(),
 ];
+
+/**
+ * The CODES schema validator, compiled at build time (`virtual:tournament-schema-validator`).
+ *
+ * ajv compiles a schema into a validator with `new Function`, which the web CSP's `script-src 'self'` forbids
+ * (journey 164). Its standalone mode emits that validator as plain source instead, so the browser loads code and
+ * evaluates nothing. The source is generated from the INSTALLED factory's `tournament.schema.json` whenever a
+ * renderer build, the dev server or vitest loads the module: a factory bump needs no regeneration step and there is
+ * no generated file to commit or drift. The options match the factory's own schema tests (allowUnionTypes for the
+ * schema's ["string", "object"] date-time fields, allErrors so one bad field does not hide the rest);
+ * `inlineRefs: false` keeps each definition one function, about a quarter smaller than inlining every $ref.
+ *
+ * The standalone source `require`s ajv's runtime helpers and ajv-formats' format table. Those are CommonJS, and the
+ * dev server, vitest and the production bundler each hand a CommonJS module to an ESM import differently (`.default`
+ * is the function in one and `module.exports` in another), so they are not imported: their source is inlined behind
+ * a small static `require` and the module carries no imports at all. Inlining is not evaluation: it is ordinary
+ * code in the chunk, which the CSP allows.
+ */
+const SCHEMA_VALIDATOR_ID = 'virtual:tournament-schema-validator';
+
+// `require("x")` as code, not inside a string: ajv's helpers also carry their own require call as a quoted `code` value
+const REQUIRE_CALL = /(?<!['"\w.])require\("([^"]+)"\)/g;
+
+/** Inline the CommonJS modules `code` requires (and theirs), and replace each call with an index into them. */
+function inlineCommonJs(code: string, fromFile: string): string {
+  const files: string[] = [];
+  const sources: string[] = [];
+  const indexOf = (specifier: string, importer: string): number => {
+    const file = createRequire(importer).resolve(specifier);
+    let index = files.indexOf(file);
+    if (index >= 0) return index;
+    index = files.push(file) - 1;
+    sources[index] = rewrite(readFileSync(file, 'utf8'), file);
+    return index;
+  };
+  const rewrite = (source: string, importer: string): string =>
+    source.replace(REQUIRE_CALL, (_match, specifier: string) => `__require(${indexOf(specifier, importer)})`);
+
+  const body = rewrite(code, fromFile);
+  const modules = sources.map((source) => `function (module, exports) {\n${source}\n}`).join(',\n');
+  return [
+    `const __modules = [${modules}];`,
+    'const __cache = [];',
+    'function __require(index) {',
+    '  if (!__cache[index]) {',
+    '    const module = { exports: {} };',
+    '    __cache[index] = module;',
+    '    __modules[index](module, module.exports);',
+    '  }',
+    '  return __cache[index].exports;',
+    '}',
+    body,
+  ].join('\n');
+}
+
+export function buildSchemaValidatorSource(): { source: string; schemaPath: string } {
+  const packageJson = path.resolve(import.meta.dirname, 'package.json');
+  const require = createRequire(packageJson);
+  const Ajv = require('ajv').default;
+  const addFormats = require('ajv-formats').default;
+  const standaloneCode = require('ajv/dist/standalone').default;
+  const schemaPath = require.resolve('tods-competition-factory/schema/tournament.schema.json');
+  const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
+
+  const ajv = new Ajv({ allowUnionTypes: true, allErrors: true, inlineRefs: false, code: { source: true, esm: true } });
+  addFormats(ajv);
+  const code: string = standaloneCode(ajv, ajv.compile(schema));
+  return { source: inlineCommonJs(code, packageJson), schemaPath };
+}
+
+export const precompiledSchemaValidator = (): Plugin => {
+  let built: ReturnType<typeof buildSchemaValidatorSource> | undefined;
+  return {
+    name: 'tmx-precompiled-schema-validator',
+    resolveId: (id) => (id === SCHEMA_VALIDATOR_ID ? `\0${SCHEMA_VALIDATOR_ID}` : undefined),
+    load(id) {
+      if (id !== `\0${SCHEMA_VALIDATOR_ID}`) return undefined;
+      built ??= buildSchemaValidatorSource();
+      this.addWatchFile(built.schemaPath);
+      return built.source;
+    },
+  };
+};
 
 // `@courthive/provider-config` ships CJS only (no `module` field, no
 // `"type": "module"`). When resolved via pnpm `link:` it bypasses

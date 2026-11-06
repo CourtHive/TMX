@@ -73,10 +73,14 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string, o
     return;
   }
 
-  // Wrap in a full-height container for the 3-column layout
+  // A full-height column: the 3-column layout takes what the bottom bar leaves. The layout used to be the full height
+  // itself, which pushed the bar (status text, and a docked clock) below the fold.
+  const shell = document.createElement('div');
+  shell.style.cssText = 'height: 100%; display: flex; flex-direction: column;';
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'height: 100%; overflow: hidden;';
-  target.appendChild(wrapper);
+  wrapper.style.cssText = 'flex: 1 1 auto; min-height: 0; overflow: hidden;';
+  shell.appendChild(wrapper);
+  target.appendChild(shell);
 
   // Load existing profile from factory
   const existingProfile = loadExistingProfile(setup);
@@ -142,7 +146,7 @@ export function renderProfileView(target: HTMLElement, scheduledDate?: string, o
   // Slimmer bottom bar: status text + (conditional) Apply-scope pill.
   // The four buttons moved into the Day Plan header (see headerActions above).
   const actionBar = buildActionBar(statusEl);
-  target.appendChild(actionBar);
+  shell.appendChild(actionBar);
 }
 
 export function destroyProfileView(): void {

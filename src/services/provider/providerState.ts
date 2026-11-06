@@ -14,7 +14,7 @@ import { getLoginState } from 'services/authentication/loginState';
 import { ensurePdfFontReady } from 'services/pdf/pdfFont';
 import { setupChatIndicator } from 'navigation';
 import { providerConfig } from 'config/providerConfig';
-import { baseApi } from 'services/apis/baseApi';
+import { authUrl, baseApi } from 'services/apis/baseApi';
 import { context } from 'services/context';
 
 import type { LoginState, ProviderValue } from 'types/tmx';
@@ -200,7 +200,7 @@ function canUsePersistedProvider(
 }
 
 async function patchLastSelectedProvider(providerId: string | null): Promise<void> {
-  await baseApi.patch('/auth/me/last-selected-provider', { providerId });
+  await baseApi.patch(authUrl('/auth/me/last-selected-provider'), { providerId });
 }
 
 function updateProviderBranding(): void {

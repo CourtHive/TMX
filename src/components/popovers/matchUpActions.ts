@@ -5,6 +5,7 @@
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
 import { resolveTimeSeed, validateTimeValue } from 'components/tables/matchUpsTable/scheduleTimeFields';
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
+import { clearHomeMethod, homeTeamMenu, setHomeMethod } from 'components/overlays/scorecard/homeTeam';
 import { evaluateCandidate, resolveConflictPolicy } from 'services/officiating/officialConflicts';
 import { evaluateEligibility, mergeVerdicts } from 'services/officiating/officialEligibility';
 import { openRotatingPartnerSettlement } from 'components/modals/rotatingPartnerSettlement';
@@ -26,8 +27,10 @@ import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
 import { addPenaltyModal } from 'components/modals/addPenaltyModal';
+import { exportStatCrew } from 'services/export/exportStatCrew';
 import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
+import { canExportStatCrew } from 'services/export/statCrew';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
@@ -530,6 +533,32 @@ export function matchUpActions({
     render();
   };
 
+  // a dual's home team, settable before line-ups exist: its two teams, and Clear for one that was set
+  const homeMenu =
+    matchUp?.matchUpType === 'TEAM' && matchUp.drawId
+      ? homeTeamMenu({ drawId: matchUp.drawId, matchUpId: matchUp.matchUpId })
+      : undefined;
+  const chooseHomeTeam = () => {
+    if (!homeMenu) return;
+    const { drawId, matchUpId } = matchUp;
+    const send = (method: any) => mutationRequest({ methods: [method], callback: () => callback?.({ refresh: true }) });
+    const options = [
+      ...homeMenu.teams.map(({ participantId, participantName, isHome }) => ({
+        option: isHome ? `${participantName} (${t('overlays.scorecard.home')})` : participantName,
+        onClick: () => send(setHomeMethod({ drawId, matchUpId, participantId })),
+      })),
+      ...(homeMenu.canClear
+        ? [{ option: t('matchUpActions.clearHomeTeam'), onClick: () => send(clearHomeMethod({ drawId, matchUpId })) }]
+        : []),
+    ];
+    tipster({
+      options,
+      title: t('matchUpActions.setHomeTeam'),
+      target: target || (pointerEvent.target as HTMLElement),
+      config: { placement: BOTTOM },
+    });
+  };
+
   const crowdTrackerCount = matchUp?.matchUpId ? getActiveSessionCount(matchUp.matchUpId) : 0;
   const hasDelegatedOutcome = !!readDelegatedOutcome(matchUp);
 
@@ -596,6 +625,16 @@ export function matchUpActions({
       onClick: () => gates.penalty && addPenaltyModal({ action: gates.penalty }),
       text: t('draws.penalty'),
       hide: !gates.penalty,
+    },
+    {
+      onClick: chooseHomeTeam,
+      text: t('matchUpActions.setHomeTeam'),
+      hide: !homeMenu,
+    },
+    {
+      onClick: () => exportStatCrew({ drawId: matchUp.drawId, matchUpId: matchUp.matchUpId }),
+      text: t('matchUpActions.exportStatCrew'),
+      hide: !matchUp?.drawId || !canExportStatCrew(matchUp),
     },
     {
       onClick: () => printMatchCards({ matchUpIds: [matchUp.matchUpId], drawId: matchUp.drawId, action: 'open' }),

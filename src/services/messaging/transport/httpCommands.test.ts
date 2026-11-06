@@ -17,7 +17,6 @@ describe('commands over HTTP', () => {
   afterEach(() => warn.mockRestore());
 
   const command = (ackId: string) => ({ type: 'executionQueue', payload: { ackId, methods: [{ method: 'm' }] } });
-  const chat = { tournamentId: 't1', message: 'hi', clientMsgId: 'c1' };
   const ack = (payload: any) => ({ deliver: { event: 'ack', payload } });
   const NO_RESPONSE = 'no response';
   const CHAT_REJECTED = 'chatRejected';
@@ -126,11 +125,8 @@ describe('commands over HTTP', () => {
     expect(config.validateStatus(401)).toBe(false); // left to baseApi's refresh-and-retry
   });
 
-  it('posts a chat message to /tmx/chat', async () => {
-    post.mockResolvedValue({ status: 200, data: { accepted: { clientMsgId: 'c1', seq: 1, timestamp: 2 } } });
-    const outcome = await http.postCommand('chatMessage', chat);
-    expect(post.mock.calls[0].slice(0, 2)).toEqual(['/tmx/chat', chat]);
-    expect(outcome.deliver?.event).toBe('chatAccepted');
+  it('has no chat command: chat goes to courthive-ams, not CFS', () => {
+    expect([...http.HTTP_COMMANDS]).toEqual(['executionQueue']);
   });
 
   it('sends one command at a time, in order', async () => {
@@ -154,9 +150,6 @@ describe('commands over HTTP', () => {
 
     expect(await http.postCommand('executionQueue', command('a1'))).toHaveProperty('unreachable');
     expect(await http.postCommand('executionQueue', command('a2'))).toHaveProperty('unreachable');
-    // A held chat message is failed, not left at "sending".
-    const held = await http.postCommand('chatMessage', chat);
-    expect(held.deliver).toEqual({ event: CHAT_REJECTED, payload: { clientMsgId: 'c1', error: NO_RESPONSE } });
     expect(post).toHaveBeenCalledTimes(1);
 
     http.resumeCommands();

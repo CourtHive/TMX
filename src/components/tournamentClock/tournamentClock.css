@@ -1,0 +1,26 @@
+/* Docked in a Schedule tab bar's centre slot (shared with the demo clock), or in the fallback bottom bar. */
+.tmx-tournament-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--tmx-text-primary);
+  font-size: 0.75rem;
+  cursor: default;
+}
+
+.tmx-tournament-clock output {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tmx-tournament-clock-city {
+  color: var(--tmx-text-secondary);
+}
+
+/* The fallback bar is the demo clock's; it keeps the neutral border, not the demo warning colour. */
+.tmx-tournament-clock-bar {
+  border-top-color: var(--tmx-border-primary);
+  background: var(--tmx-bg-secondary);
+}

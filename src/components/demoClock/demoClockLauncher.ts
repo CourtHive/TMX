@@ -75,6 +75,7 @@ async function loadGuidedDemo(): Promise<void> {
 
 export function buildDemoClockLauncher(): HTMLElement {
   const root = document.createElement('div');
+  root.className = 'tmx-demo-launcher';
   root.hidden = !isDemoClockSessionEligible();
   const hint = document.createElement('p');
   hint.textContent = t('demoClock.launchHint');

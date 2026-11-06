@@ -7,7 +7,7 @@ import {
   seedParticipationFixture,
   type ParticipationFixture,
 } from '../helpers/participationFixtures';
-import { SERVER, signInSuperAdmin, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } from '../helpers/role-fixtures';
+import { AUTH_SERVER, SERVER, signInSuperAdmin, SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD } from '../helpers/role-fixtures';
 
 /**
  * Journey 119 — a programme's SCHEDULE, and why it cannot be its calendar.
@@ -112,7 +112,7 @@ test.describe('Journey 119 — provider schedule from the participation index', 
       // distinguishable from an unseeded machine, which is the difference between "wait a minute"
       // and "your CFS is not set up".
       const probe = await request
-        .post(`${SERVER}/auth/login`, {
+        .post(`${AUTH_SERVER}/auth/login`, {
           data: { email: SUPERADMIN_EMAIL, password: SUPERADMIN_PASSWORD },
           timeout: 5000,
         })

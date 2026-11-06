@@ -25,7 +25,8 @@ const SCHEDULE_DATE = todayLocal();
 const PROFILE_MODE = 'button[title="Profile"]';
 const APPLY_TIMES_BTN = 'button[title^="Apply Times —"]';
 const MODAL = '.chc-modal';
-const POLICY_SELECT = `${MODAL} select`;
+// the policy select comes first; the period-length select follows it
+const POLICY_SELECT = `${MODAL} select >> nth=0`;
 const ATTACHED_ID = '__attached__';
 const BUILTIN_SCHEDULING_ID = 'builtin-scheduling';
 

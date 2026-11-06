@@ -1,6 +1,6 @@
 import { clearUserContext, fetchUserContext, getUserContext, ensureUserContext } from './getUserContext';
 const get = vi.hoisted(() => vi.fn());
-vi.mock('services/apis/baseApi', () => ({ baseApi: { get } }));
+vi.mock('services/apis/baseApi', () => ({ baseApi: { get }, authUrl: (path: string) => path }));
 import { beforeEach, expect, it, vi } from 'vitest';
 it('does not repopulate a user cache cleared during an earlier auth request', async () => {
   let answer: any;

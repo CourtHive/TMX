@@ -1,8 +1,33 @@
 import type { Page } from '@playwright/test';
-import { SERVER } from './role-fixtures';
+import { AUTH_SERVER, SERVER } from './role-fixtures';
 
-/** API path prefixes CFS serves and TMX calls. */
-const API_PREFIXES = ['auth', 'provider', 'factory', 'participation', 'registrations', 'admin', 'declarations'];
+/** API path prefixes TMX calls: CFS's, plus `auth`/`account`, which the identity provider serves. */
+const API_PREFIXES = [
+  'auth',
+  'account',
+  'provider',
+  'factory',
+  'participation',
+  'registrations',
+  'admin',
+  'declarations',
+];
+
+/**
+ * `/auth/*` and `/account/*` belong to the identity provider (courthive-hiveid) — except these, which
+ * read tournament data and stay on CFS. The same split as the `location` carve-outs in
+ * `Mentat/infra/nginx/courthive.net`; keep the two in step.
+ */
+const IDP_PATH_PATTERN = /^\/(auth|account)(\/|$)/;
+const CFS_AUTH_PATHS = [
+  /^\/auth\/(tracker-token|scorer-token|provider-scoring-token)$/,
+  /^\/auth\/sso\//,
+  /^\/auth\/hiveid\/me\/(claim$|claimable\/)/,
+];
+
+/** The backend origin a same-origin API path belongs to. Exported for journey 120. */
+export const apiOriginFor = (pathname: string): string =>
+  IDP_PATH_PATTERN.test(pathname) && !CFS_AUTH_PATHS.some((p) => p.test(pathname)) ? AUTH_SERVER : SERVER;
 
 /**
  * Anchored at the START of the path — a CFS endpoint is always `/<prefix>/…` at
@@ -25,8 +50,8 @@ export const isCfsApiPath = (pathname: string): boolean => API_PATH_PATTERN.test
 const installedOn = new WeakSet<Page>();
 
 /**
- * Point the page's same-origin API calls at a real CFS, for the handful of
- * journeys that need a live server.
+ * Point the page's same-origin API calls at a real CFS (and auth calls at the
+ * identity provider), for the handful of journeys that need a live server.
  *
  * Why this is needed at all: Vite's env precedence puts `.env.production`
  * (`SERVER=`) ahead of `.env.local`, so a `TEST_PROD=1` build calls its OWN
@@ -70,9 +95,9 @@ export async function routeApiToCfs(page: Page): Promise<void> {
       if (!['xhr', 'fetch'].includes(request.resourceType())) return route.fallback();
 
       const url = new URL(request.url());
-      // Absolute calls already aimed at CFS (dev mode) need no rewriting.
-      if (url.origin === new URL(SERVER).origin) return route.continue();
-      const response = await route.fetch({ url: `${SERVER}${url.pathname}${url.search}` });
+      // Absolute calls already aimed at a backend (dev mode) need no rewriting.
+      if ([SERVER, AUTH_SERVER].some((origin) => url.origin === new URL(origin).origin)) return route.continue();
+      const response = await route.fetch({ url: `${apiOriginFor(url.pathname)}${url.pathname}${url.search}` });
       await route.fulfill({ response });
     },
   );

@@ -27,6 +27,25 @@ const baseURL =
 console.log('[baseApi] server URL:', baseURL);
 const axiosInstance = axios.create({ baseURL });
 
+/**
+ * The identity provider (courthive-hiveid) URL for an `/auth/*` or `/account/*` path.
+ *
+ * Login, sessions, password and magic-link flows, user admin and contact-email verification belong
+ * to the IdP, not CFS. In production nginx routes those prefixes same-origin to hiveid, so the empty
+ * default returns the path unchanged. In development hiveid is its own port (:3140), so
+ * `AUTH_SERVER` must be set — the same shape as `QUERY_SERVER` in `servicesApi.ts`.
+ *
+ * NOT for `/auth/sso/*` or the tracker / scorer / provider-scoring token routes: those read tournament
+ * data and stay on CFS (nginx carves them out of the IdP prefix).
+ *
+ * An absolute URL bypasses axios's `baseURL` but keeps the interceptors, so these calls still carry
+ * the Authorization header, the single-flight 401 refresh and the error toast.
+ */
+export function authUrl(path: string): string {
+  const configured = process.env.AUTH_SERVER;
+  return configured ? `${configured}${path}` : path;
+}
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(JWT_TOKEN_STORAGE_NAME);
@@ -68,7 +87,19 @@ async function performRefresh(): Promise<string | null> {
     return null;
   }
   try {
-    const { data } = await axiosInstance.post('/auth/refresh', { refreshToken }, { silenceErrors: true } as any);
+    // Resolve on every status: the response interceptor turns a refused request into `undefined`, which this
+    // destructured, so a rejected refresh logged "Right side of assignment cannot be destructured" in place of its 401.
+    const response: any = await axiosInstance.post(authUrl('/auth/refresh'), { refreshToken }, {
+      silenceErrors: true,
+      validateStatus: () => true,
+    } as any);
+    const status = response?.status;
+    const data = response?.data;
+    if (!response || status >= 400) {
+      const message = data?.message || data?.error || (response ? 'unknown' : 'no response');
+      console.warn(`[baseApi] performRefresh: server rejected refresh status=${status} message=${message}`);
+      return null;
+    }
     if (data?.token) {
       localStorage.setItem(JWT_TOKEN_STORAGE_NAME, data.token);
       // Rotation: the server returns a fresh refresh token on every refresh.

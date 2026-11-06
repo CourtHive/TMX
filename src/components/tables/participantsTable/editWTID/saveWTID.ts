@@ -1,9 +1,7 @@
 import { toggleEditVisibility } from '../../common/toggleEditVisibility';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
-
-// constants
-import { MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { tennisIdMethods } from './tennisIdMethods';
 
 export function saveWTID(e, table) {
   toggleEditVisibility({
@@ -19,16 +17,7 @@ export function saveWTID(e, table) {
 
   const participantMap = tournamentEngine.getParticipants().participantMap ?? {};
   const rows = table.getData();
-  const methods = rows
-    .map((row) => {
-      const { tennisId, participantId } = row;
-      if (tennisId === participantMap[participantId]?.participant?.person?.tennisId) return undefined;
-      return {
-        params: { participant: { participantId, person: { tennisId } } },
-        method: MODIFY_PARTICIPANT,
-      };
-    })
-    .filter(Boolean);
+  const methods = tennisIdMethods({ rows, participantMap });
 
   if (methods.length) {
     const postMutation = (result) => {
