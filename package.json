@@ -123,7 +123,7 @@
     "camelcase": "10.0.0",
     "classnames": "2.5.1",
     "courthive-components": "7.11.0",
-    "d3-selection": "3.0.0",
+    "d3-selection": "3.0.1",
     "dayjs": "1.11.23",
     "dexie": "4.4.7",
     "dompurify": "^3.4.12",
