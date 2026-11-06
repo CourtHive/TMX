@@ -396,6 +396,8 @@ export function editEvent({
       { text: t('pages.events.editEvent.entriesHeading'), header: true },
       ...entryProfileFields(event).map((field) => ({
         text: t(`pages.events.editEvent.entryProfile.${field}`),
+        // the drawer's base size reads as a heading here; match the inputs beside them
+        style: 'height: 2.5em; padding-right: 1em; font-size: 0.9rem;',
         fieldPair: { field, type: 'number', value: entryProfileValues[field], width: '5em' },
       })),
       {
