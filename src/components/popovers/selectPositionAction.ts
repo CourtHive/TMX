@@ -33,6 +33,7 @@ const actionLabels: Record<string, string> = {
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
   VIEW_PLAYER_CARD: 'View player card',
+  VIEW_PLAYER_JOURNEY: 'See player journey',
   WITHDRAW: 'Withdraw participant',
 };
 
@@ -59,6 +60,7 @@ export function selectPositionAction({
     if (['NICKNAME'].includes(action.type)) assignNickname({ target, action, callback });
     if (['VIEW_PLAYER_CARD'].includes(action.type)) viewPlayerCard({ action });
     if (action.type === 'FOLLOW_TO_STRUCTURE') followToStructure({ action });
+    if (action.type === 'VIEW_PLAYER_JOURNEY') viewPlayerJourney({ action });
   };
   const options = actions
     ?.filter(({ type }) => actionLabels[type] || type === 'FOLLOW_TO_STRUCTURE')
@@ -211,4 +213,16 @@ function assignNickname({ target, action, callback }: { target: HTMLElement; act
   ];
 
   tip = tipster({ menuItems, target, config: { arrow: false, offset: [0, 0] } });
+}
+
+/**
+ * The participant's whole path through the draw, in the topology's Player journey mode. Loaded on demand: the
+ * inline topology reaches the draw view, which reaches this menu.
+ */
+function viewPlayerJourney({ action }: { action: any }): void {
+  const { eventId, drawId, participantId } = action.payload ?? {};
+  if (!eventId || !drawId || !participantId) return;
+  import('pages/tournament/tabs/eventsTab/renderDraws/eventControlBar/inlineTopology').then(
+    ({ renderInlineTopology }) => renderInlineTopology({ eventId, drawId, journeyParticipantId: participantId }),
+  );
 }

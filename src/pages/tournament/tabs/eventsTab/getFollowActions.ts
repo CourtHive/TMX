@@ -51,7 +51,8 @@ export function getFollowActions({
   // Best (furthest) matchUp per other structure holding the participant.
   const bestByStructure = new Map<string, any>();
   for (const matchUp of matchUps) {
-    const structureId = matchUp?.structureId;
+    // a round robin group's matchUp belongs to its container, the structure the draw lists and the view renders
+    const structureId = matchUp?.containerStructureId ?? matchUp?.structureId;
     if (matchUp?.drawId !== drawId || !structureId || structureId === currentStructureId) continue;
     if (!structureNameById.has(structureId)) continue;
     if (!sideHasParticipant(matchUp, participantId)) continue;
@@ -62,9 +63,15 @@ export function getFollowActions({
     }
   }
 
+  // the round as well as the structure: where in it the participant is (CA, 2026-11-08)
   return [...bestByStructure.entries()].map(([structureId, matchUp]) => ({
     type: 'FOLLOW_TO_STRUCTURE',
-    label: `Go to ${escapeHtml(structureNameById.get(structureId))}`,
+    label: `Go to ${escapeHtml(structureNameById.get(structureId))}${roundSuffix(matchUp.roundNumber)}`,
     payload: { eventId, drawId, structureId, matchUpId: matchUp.matchUpId, participantId },
   }));
+}
+
+/** ` — round 2`, or nothing where the matchUp has no round. */
+function roundSuffix(roundNumber?: number): string {
+  return roundNumber ? ` \u2014 round ${roundNumber}` : '';
 }

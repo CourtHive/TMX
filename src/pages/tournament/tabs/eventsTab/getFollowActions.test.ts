@@ -46,7 +46,7 @@ describe('getFollowActions', () => {
     expect(actions).toHaveLength(1);
     expect(actions[0]).toMatchObject({
       type: 'FOLLOW_TO_STRUCTURE',
-      label: 'Go to Consolation',
+      label: 'Go to Consolation \u2014 round 2',
       payload: { eventId, drawId, structureId: CONS, participantId: pid },
     });
   });
@@ -105,5 +105,48 @@ describe('getFollowActions', () => {
         matchUps,
       }),
     ).toEqual([]);
+  });
+});
+
+describe('getFollowActions — a round robin, and the round', () => {
+  it('follows a participant out of a round robin group: the group matchUp belongs to its container', () => {
+    const RR = 'rr-container';
+    const PLAYOFF = 'playoff';
+    const rrEventData = {
+      eventInfo: { eventId },
+      drawsData: [
+        {
+          drawId,
+          structures: [
+            { structureId: RR, structureName: 'Groups' },
+            { structureId: PLAYOFF, structureName: 'Playoff 1-8' },
+          ],
+        },
+      ],
+    };
+    const rrMatchUps = [
+      { matchUpId: 'g1', drawId, structureId: 'group-a', containerStructureId: RR, roundNumber: 3, sides: [side(pid)] },
+      { matchUpId: 'p1', drawId, structureId: PLAYOFF, roundNumber: 1, sides: [side(pid)] },
+    ];
+    // from the playoff, back to the groups — which a group's own structureId could never reach
+    const [back] = getFollowActions({
+      participantId: pid,
+      currentStructureId: PLAYOFF,
+      drawId,
+      eventId,
+      eventData: rrEventData,
+      matchUps: rrMatchUps,
+    });
+    expect(back).toMatchObject({ label: 'Go to Groups \u2014 round 3', payload: { structureId: RR, matchUpId: 'g1' } });
+    // and from the groups to the playoff
+    const [forward] = getFollowActions({
+      participantId: pid,
+      currentStructureId: RR,
+      drawId,
+      eventId,
+      eventData: rrEventData,
+      matchUps: rrMatchUps,
+    });
+    expect(forward).toMatchObject({ label: 'Go to Playoff 1-8 \u2014 round 1', payload: { structureId: PLAYOFF } });
   });
 });
