@@ -72,8 +72,14 @@ test.describe('Topology — Add playoffs mode', () => {
     await expect(canvas.locator('.tb-card')).toHaveCount(1);
 
     await page.locator(TOGGLE).click();
-    // a 16 draw can play off 3-4, 5-8 and 9-16
-    await expect(canvas.locator(OFFER)).toHaveText(['+ 3–4', '+ 5–8', '+ 9–16']);
+    // a 16 draw can play off 3-4 (or 1-4 as a page playoff), 5-8 and 9-16, and take a voluntary consolation
+    await expect(canvas.locator(OFFER)).toHaveText([
+      '+ Page playoff 1–4',
+      '+ 3–4',
+      '+ 5–8',
+      '+ 9–16',
+      '+ Voluntary consolation',
+    ]);
   });
 
   test('chips come from the live draw, and one attaches that one playoff', async ({ page }) => {
@@ -83,14 +89,19 @@ test.describe('Topology — Add playoffs mode', () => {
     await page.locator(TOGGLE).click();
     await expect(page.locator(TOGGLE)).toHaveAttribute('aria-pressed', 'true');
     await expect(card(canvas, 'Main').locator(OFFER)).toHaveText(['+ 17–24', '+ 25–32']);
-    await expect(card(canvas, 'Playoff 1-16').locator(OFFER)).toHaveText(['+ 3–4', '+ 5–8', '+ 9–16']);
+    await expect(card(canvas, 'Playoff 1-16').locator(OFFER)).toHaveText([
+      '+ Page playoff 1–4',
+      '+ 3–4',
+      '+ 5–8',
+      '+ 9–16',
+    ]);
 
     await card(canvas, 'Playoff 1-16').locator(`${OFFER}[data-finishing-position-range="5-8"]`).click();
 
     // the draw has the playoff, the topology was read again from it, and the mode is still on
     await expect(card(canvas, 'Playoff 5-8')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator(TOGGLE)).toHaveAttribute('aria-pressed', 'true');
-    await expect(card(canvas, 'Playoff 1-16').locator(OFFER)).toHaveText(['+ 3–4', '+ 9–16']);
+    await expect(card(canvas, 'Playoff 1-16').locator(OFFER)).toHaveText(['+ Page playoff 1–4', '+ 3–4', '+ 9–16']);
 
     const record: any = await getTournamentRecord(page);
     const names = record.events[0].drawDefinitions[0].structures.map((s: any) => s.structureName);
@@ -126,7 +137,41 @@ test.describe('Topology — Add playoffs mode', () => {
     // the footer says what the Add playoffs mode asks
     await page.locator(TOGGLE).click();
     await expect(page.locator('.tmx-topology-host .tb-footer-hint')).toHaveText(
-      '5 ranges can still be played off — choose one to add it as a playoff',
+      '6 structures can still be added — choose a chip to add it',
     );
+  });
+
+  test('a page playoff replaces 3-4, and a voluntary consolation sits beside the main draw', async ({ page }) => {
+    const canvas = await openTopology(page, SE_PROFILE);
+    await page.locator(TOGGLE).click();
+    const main = card(canvas, 'Main');
+    await expect(main.locator(OFFER)).toHaveText([
+      '+ Page playoff 1–4',
+      '+ 3–4',
+      '+ 5–8',
+      '+ 9–16',
+      '+ Voluntary consolation',
+    ]);
+
+    await main.locator(`${OFFER}[data-kind="pagePlayoff"]`).click();
+    await expect(card(canvas, 'Playoff Final')).toBeVisible({ timeout: 5_000 });
+    // the factory no longer offers 3-4, so both alternatives are gone
+    await expect(main.locator(OFFER)).toHaveText(['+ 5–8', '+ 9–16', '+ Voluntary consolation']);
+
+    await main.locator(`${OFFER}[data-kind="voluntaryConsolation"]`).click();
+    const vc = card(canvas, 'Consolation');
+    await expect(vc).toBeVisible({ timeout: 5_000 });
+    await expect(vc.locator('.tb-card-badge')).toHaveText('VC');
+    await expect(main.locator(`${OFFER}[data-kind="voluntaryConsolation"]`)).toHaveCount(0);
+
+    const record: any = await getTournamentRecord(page);
+    const structures = record.events[0].drawDefinitions[0].structures.map((s: any) => [s.stage, s.structureName]);
+    expect(structures).toEqual([
+      ['MAIN', 'Main'],
+      ['PLAY_OFF', '3-4 Playoff'],
+      ['PLAY_OFF', 'Playoff Qualifier'],
+      ['PLAY_OFF', 'Playoff Final'],
+      ['VOLUNTARY_CONSOLATION', 'Consolation'],
+    ]);
   });
 });

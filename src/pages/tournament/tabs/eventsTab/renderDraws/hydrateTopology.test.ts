@@ -145,3 +145,23 @@ describe('hydrateTopology: links that are not finishing-position links', () => {
     expect(edge.sourceRoundNumber).toBe(3);
   });
 });
+
+describe('hydrateTopology: a voluntary consolation is its own stage (2026-11-08)', () => {
+  it('not a second MAIN card, and no invented positions while nobody has opted in', () => {
+    const drawDefinition = generateDraw({ drawSize: 16 });
+    const { drawId } = drawDefinition;
+    const generated: any = tournamentEngine.generateVoluntaryConsolation({ drawId, structureName: 'Consolation' });
+    const attached: any = tournamentEngine.attachConsolationStructures({
+      drawId,
+      structures: generated.structures,
+      links: generated.links,
+    });
+    expect(attached.success).toBe(true);
+
+    const state = hydrateTopology(tournamentEngine.getEvent({ drawId }).drawDefinition)!;
+    expect(state.nodes!.map((node) => [node.structureName, node.stage, node.drawSize])).toEqual([
+      ['Main', 'MAIN', 16],
+      ['Consolation', 'VOLUNTARY_CONSOLATION', 0],
+    ]);
+  });
+});
