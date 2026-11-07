@@ -96,4 +96,37 @@ test.describe('Topology — Add playoffs mode', () => {
     const names = record.events[0].drawDefinitions[0].structures.map((s: any) => s.structureName);
     expect(names).toEqual(['Main', 'Playoff 1-16', 'Playoff 5-8']);
   });
+
+  test('fills the window top to bottom, footer included, and follows a resize', async ({ page }) => {
+    // A tall screen, as on Lenz: the canvas stopped at a fixed height and left the rest of the window bare (CA)
+    await page.setViewportSize({ width: 1620, height: 1200 });
+    const canvas = await openTopology(page, RR_PROFILE);
+
+    const footerGap = async () =>
+      page.evaluate(() => {
+        const footer = document.querySelector('.tmx-topology-host .tb-footer') as HTMLElement;
+        return window.innerHeight - footer.getBoundingClientRect().bottom;
+      });
+
+    await expect(page.locator('.tmx-topology-host .tb-footer')).toBeVisible();
+    // the helper leaves an 8px page margin under the footer, nothing more. Polled on the BAND: a one-sided bound is
+    // already true of the stale layout a resize has not reached yet, and passes before the refit happens.
+    const inBand = async () => {
+      const gap = await footerGap();
+      return gap >= 7 && gap <= 9;
+    };
+    await expect.poll(inBand).toBe(true);
+    // and the grid reaches the footer: the canvas is the tall part of the layout, not a 600px box
+    const canvasHeight = await canvas.evaluate((el: HTMLElement) => el.getBoundingClientRect().height);
+    expect(canvasHeight).toBeGreaterThan(800);
+
+    await page.setViewportSize({ width: 1620, height: 900 });
+    await expect.poll(inBand).toBe(true);
+
+    // the footer says what the Add playoffs mode asks
+    await page.locator(TOGGLE).click();
+    await expect(page.locator('.tmx-topology-host .tb-footer-hint')).toHaveText(
+      '5 ranges can still be played off — choose one to add it as a playoff',
+    );
+  });
 });

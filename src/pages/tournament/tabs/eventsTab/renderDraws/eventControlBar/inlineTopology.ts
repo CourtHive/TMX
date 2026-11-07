@@ -12,6 +12,7 @@
 import { hydrateTopology } from 'pages/tournament/tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { attachGeneratedPlayoffs } from 'components/modals/addStructures';
+import { fillToViewportBottom } from 'functions/heightToViewportBottom';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { getTopologyControlItems } from './eventControlItems';
@@ -27,6 +28,10 @@ import { DRAW_CONTROL, DRAWS_VIEW, EVENT_CONTROL, PLAYOFF_NAME_BASE } from 'cons
 import type { PlayoffOffer, TopologyNode } from 'courthive-components';
 
 let inlineControl: TopologyBuilderControl | null = null;
+let releaseHeight: (() => void) | null = null;
+
+/** Room under the topology for the page's own bottom margin. */
+const BOTTOM_GAP = 8;
 
 export function renderInlineTopology({
   eventId,
@@ -94,6 +99,7 @@ export function renderInlineTopology({
     initialState,
     hideTemplates: true,
     readOnly: true,
+    footer: true,
     playoffOffers: (node) => offers.get(node.id),
     onAddPlayoff: addPlayoff,
     onDoubleClickNode: (node) => {
@@ -102,7 +108,13 @@ export function renderInlineTopology({
     },
   });
 
-  inlineControl.render(drawsView);
+  // The topology fills the window below it, footer included, as the schedule page does (CA, 2026-11-08). Its own host,
+  // so the draws view keeps sizing to the draw when the topology is closed.
+  const topologyHost = document.createElement('div');
+  topologyHost.className = 'tmx-topology-host';
+  drawsView.appendChild(topologyHost);
+  inlineControl.render(topologyHost);
+  releaseHeight = fillToViewportBottom(topologyHost, { gap: BOTTOM_GAP });
 
   if (initialState) {
     inlineControl.autoLayout();
@@ -116,6 +128,8 @@ export function renderInlineTopology({
 }
 
 export function destroyInlineTopology(): void {
+  releaseHeight?.();
+  releaseHeight = null;
   if (inlineControl) {
     inlineControl.destroy();
     inlineControl = null;
