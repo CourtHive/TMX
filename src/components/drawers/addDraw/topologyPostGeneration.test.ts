@@ -1,3 +1,4 @@
+import { mocksEngine, tournamentEngine as factoryEngine } from 'tods-competition-factory';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -15,6 +16,7 @@ import {
   buildTopologyAttachMethods,
   resolveSourceStructure,
   topologyDrawEntries,
+  topologyFitEntries,
 } from './topologyPostGeneration';
 
 const ATTACH_CONSOLATION = 'attachConsolationStructures';
@@ -243,5 +245,58 @@ describe('topologyDrawEntries', () => {
 
   it('is empty for an event with no entries', () => {
     expect(topologyDrawEntries({ event: {}, state: { nodes: [] } })).toEqual([]);
+  });
+});
+
+describe('topologyFitEntries — what Fit mode asks the factory about', () => {
+  const event = {
+    entries: [
+      { participantId: 'm1', entryStage: 'MAIN', entryStatus: 'DIRECT_ACCEPTANCE' },
+      { participantId: 'm2', entryStatus: 'WILDCARD' },
+      { participantId: 'q1', entryStage: 'QUALIFYING', entryStatus: 'DIRECT_ACCEPTANCE' },
+      { participantId: 'a1', entryStage: 'MAIN', entryStatus: 'ALTERNATE' },
+      { participantId: 'w1', entryStage: 'QUALIFYING', entryStatus: 'WITHDRAWN' },
+    ],
+  };
+
+  it('takes the same stages as generation, with every status, so the ledger can count alternates and withdrawals', () => {
+    const state = { nodes: [{ stage: 'MAIN' }, { stage: 'QUALIFYING' }] };
+    expect(topologyFitEntries({ event, state }).map((e: any) => e.participantId)).toEqual([
+      'm1',
+      'm2',
+      'q1',
+      'a1',
+      'w1',
+    ]);
+  });
+
+  it('leaves the qualifying entries out when there is no qualifying structure', () => {
+    const state = { nodes: [{ stage: 'MAIN' }] };
+    expect(topologyFitEntries({ event, state }).map((e: any) => e.participantId)).toEqual(['m1', 'm2', 'a1']);
+  });
+
+  it('fits a draw exactly as the entries generation passes would: alternates and withdrawals wait either way', () => {
+    const {
+      eventIds: [eventId],
+    } = mocksEngine.generateTournamentRecord({
+      participantsProfile: { participantsCount: 40 },
+      eventProfiles: [{ eventName: 'Fit' }],
+      setState: true,
+    });
+    const ids = (factoryEngine.getParticipants().participants ?? []).map((p: any) => p.participantId);
+    factoryEngine.addEventEntries({ eventId, participantIds: ids.slice(0, 26) });
+    factoryEngine.addEventEntries({ eventId, participantIds: ids.slice(26, 32), entryStatus: 'ALTERNATE' });
+    factoryEngine.addEventEntries({ eventId, participantIds: ids.slice(32, 34), entryStatus: 'WITHDRAWN' });
+    const { event: real } = factoryEngine.getEvent({ eventId });
+    const state = { nodes: [{ stage: 'MAIN' }] };
+
+    const fit = (drawEntries: any[]) => factoryEngine.getDrawFit({ eventId, drawSize: 32, drawEntries });
+    const withEveryStatus: any = fit(topologyFitEntries({ event: real, state }));
+    const asGenerated: any = fit(topologyDrawEntries({ event: real, state }));
+    // each generation mints its own structure ids: the counts are what must agree
+    const counts = (result: any) => result.structures.map(({ structureId: _id, ...rest }: any) => rest);
+    expect(counts(withEveryStatus)).toEqual(counts(asGenerated));
+    expect(withEveryStatus.structures?.[0]).toMatchObject({ placed: 26, byes: 6, status: 'SHORT' });
+    expect(withEveryStatus.ledger.MAIN).toMatchObject({ selectedCount: 26, alternates: 6, withdrawn: 2 });
   });
 });
