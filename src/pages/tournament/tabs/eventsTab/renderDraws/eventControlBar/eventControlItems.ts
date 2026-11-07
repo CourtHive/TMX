@@ -164,8 +164,10 @@ export function getEventControlItems({
     });
   }
 
-  // View topology (only when draw has multiple structures)
-  if (drawData?.structures?.length > 1) {
+  // View topology — for every draw, a single structure included (CA, 2026-11-08): the topology is where a director
+  // sees what a draw is made of and, in its Add playoffs mode, what it can still grow into. Hidden only while there is
+  // no draw to show.
+  if (drawData?.structures?.length) {
     items.push({
       onClick: () => renderInlineTopology({ eventId, drawId, structureId }),
       label: '<i class="fa-solid fa-sitemap"></i>',
