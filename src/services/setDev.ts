@@ -341,5 +341,10 @@ function addAndDisplay(tournamentRecord: any): Promise<void> {
     renderTournament({ config: { tournamentId } });
     context.router?.navigate(`/${TOURNAMENT}/${tournamentId}`);
   };
-  return addOrUpdateTournament({ tournamentRecord, callback: displayTournament });
+  // Navigo drops every URL change until a 1 ms timer after navigate() (its __freezeListening), and on a busy page that
+  // timer runs late: a page.goto straight after this resolved was ignored and left the overview showing (Journey 135,
+  // 13 of 30 runs). A timer queued after Navigo's fires after it, so callers may navigate once this resolves.
+  return addOrUpdateTournament({ tournamentRecord, callback: displayTournament }).then(
+    () => new Promise<void>((resolve) => setTimeout(resolve, 1)),
+  );
 }
