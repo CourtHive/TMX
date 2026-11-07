@@ -8,7 +8,7 @@ describe('insufficientPositions — what a refused generation means', () => {
   it('26 accepted entries for a 16 draw: 10 over', () => {
     expect(insufficientPositions({ drawSize: 16, drawEntries: entries(26) })).toEqual({
       entries: 26,
-      positions: 16,
+      places: 16,
       over: 10,
     });
   });
@@ -19,7 +19,7 @@ describe('insufficientPositions — what a refused generation means', () => {
       drawEntries: entries(30),
       qualifyingProfiles: [{ structureProfiles: [{ drawSize: 16, qualifyingPositions: 4 }] }],
     };
-    expect(insufficientPositions(drawOptions)).toEqual({ entries: 30, positions: 28, over: 2 });
+    expect(insufficientPositions(drawOptions)).toEqual({ entries: 30, places: 28, over: 2 });
   });
 
   it('counts only the entries that take a place in the main draw', () => {
@@ -50,6 +50,6 @@ describe('insufficientPositions — what a refused generation means', () => {
     const drawOptions = { eventId, drawSize: 16, drawEntries: event.entries };
     const result: any = tournamentEngine.generateDrawDefinition({ ...drawOptions, ignoreStageSpace: true });
     expect(result.error?.code).toBe('ERR_INSUFFICIENT_DRAW_POSITIONS');
-    expect(insufficientPositions(drawOptions)).toEqual({ entries: 26, positions: 16, over: 10 });
+    expect(insufficientPositions(drawOptions)).toEqual({ entries: 26, places: 16, over: 10 });
   });
 });

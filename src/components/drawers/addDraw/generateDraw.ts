@@ -95,7 +95,7 @@ export function generateDraw({
         ? t('drawers.addDraw.insufficientPositions', {
             count: excess.over,
             entries: excess.entries,
-            positions: excess.positions,
+            places: excess.places,
           })
         : result.error?.message || 'Error',
       intent: IS_WARNING,

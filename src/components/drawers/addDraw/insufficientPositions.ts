@@ -10,7 +10,7 @@ import { entryStatusConstants } from 'tods-competition-factory';
 
 const { STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
 
-export type InsufficientPositions = { entries: number; positions: number; over: number };
+export type InsufficientPositions = { entries: number; places: number; over: number };
 
 export function insufficientPositions(drawOptions: any): InsufficientPositions | undefined {
   const drawSize = drawOptions?.drawSize;
@@ -24,7 +24,7 @@ export function insufficientPositions(drawOptions: any): InsufficientPositions |
   const qualifierSlots = (drawOptions.qualifyingProfiles ?? [])
     .flatMap((profile: any) => profile?.structureProfiles ?? [])
     .reduce((total: number, profile: any) => total + (profile?.qualifyingPositions ?? 0), 0);
-  const positions = drawSize - qualifierSlots;
-  const over = entries - positions;
-  return over > 0 ? { entries, positions, over } : undefined;
+  const places = drawSize - qualifierSlots;
+  const over = entries - places;
+  return over > 0 ? { entries, places, over } : undefined;
 }
