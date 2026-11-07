@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.50.1](https://github.com/CourtHive/TMX/compare/v8.50.0...v8.50.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **deps:** update tods-competition-factory to 7.32.0 ([#1927](https://github.com/CourtHive/TMX/issues/1927)) ([4654d53](https://github.com/CourtHive/TMX/commit/4654d53430b52bc6448ebed0642d5756bdf999d6))
+* **dev:** dev.load resolves once the router listens again, so a following navigation lands ([#1925](https://github.com/CourtHive/TMX/issues/1925)) ([2fe32d1](https://github.com/CourtHive/TMX/commit/2fe32d103dd08c6dcff02e18debc8c03bfc7b946))
+
 ## [8.50.0](https://github.com/CourtHive/TMX/compare/v8.49.0...v8.50.0) (2026-11-06)
 
 
