@@ -6,10 +6,11 @@ import { getAutoCourtImageMethod } from 'services/courtSvg/autoCourtImage';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getEntriesNotPlacedNotices } from './entriesNotPlaced';
+import { insufficientPositions } from './insufficientPositions';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { scoreGovernor } from 'tods-competition-factory';
+import { errorConditionConstants, scoreGovernor } from 'tods-competition-factory';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 
@@ -18,6 +19,7 @@ import { ADD_DRAW_DEFINITION, ADD_DRAW_DEFINITION_EXTENSION, INITIALIZE_DRAFT } 
 import { t } from 'i18n';
 
 const IS_WARNING = 'is-warning';
+const { INSUFFICIENT_DRAW_POSITIONS } = errorConditionConstants;
 
 export function generateDraw({
   eventId,
@@ -85,10 +87,20 @@ export function generateDraw({
     };
     mutationRequest({ methods, callback: postMutation });
   } else if (result.error) {
+    // more entries than places: say how many and what to do, not the engine's sentence
+    const excess =
+      result.error?.code === INSUFFICIENT_DRAW_POSITIONS.code ? insufficientPositions(restOptions) : undefined;
     tmxToast({
-      message: result.error?.message || 'Error',
+      message: excess
+        ? t('drawers.addDraw.insufficientPositions', {
+            count: excess.over,
+            entries: excess.entries,
+            places: excess.places,
+          })
+        : result.error?.message || 'Error',
       intent: IS_WARNING,
       pauseOnHover: true,
+      ...(excess && { duration: 12000 }),
     });
   }
 }
