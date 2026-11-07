@@ -11,6 +11,7 @@
  */
 import { hydrateTopology } from 'pages/tournament/tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { addVoluntaryConsolation } from 'components/modals/addVoluntaryConsolation';
 import { attachGeneratedPlayoffs } from 'components/modals/addStructures';
 import { fillToViewportBottom } from 'functions/heightToViewportBottom';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -20,6 +21,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import {
   playoffGenerationParams,
   playoffOffersByStructure,
+  offerStructureName,
   TopologyBuilderControl,
   controlBar,
 } from 'courthive-components';
@@ -67,32 +69,36 @@ export function renderInlineTopology({
   const readOffers = () => {
     offers = playoffOffersByStructure(
       tournamentEngine.getAvailablePlayoffProfiles({ drawId })?.availablePlayoffProfiles,
+      drawDefinitionNow(),
     );
   };
   readOffers();
 
+  const reload = () => {
+    const updated = drawDefinitionNow();
+    if (!inlineControl || !updated) return;
+    readOffers();
+    inlineControl.loadState(hydrateTopology(updated) as any);
+    inlineControl.autoLayout();
+  };
+
   const addPlayoff = (node: TopologyNode, offer: PlayoffOffer) => {
+    const structureName = offerStructureName(offer, PLAYOFF_NAME_BASE);
+    // a voluntary consolation is not a playoff: the structure menu's own path
+    if (offer.kind === 'voluntaryConsolation')
+      return addVoluntaryConsolation({ drawId, structureName, callback: reload });
+
     const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
       drawId,
       structureId: node.id,
       // a name and no abbreviation, as the dialog sends; the factory's NamingEntry type requires one its reader does not
-      ...(playoffGenerationParams(offer, `${PLAYOFF_NAME_BASE} ${offer.finishingPositionRange}`) as any),
+      ...(playoffGenerationParams(offer, structureName) as any),
     });
     if (genResult.error) {
       tmxToast({ message: genResult.error?.message || 'Generation error', intent: 'is-danger' });
       return;
     }
-    attachGeneratedPlayoffs({
-      drawId,
-      genResult,
-      callback: () => {
-        const updated = drawDefinitionNow();
-        if (!inlineControl || !updated) return;
-        readOffers();
-        inlineControl.loadState(hydrateTopology(updated) as any);
-        inlineControl.autoLayout();
-      },
-    });
+    attachGeneratedPlayoffs({ drawId, genResult, callback: reload });
   };
 
   inlineControl = new TopologyBuilderControl({
