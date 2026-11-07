@@ -2875,6 +2875,18 @@
         "notPlaced_other": "{{count}} qualified participants could not be placed: {{names}}.",
         "positionsOpen_one": "{{count}} qualifier position is still open.",
         "positionsOpen_other": "{{count}} qualifier positions are still open."
+      },
+      "completeMatchUps": {
+        "tooltip": "Complete matchUps",
+        "title": "Complete matchUps",
+        "all": "All remaining",
+        "throughRound": "Through round",
+        "completesRound": "Completes {{round}}",
+        "completesRounds": "Completes {{from}} through {{to}}",
+        "matchUps_one": "{{count}} matchUp",
+        "matchUps_other": "{{count}} matchUps",
+        "roundDone": "{{round}} is complete",
+        "nothingLeft": "Every matchUp in this structure is complete"
       }
     },
     "participants": {
