@@ -8,7 +8,11 @@ import {
   getTopologyTemplates,
   saveTopologyTemplate,
 } from 'components/drawers/addDraw/topologyTemplates';
-import { attachTopologyStructures, topologyDrawEntries } from 'components/drawers/addDraw/topologyPostGeneration';
+import {
+  attachTopologyStructures,
+  topologyDrawEntries,
+  topologyFitEntries,
+} from 'components/drawers/addDraw/topologyPostGeneration';
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
@@ -74,6 +78,11 @@ export function renderTopologyPage({
     templates: savedTemplates,
     hideTemplates: true,
     readOnly,
+    footer: true,
+    // A draw being built opens in Fit mode: how the event's entries would fill it, with levers (CA, 2026-11-08). A
+    // made draw's entries are placed already, so it has no fit to ask for.
+    ...(!drawId &&
+      !readOnly && { mode: 'fit' as const, drawFit: (state: TopologyState) => drawFitFor({ state, eventId }) }),
     onGenerate: readOnly ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: readOnly ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
     onDoubleClickNode: readOnly
@@ -106,6 +115,21 @@ export function renderTopologyPage({
   if (initialState) {
     currentControl.autoLayout();
   }
+}
+
+/**
+ * The factory's fit for the draw a topology describes: the same draw options Generate makes (`topologyToDrawOptions`),
+ * asked of `getDrawFit`, which runs the generator and attaches nothing.
+ */
+function drawFitFor({ state, eventId }: { state: TopologyState; eventId: string }): any {
+  const event = tournamentEngine.q.event({ eventId });
+  if (!event) return undefined;
+  const { drawOptions } = topologyToDrawOptions(state);
+  return tournamentEngine.getDrawFit({
+    ...drawOptions,
+    drawEntries: topologyFitEntries({ event, state }),
+    eventId,
+  });
 }
 
 function handleGenerate({ state, eventId, drawId }: { state: TopologyState; eventId: string; drawId?: string }): void {

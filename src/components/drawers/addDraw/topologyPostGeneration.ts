@@ -48,6 +48,20 @@ export function topologyDrawEntries({ event, state }: { event: any; state: { nod
 }
 
 /**
+ * The entries a topology's Fit mode asks the factory about: the same stages `topologyDrawEntries` takes (MAIN, and
+ * QUALIFYING when the topology has a qualifying node), with EVERY status. The generator places only the selected
+ * statuses either way (alternates and withdrawals wait), so the structures' fit is the one generation would make —
+ * and the ledger can count the alternates and withdrawals a director is deciding about.
+ */
+export function topologyFitEntries({ event, state }: { event: any; state: { nodes?: any[] } }): any[] {
+  const hasQualifying = (state?.nodes ?? []).some((node: any) => node.stage === QUALIFYING);
+  return (event?.entries ?? []).filter(({ entryStage }: any) => {
+    if (!entryStage || entryStage === MAIN) return true;
+    return hasQualifying && entryStage === QUALIFYING;
+  });
+}
+
+/**
  * The generated structure a post-generation method's SOURCE node became.
  *
  * By stage and name when the method carries them (components ≥ #657); by stage alone when only one
