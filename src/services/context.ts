@@ -21,8 +21,9 @@ export const context: {
     drawId?: string;
     teamId?: string;
     status?: string;
-    profile?: string;
-    type?: string;
+    /** chip filters: the values that are on; absent when every chip is on */
+    profile?: string[];
+    type?: string[];
     search?: string;
     scheduledDate?: string;
   };

@@ -67,18 +67,11 @@ export function renderMatchUpTab(): void {
     setStatus,
     getStatus,
   } = getMatchUpStatusFilter(table);
+  const { chips: profileChips, isFiltered: isProfileFiltered, setProfile, getProfile } = getMatchUpProfileFilter(table);
   const {
-    profileOptions,
-    isFiltered: isProfileFiltered,
-    activeIndex: profileActiveIndex,
-    setProfile,
-    getProfile,
-  } = getMatchUpProfileFilter(table);
-  const {
-    typeOptions,
+    chips: typeChips,
     hasOptions: hasTypeOptions,
     isFiltered: isTypeFiltered,
-    activeIndex: typeActiveIndex,
   } = getMatchUpTypeFilter(table, data);
   const {
     dateOptions,
@@ -113,18 +106,8 @@ export function renderMatchUpTab(): void {
       isFiltered: isStatusFiltered,
       activeIndex: statusActiveIndex,
     },
-    {
-      label: t('pages.matchUps.allProfiles'),
-      options: profileOptions,
-      isFiltered: isProfileFiltered,
-      activeIndex: profileActiveIndex,
-    },
-    {
-      label: t('pages.matchUps.allTypes'),
-      options: hasTypeOptions ? typeOptions : [],
-      isFiltered: isTypeFiltered,
-      activeIndex: typeActiveIndex,
-    },
+    { label: t('pages.matchUps.profileLabel'), chips: profileChips, isFiltered: isProfileFiltered },
+    { label: t('pages.matchUps.typeLabel'), chips: hasTypeOptions ? typeChips : undefined, isFiltered: isTypeFiltered },
     {
       label: t('pages.matchUps.allDates'),
       options: dateOptions,

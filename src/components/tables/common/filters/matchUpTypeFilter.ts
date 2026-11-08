@@ -1,88 +1,38 @@
 /**
- * MatchUp type filter for filterPopoverButton.
- * Filters matchUps by type: singles, doubles, or team.
+ * MatchUp type filter for filterPopoverButton: a chip for each type the tournament has (singles, doubles, team),
+ * any combination on (CA 2026-11-08). Every chip on is "all types".
  */
-import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
+import { createChipFilter, type ChipSection } from './chipFilter';
 import { eventConstants } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
 const { TEAM_EVENT, SINGLES, DOUBLES } = eventConstants;
 
+const TYPE_LABELS: [string, string][] = [
+  [SINGLES, 'pages.matchUps.singles'],
+  [DOUBLES, 'pages.matchUps.doubles'],
+  [TEAM_EVENT, 'pages.matchUps.team'],
+];
+
 export function getMatchUpTypeFilter(
   table: any,
   data: any[],
-): { typeOptions: any[]; hasOptions: boolean; isFiltered: () => boolean; activeIndex: () => number } {
-  let filterValue: string | undefined = context.matchUpFilters.type;
+): { chips: ChipSection; hasOptions: boolean; isFiltered: () => boolean } {
+  const present = new Set(data.map((matchUp: any) => matchUp.matchUpType));
+  const options = TYPE_LABELS.filter(([value]) => present.has(value)).map(([value, key]) => ({ value, label: t(key) }));
 
-  // Tabulator warns "Filter Error - No matching filter type found" when
-  // removeFilter is handed a filter it never added — which is every first
-  // call here, since the filter is only added when a value is set.
-  let typeFilterApplied = false;
+  const filter = createChipFilter({
+    table,
+    values: options.map(({ value }) => value),
+    matches: (rowData, value) => rowData.matchUpType === value,
+    initial: context.matchUpFilters.type,
+    persist: (selected) => (context.matchUpFilters.type = selected),
+  });
 
-  const typeFilter = (rowData: any): boolean => rowData.matchUpType === filterValue;
-
-  // Restore saved filter once the table is built (Tabulator warns if called sooner).
-  if (filterValue) {
-    typeFilterApplied = true;
-    whenTableBuilt(table, () => typeFilterApplied && table.addFilter(typeFilter));
-  }
-
-  const updateFilter = (type?: string) => {
-    if (typeFilterApplied) {
-      table.removeFilter(typeFilter);
-      typeFilterApplied = false;
-    }
-    filterValue = type;
-    context.matchUpFilters.type = type;
-    if (type) {
-      table.addFilter(typeFilter);
-      typeFilterApplied = true;
-    }
+  return {
+    chips: { options, isOn: filter.isOn, toggle: filter.toggle, clear: filter.clear },
+    hasOptions: options.length > 1,
+    isFiltered: filter.isFiltered,
   };
-
-  const matchUpTypes = data.reduce((types: string[], matchUp: any) => {
-    if (!types.includes(matchUp.matchUpType)) types.push(matchUp.matchUpType);
-    return types;
-  }, []);
-
-  const allLabel = t('pages.matchUps.allTypes');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const typeOptions = [
-    allOption,
-    { divider: true },
-    matchUpTypes.includes(SINGLES) && {
-      label: t('pages.matchUps.singles'),
-      close: true,
-      onClick: () => updateFilter(SINGLES),
-      filterValue: SINGLES,
-    },
-    matchUpTypes.includes(DOUBLES) && {
-      label: t('pages.matchUps.doubles'),
-      close: true,
-      onClick: () => updateFilter(DOUBLES),
-      filterValue: DOUBLES,
-    },
-    matchUpTypes.includes(TEAM_EVENT) && {
-      label: t('pages.matchUps.team'),
-      close: true,
-      onClick: () => updateFilter(TEAM_EVENT),
-      filterValue: TEAM_EVENT,
-    },
-  ].filter(Boolean);
-
-  const selectableOptions = typeOptions.filter((opt: any) => !opt.divider);
-  const activeIndex = () => {
-    if (!filterValue) return 0;
-    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
-    // `findIndex` yields -1 or a valid index, so clamping at 0 is exactly
-    // the old ternary. SonarJS prefers Math.max here.
-    return Math.max(idx, 0);
-  };
-
-  return { typeOptions, hasOptions: matchUpTypes.length > 1, isFiltered: () => !!filterValue, activeIndex };
 }
