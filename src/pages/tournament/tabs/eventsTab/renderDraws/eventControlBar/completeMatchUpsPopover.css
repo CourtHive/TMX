@@ -1,0 +1,154 @@
+/* the local-mode "complete matchUps" popover: all remaining, or a stepper of rounds to complete through */
+.tmx-complete-matchups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  min-width: 240px;
+  padding: 0.6em 0.5em 0.5em;
+  color: var(--tmx-text-primary);
+}
+
+.tmx-cm-heading,
+.tmx-cm-label {
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tmx-text-muted);
+}
+
+.tmx-cm-all {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.5em 0.7em;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 6px;
+  background: var(--tmx-bg-elevated);
+  color: var(--tmx-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tmx-cm-all:hover,
+.tmx-cm-all:focus-visible {
+  border-color: var(--tmx-accent-blue);
+  background: var(--tmx-bg-highlight);
+  outline: none;
+}
+
+.tmx-cm-all i {
+  color: var(--tmx-status-success);
+}
+
+.tmx-cm-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--tmx-text-muted);
+}
+
+.tmx-cm-through {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--tmx-border-secondary);
+}
+
+/* the rounds, joined by links, as a bracket reads left to right */
+.tmx-cm-track {
+  display: flex;
+  align-items: flex-start;
+}
+
+.tmx-cm-link {
+  flex: 1;
+  min-width: 0.75em;
+  height: 2px;
+  margin-top: 0.68em;
+  background: var(--tmx-border-primary);
+  transition: background 120ms ease;
+}
+
+.tmx-cm-link[data-state='done'] {
+  background: var(--tmx-status-success);
+}
+
+.tmx-cm-link[data-state='lit'] {
+  background: var(--tmx-accent-blue);
+}
+
+.tmx-cm-round {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  min-width: 2.2em;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--tmx-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tmx-cm-round:disabled {
+  cursor: default;
+}
+
+.tmx-cm-round-mark {
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border: 2px solid var(--tmx-border-primary);
+  border-radius: 50%;
+  background: var(--tmx-bg-elevated);
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.tmx-cm-round-name {
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.tmx-cm-round[data-open='false'] .tmx-cm-round-mark {
+  border-color: var(--tmx-status-success);
+  background: var(--tmx-status-success);
+  color: var(--tmx-text-inverse);
+}
+
+.tmx-cm-round[data-open='false'] .tmx-cm-round-name {
+  color: var(--tmx-text-muted);
+}
+
+/* the rounds the hovered or focused choice would complete */
+.tmx-cm-round[data-lit='true'] .tmx-cm-round-mark {
+  border-color: var(--tmx-accent-blue);
+  background: var(--tmx-accent-blue);
+  color: var(--tmx-text-inverse);
+}
+
+.tmx-cm-round[data-lit='true'] .tmx-cm-round-name {
+  color: var(--tmx-accent-blue);
+}
+
+.tmx-cm-round:focus-visible {
+  outline: none;
+}
+
+.tmx-cm-round:focus-visible .tmx-cm-round-mark {
+  box-shadow: 0 0 0 3px var(--tmx-border-focus);
+}
+
+.tmx-cm-caption {
+  min-height: 1.3em;
+  font-size: 0.8em;
+  color: var(--tmx-text-secondary);
+}
