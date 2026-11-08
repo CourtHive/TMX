@@ -127,3 +127,64 @@ export function chipsFit(labels: string[], { maxRows = 2, rowWidth = CHIP_ROW_WI
   }
   return true;
 }
+
+/** A filter with few enough values gets chips; CA 2026-11-08: events and flights only "if there were < 3". */
+export const MAX_CHOICE_CHIPS = 2;
+
+type ChoiceItem = { value: string; label: string };
+
+/**
+ * One filter, two faces: chips when it has at most MAX_CHOICE_CHIPS values (and they fit the popover), otherwise
+ * a dropdown whose options select one value. Both read and write the same chip filter, so a value chosen in one
+ * shows in the other. Labels are plain text: the popover writes them with textContent, never as HTML.
+ */
+export function createChoiceFilter({
+  table,
+  items,
+  allLabel,
+  matches,
+  initial,
+  persist,
+}: {
+  table: any;
+  items: ChoiceItem[];
+  allLabel: string;
+  matches: (rowData: any, value: string) => boolean;
+  initial?: string[];
+  persist: (selected: string[] | undefined) => void;
+}): {
+  chips?: ChipSection;
+  options: any[];
+  hasOptions: boolean;
+  isFiltered: () => boolean;
+  activeIndex: () => number;
+} {
+  const filter = createChipFilter({ table, values: items.map(({ value }) => value), matches, initial, persist });
+
+  const options = [
+    { label: allLabel, onClick: () => filter.clear(), close: true },
+    { divider: true },
+    ...items.map(({ value, label }) => ({
+      label,
+      filterValue: value,
+      onClick: () => filter.set([value]),
+      close: true,
+    })),
+  ];
+  const activeIndex = () => {
+    const selected = filter.selected();
+    if (selected?.length !== 1) return 0;
+    return Math.max(items.findIndex(({ value }) => value === selected[0]) + 1, 0);
+  };
+
+  return {
+    chips:
+      items.length <= MAX_CHOICE_CHIPS
+        ? { options: items, isOn: filter.isOn, toggle: filter.toggle, clear: filter.clear }
+        : undefined,
+    options,
+    hasOptions: items.length > 1,
+    isFiltered: filter.isFiltered,
+    activeIndex,
+  };
+}

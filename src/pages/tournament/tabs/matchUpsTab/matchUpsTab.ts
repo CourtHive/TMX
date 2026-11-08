@@ -47,12 +47,14 @@ export function renderMatchUpTab(): void {
 
   const {
     eventOptions,
+    eventChips,
     hasOptions: hasEventOptions,
     isFiltered: isEventFiltered,
     activeIndex: eventActiveIndex,
   } = getMatchUpEventFilter(table, events);
   const {
     flightOptions,
+    flightChips,
     hasOptions: hasFlightOptions,
     isFiltered: isFlightFiltered,
     activeIndex: flightActiveIndex,
@@ -90,13 +92,17 @@ export function renderMatchUpTab(): void {
   const filterSections = [
     {
       label: t('pages.matchUps.allEvents'),
+      chipsLabel: t('pages.matchUps.eventLabel'),
       options: hasEventOptions ? eventOptions : [],
+      chips: hasEventOptions ? eventChips : undefined,
       isFiltered: isEventFiltered,
       activeIndex: eventActiveIndex,
     },
     {
       label: t('pages.matchUps.allFlights'),
+      chipsLabel: t('pages.matchUps.flightLabel'),
       options: hasFlightOptions ? flightOptions : [],
+      chips: hasFlightOptions ? flightChips : undefined,
       isFiltered: isFlightFiltered,
       activeIndex: flightActiveIndex,
     },

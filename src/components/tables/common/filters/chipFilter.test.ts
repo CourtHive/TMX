@@ -1,4 +1,4 @@
-import { chipsFit, createChipFilter } from './chipFilter';
+import { chipsFit, createChipFilter, createChoiceFilter } from './chipFilter';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -105,5 +105,45 @@ describe('chipsFit', () => {
 
   it('one label wider than a row never fits', () => {
     expect(chipsFit(['Battle of Boca FREE Men’s Doubles (Must Be in Singles)'])).toBe(false);
+  });
+});
+
+describe('createChoiceFilter', () => {
+  const ROWS2 = [{ eventId: 'a' }, { eventId: 'b' }, { eventId: 'c' }];
+  const choice = (ids: string[]) => {
+    const table = fakeTable();
+    const filter = createChoiceFilter({
+      table,
+      items: ids.map((value) => ({ value, label: `Event ${value}` })),
+      allLabel: 'All events',
+      matches: (row, value) => row.eventId === value,
+      persist: () => undefined,
+    });
+    return { table, filter };
+  };
+
+  it('two values: chips, and the dropdown alongside', () => {
+    const { filter } = choice(['a', 'b']);
+    expect(filter.chips?.options.map(({ value }) => value)).toEqual(['a', 'b']);
+    expect(filter.options.filter((o: any) => !o.divider)).toHaveLength(3);
+  });
+
+  it('three or more values: the dropdown only', () => {
+    expect(choice(['a', 'b', 'c']).filter.chips).toBeUndefined();
+  });
+
+  it('a dropdown choice selects one value, and the chips and the index agree', () => {
+    const { table, filter } = choice(['a', 'b', 'c']);
+    const option = filter.options.find((o: any) => o.filterValue === 'b');
+    option.onClick();
+    expect(table.rows(ROWS2)).toEqual([{ eventId: 'b' }]);
+    expect(filter.activeIndex()).toBe(2);
+    filter.options[0].onClick();
+    expect(filter.isFiltered()).toBe(false);
+    expect(filter.activeIndex()).toBe(0);
+  });
+
+  it('one value: nothing to choose', () => {
+    expect(choice(['a']).filter.hasOptions).toBe(false);
   });
 });

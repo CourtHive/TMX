@@ -13,6 +13,8 @@ const IS_FILTERING = 'is-filtering';
  */
 type FilterSection = {
   label: string;
+  /** the label above chips, when the dropdown's ("All events") reads oddly there ("Event") */
+  chipsLabel?: string;
   options?: any[];
   chips?: ChipSection;
   isFiltered: () => boolean;
@@ -168,12 +170,12 @@ export function filterPopoverButton(
 
     const label = document.createElement('label');
     label.className = 'filter-popover-label font-medium';
-    label.textContent = section.label;
+    label.textContent = section.chipsLabel ?? section.label;
 
     const group = document.createElement('div');
     group.className = 'filter-popover-chips';
     group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', section.label);
+    group.setAttribute('aria-label', section.chipsLabel ?? section.label);
 
     const buttons = chips.options.map(({ label: text, value }) => {
       const chip = document.createElement('button');

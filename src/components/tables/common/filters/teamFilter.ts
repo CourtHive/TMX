@@ -1,5 +1,4 @@
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
-import { escapeHtml } from 'utilities/escapeHtml';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -55,7 +54,7 @@ export function getTeamFilter({
       .toSorted((a, b) => (a?.participantName ?? '').localeCompare(b?.participantName ?? ''))
       .map((team) => ({
         onClick: () => updateTeamFilter(team.participantId),
-        label: escapeHtml(team.participantName),
+        label: team.participantName, // plain text: the filter popover writes labels with textContent
         filterValue: team.participantId,
         close: true,
       })),

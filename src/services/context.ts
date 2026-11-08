@@ -17,8 +17,9 @@ export const context: {
   };
   columns: Record<string, any>;
   matchUpFilters: {
-    eventId?: string;
-    drawId?: string;
+    /** chip / choice filters: the values selected; absent when there is no filter */
+    eventIds?: string[];
+    drawIds?: string[];
     teamId?: string;
     status?: string;
     /** chip filters: the values that are on; absent when every chip is on */
