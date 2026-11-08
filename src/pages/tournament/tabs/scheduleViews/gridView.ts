@@ -2998,9 +2998,12 @@ function buildCurrentCourtBlocks(date: string, dayBlocks: any[]): Record<string,
     const registrantNames = block.type === 'PRACTICE' ? activeRegsByCourtId[courtId] : undefined;
     const detail = registrantNames?.length ? registrantNames.join(', ') : block.reason || undefined;
 
+    // Type and window are separate fields so the banner stacks them: the window gets its own line
+    // and is never ellipsized at the column floor. The banner drops a detail that repeats the type.
     courtBlocks[courtId] = {
       type: block.type,
-      label: `${block.type} ${formatHM(start)}–${formatHM(end)}`,
+      label: block.type,
+      timeRange: `${formatHM(start)}–${formatHM(end)}`,
       detail,
     };
   }
