@@ -2612,7 +2612,9 @@
       "statusLabel": "Status",
       "statusDetailLabel": "Status detail",
       "anyStatusDetail": "Any detail",
-      "statusStripLabel": "Quick status filter"
+      "statusStripLabel": "Quick status filter",
+      "eventLabel": "Event",
+      "flightLabel": "Flight"
     },
     "schedule": {
       "searchParticipants": "Search participants",
