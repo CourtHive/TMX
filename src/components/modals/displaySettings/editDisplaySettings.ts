@@ -1,6 +1,7 @@
 import { getUserCompositionsSync, loadUserCompositions } from 'pages/templates/compositionBridge';
 import { mocksEngine, queryGovernor, tools, extensionConstants } from 'tods-competition-factory';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { defaultDrawComposition } from 'services/compositions/defaultDrawComposition';
 import { compositions, renderMatchUp, renderForm, showsConnectors } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
@@ -35,11 +36,17 @@ export async function editDisplaySettings(params) {
 
   const noScheduleInfo = new Set(['Wimbledon', 'French', 'ITF']);
   const saveId = 'saveDisplaySettings';
-  const initialName = scopedValue?.compositionName ?? displayConfig.get().composition?.compositionName ?? 'Australian';
+  // nothing saved: the composition the draw view draws with, so the modal opens on what is on screen
+  const eventType = tournamentEngine.getEvent({ eventId, drawId })?.event?.eventType;
+  const fallback = scopedValue?.compositionName ? undefined : defaultDrawComposition({ eventType, drawId, eventId });
+  const initialName = scopedValue?.compositionName ?? fallback?.compositionName;
   // the saved snapshot belongs to the composition it was saved with, never to one chosen after it
   const snapshotFor = (compositionName) =>
     compositionName === scopedValue?.compositionName ? scopedValue?.configuration : undefined;
-  const initialConfiguration = snapshotFor(initialName) ?? resolveCompositionByName(initialName)?.configuration;
+  const initialConfiguration =
+    snapshotFor(initialName) ??
+    fallback?.composition.configuration ??
+    resolveCompositionByName(initialName)?.configuration;
   // whether a composition draws its connectors: its saved choice, else the theme's own (BasicCard hides them)
   const connectorsFor = (compositionName, configuration) => {
     const theme =
