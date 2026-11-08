@@ -7,6 +7,7 @@
  */
 import { STATUS_BUCKETS, statusBucketOf } from 'components/tables/common/filters/matchUpStatusPredicates';
 import type { ChipFilter, ChipSection } from 'components/tables/common/filters/chipFilter';
+import { paintChipColor } from 'components/tables/common/filters/chipFilter';
 import { t } from 'i18n';
 
 type StripArgs = {
@@ -39,11 +40,12 @@ export function mountStatusQuickStrip({ table, element, chips, bucketFilter, onT
   element.setAttribute('role', 'group');
   element.setAttribute('aria-label', t('pages.matchUps.statusStripLabel'));
 
-  const buttons = chips.options.map(({ value, label }) => {
+  const buttons = chips.options.map(({ value, label, color, ink }) => {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'filter-popover-chip tmx-status-strip-chip font-medium';
     chip.dataset.value = value;
+    paintChipColor(chip, { color, ink });
     const name = document.createElement('span');
     name.textContent = label;
     const count = document.createElement('span');

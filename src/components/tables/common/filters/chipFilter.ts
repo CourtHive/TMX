@@ -12,7 +12,8 @@
  */
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 
-export type ChipOption = { label: string; value: string };
+/** `color` and `ink`: the chip's fill when on and its text on that fill; absent, the accent */
+export type ChipOption = { label: string; value: string; color?: string; ink?: string };
 
 export type ChipSection = {
   options: ChipOption[];
@@ -187,4 +188,10 @@ export function createChoiceFilter({
     isFiltered: filter.isFiltered,
     activeIndex,
   };
+}
+
+/** A chip's own colour, as custom properties its stylesheet reads: the bars' colour for the bucket it filters. */
+export function paintChipColor(chip: HTMLElement, { color, ink }: { color?: string; ink?: string }): void {
+  if (color) chip.style.setProperty('--chip-color', color);
+  if (ink) chip.style.setProperty('--chip-ink', ink);
 }

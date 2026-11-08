@@ -14,6 +14,7 @@ import { classifyTodayBucket, popoverStatusPredicate, TODAY_STATUS_PREFIX } from
 import { createChipFilter, type ChipFilter, type ChipSection } from './chipFilter';
 import { STATUS_BUCKETS, statusBucketOf } from './matchUpStatusPredicates';
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
+import { STATUS_BUCKET_COLORS } from './statusColors';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -35,7 +36,11 @@ export function getMatchUpStatusFilter(table: any): {
   onBucketsChange: (listener: () => void) => void;
 } {
   const listeners = new Set<() => void>();
-  const bucketOptions = STATUS_BUCKETS.map((value) => ({ value, label: t(BUCKET_LABELS[value]) }));
+  const bucketOptions = STATUS_BUCKETS.map((value) => ({
+    value,
+    label: t(BUCKET_LABELS[value]),
+    ...STATUS_BUCKET_COLORS[value],
+  }));
   const bucketFilter = createChipFilter({
     table,
     values: [...STATUS_BUCKETS],

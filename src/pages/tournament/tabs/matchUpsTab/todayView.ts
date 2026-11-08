@@ -7,6 +7,7 @@
  * independent of the popover status filter, so it stays a stable dashboard of
  * every status while a status drill-down is active.
  */
+import { TODAY_COLORS } from 'components/tables/common/filters/statusColors';
 import {
   classifyTodayBucket,
   TODAY_BUCKETS,
@@ -17,16 +18,16 @@ import { t } from 'i18n';
 
 export type TodayCounts = Record<TodayBucket, number>;
 
-// Segment colours reuse the ecosystem status tokens (both light/dark themed).
+// Segment colours reuse the ecosystem status tokens (both light/dark themed), shared with the status chips.
 export function getTodaySegments(): SegmentDef[] {
   return [
-    { key: 'complete', label: t('pages.matchUps.complete'), color: 'var(--chc-status-success, #16a34a)' },
-    { key: 'live', label: t('pages.matchUps.live'), color: 'var(--chc-status-info, #3b82f6)' },
-    { key: 'suspended', label: t('pages.matchUps.suspended'), color: 'var(--chc-status-warning, #d97706)' },
+    { key: 'complete', label: t('pages.matchUps.complete'), color: TODAY_COLORS.complete },
+    { key: 'live', label: t('pages.matchUps.live'), color: TODAY_COLORS.live },
+    { key: 'suspended', label: t('pages.matchUps.suspended'), color: TODAY_COLORS.suspended },
     // Called sits between suspended and ready: already sent on court, not yet started.
-    { key: 'called', label: t('pages.matchUps.called'), color: 'var(--chc-status-violet, #7c3aed)' },
-    { key: 'readyToScore', label: t('pages.matchUps.readyToScore'), color: 'var(--chc-status-teal, #0d9488)' },
-    { key: 'notReady', label: t('pages.matchUps.notReady'), color: 'var(--chc-text-muted, #6b7280)' },
+    { key: 'called', label: t('pages.matchUps.called'), color: TODAY_COLORS.called },
+    { key: 'readyToScore', label: t('pages.matchUps.readyToScore'), color: TODAY_COLORS.readyToScore },
+    { key: 'notReady', label: t('pages.matchUps.notReady'), color: TODAY_COLORS.notReady },
   ];
 }
 

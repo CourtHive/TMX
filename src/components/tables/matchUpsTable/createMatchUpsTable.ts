@@ -4,6 +4,7 @@
  */
 import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
 import { headerSortElement } from '../common/sorters/headerSortElement';
@@ -72,6 +73,8 @@ export function createMatchUpsTable({ footerElement }: { footerElement?: HTMLEle
       columns,
       data,
     });
+    // to the window's bottom, footer chips and all — not a fraction of the window (fitTableToViewportBottom)
+    table.on('tableBuilt', () => fitTableToViewportBottom(table, element, { gap: 8 }));
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
       headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
