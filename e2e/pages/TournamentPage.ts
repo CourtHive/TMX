@@ -27,10 +27,9 @@ export class TournamentPage {
 
   /**
    * Navigate to the Events tab AND ensure the Tabulator table view is
-   * active. The events tab now defaults to table view, but specs may
-   * have previously toggled to cards in this browser context — this
-   * helper is idempotent because the toggle's onChange early-returns
-   * when mode already matches.
+   * active. The events tab defaults to cards (since 2026-11-08), so this
+   * switches to the table when needed — idempotent, because the toggle's
+   * onChange early-returns when mode already matches.
    */
   async navigateToEvents() {
     await this.page.locator(S.NAV_EVENTS).click();

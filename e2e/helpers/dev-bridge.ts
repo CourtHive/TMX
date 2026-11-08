@@ -34,7 +34,7 @@ export async function resetState(page: Page): Promise<void> {
 
 /**
  * Clear the persisted events-view mode so the next `navigateToEvents*`
- * sees the fresh-visit default (table). Use in `beforeEach` of specs
+ * sees the fresh-visit default (cards, since 2026-11-08). Use in `beforeEach` of specs
  * that assert default-view behaviour.
  */
 export async function resetEventsViewMode(page: Page): Promise<void> {
@@ -49,7 +49,7 @@ export async function resetEventsViewMode(page: Page): Promise<void> {
 
 /**
  * Clear the persisted draws-view mode + draw-card display mode so
- * draws-list specs see the fresh-visit defaults (table view, no viz).
+ * draws-list specs see the fresh-visit defaults (cards view since 2026-11-08, no viz).
  */
 export async function resetDrawsViewState(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -64,9 +64,8 @@ export async function resetDrawsViewState(page: Page): Promise<void> {
 
 /**
  * Force the draws-list view into Tabulator/table mode so specs that target
- * `.tabulator-row` selectors keep working. As of f2a85a90 the draws-list
- * defaults to table mode, so this matches the current default — but pinning it
- * explicitly keeps such specs robust against future default changes.
+ * `.tabulator-row` selectors keep working. The draws-list defaults to cards
+ * (2026-11-08; it was table from f2a85a90), so table-mode specs must opt in.
  */
 export async function ensureDrawsTableMode(page: Page): Promise<void> {
   await page.evaluate(() => {
@@ -79,9 +78,9 @@ export async function ensureDrawsTableMode(page: Page): Promise<void> {
 }
 
 /**
- * Force the draws-list view into card-grid mode. The draws-list defaults to
- * table mode (f2a85a90), so card-grid specs (e.g. draw-card visualizations)
- * must opt in explicitly rather than relying on the default.
+ * Force the draws-list view into card-grid mode. Cards are the default since
+ * 2026-11-08; pinning it keeps card-grid specs (e.g. draw-card visualizations)
+ * independent of the default.
  */
 export async function ensureDrawsGridMode(page: Page): Promise<void> {
   await page.evaluate(() => {
