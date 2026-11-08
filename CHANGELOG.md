@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.52.0](https://github.com/CourtHive/TMX/compare/v8.51.0...v8.52.0) (2026-11-08)
+
+
+### Features
+
+* **draws:** the topology's acceptance line, ranked by the active scale and applied with the draw ([#1950](https://github.com/CourtHive/TMX/issues/1950)) ([d7fb667](https://github.com/CourtHive/TMX/commit/d7fb6674ddecf232e48c187c96afa875b38bdec4))
+* **matchups:** the chips take the bars' colours, and the table reaches the window's bottom ([#1951](https://github.com/CourtHive/TMX/issues/1951)) ([b9bfb9b](https://github.com/CourtHive/TMX/commit/b9bfb9b923bde9760eded5a7161a3d0c9a00007b))
+
 ## [8.51.0](https://github.com/CourtHive/TMX/compare/v8.50.1...v8.51.0) (2026-11-08)
 
 
