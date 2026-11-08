@@ -1485,6 +1485,8 @@ img {
 .tmx-status-strip {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
   gap: 6px;
   padding: 6px 8px;
 }
