@@ -2582,7 +2582,6 @@
       "allEvents": "All events",
       "allFlights": "All flights",
       "allTeams": "All teams",
-      "allStatuses": "All statuses",
       "allDates": "All dates",
       "today": "Today",
       "noDate": "No date",
@@ -2609,7 +2608,11 @@
       "team": "Team",
       "opponents": "Opponents",
       "typeLabel": "Type",
-      "profileLabel": "Profile"
+      "profileLabel": "Profile",
+      "statusLabel": "Status",
+      "statusDetailLabel": "Status detail",
+      "anyStatusDetail": "Any detail",
+      "statusStripLabel": "Quick status filter"
     },
     "schedule": {
       "searchParticipants": "Search participants",

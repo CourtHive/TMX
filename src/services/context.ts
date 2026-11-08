@@ -24,6 +24,7 @@ export const context: {
     /** chip filters: the values that are on; absent when every chip is on */
     profile?: string[];
     type?: string[];
+    statusBuckets?: string[];
     search?: string;
     scheduledDate?: string;
   };

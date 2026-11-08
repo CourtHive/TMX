@@ -1467,6 +1467,35 @@ img {
   outline-offset: 2px;
 }
 
+/* ── MatchUps footer: the status chips with counts (statusQuickStrip) ── */
+.tmx-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.tmx-status-strip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.tmx-status-strip-count {
+  min-width: 1.6em;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tmx-status-strip-chip[data-on='true'] .tmx-status-strip-count {
+  background: var(--tmx-text-inverse);
+  color: var(--tmx-fill-accent);
+}
+
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */
 .clear-filters-btn {
   display: inline-block;

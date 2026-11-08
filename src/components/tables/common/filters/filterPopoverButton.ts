@@ -45,6 +45,8 @@ function destroyTip() {
 export function filterPopoverButton(
   sections: FilterSection[],
   onClearAll?: () => void,
+  /** after any filter in the popover changes: another surface showing the same filters can repaint */
+  onChange?: () => void,
 ): { item: any; updateBadge: () => void; clearAllFilters: () => void } {
   const visibleSections = sections.filter((s) => (s.chips?.options.length ?? 0) > 1 || (s.options?.length ?? 0) > 0);
 
@@ -52,6 +54,7 @@ export function filterPopoverButton(
     for (const section of visibleSections) resetSection(section);
     updateBadge();
     onClearAll?.();
+    onChange?.();
   };
 
   const updateBadge = () => {
@@ -97,6 +100,7 @@ export function filterPopoverButton(
       }
       updateBadge();
       onClearAll?.();
+      onChange?.();
     };
     header.appendChild(clearAll);
 
@@ -145,6 +149,7 @@ export function filterPopoverButton(
         if (selectedOpt?.onClick) selectedOpt.onClick();
         row.classList.toggle(IS_FILTERING, section.isFiltered());
         updateBadge();
+        onChange?.();
       });
 
       row.appendChild(select);
@@ -182,6 +187,7 @@ export function filterPopoverButton(
         paint();
         row.classList.toggle(IS_FILTERING, section.isFiltered());
         updateBadge();
+        onChange?.();
       });
       return chip;
     });

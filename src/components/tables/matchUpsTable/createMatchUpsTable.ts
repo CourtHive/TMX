@@ -23,7 +23,12 @@ import { NONE, TOURNAMENT_MATCHUPS } from 'constants/tmxConstants';
 
 const { ratingsParameters } = fixtures;
 
-export function createMatchUpsTable(): { table: any; data: any[]; replaceTableData: () => void } {
+/** `footerElement`: Tabulator's own footer slot, which the matchUps tab fills with its status chips. */
+export function createMatchUpsTable({ footerElement }: { footerElement?: HTMLElement } = {}): {
+  table: any;
+  data: any[];
+  replaceTableData: () => void;
+} {
   let table: any;
 
   const { setFocusData } = hotKeyScoring();
@@ -61,6 +66,7 @@ export function createMatchUpsTable(): { table: any; data: any[]; replaceTableDa
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: t('ui.noMatches'),
       layout: 'fitColumns',
+      ...(footerElement && { footerElement }),
       reactiveData: true,
       index: 'matchUpId',
       columns,
