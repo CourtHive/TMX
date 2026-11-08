@@ -3,7 +3,6 @@
  * Provides form for creating new draw/flight with matchUp format and generation options.
  */
 import { clampToTarget, selectTarget, targetNotice, type QualifyingTarget } from './qualifyingTargets';
-import { mountRoundProfileEditor, RoundProfileEditorController } from './roundProfileEditor';
 import { attachTopologyStructures, topologyDrawEntries } from './topologyPostGeneration';
 import { getDrawFormItems, QUALIFYING_TARGET_NOTICE_ID } from './getDrawFormItems';
 import { getMatchFormatLabels } from 'components/modals/matchFormatLabels';
@@ -29,10 +28,12 @@ const ROTATING_CONFIG_ERROR = 'rotatingPartners.creation.configError';
 const { LUCKY_DRAW, MAIN } = drawDefinitionConstants;
 import {
   getMatchUpFormatModal,
+  mountRoundProfileEditor,
   renderButtons,
   renderForm,
   validators,
   topologyToDrawOptions,
+  type RoundProfileEditorController,
 } from 'courthive-components';
 
 // constants
@@ -115,7 +116,15 @@ export function addDraw({
     // strip the explicit roundProfile is sent to the factory, otherwise the
     // submit just lets the factory derive the default ceil-halving cascade.
     const initialDrawSize = Number.parseInt(inputs[DRAW_SIZE]?.value) || 0;
-    roundProfileEditor = mountRoundProfileEditor(elem, { drawSize: initialDrawSize });
+    roundProfileEditor = mountRoundProfileEditor(elem, {
+      drawSize: initialDrawSize,
+      labels: {
+        title: t('addDrawForm.roundProfile'),
+        subtitle: t('addDrawForm.matchUpsPerRound'),
+        reset: t('formatWizard.reset'),
+        evenDrawSizeRequired: t('addDrawForm.evenDrawSize'),
+      },
+    });
     roundProfileEditor.setVisible(false);
 
     const drawTypeInput = inputs[DRAW_TYPE] as HTMLSelectElement | undefined;
