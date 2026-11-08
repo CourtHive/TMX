@@ -46,6 +46,8 @@ html {
   --tmx-text-inverse: var(--chc-text-inverse);
   /* text on a status fill (the status chips): white on light's deep status colours, dark on dark's light ones */
   --tmx-on-status: #ffffff;
+  /* text on a fill that is dark in both themes (the teal, which no palette lightens) */
+  --tmx-on-dark-fill: #ffffff;
 
   /* Borders */
   --tmx-border-primary: var(--chc-border-primary);

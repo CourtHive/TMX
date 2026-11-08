@@ -12,7 +12,7 @@
 export type ChipColor = { color: string; ink: string };
 
 // text on a status fill: white in light, dark in dark, where the status colours are light (theme.css)
-const STATUS_INK = 'var(--tmx-on-status, #ffffff)';
+const STATUS_INK = 'var(--tmx-on-status)';
 
 export const TODAY_COLORS = {
   complete: 'var(--chc-status-success, #16a34a)',
@@ -25,7 +25,7 @@ export const TODAY_COLORS = {
 
 export const STATUS_BUCKET_COLORS: Record<string, ChipColor> = {
   // --chc-status-teal is defined by no palette: the teal is its #0d9488 fallback, dark in both themes, so white
-  toBePlayed: { color: TODAY_COLORS.readyToScore, ink: '#ffffff' },
+  toBePlayed: { color: TODAY_COLORS.readyToScore, ink: 'var(--tmx-on-dark-fill)' },
   live: { color: TODAY_COLORS.live, ink: STATUS_INK },
   suspended: { color: TODAY_COLORS.suspended, ink: STATUS_INK },
   complete: { color: TODAY_COLORS.complete, ink: STATUS_INK },
