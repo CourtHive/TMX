@@ -30,6 +30,8 @@ type ChipFilterArgs = {
   /** the saved selection, as `persist` last received it */
   initial?: string[];
   persist: (selected: string[] | undefined) => void;
+  /** after every change, so a second surface showing the same chips (the matchUps footer) can repaint */
+  onChange?: () => void;
 };
 
 export type ChipFilter = {
@@ -40,9 +42,11 @@ export type ChipFilter = {
   clear: () => void;
   selected: () => string[] | undefined;
   isFiltered: () => boolean;
+  /** the function this filter installs on the table, so a count can apply every filter but this one */
+  rowFilter: (rowData: any) => boolean;
 };
 
-export function createChipFilter({ table, values, matches, initial, persist }: ChipFilterArgs): ChipFilter {
+export function createChipFilter({ table, values, matches, initial, persist, onChange }: ChipFilterArgs): ChipFilter {
   const normalize = (candidate?: string[]): Set<string> | undefined => {
     const kept = (candidate ?? []).filter((value) => values.includes(value));
     if (!kept.length || kept.length >= values.length) return undefined;
@@ -70,6 +74,7 @@ export function createChipFilter({ table, values, matches, initial, persist }: C
       table.addFilter(rowFilter);
       applied = true;
     }
+    onChange?.();
   };
 
   const isOn = (value: string) => !selected || selected.has(value);
@@ -91,6 +96,7 @@ export function createChipFilter({ table, values, matches, initial, persist }: C
     clear: () => apply(undefined),
     selected: () => (selected ? [...selected] : undefined),
     isFiltered: () => !!selected,
+    rowFilter,
   };
 }
 

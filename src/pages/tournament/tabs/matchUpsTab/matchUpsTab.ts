@@ -9,6 +9,7 @@ import { getMatchUpFlightFilter } from 'components/tables/common/filters/matchUp
 import { getMatchUpStatusFilter } from 'components/tables/common/filters/matchUpStatusFilter';
 import { getMatchUpEventFilter } from 'components/tables/common/filters/matchUpEventFilter';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
+import { mountStatusQuickStrip } from 'pages/tournament/tabs/matchUpsTab/statusQuickStrip';
 import { createMatchUpsTable } from 'components/tables/matchUpsTable/createMatchUpsTable';
 import { getMatchUpTeamFilter } from 'components/tables/common/filters/matchUpTeamFilter';
 import { getMatchUpTypeFilter } from 'components/tables/common/filters/matchUpTypeFilter';
@@ -30,7 +31,9 @@ import { t } from 'i18n';
 import { LEFT, MATCHUPS_CONTROL, NONE, OVERLAY, RIGHT, TEAM_STATS } from 'constants/tmxConstants';
 
 export function renderMatchUpTab(): void {
-  const { data, table, replaceTableData } = createMatchUpsTable();
+  // the table's footer holds the status chips (statusQuickStrip); Tabulator needs the element when it builds
+  const statusFooter = document.createElement('div');
+  const { data, table, replaceTableData } = createMatchUpsTable({ footerElement: statusFooter });
   context.refreshActiveTable = replaceTableData;
   const statsPanel = document.getElementById(TEAM_STATS)!;
   statsPanel.style.display = NONE;
@@ -66,6 +69,9 @@ export function renderMatchUpTab(): void {
     activeIndex: statusActiveIndex,
     setStatus,
     getStatus,
+    statusChips,
+    bucketFilter,
+    onBucketsChange,
   } = getMatchUpStatusFilter(table);
   const { chips: profileChips, isFiltered: isProfileFiltered, setProfile, getProfile } = getMatchUpProfileFilter(table);
   const {
@@ -100,8 +106,9 @@ export function renderMatchUpTab(): void {
       isFiltered: isTeamFiltered,
       activeIndex: teamActiveIndex,
     },
+    { label: t('pages.matchUps.statusLabel'), chips: statusChips, isFiltered: bucketFilter.isFiltered },
     {
-      label: t('pages.matchUps.allStatuses'),
+      label: t('pages.matchUps.statusDetailLabel'),
       options: statusOptions,
       isFiltered: isStatusFiltered,
       activeIndex: statusActiveIndex,
@@ -117,7 +124,12 @@ export function renderMatchUpTab(): void {
   ];
   // Assigned once the bars are mounted; "Clear All" reverts the bar to competitiveness.
   let resetBarsToCompetitiveness: () => void = () => {};
-  const { item: filterButton, updateBadge } = filterPopoverButton(filterSections, () => resetBarsToCompetitiveness());
+  let refreshStrip: () => void = () => {};
+  const { item: filterButton, updateBadge } = filterPopoverButton(
+    filterSections,
+    () => resetBarsToCompetitiveness(),
+    () => refreshStrip(),
+  );
 
   const items = [
     {
@@ -156,6 +168,16 @@ export function renderMatchUpTab(): void {
   // See renderIndividuals for the participants-tab equivalent.
   updateBadge();
 
+  const strip = mountStatusQuickStrip({
+    table,
+    element: statusFooter,
+    chips: statusChips,
+    bucketFilter,
+    onToggle: updateBadge,
+  });
+  refreshStrip = strip.refresh;
+  onBucketsChange(strip.refresh);
+
   const optionsCenter = target.getElementsByClassName('options_center')[0] as HTMLElement | undefined;
   const optionsLeft = target.getElementsByClassName('options_left')[0] as HTMLElement | undefined;
   if (optionsCenter && optionsLeft) {
@@ -163,7 +185,11 @@ export function renderMatchUpTab(): void {
       table,
       optionsCenter,
       optionsLeft,
-      updateBadge,
+      // a bar segment changes a filter: the badge, and the strip's counts
+      updateBadge: () => {
+        updateBadge();
+        strip.refresh();
+      },
       data,
       filters: { setStatus, getStatus, setProfile, getProfile, setDate, getDate },
     });

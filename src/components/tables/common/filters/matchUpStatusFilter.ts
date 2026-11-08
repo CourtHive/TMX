@@ -1,16 +1,28 @@
 /**
- * MatchUp status filter for filterPopoverButton.
- * Filters matchUps by status: to be played (incl. suspended), suspended,
- * ready to score, complete, retired, or irregular ending.
+ * MatchUp status filter for filterPopoverButton, in two parts (CA 2026-11-08):
+ *
+ *   - status chips: To be played / Live / Suspended / Complete, a partition, any combination on. The same chips
+ *     sit in the matchUps table's footer with counts (statusQuickStrip), one click from the table
+ *   - the detail dropdown: what the chips do not say — ready to score, retired, irregular ending, abandoned,
+ *     cancelled, and schedule locked. It ANDs with the chips
  *
  * Also honours the Today-view bar's partition tokens (prefixed `today:`) so a
  * single status filter backs both the popover and the bar. See
  * matchUpStatusPredicates for the shared classification.
  */
 import { classifyTodayBucket, popoverStatusPredicate, TODAY_STATUS_PREFIX } from './matchUpStatusPredicates';
+import { createChipFilter, type ChipFilter, type ChipSection } from './chipFilter';
+import { STATUS_BUCKETS, statusBucketOf } from './matchUpStatusPredicates';
 import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
 import { context } from 'services/context';
 import { t } from 'i18n';
+
+const BUCKET_LABELS: Record<string, string> = {
+  toBePlayed: 'pages.matchUps.toBePlayed',
+  live: 'pages.matchUps.live',
+  suspended: 'pages.matchUps.suspended',
+  complete: 'pages.matchUps.complete',
+};
 
 export function getMatchUpStatusFilter(table: any): {
   statusOptions: any[];
@@ -18,7 +30,21 @@ export function getMatchUpStatusFilter(table: any): {
   activeIndex: () => number;
   setStatus: (status?: string) => void;
   getStatus: () => string | undefined;
+  statusChips: ChipSection;
+  bucketFilter: ChipFilter;
+  onBucketsChange: (listener: () => void) => void;
 } {
+  const listeners = new Set<() => void>();
+  const bucketOptions = STATUS_BUCKETS.map((value) => ({ value, label: t(BUCKET_LABELS[value]) }));
+  const bucketFilter = createChipFilter({
+    table,
+    values: [...STATUS_BUCKETS],
+    matches: (rowData, value) => statusBucketOf(rowData) === value,
+    initial: context.matchUpFilters.statusBuckets,
+    persist: (selected) => (context.matchUpFilters.statusBuckets = selected),
+    onChange: () => listeners.forEach((listener) => listener()),
+  });
+
   let filterValue: string | undefined = context.matchUpFilters.status;
 
   // Tabulator warns "Filter Error - No matching filter type found" when
@@ -53,65 +79,29 @@ export function getMatchUpStatusFilter(table: any): {
     }
   };
 
-  const allLabel = t('pages.matchUps.allStatuses');
+  const allLabel = t('pages.matchUps.anyStatusDetail');
   const allOption = {
     label: `<span style='font-weight: bold'>${allLabel}</span>`,
     onClick: () => updateFilter(),
     close: true,
   };
+  // the chips say to be played, suspended and complete; the dropdown says what they do not
+  const detail = (key: string, value: string) => ({
+    label: t(`pages.matchUps.${key}`),
+    close: true,
+    onClick: () => updateFilter(value),
+    filterValue: value,
+  });
   const statusOptions = [
     allOption,
     { divider: true },
-    {
-      label: t('pages.matchUps.toBePlayed'),
-      close: true,
-      onClick: () => updateFilter('toBePlayed'),
-      filterValue: 'toBePlayed',
-    },
-    {
-      label: t('pages.matchUps.suspended'),
-      close: true,
-      onClick: () => updateFilter('suspended'),
-      filterValue: 'suspended',
-    },
-    {
-      label: t('pages.matchUps.readyToScore'),
-      close: true,
-      onClick: () => updateFilter('readyToScore'),
-      filterValue: 'readyToScore',
-    },
-    {
-      label: t('pages.matchUps.complete'),
-      close: true,
-      onClick: () => updateFilter('complete'),
-      filterValue: 'complete',
-    },
-    { label: t('pages.matchUps.retired'), close: true, onClick: () => updateFilter('retired'), filterValue: 'retired' },
-    {
-      label: t('pages.matchUps.irregularEnding'),
-      close: true,
-      onClick: () => updateFilter('irregularEnding'),
-      filterValue: 'irregularEnding',
-    },
-    {
-      label: t('pages.matchUps.abandoned'),
-      close: true,
-      onClick: () => updateFilter('abandoned'),
-      filterValue: 'abandoned',
-    },
-    {
-      label: t('pages.matchUps.cancelled'),
-      close: true,
-      onClick: () => updateFilter('cancelled'),
-      filterValue: 'cancelled',
-    },
+    detail('readyToScore', 'readyToScore'),
+    detail('retired', 'retired'),
+    detail('irregularEnding', 'irregularEnding'),
+    detail('abandoned', 'abandoned'),
+    detail('cancelled', 'cancelled'),
     { divider: true },
-    {
-      label: t('pages.matchUps.scheduleLocked'),
-      close: true,
-      onClick: () => updateFilter('scheduleLocked'),
-      filterValue: 'scheduleLocked',
-    },
+    detail('scheduleLocked', 'scheduleLocked'),
   ];
 
   const selectableOptions = statusOptions.filter((opt: any) => !opt.divider);
@@ -129,5 +119,13 @@ export function getMatchUpStatusFilter(table: any): {
     activeIndex,
     setStatus: updateFilter,
     getStatus: () => filterValue,
+    statusChips: {
+      options: bucketOptions,
+      isOn: bucketFilter.isOn,
+      toggle: bucketFilter.toggle,
+      clear: bucketFilter.clear,
+    },
+    bucketFilter,
+    onBucketsChange: (listener: () => void) => listeners.add(listener),
   };
 }
