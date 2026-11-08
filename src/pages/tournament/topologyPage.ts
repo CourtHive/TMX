@@ -17,12 +17,16 @@ import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderFor
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { acceptanceEntries, entryChangeMethods, withEntryChanges } from 'components/drawers/addDraw/acceptanceEntries';
+import type { EntryChange } from 'components/drawers/addDraw/acceptanceEntries';
 import { generateDraw } from 'components/drawers/addDraw/generateDraw';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { showTopology } from 'services/transitions/screenSlaver';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 
 // constants
@@ -82,7 +86,13 @@ export function renderTopologyPage({
     // A draw being built opens in Fit mode: how the event's entries would fill it, with levers (CA, 2026-11-08). A
     // made draw's entries are placed already, so it has no fit to ask for.
     ...(!drawId &&
-      !readOnly && { mode: 'fit' as const, drawFit: (state: TopologyState) => drawFitFor({ state, eventId }) }),
+      !readOnly && {
+        mode: 'fit' as const,
+        drawFit: (state: TopologyState, trial?: { entryChanges: EntryChange[] }) =>
+          drawFitFor({ state, eventId, entryChanges: trial?.entryChanges }),
+        // the acceptance line: the event's MAIN entries, ranked by the active rating scale
+        acceptance: { entries: () => rankedMainEntries(eventId) },
+      }),
     onGenerate: readOnly ? undefined : (state: TopologyState) => handleGenerate({ state, eventId, drawId }),
     onSaveTemplate: readOnly ? undefined : (state: TopologyState) => handleSaveTemplate({ state }),
     onDoubleClickNode: readOnly
@@ -121,14 +131,37 @@ export function renderTopologyPage({
  * The factory's fit for the draw a topology describes: the same draw options Generate makes (`topologyToDrawOptions`),
  * asked of `getDrawFit`, which runs the generator and attaches nothing.
  */
-function drawFitFor({ state, eventId }: { state: TopologyState; eventId: string }): any {
+function drawFitFor({
+  state,
+  eventId,
+  entryChanges,
+}: {
+  state: TopologyState;
+  eventId: string;
+  /** the acceptance line's pending changes: the fit is asked about the entries as they would be */
+  entryChanges?: EntryChange[];
+}): any {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return undefined;
   const { drawOptions } = topologyToDrawOptions(state);
   return tournamentEngine.getDrawFit({
     ...drawOptions,
-    drawEntries: topologyFitEntries({ event, state }),
+    drawEntries: withEntryChanges(topologyFitEntries({ event, state }), entryChanges),
     eventId,
+  });
+}
+
+/** The event's MAIN entries for the acceptance line, best first by the active rating scale. */
+function rankedMainEntries(eventId: string) {
+  const event = tournamentEngine.q.event({ eventId });
+  if (!event) return [];
+  const { participants = [] } =
+    tournamentEngine.getParticipants({ withScaleValues: true, withIndividualParticipants: true }) ?? {};
+  return acceptanceEntries({
+    entries: event.entries ?? [],
+    participants,
+    eventType: event.eventType,
+    ratingScale: scalesMap[preferencesConfig.get().activeScale?.toLowerCase()],
   });
 }
 
@@ -140,7 +173,11 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return;
 
-  drawOptions.drawEntries = topologyDrawEntries({ event, state });
+  // the acceptance line's pending changes: the draw is made from the entries as they will be, and the changes are
+  // applied in the same request that adds it
+  const entryChanges = currentControl?.getEntryChanges?.() ?? [];
+  const entries = withEntryChanges(event.entries ?? [], entryChanges);
+  drawOptions.drawEntries = topologyDrawEntries({ event: { ...event, entries }, state });
 
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
@@ -168,7 +205,12 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
     });
   };
 
-  generateDraw({ drawOptions, eventId, callback: postGeneration });
+  generateDraw({
+    drawOptions,
+    eventId,
+    callback: postGeneration,
+    entryMethods: entryChangeMethods(eventId, entryChanges),
+  });
 }
 
 function handleSaveTemplate({ state }: { state: TopologyState }): void {

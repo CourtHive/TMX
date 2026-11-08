@@ -25,10 +25,16 @@ export function generateDraw({
   eventId,
   drawOptions,
   callback,
+  entryMethods = [],
 }: {
   eventId: string;
   drawOptions: any;
   callback?: (result: any) => void;
+  /**
+   * Entry status changes to apply in the same request, BEFORE the draw is added: the topology Fit mode's acceptance
+   * line. The draw is generated from entries that already carry them, so the two land together or not at all.
+   */
+  entryMethods?: any[];
 }): void {
   const { isDraft, confirmedReplace, ...restOptions } = drawOptions;
 
@@ -41,7 +47,8 @@ export function generateDraw({
       query:
         'This draw has completed matches. Regenerating will discard them. A recoverable snapshot is saved. Continue?',
       okIntent: IS_WARNING,
-      okAction: () => generateDraw({ eventId, drawOptions: { ...drawOptions, confirmedReplace: true }, callback }),
+      okAction: () =>
+        generateDraw({ eventId, drawOptions: { ...drawOptions, confirmedReplace: true }, callback, entryMethods }),
     });
     return;
   }
@@ -58,6 +65,7 @@ export function generateDraw({
     const drawDefinition = result.drawDefinition;
     const drawId = drawDefinition.drawId;
     const methods: any[] = [
+      ...entryMethods,
       {
         method: ADD_DRAW_DEFINITION,
         params: { eventId, drawDefinition, allowReplacement: true, force: !!confirmedReplace },
