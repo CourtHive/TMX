@@ -7,9 +7,10 @@ import {
   readinessRank,
   matchUpStructureSequences,
   structureSequences,
+  FRESH,
   ON_COURT,
-  READY,
   RECOVERING,
+  RESTED,
 } from './catalogOrder';
 
 // constants and types
@@ -33,42 +34,56 @@ function row(overrides: Partial<RestRow>): RestRow {
 
 const result = (...rows: RestRow[]): RestResult => ({ evaluated: true, ...MEASURED, rows });
 
+const fresh = () => result(row({ status: 'none' }), row({ status: 'none' }));
 const rested = (restMinutes = 90) => result(row({ status: 'rested', restMinutes }), row({ status: 'none' }));
 const resting = (restMinutes: number) => result(row({ status: 'resting', restMinutes }), row({ status: 'none' }));
 const onCourt = () => result(row({ status: 'onCourt' }), row({ status: 'none' }));
 
 describe('readinessKey — the band comes from the worst participant on the card', () => {
-  it('reads a card where everyone is recovered, or has not played, as ready', () => {
-    expect(readinessKey(rested())).toEqual({ band: READY, shortfall: 0 });
-    expect(readinessKey(result(row({ status: 'none' }), row({ status: 'none' })))).toEqual({
-      band: READY,
-      shortfall: 0,
-    });
+  it('reads a card where nobody has played today as fresh, ahead of every rested card', () => {
+    expect(readinessKey(fresh())).toEqual({ band: FRESH, minutes: 0 });
+    expect(readinessKey(fresh()).band).toBeLessThan(readinessKey(rested(600)).band);
   });
 
-  it('reads an unevaluated matchUp as ready — nothing says to wait for it', () => {
-    expect(readinessKey({ evaluated: false, reason: 'noAsOf' })).toEqual({ band: READY, shortfall: 0 });
+  it('reads a card where everyone has recovered as rested, the longer rest first', () => {
+    expect(readinessKey(rested(145))).toEqual({ band: RESTED, minutes: -145 });
+    expect(readinessKey(rested(145)).minutes).toBeLessThan(readinessKey(rested(101)).minutes);
+  });
+
+  it('measures a card with one fresh and one rested participant by the rested one', () => {
+    // The badge headlines the rested participant too, so the order and the badge agree on the card.
+    expect(readinessKey(rested(101))).toEqual({ band: RESTED, minutes: -101 });
+  });
+
+  it('measures a card with two rested participants by the one the factory headlines', () => {
+    // The factory orders rows worst-first within a status, so the headline is the least rested.
+    const both = result(row({ status: 'rested', restMinutes: 70 }), row({ status: 'rested', restMinutes: 200 }));
+    expect(readinessKey(both)).toEqual({ band: RESTED, minutes: -70 });
+  });
+
+  it('reads an unevaluated matchUp as fresh — nothing says to wait for it', () => {
+    expect(readinessKey({ evaluated: false, reason: 'noAsOf' })).toEqual({ band: FRESH, minutes: 0 });
   });
 
   it('measures a recovering card by how long until it is ready', () => {
-    expect(readinessKey(resting(27))).toEqual({ band: RECOVERING, shortfall: 33 });
+    expect(readinessKey(resting(27))).toEqual({ band: RECOVERING, minutes: 33 });
   });
 
   it('lets one recovering participant hold back a card the other is ready for', () => {
     const mixed = result(row({ status: 'rested', restMinutes: 120 }), row({ status: 'resting', restMinutes: 50 }));
-    expect(readinessKey(mixed)).toEqual({ band: RECOVERING, shortfall: 10 });
+    expect(readinessKey(mixed)).toEqual({ band: RECOVERING, minutes: 10 });
   });
 
   it('counts the whole requirement as outstanding when a recovering row reports no rest figure', () => {
     expect(readinessKey(result(row({ status: 'resting', restMinutes: undefined })))).toEqual({
       band: RECOVERING,
-      shortfall: 60,
+      minutes: 60,
     });
   });
 
   it('counts the whole requirement as outstanding when the anchor is unreliable', () => {
     const unreliable = result(row({ status: 'resting', restMinutes: 0, anchorUnreliable: true }));
-    expect(readinessKey(unreliable)).toEqual({ band: RECOVERING, shortfall: 60 });
+    expect(readinessKey(unreliable)).toEqual({ band: RECOVERING, minutes: 60 });
   });
 
   it('puts a participant still on court, or a side still being decided, last', () => {
@@ -81,16 +96,35 @@ describe('orderByReadiness', () => {
   const mu = (matchUpId: string, extra: Partial<OrderableMatchUp> = {}): OrderableMatchUp => ({ matchUpId, ...extra });
   const ids = (list: OrderableMatchUp[]) => list.map((m) => m.matchUpId);
 
-  it('lists ready cards above recovering ones, and recovering by soonest ready', () => {
+  it('lists fresh cards, then rested by longest rest, then recovering by soonest ready, then on court', () => {
     const rests: Record<string, RestResult> = {
       a: resting(27),
       b: rested(78),
       c: onCourt(),
       d: resting(55),
       e: rested(85),
+      f: fresh(),
     };
-    const ordered = orderByReadiness([mu('a'), mu('b'), mu('c'), mu('d'), mu('e')], (id) => rests[id]);
-    expect(ids(ordered)).toEqual(['b', 'e', 'd', 'a', 'c']);
+    const ordered = orderByReadiness([mu('a'), mu('b'), mu('c'), mu('d'), mu('e'), mu('f')], (id) => rests[id]);
+    expect(ids(ordered)).toEqual(['f', 'e', 'b', 'd', 'a', 'c']);
+  });
+
+  it('queues the time slot CA read: fresh pairs first, then 2h25 rested ahead of 1h41 rested', () => {
+    // Four R64 cards at 12:30, listed in draw order, as the deployed catalog showed them on 2026-11-07.
+    const rests: Record<string, RestResult> = {
+      hranchar: rested(101),
+      mancilla: fresh(),
+      ingco: fresh(),
+      clark: rested(145),
+    };
+    const list = [
+      mu('hranchar', { roundNumber: 1, roundPosition: 1 }),
+      mu('mancilla', { roundNumber: 1, roundPosition: 16 }),
+      mu('ingco', { roundNumber: 1, roundPosition: 17 }),
+      mu('clark', { roundNumber: 1, roundPosition: 32 }),
+    ];
+    const ordered = orderByReadiness(list, (id) => rests[id], { byTime: () => 750 });
+    expect(ids(ordered)).toEqual(['mancilla', 'ingco', 'clark', 'hranchar']);
   });
 
   it('breaks readiness ties by draw order, never by matchUpId', () => {
@@ -142,23 +176,35 @@ describe('compareStructure', () => {
 });
 
 describe('readinessRank — the key as the one number the catalog groups by', () => {
-  it('orders exactly as the key does: band first, then shortfall', () => {
+  it('orders exactly as the key does: band first, then minutes', () => {
     const keys = [
       readinessKey(onCourt()),
       readinessKey(resting(5)),
-      readinessKey(rested()),
+      readinessKey(rested(101)),
+      readinessKey(rested(145)),
       readinessKey(resting(50)),
+      readinessKey(fresh()),
       readinessKey({ evaluated: false, reason: 'noAsOf' }),
     ];
-    const byKey = [...keys].sort((a, b) => a.band - b.band || a.shortfall - b.shortfall);
+    const byKey = [...keys].sort((a, b) => a.band - b.band || a.minutes - b.minutes);
     const byRank = [...keys].sort((a, b) => readinessRank(a) - readinessRank(b));
     expect(byRank).toEqual(byKey);
   });
 
-  it('keeps the longest plausible shortfall inside its band', () => {
+  it('keeps the longest plausible minutes figure inside its band', () => {
     // A full day of required recovery still ranks ahead of anyone on court.
-    expect(readinessRank({ band: RECOVERING, shortfall: 24 * 60 })).toBeLessThan(
-      readinessRank({ band: ON_COURT, shortfall: 0 }),
+    expect(readinessRank({ band: RECOVERING, minutes: 24 * 60 })).toBeLessThan(
+      readinessRank({ band: ON_COURT, minutes: 0 }),
+    );
+    // A full day of rest still ranks behind a fresh card.
+    expect(readinessRank(readinessKey(rested(24 * 60)))).toBeGreaterThan(readinessRank(readinessKey(fresh())));
+  });
+
+  it('clamps a rest or shortfall wider than the band step rather than crossing into the next band', () => {
+    // Viewing a past date, rest can be measured in days; the key stays inside its band.
+    expect(readinessRank(readinessKey(rested(30 * 24 * 60)))).toBeGreaterThan(readinessRank(readinessKey(fresh())));
+    expect(readinessRank(readinessKey(resting(-(30 * 24 * 60))))).toBeLessThan(
+      readinessRank({ band: ON_COURT, minutes: 0 }),
     );
   });
 });

@@ -2,11 +2,12 @@
  * Get structure options menu for draw navigation.
  * Provides options to navigate structures, edit names, and add qualifying/playoffs/consolation.
  */
+import { addVoluntaryConsolation } from 'components/modals/addVoluntaryConsolation';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { tools, drawDefinitionConstants } from 'tods-competition-factory';
 import { editStructureNames } from 'components/modals/editStructureNames';
-import { mutationRequest } from 'services/mutation/mutationRequest';
 import { editGroupNames } from 'components/modals/editGroupNames';
+import { canAddVoluntaryConsolation } from 'courthive-components';
 import { addStructures } from 'components/modals/addStructures';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { defaultRoundsView } from '../options/roundsViews';
@@ -14,11 +15,10 @@ import { tournamentEngine } from 'services/factory/engine';
 import { renderDrawView } from './renderDrawView';
 
 // Constants
-import { ATTACH_CONSOLATION_STRUCTURES, REMOVE_STAGE_ENTRIES } from 'constants/mutationConstants';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
-const { FINISHING_POSITIONS, CONTAINER, MAIN, AD_HOC, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
+const { FINISHING_POSITIONS, CONTAINER } = drawDefinitionConstants;
 
 export function getStructureOptions({
   drawData,
@@ -68,11 +68,9 @@ export function getStructureOptions({
   const structure = drawData.structures.find((structure: any) => structure.structureId === structureId);
   const isRoundRobin = structure?.structureType === CONTAINER;
 
-  // Consolation can be added for elimination draws (SE, Lucky) — not AD_HOC or RR
-  const isMainStructure = structure?.stage === MAIN && structure?.stageSequence === 1;
-  const isAdHocDraw = drawData.drawType === AD_HOC;
-  const hasConsolation = drawData.structures.some((s: any) => s.stage === VOLUNTARY_CONSOLATION);
-  const canAddConsolation = isMainStructure && !isRoundRobin && !isAdHocDraw && !hasConsolation;
+  // A voluntary consolation for elimination draws (SE, Lucky) — not AD_HOC or RR, one per draw. The rule lives in
+  // courthive-components so this menu and the topology's Add playoffs chip ask the same question.
+  const canAddConsolation = canAddVoluntaryConsolation(tournamentEngine.q.drawDefinition({ drawId }), structureId);
 
   return drawData.structures
     .toSorted((a: any, b: any) => tools.structureSort(a, b, { mode: FINISHING_POSITIONS }))
@@ -117,47 +115,12 @@ export function getStructureOptions({
         close: true,
       },
       {
-        onClick: () => {
-          // First purge any leftover VC entries, then create empty structure
-          const purgeAndCreate = () => {
-            const genResult = tournamentEngine.generateVoluntaryConsolation({
-              structureName: 'Consolation',
-              drawId,
-            });
-            if (genResult.error || !genResult.structures?.length) {
-              console.error('[addVC] generateVoluntaryConsolation failed:', genResult.error || 'no structures');
-              return;
-            }
-            const vcStructureId = genResult.structures[0].structureId;
-            mutationRequest({
-              methods: [
-                {
-                  method: ATTACH_CONSOLATION_STRUCTURES,
-                  params: { structures: genResult.structures, links: genResult.links, drawId },
-                },
-              ],
-              callback: (result: any) => {
-                if (result.success) {
-                  navigateToEvent({ eventId, drawId, structureId: vcStructureId, renderDraw: true });
-                }
-              },
-            });
-          };
-
-          // Check for leftover VC entries and remove them first
-          const { drawDefinition: dd } = tournamentEngine.getEvent({ drawId });
-          const hasVcEntries = dd?.entries?.some((e: any) => e.entryStage === VOLUNTARY_CONSOLATION);
-          if (hasVcEntries) {
-            mutationRequest({
-              methods: [{ method: REMOVE_STAGE_ENTRIES, params: { drawId, entryStage: VOLUNTARY_CONSOLATION } }],
-              callback: (result: any) => {
-                if (result.success) purgeAndCreate();
-              },
-            });
-          } else {
-            purgeAndCreate();
-          }
-        },
+        onClick: () =>
+          addVoluntaryConsolation({
+            drawId,
+            callback: (vcStructureId) =>
+              navigateToEvent({ eventId, drawId, structureId: vcStructureId, renderDraw: true }),
+          }),
         hide: !canAddConsolation,
         label: t('modals.addConsolation.title'),
         modifyLabel: false,

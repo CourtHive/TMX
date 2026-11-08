@@ -5,7 +5,8 @@
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
 import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
-import { resolveCompositionByName, copyComposition } from 'services/compositions/resolveCompositionByName';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { defaultDrawComposition } from 'services/compositions/defaultDrawComposition';
 import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
 import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
@@ -46,7 +47,6 @@ import { context } from 'services/context';
 import morphdom from 'morphdom';
 import {
   buildStructureMinimap,
-  compositions,
   controlBar,
   isScorable,
   renderContainer,
@@ -66,7 +66,7 @@ import {
   ROUNDS_STATS,
 } from 'constants/tmxConstants';
 
-const { DOUBLES, TEAM } = eventConstants;
+const { TEAM } = eventConstants;
 const { MAIN, SWISS, VOLUNTARY_CONSOLATION } = drawDefinitionConstants;
 
 function getStructureDetail(drawId: string, structureId: string, event: any): any {
@@ -318,11 +318,7 @@ export function renderDrawView({
 
   // a copy every time: this view changes the configuration in place, and those changes belong to this render only
   const composition =
-    resolveCompositionByName(compositionName) ||
-    copyComposition(
-      displayConfig.get().composition ||
-        compositions[(eventType === DOUBLES && 'National') || (eventType === TEAM && 'Basic') || 'National'],
-    );
+    resolveCompositionByName(compositionName) || defaultDrawComposition({ eventType, drawId, eventId }).composition;
 
   composition.configuration ??= {};
 

@@ -13,6 +13,8 @@ const STAGE_MAP: Record<string, TopologyNode['stage']> = {
   QUALIFYING: 'QUALIFYING',
   CONSOLATION: 'CONSOLATION',
   PLAY_OFF: 'PLAY_OFF',
+  // fell back to MAIN, so an existing voluntary consolation drew as a second main draw (2026-11-08)
+  VOLUNTARY_CONSOLATION: 'VOLUNTARY_CONSOLATION',
 };
 
 const LINK_TYPE_MAP: Record<string, TopologyEdge['linkType']> = {
@@ -48,7 +50,7 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
   // Build nodes from structures
   const nodes: TopologyNode[] = structures.map((structure: any, index: number) => {
     const stage = STAGE_MAP[structure.stage] || 'MAIN';
-    const stageOrder = { QUALIFYING: 0, MAIN: 1, CONSOLATION: 2, PLAY_OFF: 3 };
+    const stageOrder = { QUALIFYING: 0, MAIN: 1, VOLUNTARY_CONSOLATION: 2, CONSOLATION: 2, PLAY_OFF: 3 };
     const col = stageOrder[stage] ?? 1;
 
     // Count structures in the same stage for vertical positioning
@@ -78,6 +80,13 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       structureOptions = { roundsCount };
     }
 
+    // A lucky draw generated with an explicit round profile keeps it as the structure extension `customRoundProfile`
+    // (factory getGenerators); without reading it back, the topology would show the default cascade instead.
+    if (structureType === 'LUCKY_DRAW') {
+      const roundProfile = structure.extensions?.find((ext: any) => ext?.name === 'customRoundProfile')?.value;
+      if (Array.isArray(roundProfile) && roundProfile.length) structureOptions = { roundProfile: [...roundProfile] };
+    }
+
     // Extract groupSize for RR structures from child structures
     if (structureType === 'ROUND_ROBIN' && structure.structures?.length) {
       const childMatchUps = structure.structures[0]?.matchUps || [];
@@ -90,7 +99,12 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       structureName: structure.structureName || `${stage} ${sameStage.length + 1}`,
       stage,
       structureType,
-      drawSize: isContainer ? countGroupPositions(structure) : structurePositions(structure),
+      // a voluntary consolation has no positions until players opt in; the matchUp fallback would invent two
+      drawSize: isContainer
+        ? countGroupPositions(structure)
+        : stage === 'VOLUNTARY_CONSOLATION'
+          ? (structure.positionAssignments?.length ?? 0)
+          : structurePositions(structure),
       matchUpFormat: structure.matchUpFormat,
       ...(structureOptions && { structureOptions }),
       position: {

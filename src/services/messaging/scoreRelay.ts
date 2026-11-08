@@ -124,6 +124,15 @@ export function disconnectRelay(): void {
   tournamentScoreHandler = null;
 }
 
+/**
+ * Close the relay socket for the back-forward cache but keep the socket, the tournament and every matchUp
+ * subscription (connectionLifecycle's `pagehide`). Unlike `disconnectRelay()`, nothing is forgotten:
+ * `ensureRelayConnected()` re-opens it and the `connect` handler re-issues the subscriptions.
+ */
+export function suspendRelay(): void {
+  if (relaySocket?.connected) relaySocket.disconnect();
+}
+
 /** Set the handler for tournament-level score updates (table refresh + pulse). */
 export function onTournamentScore(handler: ((data: any) => void) | null): void {
   tournamentScoreHandler = handler;

@@ -20,6 +20,41 @@ import { NONE, PLAYOFF_NAME_BASE } from 'constants/tmxConstants';
 const { PAGE_PLAYOFF } = drawDefinitionConstants;
 const PAGE_PLAYOFF_FIELD = 'pagePlayoff';
 
+/**
+ * Attach generated playoff structures to a draw, and say so. The one path for every way a playoff is added: this
+ * dialog, and the topology's Add playoffs chips (`inlineTopology.ts`).
+ */
+export function attachGeneratedPlayoffs({
+  drawId,
+  genResult,
+  callback,
+}: {
+  drawId: string;
+  genResult: any;
+  callback?: () => void;
+}): void {
+  const methods = [
+    {
+      method: ATTACH_PLAYOFF_STRUCTURES,
+      params: {
+        matchUpModifications: genResult.matchUpModifications,
+        structures: genResult.structures,
+        links: genResult.links,
+        drawId,
+      },
+    },
+  ];
+  const postMutation = (mutationResult: any) => {
+    if (mutationResult.success) {
+      tmxToast({ message: t('modals.addStructures.structuresAdded'), intent: 'is-success' });
+      isFunction(callback) && callback?.();
+    } else {
+      tmxToast({ message: mutationResult.error?.message || 'Error', intent: 'is-danger' });
+    }
+  };
+  mutationRequest({ methods, callback: postMutation });
+}
+
 export function addStructures({
   drawId,
   structureId,
@@ -167,28 +202,7 @@ export function addStructures({
     attachAndNotify(genResult);
   };
 
-  const attachAndNotify = (genResult: any) => {
-    const methods = [
-      {
-        method: ATTACH_PLAYOFF_STRUCTURES,
-        params: {
-          matchUpModifications: genResult.matchUpModifications,
-          structures: genResult.structures,
-          links: genResult.links,
-          drawId,
-        },
-      },
-    ];
-    const postMutation = (mutationResult: any) => {
-      if (mutationResult.success) {
-        tmxToast({ message: t('modals.addStructures.structuresAdded'), intent: 'is-success' });
-        isFunction(callback) && callback?.();
-      } else {
-        tmxToast({ message: mutationResult.error?.message || 'Error', intent: 'is-danger' });
-      }
-    };
-    mutationRequest({ methods, callback: postMutation });
-  };
+  const attachAndNotify = (genResult: any) => attachGeneratedPlayoffs({ drawId, genResult, callback });
 
   const checkValid = () => {
     const pagePlayoffChecked = inputs[PAGE_PLAYOFF_FIELD]?.checked;

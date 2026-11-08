@@ -2216,6 +2216,8 @@
       "entriesNotPlaced_other": "{{count}} accepted entries were not placed in the draw (draw size {{drawSize}}): {{names}}",
       "qualifyingEntriesNotPlaced_one": "{{count}} qualifying entry was not placed in qualifying (draw size {{drawSize}}): {{names}}",
       "qualifyingEntriesNotPlaced_other": "{{count}} qualifying entries were not placed in qualifying (draw size {{drawSize}}): {{names}}",
+      "insufficientPositions_one": "{{entries}} entries for {{places}} places: 1 more than the draw can hold. Enlarge the draw, or move an entry to the alternates.",
+      "insufficientPositions_other": "{{entries}} entries for {{places}} places: {{count}} more than the draw can hold. Enlarge the draw, or move entries to the alternates.",
       "qualifyingDrawTooSmall": "A qualifying draw of {{drawSize}} cannot hold {{entriesCount}} qualifying entries. Choose a larger draw size or withdraw entries first.",
       "roundsCount": "Rounds to generate",
       "ratingScale": "Rating scale",
@@ -2580,8 +2582,6 @@
       "allEvents": "All events",
       "allFlights": "All flights",
       "allTeams": "All teams",
-      "allStatuses": "All statuses",
-      "allTypes": "All Types",
       "allDates": "All dates",
       "today": "Today",
       "noDate": "No date",
@@ -2597,7 +2597,6 @@
       "irregularEnding": "Irregular ending",
       "abandoned": "Abandoned",
       "cancelled": "Cancelled",
-      "allProfiles": "All profiles",
       "competitive": "Competitive",
       "routine": "Routine",
       "decisive": "Decisive",
@@ -2607,7 +2606,15 @@
       "singles": "Singles",
       "doubles": "Doubles",
       "team": "Team",
-      "opponents": "Opponents"
+      "opponents": "Opponents",
+      "typeLabel": "Type",
+      "profileLabel": "Profile",
+      "statusLabel": "Status",
+      "statusDetailLabel": "Status detail",
+      "anyStatusDetail": "Any detail",
+      "statusStripLabel": "Quick status filter",
+      "eventLabel": "Event",
+      "flightLabel": "Flight"
     },
     "schedule": {
       "searchParticipants": "Search participants",
@@ -2873,6 +2880,18 @@
         "notPlaced_other": "{{count}} qualified participants could not be placed: {{names}}.",
         "positionsOpen_one": "{{count}} qualifier position is still open.",
         "positionsOpen_other": "{{count}} qualifier positions are still open."
+      },
+      "completeMatchUps": {
+        "tooltip": "Complete matchUps",
+        "title": "Complete matchUps",
+        "all": "All remaining",
+        "throughRound": "Through round",
+        "completesRound": "Completes {{round}}",
+        "completesRounds": "Completes {{from}} through {{to}}",
+        "matchUps_one": "{{count}} matchUp",
+        "matchUps_other": "{{count}} matchUps",
+        "roundDone": "{{round}} is complete",
+        "nothingLeft": "Every matchUp in this structure is complete"
       }
     },
     "participants": {
@@ -3900,7 +3919,8 @@
     "saveXml": "Save XML"
   },
   "remoteMutations": {
-    "updateFailed": "Remote update failed — please reload"
+    "updateFailed": "Remote update failed — please reload",
+    "tournamentReplaced": "An administrator changed this tournament on the server — reloading"
   },
   "mutationPrompts": {
     "modify": "Modify?",

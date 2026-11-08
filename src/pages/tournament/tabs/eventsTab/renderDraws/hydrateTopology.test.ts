@@ -145,3 +145,40 @@ describe('hydrateTopology: links that are not finishing-position links', () => {
     expect(edge.sourceRoundNumber).toBe(3);
   });
 });
+
+describe('hydrateTopology: a voluntary consolation is its own stage (2026-11-08)', () => {
+  it('not a second MAIN card, and no invented positions while nobody has opted in', () => {
+    const drawDefinition = generateDraw({ drawSize: 16 });
+    const { drawId } = drawDefinition;
+    const generated: any = tournamentEngine.generateVoluntaryConsolation({ drawId, structureName: 'Consolation' });
+    const attached: any = tournamentEngine.attachConsolationStructures({
+      drawId,
+      structures: generated.structures,
+      links: generated.links,
+    });
+    expect(attached.success).toBe(true);
+
+    const state = hydrateTopology(tournamentEngine.getEvent({ drawId }).drawDefinition)!;
+    expect(state.nodes!.map((node) => [node.structureName, node.stage, node.drawSize])).toEqual([
+      ['Main', 'MAIN', 16],
+      ['Consolation', 'VOLUNTARY_CONSOLATION', 0],
+    ]);
+  });
+});
+
+// A lucky draw generated with an explicit round profile carries it as the structure extension `customRoundProfile`;
+// the topology must show that profile, not the default cascade (CA, 2026-11-08: round profiles in the topology).
+describe('hydrateTopology — a lucky draw keeps its round profile', () => {
+  it('reads customRoundProfile into the node structureOptions', () => {
+    const drawDefinition = generateDraw({ drawSize: 40, drawType: 'LUCKY_DRAW', roundProfile: [20, 12, 8, 4, 2, 1] });
+    const node: any = hydrateTopology(drawDefinition)?.nodes?.find((n: any) => n.structureType === 'LUCKY_DRAW');
+    expect(node?.structureOptions?.roundProfile).toEqual([20, 12, 8, 4, 2, 1]);
+  });
+
+  it('leaves a default-cascade lucky draw without one', () => {
+    const drawDefinition = generateDraw({ drawSize: 40, drawType: 'LUCKY_DRAW' });
+    const node: any = hydrateTopology(drawDefinition)?.nodes?.find((n: any) => n.structureType === 'LUCKY_DRAW');
+    expect(node).toBeTruthy();
+    expect(node.structureOptions?.roundProfile).toBeUndefined();
+  });
+});

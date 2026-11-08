@@ -1426,6 +1426,76 @@ img {
   color: var(--tmx-status-warning);
 }
 
+/* ── Filter chips: a section whose few values toggle (CA 2026-11-08) ──
+   The row is capped so chips wrap rather than widen the popover; chipFilter.chipsFit keeps a section
+   that would need more than two rows on its dropdown. */
+.filter-popover-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 280px;
+}
+
+.filter-popover-chip {
+  padding: 0.2em 0.7em;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tmx-text-muted);
+  font-size: 0.85em;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.filter-popover-chip:hover {
+  border-color: var(--tmx-border-focus);
+  color: var(--tmx-text-primary);
+}
+
+.filter-popover-chip[data-on='true'] {
+  border-color: var(--tmx-fill-accent);
+  background: var(--tmx-fill-accent);
+  color: var(--tmx-text-inverse);
+}
+
+.filter-popover-chip:focus-visible {
+  outline: 2px solid var(--tmx-border-focus);
+  outline-offset: 2px;
+}
+
+/* ── MatchUps footer: the status chips with counts (statusQuickStrip) ── */
+.tmx-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.tmx-status-strip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.tmx-status-strip-count {
+  min-width: 1.6em;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: var(--tmx-bg-tertiary);
+  color: var(--tmx-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tmx-status-strip-chip[data-on='true'] .tmx-status-strip-count {
+  background: var(--tmx-text-inverse);
+  color: var(--tmx-fill-accent);
+}
+
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */
 .clear-filters-btn {
   display: inline-block;
