@@ -31,10 +31,9 @@ test('Show connectors off hides the draw view lines and is saved with the draw',
 
   await page.locator('.fa-palette').first().click();
   const dialog = page.locator('.chc-modal-dialog').last();
-  await expect(dialog.locator('#showConnectors')).toBeChecked();
-  // the label is what a director clicks; is-checkradio hides the input itself
-  await dialog.locator('label', { hasText: 'Show connectors' }).click();
-  await expect(dialog.locator('#showConnectors')).not.toBeChecked();
+  await expect(dialog.locator('[data-display-setting="connectors"]')).toBeChecked();
+  await dialog.locator('[data-display-setting="connectors"]').locator('..').click();
+  await expect(dialog.locator('[data-display-setting="connectors"]')).not.toBeChecked();
   await dialog.getByRole('button', { name: 'Save' }).click();
 
   await expect(page.locator('.chc-structure.chc-structure--no-connectors')).toHaveCount(1);

@@ -1,5 +1,6 @@
 [
   "accessors",
+  "basic",
   "batch",
   "bookings",
   "disable",
@@ -7,6 +8,7 @@
   "enable",
   "formats",
   "games",
+  "generate",
   "getTournamentIds",
   "light",
   "route",

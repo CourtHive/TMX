@@ -2143,6 +2143,11 @@
       "failed": "Penalty not recorded"
     },
     "displaySettings": {
+      "advanced": "Advanced settings",
+      "basic": "Basic settings",
+      "custom": "custom",
+      "matchUpFooter": "MatchUp footer",
+      "preview": "Preview",
       "google": "Google",
       "showSchedule": "Show Schedule",
       "pathHighlight": "Highlight participant path",
