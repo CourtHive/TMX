@@ -1,5 +1,41 @@
 # Changelog
 
+## [8.51.0](https://github.com/CourtHive/TMX/compare/v8.50.1...v8.51.0) (2026-11-08)
+
+
+### Features
+
+* **draws:** complete matchUps through a chosen round, in local mode ([#1934](https://github.com/CourtHive/TMX/issues/1934)) ([77bb2f2](https://github.com/CourtHive/TMX/commit/77bb2f296508f690fdd09c011470331684c9b16d))
+* **draws:** follow a participant across structures, and see their whole journey ([f246b32](https://github.com/CourtHive/TMX/commit/f246b3224c29726387a0aca8a18e01a5fb36b5b9))
+* **draws:** page playoff and voluntary consolation chips in the topology ([a005d69](https://github.com/CourtHive/TMX/commit/a005d690a87b1253d9b374d84992386ac5628d39))
+* **draws:** structures default to Scoreboard, with flags only when there are country codes ([#1935](https://github.com/CourtHive/TMX/issues/1935)) ([b54f5c0](https://github.com/CourtHive/TMX/commit/b54f5c0fd9d56a2ccdd9e5885aacfbfb83810720))
+* **draws:** the inline topology fills the window below it, with its footer ([d58b984](https://github.com/CourtHive/TMX/commit/d58b9848597e602a11ab4001f0b63f55f7b41e47))
+* **draws:** the topology for every draw, with an Add playoffs mode ([fd7bcb5](https://github.com/CourtHive/TMX/commit/fd7bcb5b96a34aa575261b451312274d1bdfe1f2))
+* **draws:** the topology page opens a new draw in Fit mode ([5bb2880](https://github.com/CourtHive/TMX/commit/5bb2880ba16120cbde82f5e0e65ae2e13ff4ba0d))
+* **events:** the events and draws views open on cards by default ([#1937](https://github.com/CourtHive/TMX/issues/1937)) ([688f783](https://github.com/CourtHive/TMX/commit/688f7839537856759b169926f6a9abfe3bc33400))
+* **matchups:** event and flight chips when there are two; names read as written ([#1943](https://github.com/CourtHive/TMX/issues/1943)) ([083a01a](https://github.com/CourtHive/TMX/commit/083a01a57d989161c6ce62d95ebbf4cc02f903a3))
+* **matchups:** status chips, and the same chips with counts in the table footer ([#1942](https://github.com/CourtHive/TMX/issues/1942)) ([9f95a64](https://github.com/CourtHive/TMX/commit/9f95a649c3fd01bec211c1a2716194444019d7ef))
+* **matchups:** type and profile filters are toggle chips, any combination on ([#1941](https://github.com/CourtHive/TMX/issues/1941)) ([7bf50af](https://github.com/CourtHive/TMX/commit/7bf50af94e19eb8e694a45c0bbb7bf59879beb6c))
+* **messaging:** reload a tournament the server replaced ([#1936](https://github.com/CourtHive/TMX/issues/1936)) ([844ec7d](https://github.com/CourtHive/TMX/commit/844ec7d612dd69166377371e47738a2a52355ceb))
+
+
+### Bug Fixes
+
+* **crowd, messaging:** refresh the relay's expired token, back off on refusals; close sockets before bfcache ([#1938](https://github.com/CourtHive/TMX/issues/1938)) ([e4d5d08](https://github.com/CourtHive/TMX/commit/e4d5d08cf85e50b0a6f564b01c97cb7da775e91a))
+* **deps:** update courthive-components to 7.12.0 ([87620c8](https://github.com/CourtHive/TMX/commit/87620c8a3351c0573504de134222ade75df34f3d))
+* **deps:** update dependency @courthive/provider-config to v0.19.1 ([#1928](https://github.com/CourtHive/TMX/issues/1928)) ([96dab9b](https://github.com/CourtHive/TMX/commit/96dab9b97951e971475ed73b1a99c3cc1e263fa8))
+* **deps:** update dependency hotkeys-js to v4.1.1 ([#1926](https://github.com/CourtHive/TMX/issues/1926)) ([453f330](https://github.com/CourtHive/TMX/commit/453f330b9f0af1bcb5df36641f2539205c1a14ef))
+* **deps:** update tods-competition-factory to 7.33.0 ([3470b80](https://github.com/CourtHive/TMX/commit/3470b80b61819a09a660edf59eca55bdb417027b))
+* **deps:** update tods-competition-factory to 7.33.0 ([35aad6b](https://github.com/CourtHive/TMX/commit/35aad6b2fde63c7f0c271821394209c5b40e40b0))
+* **draws:** a refused generation says how many entries are over, and what to do ([#1933](https://github.com/CourtHive/TMX/issues/1933)) ([66df3f2](https://github.com/CourtHive/TMX/commit/66df3f2ea942c827b904aabec9fc9b32b8103079))
+* **schedule:** catalog queues fresh participants first, then the longest rested ([#1932](https://github.com/CourtHive/TMX/issues/1932)) ([5b7b8f2](https://github.com/CourtHive/TMX/commit/5b7b8f2c72f992b69d1f46e26b3ff11994ee33a2))
+* **schedule:** pass the court block window to the Now strip as its own line ([#1946](https://github.com/CourtHive/TMX/issues/1946)) ([3692fe9](https://github.com/CourtHive/TMX/commit/3692fe968c3e6a0a4e63c85dc6257003b9758050))
+
+
+### Documentation
+
+* how TMX gets back in sync after returning to the tab ([#1939](https://github.com/CourtHive/TMX/issues/1939)) ([e3560ed](https://github.com/CourtHive/TMX/commit/e3560edbf441dd450af8af804dccf38e14b78730))
+
 ## [8.50.1](https://github.com/CourtHive/TMX/compare/v8.50.0...v8.50.1) (2026-11-07)
 
 
