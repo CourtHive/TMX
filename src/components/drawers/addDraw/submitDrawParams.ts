@@ -5,14 +5,13 @@
 import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-competition-factory';
 import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
-import type { RoundProfileEditorController } from './roundProfileEditor';
 import { getPlayoffDrawProps, getPlayoffGroups } from './playoffGroups';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getQualifyingOverfill } from './qualifyingDrawSize';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { feedInQualifierCounts } from './feedInQualifying';
-import { validators } from 'courthive-components';
+import { validators, type RoundProfileEditorController } from 'courthive-components';
 import { resolveSeedsCount } from './seedCount';
 import { generateDraw } from './generateDraw';
 import { isFunction } from 'functions/typeOf';

@@ -80,6 +80,13 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
       structureOptions = { roundsCount };
     }
 
+    // A lucky draw generated with an explicit round profile keeps it as the structure extension `customRoundProfile`
+    // (factory getGenerators); without reading it back, the topology would show the default cascade instead.
+    if (structureType === 'LUCKY_DRAW') {
+      const roundProfile = structure.extensions?.find((ext: any) => ext?.name === 'customRoundProfile')?.value;
+      if (Array.isArray(roundProfile) && roundProfile.length) structureOptions = { roundProfile: [...roundProfile] };
+    }
+
     // Extract groupSize for RR structures from child structures
     if (structureType === 'ROUND_ROBIN' && structure.structures?.length) {
       const childMatchUps = structure.structures[0]?.matchUps || [];
