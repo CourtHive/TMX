@@ -1456,10 +1456,24 @@ img {
   color: var(--tmx-text-primary);
 }
 
+/* a chip's colour is the bars' colour for its bucket (statusColors.ts, set as --chip-color / --chip-ink); a chip
+   without one (Type, Event, Flight) takes the accent */
 .filter-popover-chip[data-on='true'] {
-  border-color: var(--tmx-fill-accent);
-  background: var(--tmx-fill-accent);
-  color: var(--tmx-text-inverse);
+  border-color: var(--chip-color, var(--tmx-fill-accent));
+  background: var(--chip-color, var(--tmx-fill-accent));
+  color: var(--chip-ink, var(--tmx-text-inverse));
+}
+
+/* off, a coloured chip keeps a dot of its colour, so the eye still finds its bucket */
+.filter-popover-chip[style*='--chip-color'][data-on='false']::before {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.4em;
+  border-radius: 50%;
+  background: var(--chip-color);
+  vertical-align: 0.05em;
 }
 
 .filter-popover-chip:focus-visible {
@@ -1492,8 +1506,8 @@ img {
 }
 
 .tmx-status-strip-chip[data-on='true'] .tmx-status-strip-count {
-  background: var(--tmx-text-inverse);
-  color: var(--tmx-fill-accent);
+  background: var(--chip-ink, var(--tmx-text-inverse));
+  color: var(--chip-color, var(--tmx-fill-accent));
 }
 
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */

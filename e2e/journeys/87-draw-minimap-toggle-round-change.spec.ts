@@ -45,10 +45,13 @@ const roundTab = (page: Page, label: string) =>
 
 /**
  * Navigate to the matchUps view and click a semifinal matchUp's event pill.
- * The matchUps table is height-virtualized (index: matchUpId), so the SF row
- * may not be mounted — scroll it into view via its Tabulator instance first,
- * then click the real pill so navigateToEvent stashes the pending focus exactly
- * as production does. Lands the draw view on the SF round.
+ * The matchUps table is height-virtualized, so the SF row may not be mounted: scroll the table's holder to the end
+ * (the last rounds are the last rows), which makes Tabulator render them, then click the real pill so
+ * navigateToEvent stashes the pending focus exactly as production does. Lands the draw view on the SF round.
+ *
+ * This used to scroll through `dev.tournamentContext.tables`, which never holds the matchUps table: the scroll did
+ * nothing, and the journey passed only while the table was tall enough to render every row (CA 2026-11-08: the
+ * table now ends at the window's bottom, and at 720px it renders 20 of 31).
  */
 async function openDrawOnSemifinal(page: Page): Promise<void> {
   const { roundName } = await page.evaluate(() => {
@@ -56,19 +59,11 @@ async function openDrawOnSemifinal(page: Page): Promise<void> {
     const played = (matchUps ?? []).filter((m: any) => m.roundNumber && m.matchUpStatus !== 'BYE');
     const maxRound = Math.max(...played.map((m: any) => m.roundNumber));
     const semi = played.find((m: any) => m.roundNumber === maxRound - 1);
-    const tables = dev.tournamentContext?.tables ?? {};
-    for (const key of Object.keys(tables)) {
-      try {
-        if (tables[key]?.getRow?.(semi?.matchUpId)) {
-          tables[key].scrollToRow(semi.matchUpId, 'center', false);
-          break;
-        }
-      } catch {
-        /* not the matchUps table — keep scanning */
-      }
-    }
     return { roundName: semi?.roundName as string };
   });
+  await page
+    .locator(`${S.TOURNAMENT_MATCHUPS} .tabulator-tableholder`)
+    .evaluate((holder) => (holder.scrollTop = holder.scrollHeight));
 
   const sfRow = page
     .locator('.tabulator-row', {

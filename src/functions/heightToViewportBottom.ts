@@ -43,3 +43,41 @@ export function fillToViewportBottom(element: HTMLElement, options: { gap?: numb
   window.addEventListener('resize', fit);
   return release;
 }
+
+/**
+ * Keep a Tabulator table sized from its top to the bottom of the window, as the window resizes — through
+ * `setHeight`, which Tabulator needs to lay its rows out again (a style height alone leaves its body the old size).
+ * Returns the cleanup; a table taken off the page lets go on the next resize.
+ *
+ * Replaces `innerHeight × tableHeightMultiplier` where the chrome above a table is fixed in pixels: a fraction left a
+ * band of background under the table on a tall window and pushed the table's footer off a short one (CA 2026-11-08).
+ */
+export function fitTableToViewportBottom(
+  table: { setHeight?: (height: number) => void; element?: HTMLElement },
+  element: HTMLElement,
+  options: { gap?: number; min?: number } = {},
+): () => void {
+  let frame = 0;
+  let last = 0;
+  const release = () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('resize', fit);
+  };
+  function fit() {
+    if (!element.isConnected) return release();
+    const top = element.getBoundingClientRect().top + window.scrollY;
+    const height = heightToViewportBottom({ top, viewportHeight: window.innerHeight, ...options });
+    if (height === last) return;
+    last = height;
+    // setHeight redraws the rows; keep the reader where they were (a refit a frame after a scroll undid it, journey 87)
+    const holder = element.querySelector<HTMLElement>('.tabulator-tableholder');
+    const scrollTop = holder?.scrollTop ?? 0;
+    table.setHeight?.(height);
+    if (holder && scrollTop) holder.scrollTop = scrollTop;
+  }
+  fit();
+  // the chrome above can settle a frame later (control bars and summary bars are rendered after the table)
+  frame = requestAnimationFrame(fit);
+  window.addEventListener('resize', fit);
+  return release;
+}

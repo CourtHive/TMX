@@ -89,7 +89,8 @@ test('the draw form offers Inherited once a tournament seeding policy is attache
   await expect(page.locator(`${PANEL} select`)).toHaveValue('__attached__', { timeout: 10_000 });
 
   await page.goto(`/#/tournament/${tournamentId}/events`);
-  await page.locator('.tabulator-row').first().click();
+  // the events view opens on cards (#1937): open the event from its card
+  await page.locator('.chc-ec-card').first().click();
   await page.waitForSelector('#eventTabsBar', { state: 'visible', timeout: 10_000 });
   await page.getByRole('button', { name: 'Add draw' }).click();
 
