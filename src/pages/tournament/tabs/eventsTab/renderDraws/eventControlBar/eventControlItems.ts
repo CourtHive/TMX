@@ -8,7 +8,7 @@ import { renderInlineTopology, destroyInlineTopology } from './inlineTopology';
 import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { completeMatchUps } from 'services/devCompleteMatchUps';
+import { openCompleteMatchUpsPopover } from './completeMatchUpsPopover';
 import { getStructureOptions } from '../getStructureOptions';
 import { tournamentEngine } from 'services/factory/engine';
 import { editMatchUpFormat } from '../editMatchUpFormat';
@@ -89,9 +89,10 @@ export function getEventControlItems({
   const hasProvider = !!tournamentEngine.q.tournament()?.parentOrganisation?.organisationId;
   if (!hasProvider) {
     items.push({
-      onClick: () => completeMatchUps({ drawId, structureId }),
+      onClick: (e: MouseEvent) =>
+        openCompleteMatchUpsPopover({ anchor: e.currentTarget as HTMLElement, drawId, structureId, structureName }),
       label: '<i class="fa-solid fa-check-double"></i>',
-      toolTip: { content: 'Complete all matchUps', placement: 'bottom' },
+      toolTip: { content: t('pages.events.completeMatchUps.tooltip'), placement: 'bottom' },
       location: RIGHT,
     });
   }
@@ -163,8 +164,10 @@ export function getEventControlItems({
     });
   }
 
-  // View topology (only when draw has multiple structures)
-  if (drawData?.structures?.length > 1) {
+  // View topology — for every draw, a single structure included (CA, 2026-11-08): the topology is where a director
+  // sees what a draw is made of and, in its Add playoffs mode, what it can still grow into. Hidden only while there is
+  // no draw to show.
+  if (drawData?.structures?.length) {
     items.push({
       onClick: () => renderInlineTopology({ eventId, drawId, structureId }),
       label: '<i class="fa-solid fa-sitemap"></i>',

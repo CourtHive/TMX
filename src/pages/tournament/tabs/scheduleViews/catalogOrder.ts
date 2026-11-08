@@ -5,9 +5,10 @@
  * next?* The rest badge answers it card by card; this answers it for the group, so the card to call
  * is at the top instead of somewhere the eye has to find it.
  *
- *   1. Readiness, from the same rest evaluation the badge draws: every participant recovered (or
- *      with no match today) first, then those still recovering by how soon they will be ready, then
- *      cards with a participant still on court.
+ *   1. Readiness, from the same rest evaluation the badge draws: cards whose participants have not
+ *      played today first, then cards where everyone has recovered by how long the least-rested
+ *      participant has had, then those still recovering by how soon they will be ready, then cards
+ *      with a participant still on court.
  *   2. Structural order — roundNumber, then roundPosition — for cards readiness cannot separate.
  *   3. The incoming (factory traversal) order, via a stable sort.
  *
@@ -32,44 +33,58 @@ import { drawDefinitionConstants, type RestResult } from 'tods-competition-facto
 
 const { QUALIFYING } = drawDefinitionConstants;
 
-/** Ready to call, still recovering, still on court. Lower is listed first. */
-export const READY = 0;
-export const RECOVERING = 1;
-export const ON_COURT = 2;
+/**
+ * Readiness bands, lower listed first: nobody on the card has played today; everyone has recovered;
+ * someone is still recovering; someone is still on court.
+ */
+export const FRESH = 0;
+export const RESTED = 1;
+export const RECOVERING = 2;
+export const ON_COURT = 3;
+
+/** Separates bands in `readinessRank`; wider than any within-band minutes figure. */
+const BAND_STEP = 100_000;
 
 export interface ReadinessKey {
   band: number;
-  /** Minutes until the slowest participant on the card is recovered; 0 outside `RECOVERING`. */
-  shortfall: number;
+  /**
+   * Within-band order, lower first. `RECOVERING`: minutes until the slowest participant on the card is
+   * recovered. `RESTED`: minus the minutes the least-rested participant has had, so the longer rested
+   * card lists first. 0 in the other bands.
+   */
+  minutes: number;
 }
 
 /**
  * A matchUp's place in the readiness order, from its rest evaluation.
  *
  * Decided by the badge's headline row — the worst participant on the card — so the order and the
- * badge cannot disagree about a card. An unevaluated matchUp sorts with the ready ones: nothing is
- * known that says to wait for it, and placing it is not a claim about it the way a badge would be.
- * A side not yet decided reads as on court (whoever arrives is still playing upstream), which is
- * where the factory bands it.
+ * badge cannot disagree about a card. A card with one fresh and one rested participant is as ready as
+ * its rested participant: it is their recovery, not their partner's clean slate, that decides when it
+ * can be called. An unevaluated matchUp sorts with the fresh ones: nothing is known that says to wait
+ * for it, and placing it is not a claim about it the way a badge would be. A side not yet decided
+ * reads as on court (whoever arrives is still playing upstream), which is where the factory bands it.
  */
 export function readinessKey(result: RestResult): ReadinessKey {
-  if (!result.evaluated) return { band: READY, shortfall: 0 };
+  if (!result.evaluated) return { band: FRESH, minutes: 0 };
   const row = headlineRow(result.rows);
-  if (!row || row.status === 'rested' || row.status === 'none') return { band: READY, shortfall: 0 };
-  if (row.status === 'onCourt') return { band: ON_COURT, shortfall: 0 };
+  if (!row || row.status === 'none') return { band: FRESH, minutes: 0 };
+  if (row.status === 'onCourt') return { band: ON_COURT, minutes: 0 };
+  // The factory never reports `rested` off an unreliable anchor, so this rest figure is measured.
+  if (row.status === 'rested') return { band: RESTED, minutes: -Math.min(row.restMinutes ?? 0, BAND_STEP - 1) };
   // An unreliable anchor reports zero rest; treat the whole requirement as outstanding rather than
   // reading the arithmetic zero as "just walked off" or as recovered.
   const rested = row.anchorUnreliable ? 0 : (row.restMinutes ?? 0);
-  return { band: RECOVERING, shortfall: Math.max(row.requiredMinutes - rested, 0) };
+  return { band: RECOVERING, minutes: Math.min(Math.max(row.requiredMinutes - rested, 0), BAND_STEP - 1) };
 }
 
 /**
  * A readiness key as one number, lower first: the `readinessRank` the catalog groups by. The catalog
  * orders groups — and the cards within one — by it after structure and side readiness, and never
- * reads it; a shortfall is minutes, far below the band step.
+ * reads it; the within-band minutes are clamped below the band step, so bands never overlap.
  */
 export function readinessRank(key: ReadinessKey): number {
-  return key.band * 100_000 + key.shortfall;
+  return key.band * BAND_STEP + key.minutes;
 }
 
 /** The fields ordering reads off a matchUp. Structural, so hydrated factory matchUps pass directly. */
@@ -121,7 +136,7 @@ export function orderByReadiness<T extends OrderableMatchUp>(
       (a, b) =>
         (a.time === b.time ? 0 : a.time - b.time) ||
         a.key.band - b.key.band ||
-        a.key.shortfall - b.key.shortfall ||
+        a.key.minutes - b.key.minutes ||
         compareStructure(a.matchUp, b.matchUp) ||
         a.index - b.index,
     )

@@ -34,6 +34,7 @@ vi.mock('services/messaging/socketIo', () => ({
   onTournamentMutation: (cb: any) => {
     registeredListener = cb;
   },
+  onTournamentReplaced: vi.fn(),
 }));
 
 vi.mock('services/transitions/activeScoringGuard', () => ({ notifyRemoteScoringCollision: vi.fn() }));

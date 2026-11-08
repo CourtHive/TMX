@@ -1,8 +1,9 @@
 /**
  * Journey 31 — Events tab view toggle (cards ↔ table)
  *
- * The events tab defaults to the Tabulator table view; users opt into the
- * card-grid via the cards/table toggle in the tab header. This spec covers
+ * The events tab defaults to the card grid (CA 2026-11-08; it was the
+ * Tabulator table before); users opt into the table via the cards/table
+ * toggle in the tab header, and that choice is kept. This spec covers
  * the default rendering, toggle behaviour, localStorage persistence, click
  * navigation from a card, and the cards-mode search filter.
  *
@@ -34,46 +35,46 @@ test.describe('Journey 31 — Events tab view toggle', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
-    // Default-table behaviour depends on no prior persisted mode.
+    // Default-cards behaviour depends on no prior persisted mode.
     await resetEventsViewMode(page);
   });
 
-  test('default view is table (no prior persisted mode)', async ({ page }) => {
+  test('default view is cards (no prior persisted mode)', async ({ page }) => {
     const tournamentId = await seedTournament(page, PROFILE_DRAW_GENERATED);
     const tournament = new TournamentPage(page);
 
     await tournament.goto(tournamentId);
     await page.locator('#e-route').click();
 
-    // Tabulator rows render in table mode; cards grid wrap is not in the DOM.
-    await expect(page.locator('#eventsTable .tabulator-row').first()).toBeVisible();
-    await expect(page.locator(EVENTS_GRID_WRAP)).toHaveCount(0);
-
-    // The "Table view" toggle button is pressed
-    const tableToggle = page.getByRole('button', { name: 'Table view' });
-    await expect(tableToggle).toBeVisible();
-    await expect(tableToggle).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  test('toggle to cards view renders the grid and persists the choice', async ({ page }) => {
-    const tournamentId = await seedTournament(page, PROFILE_DRAW_GENERATED);
-    const tournament = new TournamentPage(page);
-
-    await tournament.goto(tournamentId);
-    await page.locator('#e-route').click();
-
-    // Switch to cards view
-    await page.getByRole('button', { name: 'Cards view' }).click();
-
-    // Cards grid wraps the events; at least one card is rendered.
+    // The card grid renders; the table does not.
     await expect(page.locator(EVENTS_GRID_WRAP)).toBeVisible();
     await expect(page.locator(EVENT_CARD)).toHaveCount(1);
-    await expect(page.getByRole('button', { name: 'Cards view' })).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', { name: 'Table view' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('#eventsTable .tabulator-row')).toHaveCount(0);
+
+    // The "Cards view" toggle button is pressed
+    const cardsToggle = page.getByRole('button', { name: 'Cards view' });
+    await expect(cardsToggle).toBeVisible();
+    await expect(cardsToggle).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('toggle to table view renders the table and persists the choice', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_DRAW_GENERATED);
+    const tournament = new TournamentPage(page);
+
+    await tournament.goto(tournamentId);
+    await page.locator('#e-route').click();
+
+    // Switch to table view
+    await page.getByRole('button', { name: 'Table view' }).click();
+
+    await expect(page.locator('#eventsTable .tabulator-row').first()).toBeVisible();
+    await expect(page.locator(EVENTS_GRID_WRAP)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Table view' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Cards view' })).toHaveAttribute('aria-pressed', 'false');
 
     // Persisted to localStorage so a refresh keeps the choice
     const stored = await page.evaluate(() => localStorage.getItem('tmx_events_view_mode'));
-    expect(stored).toBe('grid');
+    expect(stored).toBe('table');
   });
 
   test('card exposes onClick affordance (clickable class + eventId dataset)', async ({ page }) => {

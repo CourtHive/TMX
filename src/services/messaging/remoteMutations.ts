@@ -10,7 +10,6 @@
  */
 import { captureTournamentOperation, markTournamentRecordInstalled } from 'services/tournament/operationOwnership';
 import { notifyMutationApplied, onAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
-import { onTournamentMutation, joinTournamentRoom, onDurableRecovery } from 'services/messaging/socketIo';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
@@ -24,6 +23,12 @@ import * as factory from 'tods-competition-factory';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  onTournamentMutation,
+  onTournamentReplaced,
+  joinTournamentRoom,
+  onDurableRecovery,
+} from 'services/messaging/socketIo';
 
 // constants and types
 import { SYNC_INDICATOR, TOURNAMENT_ENGINE, DRAWS_VIEW } from 'constants/tmxConstants';
@@ -45,6 +50,7 @@ let stopDurableRecoveryObserver: (() => void) | undefined;
 export function initRemoteMutationHandler(): void {
   slog('[remoteMutation] handler registered');
   onTournamentMutation(handleRemoteMutation);
+  onTournamentReplaced(handleTournamentReplaced);
   stopRefreshObserver?.();
   stopDurableRecoveryObserver?.();
   // A local result the server's answer cannot be applied to, and a durable command recovered with an
@@ -130,9 +136,22 @@ export function isSyncStale(): boolean {
   return !!staleRefreshTournamentId;
 }
 
-/** Pull the latest tournament record from the server and apply it locally. Only
- * invoked on an explicit click (the sync icon, or a save-conflict toast's action),
- * so the full record is fetched on demand — never on a background poll. */
+/** The server replaced the record outside `executionQueue` — today only a super-admin moving the tournament to
+ * another provider (CA's D4, 2026-11-07). There are no methods to replay, and acting on the old copy would mutate a
+ * tournament whose ownership changed underneath it, so mark it stale (mutations are blocked) and pull the record now.
+ * If this director has lost access in the move, the pull fails and the copy stays blocked rather than forking. */
+export function handleTournamentReplaced(data: { tournamentId?: string; reason?: string } | undefined): void {
+  const tournamentId = data?.tournamentId;
+  if (!tournamentId || factory[TOURNAMENT_ENGINE].getTournamentId() !== tournamentId) return;
+  slog('[tournamentReplaced] reloading', tournamentId, data?.reason);
+  markStaleNeedsRefresh(tournamentId);
+  tmxToast({ message: t('remoteMutations.tournamentReplaced'), intent: 'is-info' });
+  void refreshTournamentFromServer(tournamentId);
+}
+
+/** Pull the latest tournament record from the server and apply it locally. Invoked on an
+ * explicit click (the sync icon, or a save-conflict toast's action), or when the server says
+ * the record was replaced — never on a background poll. */
 export async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
   const isCurrent = captureTournamentOperation([tournamentId]);
   try {

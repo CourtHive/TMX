@@ -100,7 +100,8 @@ export function getEventHandlers({ callback, composition, drawId, getEventData }
     const participantId = side?.participantId || side?.participant?.participantId;
     const { eventData, matchUps } = current();
     const followActions = getFollowActions({
-      currentStructureId: matchUp?.structureId,
+      // a group's matchUp is in its container: the structure the view shows, never offered as somewhere to go
+      currentStructureId: matchUp?.containerStructureId ?? matchUp?.structureId,
       eventId: eventData?.eventInfo?.eventId,
       drawId: matchUp?.drawId,
       participantId,
@@ -125,6 +126,15 @@ export function getEventHandlers({ callback, composition, drawId, getEventData }
           ...followActions,
           ...(additionalSeed ? [additionalSeed] : []),
           { type: 'VIEW_PLAYER_CARD', payload: { participantId } },
+          // the whole path through the draw, in the topology — only where there is more than one structure
+          ...(drawStructureCount(eventData, matchUp?.drawId) > 1
+            ? [
+                {
+                  type: 'VIEW_PLAYER_JOURNEY',
+                  payload: { participantId, eventId: eventData?.eventInfo?.eventId, drawId: matchUp?.drawId },
+                },
+              ]
+            : []),
         ]
       : actions;
 
@@ -292,4 +302,9 @@ export function getEventHandlers({ callback, composition, drawId, getEventData }
   };
 
   return { eventHandlers, inlineManager };
+}
+
+/** The top-level structures of a draw, as the event's drawsData lists them. */
+function drawStructureCount(eventData: any, drawId?: string): number {
+  return eventData?.drawsData?.find((d: any) => d.drawId === drawId)?.structures?.length ?? 0;
 }

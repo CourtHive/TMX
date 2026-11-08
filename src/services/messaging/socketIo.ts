@@ -92,6 +92,19 @@ export function onFacilityScheduleChanged(callback: ((data: any) => void) | null
   facilityScheduleListener = callback;
 }
 
+let replacedListener: ((data: any) => void) | null = null;
+
+/** Register a callback for `tournamentReplaced`: the server replaced a record outside `executionQueue` (a
+ * super-admin provider move), so there are no methods to replay. Carries `{ tournamentId, reason, serverUpdatedAt }`. */
+export function onTournamentReplaced(callback: ((data: any) => void) | null): void {
+  replacedListener = callback;
+}
+
+function handleTournamentReplaced(data: any): void {
+  slog('[socket] received tournamentReplaced —', data?.tournamentId, data?.reason);
+  replacedListener?.(data);
+}
+
 function handleFacilityScheduleChanged(data: any): void {
   slog('[socket] received facilityScheduleChanged — venues:', data?.venueIds);
   facilityScheduleListener?.(data);
@@ -134,6 +147,7 @@ export function connectSocket(callback?: () => void): void {
   transport.on(TMX_DIRECTIVE, processDirective);
   transport.on('tournamentMutation', handleTournamentMutation);
   transport.on('facilityScheduleChanged', handleFacilityScheduleChanged);
+  transport.on('tournamentReplaced', handleTournamentReplaced);
   transport.on('exception', handleException);
   transport.on('timestamp', (data: any) => (oi.timestampOffset = Date.now() - data.timestamp));
 
@@ -224,6 +238,15 @@ export function disconnectSocket(): void {
   closeAmsChat();
   oi.connection?.disconnect();
   setTimeout(() => delete oi.connection, 1000);
+}
+
+/**
+ * Close the `/tmx` transport for the back-forward cache but KEEP it (connectionLifecycle's `pagehide`), so the browser
+ * never has to kill an open socket on freeze. `ensureConnected()` re-opens this same transport on restore. Unlike
+ * `disconnectSocket()` it neither closes chat (the lifecycle suspends that separately) nor drops the transport.
+ */
+export function suspendSocket(): void {
+  if (oi.connection?.isConnected()) oi.connection.disconnect();
 }
 
 /**

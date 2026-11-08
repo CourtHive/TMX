@@ -29,6 +29,11 @@
  *   - `online` — the network came back; the OS knows before socket.io's next
  *     scheduled retry does.
  *
+ * And one on the way OUT: `pagehide` with `persisted` (the page is about to be frozen into the cache) suspends every
+ * socket — `/tmx`, the scoring relay, and the chat relay's room and monitor sockets — keeping each one and its
+ * subscriptions. The browser then has nothing open to kill, so it stops logging "Page entered Back-Forward Cache", and
+ * a page without open sockets is more likely to be cached at all. `pageshow` reopens them through the sweep below.
+ *
  * Deliberately additive: existing `visibilitychange` listeners
  * (`stalenessGuard`, `checkTmxVersion`, `schedulingTab`) check *data* and version
  * freshness and never socket health. `stalenessGuard` in particular re-fetches
@@ -36,8 +41,9 @@
  * symptom read as intermittent — one fresh snapshot, then silence.
  */
 
-import { ensureRelayConnected } from './scoreRelay';
-import { ensureConnected } from './socketIo';
+import { resumeAmsChat, suspendAmsChat } from 'services/chat/amsChatTransport';
+import { ensureRelayConnected, suspendRelay } from './scoreRelay';
+import { ensureConnected, suspendSocket } from './socketIo';
 import { debugConfig } from 'config/debugConfig';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
@@ -53,12 +59,13 @@ let lastSweep = 0;
 let listening = false;
 
 /** Exposed for tests: the recovery sweep, ignoring the throttle. */
-export function recoverConnections(reason: string): { socket: boolean; relay: boolean } {
-  // Both are attempted independently — the /tmx socket and the relay fail and
-  // recover separately, and a dead relay must not mask a dead socket.
+export function recoverConnections(reason: string): { socket: boolean; relay: boolean; chat: boolean } {
+  // Each is attempted independently — the /tmx socket, the scoring relay and the chat relay fail and
+  // recover separately, and a dead one must not mask another.
   const socket = ensureConnected();
   const relay = ensureRelayConnected();
-  if (socket || relay) {
+  const chat = resumeAmsChat();
+  if (socket || relay || chat) {
     // DELIBERATELY NOT behind `socketLog`. This fires only when a reconnect was actually initiated —
     // a rare, meaningful event, not a trace — and it is the only way to tell from a deployed build
     // that recovery ran at all.
@@ -68,9 +75,16 @@ export function recoverConnections(reason: string): { socket: boolean; relay: bo
     // was reported as broken on 8.19.0 when it was in fact working. `socketLog` could not settle it
     // because it is the one debug flag with no setter in env.ts — every slog() call is unreachable
     // in a deployed build. Answering "did recovery run?" must not depend on a flag nobody can set.
-    console.log('[lifecycle] recovery after %s — socket=%s relay=%s', reason, socket, relay);
+    console.log('[lifecycle] recovery after %s — socket=%s relay=%s chat=%s', reason, socket, relay, chat);
   }
-  return { socket, relay };
+  return { socket, relay, chat };
+}
+
+/** Exposed for tests: close every socket ahead of a back-forward-cache freeze, keeping each for `recoverConnections`. */
+export function suspendConnections(): void {
+  suspendSocket();
+  suspendRelay();
+  suspendAmsChat();
 }
 
 function throttledRecover(reason: string): void {
@@ -90,6 +104,15 @@ function onPageShow(event: Event): void {
   throttledRecover('pageshow(persisted)');
 }
 
+function onPageHide(event: Event): void {
+  // Only a page going INTO the cache is suspended; an unload needs nothing.
+  if (!(event as PageTransitionEvent).persisted) return;
+  slog('[lifecycle] pagehide(persisted) — suspending sockets for the back-forward cache');
+  suspendConnections();
+  // The restore must sweep even if it lands within the throttle window of a sweep made just before the freeze.
+  lastSweep = 0;
+}
+
 function onVisibilityChange(): void {
   if (document.visibilityState !== 'visible') return;
   throttledRecover('visibilitychange(visible)');
@@ -107,6 +130,7 @@ export function startConnectionLifecycle(): void {
   if (listening) return;
   listening = true;
   globalThis.addEventListener('pageshow', onPageShow);
+  globalThis.addEventListener('pagehide', onPageHide);
   globalThis.addEventListener('online', onOnline);
   document.addEventListener('visibilitychange', onVisibilityChange);
   slog('[lifecycle] connection lifecycle listeners registered');
@@ -116,6 +140,7 @@ export function stopConnectionLifecycle(): void {
   if (!listening) return;
   listening = false;
   globalThis.removeEventListener('pageshow', onPageShow);
+  globalThis.removeEventListener('pagehide', onPageHide);
   globalThis.removeEventListener('online', onOnline);
   document.removeEventListener('visibilitychange', onVisibilityChange);
   lastSweep = 0;

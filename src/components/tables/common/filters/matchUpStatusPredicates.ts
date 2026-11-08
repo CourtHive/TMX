@@ -68,6 +68,19 @@ export function classifyTodayBucket(rowData: any): TodayBucket {
   return 'notReady';
 }
 
+/**
+ * The status chips (CA 2026-11-08): four buckets every matchUp falls in exactly one of, so chips combine without
+ * counting a match twice. The Today partition, with called, ready to score and not ready folded into "to be played".
+ */
+export const STATUS_BUCKETS = ['toBePlayed', 'live', 'suspended', 'complete'] as const;
+export type StatusBucket = (typeof STATUS_BUCKETS)[number];
+
+export function statusBucketOf(rowData: any): StatusBucket {
+  const bucket = classifyTodayBucket(rowData);
+  if (bucket === 'complete' || bucket === 'live' || bucket === 'suspended') return bucket;
+  return 'toBePlayed';
+}
+
 /** Predicate for the popover status options (not a partition). */
 export function popoverStatusPredicate(rowData: any, filterValue: string): boolean {
   const status = statusOf(rowData);

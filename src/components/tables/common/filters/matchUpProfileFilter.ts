@@ -1,99 +1,50 @@
 /**
- * MatchUp competitiveness-profile filter for filterPopoverButton.
- * Filters completed matchUps by their competitiveness bucket
- * (COMPETITIVE / ROUTINE / DECISIVE) or by WALKOVER / defaulted status.
+ * MatchUp competitiveness-profile filter for filterPopoverButton: chips for COMPETITIVE / ROUTINE / DECISIVE and
+ * WALKOVER / defaulted, any combination on (CA 2026-11-08). Every chip on is "all profiles".
  *
- * Backs both the popover "Profile" section and click-to-filter on the
- * competitiveness bar; the token values match the bar's bucket keys.
+ * Also backs click-to-filter on the competitiveness bar, whose segments are one bucket each: `setProfile` selects
+ * exactly that bucket, and `getProfile` names the bucket only when exactly one is selected, so the bar lights a
+ * segment for a single profile and none for a combination. The token values match the bar's bucket keys.
  */
-import { whenTableBuilt } from 'components/tables/common/whenTableBuilt';
+import { createChipFilter, type ChipSection } from './chipFilter';
 import { isWalkoverProfile } from './matchUpStatusPredicates';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+const PROFILES: [string, string][] = [
+  ['COMPETITIVE', 'pages.matchUps.competitive'],
+  ['ROUTINE', 'pages.matchUps.routine'],
+  ['DECISIVE', 'pages.matchUps.decisive'],
+  ['WALKOVER', 'pages.matchUps.walkover'],
+];
+
+export function profileMatches(rowData: any, value: string): boolean {
+  if (value === 'WALKOVER') return isWalkoverProfile(rowData);
+  return rowData.competitiveProfile?.competitiveness === value;
+}
+
 export function getMatchUpProfileFilter(table: any): {
-  profileOptions: any[];
+  chips: ChipSection;
   isFiltered: () => boolean;
-  activeIndex: () => number;
   setProfile: (profile?: string) => void;
   getProfile: () => string | undefined;
 } {
-  let filterValue: string | undefined = context.matchUpFilters.profile;
-
-  // Tabulator warns "Filter Error - No matching filter type found" when
-  // removeFilter is handed a filter it never added — which is every first
-  // call here, since the filter is only added when a value is set.
-  let profileFilterApplied = false;
-
-  const profileFilter = (rowData: any): boolean => {
-    if (!filterValue) return true;
-    if (filterValue === 'WALKOVER') return isWalkoverProfile(rowData);
-    return rowData.competitiveProfile?.competitiveness === filterValue;
-  };
-
-  // Restore saved filter once the table is built (Tabulator warns if called sooner).
-  if (filterValue) {
-    profileFilterApplied = true;
-    whenTableBuilt(table, () => profileFilterApplied && table.addFilter(profileFilter));
-  }
-
-  const updateFilter = (profile?: string) => {
-    if (profileFilterApplied) {
-      table.removeFilter(profileFilter);
-      profileFilterApplied = false;
-    }
-    filterValue = profile;
-    context.matchUpFilters.profile = profile;
-    if (profile) {
-      table.addFilter(profileFilter);
-      profileFilterApplied = true;
-    }
-  };
-
-  const allLabel = t('pages.matchUps.allProfiles');
-  const allOption = {
-    label: `<span style='font-weight: bold'>${allLabel}</span>`,
-    onClick: () => updateFilter(),
-    close: true,
-  };
-  const profileOptions = [
-    allOption,
-    { divider: true },
-    {
-      label: t('pages.matchUps.competitive'),
-      close: true,
-      onClick: () => updateFilter('COMPETITIVE'),
-      filterValue: 'COMPETITIVE',
-    },
-    { label: t('pages.matchUps.routine'), close: true, onClick: () => updateFilter('ROUTINE'), filterValue: 'ROUTINE' },
-    {
-      label: t('pages.matchUps.decisive'),
-      close: true,
-      onClick: () => updateFilter('DECISIVE'),
-      filterValue: 'DECISIVE',
-    },
-    {
-      label: t('pages.matchUps.walkover'),
-      close: true,
-      onClick: () => updateFilter('WALKOVER'),
-      filterValue: 'WALKOVER',
-    },
-  ];
-
-  const selectableOptions = profileOptions.filter((opt: any) => !opt.divider);
-  const activeIndex = () => {
-    if (!filterValue) return 0;
-    const idx = selectableOptions.findIndex((opt: any) => opt.filterValue === filterValue);
-    // `findIndex` yields -1 or a valid index, so clamping at 0 is exactly
-    // the old ternary. SonarJS prefers Math.max here.
-    return Math.max(idx, 0);
-  };
+  const options = PROFILES.map(([value, key]) => ({ value, label: t(key) }));
+  const filter = createChipFilter({
+    table,
+    values: options.map(({ value }) => value),
+    matches: profileMatches,
+    initial: context.matchUpFilters.profile,
+    persist: (selected) => (context.matchUpFilters.profile = selected),
+  });
 
   return {
-    profileOptions,
-    isFiltered: () => !!filterValue,
-    activeIndex,
-    setProfile: updateFilter,
-    getProfile: () => filterValue,
+    chips: { options, isOn: filter.isOn, toggle: filter.toggle, clear: filter.clear },
+    isFiltered: filter.isFiltered,
+    setProfile: (profile?: string) => filter.set(profile ? [profile] : undefined),
+    getProfile: () => {
+      const selected = filter.selected();
+      return selected?.length === 1 ? selected[0] : undefined;
+    },
   };
 }
