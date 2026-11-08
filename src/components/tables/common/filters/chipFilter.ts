@@ -4,6 +4,8 @@
  *
  *   - values combine with OR within the filter; filters combine with AND, as Tabulator applies each filter
  *   - every chip on and no chip on mean the same thing: no filter. The state is `undefined` then
+ *   - with every chip on, a click selects that chip alone: one click to "to be played", as a chart legend
+ *     isolates a series and as a competitiveness bar segment selects its profile. After that, clicks toggle
  *   - turning off the last chip that is on turns them all back on, so a chip filter never empties the table
  *
  * The selection is saved through `persist`, so it survives leaving and returning to the tab.
@@ -74,7 +76,9 @@ export function createChipFilter({ table, values, matches, initial, persist }: C
 
   const toggle = (value: string) => {
     if (!values.includes(value)) return;
-    const on = new Set(selected ?? values);
+    // every chip on: the click picks this one
+    if (!selected) return apply(normalize([value]));
+    const on = new Set(selected);
     if (on.has(value)) on.delete(value);
     else on.add(value);
     apply(normalize([...on]));

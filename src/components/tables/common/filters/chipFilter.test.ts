@@ -2,8 +2,9 @@ import { chipsFit, createChipFilter } from './chipFilter';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Chip filters (CA 2026-11-08): values OR together; every chip on and no chip on are both "no filter"; turning
- * off the last chip that is on turns them all back on, so a chip filter never empties the table.
+ * Chip filters (CA 2026-11-08): values OR together; every chip on and no chip on are both "no filter"; with every
+ * chip on a click selects that chip alone; turning off the last chip that is on turns them all back on, so a chip
+ * filter never empties the table.
  */
 function fakeTable() {
   const filters = new Set<(row: any) => boolean>();
@@ -44,13 +45,22 @@ describe('createChipFilter', () => {
     expect(table.filters.size).toBe(0);
   });
 
-  it('turning one chip off filters to the others, which OR together', () => {
+  it('with every chip on, a click selects that chip alone', () => {
     const { table, filter, saved } = setup();
-    filter.toggle('T');
-    expect(filter.isOn('T')).toBe(false);
-    expect(saved()).toEqual(['S', 'D']);
+    filter.toggle('D');
+    expect(['S', 'D', 'T'].map(filter.isOn)).toEqual([false, true, false]);
+    expect(saved()).toEqual(['D']);
+    expect(table.rows(ROWS)).toEqual([{ type: 'D' }]);
+  });
+
+  it('after that, clicks toggle, and the values OR together', () => {
+    const { table, filter, saved } = setup(['D']);
+    filter.toggle('S');
+    expect(saved()).toEqual(['D', 'S']);
     expect(table.rows(ROWS).map((row) => row.type)).toEqual(['S', 'D']);
     expect(table.filters.size).toBe(1);
+    filter.toggle('D');
+    expect(saved()).toEqual(['S']);
   });
 
   it('turning the last chip off turns them all back on', () => {

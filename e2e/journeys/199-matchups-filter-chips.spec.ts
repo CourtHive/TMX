@@ -6,9 +6,10 @@ import { seedTournament } from '../helpers/seed';
 declare const dev: any;
 
 /**
- * Journey 199 — the matchUps filter popover's chips (CA 2026-11-08). Type and Profile toggle as chips, any
- * combination on; every chip on is "all"; turning off the last chip turns them all back on. A competitiveness bar
- * segment selects exactly its profile, and the popover's chips show it.
+ * Journey 199 — the matchUps filter popover's chips (CA 2026-11-08). Type and Profile are chips, any combination
+ * on; every chip on is "all"; with every chip on a click selects that chip alone, then clicks toggle; turning off
+ * the last chip turns them all back on. A competitiveness bar segment selects exactly its profile, and the
+ * popover's chips show it.
  */
 const rowCount = async (page: Page) => {
   // the tab header: "Matches (22)", the rows the filters leave
@@ -77,15 +78,16 @@ test.describe('Journey 199 — matchUps filter chips', () => {
         .screenshot({ path: test.info().outputPath(`chips-${theme}.png`) });
     }
 
-    // Doubles off: singles only
-    await chip('Type', 'Doubles').click();
+    // every chip on: a click selects Singles alone
+    await chip('Type', 'Singles').click();
+    await expect(chip('Type', 'Singles')).toHaveAttribute('aria-pressed', 'true');
     await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'false');
     await expect.poll(() => rowCount(page)).toBe(singles);
     await page.waitForTimeout(150);
     await page
       .locator('.tippy-box')
       .last()
-      .screenshot({ path: test.info().outputPath('chips-doubles-off.png') });
+      .screenshot({ path: test.info().outputPath('chips-singles-only.png') });
 
     // the last chip off turns them all back on
     await chip('Type', 'Singles').click();
@@ -93,11 +95,14 @@ test.describe('Journey 199 — matchUps filter chips', () => {
     await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(() => rowCount(page)).toBe(singles + doubles);
 
-    // profiles combine: Decisive and Walkover off leaves Competitive + Routine
-    await chip('Profile', 'Decisive').click();
-    await chip('Profile', 'Walkover').click();
-    const twoProfiles = await rowCount(page);
-    expect(twoProfiles).toBeLessThanOrEqual(singles + doubles);
+    // profiles combine: Competitive alone, then Routine added
+    await chip('Profile', 'Competitive').click();
+    await chip('Profile', 'Routine').click();
+    await expect(chip('Profile', 'Competitive')).toHaveAttribute('aria-pressed', 'true');
+    await expect(chip('Profile', 'Routine')).toHaveAttribute('aria-pressed', 'true');
+    await expect(chip('Profile', 'Decisive')).toHaveAttribute('aria-pressed', 'false');
+    await expect(chip('Profile', 'Walkover')).toHaveAttribute('aria-pressed', 'false');
+    expect(await rowCount(page)).toBeLessThanOrEqual(singles + doubles);
     await expect(page.locator('.tippy-box .filter-popover-row.is-filtering')).toHaveCount(1);
 
     // Clear All turns every chip back on
