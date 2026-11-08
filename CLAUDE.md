@@ -80,7 +80,6 @@ pnpm lint:fix             # ESLint with auto-fix (rewrites source)
 pnpm format               # Prettier on src/
 pnpm test                 # Vitest (TZ=UTC, watch mode)
 pnpm test --run           # Single test run (no watch)
-pnpm storybook            # Storybook dev server on :6006
 pnpm commit               # Interactive conventional commit (cz-git)
 pnpm test:e2e             # Playwright E2E journey tests (against dev server)
 pnpm test:e2e:ui          # Playwright with interactive UI

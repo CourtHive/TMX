@@ -9,7 +9,6 @@ export default [
     ignores: [
       'dist/**',
       'node_modules/**',
-      'storybook-static/**',
       '**/*.mjs',
       'vite.config.ts',
       'electron.vite.config.ts',
