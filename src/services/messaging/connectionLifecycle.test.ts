@@ -2,9 +2,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ensureConnected = vi.fn(() => false);
 const ensureRelayConnected = vi.fn(() => false);
+const resumeAmsChat = vi.fn(() => false);
+const suspendSocket = vi.fn();
+const suspendRelay = vi.fn();
+const suspendAmsChat = vi.fn();
 
-vi.mock('./socketIo', () => ({ ensureConnected: () => ensureConnected() }));
-vi.mock('./scoreRelay', () => ({ ensureRelayConnected: () => ensureRelayConnected() }));
+vi.mock('./socketIo', () => ({ ensureConnected: () => ensureConnected(), suspendSocket: () => suspendSocket() }));
+vi.mock('./scoreRelay', () => ({
+  ensureRelayConnected: () => ensureRelayConnected(),
+  suspendRelay: () => suspendRelay(),
+}));
+vi.mock('services/chat/amsChatTransport', () => ({
+  resumeAmsChat: () => resumeAmsChat(),
+  suspendAmsChat: () => suspendAmsChat(),
+}));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({ socketLog: false }) } }));
 
 import {
@@ -58,6 +69,7 @@ function fire(map: Map<string, Set<Listener>>, name: string, event?: any): void 
 }
 
 const firePageShow = (persisted: boolean) => fire(windowListeners, 'pageshow', { persisted });
+const firePageHide = (persisted: boolean) => fire(windowListeners, 'pagehide', { persisted });
 const fireOnline = () => fire(windowListeners, 'online');
 const fireVisibility = (state: 'visible' | 'hidden') => {
   visibilityState = state;
@@ -71,6 +83,8 @@ describe('connectionLifecycle', () => {
   beforeEach(() => {
     ensureConnected.mockReset().mockReturnValue(false);
     ensureRelayConnected.mockReset().mockReturnValue(false);
+    resumeAmsChat.mockReset().mockReturnValue(false);
+    for (const suspend of [suspendSocket, suspendRelay, suspendAmsChat]) suspend.mockReset();
     windowListeners.clear();
     documentListeners.clear();
     visibilityState = 'visible';
@@ -102,10 +116,14 @@ describe('connectionLifecycle', () => {
       expect(registeredWindowEvents()).toEqual([]);
     });
 
-    it('registers exactly pageshow + online on window and visibilitychange on document', () => {
+    it('registers exactly pagehide + pageshow + online on window and visibilitychange on document', () => {
       startConnectionLifecycle();
       expect(isConnectionLifecycleActive()).toBe(true);
-      expect(registeredWindowEvents().toSorted((a, b) => a.localeCompare(b))).toEqual(['online', 'pageshow']);
+      expect(registeredWindowEvents().toSorted((a, b) => a.localeCompare(b))).toEqual([
+        'online',
+        'pagehide',
+        'pageshow',
+      ]);
       expect(handlerCount(documentListeners, 'visibilitychange')).toBe(1);
     });
 
@@ -198,15 +216,57 @@ describe('connectionLifecycle', () => {
     });
   });
 
+  // Polish (2026-11-08): close every socket on the way INTO the back-forward cache, so the browser has nothing open
+  // to kill and stops logging "Page entered Back-Forward Cache", then reopen them on the restore.
+  describe('pagehide(persisted) suspends every socket; the restore reopens them', () => {
+    it('suspends the /tmx socket, the scoring relay and chat when the page is going into the cache', () => {
+      startConnectionLifecycle();
+      firePageHide(true);
+      expect(suspendSocket).toHaveBeenCalledTimes(1);
+      expect(suspendRelay).toHaveBeenCalledTimes(1);
+      expect(suspendAmsChat).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing on an unload (pagehide, not persisted)', () => {
+      startConnectionLifecycle();
+      firePageHide(false);
+      expect(suspendSocket).not.toHaveBeenCalled();
+      expect(suspendRelay).not.toHaveBeenCalled();
+      expect(suspendAmsChat).not.toHaveBeenCalled();
+    });
+
+    it('reopens all three on the restore, even right after a sweep made before the freeze', () => {
+      startConnectionLifecycle();
+      fireOnline(); // a sweep just before the freeze opens the throttle window
+      ensureConnected.mockClear();
+      firePageHide(true);
+      firePageShow(true);
+      expect(ensureConnected).toHaveBeenCalledTimes(1);
+      expect(ensureRelayConnected).toHaveBeenCalledTimes(2);
+      expect(resumeAmsChat).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops listening for pagehide when stopped', () => {
+      startConnectionLifecycle();
+      stopConnectionLifecycle();
+      firePageHide(true);
+      expect(suspendSocket).not.toHaveBeenCalled();
+    });
+  });
+
   describe('the two sockets are independent', () => {
     it('reports each outcome separately', () => {
       ensureConnected.mockReturnValue(false);
       ensureRelayConnected.mockReturnValue(true);
-      expect(recoverConnections('test')).toEqual({ socket: false, relay: true });
+      expect(recoverConnections('test')).toEqual({ socket: false, relay: true, chat: false });
 
       ensureConnected.mockReturnValue(true);
       ensureRelayConnected.mockReturnValue(false);
-      expect(recoverConnections('test')).toEqual({ socket: true, relay: false });
+      expect(recoverConnections('test')).toEqual({ socket: true, relay: false, chat: false });
+
+      ensureConnected.mockReturnValue(false);
+      resumeAmsChat.mockReturnValue(true);
+      expect(recoverConnections('test')).toEqual({ socket: false, relay: false, chat: true });
     });
 
     it('attempts the socket BEFORE the relay, so a throwing relay cannot mask it', () => {
@@ -269,7 +329,7 @@ describe('recovery is observable without a debug flag', () => {
     const call = logSpy.mock.calls.find((entry) => String(entry[0]).includes(RECOVERY_LINE));
     expect(call).toBeDefined();
     // format args: reason, socket, relay
-    expect(call?.slice(1)).toEqual(['online', false, true]);
+    expect(call?.slice(1)).toEqual(['online', false, true, false]);
     logSpy.mockRestore();
   });
 });
