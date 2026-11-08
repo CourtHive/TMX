@@ -2583,7 +2583,6 @@
       "allFlights": "All flights",
       "allTeams": "All teams",
       "allStatuses": "All statuses",
-      "allTypes": "All Types",
       "allDates": "All dates",
       "today": "Today",
       "noDate": "No date",
@@ -2599,7 +2598,6 @@
       "irregularEnding": "Irregular ending",
       "abandoned": "Abandoned",
       "cancelled": "Cancelled",
-      "allProfiles": "All profiles",
       "competitive": "Competitive",
       "routine": "Routine",
       "decisive": "Decisive",
@@ -2609,7 +2607,9 @@
       "singles": "Singles",
       "doubles": "Doubles",
       "team": "Team",
-      "opponents": "Opponents"
+      "opponents": "Opponents",
+      "typeLabel": "Type",
+      "profileLabel": "Profile"
     },
     "schedule": {
       "searchParticipants": "Search participants",
