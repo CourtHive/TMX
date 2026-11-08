@@ -1,4 +1,4 @@
-import { chipsFit, type ChipSection } from './chipFilter';
+import { chipsFit, paintChipColor, type ChipSection } from './chipFilter';
 import tippy, { Instance } from 'tippy.js';
 
 import { LEFT } from 'constants/tmxConstants';
@@ -177,11 +177,12 @@ export function filterPopoverButton(
     group.setAttribute('role', 'group');
     group.setAttribute('aria-label', section.chipsLabel ?? section.label);
 
-    const buttons = chips.options.map(({ label: text, value }) => {
+    const buttons = chips.options.map(({ label: text, value, color, ink }) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'filter-popover-chip font-medium';
       chip.dataset.value = value;
+      paintChipColor(chip, { color, ink });
       chip.textContent = text;
       chip.addEventListener('click', (e) => {
         e.stopPropagation();

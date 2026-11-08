@@ -8,6 +8,7 @@
  */
 import { createChipFilter, type ChipSection } from './chipFilter';
 import { isWalkoverProfile } from './matchUpStatusPredicates';
+import { PROFILE_COLORS } from './statusColors';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -29,7 +30,7 @@ export function getMatchUpProfileFilter(table: any): {
   setProfile: (profile?: string) => void;
   getProfile: () => string | undefined;
 } {
-  const options = PROFILES.map(([value, key]) => ({ value, label: t(key) }));
+  const options = PROFILES.map(([value, key]) => ({ value, label: t(key), ...PROFILE_COLORS[value] }));
   const filter = createChipFilter({
     table,
     values: options.map(({ value }) => value),

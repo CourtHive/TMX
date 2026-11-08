@@ -44,6 +44,10 @@ html {
   --tmx-text-secondary: var(--chc-text-secondary);
   --tmx-text-muted: var(--chc-text-muted);
   --tmx-text-inverse: var(--chc-text-inverse);
+  /* text on a status fill (the status chips): white on light's deep status colours, dark on dark's light ones */
+  --tmx-on-status: #ffffff;
+  /* text on a fill that is dark in both themes (the teal, which no palette lightens) */
+  --tmx-on-dark-fill: #ffffff;
 
   /* Borders */
   --tmx-border-primary: var(--chc-border-primary);
@@ -144,6 +148,7 @@ html {
 
 /* ── Midnight (default dark) ── */
 [data-theme='dark'] {
+  --tmx-on-status: var(--chc-bg-primary);
   --tmx-accent-blue: #6aa6e0;
   --tmx-accent-green: #6cc488;
   --tmx-accent-purple: #c88aff;

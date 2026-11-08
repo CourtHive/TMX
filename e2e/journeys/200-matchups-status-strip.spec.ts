@@ -115,4 +115,94 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
     await expect.poll(async () => (await counts(page)).reduce((sum, count) => sum + count, 0)).toBe(shown);
     await expect.poll(async () => (await counts(page))[0]).toBe(0);
   });
+
+  test("the chips take the bars' colours, and the table reaches the window's bottom", async ({ page }) => {
+    // CA 2026-11-08: status chips in the Today bar's colours, profile chips in the competitiveness bar's; the table
+    // sized to the window, not a fraction of it
+    const tournamentId = await page.evaluate(async () => {
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        tournamentAttributes: { tournamentId: 'e2e-matchups-chip-colours' },
+        drawProfiles: [{ drawSize: 32 }],
+        completeAllMatchUps: true,
+        nonRandom: 1,
+        setState: true,
+      });
+      await dev.load(tournamentRecord);
+      return tournamentRecord.tournamentId;
+    });
+    const tournament = new TournamentPage(page);
+    for (const height of [760, 1200]) {
+      await page.setViewportSize({ width: 1440, height });
+      await tournament.goto(tournamentId);
+      await tournament.navigateToMatchUps();
+      await expect(strip(page)).toBeVisible();
+      // the table ends 8px above the window's bottom (to the pixel: its top can be fractional), footer chips in view
+      await expect
+        .poll(async () =>
+          Math.abs(
+            height -
+              8 -
+              (await page.locator('#tournamentMatchUps').evaluate((el) => el.getBoundingClientRect().bottom)),
+          ),
+        )
+        .toBeLessThanOrEqual(1);
+      await expect(strip(page)).toBeInViewport({ ratio: 1 });
+      await page.screenshot({ path: test.info().outputPath(`page-${height}.png`) });
+    }
+
+    // a status chip's fill is the Today bar's colour for its bucket
+    const fillOf = (selector: string) =>
+      page
+        .locator(selector)
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const painted = (color: string) =>
+      page.evaluate((color) => {
+        const probe = document.createElement('div');
+        probe.style.background = color;
+        document.body.appendChild(probe);
+        const value = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return value;
+      }, color);
+    // polled: the chips' colour eases in over 120ms
+    const success = await painted('var(--chc-status-success, #16a34a)');
+    await expect.poll(() => fillOf('.tmx-status-strip-chip[data-value="complete"]')).toBe(success);
+    const teal = await painted('var(--chc-status-teal, #0d9488)');
+    await expect.poll(() => fillOf('.tmx-status-strip-chip[data-value="toBePlayed"]')).toBe(teal);
+
+    // a profile chip's fill is the competitiveness bar's segment for that profile
+    await page.locator('#filterPopoverButton').click();
+    for (const bucket of ['COMPETITIVE', 'ROUTINE', 'DECISIVE']) {
+      const segment = page.locator(`.chc-cb__seg[data-bucket="${bucket}"]`);
+      if (!(await segment.count())) continue;
+      const barFill = await fillOf(`.chc-cb__seg[data-bucket="${bucket}"]`);
+      await expect.poll(() => fillOf(`.filter-popover-chip[data-value="${bucket}"]`)).toBe(barFill);
+    }
+    await expect
+      .poll(() =>
+        page
+          .locator('.tippy-box')
+          .last()
+          .evaluate((box) => getComputedStyle(box).opacity),
+      )
+      .toBe('1');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => document.documentElement.setAttribute('data-theme', theme), theme);
+      await page.waitForTimeout(350);
+      await page
+        .locator('.tippy-box')
+        .last()
+        .screenshot({ path: test.info().outputPath(`popover-${theme}.png`) });
+    }
+    // one chip on: the others keep a dot of their colour
+    await page.locator('.tippy-box .delete').click();
+    await stripChip(page, 'complete').click();
+    await page.waitForTimeout(200);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => document.documentElement.setAttribute('data-theme', theme), theme);
+      await page.waitForTimeout(350);
+      await strip(page).screenshot({ path: test.info().outputPath(`strip-one-on-${theme}.png`) });
+    }
+  });
 });
