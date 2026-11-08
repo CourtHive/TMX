@@ -298,3 +298,25 @@ export const PROFILE_ROUND_ROBIN: MockProfile = {
     },
   ],
 };
+
+/**
+ * Lucky draws for the lucky-loser picker, from the scenarios its Storybook stories showed (Storybook removed
+ * 2026-11-08). All matchUps complete, so round 1's losers are ready to be picked.
+ */
+/** LUCKY_DRAW, drawSize 11, default cascade [6, 3, 2, 1]: one lucky loser into round 2 */
+export const PROFILE_LUCKY_DRAW_SINGLE_LL: MockProfile = {
+  tournamentName: 'E2E Lucky Draw',
+  tournamentAttributes: { tournamentId: 'e2e-lucky-draw' },
+  participantsProfile: { scaledParticipantsCount: 11 },
+  completeAllMatchUps: true,
+  drawProfiles: [{ eventName: 'Lucky', drawSize: 11, drawType: 'LUCKY_DRAW' }],
+};
+
+/** LUCKY_DRAW, drawSize 40, explicit roundProfile [20, 12, 8, 4, 2, 1]: four lucky losers into round 2, four into round 3 */
+export const PROFILE_LUCKY_DRAW_CUSTOM_PROFILE: MockProfile = {
+  tournamentName: 'E2E Lucky Draw — custom profile',
+  tournamentAttributes: { tournamentId: 'e2e-lucky-draw-custom' },
+  participantsProfile: { scaledParticipantsCount: 40 },
+  completeAllMatchUps: true,
+  drawProfiles: [{ eventName: 'Lucky', drawSize: 40, drawType: 'LUCKY_DRAW', roundProfile: [20, 12, 8, 4, 2, 1] }],
+};

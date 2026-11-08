@@ -95,7 +95,7 @@ pnpm test:e2e
 | **Storage** | IndexedDB (Dexie) for tournament records, localStorage for preferences |
 | **Transport** | Socket.IO to the competition factory server |
 | **Tables / PDF** | Tabulator · pdfMake |
-| **Testing** | Vitest · Playwright · Storybook |
+| **Testing** | Vitest · Playwright |
 
 ## Related projects
 
