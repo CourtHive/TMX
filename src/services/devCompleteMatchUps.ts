@@ -38,7 +38,14 @@ function getHashSegment(name: string): string | undefined {
   return idx >= 0 ? hash[idx + 1] : undefined;
 }
 
-export function completeMatchUps({ drawId, structureId }: { drawId?: string; structureId?: string } = {}): void {
+type CompleteMatchUpsArgs = {
+  drawId?: string;
+  structureId?: string;
+  /** stop after this many rounds, counted from the structure's first round still to play (`completionRounds.ts`) */
+  roundsToComplete?: number;
+};
+
+export function completeMatchUps({ drawId, structureId, roundsToComplete }: CompleteMatchUpsArgs = {}): void {
   // Auto-detect from current route: .../draw/:drawId/structure/:structureId
   if (!drawId) drawId = getHashSegment('draw');
   if (!structureId) structureId = getHashSegment('structure');
@@ -49,6 +56,7 @@ export function completeMatchUps({ drawId, structureId }: { drawId?: string; str
   // omitted, the factory completes every structure in the draw — which is what the dev console
   // wants when it is invoked from outside a structure view
   if (structureId) params.structureIds = [structureId];
+  if (roundsToComplete) params.roundsToComplete = roundsToComplete;
 
   mutationRequest({
     methods: [{ method: COMPLETE_DRAW_MATCHUPS, params }],
