@@ -3914,7 +3914,8 @@
     "saveXml": "Save XML"
   },
   "remoteMutations": {
-    "updateFailed": "Remote update failed — please reload"
+    "updateFailed": "Remote update failed — please reload",
+    "tournamentReplaced": "An administrator changed this tournament on the server — reloading"
   },
   "mutationPrompts": {
     "modify": "Modify?",
