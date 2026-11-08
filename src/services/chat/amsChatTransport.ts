@@ -193,6 +193,29 @@ export function installAmsChat(): void {
   setAdminMonitorFns({ join: () => void startMonitor(), leave: stopMonitor, reply: monitorReply });
 }
 
+/**
+ * Close the chat sockets for the back-forward cache WITHOUT forgetting them (connectionLifecycle's `pagehide`). A page
+ * frozen with open sockets has them killed by the browser — "WebSocket … failed: Page entered Back-Forward Cache" —
+ * and is less likely to be cached at all. Room and subscriptions are kept; `resumeAmsChat` reconnects, and each
+ * socket's `connect` handler re-joins with a fresh token.
+ */
+export function suspendAmsChat(): void {
+  roomSocket?.disconnect();
+  monitorSocket?.disconnect();
+}
+
+/** Reopen what `suspendAmsChat` closed. True when a reconnect was started. */
+export function resumeAmsChat(): boolean {
+  let resumed = false;
+  for (const socket of [roomSocket, monitorSocket]) {
+    if (socket && !socket.connected) {
+      socket.connect();
+      resumed = true;
+    }
+  }
+  return resumed;
+}
+
 /** Everything off: a logout, or the transport torn down. */
 export function closeAmsChat(): void {
   leaveChat();

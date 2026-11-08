@@ -241,6 +241,15 @@ export function disconnectSocket(): void {
 }
 
 /**
+ * Close the `/tmx` transport for the back-forward cache but KEEP it (connectionLifecycle's `pagehide`), so the browser
+ * never has to kill an open socket on freeze. `ensureConnected()` re-opens this same transport on restore. Unlike
+ * `disconnectSocket()` it neither closes chat (the lifecycle suspends that separately) nor drops the transport.
+ */
+export function suspendSocket(): void {
+  if (oi.connection?.isConnected()) oi.connection.disconnect();
+}
+
+/**
  * Force a fresh handshake so the `auth` callback re-presents the current token.
  * Used after a silent refresh / re-login to shed a socket that is still holding
  * a stale (now-expired) token. Reconnecting fires `connectionEvent`, which — on

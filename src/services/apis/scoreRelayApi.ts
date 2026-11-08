@@ -16,9 +16,11 @@
  * `isCrowdScoringEnabled` below.
  */
 
+import { isAccessTokenExpired } from 'services/authentication/tokenManagement';
 import { resolveCrowdScoringEnabled } from '@courthive/provider-config';
 import { getJwtTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { refreshAccessToken } from 'services/apis/baseApi';
 import { providerConfig } from 'config/providerConfig';
 import { serverConfig } from 'config/serverConfig';
 import axios from 'axios';
@@ -109,9 +111,34 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+/**
+ * The relay verifies the same access token as CFS but had no refresh path: once the token expired (2h on prod) while
+ * TMX made no CFS REST call — a director working from the local record — every relay request 401'd, the crowd poller
+ * every 45s, until something else refreshed it (2026-11-08). Now a 401 for a token that HAS expired is retried once:
+ * with the stored token if another path already refreshed it, else after baseApi's single-flight refresh. A 401 for a
+ * live token is not an expiry and a refresh cannot fix it, so it is surfaced as-is rather than rotating the refresh
+ * token on every poll. Logging out stays with baseApi, which owns the session.
+ */
+async function retryWithFreshToken(original: any): Promise<any> {
+  const sent = String(original?.headers?.Authorization ?? '').replace(/^Bearer\s+/i, '');
+  if (!isAccessTokenExpired(sent)) return undefined;
+  const stored = localStorage.getItem(JWT_TOKEN_STORAGE_NAME);
+  const token = stored && stored !== sent && !isAccessTokenExpired(stored) ? stored : await refreshAccessToken();
+  if (!token) return undefined;
+  original._retried = true;
+  original.headers = original.headers ?? {};
+  original.headers.Authorization = `Bearer ${token}`;
+  return axiosInstance(original);
+}
+
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && original && !original._retried) {
+      const retried = await retryWithFreshToken(original);
+      if (retried) return retried;
+    }
     const silent = (error.config as any)?.silenceErrors;
     if (!silent) {
       if (error.message === 'Network Error') {
