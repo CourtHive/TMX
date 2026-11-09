@@ -3,35 +3,35 @@
  * Renders the topology builder in its own full-page container,
  * separate from the events tab.
  */
-import {
-  findTopologyTemplate,
-  getTopologyTemplates,
-  saveTopologyTemplate,
-} from 'components/drawers/addDraw/topologyTemplates';
+import { acceptanceEntries, entryChangeMethods, withEntryChanges } from 'components/drawers/addDraw/acceptanceEntries';
+import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
+import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
+import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
+import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
+import { generateDraw } from 'components/drawers/addDraw/generateDraw';
+import { drawDefinitionConstants } from 'tods-competition-factory';
+import { showTopology } from 'services/transitions/screenSlaver';
+import { removeAllChildNodes } from 'services/dom/transformers';
+import { preferencesConfig } from 'config/preferencesConfig';
+import { tournamentEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
+import { scalesMap } from 'config/scalesConfig';
+import { context } from 'services/context';
+import { t } from 'i18n';
 import {
   attachTopologyStructures,
   topologyDrawEntries,
   topologyFitEntries,
 } from 'components/drawers/addDraw/topologyPostGeneration';
-import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
-import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
-import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
-import { navigateToEvent } from 'components/tables/common/navigateToEvent';
-import { acceptanceEntries, entryChangeMethods, withEntryChanges } from 'components/drawers/addDraw/acceptanceEntries';
-import type { EntryChange } from 'components/drawers/addDraw/acceptanceEntries';
-import { generateDraw } from 'components/drawers/addDraw/generateDraw';
-import { drawDefinitionConstants } from 'tods-competition-factory';
-import { showTopology } from 'services/transitions/screenSlaver';
-import { removeAllChildNodes } from 'services/dom/transformers';
-import { tournamentEngine } from 'services/factory/engine';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { preferencesConfig } from 'config/preferencesConfig';
-import { scalesMap } from 'config/scalesConfig';
-import { context } from 'services/context';
+import {
+  findTopologyTemplate,
+  getTopologyTemplates,
+  saveTopologyTemplate,
+} from 'components/drawers/addDraw/topologyTemplates';
 
-// constants
-import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
-import { t } from 'i18n';
+// constants and types
+import type { EntryChange } from 'components/drawers/addDraw/acceptanceEntries';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
@@ -90,6 +90,8 @@ export function renderTopologyPage({
         mode: 'fit' as const,
         drawFit: (state: TopologyState, trial?: { entryChanges: EntryChange[] }) =>
           drawFitFor({ state, eventId, entryChanges: trial?.entryChanges }),
+        fitProposals: (state: TopologyState, trial: { entryChanges: EntryChange[] }) =>
+          fitProposalsFor(state, eventId, trial.entryChanges),
         // the acceptance line: the event's MAIN entries, ranked by the active rating scale
         acceptance: { entries: () => rankedMainEntries(eventId) },
       }),
@@ -149,6 +151,39 @@ function drawFitFor({
     drawEntries: withEntryChanges(topologyFitEntries({ event, state }), entryChanges),
     eventId,
   });
+}
+
+/** Ask the factory about trial entries; choosing an option remains a local preview. */
+function fitProposalsFor(state: TopologyState, eventId: string, changes: EntryChange[]) {
+  const event = tournamentEngine.q.event({ eventId });
+  if (!event) return { error: 'Event not found' };
+  const original = topologyFitEntries({ event, state });
+  const entries = withEntryChanges(original, changes);
+  const { drawOptions } = topologyToDrawOptions(state);
+  const result = tournamentEngine.getDrawFitProposals({
+    ...drawOptions,
+    eventId,
+    drawEntries: entries,
+    rankedEntries: rankedMainEntries(eventId),
+  });
+  return {
+    error: result.error,
+    proposals: result.proposals?.map((proposal) => {
+      const finalEntries = withEntryChanges(
+        entries,
+        proposal.entryChanges.map((entry) => ({ participantId: entry.participantId, from: '', to: entry.entryStatus })),
+      );
+      const entryChanges = finalEntries.flatMap((entry) => {
+        const previous = original.find(
+          (item) => item.participantId === entry.participantId && item.entryStage === entry.entryStage,
+        );
+        return previous && previous.entryStatus !== entry.entryStatus
+          ? [{ participantId: entry.participantId, from: previous.entryStatus, to: entry.entryStatus }]
+          : [];
+      });
+      return { ...proposal, entryChanges };
+    }),
+  };
 }
 
 /** The event's MAIN entries for the acceptance line, best first by the active rating scale. */
