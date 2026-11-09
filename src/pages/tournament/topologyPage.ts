@@ -156,7 +156,7 @@ function drawFitFor({
 /** Ask the factory about trial entries; choosing an option remains a local preview. */
 function fitProposalsFor(state: TopologyState, eventId: string, changes: EntryChange[]) {
   const event = tournamentEngine.q.event({ eventId });
-  if (!event) return { error: 'Event not found' };
+  if (!event) return { error: t('topology.eventNotFound') };
   const original = topologyFitEntries({ event, state });
   const entries = withEntryChanges(original, changes);
   const { drawOptions } = topologyToDrawOptions(state);
