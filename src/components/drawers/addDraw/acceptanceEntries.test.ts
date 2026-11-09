@@ -67,6 +67,14 @@ describe('the changes', () => {
     expect(withEntryChanges(entries, [])).toBe(entries);
   });
 
+  it('a MAIN trial preserves a qualifying entry for the same participant', () => {
+    const entries = [entry('a'), { ...entry('a'), entryStage: 'QUALIFYING' }];
+    const trial = withEntryChanges(entries, changes);
+    expect(trial[0].entryStatus).toBe('ALTERNATE');
+    expect(trial[1]).toBe(entries[1]);
+    expect(entries[0].entryStatus).toBe('DIRECT_ACCEPTANCE');
+  });
+
   it('one modifyEntriesStatus per status they move to', () => {
     expect(entryChangeMethods('e1', changes)).toEqual([
       {

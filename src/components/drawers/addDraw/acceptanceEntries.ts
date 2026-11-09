@@ -74,7 +74,9 @@ export function withEntryChanges<T extends Entry>(entries: T[], changes: EntryCh
   if (!changes.length) return entries;
   const to = new Map(changes.map(({ participantId, to }) => [participantId, to]));
   return entries.map((entry) =>
-    to.has(entry.participantId) ? { ...entry, entryStatus: to.get(entry.participantId) } : entry,
+    (entry.entryStage ?? MAIN) === MAIN && to.has(entry.participantId)
+      ? { ...entry, entryStatus: to.get(entry.participantId) }
+      : entry,
   );
 }
 
