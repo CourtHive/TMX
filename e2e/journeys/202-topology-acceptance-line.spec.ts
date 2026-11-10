@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { getTournamentRecord, seedTournament } from '../helpers/seed';
+import { test, expect } from '@playwright/test';
 
 /**
  * Journey 202 — the topology Fit mode's acceptance line (CA 2026-11-08): a cut through the event's ranked MAIN
@@ -43,10 +43,10 @@ test.describe('Topology — the acceptance line', () => {
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'OVER', { timeout: 10_000 });
 
     // the line: 26 ranked entries, all accepted today
-    await topology.locator('.tb-acceptance-toggle').click();
+    await topology.getByRole('button', { name: 'Acceptance line', exact: true }).click();
     const rows = topology.locator('.tb-acceptance-row');
     await expect(rows).toHaveCount(26);
-    const line = topology.locator('.tb-acceptance-line');
+    const line = topology.locator('.tb-acceptance[data-stage="MAIN"] .tb-acceptance-line');
     await expect(line).toHaveAttribute('aria-valuenow', '26');
 
     // accept down to the 16th: the main draw fits, ten wait as alternates — nothing written yet
@@ -54,7 +54,7 @@ test.describe('Topology — the acceptance line', () => {
     await expect(line).toHaveAttribute('aria-valuenow', '16');
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'FITS');
     await expect(main.locator('.tb-fit-text')).toHaveText('16 entered');
-    await expect(topology.locator('.tb-acceptance-pending')).toContainText('10 DA → ALT');
+    await expect(topology.locator('.tb-acceptance-pending[data-stage="MAIN"]')).toContainText('10 DA → ALT');
     await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  16 DA · 10 ALT');
     const before: any = await getTournamentRecord(page);
     expect(before.events[0].entries.filter((e: any) => e.entryStatus === 'ALTERNATE')).toHaveLength(0);

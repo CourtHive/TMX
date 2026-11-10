@@ -233,6 +233,13 @@ describe('topologyDrawEntries', () => {
     ],
   };
 
+  it('includes waiting alternates for Generate so their sanction cap cannot be skipped', () => {
+    const state = { nodes: [{ stage: 'MAIN' }, { stage: 'QUALIFYING' }] };
+    expect(
+      topologyDrawEntries({ event, state, includeAlternates: true }).map((entry: any) => entry.participantId),
+    ).toEqual(['m1', 'm2', 'q1', 'a1']);
+  });
+
   it('includes the QUALIFYING direct entries when the topology has a QUALIFYING node', () => {
     const state = { nodes: [{ stage: 'MAIN' }, { stage: 'QUALIFYING' }] };
     expect(topologyDrawEntries({ event, state }).map((e: any) => e.participantId)).toEqual(['m1', 'm2', 'q1']);

@@ -15,8 +15,15 @@ import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
 type Entry = { participantId: string; entryStatus?: string; entryStage?: string; entryPosition?: number };
 type Scale = { scaleName: string; accessor?: string };
-export type EntryChange = { participantId: string; from: string; to: string };
-export type AcceptanceEntry = { participantId: string; name: string; entryStatus: string; rankLabel?: string };
+export type EntryChange = { participantId: string; from: string; to: string; fromStage?: string; toStage?: string };
+export type AcceptanceEntry = {
+  participantId: string;
+  name: string;
+  entryStatus: string;
+  entryStage?: string;
+  rankLabel?: string;
+  rankOrder?: number;
+};
 
 const MAIN = 'MAIN';
 
@@ -30,8 +37,10 @@ export function acceptanceEntries({
   participants,
   eventType = 'SINGLES',
   ratingScale: scale,
+  stage = MAIN,
 }: {
   entries: Entry[];
+  stage?: string;
   participants: any[];
   /** the ratings read are the event type's; an event without one reads singles ratings */
   eventType?: string;
@@ -41,7 +50,9 @@ export function acceptanceEntries({
   const ascending = !!(scale && (fixtures.ratingsParameters as any)[scale.scaleName]?.ascending);
 
   const ranked = entries
-    .filter(({ entryStage }) => !entryStage || entryStage === MAIN)
+    .filter(({ entryStage }) =>
+      stage === 'ALL' ? [MAIN, 'QUALIFYING'].includes(entryStage ?? MAIN) : (entryStage ?? MAIN) === stage,
+    )
     .map((entry, order) => {
       const participant = byId.get(entry.participantId);
       const rawValue = scale
@@ -61,7 +72,9 @@ export function acceptanceEntries({
     return a.order - b.order;
   });
 
-  return ranked.map(({ entry, participant, value }) => ({
+  return ranked.map(({ entry, participant, value }, rankOrder) => ({
+    rankOrder,
+    entryStage: entry.entryStage ?? MAIN,
     participantId: entry.participantId,
     name: participant?.participantName ?? entry.participantId,
     entryStatus: entry.entryStatus ?? '',
@@ -72,20 +85,53 @@ export function acceptanceEntries({
 /** The entries with the acceptance line's changes: the trial a fit is asked about, and the draw generated from. */
 export function withEntryChanges<T extends Entry>(entries: T[], changes: EntryChange[] = []): T[] {
   if (!changes.length) return entries;
-  const to = new Map(changes.map(({ participantId, to }) => [participantId, to]));
-  return entries.map((entry) =>
-    (entry.entryStage ?? MAIN) === MAIN && to.has(entry.participantId)
-      ? { ...entry, entryStatus: to.get(entry.participantId) }
-      : entry,
-  );
+  const bySource = new Map(changes.map((change) => [`${change.fromStage ?? MAIN}:${change.participantId}`, change]));
+  return entries.map((entry) => {
+    const change = bySource.get(`${entry.entryStage ?? MAIN}:${entry.participantId}`);
+    return change ? { ...entry, entryStatus: change.to, entryStage: change.toStage ?? entry.entryStage } : entry;
+  });
+}
+
+/** Keep the original source through successive previews, so stage moves are applied once at Generate. */
+export function composeEntryChanges(entries: Entry[], ...groups: EntryChange[][]): EntryChange[] {
+  return entries.flatMap((entry) => {
+    const fromStage = entry.entryStage ?? MAIN;
+    let stage = fromStage;
+    let status = entry.entryStatus;
+    for (const changes of groups) {
+      const change = changes.find(
+        (change) => change.participantId === entry.participantId && (change.fromStage ?? MAIN) === stage,
+      );
+      if (change) {
+        status = change.to;
+        stage = change.toStage ?? stage;
+      }
+    }
+    return status === entry.entryStatus && stage === fromStage
+      ? []
+      : [
+          {
+            participantId: entry.participantId,
+            from: entry.entryStatus ?? '',
+            to: status ?? '',
+            fromStage,
+            ...(stage !== fromStage && { toStage: stage }),
+          },
+        ];
+  });
 }
 
 /** The changes as mutations, one per status they move to, to run before the draw is added. */
 export function entryChangeMethods(eventId: string, changes: EntryChange[] = []): any[] {
-  const byStatus = new Map<string, string[]>();
-  for (const { participantId, to } of changes) byStatus.set(to, [...(byStatus.get(to) ?? []), participantId]);
-  return [...byStatus].map(([entryStatus, participantIds]) => ({
-    method: MODIFY_ENTRIES_STATUS,
-    params: { eventId, participantIds, entryStatus },
-  }));
+  const groups = new Map<
+    string,
+    { stage: string; entryStage: string; entryStatus: string; participantIds: string[] }
+  >();
+  for (const { participantId, to, fromStage = MAIN, toStage = fromStage } of changes) {
+    const key = `${fromStage}:${toStage}:${to}`;
+    const group = groups.get(key) ?? { stage: fromStage, entryStage: toStage, entryStatus: to, participantIds: [] };
+    if (!group.participantIds.includes(participantId)) group.participantIds.push(participantId);
+    groups.set(key, group);
+  }
+  return [...groups.values()].map((group) => ({ method: MODIFY_ENTRIES_STATUS, params: { eventId, ...group } }));
 }

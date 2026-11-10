@@ -2,6 +2,7 @@
  * Generate draw definition with tournament engine.
  * Applies active scale configuration and adds draw to event via mutation.
  */
+import { errorConditionConstants, scoreGovernor } from 'tods-competition-factory';
 import { getAutoCourtImageMethod } from 'services/courtSvg/autoCourtImage';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -10,7 +11,6 @@ import { insufficientPositions } from './insufficientPositions';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { errorConditionConstants, scoreGovernor } from 'tods-competition-factory';
 import { scalesMap } from 'config/scalesConfig';
 import { isFunction } from 'functions/typeOf';
 
@@ -68,7 +68,13 @@ export function generateDraw({
       ...entryMethods,
       {
         method: ADD_DRAW_DEFINITION,
-        params: { eventId, drawDefinition, allowReplacement: true, force: !!confirmedReplace },
+        params: {
+          eventId,
+          drawDefinition,
+          allowReplacement: true,
+          force: !!confirmedReplace,
+          ...(genOptions.constraintOverrides && { constraintOverrides: genOptions.constraintOverrides }),
+        },
       },
     ];
 
