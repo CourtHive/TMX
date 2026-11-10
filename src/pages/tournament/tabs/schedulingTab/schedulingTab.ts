@@ -3,7 +3,7 @@
  *
  * Replaces the two previously-separate tabs (`/schedule2` and
  * `/venues/availability`) with a single workspace that switches between
- * four modes.
+ * five modes (Plan is feature-gated).
  *
  * Profile and Grid modes reuse the exact same view-rendering machinery as
  * `/schedule2` (renderGridView, renderProfileView, buildGridHeaderActions,
@@ -15,6 +15,7 @@
  *   /tournament/:id/scheduling/:date                              → grid mode (default)
  *   /tournament/:id/scheduling/:date/availability
  *   /tournament/:id/scheduling/:date/profile
+ *   /tournament/:id/scheduling/:date/check-in                     → live match check-in desk
  *   /tournament/:id/scheduling/:date/grid
  *   /tournament/:id/scheduling/:date/plan                         → only while featureFlags.schedulePlan is on
  */
@@ -37,6 +38,7 @@ import { readTournamentInfo } from 'services/factory/passReads';
 import { resolveScheduleDate } from '../scheduleUtils';
 import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
+import { renderCheckInView } from '../scheduleViews/checkInView';
 import { t } from 'i18n';
 import {
   renderGridView,
@@ -73,14 +75,14 @@ import {
 
 import { SCHEDULING_CONTAINER, SCHEDULING_CONTROL, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-export type SchedulingMode = 'availability' | 'profile' | 'grid' | 'plan';
+export type SchedulingMode = 'availability' | 'profile' | 'check-in' | 'grid' | 'plan';
 
 interface RenderSchedulingTabParams {
   scheduledDate?: string;
   mode?: SchedulingMode;
 }
 
-const VALID_MODES: SchedulingMode[] = ['availability', 'profile', 'grid', 'plan'];
+const VALID_MODES: SchedulingMode[] = ['availability', 'profile', 'check-in', 'grid', 'plan'];
 const DEFAULT_MODE: SchedulingMode = 'grid';
 
 // Share the same localStorage keys as /schedule2 so a user's catalog +
@@ -97,6 +99,7 @@ let queueUnsubscribe: (() => void) | null = null;
 // are torn down before a rebuild and on tab teardown.
 let currentHeader: SchedulingHeader | null = null;
 let currentMode: SchedulingMode | null = null;
+let checkInView: ReturnType<typeof renderCheckInView> | null = null;
 let availabilityInstance: AvailabilityGridInstance | null = null;
 // Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
 // so we fetch them once per tab session rather than on every date change.
@@ -255,6 +258,10 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   // Render the active mode into the workspace container.
   if (resolvedMode === 'profile') {
     renderProfileMode(containerEl, resolvedDate);
+  } else if (resolvedMode === 'check-in') {
+    currentMode = 'check-in';
+    checkInView = renderCheckInView(containerEl, resolvedDate);
+    context.refreshActiveTable = checkInView.refresh;
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else if (resolvedMode === 'plan') {
@@ -302,6 +309,11 @@ export function destroySchedulingTab(): void {
 }
 
 function destroyCurrentMode(): void {
+  checkInView?.destroy();
+  checkInView = null;
+  actionBarRef = null;
+  actionBarContentRef = null;
+  context.refreshActiveTable = undefined;
   if (currentMode === 'grid' || currentMode === 'plan') destroyGridView();
   else if (currentMode === 'profile') destroyProfileView();
   else if (currentMode === 'availability' && availabilityInstance) {

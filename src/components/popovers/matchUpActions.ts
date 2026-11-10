@@ -12,9 +12,7 @@ import { openRotatingPartnerSettlement } from 'components/modals/rotatingPartner
 import { buildScheduleLockMethod } from 'pages/tournament/tabs/scheduleViews/scheduleLocks';
 import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSchedule';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
-import { buildAttester, describeAttester } from 'services/checkIn/checkInAttribution';
 import { getCourtTimeBounds } from 'components/tables/matchUpsTable/courtTimeBounds';
-import { buildAttesterChooser } from 'components/popovers/checkInAttesterChooser';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getSettlementContext } from 'services/rotatingPartners/settlement';
@@ -23,12 +21,12 @@ import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
+import { openCheckInEditor } from 'components/checkIn/checkInEditor';
 import { fetchOfficialRecords } from 'services/apis/officiatingApi';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { printMatchCards } from 'components/modals/printMatchCards';
 import { addPenaltyModal } from 'components/modals/addPenaltyModal';
 import { exportStatCrew } from 'services/export/exportStatCrew';
-import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
 import { canExportStatCrew } from 'services/export/statCrew';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -57,18 +55,10 @@ import { BOTTOM } from 'constants/tmxConstants';
 const OFFICIAL = ParticipantRoleEnum.OFFICIAL;
 
 let officialTip: Instance | undefined;
-let checkInTip: Instance | undefined;
 
 /** Shared tippy theme for the popover panels this module opens. */
 const TIP_THEME = 'light-border';
 const ARIA_HIDDEN = 'aria-hidden';
-
-function destroyCheckInTip() {
-  if (checkInTip) {
-    checkInTip.destroy();
-    checkInTip = undefined;
-  }
-}
 
 function destroyOfficialTip() {
   if (officialTip) {
@@ -80,7 +70,7 @@ function destroyOfficialTip() {
 export function matchUpActions({
   pointerEvent,
   cell,
-  matchUp,
+  matchUp: suppliedMatchUp,
   callback,
 }: {
   pointerEvent: PointerEvent;
@@ -88,6 +78,9 @@ export function matchUpActions({
   matchUp?: any;
   callback?: (data: any) => void;
 }): void {
+  const matchUp =
+    tournamentEngine.findMatchUp({ drawId: suppliedMatchUp?.drawId, matchUpId: suppliedMatchUp?.matchUpId })?.matchUp ??
+    suppliedMatchUp;
   const tips = Array.from(document.querySelectorAll('.tippy-content'));
   if (tips.length) {
     tips.forEach((n) => n.remove());
@@ -392,146 +385,21 @@ export function matchUpActions({
    * after each toggle rather than mutating the row locally, so two operators working the same match
    * converge instead of drifting.
    */
-  const openCheckInPanel = () => {
-    // A sibling of `render`, not nested inside its row loop: the mutation callback would otherwise be
-    // a fifth level of nested function and trip `sonarjs/no-nested-functions` (threshold 4).
-    const handleToggle = (participantId: string, attributedTo?: Record<string, any>) =>
-      toggleCheckIn({
-        participantId,
-        attributedTo,
-        matchUpId: matchUp.matchUpId,
-        drawId: matchUp.drawId,
-        callback: (result: any) => onToggled(result),
-      });
-
-    const onToggled = (result: any) => {
-      if (!result?.success) {
-        logMutationError('checkIn', result, { message: t('checkIn.toggleFailed') });
-        return;
-      }
-      // Re-render the panel from the engine, and refresh the row behind it so the summary the menu
-      // shows agrees with what the panel is showing.
-      render();
-      updateRow({});
-    };
-
-    const openAttesterChooser = (participant: any) => {
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'padding:8px; min-width:200px;';
-      wrapper.appendChild(
-        buildAttesterChooser({
-          participantName: participant.participantName,
-          onChoose: (attester) => {
-            handleToggle(
-              participant.participantId,
-              buildAttester({ participantId: participant.participantId, attester }),
-            );
-          },
-          onCancel: () => render(),
-        }),
-      );
-      checkInTip?.setContent(wrapper);
-    };
-
-    const render = () => {
-      // Re-read from the engine so the panel reflects what was actually stored, including a toggle
-      // made from another surface. `findMatchUp` returns it hydrated, which is what carries
-      // `checkedInParticipantIds` (attached by `addMatchUpContext`).
-      const stored = tournamentEngine.findMatchUp({ drawId: matchUp.drawId, matchUpId: matchUp.matchUpId })?.matchUp;
-      const state = getMatchUpCheckInState(stored ?? matchUp);
-
-      // The attester is stripped from every bulk emission and from the hydrated matchUp above, so it
-      // takes its own deliberate call — one per popover open, not per render of a card.
-      const attesters = new Map<string, any>();
-      for (const attestation of tournamentEngine.getMatchUpCheckInHistory({
-        matchUpId: matchUp.matchUpId,
-        drawId: matchUp.drawId,
-      })?.checkIns ?? []) {
-        // ordered oldest-first, so the last write for a participant wins
-        if (attestation?.participantId) attesters.set(attestation.participantId, attestation);
-      }
-
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'position:relative; padding:8px; padding-top:22px; min-width:200px;';
-
-      const closeBtn = document.createElement('span');
-      closeBtn.textContent = '\u00d7';
-      closeBtn.style.cssText =
-        'position:absolute; top:2px; right:6px; cursor:pointer; font-size:16px; line-height:1; color:var(--chc-text-secondary, #888); z-index:1;';
-      closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        destroyCheckInTip();
-      };
-      wrapper.appendChild(closeBtn);
-
-      const heading = document.createElement('div');
-      heading.className = 'tmx-checkin-heading';
-      heading.textContent = `${t('checkIn.title')} ${checkInSummary(state)}`;
-      wrapper.appendChild(heading);
-
-      const list = document.createElement('ul');
-      list.style.cssText = 'list-style:none; margin:0; padding:0;';
-
-      for (const participant of state.participants) {
-        const li = document.createElement('li');
-        li.className = participant.checkedIn ? 'tmx-checkin-row is-checked-in' : 'tmx-checkin-row';
-
-        // Who vouched for this, when anybody did. A one-click check-in states nobody, so the plain
-        // toggle hint stands rather than an empty "checked in by".
-        const attestation = participant.checkedIn ? attesters.get(participant.participantId) : undefined;
-        const attesterText = describeAttester(attestation?.attributedTo, t);
-        li.title = attesterText ?? (participant.checkedIn ? t('checkIn.clickToCheckOut') : t('checkIn.clickToCheckIn'));
-
-        const mark = document.createElement('span');
-        mark.className = 'tmx-checkin-mark';
-        mark.setAttribute(ARIA_HIDDEN, 'true');
-        mark.textContent = participant.checkedIn ? '\u2713' : '\u25cb';
-        li.appendChild(mark);
-
-        const name = document.createElement('span');
-        name.textContent = participant.participantName;
-        li.appendChild(name);
-
-        li.onclick = (e) => {
-          e.stopPropagation();
-          handleToggle(participant.participantId);
-        };
-
-        // The exception path. Offered only when checking IN — that is when who presented the player is
-        // a live question — and kept off the row's own click so the common case stays one click.
-        if (!participant.checkedIn) {
-          const more = document.createElement('span');
-          more.className = 'tmx-checkin-attester-open';
-          more.textContent = '\u22ef';
-          more.title = t('checkIn.attester.action');
-          more.onclick = (e) => {
-            e.stopPropagation();
-            openAttesterChooser(participant);
-          };
-          li.appendChild(more);
+  const openCheckInPanel = () =>
+    openCheckInEditor({
+      drawId: matchUp.drawId,
+      matchUpId: matchUp.matchUpId,
+      onChange: () => {
+        if (callback) callback({ refresh: true });
+        else if (cell) {
+          const stored = tournamentEngine.findMatchUp({
+            drawId: matchUp.drawId,
+            matchUpId: matchUp.matchUpId,
+          })?.matchUp;
+          cell.getRow().update({ ...cell.getRow().getData(), matchUp: stored });
         }
-
-        list.appendChild(li);
-      }
-
-      wrapper.appendChild(list);
-
-      const anchorEl = (target || pointerEvent.target) as HTMLElement;
-      destroyCheckInTip();
-      checkInTip = tippy(anchorEl, {
-        content: wrapper,
-        theme: TIP_THEME,
-        trigger: 'manual',
-        interactive: true,
-        maxWidth: 'none',
-        placement: BOTTOM as any,
-        appendTo: document.body,
-      });
-      checkInTip.show();
-    };
-
-    render();
-  };
+      },
+    });
 
   // a dual's home team, settable before line-ups exist: its two teams, and Clear for one that was set
   const homeMenu =
