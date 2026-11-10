@@ -54,8 +54,8 @@ test('CODES palette validates, round-trips all colors, preserves selections thro
     await row.getByPlaceholder('#RRGGBB').fill(value);
     await row.getByPlaceholder('Brand group (optional)').fill('Primary');
   }
-  await palette.getByLabel('Scoreboard accent', { exact: true }).selectOption({ label: 'Red' });
-  await palette.getByLabel('Scoreboard trim (optional)', { exact: true }).selectOption({ label: 'Gold' });
+  await palette.getByLabel('Team accent', { exact: true }).selectOption({ label: 'Red' });
+  await palette.getByLabel('Team background', { exact: true }).selectOption({ label: 'Gold' });
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).toBeVisible();
   await expect(palette.getByRole('alert')).not.toBeEmpty();
@@ -79,8 +79,10 @@ test('CODES palette validates, round-trips all colors, preserves selections thro
   drawer = await openEditor(page, created.participantId);
   const editor = drawer.locator('.team-palette-editor');
   await expect(editor.locator('.team-palette-row')).toHaveCount(4);
-  await expect(editor.getByLabel('Scoreboard accent', { exact: true })).toHaveValue(originalDisplay.primary);
-  await expect(editor.getByLabel('Scoreboard trim (optional)', { exact: true })).toHaveValue(originalDisplay.secondary);
+  await expect(editor.getByLabel('Team accent', { exact: true })).toHaveValue(originalDisplay.roles['team.accent']);
+  await expect(editor.getByLabel('Team background', { exact: true })).toHaveValue(
+    originalDisplay.roles['team.surface'],
+  );
   await editor.locator('.team-palette-row').last().getByRole('button', { name: 'Move color up', exact: true }).click();
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).not.toBeVisible();
@@ -92,7 +94,7 @@ test('CODES palette validates, round-trips all colors, preserves selections thro
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).toBeVisible();
   expect((await team()).teamColors.palette).toHaveLength(4);
-  await drawer.getByLabel('Scoreboard accent', { exact: true }).selectOption({ label: 'White' });
+  await drawer.getByLabel('Team accent', { exact: true }).selectOption({ label: 'White' });
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).not.toBeVisible();
   await expect.poll(async () => (await team()).teamColors.palette.length).toBe(3);
@@ -107,4 +109,102 @@ test('CODES palette validates, round-trips all colors, preserves selections thro
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).not.toBeVisible();
   await expect.poll(async () => (await team())?.teamColors).toBeUndefined();
+});
+
+test('imports 48 provider defaults and persists sparse tournament overrides through refresh', async ({ page }) => {
+  await page.goto('/');
+  await waitForAppReady(page);
+  await initDevBridge(page);
+  await resetState(page);
+  await seedTournament(page, {
+    tournamentName: 'Team default inheritance',
+    participantsProfile: { scaledParticipantsCount: 2 },
+    drawProfiles: [],
+  });
+  await page.evaluate(() => {
+    dev.env.serverFirst = false;
+  });
+  let refreshed = false;
+  await page.route('**/provider/team-displays?*', (route) => route.fulfill({ json: { teams: [] } }));
+  await page.route('**/provider/*/team-display', async (route) => {
+    const id = new URL(route.request().url()).pathname.split('/').at(-2);
+    await route.fulfill({
+      json: {
+        participant: {
+          participantId: id,
+          participantType: 'TEAM',
+          participantRole: 'COMPETITOR',
+          participantName: `College ${id}`,
+          teamColors: {
+            palette: [
+              { colorId: 'navy', value: '#13294B' },
+              { colorId: 'white', value: '#FFFFFF' },
+            ],
+            display: {
+              roles: { 'team.surface': refreshed ? 'white' : 'navy', 'team.text': refreshed ? 'navy' : 'white' },
+            },
+          },
+        },
+      },
+    });
+  });
+  const ids = Array.from({ length: 48 }, (_, index) => `college-${index}`);
+  const openImport = () =>
+    page.evaluate(async () => {
+      const path = '/src/services/teamDisplay/importProviderTeams.ts';
+      (await import(path)).importProviderTeams(() => {});
+    });
+  await openImport();
+  await page.getByLabel('Team provider IDs (one per line or separated by commas)').fill(ids.join('\n'));
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  const read = () => page.evaluate(() => dev.factory.tournamentEngine.getTournament().tournamentRecord);
+  await expect
+    .poll(async () => (await read()).participants.filter((p: any) => p.participantType === 'TEAM').length)
+    .toBe(48);
+  expect((await read()).extensions?.find((entry: any) => entry.name === 'display')).toBeUndefined();
+  await expect(page.locator('textarea[rows="6"]')).toHaveCount(0);
+  await page.evaluate(async () => {
+    const path = '/src/services/teamDisplay/teamPresentation.ts';
+    (await import(path)).editTournamentTeamPresentation();
+  });
+  const scope = page.getByLabel('Apply to');
+  await expect(scope).toHaveCount(1);
+  await scope.selectOption('college-0');
+  const row = page
+    .locator('.team-presentation-role')
+    .filter({ has: page.locator('span', { hasText: 'Team background' }) });
+  await row.locator('select').first().selectOption('theme');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        (await read()).extensions?.find((entry: any) => entry.name === 'display')?.value?.teamPresentation?.teams?.[
+          'college-0'
+        ]?.roles?.['team.surface'],
+    )
+    .toEqual({ theme: true });
+  await expect(page.locator('.team-presentation-editor')).toHaveCount(0);
+  refreshed = true;
+  await openImport();
+  await page.getByLabel('Team provider IDs (one per line or separated by commas)').fill(ids.join('\n'));
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        (await read()).participants.find((p: any) => p.participantId === 'college-0')?.teamColors?.display?.roles?.[
+          'team.surface'
+        ],
+    )
+    .toBe('white');
+  await expect(page.locator('textarea[rows="6"]')).toHaveCount(0);
+  await page.reload();
+  await waitForAppReady(page);
+  await initDevBridge(page);
+  const record = await read();
+  expect(record.participants.filter((p: any) => p.participantType === 'TEAM')).toHaveLength(48);
+  expect(
+    record.extensions.find((entry: any) => entry.name === 'display').value.teamPresentation.teams['college-0'].roles[
+      'team.surface'
+    ],
+  ).toEqual({ theme: true });
 });

@@ -1,3 +1,4 @@
+import { tournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 /**
  * Scorecard overlay for team match display and editing.
  * Uses renderScorecard from courthive-components for the layout,
@@ -161,6 +162,7 @@ export function renderScorecard({
 
   const container = renderScorecardLayout({
     teamBranding: true,
+    teamPresentation: tournamentTeamPresentation(),
     issues: dualIssues({ drawId, matchUpId }),
     finishingOrder,
     labels: scorecardLabels(),

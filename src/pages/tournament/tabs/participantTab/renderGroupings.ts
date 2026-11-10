@@ -1,3 +1,5 @@
+import { editTournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
+import { importProviderTeams } from 'services/teamDisplay/importProviderTeams';
 /**
  * Renders groupings (teams/groups) tab with table and controls.
  * Displays team or group participants with filtering and management options.
@@ -60,6 +62,10 @@ export function renderGroupings({ view }: { view: string }): void {
   ];
 
   if (isTeamView) {
+    actionOptions.push(
+      { label: t('teamPresentation.importTeams'), onClick: () => importProviderTeams(replaceTableData) },
+      { label: t('teamPresentation.title'), onClick: editTournamentTeamPresentation },
+    );
     actionOptions.push({
       label: t('pages.participants.generateTeams'),
       onClick: () => createTeamsFromAttribute({ callback: replaceTableData }),

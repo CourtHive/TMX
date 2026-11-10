@@ -3005,10 +3005,10 @@
         "nameTooShort": "Please enter a name of at least 3 characters",
         "primaryColor": "Scoreboard accent",
         "secondaryColor": "Scoreboard trim (optional)",
-        "palette": "Team color palette",
+        "palette": "Team colors and default display",
         "addColor": "Add color",
         "clearPalette": "Clear palette",
-        "chooseColor": "Choose a color",
+        "chooseColor": "Use theme default",
         "missingColor": "Selected color removed — choose another",
         "color": "Color",
         "colorname": "Color name (optional)",
@@ -3016,8 +3016,17 @@
         "colorgroup": "Brand group (optional)",
         "moveColorUp": "Move color up",
         "removeColor": "Remove color",
-        "invalidPalette": "Enter valid six-digit hex colors and select an existing palette color for the scoreboard accent and any trim.",
-        "invalidColor": "Use #RRGGBB; a secondary color requires a primary color."
+        "invalidPalette": "Check colors and role assignments. Every assigned role must reference an existing palette color.",
+        "invalidColor": "Use #RRGGBB; a secondary color requires a primary color.",
+        "team": {
+          "surface": "Team background",
+          "text": "Team text",
+          "accent": "Team accent"
+        },
+        "score": {
+          "surface": "Score background",
+          "text": "Score text"
+        }
       },
       "selected": "selected",
       "closeTheDay": "Close the day",
@@ -4071,5 +4080,24 @@
     "captureReady": "Recording ready · {{count}} steps",
     "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
     "captureFailed": "Could not start recording. Check that demo clock control is active."
+  },
+  "teamPresentation": {
+    "title": "Tournament team presentation",
+    "scope": "Apply to",
+    "allTeams": "All teams",
+    "reset": "Reset this scope to inherited defaults",
+    "inherit": "Inherit",
+    "theme": "Use theme default",
+    "color": "Use color",
+    "reference": "Palette color ID or #RRGGBB",
+    "invalid": "Check colors and palette references",
+    "importTeams": "Import or refresh team provider defaults",
+    "providerIds": "Team provider IDs (one per line or separated by commas)",
+    "providerError": "Unable to load valid team defaults from the provider",
+    "searchTeams": "Find team providers",
+    "search": "Search",
+    "more": "More teams",
+    "noTeams": "No team providers with display defaults found",
+    "tournamentChanged": "The active tournament changed. No teams were imported."
   }
 }

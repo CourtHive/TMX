@@ -54,13 +54,13 @@ it('creates, reloads, replaces and clears the full CODES palette through editor 
     value: ['#ce1126', '#ffffff', '#000000', '#fcd116'][index],
     group: 'Primary',
   }));
-  const created = save(undefined, { palette, display: { primary: 'red', secondary: 'gold' } });
+  const created = save(undefined, { palette, display: { roles: { 'team.accent': 'red', 'team.surface': 'gold' } } });
   expect(created.teamColors?.palette).toHaveLength(4);
   expect(created.teamColors?.palette.every((entry) => entry.group === 'Primary')).toBe(true);
-  const replaced = save(created, { palette: [...palette].reverse(), display: { primary: 'gold' } });
+  const replaced = save(created, { palette: [...palette].reverse(), display: { roles: { 'team.accent': 'gold' } } });
   expect(replaced.teamColors?.palette).toHaveLength(4);
   expect(replaced.teamColors?.palette[0].colorId).toBe('gold');
-  expect(replaced.teamColors?.display).toEqual({ primary: 'gold' });
+  expect(replaced.teamColors?.display).toEqual({ roles: { 'team.accent': 'gold' } });
   const cleared = save(replaced, {});
   expect(cleared).not.toHaveProperty('teamColors');
 });

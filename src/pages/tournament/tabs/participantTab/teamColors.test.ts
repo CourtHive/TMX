@@ -23,7 +23,7 @@ const colors = {
     { colorId: 'white', value: '#FFFFFF', group: 'Primary' },
     { colorId: 'gold', value: '#FCD116' },
   ],
-  display: { primary: 'red', secondary: 'gold' },
+  display: { roles: { 'team.accent': 'red', 'team.surface': 'gold' } },
 };
 function edit(participant: any, branding: any, participantType = 'TEAM') {
   h.branding = branding;
@@ -46,10 +46,13 @@ describe('CODES TEAM palette producer', () => {
     expect(method.params.participants[0].teamColors).toEqual(colors);
   });
   it('replaces through modifyParticipant with a complete canonical palette', () => {
-    const method = edit({ participantId: 'team', teamColors: colors }, { ...colors, display: { primary: 'gold' } });
+    const method = edit(
+      { participantId: 'team', teamColors: colors },
+      { ...colors, display: { roles: { 'team.accent': 'gold' } } },
+    );
     expect(method.method).toBe('modifyParticipant');
     expect(method.params.participant.teamColors.palette).toEqual(colors.palette);
-    expect(method.params.participant.teamColors.display).toEqual({ primary: 'gold' });
+    expect(method.params.participant.teamColors.display).toEqual({ roles: { 'team.accent': 'gold' } });
   });
   it('clears with an explicit empty object', () => {
     expect(edit({ participantId: 'team' }, {}).params.participant.teamColors).toEqual({});
