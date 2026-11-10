@@ -3002,7 +3002,10 @@
         "namePlaceholder": "Participant name",
         "nicknamePlaceholder": "Nickname / abbreviation",
         "preferNickname": "Prefer nickname in draws",
-        "nameTooShort": "Please enter a name of at least 3 characters"
+        "nameTooShort": "Please enter a name of at least 3 characters",
+        "primaryColor": "Primary team color (optional)",
+        "secondaryColor": "Secondary team color (optional)",
+        "invalidColor": "Use #RRGGBB; a secondary color requires a primary color."
       },
       "selected": "selected",
       "closeTheDay": "Close the day",

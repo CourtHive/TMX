@@ -94,18 +94,36 @@ export function editGroupingParticipant({
             },
           ]
         : []),
+      ...(!isGroup
+        ? ['primary', 'secondary'].map((key) => ({
+            field: `teamColor${key}`,
+            label: t(`pages.participants.grouping.${key}Color`),
+            placeholder: '#RRGGBB',
+            value: participant?.teamColors?.[key] ?? '',
+            validator: (value: string) => !value?.trim() || /^#[\da-f]{6}$/i.test(value.trim()),
+            error: t('pages.participants.grouping.invalidColor'),
+          }))
+        : []),
     ]);
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
-    renderButtons(
-      elem,
-      [
-        { label: t('common.cancel'), onClick: () => table?.deselectRow(), close: true },
-        { label: t('common.save'), onClick: saveParticipant, close: true, intent: 'is-info' },
-      ],
-      close,
-    );
+    renderButtons(elem, [
+      {
+        label: t('common.cancel'),
+        onClick: () => {
+          table?.deselectRow();
+          close();
+        },
+      },
+      {
+        label: t('common.save'),
+        onClick: () => {
+          if (saveParticipant()) close();
+        },
+        intent: 'is-info',
+      },
+    ]);
 
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
@@ -124,13 +142,42 @@ export function editGroupingParticipant({
     }
   };
 
-  function saveParticipant(): void {
+  function saveParticipant(): boolean {
+    if (!inputs[PARTICIPANT_NAME]?.value || inputs[PARTICIPANT_NAME].value.length < 3) return false;
+    if (!isGroup) {
+      const primary = inputs.teamColorprimary?.value?.trim() ?? '';
+      const secondary = inputs.teamColorsecondary?.value?.trim() ?? '';
+      const invalid =
+        !/^#[\da-f]{6}$/i.test(primary) && (primary || secondary)
+          ? inputs.teamColorprimary
+          : secondary && !/^#[\da-f]{6}$/i.test(secondary)
+            ? inputs.teamColorsecondary
+            : undefined;
+      for (const input of [inputs.teamColorprimary, inputs.teamColorsecondary]) input?.setCustomValidity?.('');
+      if (invalid) {
+        invalid.setCustomValidity?.(t('pages.participants.grouping.invalidColor'));
+        invalid.reportValidity?.();
+        return false;
+      }
+    }
     table?.deselectRow();
     if (participant?.participantId) {
       updateParticipant();
     } else {
       addParticipant();
     }
+    return true;
+  }
+
+  function brandingUpdate() {
+    if (isGroup) return {};
+    const primary = inputs.teamColorprimary?.value?.trim();
+    const secondary = inputs.teamColorsecondary?.value?.trim();
+    return {
+      teamColors: primary
+        ? { primary: primary.toUpperCase(), ...(secondary && { secondary: secondary.toUpperCase() }) }
+        : {},
+    };
   }
 
   function updateParticipant(): void {
@@ -154,6 +201,7 @@ export function editGroupingParticipant({
             participantName,
             useOtherName,
             ...roleUpdate,
+            ...brandingUpdate(),
           },
         },
       },
@@ -190,6 +238,7 @@ export function editGroupingParticipant({
                   participantName,
                   participantRole,
                   participantType,
+                  ...brandingUpdate(),
                 },
               ],
             },
