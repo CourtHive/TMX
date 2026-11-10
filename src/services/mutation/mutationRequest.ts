@@ -203,6 +203,12 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
       : undefined;
   const inDateRange = recordsInDateRange(Object.values(tournamentRecords), Date.now(), demoDay);
 
+  // A path that throws still owes the caller its answer: callers hold busy/saving state until the callback fires.
+  // Once completion has run, the caller already has that answer, so a later throw (a throwing callback) propagates.
+  const fail = (error: unknown): void => {
+    if (completed) throw error;
+    completion({ error });
+  };
   const mutate = (saveLocal?: boolean) =>
     isCurrent()
       ? makeMutation({
@@ -217,10 +223,10 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
           isSelected,
           retryAfterLogin,
           commandId,
-        })
+        }).catch(fail)
       : Promise.resolve(completion({ error: { message: t('mutationPrompts.tournamentChangedBeforeApply') } }));
   if (!inDateRange) {
-    queryDateRange({ state, providerIds, mutate, reject });
+    queryDateRange({ state, providerIds, mutate, reject, fail });
     return;
   }
   if (providerIds.length && !offline && state) {
@@ -235,16 +241,20 @@ function queryDateRange({
   providerIds,
   mutate,
   reject,
+  fail,
 }: {
   reject: (key: string) => void;
+  fail: (error: unknown) => void;
   state: any;
   providerIds: string[];
   mutate: (saveLocal?: boolean) => Promise<void>;
 }): void {
+  // Every dismissal (timer, click, close button) runs onClose, so a declined prompt completes through reject.
   let chosen = false;
   const onClick = () => {
     chosen = true;
-    return providerIds?.length ? checkPermissions({ state, providerIds, mutate, reject }) : mutate();
+    const confirmed = providerIds?.length ? checkPermissions({ state, providerIds, mutate, reject }) : mutate();
+    return confirmed.catch(fail);
   };
   return tmxToast({
     action: { onClick, text: t('mutationPrompts.modify') },
