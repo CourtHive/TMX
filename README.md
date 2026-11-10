@@ -79,7 +79,7 @@ pnpm lint && pnpm format:check && pnpm attr-audit --ci && pnpm i18n-audit --ci
 pnpm check-types
 pnpm test --run
 
-# Playwright journeys — 121 specs, not run by CI
+# Playwright journeys — 200+ specs, not run by CI
 pnpm test:e2e
 ```
 
@@ -88,7 +88,7 @@ pnpm test:e2e
 | | |
 |---|---|
 | **Data standard** | CODES — CourtHive's canonical competition record, written natively by the engine |
-| **Business logic** | [tods-competition-factory](https://github.com/CourtHive/tods-competition-factory) |
+| **Business logic** | [tods-competition-factory](https://github.com/CourtHive/competition-factory) |
 | **UI components** | [courthive-components](https://github.com/CourtHive/courthive-components) |
 | **Framework** | Vanilla TypeScript — no React/Vue/Angular |
 | **Build** | Vite · Electron for the desktop build |
@@ -101,14 +101,10 @@ pnpm test:e2e
 
 - **[How CourtHive works](https://courthive.com/#/how-it-works)** — the platform in one page: the
   shared engine, the CODES record, and how the surfaces fit together
-- **[Competition Factory](https://github.com/CourtHive/tods-competition-factory)** — the rules engine
+- **[Competition Factory](https://github.com/CourtHive/competition-factory)** — the rules engine
   TMX and the server both run
 - **[courthive-components](https://github.com/CourtHive/courthive-components)** — shared UI components
 
 ## License
 
-See LICENSE file for details.
-
-## Archive
-
-Historical documentation has been moved to `docs/archive/` for reference.
+MIT — see [LICENSE.txt](LICENSE.txt).
