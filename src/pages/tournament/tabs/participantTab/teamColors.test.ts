@@ -5,23 +5,29 @@ const h = vi.hoisted(() => ({
   open: vi.fn(),
   form: vi.fn(),
   buttons: vi.fn(),
+  branding: undefined as any,
 }));
 vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest: h.mutation }));
 vi.mock('services/context', () => ({ context: { drawer: { open: h.open } } }));
+vi.mock('./teamPaletteEditor', () => ({ renderTeamPaletteEditor: () => ({ read: () => h.branding }) }));
 vi.mock('courthive-components', () => ({
   renderForm: h.form,
   renderButtons: h.buttons,
   validators: { nameValidator: () => () => true },
 }));
-
 import { editGroupingParticipant } from './editGroupingParticipant';
 
-function edit(participant: any, primary: string, secondary = '', participantType = 'TEAM') {
-  h.form.mockReturnValue({
-    participantName: { value: 'Team Alpha' },
-    teamColorprimary: { value: primary, setCustomValidity: vi.fn(), reportValidity: vi.fn() },
-    teamColorsecondary: { value: secondary },
-  });
+const colors = {
+  palette: [
+    { colorId: 'red', value: '#CE1126', group: 'Primary' },
+    { colorId: 'white', value: '#FFFFFF', group: 'Primary' },
+    { colorId: 'gold', value: '#FCD116' },
+  ],
+  display: { primary: 'red', secondary: 'gold' },
+};
+function edit(participant: any, branding: any, participantType = 'TEAM') {
+  h.branding = branding;
+  h.form.mockReturnValue({ participantName: { value: 'Team Alpha' } });
   editGroupingParticipant({ participant, participantType });
   const drawer = h.open.mock.calls.at(-1)?.[0];
   drawer.content({});
@@ -33,35 +39,26 @@ function edit(participant: any, primary: string, secondary = '', participantType
   return h.mutation.mock.calls.at(-1)?.[0].methods[0];
 }
 beforeEach(() => vi.clearAllMocks());
-
-describe('TEAM branding producer', () => {
-  it('creates through addParticipants with canonical colors', () => {
-    const method = edit(undefined, '#aabbcc', '#112233');
+describe('CODES TEAM palette producer', () => {
+  it('creates through addParticipants without discarding unselected colors or groups', () => {
+    const method = edit(undefined, colors);
     expect(method.method).toBe('addParticipants');
-    expect(method.params.participants[0].teamColors).toEqual({ primary: '#AABBCC', secondary: '#112233' });
+    expect(method.params.participants[0].teamColors).toEqual(colors);
   });
-  it('loads and replaces through modifyParticipant, removing an omitted secondary', () => {
-    const participant = { participantId: 'team', teamColors: { primary: '#112233', secondary: '#aabbcc' } };
-    const method = edit(participant, '#ffffff');
+  it('replaces through modifyParticipant with a complete canonical palette', () => {
+    const method = edit({ participantId: 'team', teamColors: colors }, { ...colors, display: { primary: 'gold' } });
     expect(method.method).toBe('modifyParticipant');
-    expect(method.params.participant.teamColors).toEqual({ primary: '#FFFFFF' });
-    const fields = h.form.mock.calls.at(-1)?.[1];
-    expect(fields.find((field: any) => field.field === 'teamColorsecondary').value).toBe('#aabbcc');
+    expect(method.params.participant.teamColors.palette).toEqual(colors.palette);
+    expect(method.params.participant.teamColors.display).toEqual({ primary: 'gold' });
   });
   it('clears with an explicit empty object', () => {
-    expect(edit({ participantId: 'team' }, '').params.participant.teamColors).toEqual({});
+    expect(edit({ participantId: 'team' }, {}).params.participant.teamColors).toEqual({});
   });
-  it.each([
-    ['red', ''],
-    ['', '#ffffff'],
-    ['#ffffff', '#bad'],
-  ])('refuses invalid primary=%s secondary=%s before dispatch', (primary, secondary) => {
-    expect(edit({ participantId: 'team' }, primary, secondary)).toBeUndefined();
+  it('keeps invalid palette edits open without dispatching', () => {
+    expect(edit({ participantId: 'team' }, undefined)).toBeUndefined();
     expect(h.mutation).not.toHaveBeenCalled();
   });
-  it('offers no branding fields or mutation for GROUP', () => {
-    const method = edit({ participantId: 'group' }, '#ffffff', '', 'GROUP');
-    expect(method.params.participant).not.toHaveProperty('teamColors');
-    expect(h.form.mock.calls.at(-1)?.[1].some((field: any) => field.field.startsWith('teamColor'))).toBe(false);
+  it('offers no branding mutation for GROUP', () => {
+    expect(edit({ participantId: 'group' }, colors, 'GROUP').params.participant).not.toHaveProperty('teamColors');
   });
 });

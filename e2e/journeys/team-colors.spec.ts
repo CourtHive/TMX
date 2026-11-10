@@ -17,14 +17,16 @@ async function openEditor(page: Page, participantId?: string) {
   return drawer;
 }
 
-// Keep DOM coverage in TMX's real-browser layer. The production form, drawer and buttons are all used.
-test('TEAM colors validate without closing, persist, replace, clear and cancel', async ({ page }) => {
+// Keep palette/form/button coverage in TMX's real-browser layer.
+test('CODES palette validates, round-trips all colors, preserves selections through reorder and clears', async ({
+  page,
+}) => {
   await page.goto('/');
   await waitForAppReady(page);
   await initDevBridge(page);
   await resetState(page);
   await seedTournament(page, {
-    tournamentName: 'Team color editor',
+    tournamentName: 'CODES team palette',
     participantsProfile: { scaledParticipantsCount: 8 },
     drawProfiles: [],
   });
@@ -35,42 +37,74 @@ test('TEAM colors validate without closing, persist, replace, clear and cancel',
     page.evaluate(() =>
       dev.factory.tournamentEngine
         .getParticipants()
-        .participants.find((participant: any) => participant.participantName === 'Browser branded team'),
+        .participants.find((p: any) => p.participantName === 'Browser branded team'),
     );
   let drawer = await openEditor(page);
   await drawer.locator('input').first().fill('Browser branded team');
-  const primary = drawer.getByPlaceholder('#RRGGBB').nth(0);
-  const secondary = drawer.getByPlaceholder('#RRGGBB').nth(1);
-  await primary.fill('red');
+  const palette = drawer.locator('.team-palette-editor');
+  for (const [name, value] of [
+    ['Red', 'red'],
+    ['White', '#ffffff'],
+    ['Black', '#000000'],
+    ['Gold', '#fcd116'],
+  ]) {
+    await palette.getByRole('button', { name: 'Add color', exact: true }).click();
+    const row = palette.locator('.team-palette-row').last();
+    await row.getByPlaceholder('Color name (optional)').fill(name);
+    await row.getByPlaceholder('#RRGGBB').fill(value);
+    await row.getByPlaceholder('Brand group (optional)').fill('Primary');
+  }
+  await palette.getByLabel('Scoreboard accent', { exact: true }).selectOption({ label: 'Red' });
+  await palette.getByLabel('Scoreboard trim (optional)', { exact: true }).selectOption({ label: 'Gold' });
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).toBeVisible();
+  await expect(palette.getByRole('alert')).not.toBeEmpty();
   expect(await team()).toBeUndefined();
-  await primary.fill('#aabbcc');
-  await secondary.fill('#112233');
+  await palette.locator('.team-palette-row').first().getByPlaceholder('#RRGGBB').fill('#ce1126');
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(drawer).not.toBeVisible();
-  await expect.poll(async () => (await team())?.teamColors).toEqual({ primary: '#AABBCC', secondary: '#112233' });
-  const participantId = (await team()).participantId;
+  await expect.poll(async () => (await team())?.teamColors?.palette.length).toBe(4);
+  const created = await team();
+  expect(created.teamColors.palette.map((entry: any) => entry.group)).toEqual([
+    'Primary',
+    'Primary',
+    'Primary',
+    'Primary',
+  ]);
+  const originalDisplay = created.teamColors.display;
 
-  // Reload the persisted record before reopening the production editor.
   await page.reload();
   await waitForAppReady(page);
   await initDevBridge(page);
-  drawer = await openEditor(page, participantId);
-  await expect(drawer.getByPlaceholder('#RRGGBB').nth(0)).toHaveValue('#AABBCC');
-  await expect(drawer.getByPlaceholder('#RRGGBB').nth(1)).toHaveValue('#112233');
-  await drawer.getByPlaceholder('#RRGGBB').nth(0).fill('#ffeedd');
-  await drawer.getByPlaceholder('#RRGGBB').nth(1).fill('');
+  drawer = await openEditor(page, created.participantId);
+  const editor = drawer.locator('.team-palette-editor');
+  await expect(editor.locator('.team-palette-row')).toHaveCount(4);
+  await expect(editor.getByLabel('Scoreboard accent', { exact: true })).toHaveValue(originalDisplay.primary);
+  await expect(editor.getByLabel('Scoreboard trim (optional)', { exact: true })).toHaveValue(originalDisplay.secondary);
+  await editor.locator('.team-palette-row').last().getByRole('button', { name: 'Move color up', exact: true }).click();
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect.poll(async () => (await team())?.teamColors).toEqual({ primary: '#FFEEDD' });
+  await expect(drawer).not.toBeVisible();
+  expect((await team()).teamColors.display).toEqual(originalDisplay);
+  expect((await team()).teamColors.palette.map((entry: any) => entry.name)).toEqual(['Red', 'White', 'Gold', 'Black']);
 
-  drawer = await openEditor(page, participantId);
-  await drawer.getByPlaceholder('#RRGGBB').nth(0).fill('red');
+  drawer = await openEditor(page, created.participantId);
+  await drawer.locator('.team-palette-row').first().getByRole('button', { name: 'Remove color', exact: true }).click();
+  await drawer.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(drawer).toBeVisible();
+  expect((await team()).teamColors.palette).toHaveLength(4);
+  await drawer.getByLabel('Scoreboard accent', { exact: true }).selectOption({ label: 'White' });
+  await drawer.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(drawer).not.toBeVisible();
+  await expect.poll(async () => (await team()).teamColors.palette.length).toBe(3);
+
+  drawer = await openEditor(page, created.participantId);
+  await drawer.getByRole('button', { name: 'Clear palette', exact: true }).click();
   await drawer.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(drawer).not.toBeVisible();
-  expect((await team()).teamColors).toEqual({ primary: '#FFEEDD' });
-  drawer = await openEditor(page, participantId);
-  await drawer.getByPlaceholder('#RRGGBB').nth(0).fill('');
+  expect((await team()).teamColors.palette).toHaveLength(3);
+  drawer = await openEditor(page, created.participantId);
+  await drawer.getByRole('button', { name: 'Clear palette', exact: true }).click();
   await drawer.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(drawer).not.toBeVisible();
   await expect.poll(async () => (await team())?.teamColors).toBeUndefined();
 });

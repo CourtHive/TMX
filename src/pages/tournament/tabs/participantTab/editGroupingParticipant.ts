@@ -1,3 +1,4 @@
+import { renderTeamPaletteEditor } from './teamPaletteEditor';
 /**
  * Editor for group participants (teams).
  * Allows creating or editing team/group participants.
@@ -54,6 +55,7 @@ export function editGroupingParticipant({
     participantRole: participant?.participantRole || OTHER,
   };
   let inputs: any;
+  let paletteEditor: ReturnType<typeof renderTeamPaletteEditor> | undefined;
 
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
@@ -94,17 +96,8 @@ export function editGroupingParticipant({
             },
           ]
         : []),
-      ...(!isGroup
-        ? ['primary', 'secondary'].map((key) => ({
-            field: `teamColor${key}`,
-            label: t(`pages.participants.grouping.${key}Color`),
-            placeholder: '#RRGGBB',
-            value: participant?.teamColors?.[key] ?? '',
-            validator: (value: string) => !value?.trim() || /^#[\da-f]{6}$/i.test(value.trim()),
-            error: t('pages.participants.grouping.invalidColor'),
-          }))
-        : []),
     ]);
+    if (!isGroup) paletteEditor = renderTeamPaletteEditor(elem, participant?.teamColors);
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
@@ -144,22 +137,7 @@ export function editGroupingParticipant({
 
   function saveParticipant(): boolean {
     if (!inputs[PARTICIPANT_NAME]?.value || inputs[PARTICIPANT_NAME].value.length < 3) return false;
-    if (!isGroup) {
-      const primary = inputs.teamColorprimary?.value?.trim() ?? '';
-      const secondary = inputs.teamColorsecondary?.value?.trim() ?? '';
-      const invalid =
-        !/^#[\da-f]{6}$/i.test(primary) && (primary || secondary)
-          ? inputs.teamColorprimary
-          : secondary && !/^#[\da-f]{6}$/i.test(secondary)
-            ? inputs.teamColorsecondary
-            : undefined;
-      for (const input of [inputs.teamColorprimary, inputs.teamColorsecondary]) input?.setCustomValidity?.('');
-      if (invalid) {
-        invalid.setCustomValidity?.(t('pages.participants.grouping.invalidColor'));
-        invalid.reportValidity?.();
-        return false;
-      }
-    }
+    if (!isGroup && paletteEditor?.read() === undefined) return false;
     table?.deselectRow();
     if (participant?.participantId) {
       updateParticipant();
@@ -170,14 +148,7 @@ export function editGroupingParticipant({
   }
 
   function brandingUpdate() {
-    if (isGroup) return {};
-    const primary = inputs.teamColorprimary?.value?.trim();
-    const secondary = inputs.teamColorsecondary?.value?.trim();
-    return {
-      teamColors: primary
-        ? { primary: primary.toUpperCase(), ...(secondary && { secondary: secondary.toUpperCase() }) }
-        : {},
-    };
+    return isGroup ? {} : { teamColors: paletteEditor?.read() ?? {} };
   }
 
   function updateParticipant(): void {

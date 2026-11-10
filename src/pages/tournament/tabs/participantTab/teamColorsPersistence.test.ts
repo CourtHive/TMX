@@ -2,12 +2,14 @@ import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { beforeEach, expect, it, vi } from 'vitest';
 
 const h = vi.hoisted(() => ({
+  branding: undefined as any,
   mutation: vi.fn(),
   open: vi.fn(),
   form: vi.fn(),
   buttons: vi.fn(),
 }));
 vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest: h.mutation }));
+vi.mock('./teamPaletteEditor', () => ({ renderTeamPaletteEditor: () => ({ read: () => h.branding }) }));
 vi.mock('services/context', () => ({ context: { drawer: { open: h.open } } }));
 vi.mock('courthive-components', () => ({
   renderForm: h.form,
@@ -17,11 +19,10 @@ vi.mock('courthive-components', () => ({
 
 import { editGroupingParticipant } from './editGroupingParticipant';
 
-function save(participant: any, primary: string, secondary = '') {
+function save(participant: any, branding: any) {
+  h.branding = branding;
   h.form.mockReturnValue({
     participantName: { value: 'Branded team' },
-    teamColorprimary: { value: primary },
-    teamColorsecondary: { value: secondary },
   });
   editGroupingParticipant({ participantType: 'TEAM', participant });
   const config = h.open.mock.calls.at(-1)?.[0];
@@ -47,11 +48,19 @@ beforeEach(() => {
   mocksEngine.generateTournamentRecord({ setState: true, nonRandom: 1 });
 });
 
-it('creates, reloads, replaces and clears branding through editor requests and the real factory', () => {
-  const created = save(undefined, '#aabbcc', '#112233');
-  expect(created.teamColors).toEqual({ primary: '#AABBCC', secondary: '#112233' });
-  const replaced = save(created, '#ffeedd');
-  expect(replaced.teamColors).toEqual({ primary: '#FFEEDD' });
-  const cleared = save(replaced, '');
+it('creates, reloads, replaces and clears the full CODES palette through editor requests and the real factory', () => {
+  const palette = ['red', 'white', 'black', 'gold'].map((colorId, index) => ({
+    colorId,
+    value: ['#ce1126', '#ffffff', '#000000', '#fcd116'][index],
+    group: 'Primary',
+  }));
+  const created = save(undefined, { palette, display: { primary: 'red', secondary: 'gold' } });
+  expect(created.teamColors?.palette).toHaveLength(4);
+  expect(created.teamColors?.palette.every((entry) => entry.group === 'Primary')).toBe(true);
+  const replaced = save(created, { palette: [...palette].reverse(), display: { primary: 'gold' } });
+  expect(replaced.teamColors?.palette).toHaveLength(4);
+  expect(replaced.teamColors?.palette[0].colorId).toBe('gold');
+  expect(replaced.teamColors?.display).toEqual({ primary: 'gold' });
+  const cleared = save(replaced, {});
   expect(cleared).not.toHaveProperty('teamColors');
 });
