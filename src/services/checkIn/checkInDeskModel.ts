@@ -1,5 +1,5 @@
-import { getMatchUpCheckInState } from './checkInState';
 import { factoryConstants } from 'tods-competition-factory';
+import { getMatchUpCheckInState } from './checkInState';
 
 const COMPLETED = new Set<string>(factoryConstants.completedMatchUpStatuses);
 export type CheckInFilter = 'all' | 'awaiting' | 'partial' | 'complete';

@@ -1,6 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
 import { todayLocal } from '../helpers/dates';
 
@@ -27,7 +27,7 @@ async function seedDesk(page: Page, placed = true, date = todayLocal()) {
       if (playable.length < 2) throw new Error('Desk fixture needs two hydrated doubles matches');
       const courts = engine.getVenuesAndCourts().venues[0].courts;
       for (const [index, matchUp] of playable.slice(0, 2).entries()) {
-        const result = engine.addMatchUpScheduleItems({
+        let result: any = engine.addMatchUpScheduleItems({
           drawId: matchUp.drawId,
           matchUpId: matchUp.matchUpId,
           schedule: {
@@ -171,7 +171,7 @@ test('cell call warns, Escape cancels, and a changed match invalidates confirmat
   await page.locator('[data-cell-panel] button').filter({ hasText: 'Call to court' }).click();
   await expect(page.locator(MODAL)).toContainText('have not checked in');
   await page.evaluate((seed) => {
-    const result = dev.factory.tournamentEngine.addMatchUpScheduleItems({
+    let result: any = dev.factory.tournamentEngine.addMatchUpScheduleItems({
       matchUpId: seed.matchUpId,
       drawId: seed.drawId,
       schedule: { scheduledTime: '23:58' },
@@ -195,7 +195,7 @@ test('an applied change updates the open editor and desk; play prevents checkout
   await card.click();
   await page.evaluate(async (seed) => {
     const engine = dev.factory.tournamentEngine;
-    const result = engine.checkInParticipant({
+    let result: any = engine.checkInParticipant({
       matchUpId: seed.matchUpId,
       drawId: seed.drawId,
       participantId: seed.participantId,
@@ -209,7 +209,7 @@ test('an applied change updates the open editor and desk; play prevents checkout
   await expect(person).toHaveAttribute('aria-pressed', 'true');
   await expect(card).toContainText('1/4 checked in');
   await page.evaluate(async (seed) => {
-    const result = dev.factory.tournamentEngine.setMatchUpStatus({
+    let result: any = dev.factory.tournamentEngine.setMatchUpStatus({
       matchUpId: seed.matchUpId,
       drawId: seed.drawId,
       outcome: { matchUpStatus: 'IN_PROGRESS' },

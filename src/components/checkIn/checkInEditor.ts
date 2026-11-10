@@ -3,6 +3,7 @@ import { buildAttester, describeAttester } from 'services/checkIn/checkInAttribu
 import { buildAttesterChooser } from 'components/popovers/checkInAttesterChooser';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { checkOutLocked } from 'services/checkIn/checkInEligibility';
+import { matchUpActionConstants } from 'tods-competition-factory';
 import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'services/factory/engine';
@@ -73,7 +74,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
     const matchUp = tournamentEngine.findMatchUp({ drawId, matchUpId })?.matchUp;
     const state = getMatchUpCheckInState(matchUp);
     const { validActions = [] } = tournamentEngine.matchUpActions({ drawId, matchUpId }) ?? {};
-    const writable = validActions.some((action: any) => action.type === 'CHECK_IN');
+    const writable = validActions.some((action: any) => action.type === matchUpActionConstants.CHECK_IN);
     const locked = checkOutLocked(matchUp);
     // Private attribution is deliberately fetched only while the editor is open.
     const history: any[] = tournamentEngine.getMatchUpCheckInHistory({ drawId, matchUpId })?.checkIns ?? [];
