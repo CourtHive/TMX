@@ -1,4 +1,3 @@
-import { tournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 /**
  * Scorecard overlay for team match display and editing.
  * Uses renderScorecard from courthive-components for the layout,
@@ -9,6 +8,7 @@ import { renderScorecard as renderScorecardLayout, updateTieScore, compositions 
 import { clearHomeMethod, dualHome, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { tournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 import { finishingOrderCollections, saveFinishingOrder } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';

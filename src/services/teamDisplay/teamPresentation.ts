@@ -1,9 +1,43 @@
 import { cModal, renderTeamPresentationEditor } from 'courthive-components';
-import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { extensionConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
+
+// constants and types
+import { ADD_TOURNAMENT_EXTENSION } from 'constants/mutationConstants';
+
+const EDITOR_KEYS = [
+  'title',
+  'scope',
+  'allTeams',
+  'reset',
+  'inherit',
+  'theme',
+  'color',
+  'colorValue',
+  'palette',
+  'paletteValue',
+  'choosePalette',
+  'missingTeam',
+  'missingColor',
+  'invalid',
+];
+// Role captions are the same strings the team palette editor shows; one translation serves both.
+const ROLE_KEYS = ['team.surface', 'team.text', 'team.accent', 'score.surface', 'score.text'];
+
+export function teamPresentationLabels(): Record<string, string> {
+  return Object.fromEntries([
+    ...EDITOR_KEYS.map((key) => [key, t(`teamPresentation.${key}`)]),
+    ...ROLE_KEYS.map((key) => [key, t(`pages.participants.grouping.${key}`)]),
+  ]);
+}
+
+/** The DISPLAY extension carries more than team presentation; replace only that key. */
+export function displayExtensionWithTeamPresentation(existing: unknown, teamPresentation: unknown) {
+  const value = existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : {};
+  return { name: extensionConstants.DISPLAY, value: { ...value, teamPresentation } };
+}
 
 export function tournamentTeamPresentation() {
   return tournamentEngine
@@ -20,9 +54,7 @@ export function editTournamentTeamPresentation(): void {
   const content = document.createElement('div');
   const teams =
     tournamentEngine.getParticipants({ participantFilters: { participantTypes: ['TEAM'] } }).participants ?? [];
-  const keys = ['title', 'scope', 'allTeams', 'reset', 'inherit', 'theme', 'color', 'reference', 'invalid'];
-  const labels = Object.fromEntries(keys.map((key) => [key, t(`teamPresentation.${key}`)]));
-  const editor = renderTeamPresentationEditor(content, current.teamPresentation, teams, labels);
+  const editor = renderTeamPresentationEditor(content, current.teamPresentation, teams, teamPresentationLabels());
   const modal = cModal.open({
     title: t('teamPresentation.title'),
     content,
@@ -44,7 +76,7 @@ export function editTournamentTeamPresentation(): void {
             methods: [
               {
                 method: ADD_TOURNAMENT_EXTENSION,
-                params: { extension: { name: extensionConstants.DISPLAY, value: { ...existing, teamPresentation } } },
+                params: { extension: displayExtensionWithTeamPresentation(existing, teamPresentation) },
               },
             ],
             callback: (result: any) => {

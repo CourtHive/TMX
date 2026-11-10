@@ -1,4 +1,3 @@
-import { renderTeamPaletteEditor } from './teamPaletteEditor';
 /**
  * Editor for group participants (teams).
  * Allows creating or editing team/group participants.
@@ -6,6 +5,7 @@ import { renderTeamPaletteEditor } from './teamPaletteEditor';
 import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { renderTeamPaletteEditor } from './teamPaletteEditor';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 

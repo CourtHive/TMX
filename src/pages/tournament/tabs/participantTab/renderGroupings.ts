@@ -1,5 +1,3 @@
-import { editTournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
-import { importProviderTeams } from 'services/teamDisplay/importProviderTeams';
 /**
  * Renders groupings (teams/groups) tab with table and controls.
  * Displays team or group participants with filtering and management options.
@@ -7,7 +5,9 @@ import { importProviderTeams } from 'services/teamDisplay/importProviderTeams';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
+import { editTournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
+import { importProviderTeams } from 'services/teamDisplay/importProviderTeams';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { editGroupingParticipant } from './editGroupingParticipant';

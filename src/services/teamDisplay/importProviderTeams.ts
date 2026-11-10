@@ -9,6 +9,17 @@ import { ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstant
 import { t } from 'i18n';
 
 const PROVIDER_ERROR_KEY = 'teamPresentation.providerError';
+const PROVIDER_TEAM_FIELDS = ['participantId', 'participantName', 'participantType', 'participantRole', 'teamColors'];
+
+/** Only identity and default branding come from a provider; anything else it sends never reaches the record. */
+function providerTeam(participant: any) {
+  return Object.fromEntries(
+    PROVIDER_TEAM_FIELDS.filter((field) => participant[field] !== undefined).map((field) => [
+      field,
+      participant[field],
+    ]),
+  );
+}
 
 /** Fetch every selected provider before dispatching mutations; a failed fetch never clears defaults. */
 export async function providerTeamMethods(providerIds: string[]) {
@@ -34,20 +45,55 @@ export async function providerTeamMethods(providerIds: string[]) {
   for (const participant of participants) {
     const previous: any = existing.get(participant.participantId);
     if (previous && previous.participantType !== 'TEAM') throw new Error(t(PROVIDER_ERROR_KEY));
-    if (previous)
+    if (!previous) added.push(providerTeam(participant));
+    // A provider with no palette says nothing about colors: never clear a team's local palette on refresh.
+    else if (participant.teamColors !== undefined)
       methods.push({
         method: MODIFY_PARTICIPANT,
-        params: {
-          participant: {
-            participantId: participant.participantId,
-            teamColors: participant.teamColors ?? {},
-          },
-        },
+        params: { participant: { participantId: participant.participantId, teamColors: participant.teamColors } },
       });
-    else added.push(participant);
   }
   if (added.length) methods.push({ method: ADD_PARTICIPANTS, params: { participants: added } });
   return methods;
+}
+
+/**
+ * One in-flight save at a time. The guard is released on every outcome: the mutation callback (ack, rejection,
+ * server timeout, offline refusal all settle through it), a thrown fetch or request, a closed modal, or nothing to do.
+ */
+export function providerTeamSaver({
+  isClosed,
+  onSuccess,
+  onError,
+}: {
+  isClosed: () => boolean;
+  onSuccess: () => void;
+  onError: (message: string) => void;
+}) {
+  let saving = false;
+  return async (ids: string[]): Promise<void> => {
+    if (saving || !ids.length) return;
+    saving = true;
+    try {
+      const methods = await providerTeamMethods(ids);
+      if (isClosed() || !methods.length) {
+        saving = false;
+        if (!isClosed()) onSuccess();
+        return;
+      }
+      await mutationRequest({
+        methods,
+        callback: (result: any) => {
+          saving = false;
+          if (result?.success) onSuccess();
+          else onError(result?.error?.message ?? t(PROVIDER_ERROR_KEY));
+        },
+      });
+    } catch (cause) {
+      saving = false;
+      onError(cause instanceof Error ? cause.message : t(PROVIDER_ERROR_KEY));
+    }
+  };
 }
 
 export function importProviderTeams(refresh: () => void): void {
@@ -61,8 +107,17 @@ export function importProviderTeams(refresh: () => void): void {
   const error = document.createElement('p');
   error.setAttribute('role', 'alert');
   content.append(label, error);
-  let saving = false;
   let closed = false;
+  const save = providerTeamSaver({
+    isClosed: () => closed,
+    onSuccess: () => {
+      modal.close();
+      refresh();
+    },
+    onError: (message) => {
+      error.textContent = message;
+    },
+  });
   const modal = cModal.open({
     title: t('teamPresentation.importTeams'),
     content,
@@ -75,29 +130,7 @@ export function importProviderTeams(refresh: () => void): void {
       {
         label: t('common.save'),
         close: false,
-        onClick: async () => {
-          if (saving) return;
-          const ids = [...picker.selected(), ...input.value.split(/[\s,]+/).filter(Boolean)];
-          if (!ids.length) return;
-          saving = true;
-          try {
-            const methods = await providerTeamMethods(ids);
-            if (closed) return undefined;
-            mutationRequest({
-              methods,
-              callback: (result: any) => {
-                saving = false;
-                if (result.success) {
-                  modal.close();
-                  refresh();
-                } else error.textContent = result.error ?? t(PROVIDER_ERROR_KEY);
-              },
-            });
-          } catch (cause) {
-            saving = false;
-            error.textContent = cause instanceof Error ? cause.message : t(PROVIDER_ERROR_KEY);
-          }
-        },
+        onClick: () => save([...picker.selected(), ...input.value.split(/[\s,]+/).filter(Boolean)]),
       },
     ],
   });
