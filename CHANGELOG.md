@@ -1,5 +1,31 @@
 # Changelog
 
+## [8.53.0](https://github.com/CourtHive/TMX/compare/v8.52.0...v8.53.0) (2026-11-11)
+
+
+### Features
+
+* add dedicated match check-in workspace ([#1964](https://github.com/CourtHive/TMX/issues/1964)) ([1f82c82](https://github.com/CourtHive/TMX/commit/1f82c825d4c9e5d2b938e32751ad2fd86dccae06))
+* import provider team defaults and edit tournament team presentation ([#1966](https://github.com/CourtHive/TMX/issues/1966)) ([5dbe129](https://github.com/CourtHive/TMX/commit/5dbe12930a359058bed20159f5ba718bef04d2b1))
+* preview ranked factory Fit proposals in topology page ([#1963](https://github.com/CourtHive/TMX/issues/1963)) ([fc66a64](https://github.com/CourtHive/TMX/commit/fc66a6450d43996cf876c8e4c386fc12929959f6))
+* **topology:** qualifying acceptance lines, atomic qualifying moves and sanctioned limits (F3) ([#1972](https://github.com/CourtHive/TMX/issues/1972)) ([e612402](https://github.com/CourtHive/TMX/commit/e6124024a0e982f848d50d9327dfaaafd242e91b))
+* use shared display settings dialog with advanced composition controls ([#1958](https://github.com/CourtHive/TMX/issues/1958)) ([28e4883](https://github.com/CourtHive/TMX/commit/28e48831abb207668aefbe13d07a569f446dc01c))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.16.0 ([#1970](https://github.com/CourtHive/TMX/issues/1970)) ([93b9f85](https://github.com/CourtHive/TMX/commit/93b9f8524276b669e1b7426baddddaf236fa9ee8))
+* **deps:** update dependency hotkeys-js to v4.1.2 ([#1961](https://github.com/CourtHive/TMX/issues/1961)) ([8448ec5](https://github.com/CourtHive/TMX/commit/8448ec5145aed89d7db6faebb13fb984f27fd4ae))
+* **deps:** update tods-competition-factory to 7.36.0 ([#1969](https://github.com/CourtHive/TMX/issues/1969)) ([1fee71d](https://github.com/CourtHive/TMX/commit/1fee71d988133b3fbae21f11d02fc4954a400087))
+* left align matchUps footer status filters ([#1957](https://github.com/CourtHive/TMX/issues/1957)) ([32c7f6d](https://github.com/CourtHive/TMX/commit/32c7f6d304502fe7ec6531eeace199d717f9ab2e))
+* **mutation:** fire the callback when a confirmed request fails ([8de772d](https://github.com/CourtHive/TMX/commit/8de772d5bbc585299b61815ce79ef815110b1948))
+* **rotating-partners:** build the Mexicano policy preview from the shared profile builder ([#1971](https://github.com/CourtHive/TMX/issues/1971)) ([7d73f48](https://github.com/CourtHive/TMX/commit/7d73f4891d38931a31af4ba88eb3bb76b7df6497))
+
+
+### Documentation
+
+* correct the README's spec count, factory links and license line ([#1968](https://github.com/CourtHive/TMX/issues/1968)) ([2823d61](https://github.com/CourtHive/TMX/commit/2823d618259ced401e38ef4151217eb7d4c01bd5))
+
 ## [8.52.0](https://github.com/CourtHive/TMX/compare/v8.51.0...v8.52.0) (2026-11-08)
 
 
