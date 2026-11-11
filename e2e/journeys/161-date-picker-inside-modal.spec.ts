@@ -78,6 +78,11 @@ test.describe('Journey 161 — popups inside the Edit Dates modal', () => {
     const bodyHeight = () => body.evaluate((element) => element.getBoundingClientRect().height);
     const before = await bodyHeight();
 
+    // The modal focuses Start date as it opens, so its calendar is already showing, over the time zone input.
+    // Dismiss it the way a user would, with a press outside it. `fill` alone moves focus without a press, and
+    // under load the calendar was still open and drawn over the suggestions measured below.
+    await page.locator('.chc-modal-dialog').getByText('Edit Dates', { exact: true }).click();
+    await expect(page.locator(OPEN_CALENDAR)).toHaveCount(0);
     const input = page.locator(TZ_INPUT);
     await input.fill('America');
     const items = page.locator(SUGGESTIONS);
