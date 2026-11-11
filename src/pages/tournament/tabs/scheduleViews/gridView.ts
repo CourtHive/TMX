@@ -323,12 +323,11 @@ import { buildGridSearchIndex, matchUpIdsForQuery, type GridSearchIndex } from '
 import { getActiveSessionCount, getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { createCrowdBadge, createLiveTag } from 'components/elements/matchUpActivityBadges';
 import { courtBlockSignal, formatRunway, type CourtBlockWindow } from './courtBlockRunway';
-import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { confirmCheckInCall } from 'components/checkIn/confirmCheckInCall';
 import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { pickLiveScore, withLiveScore } from 'services/messaging/liveScoreDisplay';
 import { evaluateReadiness, renderInspectorSections } from './inspectorReadiness';
 import { getLiveTrackedScore } from 'services/messaging/liveTrackedScores';
-import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { cellSearchText, searchNormalize } from './gridSearchMatch';
 import { expectedAverageMinutes } from './matchUpExpectedMinutes';
 import { buildCheckInModeToggle } from './checkInModeToggle';
@@ -355,7 +354,6 @@ import {
   writeScheduledFilters,
   readScheduledCollapsedGroups,
   writeScheduledCollapsedGroups,
-  readCheckInPromptMode,
   readInspectorVisible,
   writeInspectorVisible,
   readGridWarningBars,
@@ -1522,7 +1520,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
             // directly rather than through the component's catalog, so the
             // badge has to be passed here too or it would appear on only half
             // the cards an operator looks at.
-            renderExtra: (m) => renderRestBadge(m.matchUpId, currentDate),
+            renderExtra: (m) => renderCardBadges(m.matchUpId, currentDate),
           },
         );
         card.dataset.matchUpId = item.matchUpId;
@@ -3653,31 +3651,36 @@ function commitActiveStripDrop(
   court: any,
   refresh: () => void,
 ): void {
+  const date = currentDate;
+  const destination = () =>
+    JSON.stringify(
+      (getCachedAllMatchUps()?.matchUps ?? [])
+        .filter(
+          (matchUp: any) =>
+            matchUp.schedule?.scheduledDate === date &&
+            matchUp.schedule?.courtId === target.courtId &&
+            matchUp.schedule?.courtOrder === target.rowIndex + 1,
+        )
+        .map((matchUp: any) => [matchUp.matchUpId, matchUp.matchUpStatus]),
+    );
+  const before = destination();
+  confirmCheckInCall({
+    matchUpId: payload.matchUp.matchUpId,
+    drawId: payload.matchUp.drawId,
+    scheduledDate: date,
+    drop: true,
+    validate: () => date === currentDate && destination() === before && !refuseDisabledCourt(target.courtId, date),
+    onConfirmed: () => applyActiveStripDrop(payload, target, court, refresh),
+  });
+}
+
+function applyActiveStripDrop(
+  payload: { type: 'CATALOG_MATCHUP' | 'GRID_MATCHUP'; matchUp: any },
+  target: { courtId: string; rowIndex: number },
+  court: any,
+  refresh: () => void,
+): void {
   const courtOrder = target.rowIndex + 1;
-
-  // WARN and proceed, never block (D4d). The active-strip drop IS the call to court, so declining
-  // cancels the whole drop rather than landing the match uncalled — a half-applied drop would leave
-  // the grid asserting a placement the operator did not choose.
-  //
-  // The catalog payload cannot answer this: `CatalogMatchUpItem` carries no `checkedInParticipantIds`,
-  // so the hydrated matchUp has to be resolved. Autocall deliberately skips this prompt (D4f).
-  const dropped = getCachedAllMatchUps()?.matchUps?.find(
-    (matchUp: any) => matchUp?.matchUpId === payload.matchUp.matchUpId,
-  );
-  const prompt = callToCourtPrompt(dropped);
-  const gated =
-    prompt &&
-    shouldPromptOnCall({
-      mode: readCheckInPromptMode(),
-      inUse: checkInInUse(getCachedAllMatchUps()?.matchUps, currentDate),
-      awaitingCount: prompt.awaitingCount,
-    });
-  if (
-    gated &&
-    !globalThis.confirm(`${t('checkIn.callOnDropBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`)
-  )
-    return;
-
   const methods: any[] = [];
 
   if (payload.type === 'GRID_MATCHUP') {

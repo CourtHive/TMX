@@ -1,4 +1,5 @@
 import type { RotatingCreation, RotatingFormat } from 'services/rotatingPartners/creation';
+import { rotatingProfile } from 'services/rotatingPartners/creation';
 import { tournamentEngine } from 'services/factory/engine';
 import { drawsGovernor } from 'tods-competition-factory';
 import { t } from 'i18n';
@@ -163,16 +164,16 @@ export function mountRotatingFormatFields({
     const { policyDefinitions } = tournamentEngine.getPolicyDefinitions({ event, policyTypes: ['scoring'] });
     const permitted = policyDefinitions?.scoring?.rotatingPartners?.[format.value]?.permittedPointTotals;
     total.value = String(permitted?.[0] ?? 32);
-    const profile = {
-      version: 1,
-      format: format.value,
-      entrantScope: 'INDIVIDUAL',
-      matchUpType: 'DOUBLES',
-      scoring: { combinedPointTotal: Number(total.value) },
-      standings: { metric: 'SIDE_POINTS', attribution: 'EACH_INDIVIDUAL' },
-      pairing: { seed: 1, algorithmVersion: 1 },
-      completion: { kind: 'PARTNERSHIP_COVERAGE' },
-    };
+    // The round count does not affect the policy; an unfinished entry falls back to 1 so it cannot fail the preview.
+    const roundCount = Number(rounds.value);
+    const profile = rotatingProfile(
+      {
+        format: format.value as RotatingFormat,
+        combinedPointTotal: Number(total.value),
+        rounds: Number.isSafeInteger(roundCount) && roundCount > 0 ? roundCount : 1,
+      },
+      1,
+    );
     const result = drawsGovernor.getRotatingPartnerScoringPolicy({
       tournamentRecord,
       event,

@@ -17,6 +17,7 @@ const { renderFormMock } = vi.hoisted(() => ({ renderFormMock: vi.fn() }));
 const { renderButtonsMock } = vi.hoisted(() => ({ renderButtonsMock: vi.fn() }));
 
 vi.mock('services/mutation/mutationRequest', () => ({ mutationRequest: mutationRequestMock }));
+vi.mock('./teamPaletteEditor', () => ({ renderTeamPaletteEditor: () => ({ read: () => ({}) }) }));
 vi.mock('services/context', () => ({ context: { drawer: { open: drawerOpenMock } } }));
 vi.mock('courthive-components', () => ({
   renderForm: renderFormMock,
@@ -24,8 +25,8 @@ vi.mock('courthive-components', () => ({
   validators: { nameValidator: () => () => true },
 }));
 
-import { editGroupingParticipant } from './editGroupingParticipant';
 import { participantConstants, participantRoles } from 'tods-competition-factory';
+import { editGroupingParticipant } from './editGroupingParticipant';
 
 const { COACH, COMPETITOR, OTHER } = participantRoles;
 const { GROUP, TEAM } = participantConstants;

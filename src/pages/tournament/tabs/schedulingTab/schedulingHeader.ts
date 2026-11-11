@@ -1,12 +1,11 @@
 /**
  * Scheduling workspace header — mirrors schedule2's `.sch2-header` shape so the
- * control bar visual is identical, with one extra segmented option
- * (Availability) ahead of Profile and Grid.
+ * control bar visual is shared across Availability, Profile, Check-In, Grid and Plan.
  *
  * Left: the shared `buildScheduleDateSelector` component (calendar button +
  *       match-count badge + tippy date-chip popover + its own recompute
  *       subscription).
- * Right: 3-segment mode switcher — Availability | Profile | Grid.
+ * Right: workspace mode switcher; Plan appears only when enabled.
  */
 import { buildScheduleDateSelector } from 'components/schedule/scheduleDateSelector';
 import { ScheduleDate } from 'courthive-components';
@@ -49,6 +48,7 @@ export interface SchedulingHeader {
 const modeOptions = (): ModeOption[] => [
   { key: 'availability', label: t('schedulingTab.availability'), icon: 'fa-calendar-check' },
   { key: 'profile', label: t('tables.rounds.profile'), icon: 'fa-layer-group' },
+  { key: 'check-in', label: t('checkIn.desk.title'), icon: 'fa-user-check' },
   { key: 'grid', label: t('ui.grid'), icon: 'fa-table-cells' },
   { key: 'plan', label: t('schedulingTab.plan'), icon: 'fa-clipboard-list' },
 ];
@@ -63,7 +63,7 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   const selector = buildScheduleDateSelector({ selectedDate, dates: scheduleDates, recomputeDates, onDateChange });
   bar.appendChild(selector.element);
 
-  // ── Right: Mode switcher (3 segments) ──
+  // ── Right: Mode switcher ──
   const right = document.createElement('div');
 
   const switcher = document.createElement('div');
@@ -75,7 +75,9 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   modes.forEach((mode, index) => {
     const btn = document.createElement('button');
     btn.style.cssText = segmentBtnStyle(mode.key === activeMode);
+    btn.type = 'button';
     btn.title = mode.label;
+    btn.setAttribute('aria-label', mode.label);
     btn.innerHTML = `<i class="fa-solid ${mode.icon}" style="margin-right: 4px;"></i>${mode.label}`;
 
     if (mode.key === activeMode) {

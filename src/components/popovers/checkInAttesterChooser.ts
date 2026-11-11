@@ -40,7 +40,8 @@ export function buildAttesterChooser({ participantName, onChoose, onCancel }: Ch
   list.style.cssText = 'list-style:none; margin:0; padding:0;';
 
   for (const relationship of ATTESTER_RELATIONSHIPS) {
-    const li = document.createElement('li');
+    const li = document.createElement('button');
+    li.type = 'button';
     li.className = 'tmx-checkin-row';
     li.dataset.relationship = relationship;
     li.textContent = t(`checkIn.attester.${relationship.toLowerCase()}`);
@@ -51,7 +52,9 @@ export function buildAttesterChooser({ participantName, onChoose, onCancel }: Ch
       if (!requiresName(relationship)) return onChoose({ relationship });
       panel.replaceChildren(buildNameStep({ relationship, participantName, onChoose, onCancel }));
     };
-    list.appendChild(li);
+    const item = document.createElement('li');
+    item.appendChild(li);
+    list.appendChild(item);
   }
 
   panel.appendChild(list);
@@ -121,11 +124,13 @@ function inputField(placeholder: string): HTMLInputElement {
   input.className = 'tmx-checkin-attester-input';
   input.type = 'text';
   input.placeholder = placeholder;
+  input.setAttribute('aria-label', placeholder);
   return input;
 }
 
 function buildCancel(onCancel: () => void): HTMLElement {
-  const cancel = document.createElement('div');
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
   cancel.className = 'tmx-checkin-attester-cancel';
   cancel.textContent = t('checkIn.attester.cancel');
   cancel.onclick = (e) => {

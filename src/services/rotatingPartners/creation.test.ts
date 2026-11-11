@@ -1,4 +1,4 @@
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { drawsGovernor, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 vi.mock('services/factory/engine', async () => {
@@ -6,8 +6,8 @@ vi.mock('services/factory/engine', async () => {
   return { tournamentEngine: factory.tournamentEngine };
 });
 
+import { prepareRotatingDraw, rotatingProfile } from './creation';
 import type { RotatingCreation } from './creation';
-import { prepareRotatingDraw } from './creation';
 
 function setup(count = 8) {
   const generated = mocksEngine.generateTournamentRecord({ participantsProfile: { participantsCount: count } });
@@ -108,3 +108,21 @@ it('refuses a scoring choice forbidden by inherited policy before creating the d
   expect(prepared.drawDefinition).toBeUndefined();
   expect(tournamentEngine.getTournament().tournamentRecord).toEqual(before);
 });
+
+it.each(['AMERICANO', 'MEXICANO'] as const)(
+  '%s builds a policy-preview profile, before a variant is chosen, that the factory accepts',
+  (format) => {
+    setup();
+    const { tournamentRecord } = tournamentEngine.getTournament();
+    const event = tournamentRecord.events[0];
+    const competitionProfile: any = rotatingProfile({ format, combinedPointTotal: 32, rounds: 3 }, 1);
+    expect(competitionProfile.scoring).not.toHaveProperty('selectedVariant');
+    const result: any = drawsGovernor.getRotatingPartnerScoringPolicy({
+      tournamentRecord,
+      event,
+      drawDefinition: { drawId: 'preview', drawType: 'AD_HOC', competitionProfile } as any,
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.scoringPolicy.permittedVariants.length).toBeGreaterThan(0);
+  },
+);

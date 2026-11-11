@@ -96,8 +96,7 @@ export function renderInlineTopology({
     const genResult = tournamentEngine.generateAndPopulatePlayoffStructures({
       drawId,
       structureId: node.id,
-      // a name and no abbreviation, as the dialog sends; the factory's NamingEntry type requires one its reader does not
-      ...(playoffGenerationParams(offer, structureName) as any),
+      ...playoffGenerationParams(offer, structureName),
     });
     if (genResult.error) {
       tmxToast({ message: genResult.error?.message || 'Generation error', intent: 'is-danger' });

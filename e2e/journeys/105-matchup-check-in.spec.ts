@@ -27,7 +27,7 @@ const MATCHUPS = S.TOURNAMENT_MATCHUPS;
 // The panel is a hand-built <ul> of <li> rows in its own tippy — `:not(.menu-list)` keeps it distinct
 // from the three-dot action menu, which renderMenu emits as <ul class="menu-list">. Same trick as
 // journey 94's official picker.
-const PANEL_ROW = '.tippy-content ul:not(.menu-list) > li';
+const PANEL_ROW = '.tmx-checkin-list > li > .tmx-checkin-person';
 
 async function seedDoubles(page: Page): Promise<{ tournamentId: string; sideOneName: string }> {
   return page.evaluate(async () => {
@@ -123,6 +123,25 @@ test.describe('Journey 105 — per-matchUp check-in', () => {
     // Partial state is now visible rather than implied.
     await expect(page.locator('.tmx-checkin-heading')).toContainText('1/4');
     await expect(page.locator('.tmx-checkin-row.is-checked-in')).toHaveCount(1);
+  });
+
+  test('reopened menu and reload retain the acknowledged count', async ({ page }) => {
+    const { tournamentId, sideOneName } = await seedDoubles(page);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tournamentId);
+    await tournament.navigateToMatchUps();
+    const menu = await openCheckInPanel(page, sideOneName);
+    await menu.locator('a', { hasText: 'Check in' }).click();
+    await page.locator(PANEL_ROW).first().click();
+    await expect(page.locator('.tmx-checkin-heading')).toContainText('1/4');
+    await page.keyboard.press('Escape');
+    await page.mouse.click(10, 10);
+    const reopened = await openCheckInPanel(page, sideOneName);
+    await expect(reopened.locator('a', { hasText: 'Check in' })).toContainText('1/4');
+    await page.reload();
+    await waitForAppReady(page);
+    const persisted = await openCheckInPanel(page, sideOneName);
+    await expect(persisted.locator('a', { hasText: 'Check in' })).toContainText('1/4');
   });
 
   test('checking in is reversible from the same row', async ({ page }) => {

@@ -12,12 +12,17 @@ export type RotatingCreation = {
   selectedVariant: RotatingPartnerScoringVariant;
 };
 
-export function rotatingProfile(config: RotatingCreation, seed: number): CompetitionProfile {
+/** The policy preview builds its profile here too, before a variant is chosen: one shape per format for both paths. */
+export function rotatingProfile(
+  config: Pick<RotatingCreation, 'format' | 'combinedPointTotal' | 'rounds'> & Partial<RotatingCreation>,
+  seed: number,
+): CompetitionProfile {
+  const { combinedPointTotal, selectedVariant } = config;
   const common = {
     version: 1 as const,
     entrantScope: 'INDIVIDUAL' as const,
     matchUpType: 'DOUBLES' as const,
-    scoring: { combinedPointTotal: config.combinedPointTotal, selectedVariant: config.selectedVariant },
+    scoring: { combinedPointTotal, ...(selectedVariant && { selectedVariant }) },
     standings: { metric: 'SIDE_POINTS' as const, attribution: 'EACH_INDIVIDUAL' as const },
   };
   return config.format === 'AMERICANO'

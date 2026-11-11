@@ -2143,6 +2143,11 @@
       "failed": "Penalty not recorded"
     },
     "displaySettings": {
+      "advanced": "Advanced settings",
+      "basic": "Basic settings",
+      "custom": "custom",
+      "matchUpFooter": "MatchUp footer",
+      "preview": "Preview",
       "google": "Google",
       "showSchedule": "Show Schedule",
       "pathHighlight": "Highlight participant path",
@@ -2997,7 +3002,28 @@
         "namePlaceholder": "Participant name",
         "nicknamePlaceholder": "Nickname / abbreviation",
         "preferNickname": "Prefer nickname in draws",
-        "nameTooShort": "Please enter a name of at least 3 characters"
+        "nameTooShort": "Please enter a name of at least 3 characters",
+        "palette": "Team colors and default display",
+        "addColor": "Add color",
+        "clearPalette": "Clear palette",
+        "chooseColor": "Use theme default",
+        "missingColor": "Selected color removed — choose another",
+        "color": "Color",
+        "colorname": "Color name (optional)",
+        "colorvalue": "Color value",
+        "colorgroup": "Brand group (optional)",
+        "moveColorUp": "Move color up",
+        "removeColor": "Remove color",
+        "invalidPalette": "Check colors and role assignments. Every assigned role must reference an existing palette color.",
+        "team": {
+          "surface": "Team background",
+          "text": "Team text",
+          "accent": "Team accent"
+        },
+        "score": {
+          "surface": "Score background",
+          "text": "Score text"
+        }
       },
       "selected": "selected",
       "closeTheDay": "Close the day",
@@ -3339,6 +3365,35 @@
       "offHint": "Never ask before calling a match to court.",
       "onHint": "Always ask when someone has not checked in.",
       "autoHint": "Ask only when this tournament is using check-in today."
+    },
+    "callAnyway": "Call to court anyway",
+    "callTitle": "Call before check-in?",
+    "callChanged": "The match or court changed while this dialog was open. Review it and try again.",
+    "desk": {
+      "title": "Check-In",
+      "side": "Side {{number}}",
+      "search": "Search participant names",
+      "status": "Check-in status",
+      "all": "All check-in states",
+      "awaiting": "Awaiting check-in",
+      "partial": "Partially checked in",
+      "complete": "Everyone checked in",
+      "event": "Event",
+      "venue": "Venue",
+      "allEvents": "All events",
+      "allVenues": "All venues",
+      "showCompleted": "Show completed matches",
+      "hint": "Check in each player for this match. Changes save immediately.",
+      "matchCount_one": "{{count}} match",
+      "matchCount_other": "{{count}} matches",
+      "empty": "No matches match these filters on this date.",
+      "checkedIn": "{{summary}} checked in",
+      "timeUnassigned": "Time unassigned",
+      "courtUnassigned": "Court unassigned",
+      "present": "Checked in",
+      "noParticipants": "There are no participants available for check-in.",
+      "checkOutLocked": "Check-out is unavailable once play has started or a score has been recorded.",
+      "readOnly": "Check-in changes are unavailable for this match."
     }
   },
   "ofc": "Officials",
@@ -3486,7 +3541,8 @@
     "drawGenerated": "Draw generated successfully",
     "structuresNotAttached": "Draw generated, but these structures could not be attached: {{unattached}}",
     "templateName": "Template Name",
-    "templateSaved": "Template saved"
+    "templateSaved": "Template saved",
+    "eventNotFound": "Event not found"
   },
   "participantFields": {
     "identifiers": "Identifiers",
@@ -4021,5 +4077,29 @@
     "captureReady": "Recording ready · {{count}} steps",
     "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
     "captureFailed": "Could not start recording. Check that demo clock control is active."
+  },
+  "teamPresentation": {
+    "title": "Tournament team presentation",
+    "scope": "Apply to",
+    "allTeams": "All teams",
+    "reset": "Reset this scope to inherited defaults",
+    "inherit": "Inherit",
+    "theme": "Use theme default",
+    "color": "Use color",
+    "colorValue": "custom color",
+    "palette": "Team palette color",
+    "paletteValue": "team palette color",
+    "choosePalette": "Choose team color",
+    "missingTeam": "missing team",
+    "missingColor": "Missing palette color",
+    "invalid": "Check colors and palette references",
+    "importTeams": "Import or refresh team provider defaults",
+    "providerIds": "Team provider IDs (one per line or separated by commas)",
+    "providerError": "Unable to load valid team defaults from the provider",
+    "searchTeams": "Find team providers",
+    "search": "Search",
+    "more": "More teams",
+    "noTeams": "No team providers with display defaults found",
+    "tournamentChanged": "The active tournament changed. No teams were imported."
   }
 }

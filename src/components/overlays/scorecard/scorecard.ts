@@ -5,11 +5,12 @@
  */
 import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
+import { clearHomeMethod, dualHome, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
 import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
+import { tournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 import { finishingOrderCollections, saveFinishingOrder } from './orderOfFinish';
 import { closeOverlay, openOverlay, setOverlayContent } from '../overlay';
-import { clearHomeMethod, dualHome, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { updateTieFormat } from '../editTieFormat.js/updateTieFormat';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -160,6 +161,8 @@ export function renderScorecard({
   };
 
   const container = renderScorecardLayout({
+    teamBranding: true,
+    teamPresentation: tournamentTeamPresentation(),
     issues: dualIssues({ drawId, matchUpId }),
     finishingOrder,
     labels: scorecardLabels(),

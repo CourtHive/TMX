@@ -1,4 +1,4 @@
-import { acceptanceEntries, entryChangeMethods, withEntryChanges } from './acceptanceEntries';
+import { acceptanceEntries, composeEntryChanges, entryChangeMethods, withEntryChanges } from './acceptanceEntries';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
@@ -26,7 +26,14 @@ describe('acceptanceEntries', () => {
       ratingScale: { scaleName: 'ELO' },
     });
     expect(ranked.map(({ participantId }) => participantId)).toEqual(['b', 'c', 'a']);
-    expect(ranked[0]).toEqual({ participantId: 'b', name: 'B', entryStatus: 'ALTERNATE', rankLabel: 'ELO 2100' });
+    expect(ranked[0]).toEqual({
+      participantId: 'b',
+      name: 'B',
+      entryStatus: 'ALTERNATE',
+      rankLabel: 'ELO 2100',
+      entryStage: 'MAIN',
+      rankOrder: 0,
+    });
   });
 
   it('ranks WTN lowest first; the unrated sink to the end in event order', () => {
@@ -67,15 +74,35 @@ describe('the changes', () => {
     expect(withEntryChanges(entries, [])).toBe(entries);
   });
 
+  it('a MAIN trial preserves a qualifying entry for the same participant', () => {
+    const entries = [entry('a'), { ...entry('a'), entryStage: 'QUALIFYING' }];
+    const trial = withEntryChanges(entries, changes);
+    expect(trial[0].entryStatus).toBe('ALTERNATE');
+    expect(trial[1]).toBe(entries[1]);
+    expect(entries[0].entryStatus).toBe('DIRECT_ACCEPTANCE');
+  });
+
   it('one modifyEntriesStatus per status they move to', () => {
     expect(entryChangeMethods('e1', changes)).toEqual([
       {
         method: 'modifyEntriesStatus',
-        params: { eventId: 'e1', participantIds: ['a', 'c'], entryStatus: 'ALTERNATE' },
+        params: {
+          eventId: 'e1',
+          participantIds: ['a', 'c'],
+          entryStatus: 'ALTERNATE',
+          stage: 'MAIN',
+          entryStage: 'MAIN',
+        },
       },
       {
         method: 'modifyEntriesStatus',
-        params: { eventId: 'e1', participantIds: ['b'], entryStatus: 'DIRECT_ACCEPTANCE' },
+        params: {
+          eventId: 'e1',
+          participantIds: ['b'],
+          entryStatus: 'DIRECT_ACCEPTANCE',
+          stage: 'MAIN',
+          entryStage: 'MAIN',
+        },
       },
     ]);
     expect(entryChangeMethods('e1', [])).toEqual([]);
@@ -114,4 +141,30 @@ describe('the changes', () => {
     expect(after.entries.filter(({ entryStatus }: any) => entryStatus === 'ALTERNATE')).toHaveLength(4);
     expect(after.drawDefinitions).toHaveLength(1);
   });
+});
+
+it('keeps sources separate when a main entry and a qualifying entry move to the same status', () => {
+  const changes = [
+    { participantId: 'main', from: 'DIRECT_ACCEPTANCE', to: 'ALTERNATE', toStage: 'QUALIFYING' },
+    { participantId: 'qualifying', from: 'DIRECT_ACCEPTANCE', to: 'ALTERNATE', fromStage: 'QUALIFYING' },
+  ];
+  const methods = entryChangeMethods('event', changes);
+  expect(methods).toHaveLength(2);
+  expect(methods[0].params).toMatchObject({ participantIds: ['main'], stage: 'MAIN', entryStage: 'QUALIFYING' });
+  expect(methods[1].params).toMatchObject({
+    participantIds: ['qualifying'],
+    stage: 'QUALIFYING',
+    entryStage: 'QUALIFYING',
+  });
+});
+
+it('composes a stage move and a later qualifying demotion without losing the MAIN origin', () => {
+  const entries = [entry('main'), entry('q', 'DIRECT_ACCEPTANCE', 'QUALIFYING')];
+  const first = [{ participantId: 'main', from: 'DIRECT_ACCEPTANCE', to: 'DIRECT_ACCEPTANCE', toStage: 'QUALIFYING' }];
+  const second = [{ participantId: 'main', from: 'DIRECT_ACCEPTANCE', to: 'ALTERNATE', fromStage: 'QUALIFYING' }];
+  const changes = composeEntryChanges(entries, first, second);
+  expect(changes).toEqual([
+    { participantId: 'main', from: 'DIRECT_ACCEPTANCE', to: 'ALTERNATE', fromStage: 'MAIN', toStage: 'QUALIFYING' },
+  ]);
+  expect(withEntryChanges(entries, changes)).toEqual([entry('main', 'ALTERNATE', 'QUALIFYING'), entries[1]]);
 });

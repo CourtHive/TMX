@@ -10,7 +10,7 @@ import { activateScheduleCellTypeAhead, computeReschedulePlacements } from 'cour
 import { closeModal, confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { collectStartAllRestWarning, type StartAllRestWarning } from './startAllRestGuard';
 import { buildCellInspectorView, INSPECTOR_POPOVER_WIDTH } from './cellInspectorView';
-import { checkInInUse, shouldPromptOnCall } from 'services/checkIn/checkInPromptMode';
+import { confirmCheckInCall } from 'components/checkIn/confirmCheckInCall';
 import { secondsToTimeString, timeStringToSeconds } from 'functions/timeStrings';
 import { buildScheduleLockMethod, isScheduleLocked } from './scheduleLocks';
 import { openTimeBlockModal, type TimeBlockCourt } from './timeBlockModal';
@@ -19,17 +19,14 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { printMatchUpCourtCard } from 'components/modals/printCourtCards';
 import { getScheduleAnnotationLabels } from './scheduleAnnotationLabels';
-import { callToCourtPrompt } from 'services/checkIn/callToCourtPrompt';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { venueNowClock, venueToday } from 'functions/venueTimeFrame';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionNowMs } from 'services/clock/competitionClock';
 import { evaluateRest, formatDuration } from './inspectorRest';
 import { destroyTipster } from 'components/popovers/tipster';
-import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { readCheckInPromptMode } from './gridViewStorage';
 import { timePicker } from 'components/modals/timePicker';
 import { hasFinalResult } from 'functions/hasFinalResult';
 import { Datepicker } from 'vanillajs-datepicker';
@@ -427,23 +424,10 @@ function showMatchUpCellMenu(e: MouseEvent, ctx: Schedule2CellContext): void {
     const drawId = matchUp?.drawId || cellData.drawId;
     if (!drawId) return;
 
-    // WARN and proceed, never block (D4d). The desk knows things the record does not — a player who
-    // rang ahead, an official who waved them through — and a hard block would teach operators to check
-    // everyone in pre-emptively, which destroys the signal the check-in is there to carry.
-    const prompt = callToCourtPrompt(matchUp);
-    const gated =
-      prompt &&
-      shouldPromptOnCall({
-        mode: readCheckInPromptMode(),
-        inUse: checkInInUse(getCachedAllMatchUps()?.matchUps, scheduledDate),
-        awaitingCount: prompt.awaitingCount,
-      });
-    if (
-      gated &&
-      !globalThis.confirm(`${t('checkIn.callBeforeCheckIn', { count: prompt.awaitingCount })}\n\n${prompt.names}`)
-    )
-      return;
+    confirmCheckInCall({ matchUpId, drawId, scheduledDate, onConfirmed: () => commitCallToCourt(drawId) });
+  };
 
+  const commitCallToCourt = (drawId: string) => {
     const calledAtMs = competitionNowMs();
     if (calledAtMs === undefined) {
       tmxToast({ message: t('schedule.clockUnavailable'), intent: 'is-danger' });
