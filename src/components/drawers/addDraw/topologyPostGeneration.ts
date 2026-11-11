@@ -17,8 +17,9 @@ import { tournamentEngine } from 'services/factory/engine';
 
 import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'constants/mutationConstants';
 
-const { DIRECT_ENTRY_STATUSES } = entryStatusConstants;
+const { DIRECT_ENTRY_STATUSES, ALTERNATE } = entryStatusConstants;
 const { MAIN, QUALIFYING, LOSER, TOP_DOWN } = drawDefinitionConstants;
+const DIRECT_STATUSES = new Set(DIRECT_ENTRY_STATUSES);
 
 type Structure = { structureId: string; stage?: string; structureName?: string };
 
@@ -38,10 +39,18 @@ export type PostGenerationEngine = {
  * qualifying entries stay off the draw rather than riding along as entries of a draw that has no
  * stage for them.
  */
-export function topologyDrawEntries({ event, state }: { event: any; state: { nodes?: any[] } }): any[] {
+export function topologyDrawEntries({
+  event,
+  state,
+  includeAlternates = false,
+}: {
+  event: any;
+  state: { nodes?: any[] };
+  includeAlternates?: boolean;
+}): any[] {
   const hasQualifying = (state?.nodes ?? []).some((node: any) => node.stage === QUALIFYING);
   return (event?.entries ?? []).filter(({ entryStage, entryStatus }: any) => {
-    if (!DIRECT_ENTRY_STATUSES.includes(entryStatus)) return false;
+    if (!DIRECT_STATUSES.has(entryStatus) && !(includeAlternates && entryStatus === ALTERNATE)) return false;
     if (!entryStage || entryStage === MAIN) return true;
     return hasQualifying && entryStage === QUALIFYING;
   });

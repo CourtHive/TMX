@@ -53,7 +53,7 @@ test.describe('Topology — factory Fit proposals', () => {
     await page.screenshot({ path: test.info().outputPath('fit-options-dark.png') });
     await topology.locator('[data-kind="Cut"]').click();
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'FITS');
-    await expect(topology.locator('.tb-acceptance-pending')).toContainText('8 DA → ALT');
+    await expect(topology.locator('.tb-acceptance-pending[data-stage="MAIN"]')).toContainText('8 DA → ALT');
     const before: any = await getTournamentRecord(page);
     expect(before.events[0].entries.filter((e: any) => e.entryStatus === 'ALTERNATE')).toHaveLength(0);
     await page.screenshot({ path: test.info().outputPath('acceptance-line.png') });
