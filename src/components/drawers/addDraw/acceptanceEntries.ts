@@ -8,8 +8,8 @@
  *
  * Pure: the participants and the scale are handed in.
  */
+import { drawDefinitionConstants, fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 import { ratingSortValue } from 'components/tables/eventsTable/seeding/ratingSortValue';
-import { fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
 
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
@@ -25,7 +25,8 @@ export type AcceptanceEntry = {
   rankOrder?: number;
 };
 
-const MAIN = 'MAIN';
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const ENTRY_STAGES = new Set<string>([MAIN, QUALIFYING]);
 
 /**
  * The event's MAIN entries for the acceptance line, ranked best first by `ratingScale`. A scale where a lower value is
@@ -51,7 +52,7 @@ export function acceptanceEntries({
 
   const ranked = entries
     .filter(({ entryStage }) =>
-      stage === 'ALL' ? [MAIN, 'QUALIFYING'].includes(entryStage ?? MAIN) : (entryStage ?? MAIN) === stage,
+      stage === 'ALL' ? ENTRY_STAGES.has(entryStage ?? MAIN) : (entryStage ?? MAIN) === stage,
     )
     .map((entry, order) => {
       const participant = byId.get(entry.participantId);
@@ -125,13 +126,21 @@ export function composeEntryChanges(entries: Entry[], ...groups: EntryChange[][]
 export function entryChangeMethods(eventId: string, changes: EntryChange[] = []): any[] {
   const groups = new Map<
     string,
-    { stage: string; entryStage: string; entryStatus: string; participantIds: string[] }
+    { stage: string; entryStage: string; entryStatus: string; participantIds: Set<string> }
   >();
   for (const { participantId, to, fromStage = MAIN, toStage = fromStage } of changes) {
     const key = `${fromStage}:${toStage}:${to}`;
-    const group = groups.get(key) ?? { stage: fromStage, entryStage: toStage, entryStatus: to, participantIds: [] };
-    if (!group.participantIds.includes(participantId)) group.participantIds.push(participantId);
+    const group = groups.get(key) ?? {
+      stage: fromStage,
+      entryStage: toStage,
+      entryStatus: to,
+      participantIds: new Set<string>(),
+    };
+    group.participantIds.add(participantId);
     groups.set(key, group);
   }
-  return [...groups.values()].map((group) => ({ method: MODIFY_ENTRIES_STATUS, params: { eventId, ...group } }));
+  return [...groups.values()].map(({ participantIds, ...group }) => ({
+    method: MODIFY_ENTRIES_STATUS,
+    params: { eventId, ...group, participantIds: [...participantIds] },
+  }));
 }

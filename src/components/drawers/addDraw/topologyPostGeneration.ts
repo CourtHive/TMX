@@ -19,6 +19,7 @@ import { ATTACH_CONSOLATION_STRUCTURES, ATTACH_PLAYOFF_STRUCTURES } from 'consta
 
 const { DIRECT_ENTRY_STATUSES, ALTERNATE } = entryStatusConstants;
 const { MAIN, QUALIFYING, LOSER, TOP_DOWN } = drawDefinitionConstants;
+const DIRECT_STATUSES = new Set(DIRECT_ENTRY_STATUSES);
 
 type Structure = { structureId: string; stage?: string; structureName?: string };
 
@@ -49,7 +50,7 @@ export function topologyDrawEntries({
 }): any[] {
   const hasQualifying = (state?.nodes ?? []).some((node: any) => node.stage === QUALIFYING);
   return (event?.entries ?? []).filter(({ entryStage, entryStatus }: any) => {
-    if (!DIRECT_ENTRY_STATUSES.includes(entryStatus) && !(includeAlternates && entryStatus === ALTERNATE)) return false;
+    if (!DIRECT_STATUSES.has(entryStatus) && !(includeAlternates && entryStatus === ALTERNATE)) return false;
     if (!entryStage || entryStage === MAIN) return true;
     return hasQualifying && entryStage === QUALIFYING;
   });

@@ -42,7 +42,8 @@ let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
 
 const IS_SUCCESS = 'is-success';
-const { MAIN } = drawDefinitionConstants;
+const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const ENTRY_STAGES = new Set<string>([MAIN, QUALIFYING]);
 
 export function renderTopologyPage({
   eventId,
@@ -165,7 +166,7 @@ function drawFitFor({
 function fitProposalsFor(state: TopologyState, eventId: string, changes: EntryChange[]) {
   const event = tournamentEngine.q.event({ eventId });
   if (!event) return { error: t('topology.eventNotFound') };
-  const original = (event.entries ?? []).filter((entry) => [MAIN, 'QUALIFYING'].includes(entry.entryStage ?? MAIN));
+  const original = (event.entries ?? []).filter((entry) => ENTRY_STAGES.has(entry.entryStage ?? MAIN));
   const entries = withEntryChanges(original, changes);
   const { drawOptions } = topologyToDrawOptions(state);
   const result = tournamentEngine.getDrawFitProposals({
