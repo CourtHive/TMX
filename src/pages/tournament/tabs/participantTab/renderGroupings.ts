@@ -5,7 +5,9 @@
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createSearchFilter } from 'components/tables/common/filters/createSearchFilter';
 import { createTeamsTable } from 'components/tables/participantsTable/createTeamsTable';
+import { editTournamentTeamPresentation } from 'services/teamDisplay/teamPresentation';
 import { createTeamsFromAttribute } from 'components/modals/createTeamFromAttribute';
+import { importProviderTeams } from 'services/teamDisplay/importProviderTeams';
 import { getEventFilter } from 'components/tables/common/filters/eventFilter';
 import { deleteSelectedParticipants } from './deleteSelectedParticipants';
 import { editGroupingParticipant } from './editGroupingParticipant';
@@ -60,6 +62,10 @@ export function renderGroupings({ view }: { view: string }): void {
   ];
 
   if (isTeamView) {
+    actionOptions.push(
+      { label: t('teamPresentation.importTeams'), onClick: () => importProviderTeams(replaceTableData) },
+      { label: t('teamPresentation.title'), onClick: editTournamentTeamPresentation },
+    );
     actionOptions.push({
       label: t('pages.participants.generateTeams'),
       onClick: () => createTeamsFromAttribute({ callback: replaceTableData }),

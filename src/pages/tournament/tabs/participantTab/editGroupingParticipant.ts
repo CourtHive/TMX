@@ -5,6 +5,7 @@
 import { participantConstants, participantRoles } from 'tods-competition-factory';
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { renderTeamPaletteEditor } from './teamPaletteEditor';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
 
@@ -54,6 +55,7 @@ export function editGroupingParticipant({
     participantRole: participant?.participantRole || OTHER,
   };
   let inputs: any;
+  let paletteEditor: ReturnType<typeof renderTeamPaletteEditor> | undefined;
 
   const content = (elem: HTMLElement) => {
     inputs = renderForm(elem, [
@@ -95,17 +97,26 @@ export function editGroupingParticipant({
           ]
         : []),
     ]);
+    if (!isGroup) paletteEditor = renderTeamPaletteEditor(elem, participant?.teamColors);
   };
 
   const footer = (elem: HTMLElement, close: () => void) =>
-    renderButtons(
-      elem,
-      [
-        { label: t('common.cancel'), onClick: () => table?.deselectRow(), close: true },
-        { label: t('common.save'), onClick: saveParticipant, close: true, intent: 'is-info' },
-      ],
-      close,
-    );
+    renderButtons(elem, [
+      {
+        label: t('common.cancel'),
+        onClick: () => {
+          table?.deselectRow();
+          close();
+        },
+      },
+      {
+        label: t('common.save'),
+        onClick: () => {
+          if (saveParticipant()) close();
+        },
+        intent: 'is-info',
+      },
+    ]);
 
   context.drawer.open({
     title: `<b style='larger'>${title}</b>`,
@@ -124,13 +135,20 @@ export function editGroupingParticipant({
     }
   };
 
-  function saveParticipant(): void {
+  function saveParticipant(): boolean {
+    if (!inputs[PARTICIPANT_NAME]?.value || inputs[PARTICIPANT_NAME].value.length < 3) return false;
+    if (!isGroup && paletteEditor?.read() === undefined) return false;
     table?.deselectRow();
     if (participant?.participantId) {
       updateParticipant();
     } else {
       addParticipant();
     }
+    return true;
+  }
+
+  function brandingUpdate() {
+    return isGroup ? {} : { teamColors: paletteEditor?.read() ?? {} };
   }
 
   function updateParticipant(): void {
@@ -154,6 +172,7 @@ export function editGroupingParticipant({
             participantName,
             useOtherName,
             ...roleUpdate,
+            ...brandingUpdate(),
           },
         },
       },
@@ -190,6 +209,7 @@ export function editGroupingParticipant({
                   participantName,
                   participantRole,
                   participantType,
+                  ...brandingUpdate(),
                 },
               ],
             },
