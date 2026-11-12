@@ -106,7 +106,7 @@
     "yargs": "18.2.0"
   },
   "dependencies": {
-    "@courthive/provider-config": "0.19.1",
+    "@courthive/provider-config": "1.0.0",
     "@courthive/scoring-visualizations": "^0.2.24",
     "@eslint/js": "^10.0.1",
     "ajv": "8.20.0",
