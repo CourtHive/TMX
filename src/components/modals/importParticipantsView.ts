@@ -19,26 +19,24 @@
  *      assignment flow (UI only in M3; passed through to commitParticipantImport
  *      so M4 can wire it up without further view changes)
  */
-import { DedupeKey, commitParticipantImport } from 'services/import/commitParticipantImport';
-import { mergeParticipantDrafts } from 'services/import/mergeParticipantDrafts';
+import { DedupeKey, commitParticipantImport, previewParticipantImport } from 'services/import/commitParticipantImport';
 import { normalizeHeader } from 'services/import/participantFieldModel';
 import { parseRatingCell } from 'services/import/parseRatingCell';
 import { autoMapColumns } from 'services/import/autoMapColumns';
 import { tournamentEngine } from 'services/factory/engine';
 import { openModal } from './baseModal/baseModal';
-import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
-
-import 'styles/importParticipants.css';
-
-// constants and types
-import type { ColumnMapping } from 'services/import/autoMapColumns';
 import {
   RATING_SYNONYMS,
   targetFieldGroups,
   TargetField,
   TargetFieldKind,
 } from 'services/import/participantFieldModel';
+
+import 'styles/importParticipants.css';
+
+// constants and types
+import type { ColumnMapping } from 'services/import/autoMapColumns';
 
 const PREVIEW_ROW_LIMIT = 3;
 const SAMPLE_VALUE_MAX_LEN = 60;
@@ -700,6 +698,7 @@ function buildPreviewItem(participant: any): HTMLElement {
 
 function summarizeParticipant(participant: any): string {
   const bits: string[] = [];
+  if (participant.importStatus) bits.push(t(`participantMerge.importStatus.${participant.importStatus}`));
   const person = participant.person ?? {};
   if (person.sex) bits.push(`sex: ${person.sex}`);
   if (person.birthDate) bits.push(`born: ${person.birthDate}`);
@@ -718,158 +717,15 @@ function summarizeParticipant(participant: any): string {
 }
 
 function buildPreviewParticipants(state: State): any[] {
-  // Mirror the committer's parse-then-merge flow so the preview shows the same
-  // resolved participants the user will get on commit.
-  const finalRows = applyRatingOverrides(state);
-  const drafts: Array<{ key: string; draft: any }> = [];
-  for (let r = 0; r < finalRows.length; r++) {
-    const built = previewBuildParticipant(state, finalRows[r]);
-    if (!built) continue;
-    const key = state.mergeDuplicates ? readDraftDedupeValue(built, state.dedupeKey, r) : `__no_merge_${r}__`;
-    drafts.push({ key, draft: built });
-  }
-
-  const groups = new Map<string, any[]>();
-  const order: string[] = [];
-  for (const item of drafts) {
-    if (!groups.has(item.key)) {
-      groups.set(item.key, []);
-      order.push(item.key);
-    }
-    groups.get(item.key)!.push(item.draft);
-  }
-
-  const participants: any[] = [];
-  for (const key of order) {
-    if (participants.length >= PREVIEW_ROW_LIMIT) break;
-    const group = groups.get(key)!;
-    const merged = group.length === 1 ? group[0] : mergeParticipantDrafts(group);
-    if (merged) participants.push(merged);
-  }
-  return participants;
-}
-
-function readDraftDedupeValue(draft: any, dedupeKey: DedupeKey, rowIdx: number): string {
-  const raw = ((): string | undefined => {
-    switch (dedupeKey) {
-      case 'email':
-        return draft.person?.contacts?.[0]?.emailAddress;
-      case 'phone':
-        return draft.person?.contacts?.[0]?.telephone;
-      case 'mobilePhone':
-        return draft.person?.contacts?.[0]?.mobileTelephone;
-      case 'tennisId':
-        return draft.person?.tennisId;
-      case 'ustaId':
-        return findOtherIdInDraft(draft, 'USTA');
-      case 'itfId':
-        return findOtherIdInDraft(draft, 'ITF');
-      case 'participantId':
-        return draft.participantId;
-      default:
-        return undefined;
-    }
-  })();
-  if (!raw) return `__no_${dedupeKey}_${rowIdx}__`;
-  return String(raw).trim().toLowerCase();
-}
-
-function findOtherIdInDraft(draft: any, organisationName: string): string | undefined {
-  const ids = draft.person?.personOtherIds;
-  if (!Array.isArray(ids)) return undefined;
-  const match = ids.find((id: any) => id?.uniqueOrganisationName === organisationName);
-  return match?.personId;
-}
-
-type CollectedPreviewRow = {
-  collected: Partial<Record<TargetFieldKind, string>>;
-  ratings: Array<{ scaleName: string; value: number }>;
-};
-
-// A trimmed-down preview-only build that mirrors the committer's output enough
-// to give the user a feel for what will be created. Kept local because the
-// committer's full path involves tournamentEngine + mutationRequest side effects
-// that we don't want to run for a preview.
-function previewBuildParticipant(state: State, row: string[]): any | undefined {
-  const { collected, ratings } = collectPreviewRow(state.mapping, row);
-
-  const participantName = derivePreviewName(collected);
-  if (!participantName) return undefined;
-
-  const participant: any = {
-    participantName,
-    person: buildPreviewPerson(collected),
-    participantId: `XXX-${hashCode(participantName)}`,
-  };
-  if (ratings.length) {
-    participant.timeItems = ratings.map(({ scaleName, value }) => ({
-      itemType: `SCALE.RATING.SINGLES.${scaleName}`,
-      itemValue: { [`${scaleName.toLowerCase()}Rating`]: value },
-    }));
-  }
-  return participant;
-}
-
-function collectPreviewRow(mapping: ColumnMapping, row: string[]): CollectedPreviewRow {
-  const collected: Partial<Record<TargetFieldKind, string>> = {};
-  const ratings: Array<{ scaleName: string; value: number }> = [];
-
-  for (const [key, field] of Object.entries(mapping)) {
-    if (!field || field.kind === 'ignore' || field.kind === 'eventEntry') continue;
-    const cell = row[Number(key)];
-    if (cell == null) continue;
-    const raw = String(cell).trim();
-    if (!raw) continue;
-
-    if (field.kind === 'rating') {
-      const parsed = parseRatingCell(raw, { defaultScaleName: field.ratingScaleName });
-      if (parsed) ratings.push(parsed);
-      continue;
-    }
-    if (field.kind === 'split') {
-      applyPreviewSplit(collected, field, raw);
-      continue;
-    }
-    collected[field.kind] = raw;
-  }
-  return { collected, ratings };
-}
-
-function applyPreviewSplit(collected: Partial<Record<TargetFieldKind, string>>, field: TargetField, raw: string): void {
-  if (!field.split) return;
-  const pieces = raw.split(field.split.delimiter);
-  field.split.pieces.forEach((pieceField, i) => {
-    if (!pieceField || pieceField.kind === 'ignore' || pieceField.kind === 'split') return;
-    const value = (pieces[i] ?? '').trim();
-    if (value) collected[pieceField.kind] = value;
+  const { resolved } = previewParticipantImport({
+    rows: applyRatingOverrides(state),
+    mapping: state.mapping,
+    dedupeKey: state.mergeDuplicates ? state.dedupeKey : null,
+    updateExisting: state.updateExisting,
   });
-}
-
-function derivePreviewName(collected: Partial<Record<TargetFieldKind, string>>): string | undefined {
-  const { firstName, lastName, fullName, otherName } = collected;
-  if (firstName && lastName) return `${firstName} ${lastName}`;
-  return fullName || otherName || undefined;
-}
-
-function buildPreviewPerson(collected: Partial<Record<TargetFieldKind, string>>): any {
-  const person: any = {};
-  if (collected.firstName) person.standardGivenName = collected.firstName;
-  if (collected.lastName) person.standardFamilyName = collected.lastName;
-  if (collected.sex) person.sex = collected.sex.toUpperCase();
-  if (collected.birthDate) person.birthDate = collected.birthDate;
-  if (collected.nationalityCode) person.nationalityCode = collected.nationalityCode.toUpperCase();
-  if (collected.city || collected.state) {
-    person.addresses = [{ city: collected.city, state: collected.state }];
-  }
-  if (collected.email || collected.phone) {
-    person.contacts = [
-      {
-        ...(collected.email && { emailAddress: collected.email }),
-        ...(collected.phone && { telephone: collected.phone }),
-      },
-    ];
-  }
-  return person;
+  return resolved
+    .slice(0, PREVIEW_ROW_LIMIT)
+    .map(({ participant, status }) => ({ ...participant, importStatus: status }));
 }
 
 // ─── Entry defaults footer ────────────────────────────────────────────
