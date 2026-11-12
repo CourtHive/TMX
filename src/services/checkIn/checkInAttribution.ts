@@ -16,6 +16,8 @@
  * attester, which is honest — nobody stated one.
  */
 
+import type { Translate } from 'i18n';
+
 export const DECLARED_ATTRIBUTION = 'DECLARED';
 export const PARTICIPANT_ATTRIBUTION = 'PARTICIPANT';
 
@@ -94,12 +96,12 @@ export function requiresName(relationship: AttesterRelationship): boolean {
  * and it must not read as a missing value.
  *
  * `translate` is injected rather than imported so this stays pure and DOM-free; the popover passes
- * `t`. Relationship labels come from i18n rather than the raw enum, because `CHAPERONE` on screen is
- * a database value leaking into an operator's field of view.
+ * `translate` from `i18n`. Relationship labels come from i18n rather than the raw enum, because
+ * `CHAPERONE` on screen is a database value leaking into an operator's field of view.
  */
 export function describeAttester(
   attributedTo: Record<string, any> | undefined,
-  translate: (key: string, values?: Record<string, any>) => string,
+  translate: Translate,
 ): string | undefined {
   if (!attributedTo) return undefined;
 
@@ -124,10 +126,7 @@ export function describeAttester(
   return undefined;
 }
 
-function relationshipLabel(
-  relationship: string | undefined,
-  translate: (key: string, values?: Record<string, any>) => string,
-): string | undefined {
+function relationshipLabel(relationship: string | undefined, translate: Translate): string | undefined {
   if (!relationship || relationship === SELF) return undefined;
   const key = `checkIn.attester.${relationship.toLowerCase()}`;
   const label = translate(key);

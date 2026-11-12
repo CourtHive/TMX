@@ -33,4 +33,12 @@ applyDocumentDirection(i18next.language ?? 'en');
 i18next.on('languageChanged', applyDocumentDirection);
 
 export const t = i18next.t.bind(i18next);
+
+// A translator as a plain function, for pure modules that take one injected rather than importing
+// i18next (their node tests stay DOM- and engine-free). From i18next 27, `t` is typed as overloads
+// whose options argument is required, so `t` itself no longer fits `(key, values?) => string` and
+// `t(key, maybeUndefined)` no longer compiles; `translate` branches rather than pass `undefined`.
+export type Translate = (key: string, values?: Record<string, unknown>) => string;
+export const translate: Translate = (key, values) => (values ? i18next.t(key, values) : i18next.t(key));
+
 export default i18next;

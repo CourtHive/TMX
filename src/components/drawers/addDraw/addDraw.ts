@@ -21,7 +21,7 @@ import { resolveDrawFormMode } from './drawFormModel';
 import { submitDrawParams } from './submitDrawParams';
 import { generateDraw } from './generateDraw';
 import { context } from 'services/context';
-import { t } from 'i18n';
+import { t, translate } from 'i18n';
 
 const WARNING_INTENT = 'is-warning';
 const ROTATING_CONFIG_ERROR = 'rotatingPartners.creation.configError';
@@ -366,7 +366,7 @@ function attachTargetRoundSync({
     const target = selectTarget(qualifyingTargets, roundSelect.value);
     if (!target) return;
     const notice = document.getElementById(QUALIFYING_TARGET_NOTICE_ID);
-    if (notice) notice.innerHTML = targetNotice(target, t);
+    if (notice) notice.innerHTML = targetNotice(target, translate);
     const qualifiersInput = inputs[QUALIFIERS_COUNT] as HTMLInputElement | undefined;
     if (qualifiersInput) {
       const requested = Number.parseInt(qualifiersInput.value, 10);

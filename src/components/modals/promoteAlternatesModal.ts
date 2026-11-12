@@ -15,7 +15,7 @@ import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { t } from 'i18n';
+import { t, translate } from 'i18n';
 
 // constants
 import { PROMOTE_ALTERNATES_CONFIRM, PROMOTE_ALTERNATES_COUNT } from 'constants/tmxConstants';
@@ -45,7 +45,7 @@ export function promoteAlternatesModal({
   const slots = document.createElement('p');
   slots.style.color = 'var(--tmx-text-secondary)';
   const message = openSlotsMessage(plan);
-  slots.textContent = t(message.key, message.values);
+  slots.textContent = translate(message.key, message.values);
   content.appendChild(slots);
 
   const label = document.createElement('label');
