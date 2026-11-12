@@ -1,4 +1,5 @@
 import { escapeHtml } from 'utilities/escapeHtml';
+import type { Translate } from 'i18n';
 
 /**
  * Qualifying targets — the pure half of a target-aware "Add qualifying".
@@ -26,8 +27,6 @@ export type QualifyingTarget = {
   structuralCapacity: number;
   remainingCapacity: number;
 };
-
-type Translate = (key: string, values?: Record<string, unknown>) => string;
 
 /** Rounds with at least one open position a new qualifier could take. */
 export function targetsWithCapacity(targets?: QualifyingTarget[]): QualifyingTarget[] {

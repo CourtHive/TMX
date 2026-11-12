@@ -8,7 +8,7 @@ import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
 import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'services/factory/engine';
 import { openCheckInDialog } from './checkInDialog';
-import { t } from 'i18n';
+import { t, translate } from 'i18n';
 
 interface EditorParams {
   matchUpId: string;
@@ -119,7 +119,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
       button.onclick = () => toggle(participant.participantId);
       row.appendChild(button);
       const attestation = latest.get(participant.participantId);
-      const attribution = describeAttester(attestation?.attributedTo, t);
+      const attribution = describeAttester(attestation?.attributedTo, translate);
       if (participant.checkedIn && attestation) {
         const detail = document.createElement('small');
         const instant = attestation.occurredAt;
