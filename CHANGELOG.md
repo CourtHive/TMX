@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.53.2](https://github.com/CourtHive/TMX/compare/v8.53.1...v8.53.2) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update @courthive/provider-config to 1.0.0 ([#1983](https://github.com/CourtHive/TMX/issues/1983)) ([b46099a](https://github.com/CourtHive/TMX/commit/b46099a6c9d79a89ce75a34ed0db0c7e605e9c5a))
+* **deps:** update i18next to v27 ([#1982](https://github.com/CourtHive/TMX/issues/1982)) ([79a68b7](https://github.com/CourtHive/TMX/commit/79a68b7790b671104f460d3b358c1cc30c9ebd59))
+
 ## [8.53.1](https://github.com/CourtHive/TMX/compare/v8.53.0...v8.53.1) (2026-11-12)
 
 
