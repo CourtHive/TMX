@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.53.1](https://github.com/CourtHive/TMX/compare/v8.53.0...v8.53.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update pdf-factory to 1.1.10 ([#1978](https://github.com/CourtHive/TMX/issues/1978)) ([064526f](https://github.com/CourtHive/TMX/commit/064526f5b74a9099e50bb690e2f4ee1adf043f6a))
+* **deps:** update tods-competition-factory to 7.36.1 ([#1977](https://github.com/CourtHive/TMX/issues/1977)) ([cf0e123](https://github.com/CourtHive/TMX/commit/cf0e123896c5e105e41c1e516fab0a9e96dc2db7))
+
 ## [8.53.0](https://github.com/CourtHive/TMX/compare/v8.52.0...v8.53.0) (2026-11-11)
 
 
