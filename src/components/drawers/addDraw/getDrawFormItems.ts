@@ -12,7 +12,7 @@ import { getSeedingAllowance } from './seedingPolicies';
 import { providerConfig } from 'config/providerConfig';
 import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
-import { t } from 'i18n';
+import { t, translate } from 'i18n';
 import {
   factoryConstants,
   drawDefinitionConstants,
@@ -85,10 +85,10 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
   const { maxQualifiers, qualifyingTarget, qualifyingTargets = [] } = modelView.derivedValues;
   const targetRoundOptions = qualifyingTargets.map((target) => ({
     selected: target.roundNumber === qualifyingTarget?.roundNumber,
-    label: targetOptionLabel(target, t),
+    label: targetOptionLabel(target, translate),
     value: target.roundNumber,
   }));
-  const notice = qualifyingTarget ? targetNotice(qualifyingTarget, t) : '';
+  const notice = qualifyingTarget ? targetNotice(qualifyingTarget, translate) : '';
   const drawSize = modelView.derivedValues.drawSize;
   const maxDrawSize = Math.max(drawSize, 512);
   const drawId = 'draw' in mode ? mode.draw?.drawId : undefined;
