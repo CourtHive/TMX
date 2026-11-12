@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { hashCode } from 'functions/hashCode';
 
 vi.mock('services/factory/engine', async () => ({

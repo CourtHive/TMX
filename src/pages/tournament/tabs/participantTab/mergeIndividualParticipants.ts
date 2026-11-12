@@ -1,13 +1,15 @@
-import { INDIVIDUAL_MERGE_CONFIRM, INDIVIDUAL_MERGE_TARGET, INDIVIDUAL_MERGE_STATUS } from 'constants/tmxConstants';
 import { refreshTournamentFromServer } from 'services/messaging/remoteMutations';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
-import { MERGE_INDIVIDUAL_PARTICIPANTS } from 'constants/mutationConstants';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { serverConfig } from 'config/serverConfig';
 import { cannot } from 'services/capability/can';
 import { t } from 'i18n';
+
+// constants and types
+import { INDIVIDUAL_MERGE_CONFIRM, INDIVIDUAL_MERGE_TARGET, INDIVIDUAL_MERGE_STATUS } from 'constants/tmxConstants';
+import { MERGE_INDIVIDUAL_PARTICIPANTS } from 'constants/mutationConstants';
 
 const WARNING = 'is-warning';
 
@@ -34,28 +36,28 @@ export function supportsIndividualMerge(): boolean {
 }
 
 export async function mergeSelectedIndividuals(table: any, callback: () => void): Promise<void> {
-  if (cannot('deleteParticipants') || cannot('editParticipantDetails')) return;
+  if (cannot('deleteParticipants') || cannot('editParticipantDetails')) return undefined;
   const selected = table.getSelectedData();
   if (selected.length !== 2) {
     tmxToast({ message: t('participantMerge.selectTwo'), intent: WARNING });
-    return;
+    return undefined;
   }
   if (!supportsIndividualMerge() || !(await serverSupportsMerge())) {
     tmxToast({ message: t('participantMerge.unavailable'), intent: WARNING });
-    return;
+    return undefined;
   }
   openMergeReview(selected, callback);
 }
 
 export function activateIndividualMergeAction(element: HTMLElement | undefined, table: any): void {
   if (!element || !supportsIndividualMerge() || cannot('deleteParticipants') || cannot('editParticipantDetails'))
-    return;
+    return undefined;
   let supported = false;
   const update = () => {
     if (element.isConnected) element.style.display = supported && table.getSelectedData().length === 2 ? '' : 'none';
   };
   table.on('rowSelectionChanged', update);
-  void serverSupportsMerge().then((available) => {
+  serverSupportsMerge().then((available) => {
     supported = available;
     update();
   });
@@ -132,10 +134,10 @@ function openMergeReview(selected: any[], callback: () => void): void {
     if (confirm) confirm.disabled = pending || !preview.canMerge;
   };
   const submit = () => {
-    if (pending || closed || !preview.canMerge) return;
+    if (pending || closed || !preview.canMerge) return undefined;
     if (tournamentEngine.getTournamentId() !== tournamentId) {
       closeModal();
-      return;
+      return undefined;
     }
     pending = true;
     const intent = { ...params(), expectedFingerprint: preview.fingerprint };
@@ -146,7 +148,7 @@ function openMergeReview(selected: any[], callback: () => void): void {
       callback: async (result) => {
         pending = false;
         if (result.success) callback();
-        if (closed) return;
+        if (closed) return undefined;
         if (result.success) {
           closeModal();
           tmxToast({
@@ -188,7 +190,7 @@ function openMergeReview(selected: any[], callback: () => void): void {
 }
 
 function renderBlockers(content: HTMLElement, preview: MergePreview) {
-  if (!preview.error && !preview.blockers?.length) return;
+  if (!preview.error && !preview.blockers?.length) return undefined;
   const heading = document.createElement('p');
   heading.textContent = preview.error?.message || t('participantMerge.blocked');
   const list = document.createElement('ul');
