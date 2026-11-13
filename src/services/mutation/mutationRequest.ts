@@ -9,6 +9,7 @@ import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusa
 import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
+import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
 import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { presenceIntentionsHeld } from 'services/checkIn/presenceIntentions';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
@@ -174,7 +175,10 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   if (!factoryEngine) return completion();
 
   // Provider-level mutation gating (defense-in-depth — server mirrors this in executionQueue)
-  const currentPermissions = providerConfig.effectivePermissions();
+  const gateRecords = tournamentRecord
+    ? [tournamentRecord]
+    : Object.values(factoryEngine.getState()?.tournamentRecords ?? {});
+  const currentPermissions = providerConfig.effectivePermissions({ standalone: isStandaloneLocal(gateRecords) });
   const blocked = methods.find((m) => !isMutationAllowed(m.method, currentPermissions));
   if (blocked) {
     return completion({ error: { message: `Action not permitted: ${blocked.method}` } });

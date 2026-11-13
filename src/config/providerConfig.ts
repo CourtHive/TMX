@@ -60,6 +60,10 @@ const DEFAULT_PERMISSIONS: Required<ProviderPermissions> = {
   canUseChat: true,
 };
 
+// Opt-ins a provider grants. A standalone tournament (logged out, no parent organisation) has no provider to grant
+// them, so they hold by default there; the demo overlay and any explicit provider value still win.
+const STANDALONE_GRANTS: ProviderPermissions = { canMergeParticipants: true };
+
 let current: ProviderConfigData = {};
 let configVersion = 0;
 
@@ -101,9 +105,14 @@ export const providerConfig = {
    * Every permission with its default filled in, as `computeEffectiveConfig` gives the server. The mutation gate
    * reads this, so a key the provider never set is judged by its default on both sides rather than as "allowed".
    */
-  effectivePermissions: (): ProviderPermissions => ({ ...DEFAULT_PERMISSIONS, ...resolved().permissions }),
-  isAllowed: (key: keyof ProviderPermissions): boolean => {
-    const val = resolved().permissions?.[key] ?? DEFAULT_PERMISSIONS[key];
+  effectivePermissions: ({ standalone }: { standalone?: boolean } = {}): ProviderPermissions => ({
+    ...DEFAULT_PERMISSIONS,
+    ...(standalone ? STANDALONE_GRANTS : {}),
+    ...resolved().permissions,
+  }),
+  isAllowed: (key: keyof ProviderPermissions, { standalone }: { standalone?: boolean } = {}): boolean => {
+    const val =
+      resolved().permissions?.[key] ?? (standalone ? STANDALONE_GRANTS[key] : undefined) ?? DEFAULT_PERMISSIONS[key];
     if (typeof val === 'boolean') return val;
     return true;
   },
