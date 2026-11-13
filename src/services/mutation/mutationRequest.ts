@@ -499,7 +499,9 @@ async function makeMutation({
         // Offline, the mutation waits in socketIo's queue. Withdraw it: this edit is about to be
         // reported as failed (or preserved for the session replay below), and a late replay would
         // apply on the server what the UI has already said did not happen — or apply it twice.
-        emitted?.cancel();
+        const withdrawn = emitted?.cancel();
+        // Already sent: the server may have applied it, and its answer, if it comes, is ignored from here on.
+        if (!withdrawn) emitted?.abandon();
         // Distinguish an auth failure from a genuine outage. A logged-out /
         // expired session produces the same "no ack" symptom as a down server,
         // but the fix is completely different: the user must log in again, and
@@ -527,6 +529,8 @@ async function makeMutation({
           return completion({ error: { message: t('mutationPrompts.sessionExpired'), code: 'SESSION_EXPIRED' } });
         }
         tmxToast({ message: t('toasts.serverNotResponding'), intent: 'is-danger' });
+        // Sent and unanswered, this copy cannot know whether the server applied the edit: only its record can say.
+        if (!withdrawn) notifyAuthoritativeRefreshRequired(tournamentIds);
         completion({ error: { message: t('toasts.serverNotResponding') }, notified: true });
       }, serverConfig.get().serverTimeout ?? 10000);
     }

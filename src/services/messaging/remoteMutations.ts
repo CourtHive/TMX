@@ -15,6 +15,7 @@ import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
 import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { resumeCommands } from 'services/messaging/transport/httpCommands';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { isOwnMutation } from 'services/messaging/clientIdentity';
 import { requestTournament } from 'services/apis/servicesApi';
@@ -258,6 +259,9 @@ export async function refreshTournamentFromServer(
       const applied = factoryEngine.setState(serverRecord);
       if (applied?.error) return 'failed';
       markTournamentRecordInstalled();
+      // Commands held behind one that went unanswered may go now: whatever that one did is in this record, and
+      // anything sent from here on is written against it. A connected desk would otherwise wait for a reconnect.
+      resumeCommands();
       if (staleRefreshTournamentId === tournamentId) clearSyncIndicator();
       setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
       notifyMutationApplied();

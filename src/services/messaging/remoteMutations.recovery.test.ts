@@ -12,6 +12,7 @@ const h = vi.hoisted(() => ({
   toast: vi.fn(),
   identity: 'td-a' as string | undefined,
   requestTournament: vi.fn(),
+  resumeCommands: vi.fn(),
   unsettled: 0,
   scoring: false,
   current: true,
@@ -42,6 +43,7 @@ vi.mock('services/messaging/socketIo', () => ({
   joinTournamentRoom: vi.fn(),
   unsettledCommandCount: () => h.unsettled,
 }));
+vi.mock('services/messaging/transport/httpCommands', () => ({ resumeCommands: () => h.resumeCommands() }));
 vi.mock('services/transitions/activeScoringGuard', () => ({
   notifyRemoteScoringCollision: vi.fn(),
   isScoringActive: () => h.scoring,
@@ -90,6 +92,7 @@ describe('remoteMutations — guarded automatic recovery', () => {
     h.setState.mockClear();
     h.toast.mockClear();
     h.requestTournament.mockReset().mockResolvedValue(answer());
+    h.resumeCommands.mockClear();
     h.unsettled = 0;
     h.scoring = false;
     h.current = true;
@@ -232,6 +235,18 @@ describe('remoteMutations — guarded automatic recovery', () => {
 
     expect(h.setState).not.toHaveBeenCalled();
     expect(isSyncStale()).toBe(true);
+    expect(h.resumeCommands).not.toHaveBeenCalled();
+  });
+
+  // A command that went unanswered holds the ones behind it until the connection is re-established, and a desk whose
+  // socket never dropped never re-establishes it. The installed record holds whatever that command did.
+  it('lets commands held behind an unanswered one go once the record is installed', async () => {
+    optIn();
+    markStaleNeedsRefresh('t1');
+    await settle();
+
+    expect(h.setState).toHaveBeenCalledTimes(1);
+    expect(h.resumeCommands).toHaveBeenCalledTimes(1);
   });
 });
 
