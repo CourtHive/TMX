@@ -1,4 +1,5 @@
 import { refreshTournamentFromServer } from 'services/messaging/remoteMutations';
+import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -36,13 +37,21 @@ export function supportsIndividualMerge(): boolean {
   return typeof (tournamentEngine as unknown as MergeEngine).getIndividualParticipantMergePreview === 'function';
 }
 
+function isStandalone(): boolean {
+  const tournamentRecord = tournamentEngine.getTournament()?.tournamentRecord;
+  return isStandaloneLocal(tournamentRecord ? [tournamentRecord] : []);
+}
+
 /**
- * The same answer the server gives: the provider has opted in to merging (with delete and edit allowed too), and
- * the user is a provider administrator for it. Anyone else is never offered the action.
+ * The answer `mutationRequest` gives, plus the server's role rule. A provider-bound tournament needs the provider's
+ * opt-in (with delete and edit allowed too) and a provider administrator. A standalone one (logged out, no parent
+ * organisation) has neither a provider nor a server, so the opt-in holds by default and only demo mode can remove it.
  */
 export function mayMergeIndividuals(): boolean {
-  if (cannot('mergeParticipants') || cannot('deleteParticipants') || cannot('editParticipantDetails')) return false;
-  return isActiveProviderAdmin();
+  const standalone = isStandalone();
+  if (cannot('mergeParticipants', { standalone })) return false;
+  if (cannot('deleteParticipants') || cannot('editParticipantDetails')) return false;
+  return standalone || isActiveProviderAdmin();
 }
 
 export async function mergeSelectedIndividuals(table: any, callback: () => void): Promise<void> {
@@ -73,6 +82,7 @@ export function activateIndividualMergeAction(element: HTMLElement | undefined, 
 }
 
 async function serverSupportsMerge(): Promise<boolean> {
+  if (isStandalone()) return true; // the merge runs on the local engine only; no server is consulted
   try {
     const base = serverConfig.get().socketPath || globalThis.location.origin;
     const response = await fetch(`${base}/factory/capabilities`, { cache: 'no-store' });
@@ -168,7 +178,7 @@ function openMergeReview(selected: any[], callback: () => void): void {
           status.textContent = t('participantMerge.failed');
           pending = true;
           render();
-          await refreshTournamentFromServer(tournamentId);
+          if (!isStandalone()) await refreshTournamentFromServer(tournamentId);
           pending = false;
           resolutions = {};
           if (!closed) render();

@@ -7,9 +7,12 @@ import { TournamentPage } from '../pages/TournamentPage';
 // session's email (journey 163's shape), which also keeps every mutation local: no server is needed.
 const DIRECTOR_EMAIL = 'td@e2e';
 
-async function seedDuplicates(page: Page, sharedDraw = false) {
+// 'held': provider-bound and held offline for DIRECTOR_EMAIL; 'bound': provider-bound only; 'standalone': no provider.
+type Binding = 'held' | 'bound' | 'standalone';
+
+async function seedDuplicates(page: Page, sharedDraw = false, binding: Binding = 'held') {
   return page.evaluate(
-    async ({ shared, email }) => {
+    async ({ shared, email, binding }) => {
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
         nonRandom: 1,
         tournamentAttributes: { tournamentName: 'Participant merge review' },
@@ -33,17 +36,21 @@ async function seedDuplicates(page: Page, sharedDraw = false) {
           },
         }));
       }
-      tournamentRecord.parentOrganisation = { organisationId: 'e2e-provider', organisationName: 'E2E Provider' };
-      tournamentRecord.timeItems = [
-        ...(tournamentRecord.timeItems ?? []),
-        { itemType: 'TMX', itemValue: { offline: { email } } },
-      ];
+      if (binding !== 'standalone') {
+        tournamentRecord.parentOrganisation = { organisationId: 'e2e-provider', organisationName: 'E2E Provider' };
+      }
+      if (binding === 'held') {
+        tournamentRecord.timeItems = [
+          ...(tournamentRecord.timeItems ?? []),
+          { itemType: 'TMX', itemValue: { offline: { email } } },
+        ];
+      }
       await dev.tmx2db.initDB();
       await dev.tmx2db.addTournament(tournamentRecord);
       await dev.load(tournamentRecord);
       return tournamentRecord.tournamentId;
     },
-    { shared: sharedDraw, email: DIRECTOR_EMAIL },
+    { shared: sharedDraw, email: DIRECTOR_EMAIL, binding },
   );
 }
 
@@ -261,5 +268,45 @@ test.describe('individual participant merge review', () => {
     await page.screenshot({ path: '/private/tmp/individual-merge-review-light-mobile.png' });
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     expect(await page.evaluate(() => dev.getTournament().participants.length)).toBe(2);
+  });
+});
+
+// A logged-out tournament with no parent organisation has no provider to opt in and no server to consult, so the merge
+// is offered and runs on the local engine. That is what makes it demonstrable without a provider.
+test.describe('individual participant merge on a standalone local tournament', () => {
+  test.beforeEach(async ({ page }) => {
+    // No server takes part: a server that says it cannot merge must not hide the action.
+    await page.route('**/factory/capabilities', (route) =>
+      route.fulfill({ json: { individualParticipantMerge: false } }),
+    );
+    await page.goto('/');
+    await waitForAppReady(page);
+    await initDevBridge(page);
+    await resetState(page);
+  });
+
+  test('logged out, a tournament with no provider merges without any opt-in', async ({ page }) => {
+    const tid = await seedDuplicates(page, false, 'standalone');
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tid);
+    await tournament.navigateToParticipants();
+    await openReview(page);
+    await page.locator('#individualMergeTarget').selectOption('target');
+    await page.locator('#individualMergeConfirm').click();
+    await expect
+      .poll(() => page.evaluate(() => dev.getTournament().participants.map((p: any) => p.participantId)))
+      .toEqual(['target']);
+  });
+
+  test('logged out, a provider-bound tournament is never offered the action', async ({ page }) => {
+    const tid = await seedDuplicates(page, false, 'bound');
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tid);
+    await tournament.navigateToParticipants();
+    const rows = page.locator('#tournamentParticipants .tabulator-row');
+    await expect(rows.first()).toBeVisible();
+    await rows.nth(0).locator('input[type="checkbox"]').first().click();
+    await rows.nth(1).locator('input[type="checkbox"]').first().click();
+    await expect(page.locator('#individualMergeAction')).toBeHidden();
   });
 });
