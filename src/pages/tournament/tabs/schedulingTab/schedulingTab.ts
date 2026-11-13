@@ -24,6 +24,7 @@ import { mountTournamentClock, unmountTournamentClock } from 'components/tournam
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
 import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
 import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
+import { registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
@@ -100,6 +101,8 @@ let queueUnsubscribe: (() => void) | null = null;
 let currentHeader: SchedulingHeader | null = null;
 let currentMode: SchedulingMode | null = null;
 let checkInView: ReturnType<typeof renderCheckInView> | null = null;
+// The Check-In workspace is the one surface that recovers a stale record without a click (option B).
+let stopCheckInRecovery: (() => void) | null = null;
 let availabilityInstance: AvailabilityGridInstance | null = null;
 // Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
 // so we fetch them once per tab session rather than on every date change.
@@ -262,6 +265,11 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
     currentMode = 'check-in';
     checkInView = renderCheckInView(containerEl, resolvedDate);
     context.refreshActiveTable = checkInView.refresh;
+    // The other modes' drafts are named too: their mode-switch guards should leave none behind, but an install
+    // must never be the thing that discards one.
+    stopCheckInRecovery = registerRecoverySurface(
+      () => !!checkInView?.isBusy() || hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty(),
+    );
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else if (resolvedMode === 'plan') {
@@ -309,6 +317,8 @@ export function destroySchedulingTab(): void {
 }
 
 function destroyCurrentMode(): void {
+  stopCheckInRecovery?.();
+  stopCheckInRecovery = null;
   checkInView?.destroy();
   checkInView = null;
   actionBarRef = null;

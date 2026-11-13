@@ -20,7 +20,8 @@ import { S } from '../helpers/selectors';
  *
  * TMX vitest is node-env by design, so `checkInState.test.ts` covers the pure derivation and nothing
  * that renders. This is the only layer that can assert the panel exists, that a click **dispatches
- * `toggleParticipantCheckInState`**, and that the call-to-court gate warns rather than blocks (D4d).
+ * `setParticipantCheckInState` with the direction of the button pressed** (an intention, never a toggle:
+ * two desks asking for the same state converge), and that the call-to-court gate warns rather than blocks (D4d).
  */
 
 const MATCHUPS = S.TOURNAMENT_MATCHUPS;
@@ -90,7 +91,7 @@ test.describe('Journey 105 — per-matchUp check-in', () => {
     await expect(menu.locator('a', { hasText: 'Sign in' })).toHaveCount(0);
   });
 
-  test('the panel lists all four individuals and a click dispatches the toggle', async ({ page }) => {
+  test('the panel lists all four individuals and a click dispatches the check-in intention', async ({ page }) => {
     const { tournamentId, sideOneName } = await seedDoubles(page);
     const collector = createMutationCollector(page);
 
@@ -110,7 +111,9 @@ test.describe('Journey 105 — per-matchUp check-in', () => {
 
     // The dispatch is the assertion that matters — a panel that paints a tick and stores nothing is
     // exactly the failure a DOM-only check would miss.
-    await collector.waitForMethod('toggleParticipantCheckInState', 10_000);
+    const dispatched = await collector.waitForMethod('setParticipantCheckInState', 10_000);
+    const directive = dispatched.methods.find((method) => method.method === 'setParticipantCheckInState');
+    expect(directive?.params?.checkedIn).toBe(true);
     collector.detach();
 
     // And it persisted: the engine now reports one individual checked in on that matchUp.

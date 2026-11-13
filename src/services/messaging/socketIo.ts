@@ -761,6 +761,15 @@ export function queuedMessageCount(): number {
   return outbox.length;
 }
 
+/**
+ * Commands this tab has sent or queued and not yet heard back about: waiting for a connection, or for their
+ * answer. An authoritative record installed meanwhile could be older than what that answer applies, so
+ * automatic recovery waits until this is zero (see services/staleness/authoritativeRecovery.ts).
+ */
+export function unsettledCommandCount(): number {
+  return outbox.length + new Set(Object.values(ackRequests)).size;
+}
+
 function connectionEvent(callback?: () => void): void {
   slog('[socket] connected — id:', oi.connection?.connectionId());
   // Re-arm the trouble toast so the NEXT outage is announced once more.

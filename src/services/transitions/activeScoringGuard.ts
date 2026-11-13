@@ -38,6 +38,11 @@ export function clearActiveScoring(matchUpId: string): void {
   onCollision = undefined;
 }
 
+/** True while a scoring modal is open: the score being typed is a draft no record install may disturb. */
+export function isScoringActive(): boolean {
+  return !!activeScoringMatchUpId;
+}
+
 /** True when a remote mutation scored the open matchUp since the modal opened. */
 export function activeScoringWasChangedRemotely(): boolean {
   return activeScoringChangedRemotely;
