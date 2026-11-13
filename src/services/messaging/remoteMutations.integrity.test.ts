@@ -10,6 +10,8 @@ vi.mock('services/messaging/socketIo', () => ({
     replaced.listener = listener;
   },
   joinTournamentRoom: vi.fn(),
+  // the stale indicator's click now checks for commands still in flight (none here)
+  unsettledCommandCount: () => 0,
   onDurableRecovery: (listener: (ids: string[]) => void) => {
     recovery.listener = listener;
     return () => {};
@@ -18,7 +20,10 @@ vi.mock('services/messaging/socketIo', () => ({
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn() }));
 vi.mock('components/tables/common/navigateToEvent', () => ({ navigateToEvent: vi.fn() }));
 vi.mock('components/notices/inlineNotice', () => ({ buildInlineNotice: vi.fn() }));
-vi.mock('services/transitions/activeScoringGuard', () => ({ notifyRemoteScoringCollision: vi.fn() }));
+vi.mock('services/transitions/activeScoringGuard', () => ({
+  notifyRemoteScoringCollision: vi.fn(),
+  isScoringActive: () => false,
+}));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));

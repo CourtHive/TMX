@@ -9,7 +9,6 @@
  *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { captureTournamentOperation, markTournamentRecordInstalled } from 'services/tournament/operationOwnership';
-import { canInstallAuthoritativeSnapshot, hasRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
@@ -23,6 +22,11 @@ import * as factory from 'tods-competition-factory';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  canInstallAuthoritativeSnapshot,
+  canRefreshOnRequest,
+  hasRecoverySurface,
+} from 'services/staleness/authoritativeRecovery';
 import {
   notifyMutationApplied,
   onAuthoritativeRefreshRequired,
@@ -171,6 +175,13 @@ export function recoverIfSafe(): void {
     });
 }
 
+/** A refresh the operator asked for would discard a draft or overtake a command: nothing is installed, and they are told why. */
+function refuseManualRefresh(): void {
+  const el = document.getElementById(SYNC_INDICATOR);
+  if (el) el.title = t('remoteMutations.refreshWaiting');
+  tmxToast({ message: t('remoteMutations.refreshBlocked'), intent: 'is-warning' });
+}
+
 /** Only where recovery would otherwise have run: everywhere else the indicator means "click to refresh", as before. */
 function explainRecoveryWaiting(): void {
   if (!hasRecoverySurface()) return;
@@ -263,8 +274,13 @@ function showSyncIndicator(): void {
       const staleId = isSyncStale() ? staleRefreshTournamentId : undefined;
       if (!staleId) clearSyncIndicator();
       if (staleId) {
+        // The operator chose to load, but never over a draft or a command still in flight: the same protection as
+        // automatic recovery, rechecked when the record arrives.
+        if (!canRefreshOnRequest()) return refuseManualRefresh();
         slog('[syncIndicator] clicked — pulling fresh record (stale)');
-        void refreshTournamentFromServer(staleId);
+        void refreshTournamentFromServer(staleId, { guard: canRefreshOnRequest }).then((outcome) => {
+          if (outcome === 'blocked') refuseManualRefresh();
+        });
       } else if (context.refreshActiveTable) {
         slog('[syncIndicator] clicked — refreshing active table');
         context.refreshActiveTable();

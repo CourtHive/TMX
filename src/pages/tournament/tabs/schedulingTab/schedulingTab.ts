@@ -23,8 +23,8 @@
 import { mountTournamentClock, unmountTournamentClock } from 'components/tournamentClock/tournamentClock';
 import { loadReservedCells, reloadReservedCells, clearReservedCells } from 'services/facilitySchedule/reservedCells';
 import { renderAvailabilityGrid, type AvailabilityGridInstance } from '../venuesTab/renderAvailabilityGrid';
+import { registerDraftGuard, registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { onFacilityScheduleChanged, onSocketReconnect } from 'services/messaging/socketIo';
-import { registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { renderProfileView, destroyProfileView } from '../scheduleViews/profileView';
 import { invalidateAllScheduleCaches } from '../scheduleViews/schedule2DataCache';
 import { openClearScheduleMenu } from '../scheduleViews/clearScheduleActions';
@@ -103,6 +103,7 @@ let currentMode: SchedulingMode | null = null;
 let checkInView: ReturnType<typeof renderCheckInView> | null = null;
 // The Check-In workspace is the one surface that recovers a stale record without a click (option B).
 let stopCheckInRecovery: (() => void) | null = null;
+let stopDraftGuard: (() => void) | null = null;
 let availabilityInstance: AvailabilityGridInstance | null = null;
 // Tournament id whose shared-facility reserved cells (other tournaments' court occupancy) are cached,
 // so we fetch them once per tab session rather than on every date change.
@@ -239,6 +240,10 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
   destroyCurrentMode();
   containerEl.innerHTML = '';
 
+  // Whatever the mode, an install of the server's record must never be what discards the grid's draft, the
+  // workspace queue or unsaved availability paint: neither on its own (option B) nor on the stale indicator's click.
+  stopDraftGuard ??= registerDraftGuard(() => hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty());
+
   const header = buildSchedulingHeader({
     selectedDate: resolvedDate,
     activeMode: resolvedMode,
@@ -265,11 +270,8 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
     currentMode = 'check-in';
     checkInView = renderCheckInView(containerEl, resolvedDate);
     context.refreshActiveTable = checkInView.refresh;
-    // The other modes' drafts are named too: their mode-switch guards should leave none behind, but an install
-    // must never be the thing that discards one.
-    stopCheckInRecovery = registerRecoverySurface(
-      () => !!checkInView?.isBusy() || hasUnsavedGridChanges() || hasUnsavedChanges() || isAvailabilityDirty(),
-    );
+    // Opts in to automatic recovery; the other modes' drafts stay protected by the tab's draft guard.
+    stopCheckInRecovery = registerRecoverySurface(() => !!checkInView?.isBusy());
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else if (resolvedMode === 'plan') {
@@ -308,6 +310,8 @@ export function destroySchedulingTab(): void {
   clearReservedCells();
   reservedLoadedFor = null;
   destroyCurrentMode();
+  stopDraftGuard?.();
+  stopDraftGuard = null;
   // Drop every cached factory result so the next mount (possibly a different
   // tournament, or after external mutations that bypassed onMutationApplied)
   // starts clean. The retired schedule2 shell did this in destroySchedule2Tab;
