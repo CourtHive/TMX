@@ -10,6 +10,7 @@ import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
 import { getSessionIdentity } from 'services/authentication/sessionIdentity';
+import { presenceIntentionsHeld } from 'services/checkIn/presenceIntentions';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { venueCalendarDate, venueTimeZone } from 'functions/venueTimeFrame';
 import { canUseDemoClock, getDemoClock } from 'services/clock/demoClock';
@@ -344,6 +345,14 @@ function engineExecution({ factoryEngine, methods }: { factoryEngine: any; metho
   return result;
 }
 
+/**
+ * Apply what the server acknowledged. An empty list is an answer, not a mistake: every directive was a presence
+ * intention the server found already satisfied, so it wrote nothing for this copy to repeat.
+ */
+function applyAcknowledged({ factoryEngine, methods }: { factoryEngine: any; methods: any[] }): any {
+  return methods.length ? engineExecution({ factoryEngine, methods }) : { success: true };
+}
+
 async function localSave(saveLocal: boolean): Promise<void> {
   if (saveLocal || serverConfig.get().saveLocal) {
     await saveTournamentRecord();
@@ -420,7 +429,7 @@ async function makeMutation({
       if (strategy === SERVER_FIRST && (ack?.success || missingTournament)) {
         (async () => {
           try {
-            factoryResult = engineExecution({
+            factoryResult = applyAcknowledged({
               factoryEngine,
               methods: ack?.success ? (ack.appliedMethods ?? resolvedMethods) : resolvedMethods,
             });
@@ -430,6 +439,12 @@ async function makeMutation({
               return completion({ success: true, refreshRequired: true, localError: factoryResult.error });
             }
             if (ack?.success) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+            // A presence intention the server found already satisfied was left out of appliedMethods. Held
+            // here too, nothing more is owed; not held, this copy missed the write that satisfied it.
+            if (ack?.success && !presenceIntentionsHeld(factoryEngine, resolvedMethods)) {
+              notifyAuthoritativeRefreshRequired(tournamentIds);
+              factoryResult = { ...factoryResult, refreshRequired: true };
+            }
             try {
               await localSave(saveLocal || missingTournament);
             } catch (persistenceError) {
@@ -561,12 +576,14 @@ export function replayServerMutation({
     }
     const missingTournament = isMissingTournament(ack);
     if (!serverConfig.get().serverFirst || !(ack?.success || missingTournament)) return;
-    const result = engineExecution({
+    const result = applyAcknowledged({
       factoryEngine,
       methods: ack?.success ? (ack.appliedMethods ?? methods) : methods,
     });
     if (result.error) return;
     if (ack?.success) advanceServerSync(ack.previousServerUpdatedAt, ack.serverUpdatedAt);
+    if (ack?.success && !presenceIntentionsHeld(factoryEngine, methods))
+      notifyAuthoritativeRefreshRequired(tournamentIds);
     void localSave(saveLocal || missingTournament);
   };
   emitTmx({

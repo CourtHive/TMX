@@ -203,12 +203,20 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   const { methods, tournamentIds, userId } = data;
   slog('[remoteMutation] received — methods:', methods?.length, 'tournaments:', tournamentIds, 'from:', userId);
 
-  if (!methods?.length || !tournamentIds?.length) return;
+  if (!tournamentIds?.length) return;
 
   // Our own mutation coming back. Socket.IO never sends it (the server excludes the sender), but a
   // transport that cannot exclude a connection would, and applying it twice would double it.
   if (isOwnMutation(data)) {
     slog('[remoteMutation] skipped — originated in this tab');
+    return;
+  }
+
+  // A command whose every directive was a presence intention already satisfied: the server saved, so its write
+  // time moved, but there is nothing to apply. Without this step every desk that was current would look behind
+  // and pull the whole record. A desk that was already behind stays behind (P49), and the probe still says so.
+  if (!methods?.length) {
+    advanceServerSync(data.previousServerUpdatedAt, data.serverUpdatedAt);
     return;
   }
 
