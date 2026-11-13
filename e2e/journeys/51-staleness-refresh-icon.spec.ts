@@ -18,6 +18,7 @@
 import { test, expect } from '@playwright/test';
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { PROFILE_DRAW_GENERATED, seedTournament } from '../helpers/seed';
+import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
 
 test.describe('Journey 51 — staleness refresh icon', () => {
@@ -93,5 +94,65 @@ test.describe('Journey 51 — staleness refresh icon', () => {
     await page.evaluate(() => dev.forceStaleness());
     await expect(icon).toBeVisible();
     expect(await page.evaluate(() => dev.isStale())).toBe(true);
+  });
+
+  // A tab change is not a refresh. It used to clear the stale flag along with the icon, so a desk that changed tabs
+  // could write on a copy known to be behind until the next probe noticed again.
+  test('a tab change keeps the copy stale: the icon stays and writes stay blocked', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_DRAW_GENERATED);
+    const tournament = new TournamentPage(page);
+    const icon = page.locator(S.SYNC_INDICATOR);
+    let fetchCalls = 0;
+    await page.route('**/factory/fetch', async (route) => {
+      fetchCalls += 1;
+      const record = await page.evaluate(() => dev.getTournament());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ tournamentRecords: { [tournamentId]: record } }),
+      });
+    });
+
+    await tournament.goto(tournamentId);
+    await page.evaluate(() => dev.forceStaleness());
+    await expect(icon).toBeVisible();
+
+    await tournament.navigateToParticipants();
+    await expect(page).toHaveURL(/participants/);
+    await expect(icon).toBeVisible();
+    expect(await page.evaluate(() => dev.isStale())).toBe(true);
+    expect(fetchCalls).toBe(0);
+
+    await icon.click();
+    await expect(icon).toBeHidden();
+    expect(fetchCalls).toBe(1);
+  });
+
+  // The Check-In workspace recovers on its own (option B): arriving there with a stale copy and nothing in progress
+  // pulls the record, rather than waiting for a signal the probe will not send while the copy is already stale.
+  test('opening the check-in desk with a stale copy catches up without a click', async ({ page }) => {
+    const tournamentId = await seedTournament(page, PROFILE_DRAW_GENERATED);
+    const tournament = new TournamentPage(page);
+    const icon = page.locator(S.SYNC_INDICATOR);
+    let fetchCalls = 0;
+    await page.route('**/factory/fetch', async (route) => {
+      fetchCalls += 1;
+      const record = await page.evaluate(() => dev.getTournament());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ tournamentRecords: { [tournamentId]: record } }),
+      });
+    });
+
+    await tournament.goto(tournamentId);
+    await page.evaluate(() => dev.forceStaleness());
+    await expect(icon).toBeVisible();
+
+    await tournament.navigateToScheduling();
+    await page.getByRole('button', { name: 'Check-In', exact: true }).click();
+    await expect.poll(() => fetchCalls).toBe(1);
+    await expect(icon).toBeHidden();
+    expect(await page.evaluate(() => dev.isStale())).toBe(false);
   });
 });
