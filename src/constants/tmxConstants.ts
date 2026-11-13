@@ -1,3 +1,7 @@
+export const INDIVIDUAL_MERGE_ACTION = 'individualMergeAction';
+export const INDIVIDUAL_MERGE_CONFIRM = 'individualMergeConfirm';
+export const INDIVIDUAL_MERGE_TARGET = 'individualMergeTarget';
+export const INDIVIDUAL_MERGE_STATUS = 'individualMergeStatus';
 import { entryStatusConstants, factoryConstants } from 'tods-competition-factory';
 
 const { AFTER_REST, FOLLOWED_BY, NEXT_AVAILABLE, NOT_BEFORE, TO_BE_ANNOUNCED } = factoryConstants.timeItemConstants;

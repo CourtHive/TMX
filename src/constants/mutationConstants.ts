@@ -1,3 +1,4 @@
+export const MERGE_INDIVIDUAL_PARTICIPANTS = 'mergeIndividualParticipants';
 export const ADD_ADDITIONAL_SEED = 'addAdditionalSeed';
 export const ADD_COURTS = 'addCourts';
 export const ADD_FLIGHT = 'addFlight';
