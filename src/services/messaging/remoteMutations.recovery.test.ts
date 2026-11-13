@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const h = vi.hoisted(() => ({
   tournamentId: 't1' as string | undefined,
   setState: vi.fn((..._a: any[]) => ({ success: true })),
+  toast: vi.fn(),
   requestTournament: vi.fn(),
   unsettled: 0,
   scoring: false,
@@ -45,13 +46,13 @@ vi.mock('services/transitions/activeScoringGuard', () => ({
   isScoringActive: () => h.scoring,
 }));
 vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: vi.fn(async () => undefined) }));
-vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
+vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...a: any[]) => h.toast(...a) }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
 import { initRemoteMutationHandler, isSyncStale, markStaleNeedsRefresh, recoverIfSafe } from './remoteMutations';
-import { registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
+import { registerDraftGuard, registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { serverSyncAt } from 'services/staleness/serverSync';
 
@@ -78,6 +79,7 @@ describe('remoteMutations — guarded automatic recovery', () => {
   beforeEach(() => {
     h.tournamentId = 't1';
     h.setState.mockClear();
+    h.toast.mockClear();
     h.requestTournament.mockReset().mockResolvedValue(answer());
     h.unsettled = 0;
     h.scoring = false;
@@ -220,5 +222,118 @@ describe('remoteMutations — guarded automatic recovery', () => {
 
     expect(h.setState).not.toHaveBeenCalled();
     expect(isSyncStale()).toBe(true);
+  });
+});
+
+// "Manual refresh gets the same edit protection": the stale indicator's click is the operator's choice to load, but
+// never over a draft, a command still in flight or score entry. Unlike option B it needs no opted-in surface.
+describe('remoteMutations — the stale indicator click', () => {
+  let releases: (() => void)[];
+
+  beforeEach(() => {
+    h.tournamentId = 't1';
+    h.setState.mockClear();
+    h.toast.mockClear();
+    h.requestTournament.mockReset().mockResolvedValue(answer());
+    h.unsettled = 0;
+    h.scoring = false;
+    h.current = true;
+    h.indicator = {
+      style: {},
+      dataset: {},
+      classList: { add: vi.fn(), remove: vi.fn() },
+      addEventListener: vi.fn(),
+    };
+    vi.stubGlobal('document', { getElementById: () => h.indicator, querySelector: () => null });
+    releases = [];
+    initRemoteMutationHandler();
+  });
+
+  afterEach(() => {
+    releases.forEach((release) => release());
+    vi.unstubAllGlobals();
+  });
+
+  const guard = (isDirty: () => boolean) => releases.push(registerDraftGuard(isDirty));
+  const click = async () => {
+    const [, onClick] = h.indicator.addEventListener.mock.calls.find(([type]: any[]) => type === 'click');
+    onClick();
+    await settle();
+  };
+  const refused = () =>
+    expect(h.toast).toHaveBeenCalledWith({ message: 'remoteMutations.refreshBlocked', intent: 'is-warning' });
+
+  it('loads the record when nothing would be lost, even where no surface opted in', async () => {
+    markStaleNeedsRefresh('t1');
+    await settle();
+    expect(h.requestTournament).not.toHaveBeenCalled();
+
+    await click();
+    expect(h.setState).toHaveBeenCalledWith(answer().data.tournamentRecords.t1);
+    expect(isSyncStale()).toBe(false);
+    expect(h.toast).not.toHaveBeenCalled();
+  });
+
+  it('never installs over a registered draft: nothing is fetched, the operator is told why, a later click loads', async () => {
+    let draft = true;
+    guard(() => draft);
+    markStaleNeedsRefresh('t1');
+    await click();
+
+    expect(h.requestTournament).not.toHaveBeenCalled();
+    expect(isSyncStale()).toBe(true);
+    expect(h.indicator.title).toBe('remoteMutations.refreshWaiting');
+    refused();
+
+    draft = false;
+    await click();
+    expect(h.setState).toHaveBeenCalledTimes(1);
+    expect(isSyncStale()).toBe(false);
+  });
+
+  it("protects the opted-in surface's own draft too", async () => {
+    releases.push(registerRecoverySurface(() => true));
+    markStaleNeedsRefresh('t1');
+    await click();
+    expect(h.requestTournament).not.toHaveBeenCalled();
+    refused();
+  });
+
+  it('waits for a command in flight, and for score entry', async () => {
+    markStaleNeedsRefresh('t1');
+    h.unsettled = 1;
+    await click();
+    h.unsettled = 0;
+    h.scoring = true;
+    await click();
+
+    expect(h.requestTournament).not.toHaveBeenCalled();
+    expect(h.toast).toHaveBeenCalledTimes(2);
+  });
+
+  it('discards the record when a draft opened while it was in flight', async () => {
+    let draft = false;
+    guard(() => draft);
+    const response = deferred();
+    h.requestTournament.mockReturnValue(response.promise);
+    markStaleNeedsRefresh('t1');
+    await click();
+
+    draft = true;
+    response.release(answer());
+    await settle();
+    expect(h.setState).not.toHaveBeenCalled();
+    expect(isSyncStale()).toBe(true);
+    refused();
+  });
+
+  // A predicate that cannot answer is treated as a draft: one more click costs less than a lost entry.
+  it('treats a draft predicate that throws as a draft', async () => {
+    guard(() => {
+      throw new Error('torn down');
+    });
+    markStaleNeedsRefresh('t1');
+    await click();
+    expect(h.requestTournament).not.toHaveBeenCalled();
   });
 });
