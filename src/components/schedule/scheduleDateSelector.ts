@@ -87,7 +87,7 @@ export function buildScheduleDateSelector(params: ScheduleDateSelectorParams): S
       appendTo: () => document.body,
       onShown: () => {
         const activeChip = datePopoverContent.querySelector(`[data-date="${selectedDate}"]`) as HTMLElement;
-        activeChip?.scrollIntoView({ block: 'nearest' });
+        if (activeChip) centerChipInPopover(datePopoverContent, activeChip);
       },
     });
   });
@@ -119,6 +119,19 @@ export function buildScheduleDateSelector(params: ScheduleDateSelectorParams): S
 }
 
 // ── Date popover ──
+
+/**
+ * Center the selected chip in the popover's own scroller so the dates on BOTH
+ * sides of it are visible — the user can see there is a day after (or before)
+ * the selected one. `scrollIntoView({ block: 'nearest' })` pinned the chip to
+ * the bottom edge, hiding later dates; `block: 'center'` would also scroll the
+ * page behind the body-appended popover. The browser clamps scrollTop, so the
+ * first and last dates need no special case.
+ */
+function centerChipInPopover(scroller: HTMLElement, chip: HTMLElement): void {
+  const chipTop = chip.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+  scroller.scrollTop = chipTop - (scroller.clientHeight - chip.offsetHeight) / 2;
+}
 
 function buildDatePopover(dates: ScheduleDate[], selectedDate: string, onSelect: (date: string) => void): HTMLElement {
   const container = document.createElement('div');

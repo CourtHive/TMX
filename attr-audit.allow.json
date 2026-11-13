@@ -12,6 +12,7 @@
   "getTournamentIds",
   "light",
   "route",
+  "scrollTo",
   "segments",
   "setTime",
   "setTournamentId",
