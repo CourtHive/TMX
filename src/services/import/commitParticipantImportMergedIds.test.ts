@@ -67,11 +67,32 @@ describe('participant import after consolidation', () => {
   });
 });
 
+it('re-creates a deleted survivor rather than the retired duplicate', async () => {
+  const retired = `XXX-${hashCode('row-one')}`;
+  const SURVIVOR = 'deleted-survivor';
+  const { tournamentRecord } = mocksEngine.generateTournamentRecord({ setState: true });
+  tournamentRecord.extensions = [
+    { name: 'individualParticipantMerges', value: { version: 1, aliases: { [retired]: SURVIVOR } } },
+  ];
+  tournamentRecord.participants = [];
+  tournamentRecord.events = [{ eventId: 'event', eventName: 'Open', eventType: 'SINGLES' }];
+  tournamentEngine.setState(tournamentRecord);
+  const preview = previewParticipantImport(args);
+  expect(preview.resolved[0].status).toBe('redirected');
+  expect(preview.resolved[0].participant.participantId).toBe(SURVIVOR);
+  let result: any = await new Promise((resolve) => commitParticipantImport({ ...args, callback: resolve }));
+  expect(result.success).toBe(true);
+  const ids = tournamentEngine.getParticipants().participants.map((p: any) => p.participantId);
+  expect(ids).toEqual([SURVIVOR]);
+  expect(tournamentEngine.getEvent({ eventId: 'event' }).event?.entries?.[0].participantId).toBe(SURVIVOR);
+});
+
 it('does not create an invalid participant when alias resolution fails', async () => {
   const retired = `XXX-${hashCode('row-one')}`;
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({ setState: true });
+  // A cyclic ledger cannot resolve; a merely missing survivor can (it was deleted after the merge).
   tournamentRecord.extensions = [
-    { name: 'individualParticipantMerges', value: { version: 1, aliases: { [retired]: 'missing' } } },
+    { name: 'individualParticipantMerges', value: { version: 1, aliases: { [retired]: 'loop', loop: retired } } },
   ];
   tournamentRecord.participants = [];
   tournamentEngine.setState(tournamentRecord);
