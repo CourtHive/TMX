@@ -19,12 +19,13 @@ import { context } from 'services/context';
 export type { ProviderBranding, ProviderConfigData, ProviderPermissions };
 
 // Default permissions — permissive (boolean keys default to `true` except
-// for the two listed in PERMISSIONS_DEFAULT_FALSE; array keys default to
+// for those listed in PERMISSIONS_DEFAULT_FALSE; array keys default to
 // empty = unrestricted).
 const DEFAULT_PERMISSIONS: Required<ProviderPermissions> = {
   canCreateCompetitors: true,
   canCreateOfficials: true,
   canDeleteParticipants: true,
+  canMergeParticipants: false,
   canImportParticipants: true,
   canEditParticipantDetails: true,
   canModifyEntries: true,
@@ -96,6 +97,11 @@ export const providerConfig = {
     configVersion += 1;
     applyBranding(undefined);
   },
+  /**
+   * Every permission with its default filled in, as `computeEffectiveConfig` gives the server. The mutation gate
+   * reads this, so a key the provider never set is judged by its default on both sides rather than as "allowed".
+   */
+  effectivePermissions: (): ProviderPermissions => ({ ...DEFAULT_PERMISSIONS, ...resolved().permissions }),
   isAllowed: (key: keyof ProviderPermissions): boolean => {
     const val = resolved().permissions?.[key] ?? DEFAULT_PERMISSIONS[key];
     if (typeof val === 'boolean') return val;

@@ -174,7 +174,7 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
   if (!factoryEngine) return completion();
 
   // Provider-level mutation gating (defense-in-depth — server mirrors this in executionQueue)
-  const currentPermissions = providerConfig.get().permissions ?? {};
+  const currentPermissions = providerConfig.effectivePermissions();
   const blocked = methods.find((m) => !isMutationAllowed(m.method, currentPermissions));
   if (blocked) {
     return completion({ error: { message: `Action not permitted: ${blocked.method}` } });

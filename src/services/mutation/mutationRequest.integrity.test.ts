@@ -42,7 +42,9 @@ vi.mock('config/serverConfig', () => ({
   serverConfig: { get: () => ({ serverFirst: h.serverFirst, serverTimeout: 50, saveLocal: h.saveLocal }) },
 }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
-vi.mock('config/providerConfig', () => ({ providerConfig: { get: () => ({ permissions: {} }) } }));
+vi.mock('config/providerConfig', () => ({
+  providerConfig: { get: () => ({ permissions: {} }), effectivePermissions: () => ({}) },
+}));
 vi.mock('@courthive/provider-config', () => ({ isMutationAllowed: () => true }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));

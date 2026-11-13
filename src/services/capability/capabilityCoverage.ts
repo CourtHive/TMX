@@ -45,6 +45,7 @@ export const UI_ENFORCED: ReadonlySet<PermissionKey> = new Set<PermissionKey>([
   'canCreateOfficials',
   'canCreateCompetitors',
   'canDeleteParticipants',
+  'canMergeParticipants',
   'canEditParticipantDetails',
   'canEnterScores',
   'canImportParticipants',
