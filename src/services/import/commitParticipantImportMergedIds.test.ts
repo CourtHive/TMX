@@ -80,9 +80,9 @@ it('re-creates a deleted survivor rather than the retired duplicate', async () =
   const preview = previewParticipantImport(args);
   expect(preview.resolved[0].status).toBe('redirected');
   expect(preview.resolved[0].participant.participantId).toBe(SURVIVOR);
-  let result: any = await new Promise((resolve) => commitParticipantImport({ ...args, callback: resolve }));
+  const result: any = await new Promise((resolve) => commitParticipantImport({ ...args, callback: resolve }));
   expect(result.success).toBe(true);
-  const ids = tournamentEngine.getParticipants().participants.map((p: any) => p.participantId);
+  const ids = tournamentEngine.getParticipants().participants?.map((p: any) => p.participantId);
   expect(ids).toEqual([SURVIVOR]);
   expect(tournamentEngine.getEvent({ eventId: 'event' }).event?.entries?.[0].participantId).toBe(SURVIVOR);
 });
