@@ -34,6 +34,7 @@ import { buildSchedulingHeader, SchedulingHeader } from './schedulingHeader';
 import { buildGridHeaderActions } from '../scheduleViews/gridHeaderActions';
 import { createDemoClockSlot } from 'components/demoClock/demoClockDock';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
+import { recoverIfSafe } from 'services/messaging/remoteMutations';
 import { renderPlanMode } from '../scheduleViews/planView';
 import { readTournamentInfo } from 'services/factory/passReads';
 import { resolveScheduleDate } from '../scheduleUtils';
@@ -272,6 +273,9 @@ export function renderSchedulingTab(params: RenderSchedulingTabParams = {}): voi
     context.refreshActiveTable = checkInView.refresh;
     // Opts in to automatic recovery; the other modes' drafts stay protected by the tab's draft guard.
     stopCheckInRecovery = registerRecoverySurface(() => !!checkInView?.isBusy());
+    // Arriving with a copy already known to be stale: no new signal will come (the probe skips a stale copy), so
+    // the desk catches up now, if nothing is in progress.
+    recoverIfSafe();
   } else if (resolvedMode === 'grid') {
     renderGridMode(containerEl, resolvedDate, params);
   } else if (resolvedMode === 'plan') {

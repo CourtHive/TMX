@@ -10,6 +10,7 @@ const h = vi.hoisted(() => ({
   tournamentId: 't1' as string | undefined,
   setState: vi.fn((..._a: any[]) => ({ success: true })),
   toast: vi.fn(),
+  identity: 'td-a' as string | undefined,
   requestTournament: vi.fn(),
   unsettled: 0,
   scoring: false,
@@ -50,8 +51,16 @@ vi.mock('services/notifications/tmxToast', () => ({ tmxToast: (...a: any[]) => h
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
+vi.mock('services/authentication/sessionIdentity', () => ({ getSessionIdentity: () => h.identity }));
 
-import { initRemoteMutationHandler, isSyncStale, markStaleNeedsRefresh, recoverIfSafe } from './remoteMutations';
+import {
+  clearSyncIndicatorForNavigation,
+  clearSyncIndicator,
+  initRemoteMutationHandler,
+  markStaleNeedsRefresh,
+  recoverIfSafe,
+  isSyncStale,
+} from './remoteMutations';
 import { registerDraftGuard, registerRecoverySurface } from 'services/staleness/authoritativeRecovery';
 import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { serverSyncAt } from 'services/staleness/serverSync';
@@ -84,6 +93,7 @@ describe('remoteMutations — guarded automatic recovery', () => {
     h.unsettled = 0;
     h.scoring = false;
     h.current = true;
+    h.identity = 'td-a';
     h.indicator = {
       style: {},
       dataset: {},
@@ -238,6 +248,7 @@ describe('remoteMutations — the stale indicator click', () => {
     h.unsettled = 0;
     h.scoring = false;
     h.current = true;
+    h.identity = 'td-a';
     h.indicator = {
       style: {},
       dataset: {},
@@ -335,5 +346,66 @@ describe('remoteMutations — the stale indicator click', () => {
     markStaleNeedsRefresh('t1');
     await click();
     expect(h.requestTournament).not.toHaveBeenCalled();
+  });
+});
+
+// Plan: "Bounded retries; detach on navigation/logout." What detaches an operation, and what must survive a tab change.
+describe('remoteMutations — detaching and navigation', () => {
+  beforeEach(() => {
+    h.tournamentId = 't1';
+    h.setState.mockClear();
+    h.requestTournament.mockReset().mockResolvedValue(answer());
+    h.unsettled = 0;
+    h.scoring = false;
+    h.current = true;
+    h.identity = 'td-a';
+    h.indicator = {
+      style: {},
+      dataset: {},
+      classList: { add: vi.fn(), remove: vi.fn() },
+      addEventListener: vi.fn(),
+    };
+    vi.stubGlobal('document', { getElementById: () => h.indicator, querySelector: () => null });
+    initRemoteMutationHandler();
+    clearSyncIndicator();
+    h.indicator.classList.remove.mockClear();
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('installs nothing fetched under an identity that has since changed', async () => {
+    const stop = registerRecoverySurface(() => false);
+    const response = deferred();
+    h.requestTournament.mockReturnValue(response.promise);
+    markStaleNeedsRefresh('t1');
+    await settle();
+
+    h.identity = 'td-b';
+    response.release(answer());
+    await settle();
+    stop();
+
+    expect(h.setState).not.toHaveBeenCalled();
+    expect(isSyncStale()).toBe(true);
+  });
+
+  it('a tab change keeps a stale copy stale, so its writes stay blocked', () => {
+    markStaleNeedsRefresh('t1');
+    clearSyncIndicatorForNavigation();
+    expect(isSyncStale()).toBe(true);
+    expect(h.indicator.classList.remove).not.toHaveBeenCalledWith('sync-indicator--active');
+  });
+
+  it('a tab change still hides an indicator that only meant "updates arrived"', () => {
+    clearSyncIndicatorForNavigation();
+    expect(isSyncStale()).toBe(false);
+    expect(h.indicator.classList.remove).toHaveBeenCalledWith('sync-indicator--active');
+  });
+
+  it('a tab change away from the tournament forgets its staleness', () => {
+    markStaleNeedsRefresh('t1');
+    h.tournamentId = 't2';
+    clearSyncIndicatorForNavigation();
+    expect(isSyncStale()).toBe(false);
   });
 });

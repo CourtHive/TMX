@@ -12,6 +12,7 @@ import { captureTournamentOperation, markTournamentRecordInstalled } from 'servi
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
+import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
@@ -87,6 +88,16 @@ export function clearSyncIndicator(): void {
     el.classList.remove('sync-indicator--active');
     el.title = '';
   }
+}
+
+/**
+ * A tab change hides what belonged to the page being left (the "updates arrived" hint, a deleted-draw banner) but is
+ * not a refresh: a copy known to be behind stays marked stale, its writes stay blocked, and the indicator stays until
+ * the record is pulled (planning/TMX_CHECK_IN_INTENTS_AND_RECONNECT.md: "keep stale writes blocked during recovery").
+ */
+export function clearSyncIndicatorForNavigation(): void {
+  if (isSyncStale()) return clearActiveDrawDeletedBanner();
+  clearSyncIndicator();
 }
 
 /** Parse the actively-viewed draw route from the URL hash, if any. */
@@ -229,7 +240,10 @@ export async function refreshTournamentFromServer(
   tournamentId: string,
   { guard }: { guard?: () => boolean } = {},
 ): Promise<RefreshOutcome> {
-  const isCurrent = captureTournamentOperation([tournamentId]);
+  // Detach when the operation stops being this tab's: another tournament, another installed copy, another identity.
+  const ownsRecord = captureTournamentOperation([tournamentId]);
+  const identity = getSessionIdentity();
+  const isCurrent = () => ownsRecord() && getSessionIdentity() === identity;
   try {
     for (let attempt = 0; attempt < MAX_REFRESH_ATTEMPTS; attempt++) {
       const generation = appliedGeneration;
