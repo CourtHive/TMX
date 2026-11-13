@@ -189,4 +189,22 @@ describe('remoteMutations — sync point', () => {
     await registeredListener!(remotePayload(step));
     expect(serverIsAhead('t1', at(11))).toBe(true);
   });
+  // Check-in slice 3: every directive was a presence intention the server found already satisfied. It saved, so
+  // its write time moved, and a desk that was current must stay current without pulling the whole record.
+  it('advances on a frame with no methods, applying and repainting nothing', async () => {
+    refreshActiveTableMock.mockClear();
+    saveTournamentRecordMock.mockClear();
+    await registeredListener!(remotePayload({ ...step, methods: [] }));
+    expect(serverIsAhead('t1', at(11))).toBe(false);
+    expect(executionQueueMock).not.toHaveBeenCalled();
+    expect(saveTournamentRecordMock).not.toHaveBeenCalled();
+    expect(refreshActiveTableMock).not.toHaveBeenCalled();
+  });
+
+  it('leaves a desk that was already behind behind on a frame with no methods', async () => {
+    await registeredListener!(
+      remotePayload({ previousServerUpdatedAt: { t1: at(12) }, serverUpdatedAt: { t1: at(13) }, methods: [] }),
+    );
+    expect(serverIsAhead('t1', at(13))).toBe(true);
+  });
 });

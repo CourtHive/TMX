@@ -3976,7 +3976,8 @@
   },
   "remoteMutations": {
     "updateFailed": "Remote update failed — please reload",
-    "tournamentReplaced": "An administrator changed this tournament on the server — reloading"
+    "tournamentReplaced": "An administrator changed this tournament on the server — reloading",
+    "refreshWaiting": "Newer changes are on the server. They load once your unsaved entry or pending change finishes — or click to load them now"
   },
   "mutationPrompts": {
     "modify": "Modify?",
