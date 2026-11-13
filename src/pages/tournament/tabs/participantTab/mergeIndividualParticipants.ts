@@ -1,6 +1,6 @@
 import { refreshTournamentFromServer } from 'services/messaging/remoteMutations';
-import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
+import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';

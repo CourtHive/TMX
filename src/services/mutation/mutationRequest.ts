@@ -9,8 +9,8 @@ import { playedOrderRefusalMessage } from 'services/scheduling/playedOrderRefusa
 import { isSessionValid, reportSessionLost } from 'services/session/sessionGuard';
 import { isStale, resetActivityTimer } from 'services/staleness/stalenessGuard';
 import { getLoginState, styleLogin } from 'services/authentication/loginState';
-import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
+import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { presenceIntentionsHeld } from 'services/checkIn/presenceIntentions';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { venueCalendarDate, venueTimeZone } from 'functions/venueTimeFrame';
