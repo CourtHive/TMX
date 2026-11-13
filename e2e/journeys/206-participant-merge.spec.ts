@@ -1,35 +1,57 @@
-import { initDevBridge, resetState } from '../helpers/dev-bridge';
+import { initDevBridge, loginAsSuperAdmin, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { expect, test, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
 
+// Merging is for a provider administrator on a provider that has opted in (provider-config 1.2.0), so the journey
+// runs logged in. A logged-in session opens a provider-bound record locally only while it is held offline for the
+// session's email (journey 163's shape), which also keeps every mutation local: no server is needed.
+const DIRECTOR_EMAIL = 'td@e2e';
+
 async function seedDuplicates(page: Page, sharedDraw = false) {
-  return page.evaluate(async (shared: boolean) => {
-    const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-      nonRandom: 1,
-      tournamentAttributes: { tournamentName: 'Participant merge review' },
-      ...(shared ? { drawProfiles: [{ drawSize: 4 }] } : {}),
-    });
-    if (shared) {
-      const people = tournamentRecord.participants.filter((p: any) => p.participantType === 'INDIVIDUAL');
-      const [a, b] = people;
-      const id = b.participantId;
-      Object.assign(b, structuredClone(a), { participantId: id });
-    } else {
-      tournamentRecord.participants = ['source', 'target'].map((participantId) => ({
-        participantId,
-        participantType: 'INDIVIDUAL',
-        participantRole: 'COMPETITOR',
-        participantName: 'Ana Rivas',
-        person: {
-          personId: '00000000-0000-4000-8000-000000000001',
-          standardGivenName: 'Ana',
-          standardFamilyName: 'Rivas',
-        },
-      }));
-    }
-    await dev.load(tournamentRecord);
-    return tournamentRecord.tournamentId;
-  }, sharedDraw);
+  return page.evaluate(
+    async ({ shared, email }) => {
+      const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        tournamentAttributes: { tournamentName: 'Participant merge review' },
+        ...(shared ? { drawProfiles: [{ drawSize: 4 }] } : {}),
+      });
+      if (shared) {
+        const people = tournamentRecord.participants.filter((p: any) => p.participantType === 'INDIVIDUAL');
+        const [a, b] = people;
+        const id = b.participantId;
+        Object.assign(b, structuredClone(a), { participantId: id });
+      } else {
+        tournamentRecord.participants = ['source', 'target'].map((participantId) => ({
+          participantId,
+          participantType: 'INDIVIDUAL',
+          participantRole: 'COMPETITOR',
+          participantName: 'Ana Rivas',
+          person: {
+            personId: '00000000-0000-4000-8000-000000000001',
+            standardGivenName: 'Ana',
+            standardFamilyName: 'Rivas',
+          },
+        }));
+      }
+      tournamentRecord.parentOrganisation = { organisationId: 'e2e-provider', organisationName: 'E2E Provider' };
+      tournamentRecord.timeItems = [
+        ...(tournamentRecord.timeItems ?? []),
+        { itemType: 'TMX', itemValue: { offline: { email } } },
+      ];
+      await dev.tmx2db.initDB();
+      await dev.tmx2db.addTournament(tournamentRecord);
+      await dev.load(tournamentRecord);
+      return tournamentRecord.tournamentId;
+    },
+    { shared: sharedDraw, email: DIRECTOR_EMAIL },
+  );
+}
+
+async function setMergeOptIn(page: Page, allowed: boolean) {
+  await page.evaluate(
+    (canMergeParticipants) => dev.providerConfig.set({ permissions: { canMergeParticipants } }),
+    allowed,
+  );
 }
 
 async function openReview(page: Page) {
@@ -47,8 +69,11 @@ test.describe('individual participant merge review', () => {
       route.fulfill({ json: { individualParticipantMerge: true } }),
     );
     await page.goto('/');
+    await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    await loginAsSuperAdmin(page, { email: DIRECTOR_EMAIL });
+    await setMergeOptIn(page, true);
   });
 
   test('merges the selected duplicate and retains one individual', async ({ page }) => {
@@ -90,6 +115,19 @@ test.describe('individual participant merge review', () => {
     await tournament.goto(tid);
     await tournament.navigateToParticipants();
     const rows = page.locator('#tournamentParticipants .tabulator-row');
+    await rows.nth(0).locator('input[type="checkbox"]').first().click();
+    await rows.nth(1).locator('input[type="checkbox"]').first().click();
+    await expect(page.locator('#individualMergeAction')).toBeHidden();
+  });
+
+  test('a provider that has not opted in is never offered the action', async ({ page }) => {
+    const tid = await seedDuplicates(page);
+    await setMergeOptIn(page, false);
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tid);
+    await tournament.navigateToParticipants();
+    const rows = page.locator('#tournamentParticipants .tabulator-row');
+    await expect(rows.first()).toBeVisible();
     await rows.nth(0).locator('input[type="checkbox"]').first().click();
     await rows.nth(1).locator('input[type="checkbox"]').first().click();
     await expect(page.locator('#individualMergeAction')).toBeHidden();

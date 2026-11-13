@@ -55,6 +55,7 @@ export type CapabilityAction =
   | 'createOfficial'
   | 'importParticipants'
   | 'deleteParticipants'
+  | 'mergeParticipants'
   | 'editParticipantDetails'
   | 'modifyEntries'
   | 'createEvent'
@@ -77,6 +78,7 @@ const ACTION_PERMISSION: Readonly<Record<CapabilityAction, keyof ProviderPermiss
   createOfficial: 'canCreateOfficials',
   importParticipants: 'canImportParticipants',
   deleteParticipants: 'canDeleteParticipants',
+  mergeParticipants: 'canMergeParticipants',
   editParticipantDetails: 'canEditParticipantDetails',
   modifyEntries: 'canModifyEntries',
   createEvent: 'canCreateEvents',

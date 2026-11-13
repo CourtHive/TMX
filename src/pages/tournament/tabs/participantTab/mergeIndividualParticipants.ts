@@ -1,4 +1,5 @@
 import { refreshTournamentFromServer } from 'services/messaging/remoteMutations';
+import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
@@ -35,8 +36,17 @@ export function supportsIndividualMerge(): boolean {
   return typeof (tournamentEngine as unknown as MergeEngine).getIndividualParticipantMergePreview === 'function';
 }
 
+/**
+ * The same answer the server gives: the provider has opted in to merging (with delete and edit allowed too), and
+ * the user is a provider administrator for it. Anyone else is never offered the action.
+ */
+export function mayMergeIndividuals(): boolean {
+  if (cannot('mergeParticipants') || cannot('deleteParticipants') || cannot('editParticipantDetails')) return false;
+  return isActiveProviderAdmin();
+}
+
 export async function mergeSelectedIndividuals(table: any, callback: () => void): Promise<void> {
-  if (cannot('deleteParticipants') || cannot('editParticipantDetails')) return undefined;
+  if (!mayMergeIndividuals()) return undefined;
   const selected = table.getSelectedData();
   if (selected.length !== 2) {
     tmxToast({ message: t('participantMerge.selectTwo'), intent: WARNING });
@@ -50,8 +60,7 @@ export async function mergeSelectedIndividuals(table: any, callback: () => void)
 }
 
 export function activateIndividualMergeAction(element: HTMLElement | undefined, table: any): void {
-  if (!element || !supportsIndividualMerge() || cannot('deleteParticipants') || cannot('editParticipantDetails'))
-    return undefined;
+  if (!element || !supportsIndividualMerge() || !mayMergeIndividuals()) return undefined;
   let supported = false;
   const update = () => {
     if (element.isConnected) element.style.display = supported && table.getSelectedData().length === 2 ? '' : 'none';

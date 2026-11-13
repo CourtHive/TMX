@@ -48,6 +48,10 @@ describe('providerConfig', () => {
       expect(providerConfig.isAllowed('canModifyCompletedScores')).toBe(false);
     });
 
+    it('returns false for canMergeParticipants by default (opt-in)', () => {
+      expect(providerConfig.isAllowed('canMergeParticipants')).toBe(false);
+    });
+
     it('returns false for canAccessProviderAdmin by default', () => {
       expect(providerConfig.isAllowed('canAccessProviderAdmin')).toBe(false);
     });
@@ -67,6 +71,23 @@ describe('providerConfig', () => {
       // canCreateCompetitors was not set, should still default to true
       expect(providerConfig.isAllowed('canCreateCompetitors')).toBe(true);
       expect(providerConfig.isAllowed('canCreateEvents')).toBe(false);
+    });
+  });
+
+  describe('effectivePermissions', () => {
+    it('fills every unset permission with its default, as the server does', () => {
+      const permissions = providerConfig.effectivePermissions();
+      expect(permissions.canDeleteParticipants).toBe(true);
+      expect(permissions.canEditParticipantDetails).toBe(true);
+      expect(permissions.canMergeParticipants).toBe(false);
+    });
+
+    it('lets set values override the defaults', () => {
+      providerConfig.set({ permissions: { canMergeParticipants: true, canDeleteParticipants: false } });
+      const permissions = providerConfig.effectivePermissions();
+      expect(permissions.canMergeParticipants).toBe(true);
+      expect(permissions.canDeleteParticipants).toBe(false);
+      expect(permissions.canEditParticipantDetails).toBe(true);
     });
   });
 

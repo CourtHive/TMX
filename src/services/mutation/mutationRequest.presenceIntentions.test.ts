@@ -25,7 +25,9 @@ vi.mock('services/storage/saveTournamentRecord', () => ({ saveTournamentRecord: 
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 vi.mock('config/serverConfig', () => ({ serverConfig: { get: () => ({ serverFirst: true, serverTimeout: 50 }) } }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
-vi.mock('config/providerConfig', () => ({ providerConfig: { get: () => ({ permissions: {} }) } }));
+vi.mock('config/providerConfig', () => ({
+  providerConfig: { get: () => ({ permissions: {} }), effectivePermissions: () => ({}) },
+}));
 vi.mock('@courthive/provider-config', () => ({ isMutationAllowed: () => true }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
