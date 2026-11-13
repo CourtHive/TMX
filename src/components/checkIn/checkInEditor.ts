@@ -15,9 +15,11 @@ interface EditorParams {
   drawId: string;
   onChange?: () => void;
   onClose?: () => void;
+  /** The editor stopped being busy: a request was answered, or attester entry was abandoned. */
+  onSettled?: () => void;
 }
 
-export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams) {
+export function buildCheckInEditor({ matchUpId, drawId, onChange, onSettled }: EditorParams) {
   const element = document.createElement('div');
   element.className = 'tmx-checkin-editor';
   let pending = false;
@@ -42,7 +44,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
       callback: (result) => {
         pending = false;
         if (!result?.success) logMutationError('checkIn', result, { message: t('checkIn.toggleFailed') });
-        if (disposed) return;
+        if (disposed) return onSettled?.();
         render();
         const restored = [...element.querySelectorAll<HTMLButtonElement>('[data-participant-id]')].find(
           (button) => button.dataset.participantId === participantId,
@@ -50,6 +52,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
         if (restored?.disabled) element.closest<HTMLElement>('[role="dialog"]')?.focus();
         else restored?.focus();
         if (result?.success) onChange?.();
+        onSettled?.();
       },
     });
   };
@@ -63,6 +66,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
         onCancel: () => {
           choosing = false;
           render();
+          onSettled?.();
         },
         onChoose: (attester) =>
           request(
@@ -158,6 +162,9 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
   render();
   return {
     element,
+    /** A request awaiting its answer, or an attester being chosen: an install now would discard or overtake it.
+     * An open editor that is only showing state is not busy; it re-renders from whatever record is installed. */
+    isBusy: () => !disposed && (pending || choosing),
     destroy: () => {
       disposed = true;
       unsubscribe();
@@ -167,7 +174,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
 
 export function openCheckInEditor(params: EditorParams) {
   const editor = buildCheckInEditor(params);
-  return openCheckInDialog({
+  const dialog = openCheckInDialog({
     content: editor.element,
     title: t('checkIn.desk.title'),
     onClose: () => {
@@ -175,4 +182,5 @@ export function openCheckInEditor(params: EditorParams) {
       params.onClose?.();
     },
   });
+  return Object.assign(dialog, { isBusy: editor.isBusy });
 }
