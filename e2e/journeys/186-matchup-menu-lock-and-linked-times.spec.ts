@@ -1,5 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
+import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
 import { test, expect, type Page } from '@playwright/test';
 import { TournamentPage } from '../pages/TournamentPage';
 import { S } from '../helpers/selectors';
@@ -17,8 +18,11 @@ import { S } from '../helpers/selectors';
  */
 
 const MENU = '.tippy-content .menu-list';
-const DAY1 = '2026-11-10';
-const DAY2 = '2026-11-11';
+// Relative to today, never fixed: once a seeded tournament's endDate passes, TMX asks before writing to it
+// (`recordsInDateRange`), and the unanswered prompt cancels every lock and time this journey sets. The literal
+// 2026-11-10/11 these replaced turned all three tests red on 2026-11-12.
+const DAY1 = todayLocal();
+const DAY2 = daysFromTodayLocal(1);
 const SCHEDULE_WRITES = ['addMatchUpScheduleItems', 'bulkScheduleMatchUps'];
 
 type Schedule = Record<string, string>;
