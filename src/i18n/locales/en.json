@@ -4147,6 +4147,8 @@
     "nationality": "Nationality",
     "name": "Name",
     "sex": "Sex",
+    "entryStatus": "Entry status",
+    "entryStage": "Entry stage",
     "invalidImport": "Import could not resolve a previously merged participant. Refresh the tournament and review its identity mappings.",
     "ENTRY_GROUPING_CONFLICT": "Merging would register the same individual through two entrants in this event and stage."
   }

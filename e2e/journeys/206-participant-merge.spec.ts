@@ -118,6 +118,40 @@ test.describe('individual participant merge review', () => {
     expect(await page.evaluate(() => dev.getTournament().participants.length)).toBe(1);
   });
 
+  test('collapses duplicate entries in one event and asks which entry status to keep', async ({ page }) => {
+    const tid = await seedDuplicates(page);
+    await page.evaluate(async () => {
+      const record = dev.getTournament();
+      record.events = [
+        {
+          eventId: 'open-singles',
+          eventName: 'Open Singles',
+          eventType: 'SINGLES',
+          entries: [
+            { participantId: 'source', entryStatus: 'ALTERNATE', entryStage: 'MAIN', entryPosition: 1 },
+            { participantId: 'target', entryStatus: 'DIRECT_ACCEPTANCE', entryStage: 'MAIN', entryPosition: 2 },
+          ],
+        },
+      ];
+      await dev.load(record);
+    });
+    const tournament = new TournamentPage(page);
+    await tournament.goto(tid);
+    await tournament.navigateToParticipants();
+    await openReview(page);
+    await page.locator('#individualMergeTarget').selectOption('target');
+    await expect(page.locator('#individualMergeConfirm')).toBeDisabled();
+    await page.getByLabel('Open Singles — Entry status', { exact: false }).selectOption('target');
+    await expect(page.locator('#individualMergeConfirm')).toBeEnabled();
+    await page.locator('#individualMergeConfirm').click();
+    await expect.poll(() => page.evaluate(() => dev.getTournament().participants.length)).toBe(1);
+    expect(
+      await page.evaluate(() =>
+        dev.getTournament().events[0].entries.map((e: any) => [e.participantId, e.entryStatus]),
+      ),
+    ).toEqual([['target', 'DIRECT_ACCEPTANCE']]);
+  });
+
   test('merges one reviewed pair in a tournament with 857 individuals', async ({ page }) => {
     const tid = await seedDuplicates(page);
     await page.evaluate(async () => {
@@ -135,6 +169,20 @@ test.describe('individual participant merge review', () => {
           },
         });
       }
+      // Every individual is entered, the duplicates included, as in the imported record that prompted this review.
+      record.events = [
+        {
+          eventId: 'open-singles',
+          eventName: 'Open Singles',
+          eventType: 'SINGLES',
+          entries: record.participants.map((p: any, index: number) => ({
+            participantId: p.participantId,
+            entryStatus: 'DIRECT_ACCEPTANCE',
+            entryStage: 'MAIN',
+            entryPosition: index + 1,
+          })),
+        },
+      ];
       await dev.load(record);
     });
     const tournament = new TournamentPage(page);
@@ -142,8 +190,10 @@ test.describe('individual participant merge review', () => {
     await tournament.navigateToParticipants();
     await openReview(page);
     await page.locator('#individualMergeTarget').selectOption('target');
+    await expect(page.locator('#individualMergeConfirm')).toBeEnabled();
     await page.locator('#individualMergeConfirm').click();
     await expect.poll(() => page.evaluate(() => dev.getTournament().participants.length)).toBe(856);
+    expect(await page.evaluate(() => dev.getTournament().events[0].entries.length)).toBe(856);
     expect(
       await page.evaluate(
         () => dev.getTournament().participants.filter((p: any) => p.participantId.startsWith('other-')).length,

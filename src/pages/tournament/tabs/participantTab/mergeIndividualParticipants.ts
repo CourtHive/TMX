@@ -238,16 +238,26 @@ function appendConflict(
 }
 
 function fieldLabel(path: string): string {
-  const field = path.split('/').filter(Boolean).at(-1) || path;
+  const segments = path.split('/').filter(Boolean);
+  const field = segments.at(-1) || path;
   const labels: Record<string, string> = {
     birthDate: t('participantMerge.birthDate'),
     standardGivenName: t('participantMerge.givenName'),
     standardFamilyName: t('participantMerge.familyName'),
     nationalityCode: t('participantMerge.nationality'),
     participantName: t('participantMerge.name'),
+    entryStatus: t('participantMerge.entryStatus'),
+    entryStage: t('participantMerge.entryStage'),
     sex: t('participantMerge.sex'),
   };
-  return labels[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2');
+  const label = labels[field] || field.replaceAll(/([a-z])([A-Z])/g, '$1 $2');
+  // Entry choices are keyed by record position (/events/<i>/entries/<j>/<field>); name the event they belong to.
+  const eventName = segments[0] === 'events' ? eventNameAt(Number(segments[1])) : undefined;
+  return eventName ? `${eventName} — ${label}` : label;
+}
+function eventNameAt(index: number): string | undefined {
+  if (!Number.isInteger(index)) return undefined;
+  return tournamentEngine.getEvents().events?.[index]?.eventName;
 }
 function blockerLocation(blocker: NonNullable<MergePreview['blockers']>[number]): string {
   if (blocker.eventId) {
