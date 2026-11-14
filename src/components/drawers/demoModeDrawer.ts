@@ -41,6 +41,7 @@ const GROUPS: { labelKey: string; keys: Key[] }[] = [
       'canCreateCompetitors',
       'canCreateOfficials',
       'canDeleteParticipants',
+      'canMergeParticipants',
       'canImportParticipants',
       'canEditParticipantDetails',
       'canModifyEntries',

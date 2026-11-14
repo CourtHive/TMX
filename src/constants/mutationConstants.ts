@@ -1,3 +1,4 @@
+export const MERGE_INDIVIDUAL_PARTICIPANTS = 'mergeIndividualParticipants';
 export const ADD_ADDITIONAL_SEED = 'addAdditionalSeed';
 export const ADD_COURTS = 'addCourts';
 export const ADD_FLIGHT = 'addFlight';
@@ -102,8 +103,9 @@ export const RESET_SCORECARD = 'resetScorecard';
 export const RESET_STRUCTURE = 'resetStructure';
 export const SET_MATCHUP_CALLED_AT = 'setMatchUpCalledAt';
 // Per-matchUp check-in — a participant presenting at the desk for THIS match. Distinct from
-// MODIFY_SIGN_IN_STATUS, which records first arrival at the tournament and is tournament-wide.
-export const TOGGLE_PARTICIPANT_CHECK_IN_STATE = 'toggleParticipantCheckInState';
+// MODIFY_SIGN_IN_STATUS, which records first arrival at the tournament and is tournament-wide. It carries the
+// direction the operator chose (`checkedIn`), never a flip: two desks asking for the same state converge.
+export const SET_PARTICIPANT_CHECK_IN_STATE = 'setParticipantCheckInState';
 export const SET_MATCHUP_FORMAT = 'setMatchUpFormat';
 export const SET_MATCHUP_SCHEDULE_LOCK = 'setMatchUpScheduleLock';
 // a dual's home team; an empty homeParticipantId clears it

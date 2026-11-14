@@ -10,6 +10,7 @@ import { tournamentEngine } from 'tods-competition-factory';
 
 const h = vi.hoisted(() => ({
   cancel: vi.fn(() => true),
+  abandon: vi.fn(),
   emitTmx: vi.fn(),
   reportSessionLost: vi.fn(),
   sessionValid: true,
@@ -36,12 +37,15 @@ vi.mock('config/serverConfig', () => ({
   serverConfig: { get: () => ({ serverFirst: h.serverFirst, serverTimeout: 50 }) },
 }));
 vi.mock('config/debugConfig', () => ({ debugConfig: { get: () => ({}) } }));
-vi.mock('config/providerConfig', () => ({ providerConfig: { get: () => ({ permissions: {} }) } }));
+vi.mock('config/providerConfig', () => ({
+  providerConfig: { get: () => ({ permissions: {} }), effectivePermissions: () => ({}) },
+}));
 vi.mock('@courthive/provider-config', () => ({ isMutationAllowed: () => true }));
 vi.mock('services/context', () => ({ context: {} }));
 vi.mock('i18n', () => ({ t: (key: string) => key }));
 
 import { mutationRequest, replayServerMutation } from './mutationRequest';
+import { onAuthoritativeRefreshRequired } from './mutationObservers';
 
 const tournamentRecord = () => ({
   tournamentId: 'tid-1',
@@ -60,9 +64,10 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     // makeMutation reads `window['dev']` for dev overrides; vitest here is the node environment.
     vi.stubGlobal('window', {});
     vi.useFakeTimers();
-    h.cancel.mockClear();
+    h.cancel.mockReset().mockReturnValue(true);
+    h.abandon.mockClear();
     h.reportSessionLost.mockClear();
-    h.emitTmx.mockReset().mockReturnValue({ cancel: h.cancel });
+    h.emitTmx.mockReset().mockReturnValue({ cancel: h.cancel, abandon: h.abandon });
     h.sessionValid = true;
     h.serverFirst = true;
   });
@@ -157,6 +162,37 @@ describe('mutationRequest — server-first timeout and the offline queue', () =>
     vi.advanceTimersByTime(60);
 
     expect(h.cancel).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' }, notified: true });
+  });
+
+  it('a withdrawn edit never reached the server: the copy is not behind, and no refresh is asked for', async () => {
+    const refreshes = vi.fn();
+    const stop = onAuthoritativeRefreshRequired(refreshes);
+    await request(vi.fn());
+    await settle();
+
+    vi.advanceTimersByTime(60);
+    stop();
+
+    expect(h.abandon).not.toHaveBeenCalled();
+    expect(refreshes).not.toHaveBeenCalled();
+  });
+
+  // Sent and never answered: the server may have applied it. The answer is ignored from here on, so the command stops
+  // holding recovery back, and the record is asked for at once instead of when the next staleness probe runs.
+  it('a sent edit with no answer is abandoned and the authoritative record is asked for', async () => {
+    h.cancel.mockReturnValue(false);
+    const refreshes = vi.fn();
+    const stop = onAuthoritativeRefreshRequired(refreshes);
+    const callback = vi.fn();
+    await request(callback);
+    await settle();
+
+    vi.advanceTimersByTime(60);
+    stop();
+
+    expect(h.abandon).toHaveBeenCalledTimes(1);
+    expect(refreshes).toHaveBeenCalledWith(['tid-1']);
     expect(callback).toHaveBeenCalledWith({ error: { message: 'toasts.serverNotResponding' }, notified: true });
   });
 

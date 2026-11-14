@@ -4,8 +4,8 @@
  * On mobile, renders a dropdown with translated page names instead of icons.
  */
 import { firstPermittedTab, isTabAvailable, ownsTabVisibility } from 'services/capability/navCapability';
+import { clearSyncIndicatorForNavigation } from 'services/messaging/remoteMutations';
 import { getUnreadCount, onChatUpdate } from 'services/chat/chatService';
-import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { enhancedContentFunction } from 'services/dom/toolTip/plugins';
 import { openChatModal } from 'components/modals/chatModal';
 import { tournamentEngine } from 'services/factory/engine';
@@ -135,7 +135,7 @@ export function applyTabCapabilityVisibility(): void {
 }
 
 function navigateToRoute(id: string): void {
-  clearSyncIndicator();
+  clearSyncIndicatorForNavigation();
   document.querySelectorAll('.nav-icon').forEach((i) => ((i as HTMLElement).style.color = ''));
   const element = document.getElementById(id);
   if (element) element.style.color = ACTIVE_NAV_COLOR;

@@ -3976,7 +3976,9 @@
   },
   "remoteMutations": {
     "updateFailed": "Remote update failed — please reload",
-    "tournamentReplaced": "An administrator changed this tournament on the server — reloading"
+    "tournamentReplaced": "An administrator changed this tournament on the server — reloading",
+    "refreshWaiting": "Newer changes are on the server. They load once your unsaved entry or pending change finishes",
+    "refreshBlocked": "Newer changes can load once your unsaved entry or pending change finishes. Loading them now could discard it"
   },
   "mutationPrompts": {
     "modify": "Modify?",
@@ -4101,5 +4103,55 @@
     "more": "More teams",
     "noTeams": "No team providers with display defaults found",
     "tournamentChanged": "The active tournament changed. No teams were imported."
+  },
+  "participantMerge": {
+    "title": "Merge participants",
+    "selectTwo": "Select exactly two individuals to merge.",
+    "keep": "Participant to keep",
+    "remove": "Their details and tournament participation will move to the participant you keep. The duplicate record will be removed.",
+    "source": "Use duplicate value",
+    "target": "Keep retained value",
+    "choose": "Choose a value",
+    "confirm": "Merge participants",
+    "success": "Merged duplicate into {{name}}.",
+    "unavailable": "Participant merging is not available on this server yet.",
+    "failed": "The merge could not be saved. Review the latest state and try again.",
+    "references": "{{count}} references will be transferred.",
+    "blocked": "Resolve these conflicts before merging:",
+    "refresh": "Refresh review",
+    "pending": "Saving merge…",
+    "SHARED_DRAW": "Both individuals occur in this draw. Remove the duplicate participation before merging.",
+    "PAIR_COLLAPSE": "These individuals form the same pair. Merging would leave only one member.",
+    "DUPLICATE_PAIR": "Merging would create duplicate pairs. Resolve the pair records first.",
+    "PERSON_ID_CONFLICT": "These records have different person identities. Resolve their identity first.",
+    "ISSUED_ID_CONFLICT": "An issuing organisation identifies these records differently.",
+    "INVALID_ISSUED_ID": "An external identifier has no issuing organisation or value.",
+    "HISTORY_CONFLICT": "These records have different histories. This version cannot reconcile them safely.",
+    "ROLE_CONFLICT": "These records have different participant roles.",
+    "ENTRY_CONFLICT": "These records have conflicting entries in the same event and stage.",
+    "UNSUPPORTED_REFERENCE": "A reference in this data cannot be transferred safely by this version.",
+    "INVALID_RESOLUTION": "A field choice is no longer valid. Refresh the review.",
+    "importStatus": {
+      "new": "New participant",
+      "unchanged": "Existing participant — unchanged",
+      "update": "Existing participant — update",
+      "redirected": "Previously merged — uses retained participant",
+      "invalid": "Invalid identity mapping — review required"
+    },
+    "OPPOSING_SIDES": "Merging would put the same individual on both sides of a match.",
+    "DUPLICATE_LINEUP": "Merging would put the same individual into this lineup twice.",
+    "FLIGHT_CONFLICT": "Merging would enter the same individual into multiple flights.",
+    "INVALID_CONTACT_MEMBER": "A grouping contact is not a member of that grouping.",
+    "INTEGRITY_CONFLICT": "Merging would introduce a tournament inconsistency.",
+    "birthDate": "Birth date",
+    "givenName": "Given name",
+    "familyName": "Family name",
+    "nationality": "Nationality",
+    "name": "Name",
+    "sex": "Sex",
+    "entryStatus": "Entry status",
+    "entryStage": "Entry stage",
+    "invalidImport": "Import could not resolve a previously merged participant. Refresh the tournament and review its identity mappings.",
+    "ENTRY_GROUPING_CONFLICT": "Merging would register the same individual through two entrants in this event and stage."
   }
 }

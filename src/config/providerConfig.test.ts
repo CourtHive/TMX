@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
+import { clearDemoOverlay, setDemoPermission } from 'services/demoMode/demoState';
 import { providerConfig } from './providerConfig';
 
 const BEST_OF_3 = 'SET3-S:6/TB7';
@@ -48,6 +49,10 @@ describe('providerConfig', () => {
       expect(providerConfig.isAllowed('canModifyCompletedScores')).toBe(false);
     });
 
+    it('returns false for canMergeParticipants by default (opt-in)', () => {
+      expect(providerConfig.isAllowed('canMergeParticipants')).toBe(false);
+    });
+
     it('returns false for canAccessProviderAdmin by default', () => {
       expect(providerConfig.isAllowed('canAccessProviderAdmin')).toBe(false);
     });
@@ -67,6 +72,41 @@ describe('providerConfig', () => {
       // canCreateCompetitors was not set, should still default to true
       expect(providerConfig.isAllowed('canCreateCompetitors')).toBe(true);
       expect(providerConfig.isAllowed('canCreateEvents')).toBe(false);
+    });
+  });
+
+  describe('effectivePermissions', () => {
+    it('fills every unset permission with its default, as the server does', () => {
+      const permissions = providerConfig.effectivePermissions();
+      expect(permissions.canDeleteParticipants).toBe(true);
+      expect(permissions.canEditParticipantDetails).toBe(true);
+      expect(permissions.canMergeParticipants).toBe(false);
+    });
+
+    it('lets set values override the defaults', () => {
+      providerConfig.set({ permissions: { canMergeParticipants: true, canDeleteParticipants: false } });
+      const permissions = providerConfig.effectivePermissions();
+      expect(permissions.canMergeParticipants).toBe(true);
+      expect(permissions.canDeleteParticipants).toBe(false);
+      expect(permissions.canEditParticipantDetails).toBe(true);
+    });
+
+    it('grants the merge opt-in to a standalone tournament, which has no provider to opt in', () => {
+      expect(providerConfig.effectivePermissions({ standalone: true }).canMergeParticipants).toBe(true);
+      expect(providerConfig.isAllowed('canMergeParticipants', { standalone: true })).toBe(true);
+      expect(providerConfig.isAllowed('canMergeParticipants')).toBe(false);
+    });
+
+    it('lets an explicit value and the demo overlay still remove the standalone grant', () => {
+      providerConfig.set({ permissions: { canMergeParticipants: false } });
+      expect(providerConfig.effectivePermissions({ standalone: true }).canMergeParticipants).toBe(false);
+      providerConfig.reset();
+      setDemoPermission('canMergeParticipants', false);
+      try {
+        expect(providerConfig.effectivePermissions({ standalone: true }).canMergeParticipants).toBe(false);
+      } finally {
+        clearDemoOverlay();
+      }
     });
   });
 

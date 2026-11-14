@@ -2,7 +2,9 @@
  * Renders individuals (players) tab with table and controls.
  * Displays individual participants with filtering, editing, and management options.
  */
+import { INDIVIDUAL_MERGE_ACTION, PARTICIPANT_CONTROL, OVERLAY, STAFF, RIGHT, LEFT } from 'constants/tmxConstants';
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
+import { mergeSelectedIndividuals, activateIndividualMergeAction } from './mergeIndividualParticipants';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
 import { enableEditWTID } from 'components/tables/participantsTable/editWTID/enableEditWTID';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
@@ -20,24 +22,21 @@ import { getSexFilter } from 'components/tables/common/filters/sexFilter';
 import { editIndividualParticipant } from './editIndividualParticipant';
 import { signInParticipants } from './controlBar/signInParticipants';
 import { printPlayerList } from 'components/modals/printPlayerList';
-import { callSheet } from 'components/modals/callSheet';
 import { signOutUnapproved } from './controlBar/signOutUnapproved';
-import { closeTheDay } from './controlBar/closeTheDay';
 import { getLoginState } from 'services/authentication/loginState';
 import { editRegistrationLink as sheetsLink } from './sheetsLink';
 import { addParticipantsToEvent } from './addParticipantsToEvent';
 import { eventFromParticipants } from './eventFromParticipants';
 import { selectItem } from 'components/modals/selectItem';
-import { escapeHtml } from 'utilities/escapeHtml';
-import { cannot } from 'services/capability/can';
+import { callSheet } from 'components/modals/callSheet';
+import { closeTheDay } from './controlBar/closeTheDay';
 import { importPlayersCsv } from './importPlayersCsv';
 import { participantChips } from './participantChips';
+import { escapeHtml } from 'utilities/escapeHtml';
 import { controlBar } from 'courthive-components';
-import { t } from 'i18n';
-
-// Constants
-import { PARTICIPANT_CONTROL, OVERLAY, STAFF, RIGHT, LEFT } from 'constants/tmxConstants';
+import { cannot } from 'services/capability/can';
 import { context } from 'services/context';
+import { t } from 'i18n';
 
 const { INDIVIDUAL, GROUP } = participantConstants;
 const { OFFICIAL } = participantRoles;
@@ -298,6 +297,14 @@ export function renderIndividuals({ view }: { view: string }): void {
       intent: 'none',
     },
     {
+      id: INDIVIDUAL_MERGE_ACTION,
+      onClick: () => mergeSelectedIndividuals(table, replaceTableData),
+      label: t('participantMerge.title'),
+      intent: 'is-warning',
+      hide: true,
+      location: OVERLAY,
+    },
+    {
       onClick: () => deleteSelectedParticipants(table),
       label: t('pages.participants.deleteSelected'),
       intent: 'is-danger',
@@ -353,7 +360,8 @@ export function renderIndividuals({ view }: { view: string }): void {
   ];
 
   const participantControl = document.getElementById(PARTICIPANT_CONTROL) || undefined;
-  controlBar({ table, target: participantControl, items, selectItemFn: selectItem });
+  const { elements } = controlBar({ table, target: participantControl, items, selectItemFn: selectItem });
+  activateIndividualMergeAction(elements[INDIVIDUAL_MERGE_ACTION], table);
 
   // Apply filter-active styling if a filter was persisted from a previous session
   updateBadge();

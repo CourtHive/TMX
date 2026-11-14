@@ -9,12 +9,13 @@
  *   → shows sync indicator in navbar if no table could be refreshed
  */
 import { captureTournamentOperation, markTournamentRecordInstalled } from 'services/tournament/operationOwnership';
-import { notifyMutationApplied, onAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 import { notifyRemoteScoringCollision } from 'services/transitions/activeScoringGuard';
 import { advanceServerSync, setServerSync } from 'services/staleness/serverSync';
 import { extractDeletedDrawIds } from 'services/scheduling/drawExistenceGuard';
+import { getSessionIdentity } from 'services/authentication/sessionIdentity';
 import { saveTournamentRecord } from 'services/storage/saveTournamentRecord';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { resumeCommands } from 'services/messaging/transport/httpCommands';
 import { buildInlineNotice } from 'components/notices/inlineNotice';
 import { isOwnMutation } from 'services/messaging/clientIdentity';
 import { requestTournament } from 'services/apis/servicesApi';
@@ -23,6 +24,16 @@ import * as factory from 'tods-competition-factory';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
+import {
+  canInstallAuthoritativeSnapshot,
+  canRefreshOnRequest,
+  hasRecoverySurface,
+} from 'services/staleness/authoritativeRecovery';
+import {
+  notifyMutationApplied,
+  onAuthoritativeRefreshRequired,
+  onMutationApplied,
+} from 'services/mutation/mutationObservers';
 import {
   onTournamentMutation,
   onTournamentReplaced,
@@ -47,12 +58,17 @@ let staleRefreshTournamentId: string | undefined;
  */
 let stopRefreshObserver: (() => void) | undefined;
 let stopDurableRecoveryObserver: (() => void) | undefined;
+let stopGenerationObserver: (() => void) | undefined;
+/** Bumped by every change applied to the engine. A record fetched across a bump may be older than the engine. */
+let appliedGeneration = 0;
 export function initRemoteMutationHandler(): void {
   slog('[remoteMutation] handler registered');
   onTournamentMutation(handleRemoteMutation);
   onTournamentReplaced(handleTournamentReplaced);
   stopRefreshObserver?.();
   stopDurableRecoveryObserver?.();
+  stopGenerationObserver?.();
+  stopGenerationObserver = onMutationApplied(() => appliedGeneration++);
   // A local result the server's answer cannot be applied to, and a durable command recovered with an
   // uncertain local state, both leave the local copy unproven: pull the authoritative record.
   const markIfViewing = (ids: string[]) => {
@@ -71,7 +87,18 @@ export function clearSyncIndicator(): void {
   if (el) {
     el.style.display = 'none';
     el.classList.remove('sync-indicator--active');
+    el.title = '';
   }
+}
+
+/**
+ * A tab change hides what belonged to the page being left (the "updates arrived" hint, a deleted-draw banner) but is
+ * not a refresh: a copy known to be behind stays marked stale, its writes stay blocked, and the indicator stays until
+ * the record is pulled (planning/TMX_CHECK_IN_INTENTS_AND_RECONNECT.md: "keep stale writes blocked during recovery").
+ */
+export function clearSyncIndicatorForNavigation(): void {
+  if (isSyncStale()) return clearActiveDrawDeletedBanner();
+  clearSyncIndicator();
 }
 
 /** Parse the actively-viewed draw route from the URL hash, if any. */
@@ -120,10 +147,58 @@ function reactToActiveDrawDeletion(methods: any[]): void {
 }
 
 /** Surface the sync indicator in "stale" mode — the staleness probe found the
- * server ahead of the local copy. Clicking the icon pulls the fresh record. */
-export function markStaleNeedsRefresh(tournamentId: string): void {
+ * server ahead of the local copy. Clicking the icon pulls the fresh record; a surface
+ * that opted in to automatic recovery has it pulled for it once that is safe. */
+export function markStaleNeedsRefresh(tournamentId: string, { recover = true }: { recover?: boolean } = {}): void {
   staleRefreshTournamentId = tournamentId;
   showSyncIndicator();
+  if (recover) recoverIfSafe();
+}
+
+let recovering = false;
+let recoverAgain = false;
+
+/**
+ * Option B (planning/TMX_CHECK_IN_INTENTS_AND_RECONNECT.md): pull and install the record without a click, when the
+ * surface on screen opted in and nothing would be lost (`canInstallAuthoritativeSnapshot`). Otherwise the stale
+ * indicator stays and says why it waits; the surface calls this again once its draft or pending gesture settles.
+ *
+ * Signals coalesce: one recovery at a time, and a request that arrives during it runs once more afterwards.
+ * Mutations stay blocked (`isSyncStale`) until the install clears the indicator.
+ */
+export function recoverIfSafe(): void {
+  const tournamentId = staleRefreshTournamentId;
+  if (!tournamentId || tournamentId !== factory[TOURNAMENT_ENGINE].getTournamentId()) return;
+  if (recovering) {
+    recoverAgain = true;
+    return;
+  }
+  if (!canInstallAuthoritativeSnapshot()) return explainRecoveryWaiting();
+  recovering = true;
+  void refreshTournamentFromServer(tournamentId, { guard: canInstallAuthoritativeSnapshot })
+    .then((outcome) => {
+      if (outcome === 'blocked') explainRecoveryWaiting();
+    })
+    .finally(() => {
+      recovering = false;
+      if (!recoverAgain) return;
+      recoverAgain = false;
+      recoverIfSafe();
+    });
+}
+
+/** A refresh the operator asked for would discard a draft or overtake a command: nothing is installed, and they are told why. */
+function refuseManualRefresh(): void {
+  const el = document.getElementById(SYNC_INDICATOR);
+  if (el) el.title = t('remoteMutations.refreshWaiting');
+  tmxToast({ message: t('remoteMutations.refreshBlocked'), intent: 'is-warning' });
+}
+
+/** Only where recovery would otherwise have run: everywhere else the indicator means "click to refresh", as before. */
+function explainRecoveryWaiting(): void {
+  if (!hasRecoverySurface()) return;
+  const el = document.getElementById(SYNC_INDICATOR);
+  if (el) el.title = t('remoteMutations.refreshWaiting');
 }
 
 /** True when the local copy is known to be behind the server (icon in stale
@@ -144,34 +219,62 @@ export function handleTournamentReplaced(data: { tournamentId?: string; reason?:
   const tournamentId = data?.tournamentId;
   if (!tournamentId || factory[TOURNAMENT_ENGINE].getTournamentId() !== tournamentId) return;
   slog('[tournamentReplaced] reloading', tournamentId, data?.reason);
-  markStaleNeedsRefresh(tournamentId);
+  markStaleNeedsRefresh(tournamentId, { recover: false });
   tmxToast({ message: t('remoteMutations.tournamentReplaced'), intent: 'is-info' });
   void refreshTournamentFromServer(tournamentId);
 }
 
+export type RefreshOutcome = 'installed' | 'blocked' | 'obsolete' | 'failed';
+
+/** A record fetched while changes keep landing is fetched again, this many times at most. */
+const MAX_REFRESH_ATTEMPTS = 3;
+
 /** Pull the latest tournament record from the server and apply it locally. Invoked on an
- * explicit click (the sync icon, or a save-conflict toast's action), or when the server says
- * the record was replaced — never on a background poll. */
-export async function refreshTournamentFromServer(tournamentId: string): Promise<void> {
-  const isCurrent = captureTournamentOperation([tournamentId]);
+ * explicit click (the sync icon, or a save-conflict toast's action), when the server says
+ * the record was replaced, or by `recoverIfSafe` — never on a background poll.
+ *
+ * `guard` is checked again once the record has arrived: a draft begun during the fetch wins,
+ * and the install does not happen. A change applied to the engine during the fetch (an ack
+ * or a broadcast) may be newer than the fetched record, so that record is discarded and
+ * fetched again rather than allowed to roll the engine back. */
+export async function refreshTournamentFromServer(
+  tournamentId: string,
+  { guard }: { guard?: () => boolean } = {},
+): Promise<RefreshOutcome> {
+  // Detach when the operation stops being this tab's: another tournament, another installed copy, another identity.
+  const ownsRecord = captureTournamentOperation([tournamentId]);
+  const identity = getSessionIdentity();
+  const isCurrent = () => ownsRecord() && getSessionIdentity() === identity;
   try {
-    const result: any = await requestTournament({ tournamentId });
-    const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
-    if (!serverRecord || !isCurrent()) return;
+    for (let attempt = 0; attempt < MAX_REFRESH_ATTEMPTS; attempt++) {
+      const generation = appliedGeneration;
+      const result: any = await requestTournament({ tournamentId });
+      const serverRecord = result?.data?.tournamentRecords?.[tournamentId];
+      if (!isCurrent()) return 'obsolete';
+      if (!serverRecord) return 'failed';
+      if (guard && !guard()) return 'blocked';
+      if (generation !== appliedGeneration) continue;
 
-    const factoryEngine: any = factory[TOURNAMENT_ENGINE];
-    const applied = factoryEngine.setState(serverRecord);
-    if (applied?.error) return;
-    markTournamentRecordInstalled();
-    if (staleRefreshTournamentId === tournamentId) clearSyncIndicator();
-    setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
-    notifyMutationApplied();
-    await saveTournamentRecord();
-    joinTournamentRoom(tournamentId);
+      const factoryEngine: any = factory[TOURNAMENT_ENGINE];
+      const applied = factoryEngine.setState(serverRecord);
+      if (applied?.error) return 'failed';
+      markTournamentRecordInstalled();
+      // Commands held behind one that went unanswered may go now: whatever that one did is in this record, and
+      // anything sent from here on is written against it. A connected desk would otherwise wait for a reconnect.
+      resumeCommands();
+      if (staleRefreshTournamentId === tournamentId) clearSyncIndicator();
+      setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
+      notifyMutationApplied();
+      await saveTournamentRecord();
+      joinTournamentRoom(tournamentId);
 
-    if (context.refreshActiveTable) context.refreshActiveTable();
+      if (context.refreshActiveTable) context.refreshActiveTable();
+      return 'installed';
+    }
+    return 'failed';
   } catch (err) {
     console.warn('[syncIndicator] stale refresh failed:', err);
+    return 'failed';
   }
 }
 
@@ -189,8 +292,13 @@ function showSyncIndicator(): void {
       const staleId = isSyncStale() ? staleRefreshTournamentId : undefined;
       if (!staleId) clearSyncIndicator();
       if (staleId) {
+        // The operator chose to load, but never over a draft or a command still in flight: the same protection as
+        // automatic recovery, rechecked when the record arrives.
+        if (!canRefreshOnRequest()) return refuseManualRefresh();
         slog('[syncIndicator] clicked — pulling fresh record (stale)');
-        void refreshTournamentFromServer(staleId);
+        void refreshTournamentFromServer(staleId, { guard: canRefreshOnRequest }).then((outcome) => {
+          if (outcome === 'blocked') refuseManualRefresh();
+        });
       } else if (context.refreshActiveTable) {
         slog('[syncIndicator] clicked — refreshing active table');
         context.refreshActiveTable();
@@ -203,12 +311,20 @@ async function handleRemoteMutation(data: RemoteMutationPayload): Promise<void> 
   const { methods, tournamentIds, userId } = data;
   slog('[remoteMutation] received — methods:', methods?.length, 'tournaments:', tournamentIds, 'from:', userId);
 
-  if (!methods?.length || !tournamentIds?.length) return;
+  if (!tournamentIds?.length) return;
 
   // Our own mutation coming back. Socket.IO never sends it (the server excludes the sender), but a
   // transport that cannot exclude a connection would, and applying it twice would double it.
   if (isOwnMutation(data)) {
     slog('[remoteMutation] skipped — originated in this tab');
+    return;
+  }
+
+  // A command whose every directive was a presence intention already satisfied: the server saved, so its write
+  // time moved, but there is nothing to apply. Without this step every desk that was current would look behind
+  // and pull the whole record. A desk that was already behind stays behind (P49), and the probe still says so.
+  if (!methods?.length) {
+    advanceServerSync(data.previousServerUpdatedAt, data.serverUpdatedAt);
     return;
   }
 

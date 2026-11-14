@@ -654,6 +654,7 @@ describe('socketIo commands over HTTP', () => {
   const mutation = (method: string) => ({ type: 'executionQueue', payload: { methods: [{ method }] } });
   const postedMethods = () => fake.posted.map((p: any) => p.data.payload.methods[0].method);
   const socketMutations = () => fake.sent.filter((m: any) => m.event === 'executionQueue');
+  const unanswered = () => ({ unreachable: 'no response' });
 
   beforeEach(async () => {
     fake.reset();
@@ -730,7 +731,7 @@ describe('socketIo commands over HTTP', () => {
   });
 
   it('leaves an unanswered non-durable command to its sender, unacked and not re-queued', async () => {
-    fake.answer = () => ({ unreachable: 'no response' });
+    fake.answer = unanswered;
     socketIo.connectSocket();
     fake.up();
     const ackCallback = vi.fn();
@@ -740,8 +741,22 @@ describe('socketIo commands over HTTP', () => {
     expect(socketIo.queuedMessageCount()).toBe(0);
   });
 
+  // A command whose sender gave up can no longer change this copy, so it must not keep recovery waiting for an
+  // answer nobody will act on. It used to count as unsettled for three server timeouts, and nothing retried after.
+  it('an abandoned command stops counting as unsettled', async () => {
+    fake.answer = unanswered;
+    socketIo.connectSocket();
+    fake.up();
+    const handle = socketIo.emitTmx({ data: mutation('a'), ackCallback: vi.fn() });
+    await settle();
+    expect(socketIo.unsettledCommandCount()).toBe(1);
+
+    handle.abandon();
+    expect(socketIo.unsettledCommandCount()).toBe(0);
+  });
+
   it('re-queues unanswered durable commands in the order they were sent, and replays them on the next connect', async () => {
-    fake.answer = () => ({ unreachable: 'no response' });
+    fake.answer = unanswered;
     socketIo.connectSocket();
     fake.up();
     socketIo.emitTmx({ data: mutation('a'), durable: true });

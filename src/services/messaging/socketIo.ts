@@ -308,6 +308,11 @@ export function clearDisconnectFlag(): void {
  */
 export interface EmitHandle {
   cancel: () => boolean;
+  /**
+   * The sender stopped waiting for this command's answer and will ignore it if it comes. A late answer can no
+   * longer change this copy, so the command stops counting as unsettled and no longer holds recovery back.
+   */
+  abandon: () => void;
   /** Durable callers can wait until the command is safely stored before reporting completion. */
   persisted?: Promise<boolean>;
 }
@@ -400,6 +405,10 @@ export function emitTmx({
       if (ran) return withdraw();
       cancelled = true;
       return true;
+    },
+    abandon: () => {
+      const ackId = data.payload?.ackId;
+      if (ackId) forgetAcknowledgement(ackId);
     },
   };
 }
@@ -552,7 +561,7 @@ function enqueue(event: string, data: any, durableUserId?: string): OutboxEntry 
  * Send now, or queue for the next connect. `durableUserId` marks a durable message and names its
  * user. Returns cancellation and, for durable messages, persistence completion.
  */
-function socketEmit(event: string, data: any, durableUserId?: string): EmitHandle {
+function socketEmit(event: string, data: any, durableUserId?: string): Omit<EmitHandle, 'abandon'> {
   // While a flush is replaying, a new message waits behind it so the server sees them in order.
   if (
     !durableUserId &&
@@ -761,6 +770,15 @@ export function queuedMessageCount(): number {
   return outbox.length;
 }
 
+/**
+ * Commands this tab has sent or queued and not yet heard back about: waiting for a connection, or for their
+ * answer. An authoritative record installed meanwhile could be older than what that answer applies, so
+ * automatic recovery waits until this is zero (see services/staleness/authoritativeRecovery.ts).
+ */
+export function unsettledCommandCount(): number {
+  return outbox.length + new Set(Object.values(ackRequests)).size;
+}
+
 function connectionEvent(callback?: () => void): void {
   slog('[socket] connected — id:', oi.connection?.connectionId());
   // Re-arm the trouble toast so the NEXT outage is announced once more.
@@ -857,6 +875,12 @@ function requestAcknowledgement({
     ackRequests[uuid] = wrappedCallback;
     ackTimeouts[uuid] = timerId;
   }
+}
+
+function forgetAcknowledgement(ackId: string): void {
+  clearTimeout(ackTimeouts[ackId]);
+  delete ackRequests[ackId];
+  delete ackTimeouts[ackId];
 }
 
 function receiveAcknowledgement(ack: ServerAck): void {

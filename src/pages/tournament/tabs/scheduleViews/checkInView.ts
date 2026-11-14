@@ -2,6 +2,7 @@ import { checkInDeskMatchUps, type DeskFilters, type CheckInFilter } from 'servi
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { openCheckInEditor } from 'components/checkIn/checkInEditor';
+import { recoverIfSafe } from 'services/messaging/remoteMutations';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { t } from 'i18n';
 
@@ -83,8 +84,11 @@ export function renderCheckInView(container: HTMLElement, date: string) {
         dialog = openCheckInEditor({
           matchUpId: matchUp.matchUpId,
           drawId: matchUp.drawId,
+          // A refresh that waited for this editor can run now.
+          onSettled: recoverIfSafe,
           onClose: () => {
             if (!disposed) focusCard(cards, matchUp.matchUpId);
+            recoverIfSafe();
           },
         });
       };
@@ -106,6 +110,8 @@ export function renderCheckInView(container: HTMLElement, date: string) {
   refresh();
   return {
     refresh,
+    /** Whether an open editor holds a pending request or attester entry (see authoritativeRecovery.ts). */
+    isBusy: () => !disposed && !!dialog?.isBusy(),
     destroy: () => {
       disposed = true;
       unsubscribe();

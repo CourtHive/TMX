@@ -30,6 +30,9 @@
  * caller receives a `warnings` array describing what was skipped and why.
  */
 
+import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
+import { resolveImportedParticipantId } from './resolveImportedParticipantId';
+import { TargetField, TargetFieldKind } from './participantFieldModel';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { mergeParticipantDrafts } from './mergeParticipantDrafts';
 import { resolveParticipantRole } from './resolveParticipantRole';
@@ -41,10 +44,6 @@ import { applyUtrProfile } from './utrProfile';
 import { isFunction } from 'functions/typeOf';
 import { hashCode } from 'functions/hashCode';
 import { t } from 'i18n';
-
-// constants and types
-import { ADD_EVENT_ENTRIES, ADD_PARTICIPANTS, MODIFY_PARTICIPANT } from 'constants/mutationConstants';
-import { TargetField, TargetFieldKind } from './participantFieldModel';
 
 export type ImportRowWarning = {
   rowIndex: number;
@@ -118,24 +117,21 @@ export function commitParticipantImport({
   updateExisting = false,
   callback,
 }: CommitImportArgs): void {
-  const validNationalityCodes = new Set<string>(fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean));
-
-  const existingParticipants = tournamentEngine.q.participants() ?? [];
-  const existingIds = new Set<string>(existingParticipants.map(({ participantId }: any) => participantId));
-
-  const warnings: ImportRowWarning[] = [];
-
-  const { participants, updates, mergeCount, rowParticipantIds } = parseGroupAndResolve({
+  const { participants, updates, mergeCount, rowParticipantIds, warnings } = previewParticipantImport({
     rows,
     mapping,
-    validNationalityCodes,
     dedupeKey,
     updateExisting,
-    existingIds,
-    warnings,
   });
 
   const eventEntries = buildEventEntryDispatch(rows, mapping, rowParticipantIds);
+  const invalidIdentity = warnings.some((warning) => warning.reason === 'invalid retired participant mapping');
+  if (invalidIdentity) {
+    tmxToast({ message: t('participantMerge.invalidImport'), intent: 'is-danger' });
+    if (isFunction(callback))
+      callback({ success: false, addedCount: 0, warnings, mergeCount, eventEntries: [], teamsAdded: 0 });
+    return;
+  }
 
   if (!participants.length && !updates.length && !eventEntries.length) {
     tmxToast({ message: t('toasts.noNewParticipants'), intent: 'is-primary' });
@@ -287,7 +283,26 @@ type ResolvedDrafts = {
   updates: any[];
   mergeCount: number;
   rowParticipantIds: Map<number, string>;
+  resolved: { participant: any; status: string }[];
 };
+
+/** Shared read-only preparation for import preview and commit, including retired-ID resolution. */
+export function previewParticipantImport({
+  rows,
+  mapping,
+  dedupeKey = 'email',
+  updateExisting = false,
+}: Pick<CommitImportArgs, 'rows' | 'mapping' | 'dedupeKey' | 'updateExisting'>) {
+  const validNationalityCodes = new Set<string>(fixtures.countries.flatMap((f: any) => [f.ioc, f.iso]).filter(Boolean));
+  const existingIds = new Set<string>(
+    (tournamentEngine.q.participants() ?? []).map(({ participantId }: any) => participantId),
+  );
+  const warnings: ImportRowWarning[] = [];
+  return {
+    ...parseGroupAndResolve({ rows, mapping, validNationalityCodes, dedupeKey, updateExisting, existingIds, warnings }),
+    warnings,
+  };
+}
 
 /**
  * Parse → group → merge → resolve-against-existing pipeline. Extracted from
@@ -332,6 +347,7 @@ function parseGroupAndResolve({
     groups.get(item.groupKey)!.push(item);
   }
 
+  const resolved: ResolvedDrafts['resolved'] = [];
   const participants: any[] = [];
   const updates: any[] = [];
   const rowParticipantIds = new Map<number, string>();
@@ -350,18 +366,38 @@ function parseGroupAndResolve({
     //   - Multi-row merged groups need a single deterministic ID; recompute it
     //     from the merged participantName so it stays stable across re-imports
     //     even though the merger drops the per-draft IDs.
-    const finalParticipantId =
+    const importedParticipantId =
       group.length === 1 && group[0].draft.participantId
         ? group[0].draft.participantId
         : `XXX-${hashCode(mergedDraft.participantName)}`;
+    const finalParticipantId = resolveImportedParticipantId(importedParticipantId);
+    if (!finalParticipantId) {
+      warnings.push({
+        rowIndex: group[0].rowIdx,
+        field: 'participantId',
+        originalValue: importedParticipantId,
+        reason: 'invalid retired participant mapping',
+      });
+      resolved.push({ participant: mergedDraft, status: 'invalid' });
+      continue;
+    }
     mergedDraft.participantId = finalParticipantId;
 
     for (const item of group) rowParticipantIds.set(item.rowIdx, finalParticipantId);
 
+    const status =
+      finalParticipantId !== importedParticipantId
+        ? 'redirected'
+        : existingIds.has(finalParticipantId)
+          ? updateExisting
+            ? 'update'
+            : 'unchanged'
+          : 'new';
+    resolved.push({ participant: mergedDraft, status });
     routeDraft({ mergedDraft, finalParticipantId, existingIds, updateExisting, participants, updates });
   }
 
-  return { participants, updates, mergeCount, rowParticipantIds };
+  return { participants, updates, mergeCount, rowParticipantIds, resolved };
 }
 
 function routeDraft({

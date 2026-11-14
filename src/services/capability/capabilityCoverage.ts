@@ -24,6 +24,7 @@
  */
 import { BOOLEAN_PERMISSION_KEYS, MUTATION_PERMISSIONS } from '@courthive/provider-config';
 
+// constants and types
 import type { ProviderPermissions } from '@courthive/provider-config';
 
 export type PermissionKey = keyof ProviderPermissions;
@@ -44,6 +45,8 @@ export const UI_ENFORCED: ReadonlySet<PermissionKey> = new Set<PermissionKey>([
   'canCreateOfficials',
   'canCreateCompetitors',
   'canDeleteParticipants',
+  'canMergeParticipants',
+  'canEditParticipantDetails',
   'canEnterScores',
   'canImportParticipants',
   'canModifyEventFormat',

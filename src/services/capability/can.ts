@@ -55,6 +55,7 @@ export type CapabilityAction =
   | 'createOfficial'
   | 'importParticipants'
   | 'deleteParticipants'
+  | 'mergeParticipants'
   | 'editParticipantDetails'
   | 'modifyEntries'
   | 'createEvent'
@@ -77,6 +78,7 @@ const ACTION_PERMISSION: Readonly<Record<CapabilityAction, keyof ProviderPermiss
   createOfficial: 'canCreateOfficials',
   importParticipants: 'canImportParticipants',
   deleteParticipants: 'canDeleteParticipants',
+  mergeParticipants: 'canMergeParticipants',
   editParticipantDetails: 'canEditParticipantDetails',
   modifyEntries: 'canModifyEntries',
   createEvent: 'canCreateEvents',
@@ -110,10 +112,13 @@ const ALLOWED: Capability = { allowed: true };
  * between renders. `navigation.ts` already re-evaluates its conditional tabs on
  * every tab render for exactly this reason.
  */
-export function can(action: CapabilityAction): Capability {
+/** `standalone`: the tournament has no provider (logged out, no parent organisation), so provider opt-ins hold. */
+export type CapabilityOptions = { standalone?: boolean };
+
+export function can(action: CapabilityAction, options: CapabilityOptions = {}): Capability {
   const key = ACTION_PERMISSION[action];
 
-  if (!providerConfig.isAllowed(key)) {
+  if (!providerConfig.isAllowed(key, options)) {
     return {
       allowed: false,
       because: 'provider',
@@ -125,8 +130,8 @@ export function can(action: CapabilityAction): Capability {
 }
 
 /** Convenience for the `hide:` property that control-bar and menu items take. */
-export function cannot(action: CapabilityAction): boolean {
-  return !can(action).allowed;
+export function cannot(action: CapabilityAction, options?: CapabilityOptions): boolean {
+  return !can(action, options).allowed;
 }
 
 /** The reason, when denied — otherwise undefined. Use for a disabled-control tooltip. */

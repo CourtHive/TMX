@@ -4,7 +4,7 @@ import { buildAttesterChooser } from 'components/popovers/checkInAttesterChooser
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { checkOutLocked } from 'services/checkIn/checkInEligibility';
 import { matchUpActionConstants } from 'tods-competition-factory';
-import { toggleCheckIn } from 'services/checkIn/toggleCheckIn';
+import { requestCheckInState } from 'services/checkIn/requestCheckInState';
 import { logMutationError } from 'functions/logMutationError';
 import { tournamentEngine } from 'services/factory/engine';
 import { openCheckInDialog } from './checkInDialog';
@@ -15,9 +15,11 @@ interface EditorParams {
   drawId: string;
   onChange?: () => void;
   onClose?: () => void;
+  /** The editor stopped being busy: a request was answered, or attester entry was abandoned. */
+  onSettled?: () => void;
 }
 
-export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams) {
+export function buildCheckInEditor({ matchUpId, drawId, onChange, onSettled }: EditorParams) {
   const element = document.createElement('div');
   element.className = 'tmx-checkin-editor';
   let pending = false;
@@ -25,21 +27,24 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
   let choosing = false;
   let focusParticipant: string | undefined;
 
-  const toggle = (participantId: string, attributedTo?: Record<string, any>) => {
+  // `checkedIn` is the direction of the button the operator pressed, captured at the gesture. The attester
+  // chooser carries it through attribution entry, so an update that lands meanwhile cannot reverse it.
+  const request = (participantId: string, checkedIn: boolean, attributedTo?: Record<string, any>) => {
     if (pending || disposed) return;
     pending = true;
     choosing = false;
     focusParticipant = participantId;
     render();
-    toggleCheckIn({
+    requestCheckInState({
       matchUpId,
       drawId,
       participantId,
+      checkedIn,
       attributedTo,
       callback: (result) => {
         pending = false;
         if (!result?.success) logMutationError('checkIn', result, { message: t('checkIn.toggleFailed') });
-        if (disposed) return;
+        if (disposed) return onSettled?.();
         render();
         const restored = [...element.querySelectorAll<HTMLButtonElement>('[data-participant-id]')].find(
           (button) => button.dataset.participantId === participantId,
@@ -47,6 +52,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
         if (restored?.disabled) element.closest<HTMLElement>('[role="dialog"]')?.focus();
         else restored?.focus();
         if (result?.success) onChange?.();
+        onSettled?.();
       },
     });
   };
@@ -60,9 +66,14 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
         onCancel: () => {
           choosing = false;
           render();
+          onSettled?.();
         },
         onChoose: (attester) =>
-          toggle(participant.participantId, buildAttester({ participantId: participant.participantId, attester })),
+          request(
+            participant.participantId,
+            true,
+            buildAttester({ participantId: participant.participantId, attester }),
+          ),
       }),
     );
     element.querySelector<HTMLElement>('button')?.focus();
@@ -116,7 +127,8 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
       const name = document.createElement('span');
       name.textContent = participant.participantName;
       button.append(mark, name);
-      button.onclick = () => toggle(participant.participantId);
+      const checkedIn = !participant.checkedIn;
+      button.onclick = () => request(participant.participantId, checkedIn);
       row.appendChild(button);
       const attestation = latest.get(participant.participantId);
       const attribution = describeAttester(attestation?.attributedTo, translate);
@@ -150,6 +162,9 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
   render();
   return {
     element,
+    /** A request awaiting its answer, or an attester being chosen: an install now would discard or overtake it.
+     * An open editor that is only showing state is not busy; it re-renders from whatever record is installed. */
+    isBusy: () => !disposed && (pending || choosing),
     destroy: () => {
       disposed = true;
       unsubscribe();
@@ -159,7 +174,7 @@ export function buildCheckInEditor({ matchUpId, drawId, onChange }: EditorParams
 
 export function openCheckInEditor(params: EditorParams) {
   const editor = buildCheckInEditor(params);
-  return openCheckInDialog({
+  const dialog = openCheckInDialog({
     content: editor.element,
     title: t('checkIn.desk.title'),
     onClose: () => {
@@ -167,4 +182,5 @@ export function openCheckInEditor(params: EditorParams) {
       params.onClose?.();
     },
   });
+  return Object.assign(dialog, { isBusy: editor.isBusy });
 }
