@@ -1,17 +1,10 @@
-import { genderConstants } from 'tods-competition-factory';
-
-const { MALE, FEMALE } = genderConstants;
+import { genderAccent } from './genderAccent';
 
 export function genderedText(cell: any): HTMLDivElement {
   const value = cell.getValue();
   const data = cell.getRow().getData();
-  const sex = data.sex || data.person?.sex;
-  const color =
-    (sex?.toUpperCase() === MALE && 'var(--tmx-accent-blue)') ||
-    (sex?.toUpperCase() === FEMALE && 'var(--tmx-accent-pink)') ||
-    '';
   const el = document.createElement('div');
-  el.style.color = color;
+  el.style.color = genderAccent(data.sex || data.person?.sex);
   el.textContent = value ?? '';
   return el;
 }
