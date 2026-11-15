@@ -278,7 +278,8 @@ function buildCard(matchUp: any): HTMLButtonElement {
     const person = document.createElement('span');
     person.className = 'tmx-checkin-person-line';
     person.dataset.checkedIn = String(participant.checkedIn);
-    // The side is named once, on its first member's line; a partner's line keeps the column so names align.
+    // [○ Side 1: Name]: the mark leads, the state a desk scans for (CA 11-15). The side is named once, on its first
+    // member's line; a partner's line keeps the column so names align.
     const side = document.createElement('span');
     side.className = 'tmx-checkin-side-label';
     if (participant.sideNumber !== sideNumber) {
@@ -291,7 +292,7 @@ function buildCard(matchUp: any): HTMLButtonElement {
     const name = document.createElement('span');
     name.textContent = participant.participantName;
     name.style.color = genderAccent(sexes.get(participant.participantId));
-    person.append(side, mark, name);
+    person.append(mark, side, name);
     person.setAttribute(
       ARIA_LABEL,
       `${participant.participantName}: ${t(participant.checkedIn ? 'checkIn.desk.present' : 'checkIn.desk.awaiting')}`,

@@ -1012,10 +1012,10 @@
   line-height: 1.5;
   margin: 0.75rem 0;
 }
-/* one line per person: [Side 1] ✓ Name, the side column fixed so a pair's names align */
+/* one line per person: ✓ Side 1: Name, the side column fixed so a pair's names align */
 .tmx-checkin-person-line {
   display: grid;
-  grid-template-columns: 3.75rem 1em 1fr;
+  grid-template-columns: 1em 4rem 1fr;
   align-items: baseline;
   gap: 0.35rem;
 }
