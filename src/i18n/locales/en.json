@@ -3371,7 +3371,7 @@
     "callChanged": "The match or court changed while this dialog was open. Review it and try again.",
     "desk": {
       "title": "Check-In",
-      "side": "Side {{number}}",
+      "side": "Side {{number}}:",
       "search": "Search participant names",
       "status": "Check-in status",
       "all": "All check-in states",
