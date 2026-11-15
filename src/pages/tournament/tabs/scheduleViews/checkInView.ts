@@ -1,18 +1,23 @@
-import { checkInDeskMatchUps, deskBucketCounts, participantSexes } from 'services/checkIn/checkInDeskModel';
-import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
-import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { createChipSelection, paintChipColor } from 'components/tables/common/filters/chipFilter';
-import { DEFAULT_DESK_BUCKETS, type DeskFilters } from 'services/checkIn/checkInDeskModel';
+import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
+import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { STATUS_BUCKET_COLORS } from 'components/tables/common/filters/statusColors';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { openCheckInEditor } from 'components/checkIn/checkInEditor';
 import { recoverIfSafe } from 'services/messaging/remoteMutations';
-import { genderConstants } from 'tods-competition-factory';
 import { getCachedAllMatchUps } from './schedule2DataCache';
+import { genderConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import { LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
+import {
+  checkInDeskMatchUps,
+  deskBucketCounts,
+  participantSexes,
+  DEFAULT_DESK_BUCKETS,
+  type DeskFilters,
+} from 'services/checkIn/checkInDeskModel';
 
 const ARIA_LABEL = 'aria-label';
 const CHECK_IN_STATES = ['all', 'awaiting', 'partial', 'complete'] as const;

@@ -1,8 +1,13 @@
-import { checkInDeskMatchUps, deskBucketCounts, participantSexes, type DeskFilters } from './checkInDeskModel';
-import { DEFAULT_DESK_BUCKETS } from './checkInDeskModel';
 import { doublesMatchUp } from './checkInTestMatchUps';
 import { checkOutLocked } from './checkInEligibility';
 import { describe, expect, it } from 'vitest';
+import {
+  checkInDeskMatchUps,
+  deskBucketCounts,
+  participantSexes,
+  DEFAULT_DESK_BUCKETS,
+  type DeskFilters,
+} from './checkInDeskModel';
 
 const DATE = '2026-11-09';
 const filters: DeskFilters = { search: '', status: 'all', eventId: '', venueId: '', buckets: DEFAULT_DESK_BUCKETS };
