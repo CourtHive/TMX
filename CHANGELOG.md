@@ -1,5 +1,31 @@
 # Changelog
 
+## [8.54.0](https://github.com/CourtHive/TMX/compare/v8.53.2...v8.54.0) (2026-11-15)
+
+
+### Features
+
+* add reviewed individual participant merge flow ([#1988](https://github.com/CourtHive/TMX/issues/1988)) ([94c0cbc](https://github.com/CourtHive/TMX/commit/94c0cbc71b013e16e6374cc8f8c9209d3496e23e))
+* **check-in:** lead each desk line with the check mark ([#2007](https://github.com/CourtHive/TMX/issues/2007)) ([7ab6fba](https://github.com/CourtHive/TMX/commit/7ab6fba8e40f84e7f2d6fe1fbf341a25b989f85a))
+* **check-in:** send the chosen direction as an intention and recover a clean check-in desk ([#1992](https://github.com/CourtHive/TMX/issues/1992)) ([8e4c5d8](https://github.com/CourtHive/TMX/commit/8e4c5d869e1f6d743060379c329a450d636952d4))
+* **check-in:** status chips, standard filters and gendered cards on the desk ([#2005](https://github.com/CourtHive/TMX/issues/2005)) ([4cc16f8](https://github.com/CourtHive/TMX/commit/4cc16f8d1503fc69642c717bcd38c3bbd5365fc1))
+* let a standalone local tournament merge individuals ([#1998](https://github.com/CourtHive/TMX/issues/1998)) ([0206cf3](https://github.com/CourtHive/TMX/commit/0206cf3fb0caa22ea6e7660eaff51f1d34d0bc3a))
+* offer participant merge only to provider administrators who opted in ([#1997](https://github.com/CourtHive/TMX/issues/1997)) ([4da1262](https://github.com/CourtHive/TMX/commit/4da1262adee129c4d86659a63ebf2f787725d1e7))
+
+
+### Bug Fixes
+
+* **deps:** update @courthive/provider-config to 1.1.0 ([#1991](https://github.com/CourtHive/TMX/issues/1991)) ([7b415c8](https://github.com/CourtHive/TMX/commit/7b415c8b0bea43641da47021c4781040b95f4ca5))
+* **deps:** update dependency axios to v1.21.1 ([#1987](https://github.com/CourtHive/TMX/issues/1987)) ([2fab299](https://github.com/CourtHive/TMX/commit/2fab2997b03bc11aca426b644d25d028ba451d62))
+* **deps:** update dependency courthive-components to v7.16.1 ([#2006](https://github.com/CourtHive/TMX/issues/2006)) ([25a13ac](https://github.com/CourtHive/TMX/commit/25a13ac5903e6d1ba3b88344d78a5e603c7b315e))
+* **deps:** update dependency timepicker-ui to v4.7.0 ([#2004](https://github.com/CourtHive/TMX/issues/2004)) ([df41ba2](https://github.com/CourtHive/TMX/commit/df41ba2db2141ec2127a850f455f9ab15f6b98a4))
+* **deps:** update tods-competition-factory to 7.37.0 ([#1990](https://github.com/CourtHive/TMX/issues/1990)) ([170e492](https://github.com/CourtHive/TMX/commit/170e49265b56f1c891b10e250c3a525db1fecbc2))
+* **deps:** update tods-competition-factory to 7.38.0 ([#2001](https://github.com/CourtHive/TMX/issues/2001)) ([338a0a0](https://github.com/CourtHive/TMX/commit/338a0a07e402e8d68ecd195f32cc1a5848038730))
+* **messaging:** a lost answer no longer leaves a connected desk stuck ([#1999](https://github.com/CourtHive/TMX/issues/1999)) ([ebba6ab](https://github.com/CourtHive/TMX/commit/ebba6abab03b3f4c5ac04621eb6c8c3cf32a6e53))
+* **schedule:** center the selected date in the date-selector popover ([#1993](https://github.com/CourtHive/TMX/issues/1993)) ([e3de658](https://github.com/CourtHive/TMX/commit/e3de658ba22a9f7acc0842571f6e7a474d7b8b2b))
+* **staleness:** keep a stale copy stale across tab changes ([#1996](https://github.com/CourtHive/TMX/issues/1996)) ([e69255b](https://github.com/CourtHive/TMX/commit/e69255bd40a35132225efc29eb8a326d6d3b9335))
+* **staleness:** never let the stale-indicator refresh discard a draft ([#1995](https://github.com/CourtHive/TMX/issues/1995)) ([01e7659](https://github.com/CourtHive/TMX/commit/01e76592e959cbc5b04410d7d25f5f1819523a42))
+
 ## [8.53.2](https://github.com/CourtHive/TMX/compare/v8.53.1...v8.53.2) (2026-11-12)
 
 
