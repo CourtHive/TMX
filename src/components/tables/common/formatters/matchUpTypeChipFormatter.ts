@@ -1,11 +1,11 @@
-import { genderConstants, eventConstants } from 'tods-competition-factory';
+import { eventConstants } from 'tods-competition-factory';
+import { genderAccent } from './genderAccent';
 import { t } from 'i18n';
 
 // The accents are light in dark palettes and dark in light ones; the inverse text color is the ink that
 // contrasts with them in every palette.
 const INK_ON_ACCENT = 'var(--tmx-text-inverse)';
 
-const { MALE, FEMALE, MIXED } = genderConstants;
 const { SINGLES, DOUBLES, TEAM } = eventConstants;
 
 const TYPE_LABEL_KEYS: Record<string, string> = {
@@ -15,11 +15,8 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
 };
 
 function colorsForGender(gender?: string): { bg: string; fg: string } {
-  const g = gender?.toUpperCase();
-  if (g === MALE) return { bg: 'var(--tmx-accent-blue)', fg: INK_ON_ACCENT };
-  if (g === FEMALE) return { bg: 'var(--tmx-accent-pink)', fg: INK_ON_ACCENT };
-  if (g === MIXED) return { bg: 'var(--tmx-accent-purple)', fg: INK_ON_ACCENT };
-  return { bg: 'var(--tmx-bg-tertiary)', fg: 'var(--tmx-text-primary)' };
+  const accent = genderAccent(gender);
+  return accent ? { bg: accent, fg: INK_ON_ACCENT } : { bg: 'var(--tmx-bg-tertiary)', fg: 'var(--tmx-text-primary)' };
 }
 
 export function matchUpTypeChipFormatter(cell: any): HTMLSpanElement | string {
