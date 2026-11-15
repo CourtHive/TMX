@@ -12,6 +12,7 @@ html[data-tmx-demo-clock-dock='true'] .app_shell {
   bottom: 0;
   z-index: 1000;
   display: flex;
+  align-items: center;
   justify-content: center;
   min-height: 44px;
   padding: 4px 12px;
