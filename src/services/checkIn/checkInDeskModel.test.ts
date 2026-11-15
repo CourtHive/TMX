@@ -1,10 +1,16 @@
-import { checkInDeskMatchUps, type DeskFilters } from './checkInDeskModel';
 import { doublesMatchUp } from './checkInTestMatchUps';
 import { checkOutLocked } from './checkInEligibility';
 import { describe, expect, it } from 'vitest';
+import {
+  checkInDeskMatchUps,
+  deskBucketCounts,
+  participantSexes,
+  DEFAULT_DESK_BUCKETS,
+  type DeskFilters,
+} from './checkInDeskModel';
 
 const DATE = '2026-11-09';
-const filters: DeskFilters = { search: '', status: 'all', eventId: '', venueId: '', showCompleted: false };
+const filters: DeskFilters = { search: '', status: 'all', eventId: '', venueId: '', buckets: DEFAULT_DESK_BUCKETS };
 const matchUp = (id: string, checked: string[] = [], schedule: any = {}) => ({
   ...doublesMatchUp(checked),
   matchUpId: id,
@@ -37,10 +43,58 @@ describe('check-in desk selection', () => {
     ]);
     expect(checkInDeskMatchUps(source, DATE, { ...filters, status: 'awaiting' })).toHaveLength(2);
   });
-  it('filters events and venues, and hides completed matches by default', () => {
-    const finished = { ...matchUp('finished'), matchUpStatus: 'COMPLETED' };
-    expect(checkInDeskMatchUps([finished], DATE, filters)).toHaveLength(0);
-    expect(checkInDeskMatchUps([finished], DATE, { ...filters, showCompleted: true })).toHaveLength(1);
+  it('opens on matches to be played: a scored, suspended or finished match is past the desk', () => {
+    const source = [
+      matchUp('waiting'),
+      { ...matchUp('scored'), matchUpStatus: 'IN_PROGRESS', score: { scoreStringSide1: '3-2' } },
+      // a score without the status says so too: the matchUps table reads it the same way
+      { ...matchUp('scoredOnly'), score: { scoreStringSide1: '1-0' } },
+      { ...matchUp('suspended'), matchUpStatus: 'SUSPENDED', score: { scoreStringSide1: '4-4' } },
+      { ...matchUp('finished'), matchUpStatus: 'COMPLETED', winningSide: 1 },
+      { ...matchUp('walkover'), matchUpStatus: 'WALKOVER', winningSide: 2 },
+    ];
+    expect(checkInDeskMatchUps(source, DATE, filters).map((m) => m.matchUpId)).toEqual(['waiting']);
+    const ids = (buckets?: string[]) =>
+      checkInDeskMatchUps(source, DATE, { ...filters, buckets }).map((m) => m.matchUpId);
+    expect(ids(['live'])).toEqual(['scored', 'scoredOnly']);
+    expect(ids(['suspended', 'complete'])).toEqual(['finished', 'suspended', 'walkover']);
+    expect(ids(undefined)).toHaveLength(source.length);
+  });
+  it("counts each chip's cards under every other filter, whichever chips are on", () => {
+    const source = [
+      matchUp('waiting'),
+      matchUp('partial', ['p1']),
+      { ...matchUp('finished'), matchUpStatus: 'COMPLETED', winningSide: 1 },
+      { ...matchUp('elsewhere'), eventId: 'other' },
+    ];
+    const counts = { toBePlayed: 3, live: 0, suspended: 0, complete: 1 };
+    expect(deskBucketCounts(source, DATE, filters)).toEqual(counts);
+    expect(deskBucketCounts(source, DATE, { ...filters, buckets: ['complete'] })).toEqual(counts);
+    expect(deskBucketCounts(source, DATE, { ...filters, eventId: 'event', status: 'partial' })).toEqual({
+      ...counts,
+      toBePlayed: 1,
+      complete: 0,
+    });
+  });
+  it("reads each individual's sex, a pair's members included", () => {
+    const person = (participantId: string, sex: string) => ({ participantId, person: { sex } });
+    const sexes = participantSexes({
+      sides: [
+        { participant: { ...person('p1', 'FEMALE') } },
+        {
+          participant: {
+            participantId: 'pair',
+            individualParticipants: [person('p2', 'MALE'), { participantId: 'p3' }],
+          },
+        },
+      ],
+    });
+    expect([...sexes]).toEqual([
+      ['p1', 'FEMALE'],
+      ['p2', 'MALE'],
+    ]);
+  });
+  it('filters events and venues', () => {
     expect(checkInDeskMatchUps([matchUp('other')], DATE, { ...filters, eventId: 'other' })).toHaveLength(0);
     expect(checkInDeskMatchUps([matchUp('other')], DATE, { ...filters, venueId: 'other' })).toHaveLength(0);
   });

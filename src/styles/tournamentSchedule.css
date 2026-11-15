@@ -936,13 +936,10 @@
   align-items: center;
   gap: 0.75rem;
 }
-.tmx-checkin-filters input,
-.tmx-checkin-filters select {
-  padding: 0.5rem;
-  color: var(--tmx-text-primary);
-  background: var(--tmx-bg-primary);
-  border: 1px solid var(--tmx-border-primary);
-  border-radius: 0.3rem;
+/* the chips sit under the control bar; the strip's own padding would indent them from the search box */
+.tmx-checkin-status-chips {
+  padding: 0.5rem 0 0;
+  font-size: 0.875rem;
 }
 .tmx-checkin-cards {
   display: grid;
@@ -952,7 +949,7 @@
 .tmx-checkin-card {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
   text-align: start;
   padding: 1rem;
   border: 1px solid var(--tmx-border-primary);
@@ -1009,19 +1006,26 @@
   outline-offset: 2px;
 }
 
-.tmx-checkin-desk > p,
-.tmx-checkin-filters label {
+.tmx-checkin-desk > p {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
   margin: 0.75rem 0;
 }
-.tmx-checkin-filters input[type='search'] {
-  width: 18rem;
-  max-width: 100%;
+/* one line per person: [Side 1] ✓ Name, the side column fixed so a pair's names align */
+.tmx-checkin-person-line {
+  display: grid;
+  grid-template-columns: 3.75rem 1em 1fr;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 .tmx-checkin-side-label {
   color: var(--tmx-text-secondary);
   font-size: 0.75rem;
-  margin-top: 0.25rem;
+}
+.tmx-checkin-person-line[data-checked-in='true'] .tmx-checkin-mark {
+  color: var(--tmx-checkin-done-fg);
+}
+.tmx-checkin-event {
+  font-weight: 600;
 }

@@ -47,7 +47,20 @@ export type ChipFilter = {
   rowFilter: (rowData: any) => boolean;
 };
 
-export function createChipFilter({ table, values, matches, initial, persist, onChange }: ChipFilterArgs): ChipFilter {
+type ChipSelectionArgs = {
+  /** every value a chip is offered for */
+  values: string[];
+  /** the saved selection, as `persist` last received it */
+  initial?: string[];
+  persist: (selected: string[] | undefined) => void;
+  /** after every change, with the new selection (`undefined`: every chip on, no filter) */
+  onChange?: (selected?: Set<string>) => void;
+};
+
+export type ChipSelection = Omit<ChipFilter, 'rowFilter'>;
+
+/** The chips' selection rules without a table, for a surface that filters its own list (the check-in desk). */
+export function createChipSelection({ values, initial, persist, onChange }: ChipSelectionArgs): ChipSelection {
   const normalize = (candidate?: string[]): Set<string> | undefined => {
     const kept = (candidate ?? []).filter((value) => values.includes(value));
     if (!kept.length || kept.length >= values.length) return undefined;
@@ -55,30 +68,12 @@ export function createChipFilter({ table, values, matches, initial, persist, onC
   };
 
   let selected = normalize(initial);
-  // Tabulator warns when removeFilter is handed a filter it never added
-  let applied = false;
-  const rowFilter = (rowData: any): boolean => !selected || [...selected].some((value) => matches(rowData, value));
-
-  if (selected) {
-    applied = true;
-    whenTableBuilt(table, () => applied && table.addFilter(rowFilter));
-  }
 
   const apply = (next?: Set<string>) => {
-    if (applied) {
-      table.removeFilter(rowFilter);
-      applied = false;
-    }
     selected = next;
     persist(selected ? [...selected] : undefined);
-    if (selected) {
-      table.addFilter(rowFilter);
-      applied = true;
-    }
-    onChange?.();
+    onChange?.(selected);
   };
-
-  const isOn = (value: string) => !selected || selected.has(value);
 
   const toggle = (value: string) => {
     if (!values.includes(value)) return;
@@ -91,14 +86,47 @@ export function createChipFilter({ table, values, matches, initial, persist, onC
   };
 
   return {
-    isOn,
+    isOn: (value: string) => !selected || selected.has(value),
     toggle,
     set: (next?: string[]) => apply(normalize(next)),
     clear: () => apply(undefined),
     selected: () => (selected ? [...selected] : undefined),
     isFiltered: () => !!selected,
-    rowFilter,
   };
+}
+
+export function createChipFilter({ table, values, matches, initial, persist, onChange }: ChipFilterArgs): ChipFilter {
+  let active: Set<string> | undefined;
+  // Tabulator warns when removeFilter is handed a filter it never added
+  let applied = false;
+  const rowFilter = (rowData: any): boolean => !active || [...active].some((value) => matches(rowData, value));
+
+  const selection = createChipSelection({
+    values,
+    initial,
+    persist,
+    onChange: (next) => {
+      if (applied) {
+        table.removeFilter(rowFilter);
+        applied = false;
+      }
+      active = next;
+      if (active) {
+        table.addFilter(rowFilter);
+        applied = true;
+      }
+      onChange?.();
+    },
+  });
+
+  const saved = selection.selected();
+  if (saved) {
+    active = new Set(saved);
+    applied = true;
+    whenTableBuilt(table, () => applied && table.addFilter(rowFilter));
+  }
+
+  return { ...selection, rowFilter };
 }
 
 const CHIP_ROW_WIDTH = 280;

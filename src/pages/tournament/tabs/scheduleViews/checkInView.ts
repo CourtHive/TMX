@@ -1,69 +1,159 @@
-import { checkInDeskMatchUps, type DeskFilters, type CheckInFilter } from 'services/checkIn/checkInDeskModel';
+import { createChipSelection, paintChipColor } from 'components/tables/common/filters/chipFilter';
+import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
+import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
+import { STATUS_BUCKET_COLORS } from 'components/tables/common/filters/statusColors';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { openCheckInEditor } from 'components/checkIn/checkInEditor';
 import { recoverIfSafe } from 'services/messaging/remoteMutations';
 import { getCachedAllMatchUps } from './schedule2DataCache';
+import { genderConstants } from 'tods-competition-factory';
+import { controlBar } from 'courthive-components';
+import { LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
+import {
+  checkInDeskMatchUps,
+  deskBucketCounts,
+  participantSexes,
+  DEFAULT_DESK_BUCKETS,
+  type DeskFilters,
+} from 'services/checkIn/checkInDeskModel';
 
 const ARIA_LABEL = 'aria-label';
+const CHECK_IN_STATES = ['all', 'awaiting', 'partial', 'complete'] as const;
+const { MALE, FEMALE, MIXED } = genderConstants;
+
+const BUCKET_LABELS: Record<string, string> = {
+  toBePlayed: 'pages.matchUps.toBePlayed',
+  live: 'pages.matchUps.live',
+  suspended: 'pages.matchUps.suspended',
+  complete: 'pages.matchUps.complete',
+};
+
+/** The matchUps table's gender accents (genderedText, matchUpTypeChipFormatter): one colour per gender across TMX. */
+export function genderAccent(gender?: string): string {
+  const value = gender?.toUpperCase();
+  if (value === MALE) return 'var(--tmx-accent-blue)';
+  if (value === FEMALE) return 'var(--tmx-accent-pink)';
+  if (value === MIXED) return 'var(--tmx-accent-purple)';
+  return '';
+}
+
+type DropdownOption = { label: string; value: string; onClick: () => void; close: true };
 
 export function renderCheckInView(container: HTMLElement, date: string) {
   const root = document.createElement('section');
   root.className = 'tmx-checkin-desk';
   root.setAttribute(ARIA_LABEL, t('checkIn.desk.title'));
-  const filters: DeskFilters = { search: '', status: 'all', eventId: '', venueId: '', showCompleted: false };
+  const filters: DeskFilters = { search: '', status: 'all', eventId: '', venueId: '', buckets: DEFAULT_DESK_BUCKETS };
+
+  // The filter popover reads these when it opens, so a refresh keeps them current in place.
+  const eventOptions: DropdownOption[] = [];
+  const venueOptions: DropdownOption[] = [];
+  const stateOptions: DropdownOption[] = CHECK_IN_STATES.map((value) => ({
+    label: t(`checkIn.desk.${value}`),
+    value,
+    onClick: () => {
+      filters.status = value;
+      refresh();
+    },
+    close: true,
+  }));
+  const indexOf = (options: DropdownOption[], value: string) =>
+    Math.max(
+      options.findIndex((option) => option.value === value),
+      0,
+    );
+  const syncOptions = (matchUps: any[]) => {
+    updateOptions(eventOptions, matchUps, date, 'event', (eventId) => {
+      filters.eventId = eventId;
+      refresh();
+    });
+    updateOptions(venueOptions, matchUps, date, 'venue', (venueId) => {
+      filters.venueId = venueId;
+      refresh();
+    });
+  };
+  // filterPopoverButton drops a section that has no options when it is made, so they are filled first
+  syncOptions(getCachedAllMatchUps()?.matchUps ?? []);
+  const { item: filterButton, updateBadge } = filterPopoverButton([
+    {
+      label: t('checkIn.desk.status'),
+      options: stateOptions,
+      isFiltered: () => filters.status !== 'all',
+      activeIndex: () => indexOf(stateOptions, filters.status),
+    },
+    {
+      label: t('checkIn.desk.allEvents'),
+      options: eventOptions,
+      isFiltered: () => !!filters.eventId,
+      activeIndex: () => indexOf(eventOptions, filters.eventId),
+    },
+    {
+      label: t('checkIn.desk.allVenues'),
+      options: venueOptions,
+      isFiltered: () => !!filters.venueId,
+      activeIndex: () => indexOf(venueOptions, filters.venueId),
+    },
+  ]);
+  const setSearch = (value: string) => {
+    if (filters.search === value) return;
+    filters.search = value;
+    refresh();
+  };
   const toolbar = document.createElement('div');
   toolbar.className = 'tmx-checkin-filters';
-  const search = document.createElement('input');
-  search.type = 'search';
-  search.placeholder = t('checkIn.desk.search');
-  search.setAttribute(ARIA_LABEL, t('checkIn.desk.search'));
-  search.oninput = () => {
-    filters.search = search.value;
-    refresh();
-  };
-  toolbar.appendChild(search);
-  const status = document.createElement('select');
-  status.setAttribute(ARIA_LABEL, t('checkIn.desk.status'));
-  for (const key of ['all', 'awaiting', 'partial', 'complete']) {
-    status.add(new Option(t(`checkIn.desk.${key}`), key));
-  }
-  status.onchange = () => {
-    filters.status = status.value as CheckInFilter;
-    refresh();
-  };
-  toolbar.appendChild(status);
-  const event = document.createElement('select');
-  event.setAttribute(ARIA_LABEL, t('checkIn.desk.event'));
-  event.onchange = () => {
-    filters.eventId = event.value;
-    refresh();
-  };
-  const venue = document.createElement('select');
-  venue.setAttribute(ARIA_LABEL, t('checkIn.desk.venue'));
-  venue.onchange = () => {
-    filters.venueId = venue.value;
-    refresh();
-  };
-  toolbar.append(event, venue);
-  const completed = document.createElement('label');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.onchange = () => {
-    filters.showCompleted = checkbox.checked;
-    refresh();
-  };
-  completed.append(checkbox, document.createTextNode(t('checkIn.desk.showCompleted')));
-  toolbar.appendChild(completed);
+  root.appendChild(toolbar);
+  container.appendChild(root);
+  controlBar({
+    target: toolbar,
+    items: [
+      {
+        onChange: (e: any) => setSearch(e.target.value),
+        onKeyUp: (e: any) => setSearch(e.target.value),
+        clearSearch: () => setSearch(''),
+        placeholder: t('checkIn.desk.search'),
+        location: LEFT,
+        search: true,
+      },
+      filterButton,
+    ],
+  });
+
+  // The matchUps table's status chips, on the same buckets and colours, with the same toggle rules (chipFilter.ts).
+  const chips = document.createElement('div');
+  chips.className = 'tmx-status-strip tmx-checkin-status-chips';
+  chips.setAttribute('role', 'group');
+  chips.setAttribute(ARIA_LABEL, t('checkIn.desk.statusChips'));
+  const selection = createChipSelection({
+    values: [...STATUS_BUCKETS],
+    initial: DEFAULT_DESK_BUCKETS,
+    persist: (selected) => (filters.buckets = selected),
+    onChange: () => refresh(),
+  });
+  const chipButtons = STATUS_BUCKETS.map((value) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'filter-popover-chip tmx-status-strip-chip font-medium';
+    chip.dataset.value = value;
+    paintChipColor(chip, STATUS_BUCKET_COLORS[value]);
+    const name = document.createElement('span');
+    name.textContent = t(BUCKET_LABELS[value]);
+    const tally = document.createElement('span');
+    tally.className = 'tmx-status-strip-count';
+    chip.append(name, tally);
+    chip.onclick = () => selection.toggle(value);
+    return chip;
+  });
+  chips.append(...chipButtons);
+
   const hint = document.createElement('p');
   hint.textContent = t('checkIn.desk.hint');
   const count = document.createElement('p');
   count.setAttribute('role', 'status');
   const cards = document.createElement('div');
   cards.className = 'tmx-checkin-cards';
-  root.append(toolbar, hint, count, cards);
-  container.appendChild(root);
+  root.append(chips, hint, count, cards);
   let dialog: ReturnType<typeof openCheckInEditor> | undefined;
   let disposed = false;
   let scheduled = false;
@@ -71,8 +161,16 @@ export function renderCheckInView(container: HTMLElement, date: string) {
   const refresh = () => {
     if (disposed) return;
     const matchUps: any[] = getCachedAllMatchUps()?.matchUps ?? [];
-    updateOptions(event, matchUps, date, 'event', filters.eventId);
-    updateOptions(venue, matchUps, date, 'venue', filters.venueId);
+    syncOptions(matchUps);
+    updateBadge();
+    const tallies = deskBucketCounts(matchUps, date, filters);
+    for (const chip of chipButtons) {
+      const value = chip.dataset.value as (typeof STATUS_BUCKETS)[number];
+      const on = selection.isOn(value);
+      chip.setAttribute('aria-pressed', String(on));
+      chip.dataset.on = String(on);
+      (chip.lastElementChild as HTMLElement).textContent = String(tallies[value]);
+    }
     const visible = checkInDeskMatchUps(matchUps, date, filters);
     const activeId = (document.activeElement as HTMLElement)?.dataset.matchUpId;
     cards.replaceChildren();
@@ -122,11 +220,11 @@ export function renderCheckInView(container: HTMLElement, date: string) {
 }
 
 function updateOptions(
-  select: HTMLSelectElement,
+  options: DropdownOption[],
   matchUps: any[],
   date: string,
   kind: 'event' | 'venue',
-  selected: string,
+  select: (id: string) => void,
 ) {
   const entries = new Map<string, string>();
   for (const matchUp of matchUps) {
@@ -135,11 +233,19 @@ function updateOptions(
     const name = kind === 'event' ? matchUp.eventName : matchUp.schedule?.venueName;
     if (id) entries.set(id, name || id);
   }
-  select.replaceChildren(new Option(t(kind === 'event' ? 'checkIn.desk.allEvents' : 'checkIn.desk.allVenues'), ''));
-  for (const [id, name] of [...entries].toSorted((a, b) => a[1].localeCompare(b[1], undefined, { numeric: true }))) {
-    select.add(new Option(name, id));
-  }
-  select.value = selected;
+  const option = (label: string, value: string): DropdownOption => ({
+    label,
+    value,
+    onClick: () => select(value),
+    close: true,
+  });
+  const sorted = [...entries].toSorted((a, b) => a[1].localeCompare(b[1], undefined, { numeric: true }));
+  options.splice(
+    0,
+    options.length,
+    option(t(kind === 'event' ? 'checkIn.desk.allEvents' : 'checkIn.desk.allVenues'), ''),
+    ...sorted.map(([id, name]) => option(name, id)),
+  );
 }
 
 function buildCard(matchUp: any): HTMLButtonElement {
@@ -155,26 +261,39 @@ function buildCard(matchUp: any): HTMLButtonElement {
     matchUp.schedule?.courtName || t('checkIn.desk.courtUnassigned'),
   ].join(' · ');
   const subtitle = document.createElement('span');
-  subtitle.textContent = [matchUp.eventName, matchUp.roundName, matchUp.schedule?.venueName]
-    .filter(Boolean)
-    .join(' · ');
+  const eventName = document.createElement('span');
+  eventName.className = 'tmx-checkin-event';
+  eventName.textContent = matchUp.eventName ?? '';
+  eventName.style.color = genderAccent(matchUp.gender);
+  const detail = [matchUp.roundName, matchUp.schedule?.venueName].filter(Boolean).join(' · ');
+  subtitle.appendChild(eventName);
+  if (detail) subtitle.append(`${matchUp.eventName ? ' · ' : ''}${detail}`);
   const badge = document.createElement('span');
   badge.className = 'tmx-checkin-desk-count';
   badge.textContent = t('checkIn.desk.checkedIn', { summary: checkInSummary(state) });
   card.append(title, subtitle, badge);
+  const sexes = participantSexes(matchUp);
   let sideNumber: number | undefined;
   for (const participant of state.participants) {
+    const person = document.createElement('span');
+    person.className = 'tmx-checkin-person-line';
+    person.dataset.checkedIn = String(participant.checkedIn);
+    // The side is named once, on its first member's line; a partner's line keeps the column so names align.
+    const side = document.createElement('span');
+    side.className = 'tmx-checkin-side-label';
     if (participant.sideNumber !== sideNumber) {
       sideNumber = participant.sideNumber;
-      const side = document.createElement('span');
-      side.className = 'tmx-checkin-side-label';
       side.textContent = t('checkIn.desk.side', { number: sideNumber });
-      card.appendChild(side);
     }
-    const person = document.createElement('span');
-    person.textContent = `${participant.checkedIn ? '✓' : '○'} ${participant.participantName}`;
+    const mark = document.createElement('span');
+    mark.className = 'tmx-checkin-mark';
+    mark.textContent = participant.checkedIn ? '✓' : '○';
+    const name = document.createElement('span');
+    name.textContent = participant.participantName;
+    name.style.color = genderAccent(sexes.get(participant.participantId));
+    person.append(side, mark, name);
     person.setAttribute(
-      'aria-label',
+      ARIA_LABEL,
       `${participant.participantName}: ${t(participant.checkedIn ? 'checkIn.desk.present' : 'checkIn.desk.awaiting')}`,
     );
     card.appendChild(person);
