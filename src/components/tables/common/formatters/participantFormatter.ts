@@ -1,10 +1,10 @@
-import { genderConstants, participantConstants } from 'tods-competition-factory';
+import { participantConstants } from 'tods-competition-factory';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { renderParticipant } from 'courthive-components';
 import { isFunction, isObject } from 'functions/typeOf';
 import { scalesMap } from 'config/scalesConfig';
+import { genderAccent } from './genderAccent';
 
-const { MALE, FEMALE } = genderConstants;
 const { PAIR } = participantConstants;
 
 export const formatParticipant =
@@ -76,9 +76,7 @@ export const formatParticipant =
       const winningSide = def.field === data.winningSide;
       elem.style.color = winningSide ? 'var(--tmx-accent-green)' : 'var(--tmx-accent-red)';
     } else {
-      const sex = value?.sex || data?.person?.sex;
-      const color = (sex === MALE && 'var(--tmx-accent-blue)') || (sex === FEMALE && 'var(--tmx-accent-pink)') || '';
-      elem.style.color = color;
+      elem.style.color = genderAccent(value?.sex || data?.person?.sex);
     }
 
     elem.textContent = (isObject(value) ? (value as any).participantName : value) || '';

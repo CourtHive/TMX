@@ -3,11 +3,11 @@ import { filterPopoverButton } from 'components/tables/common/filters/filterPopo
 import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { STATUS_BUCKET_COLORS } from 'components/tables/common/filters/statusColors';
+import { genderAccent } from 'components/tables/common/formatters/genderAccent';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { openCheckInEditor } from 'components/checkIn/checkInEditor';
 import { recoverIfSafe } from 'services/messaging/remoteMutations';
 import { getCachedAllMatchUps } from './schedule2DataCache';
-import { genderConstants } from 'tods-competition-factory';
 import { controlBar } from 'courthive-components';
 import { LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
@@ -21,7 +21,6 @@ import {
 
 const ARIA_LABEL = 'aria-label';
 const CHECK_IN_STATES = ['all', 'awaiting', 'partial', 'complete'] as const;
-const { MALE, FEMALE, MIXED } = genderConstants;
 
 const BUCKET_LABELS: Record<string, string> = {
   toBePlayed: 'pages.matchUps.toBePlayed',
@@ -29,15 +28,6 @@ const BUCKET_LABELS: Record<string, string> = {
   suspended: 'pages.matchUps.suspended',
   complete: 'pages.matchUps.complete',
 };
-
-/** The matchUps table's gender accents (genderedText, matchUpTypeChipFormatter): one colour per gender across TMX. */
-export function genderAccent(gender?: string): string {
-  const value = gender?.toUpperCase();
-  if (value === MALE) return 'var(--tmx-accent-blue)';
-  if (value === FEMALE) return 'var(--tmx-accent-pink)';
-  if (value === MIXED) return 'var(--tmx-accent-purple)';
-  return '';
-}
 
 type DropdownOption = { label: string; value: string; onClick: () => void; close: true };
 
