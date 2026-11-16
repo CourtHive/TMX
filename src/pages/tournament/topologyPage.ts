@@ -210,7 +210,15 @@ function rankedAcceptanceEntries(eventId: string) {
 }
 
 function handleGenerate({ state, eventId, drawId }: { state: TopologyState; eventId: string; drawId?: string }): void {
-  const { drawOptions, postGenerationMethods } = topologyToDrawOptions(state);
+  // the builder disables Generate while the topology has errors; a conversion that still throws is reported, not raised
+  let converted: ReturnType<typeof topologyToDrawOptions>;
+  try {
+    converted = topologyToDrawOptions(state);
+  } catch (err: any) {
+    tmxToast({ message: err?.message || t('topology.drawFailed'), intent: 'is-danger' });
+    return;
+  }
+  const { drawOptions, postGenerationMethods } = converted;
   drawOptions.eventId = eventId;
   if (drawId) drawOptions.drawId = drawId;
 
