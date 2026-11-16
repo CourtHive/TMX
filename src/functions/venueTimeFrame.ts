@@ -103,7 +103,7 @@
  * TMX is the ecosystem's iOS PWA and Safari has no native Temporal, so TMX will
  * need `@js-temporal/polyfill` imported at app boot before anything here runs.
  */
-import { factoryConstants, tools } from 'tods-competition-factory';
+import { factoryConstants, globalState, tools } from 'tods-competition-factory';
 import { competitionNow } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
 import { readOncePerPass } from 'functions/renderPass';
@@ -195,9 +195,16 @@ export function browserTimeZone(): string {
  * handed no zone lands here, and the schedule grid converts per cell: switching
  * to the Grid asked the engine for the zone ~190 times, for an answer that only
  * a mutation or a tournament switch can change — and both drop the pass.
+ *
+ * The key also carries the installed tournament and its `localTimeZone`, read
+ * from the live record (no copy, no engine call), so a write that reaches the
+ * engine without notifying — a grid preview, a direct `setState` — still reads
+ * fresh rather than the frame of the record it replaced.
  */
 export function resolveVenueFrame(): VenueFrame {
-  return readOncePerPass('tournamentEngine.getTournamentTimeZone', readVenueFrame);
+  const tournamentId = globalState.getTournamentId();
+  const localTimeZone = tournamentId ? globalState.getTournamentRecord(tournamentId)?.localTimeZone : undefined;
+  return readOncePerPass(`tournamentEngine.getTournamentTimeZone:${tournamentId}:${localTimeZone}`, readVenueFrame);
 }
 
 function readVenueFrame(): VenueFrame {
