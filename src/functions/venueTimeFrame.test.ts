@@ -283,10 +283,10 @@ describe('resolveVenueFrame — which zone, and whether the page may say it is s
     await Promise.resolve(); // the seed's own pass ends
     const spy = vi.spyOn(tournamentEngine, 'getTournamentTimeZone');
     try {
-      for (let cell = 0; cell < 50; cell++) venueClock('2026-08-25T12:00:00Z');
+      for (let cell = 0; cell < 50; cell++) venueClock(AUG_25_0900Z);
       expect(spy).toHaveBeenCalledTimes(1);
       await Promise.resolve(); // next pass reads fresh
-      venueClock('2026-08-25T12:00:00Z');
+      venueClock(AUG_25_0900Z);
       expect(spy).toHaveBeenCalledTimes(2);
     } finally {
       spy.mockRestore();
