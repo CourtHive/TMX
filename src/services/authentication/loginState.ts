@@ -38,6 +38,7 @@ import {
 import {
   isProviderSelectionResponse,
   promptProviderSelection,
+  pickerProviders,
   type ProviderSelectionResponse,
 } from './providerSelection';
 
@@ -180,7 +181,7 @@ export function logIn({
     promptProviderSelection({
       lastSelectedProviderId: unchosen.lastSelectedProviderId,
       onSession: (session) => logIn({ data: session, callback }),
-      providers: unchosen.providerAssociations ?? [],
+      providers: pickerProviders(unchosen),
       bearer: data.token,
       onSignOut: logOut,
     });

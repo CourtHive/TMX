@@ -20,6 +20,14 @@ export type ProviderSelectionResponse = {
   selectionToken: string;
 };
 
+/**
+ * The providers to offer a session that has not chosen: the list HiveID put on the token (it includes providers
+ * reached through a provisioner), or the direct associations on a token issued before it did.
+ */
+export function pickerProviders(login: any): ChoosableProvider[] {
+  return login?.choosableProviders ?? login?.providerAssociations ?? [];
+}
+
 export function isProviderSelectionResponse(data: any): data is ProviderSelectionResponse {
   return data?.providerSelectionRequired === true && typeof data?.selectionToken === 'string';
 }

@@ -4,7 +4,7 @@ const selectProvider = vi.fn();
 vi.mock('./authApi', () => ({ selectProvider: (...args: any[]) => selectProvider(...args) }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 
-import { exchangeForProviderSession, isProviderSelectionResponse } from './providerSelection';
+import { exchangeForProviderSession, isProviderSelectionResponse, pickerProviders } from './providerSelection';
 
 const SELECTION_TOKEN = 'selection-token';
 
@@ -30,5 +30,24 @@ describe('provider selection at login', () => {
     expect(await exchangeForProviderSession('elsewhere', SELECTION_TOKEN)).toBeUndefined();
     selectProvider.mockRejectedValueOnce(new Error('403'));
     expect(await exchangeForProviderSession('elsewhere', SELECTION_TOKEN)).toBeUndefined();
+  });
+
+  it('a session that has not chosen offers the list HiveID put on it, including providers reached through a provisioner', () => {
+    const login = {
+      providerAssociations: [{ providerId: 'club' }, { providerId: 'league' }],
+      choosableProviders: [
+        { providerId: 'club' },
+        { providerId: 'league' },
+        { providerId: 'boca', viaProvisioner: true },
+      ],
+    };
+    expect(pickerProviders(login).map((p) => p.providerId)).toEqual(['club', 'league', 'boca']);
+  });
+
+  it('a token issued before HiveID listed them still offers its direct associations', () => {
+    expect(pickerProviders({ providerAssociations: [{ providerId: 'club' }] }).map((p) => p.providerId)).toEqual([
+      'club',
+    ]);
+    expect(pickerProviders(undefined)).toEqual([]);
   });
 });
