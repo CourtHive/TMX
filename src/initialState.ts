@@ -2,9 +2,9 @@
  * Application initialization and setup.
  * Sets up context, environment, event listeners, and routing.
  */
+import { pickerProviders, promptProviderSelection } from 'services/authentication/providerSelection';
 import { getLoginState, initLoginToggle, logIn, logOut } from 'services/authentication/loginState';
 import { watchSessionAcrossTabs } from 'services/authentication/watchSessionAcrossTabs';
-import { promptProviderSelection } from 'services/authentication/providerSelection';
 import { startConnectionLifecycle } from 'services/messaging/connectionLifecycle';
 import { tournamentContent } from 'pages/tournament/container/tournamentContent';
 import { loadColumnVisibility } from 'components/tables/common/columnIsVisible';
@@ -161,7 +161,7 @@ export function setupTMX(): void {
   if (boot?.providerSelectionRequired && bootToken) {
     promptProviderSelection({
       lastSelectedProviderId: boot.lastSelectedProviderId,
-      providers: boot.providerAssociations ?? [],
+      providers: pickerProviders(boot),
       onSession: (session) => logIn({ data: session }),
       bearer: bootToken,
       onSignOut: logOut,

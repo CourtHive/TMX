@@ -47,6 +47,16 @@ export interface LoginState {
   /** The session has not chosen its provider yet (the user belongs to several); see providerSelection.ts. */
   providerSelectionRequired?: boolean;
   /**
+   * The picker's list on a session that has not chosen: direct associations, then providers reached through a
+   * provisioner (`viaProvisioner`). Absent from tokens issued before HiveID listed them.
+   */
+  choosableProviders?: Array<{
+    providerId: string;
+    organisationName?: string;
+    organisationAbbreviation?: string;
+    viaProvisioner?: true;
+  }>;
+  /**
    * Providers managed by the user's provisioner(s), populated server-side at
    * login for PROVISIONER-role users. Drives the provider switcher and grants
    * provider-admin UI when one of these is the active provider. Server authz
