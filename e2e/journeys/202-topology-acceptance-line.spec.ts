@@ -55,7 +55,7 @@ test.describe('Topology — the acceptance line', () => {
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'FITS');
     await expect(main.locator('.tb-fit-text')).toHaveText('16 entered');
     await expect(topology.locator('.tb-acceptance-pending[data-stage="MAIN"]')).toContainText('10 DA → ALT');
-    await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  16 DA · 10 ALT');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['16 DA', '10 ALT']);
     const before: any = await getTournamentRecord(page);
     expect(before.events[0].entries.filter((e: any) => e.entryStatus === 'ALTERNATE')).toHaveLength(0);
     await page.screenshot({ path: test.info().outputPath('acceptance-line.png') });
