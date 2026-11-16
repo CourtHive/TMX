@@ -1,5 +1,14 @@
 # Changelog
 
+## [8.54.1](https://github.com/CourtHive/TMX/compare/v8.54.0...v8.54.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components 7.16.3, pdf-factory 1.1.11, scoring-visualizations 0.2.27 ([#2015](https://github.com/CourtHive/TMX/issues/2015)) ([83c9223](https://github.com/CourtHive/TMX/commit/83c9223543d95dadf934ba4943f85e998bc105a1))
+* **deps:** update dependency courthive-components to v7.16.2 ([#2013](https://github.com/CourtHive/TMX/issues/2013)) ([138a7b5](https://github.com/CourtHive/TMX/commit/138a7b5e36cad72878a6a0b89d8c761e94ec9b5b))
+* **deps:** update tods-competition-factory to 7.39.0 ([#2014](https://github.com/CourtHive/TMX/issues/2014)) ([d3f5fd4](https://github.com/CourtHive/TMX/commit/d3f5fd4f1d7f3fb946cedc9434595154a09b0648))
+
 ## [8.54.0](https://github.com/CourtHive/TMX/compare/v8.53.2...v8.54.0) (2026-11-15)
 
 
