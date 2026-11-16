@@ -44,13 +44,13 @@ test.describe('Topology — Fit mode', () => {
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'SHORT', { timeout: 10_000 });
     await expect(main.locator('.tb-fit-text')).toHaveText('26 entered · 6 BYEs');
-    await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  26 DA');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['26 DA']);
 
     // half the size: 26 for 16 positions — ten have no place
     await main.locator('.tb-fit-stepper[data-lever="size"] .tb-fit-step[data-direction="down"]').click();
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'OVER');
     await expect(main.locator('.tb-fit-text')).toHaveText('16 entered · 10 not placed');
-    await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  26 DA   |   10 not placed');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['26 DA', '10 not placed']);
 
     // asking changed nothing: still no draw
     const after: any = await getTournamentRecord(page);
