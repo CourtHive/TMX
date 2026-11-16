@@ -22,9 +22,10 @@ import {
   venueParts,
   venueClock,
 } from './venueTimeFrame';
+import { notifyMutationApplied } from 'services/mutation/mutationObservers';
 import { factoryConstants, mocksEngine } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const NEW_YORK = 'America/New_York';
 const LOS_ANGELES = 'America/Los_Angeles';
@@ -246,9 +247,11 @@ describe('resolveVenueFrame — which zone, and whether the page may say it is s
    * construction — the times still render, they are just framed wrong — so it is
    * worth the engine setup a value test needs.
    */
+  // A record install notifies in TMX (`tournamentDisplay`); the frame is held for a render pass and dropped by it.
   const seed = (localTimeZone?: string) => {
     mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize: 2 }], setState: true });
     if (localTimeZone) tournamentEngine.setTournamentLocalTimeZone({ localTimeZone });
+    notifyMutationApplied();
   };
 
   it("takes the tournament's zone when the record carries one, and says so", () => {
@@ -269,8 +272,25 @@ describe('resolveVenueFrame — which zone, and whether the page may say it is s
   it('re-reads the record, so setting a zone re-frames the page without a reload', () => {
     seed();
     expect(resolveVenueFrame().source).toBe('browser');
+    // the setter reaches TMX through mutationRequest, which notifies once it is applied
     tournamentEngine.setTournamentLocalTimeZone({ localTimeZone: NEW_YORK });
+    notifyMutationApplied();
     expect(resolveVenueFrame()).toEqual({ timeZone: NEW_YORK, source: 'tournament' });
+  });
+
+  it('asks the engine once per render pass, however many cells convert', async () => {
+    seed(KOLKATA);
+    await Promise.resolve(); // the seed's own pass ends
+    const spy = vi.spyOn(tournamentEngine, 'getTournamentTimeZone');
+    try {
+      for (let cell = 0; cell < 50; cell++) venueClock('2026-08-25T12:00:00Z');
+      expect(spy).toHaveBeenCalledTimes(1);
+      await Promise.resolve(); // next pass reads fresh
+      venueClock('2026-08-25T12:00:00Z');
+      expect(spy).toHaveBeenCalledTimes(2);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('always yields a usable zone, so no caller has to handle an absent one', () => {
@@ -341,6 +361,7 @@ describe("the frame is the factory's: inferred venue zones, and refusals that st
     // set on the record directly: the factory's own setter refuses an invalid zone, and this has to hold one
     if (localTimeZone) tournamentRecord.localTimeZone = localTimeZone;
     tournamentEngine.setState(tournamentRecord);
+    notifyMutationApplied();
   };
 
   it('a tournament zone wins even where its venues disagree with it', () => {
