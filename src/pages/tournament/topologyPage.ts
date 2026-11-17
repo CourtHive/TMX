@@ -4,6 +4,8 @@
  * separate from the events tab.
  */
 import { TopologyBuilderControl, topologyToDrawOptions, TopologyState, renderForm } from 'courthive-components';
+import { openTopologyDrawSettings } from 'components/drawers/addDraw/topologyDrawSettingsDrawer';
+import { applyTopologyDrawSettings } from 'components/drawers/addDraw/topologyDrawSettings';
 import { confirmModal, openModal } from 'components/modals/baseModal/baseModal';
 import { hydrateTopology } from './tabs/eventsTab/renderDraws/hydrateTopology';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
@@ -38,6 +40,7 @@ import {
 
 // constants and types
 import type { EntryChange } from 'components/drawers/addDraw/acceptanceEntries';
+import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
@@ -235,6 +238,17 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
   const entries = withEntryChanges(event.entries ?? [], entryChanges);
   drawOptions.drawEntries = topologyDrawEntries({ event: { ...event, entries }, state, includeAlternates: true });
 
+  // the Add Draw drawer's settings the topology does not define: score format, seeding, creation (CA, 2026-11-17)
+  const mainNode = state.nodes.find((node) => node.stage === MAIN);
+  const main = {
+    matchUpFormat: mainNode?.matchUpFormat,
+    drawType: drawOptions.drawType,
+    drawSize: drawOptions.drawSize,
+    entriesCount: entries.filter(
+      (entry: any) => (entry.entryStage ?? MAIN) === MAIN && acceptedStatusSet.has(entry.entryStatus),
+    ).length,
+  };
+
   const postGeneration = (result: any) => {
     if (!result?.drawDefinition) {
       tmxToast({ message: t('topology.drawFailed'), intent: 'is-danger' });
@@ -261,11 +275,16 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
     });
   };
 
-  generateDraw({
-    drawOptions,
-    eventId,
-    callback: postGeneration,
-    entryMethods: entryChangeMethods(eventId, entryChanges),
+  openTopologyDrawSettings({
+    event,
+    main,
+    onSubmit: (settings) =>
+      generateDraw({
+        drawOptions: applyTopologyDrawSettings(drawOptions, settings),
+        eventId,
+        callback: postGeneration,
+        entryMethods: entryChangeMethods(eventId, entryChanges),
+      }),
   });
 }
 

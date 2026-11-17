@@ -1,5 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { getTournamentRecord, seedTournament } from '../helpers/seed';
+import { generateFromTopology } from '../helpers/topologyGenerate';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -58,7 +59,7 @@ test.describe('Topology — the acceptance line', () => {
     await page.screenshot({ path: test.info().outputPath('acceptance-line.png') });
 
     // Generate: the statuses and the draw land together
-    await topology.getByRole('button', { name: 'Generate Draw' }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0, {
         timeout: 10_000,
