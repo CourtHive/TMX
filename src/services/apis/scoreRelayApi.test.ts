@@ -61,10 +61,12 @@ vi.mock('config/providerConfig', () => ({
   providerConfig: { get: () => mockProviderConfig.current },
 }));
 
+import { getJwtTokenStorageKey } from 'config/localStorage';
 import {
   isScoreRelayConfigured,
   isCrowdScoringEnabled,
   resolveExplicitRelayURL,
+  hasRelayCredential,
   getScoreRelayURL,
 } from './scoreRelayApi';
 
@@ -118,5 +120,20 @@ describe('scoreRelayApi crowd surface', () => {
   it('isCrowdScoringEnabled is true when the provider explicitly enables it', () => {
     mockProviderConfig.current = { crowdScoring: { enabled: true } };
     expect(isCrowdScoringEnabled()).toBe(true);
+  });
+});
+
+describe('hasRelayCredential', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('is false with no stored token, or the string a cleared session can leave', () => {
+    expect(hasRelayCredential()).toBe(false);
+    localStorage.setItem(getJwtTokenStorageKey(), 'undefined');
+    expect(hasRelayCredential()).toBe(false);
+  });
+
+  it('is true once a token is stored, read per call', () => {
+    localStorage.setItem(getJwtTokenStorageKey(), 'a.b.c');
+    expect(hasRelayCredential()).toBe(true);
   });
 });

@@ -12,9 +12,13 @@
  * An auth refusal (401/403) that survives scoreRelayApi's refresh is not a blip: the next tick would get the same
  * answer. The interval keeps ticking but skips polls on a doubling backoff (capped at 10 minutes), logging once when a
  * refusal streak starts and once when it ends — not on every tick, which flooded the console (2026-11-08).
+ *
+ * With no stored token there is no request to make: the relay's only answer is 401 `missing-bearer-token`, which no
+ * refresh can fix and the backoff only slows (prod 2026-11-17: signed-out sessions polling every 10 minutes for
+ * hours). A tick skips without touching the network until a sign-in stores one.
  */
 
-import { isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
+import { hasRelayCredential, isCrowdScoringEnabled } from 'services/apis/scoreRelayApi';
 import { setActiveCountsFromSnapshot } from './crowdActivityIndex';
 import { getSessionsByTournamentId } from './scoreRelayClient';
 
@@ -57,7 +61,7 @@ export function startCrowdPoller(options: CrowdPollerOptions): CrowdPoller {
   let resumeAt = 0;
 
   async function runOnce(): Promise<number> {
-    if (!isCrowdScoringEnabled()) return 0;
+    if (!isCrowdScoringEnabled() || !hasRelayCredential()) return 0;
     try {
       const sessions = await getSessionsByTournamentId({
         tournamentId: options.tournamentId,
