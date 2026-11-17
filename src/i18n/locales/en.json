@@ -1774,6 +1774,7 @@
       "replaceExisting_other": "This event already has {{count}} flights. Replace them?",
       "ratingFrom": "Rating from (optional)",
       "ratingTo": "Rating to (optional)",
+      "noRatings": "Rating (no ratings in this event)",
       "remainingTitle": "Flights for the remaining participants",
       "remaining": "Generate flights for the remaining participants ({{count}})",
       "noneRemaining": "Every participant is already in a flight",

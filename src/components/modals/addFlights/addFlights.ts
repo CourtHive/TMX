@@ -2,6 +2,7 @@ import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { matchUpTypes, tools } from 'tods-competition-factory';
 import { getFlightProfileModal } from 'courthive-components';
+import { activeRatingScales } from 'components/tables/matchUpsTable/getPresentRatings';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { isFunction } from 'functions/typeOf';
@@ -25,13 +26,26 @@ import {
 const { SINGLES } = matchUpTypes;
 
 // a rating band and a single flight are offered, so a top flight can be made by rating and the rest flighted later
-const editorConfig = () => ({
+const editorConfig = (event: any) => ({
   labels: {
     ratingMinLabel: t('modals.addFlights.ratingFrom'),
     ratingMaxLabel: t('modals.addFlights.ratingTo'),
+    noRatingsLabel: t('modals.addFlights.noRatings'),
   },
-  options: { ratingBand: true, minFlights: 1 },
+  options: { ratingBand: true, minFlights: 1, ratingTypes: eventRatingScales(event) },
 });
+
+/**
+ * The rating systems the event's entered participants hold (CA, 2026-11-17): flighting by a system nobody in the pool
+ * holds splits no one. A doubles event is flighted on its pairs' DOUBLES ratings, which this does not read, so it is
+ * offered every system as before.
+ */
+function eventRatingScales(event: any): string[] | undefined {
+  if ((event.eventType || SINGLES) !== SINGLES) return undefined;
+  const entered = new Set((event.entries ?? []).map((entry: any) => entry.participantId));
+  const { participants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
+  return activeRatingScales(participants.filter((participant: any) => entered.has(participant.participantId)));
+}
 
 const withEventType = (event: any, values: any) => ({
   eventType: event.eventType || SINGLES, // Add eventType from event context
@@ -95,7 +109,7 @@ export function addFlights({ eventId, callback }) {
       callback({ generated: false, result });
     }
   };
-  getFlightProfileModal({ editorConfig: editorConfig(), callback: generateFlightProfile });
+  getFlightProfileModal({ editorConfig: editorConfig(event), callback: generateFlightProfile });
 }
 
 /**
@@ -153,5 +167,5 @@ export function addRemainingFlights({ eventId, callback }: { eventId: string; ca
     }
   };
 
-  getFlightProfileModal({ editorConfig: editorConfig(), callback: generate });
+  getFlightProfileModal({ editorConfig: editorConfig(event), callback: generate });
 }
