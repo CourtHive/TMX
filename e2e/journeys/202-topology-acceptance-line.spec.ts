@@ -32,11 +32,8 @@ test.describe('Topology — the acceptance line', () => {
     const topology = page.locator('#tmxTopology');
     await expect(topology.locator(FIT)).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
 
-    await topology.getByRole('button', { name: 'Add Structure' }).click();
-    await page
-      .locator('.dropdown-item', { hasText: /^Main$/ })
-      .first()
-      .click();
+    // the page opens with the Main its 26 accepted entries call for: a 32
+    await expect(topology.locator('.tb-card')).toHaveCount(1);
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
     // 26 for 16 positions: ten have no place
     await main.locator('.tb-fit-stepper[data-lever="size"] .tb-fit-step[data-direction="down"]').click();

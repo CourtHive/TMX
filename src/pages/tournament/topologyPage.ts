@@ -15,6 +15,7 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { defaultTopology } from './topologyDefaults';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -80,6 +81,9 @@ export function renderTopologyPage({
     }
   }
   pendingTemplateName = null;
+
+  // A new draw opens with the structures its accepted entries already call for (CA, 2026-11-16)
+  if (!initialState && !drawId && !readOnly) initialState = defaultTopology(event);
 
   const savedTemplates = getTopologyTemplates();
 

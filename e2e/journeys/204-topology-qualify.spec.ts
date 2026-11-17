@@ -17,6 +17,7 @@ async function setup(
     alternateLimit = undefined as number | undefined,
     mainAlternates = 0,
     qualifyingAlternates = 0,
+    fromDefaults = false,
   } = {},
 ) {
   const tournamentId = await seedTournament(page, {
@@ -86,6 +87,12 @@ async function setup(
   await page.goto(`/#/tournament/${tournamentId}/topology/${eventId}`);
   const topology = page.locator('#tmxTopology');
   await expect(topology.locator('button.tb-mode-toggle[data-mode="fit"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(topology.locator('.tb-card').first()).toBeVisible();
+  if (fromDefaults) return topology;
+  // These tests start from a lone, over-full Main 32: the page's default structures are cleared first
+  await topology.getByRole('button', { name: 'Clear', exact: true }).click();
+  await page.getByRole('button', { name: 'Ok', exact: true }).click();
+  await expect(topology.locator('.tb-card')).toHaveCount(0);
   await topology.getByRole('button', { name: 'Add Structure', exact: true }).click();
   await page
     .locator('.dropdown-item', { hasText: /^Main$/ })
@@ -101,6 +108,19 @@ test.describe('Topology — qualifying acceptance', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+  });
+
+  test('a new draw opens with the Main and Qualifying its accepted entries call for', async ({ page }) => {
+    // 40 accepted in MAIN make a 64, 24 places left over; 12 in QUALIFYING make a 16, which produces at most 8
+    const topology = await setup(page, { qualifying: 12, fromDefaults: true });
+    await expect(topology.locator('.tb-card')).toHaveCount(2);
+    const card = (name: string) =>
+      topology.locator('.tb-card').filter({ has: page.locator('.tb-card-name', { hasText: name }) });
+    await expect(card('Main').locator('.tb-card-size')).toHaveText('×64');
+    await expect(card('Qualifying').locator('.tb-card-size')).toHaveText('×16');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['40 DA', '12 DA']);
+    const record: any = await getTournamentRecord(page);
+    expect(record.events[0].drawDefinitions ?? []).toHaveLength(0);
   });
 
   test('Qualify previews and Generate moves the ranked tail before attaching both brackets', async ({ page }) => {
