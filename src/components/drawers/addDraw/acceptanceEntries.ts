@@ -1,15 +1,18 @@
 /**
  * The topology Fit mode's acceptance line, on TMX's side (TOPOLOGY_FIT_MODE.md § levers, step 3; CA 2026-11-08).
  *
- * The control (courthive-components) draws the line through entries TMX ranks: the event's MAIN entries by the
- * active rating scale, best first. A cut makes pending entry changes; the fit is asked with them as trial
+ * The control (courthive-components) draws the line through the event's entries in ACCEPTANCE ORDER (CA, 2026-11-16;
+ * the plan's first version ranked them by the active rating scale): the stage's accepted entries as the one list the
+ * factory numbers with `entryPosition`, then its alternates by theirs, then the rest; entries without a position follow
+ * the positioned ones of their group in event order — the entries table's own order (`compareEntryPosition`). The
+ * active scale's rating is the row's label, not its order. A cut makes pending entry changes; the fit is asked with them as trial
  * `drawEntries`, and Generate applies them in the same request that adds the draw, so the statuses and the draw
  * land together or not at all.
  *
  * Pure: the participants and the scale are handed in.
  */
-import { drawDefinitionConstants, fixtures, resolveScaleValueNumber } from 'tods-competition-factory';
-import { ratingSortValue } from 'components/tables/eventsTable/seeding/ratingSortValue';
+import { drawDefinitionConstants, entryStatusConstants, resolveScaleValueNumber } from 'tods-competition-factory';
+import { compareEntryPosition } from 'components/tables/eventsTable/unified/entryPosition';
 
 import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
 
@@ -26,12 +29,17 @@ export type AcceptanceEntry = {
 };
 
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
+const { ALTERNATE, STRUCTURE_SELECTED_STATUSES } = entryStatusConstants;
+const ACCEPTED = new Set<string>(STRUCTURE_SELECTED_STATUSES);
+
+// the lists acceptance order is kept in: the accepted statuses together, then alternates, then the rest
+const groupRank = (entryStatus?: string) =>
+  entryStatus && ACCEPTED.has(entryStatus) ? 0 : entryStatus === ALTERNATE ? 1 : 2;
 const ENTRY_STAGES = new Set<string>([MAIN, QUALIFYING]);
 
 /**
- * The event's MAIN entries for the acceptance line, ranked best first by `ratingScale`. A scale where a lower value is
- * stronger (WTN) ranks ascending. Unrated entries sink to the end, in event order; with no `ratingScale`, the
- * event order stands.
+ * The event's entries for the acceptance line, in acceptance order (see the module comment), each labelled with its
+ * rating on `ratingScale` when it has one. `stage` 'ALL' keeps MAIN and QUALIFYING, each in its own order.
  */
 export function acceptanceEntries({
   entries,
@@ -48,39 +56,31 @@ export function acceptanceEntries({
   ratingScale?: Scale;
 }): AcceptanceEntry[] {
   const byId = new Map(participants.map((participant) => [participant.participantId, participant]));
-  const ascending = !!(scale && (fixtures.ratingsParameters as any)[scale.scaleName]?.ascending);
 
-  const ranked = entries
-    .filter(({ entryStage }) =>
-      stage === 'ALL' ? ENTRY_STAGES.has(entryStage ?? MAIN) : (entryStage ?? MAIN) === stage,
+  const ordered = entries
+    .map((entry, index) => ({ entry, entryPosition: entry.entryPosition, _entryIndex: index }))
+    .filter(({ entry }) =>
+      stage === 'ALL' ? ENTRY_STAGES.has(entry.entryStage ?? MAIN) : (entry.entryStage ?? MAIN) === stage,
     )
-    .map((entry, order) => {
-      const participant = byId.get(entry.participantId);
-      const rawValue = scale
-        ? participant?.ratings?.[eventType]?.find((rating: any) => rating.scaleName === scale.scaleName)?.scaleValue
-        : undefined;
-      const value = scale
-        ? resolveScaleValueNumber(rawValue, { accessor: scale.accessor, scaleName: scale.scaleName })
-        : undefined;
-      const sortValue = scale
-        ? ratingSortValue({ rawValue, accessor: scale.accessor, scaleName: scale.scaleName, reversed: ascending })
-        : 0;
-      return { entry, participant, value, sortValue, order };
-    });
+    .sort((a, b) => groupRank(a.entry.entryStatus) - groupRank(b.entry.entryStatus) || compareEntryPosition(a, b));
 
-  ranked.sort((a, b) => {
-    if (a.sortValue !== b.sortValue) return ascending ? a.sortValue - b.sortValue : b.sortValue - a.sortValue;
-    return a.order - b.order;
+  return ordered.map(({ entry }, rankOrder) => {
+    const participant = byId.get(entry.participantId);
+    const rawValue = scale
+      ? participant?.ratings?.[eventType]?.find((rating: any) => rating.scaleName === scale.scaleName)?.scaleValue
+      : undefined;
+    const value = scale
+      ? resolveScaleValueNumber(rawValue, { accessor: scale.accessor, scaleName: scale.scaleName })
+      : undefined;
+    return {
+      rankOrder,
+      entryStage: entry.entryStage ?? MAIN,
+      participantId: entry.participantId,
+      name: participant?.participantName ?? entry.participantId,
+      entryStatus: entry.entryStatus ?? '',
+      ...(value !== undefined && scale && { rankLabel: `${scale.scaleName} ${value}` }),
+    };
   });
-
-  return ranked.map(({ entry, participant, value }, rankOrder) => ({
-    rankOrder,
-    entryStage: entry.entryStage ?? MAIN,
-    participantId: entry.participantId,
-    name: participant?.participantName ?? entry.participantId,
-    entryStatus: entry.entryStatus ?? '',
-    ...(value !== undefined && scale && { rankLabel: `${scale.scaleName} ${value}` }),
-  }));
 }
 
 /** The entries with the acceptance line's changes: the trial a fit is asked about, and the draw generated from. */
