@@ -2,12 +2,6 @@
  * Tournament-level publishing controls: Information + Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
-import {
-  buildOrderOfPlayDateEmbargoMethods,
-  buildOrderOfPlayDateToggleMethods,
-  getOrderOfPlayDateEmbargo,
-  getOrderOfPlayPublishState,
-} from 'services/publishing/orderOfPlayPublish';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -29,6 +23,12 @@ import {
   infoScopeParams,
   resolvePublishState,
 } from './publishingData';
+import {
+  buildOrderOfPlayDateEmbargoMethods,
+  buildOrderOfPlayDateToggleMethods,
+  getOrderOfPlayDateEmbargo,
+  getOrderOfPlayPublishState,
+} from 'services/publishing/orderOfPlayPublish';
 
 import {
   UNPUBLISH_TOURNAMENT_INFO,
