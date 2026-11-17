@@ -170,6 +170,16 @@ export function isScoreRelayConfigured(): boolean {
 }
 
 /**
+ * Whether a request would carry a bearer token. The relay answers every crowd REST call without one with 401
+ * `missing-bearer-token`, so a signed-out TMX (a director working from the local record) has nothing to poll.
+ * Read per call, like the request interceptor, so a sign-in is picked up on the next poll.
+ */
+export function hasRelayCredential(): boolean {
+  const token = localStorage.getItem(JWT_TOKEN_STORAGE_NAME);
+  return !!token && token !== 'undefined';
+}
+
+/**
  * Whether the crowd poll/promote surface should be active: the relay must be
  * reachable AND the provider must not have disabled crowd scoring. ON by
  * default — a provider opts out via `settings.crowdScoring.enabled = false`
