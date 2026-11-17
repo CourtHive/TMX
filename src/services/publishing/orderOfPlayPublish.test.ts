@@ -8,6 +8,7 @@
  * the engine, which is mocked.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as factory from 'tods-competition-factory';
 
 import { PUBLISH_ORDER_OF_PLAY, UNPUBLISH_ORDER_OF_PLAY } from 'constants/mutationConstants';
 
@@ -177,14 +178,21 @@ describe('buildOrderOfPlayDateEmbargoMethods', () => {
     ]);
   });
 
-  it('clears one date, leaving it published, and sends null once no date has a release time', () => {
+  it('clears one date, leaving it published, and sends an empty map once no date has a release time', () => {
     const s = state({ published: true, publishedDates: [D1, D2], dateEmbargoes: { [D2]: RELEASE } });
     expect(buildOrderOfPlayDateEmbargoMethods(D2, undefined, s)).toEqual([
       {
         method: PUBLISH_ORDER_OF_PLAY,
-        params: { dateEmbargoes: null, scheduledDates: [D1, D2], removePriorValues: true },
+        params: { dateEmbargoes: {}, scheduledDates: [D1, D2], removePriorValues: true },
       },
     ]);
+  });
+
+  it('clears in a form that survives the copy mutationRequest makes before its local apply', () => {
+    const s = state({ published: true, allPublished: true, dateEmbargoes: { [D2]: RELEASE } });
+    const [copied] = factory.tools.makeDeepCopy(buildOrderOfPlayDateEmbargoMethods(D2, undefined, s));
+    // an omitted key would keep the prior map on the local engine while the server cleared it
+    expect(copied.params).toHaveProperty('dateEmbargoes', {});
   });
 
   it('has nothing to clear when order of play is not published', () => {

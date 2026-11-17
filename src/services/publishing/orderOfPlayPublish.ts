@@ -101,9 +101,12 @@ export function buildOrderOfPlayDateEmbargoMethods(
   if (embargo) dateEmbargoes[date] = embargo;
   else delete dateEmbargoes[date];
 
+  // Clearing the last date sends `{}`, never `null`: `mutationRequest` copies the methods with the factory's
+  // `makeDeepCopy`, which drops null-valued keys, and an omitted `dateEmbargoes` KEEPS the prior map. A `null` cleared
+  // the server's copy while the local engine kept the embargo (the Guidon publishing journey caught it).
   const params: any = {
     ...embargoParam(state),
-    dateEmbargoes: Object.keys(dateEmbargoes).length ? dateEmbargoes : null,
+    dateEmbargoes,
     removePriorValues: true,
   };
   // all dates published stays "all dates" (no list); otherwise the list must include this date
