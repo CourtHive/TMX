@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.55.0](https://github.com/CourtHive/TMX/compare/v8.54.1...v8.55.0) (2026-11-17)
+
+
+### Features
+
+* **auth:** the provider picker offers the list HiveID puts on an unchosen session ([#2019](https://github.com/CourtHive/TMX/issues/2019)) ([63d8867](https://github.com/CourtHive/TMX/commit/63d8867e36b292648cb5e1783dd1cd8e3d8d3346))
+
+
+### Bug Fixes
+
+* **schedule:** a matchUp taken off the grid to the Scheduled tab reappears there ([#2022](https://github.com/CourtHive/TMX/issues/2022)) ([7485e32](https://github.com/CourtHive/TMX/commit/7485e32cc7630e7106082f0db357ff31c8c0a87b))
+* **topology:** fill the window and report a failed conversion on generate ([#2021](https://github.com/CourtHive/TMX/issues/2021)) ([3d64c47](https://github.com/CourtHive/TMX/commit/3d64c47231c4359100ad30cb8e8963972909bad3))
+
+
+### Performance
+
+* **schedule:** resolve the venue frame once per render pass ([#2020](https://github.com/CourtHive/TMX/issues/2020)) ([3cd3bbf](https://github.com/CourtHive/TMX/commit/3cd3bbf6f7ca2de69d1cc7e5c6249d930bc655a7))
+
 ## [8.54.1](https://github.com/CourtHive/TMX/compare/v8.54.0...v8.54.1) (2026-11-16)
 
 

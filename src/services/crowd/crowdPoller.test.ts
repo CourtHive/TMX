@@ -17,10 +17,12 @@ vi.stubGlobal('localStorage', {
 });
 
 let configuredFlag = true;
+let signedIn = true;
 const fetchSessions = vi.fn();
 
 vi.mock('services/apis/scoreRelayApi', () => ({
   isCrowdScoringEnabled: () => configuredFlag,
+  hasRelayCredential: () => signedIn,
   scoreRelayApi: { get: (...args: any[]) => fetchSessions(...args) },
 }));
 
@@ -38,6 +40,7 @@ describe('crowdPoller', () => {
     __resetCrowdActivityIndex();
     fetchSessions.mockReset();
     configuredFlag = true;
+    signedIn = true;
   });
 
   it('fires an immediate poll on start and fans counts into the index', async () => {
@@ -150,6 +153,7 @@ describe('crowdPoller — auth refusal backoff', () => {
     __resetCrowdActivityIndex();
     fetchSessions.mockReset();
     configuredFlag = true;
+    signedIn = true;
   });
 
   it('skips ticks on a doubling backoff while the relay refuses, and logs the streak once', async () => {
@@ -205,5 +209,56 @@ describe('crowdPoller — auth refusal backoff', () => {
     await flush();
     await poller.runOnce();
     expect(fetchSessions).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('crowdPoller — signed out', () => {
+  const flush = async () => {
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  };
+
+  beforeEach(() => {
+    __resetCrowdActivityIndex();
+    fetchSessions.mockReset();
+    configuredFlag = true;
+    signedIn = false;
+  });
+
+  // The relay answers a tokenless call with 401 missing-bearer-token, every time (prod 2026-11-17).
+  it('makes no request while no token is stored, on start or on any tick', async () => {
+    let tick: () => void = () => {};
+    const logs: string[] = [];
+    startCrowdPoller({
+      tournamentId: 'tour-X',
+      setTimer: (handler) => {
+        tick = handler;
+        return 1;
+      },
+      clearTimer: () => {},
+      logger: (m) => logs.push(m),
+    });
+    for (let i = 0; i < 20; i++) tick();
+    await flush();
+    expect(fetchSessions).not.toHaveBeenCalled();
+    expect(logs).toEqual([]);
+  });
+
+  it('polls on the next tick once a sign-in stores a token', async () => {
+    fetchSessions.mockResolvedValue([{ matchUpId: 'm1', status: 'active' }]);
+    let tick: () => void = () => {};
+    startCrowdPoller({
+      tournamentId: 'tour-X',
+      setTimer: (handler) => {
+        tick = handler;
+        return 1;
+      },
+      clearTimer: () => {},
+    });
+    await flush();
+    expect(fetchSessions).not.toHaveBeenCalled();
+    signedIn = true;
+    tick();
+    await flush();
+    expect(fetchSessions).toHaveBeenCalledTimes(1);
   });
 });
