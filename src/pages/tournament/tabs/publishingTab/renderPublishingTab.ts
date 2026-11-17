@@ -171,6 +171,23 @@ function ensureStyles(): void {
       color: var(--tmx-text-inverse);
       border-color: var(--tmx-accent-blue);
     }
+    .pub-date-chip.embargoed { border-color: var(--tmx-accent-orange); }
+    .pub-date-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .pub-date-embargo {
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--tmx-text-secondary);
+      cursor: pointer;
+    }
+    .pub-date-embargo:hover { border-color: var(--tmx-border-primary); }
+    .pub-date-embargo.pending { color: var(--tmx-accent-orange); }
 
     .pub-embargo-row {
       display: flex;

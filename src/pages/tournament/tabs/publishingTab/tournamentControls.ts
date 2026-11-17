@@ -2,7 +2,12 @@
  * Tournament-level publishing controls: Information + Participants + Order of Play.
  * Includes publish toggles, embargo buttons (open modal), and per-date OOP selection.
  */
-import { buildOrderOfPlayDateToggleMethods } from 'services/publishing/orderOfPlayPublish';
+import {
+  buildOrderOfPlayDateEmbargoMethods,
+  buildOrderOfPlayDateToggleMethods,
+  getOrderOfPlayDateEmbargo,
+  getOrderOfPlayPublishState,
+} from 'services/publishing/orderOfPlayPublish';
 import { renderPublishingTab, isAnythingPublished } from './renderPublishingTab';
 import { getPublicTournamentUrl } from 'services/publishing/publicUrl';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -433,7 +438,18 @@ function buildOopPanel(data: any, publicUrl: string | undefined): HTMLElement {
     }),
   );
 
-  oopRow.appendChild(createEmbargoButton(data.oopEmbargo, PUBLISH_ORDER_OF_PLAY, () => renderPublishingTab()));
+  // publishOrderOfPlay rebuilds the record from its params: without the date scope, setting or clearing the
+  // whole-schedule embargo widened a date-scoped schedule to every date (per-date release times the factory keeps)
+  const oopScope = () => {
+    const { allPublished, publishedDates } = getOrderOfPlayPublishState();
+    return allPublished || !publishedDates.length ? {} : { scheduledDates: publishedDates };
+  };
+  oopRow.appendChild(
+    createEmbargoButton(data.oopEmbargo, PUBLISH_ORDER_OF_PLAY, () => renderPublishingTab(), {
+      setParams: oopScope,
+      clearParams: () => ({ ...oopScope(), removePriorValues: true }),
+    }),
+  );
 
   if (data.tournamentDateRange.length > 0) {
     oopRow.appendChild(buildOopDateChips(data));
@@ -455,25 +471,55 @@ function buildOopDateChips(data: any): HTMLElement {
   const dateGrid = document.createElement('div');
   dateGrid.className = 'pub-date-grid';
 
-  const publishedDates = data.oopScheduledDates || [];
-  const allDatesPublished = data.oopPublished && publishedDates.length === 0;
+  // the engine's state, not `data`: it carries the embargoes a republish must restate
+  const oopState = getOrderOfPlayPublishState();
+  const now = competitionNowMs();
 
   for (const date of data.tournamentDateRange) {
+    const label = dayjs(date).format('ddd MMM D');
+    const item = document.createElement('div');
+    item.className = 'pub-date-item';
+
     const chip = document.createElement('button');
     chip.className = 'pub-date-chip';
-    if (allDatesPublished || publishedDates.includes(date)) chip.classList.add('active');
-    chip.textContent = dayjs(date).format('ddd MMM D');
+    if (oopState.allPublished || oopState.publishedDates.includes(date)) chip.classList.add('active');
+    chip.textContent = label;
+
+    const dateEmbargo = getOrderOfPlayDateEmbargo(date, oopState);
+    const pending = !!dateEmbargo && (now === undefined || new Date(dateEmbargo).getTime() > now);
+    if (pending) {
+      chip.classList.add('embargoed');
+      chip.innerHTML = `<i class="fa fa-clock"></i> ${escapeHtml(label)}`;
+      chip.title = t('publishing.dateEmbargoPending', { when: formatEmbargoDisplay(dateEmbargo) });
+    }
 
     chip.addEventListener('click', () => {
-      const { methods } = buildOrderOfPlayDateToggleMethods(date, data.tournamentDateRange, {
-        published: data.oopPublished,
-        allPublished: allDatesPublished,
-        publishedDates,
-      });
+      const { methods } = buildOrderOfPlayDateToggleMethods(date, data.tournamentDateRange, oopState);
       mutationRequest({ methods, callback: () => renderPublishingTab() });
     });
+    item.appendChild(chip);
 
-    dateGrid.appendChild(chip);
+    const clock = document.createElement('button');
+    clock.className = 'pub-date-embargo';
+    if (pending) clock.classList.add('pending');
+    clock.innerHTML = '<i class="fa fa-clock"></i>';
+    clock.title = t('publishing.dateEmbargoButton', { date: label });
+    clock.setAttribute('aria-label', clock.title);
+    clock.addEventListener('click', () => {
+      const run = (embargo?: string) => {
+        const methods = buildOrderOfPlayDateEmbargoMethods(date, embargo, oopState);
+        if (methods.length) mutationRequest({ methods, callback: () => renderPublishingTab() });
+      };
+      openEmbargoModal({
+        title: t('publishing.dateEmbargoTitle', { date: label }),
+        currentEmbargo: dateEmbargo,
+        onSet: (isoString) => run(isoString),
+        onClear: dateEmbargo ? () => run(undefined) : undefined,
+      });
+    });
+    item.appendChild(clock);
+
+    dateGrid.appendChild(item);
   }
 
   dateSection.appendChild(dateGrid);
