@@ -1701,6 +1701,11 @@ function unscheduleFromCourt(matchUpId: string, drawId: string, refresh: () => v
   if (!hasTime) {
     schedule.scheduledDate = '';
     schedule.scheduledTime = '';
+  } else {
+    // The date goes with the court clear, unchanged: the factory applies `courtId` only together with a
+    // `scheduledDate` (a court is assigned for a day), so without it the court stayed while its venue and order were
+    // cleared — a matchUp on no grid cell and in neither sidebar list (production, 2026-11-17).
+    schedule.scheduledDate = matchUp?.schedule?.scheduledDate ?? '';
   }
 
   executeMethods(
@@ -3941,7 +3946,9 @@ function listScheduledOrphans(scheduledDate: string): any[] {
   const filtered = (matchUps || []).filter((m: any) => {
     if (m.matchUpStatus === BYE) return false;
     if (m.schedule?.scheduledDate !== scheduledDate) return false;
-    if (m.schedule?.courtId) return false; // already on a court — don't show
+    // Already on the grid — don't show. The grid places a matchUp by court AND order (the factory's
+    // `courtGridRows`), so a court with no order is on no cell, and is listed here to be placed again.
+    if (m.schedule?.courtId && m.schedule?.courtOrder) return false;
     return true; // date match is sufficient — time is optional
   });
   filtered.sort((a: any, b: any) => {

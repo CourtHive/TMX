@@ -8,6 +8,9 @@
  * names a zone whose offset differs from UTC, which is the only way the
  * difference is observable.
  */
+import { factoryConstants, mocksEngine } from 'tods-competition-factory';
+import { tournamentEngine } from 'services/factory/engine';
+import { describe, expect, it, vi } from 'vitest';
 import {
   resolveVenueFrame,
   venueLocaleString,
@@ -22,9 +25,6 @@ import {
   venueParts,
   venueClock,
 } from './venueTimeFrame';
-import { factoryConstants, mocksEngine } from 'tods-competition-factory';
-import { tournamentEngine } from 'services/factory/engine';
-import { describe, expect, it } from 'vitest';
 
 const NEW_YORK = 'America/New_York';
 const LOS_ANGELES = 'America/Los_Angeles';
@@ -271,6 +271,21 @@ describe('resolveVenueFrame — which zone, and whether the page may say it is s
     expect(resolveVenueFrame().source).toBe('browser');
     tournamentEngine.setTournamentLocalTimeZone({ localTimeZone: NEW_YORK });
     expect(resolveVenueFrame()).toEqual({ timeZone: NEW_YORK, source: 'tournament' });
+  });
+
+  it('asks the engine once per render pass, however many cells convert', async () => {
+    seed(KOLKATA);
+    await Promise.resolve(); // the seed's own pass ends
+    const spy = vi.spyOn(tournamentEngine, 'getTournamentTimeZone');
+    try {
+      for (let cell = 0; cell < 50; cell++) venueClock(AUG_25_0900Z);
+      expect(spy).toHaveBeenCalledTimes(1);
+      await Promise.resolve(); // next pass reads fresh
+      venueClock(AUG_25_0900Z);
+      expect(spy).toHaveBeenCalledTimes(2);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('always yields a usable zone, so no caller has to handle an absent one', () => {

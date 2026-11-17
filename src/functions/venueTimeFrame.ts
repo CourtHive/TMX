@@ -103,9 +103,10 @@
  * TMX is the ecosystem's iOS PWA and Safari has no native Temporal, so TMX will
  * need `@js-temporal/polyfill` imported at app boot before anything here runs.
  */
-import { factoryConstants, tools } from 'tods-competition-factory';
+import { factoryConstants, globalState, tools } from 'tods-competition-factory';
 import { competitionNow } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
+import { readOncePerPass } from 'functions/renderPass';
 
 const { offsetMinutesAt, zonedWallClockToMs } = tools.zonedDateTime;
 const { CONFLICTING_TIME_ZONES, INVALID_TIME_ZONE } = factoryConstants.errorConditionConstants;
@@ -187,10 +188,26 @@ export function browserTimeZone(): string {
  * announces itself: the one case where the page can be wrong is the one case
  * where it says so.
  *
- * Cheap enough to call per site. What must never be re-implemented per site is
- * the **fallback rule** — that is the whole point of there being one function.
+ * Call it per site: what must never be re-implemented per site is the
+ * **fallback rule** — that is the whole point of there being one function.
+ *
+ * Resolved once per render pass (`readOncePerPass`). Every converter that is
+ * handed no zone lands here, and the schedule grid converts per cell: switching
+ * to the Grid asked the engine for the zone ~190 times, for an answer that only
+ * a mutation or a tournament switch can change — and both drop the pass.
+ *
+ * The key also carries the installed tournament and its `localTimeZone`, read
+ * from the live record (no copy, no engine call), so a write that reaches the
+ * engine without notifying — a grid preview, a direct `setState` — still reads
+ * fresh rather than the frame of the record it replaced.
  */
 export function resolveVenueFrame(): VenueFrame {
+  const tournamentId = globalState.getTournamentId();
+  const localTimeZone = tournamentId ? globalState.getTournamentRecord(tournamentId)?.localTimeZone : undefined;
+  return readOncePerPass(`tournamentEngine.getTournamentTimeZone:${tournamentId}:${localTimeZone}`, readVenueFrame);
+}
+
+function readVenueFrame(): VenueFrame {
   // the shape `getTournamentTimeZone` returns; an engine refusal (no record loaded) adds only `error`
   let result: { timeZone?: string; inferred?: boolean; error?: { code?: string; message?: string } } | undefined;
   try {
