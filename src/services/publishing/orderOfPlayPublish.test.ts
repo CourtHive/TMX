@@ -8,6 +8,7 @@
  * the engine, which is mocked.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as factory from 'tods-competition-factory';
 
 import { PUBLISH_ORDER_OF_PLAY, UNPUBLISH_ORDER_OF_PLAY } from 'constants/mutationConstants';
 
@@ -18,7 +19,9 @@ vi.mock('services/factory/engine', () => ({
 }));
 
 import {
+  buildOrderOfPlayDateEmbargoMethods,
   buildOrderOfPlayDateToggleMethods,
+  getOrderOfPlayDateEmbargo,
   getOrderOfPlayPublishState,
   isOrderOfPlayDatePublished,
   type OrderOfPlayPublishState,
@@ -119,5 +122,100 @@ describe('getOrderOfPlayPublishState', () => {
   it('tolerates a missing publishState result', () => {
     publishStateMock.mockReturnValue(undefined);
     expect(getOrderOfPlayPublishState().published).toBe(false);
+  });
+});
+
+const RELEASE = '2026-07-01T22:00:00Z';
+const SCHEDULE_EMBARGO = '2026-06-30T12:00:00Z';
+
+describe('buildOrderOfPlayDateToggleMethods restates the whole-schedule embargo', () => {
+  it('keeps a pending schedule embargo when a date is toggled', () => {
+    const s = state({ published: true, publishedDates: [D1], embargo: SCHEDULE_EMBARGO });
+    const { methods } = buildOrderOfPlayDateToggleMethods(D2, RANGE, s);
+    expect(methods).toEqual([
+      {
+        method: PUBLISH_ORDER_OF_PLAY,
+        params: { scheduledDates: [D1, D2], embargo: SCHEDULE_EMBARGO, removePriorValues: true },
+      },
+    ]);
+  });
+});
+
+describe('buildOrderOfPlayDateEmbargoMethods', () => {
+  it('publishes an unpublished date with its release time, keeping the other dates and embargoes', () => {
+    const s = state({
+      published: true,
+      publishedDates: [D1],
+      embargo: SCHEDULE_EMBARGO,
+      dateEmbargoes: { [D1]: RELEASE },
+    });
+    expect(buildOrderOfPlayDateEmbargoMethods(D2, RELEASE, s)).toEqual([
+      {
+        method: PUBLISH_ORDER_OF_PLAY,
+        params: {
+          embargo: SCHEDULE_EMBARGO,
+          dateEmbargoes: { [D1]: RELEASE, [D2]: RELEASE },
+          scheduledDates: [D1, D2],
+          removePriorValues: true,
+        },
+      },
+    ]);
+  });
+
+  it('keeps "all dates published" as all dates (no list)', () => {
+    const s = state({ published: true, allPublished: true });
+    expect(buildOrderOfPlayDateEmbargoMethods(D3, RELEASE, s)).toEqual([
+      { method: PUBLISH_ORDER_OF_PLAY, params: { dateEmbargoes: { [D3]: RELEASE }, removePriorValues: true } },
+    ]);
+  });
+
+  it('publishes only that date when nothing was published', () => {
+    expect(buildOrderOfPlayDateEmbargoMethods(D2, RELEASE, state())).toEqual([
+      {
+        method: PUBLISH_ORDER_OF_PLAY,
+        params: { dateEmbargoes: { [D2]: RELEASE }, scheduledDates: [D2], removePriorValues: true },
+      },
+    ]);
+  });
+
+  it('clears one date, leaving it published, and sends an empty map once no date has a release time', () => {
+    const s = state({ published: true, publishedDates: [D1, D2], dateEmbargoes: { [D2]: RELEASE } });
+    expect(buildOrderOfPlayDateEmbargoMethods(D2, undefined, s)).toEqual([
+      {
+        method: PUBLISH_ORDER_OF_PLAY,
+        params: { dateEmbargoes: {}, scheduledDates: [D1, D2], removePriorValues: true },
+      },
+    ]);
+  });
+
+  it('clears in a form that survives the copy mutationRequest makes before its local apply', () => {
+    const s = state({ published: true, allPublished: true, dateEmbargoes: { [D2]: RELEASE } });
+    const [copied] = factory.tools.makeDeepCopy(buildOrderOfPlayDateEmbargoMethods(D2, undefined, s));
+    // an omitted key would keep the prior map on the local engine while the server cleared it
+    expect(copied.params).toHaveProperty('dateEmbargoes', {});
+  });
+
+  it('has nothing to clear when order of play is not published', () => {
+    expect(buildOrderOfPlayDateEmbargoMethods(D1, undefined, state())).toEqual([]);
+  });
+
+  it("reads one date's release time", () => {
+    expect(getOrderOfPlayDateEmbargo(D2, state({ dateEmbargoes: { [D2]: RELEASE } }))).toEqual(RELEASE);
+    expect(getOrderOfPlayDateEmbargo(D1, state())).toBeUndefined();
+  });
+});
+
+describe('getOrderOfPlayPublishState reads the embargoes', () => {
+  it('returns the schedule embargo and the per-date map', () => {
+    publishStateMock.mockReturnValue({
+      tournament: { orderOfPlay: { published: true, embargo: SCHEDULE_EMBARGO, dateEmbargoes: { [D2]: RELEASE } } },
+    });
+    expect(getOrderOfPlayPublishState()).toEqual({
+      published: true,
+      allPublished: true,
+      publishedDates: [],
+      embargo: SCHEDULE_EMBARGO,
+      dateEmbargoes: { [D2]: RELEASE },
+    });
   });
 });
