@@ -122,8 +122,11 @@ export function composeEntryChanges(entries: Entry[], ...groups: EntryChange[][]
   });
 }
 
-/** The changes as mutations, one per status they move to, to run before the draw is added. */
-export function entryChangeMethods(eventId: string, changes: EntryChange[] = []): any[] {
+/**
+ * The changes as mutations, one per status they move to, to run before the draw is added. With a flight's drawId they
+ * are the flight's: the factory changes that flight's entries (`modifyEntriesStatus`), not the event's.
+ */
+export function entryChangeMethods(eventId: string, changes: EntryChange[] = [], flightDrawId?: string | null): any[] {
   const groups = new Map<
     string,
     { stage: string; entryStage: string; entryStatus: string; participantIds: Set<string> }
@@ -141,6 +144,6 @@ export function entryChangeMethods(eventId: string, changes: EntryChange[] = [])
   }
   return [...groups.values()].map(({ participantIds, ...group }) => ({
     method: MODIFY_ENTRIES_STATUS,
-    params: { eventId, ...group, participantIds: [...participantIds] },
+    params: { eventId, ...(flightDrawId && { drawId: flightDrawId }), ...group, participantIds: [...participantIds] },
   }));
 }

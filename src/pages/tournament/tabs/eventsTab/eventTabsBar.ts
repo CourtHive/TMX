@@ -24,6 +24,7 @@ type ActiveTab = 'draws' | 'entries' | 'points' | 'builder';
 
 export function renderEventTabsBar({
   eventId,
+  drawId,
   activeTab,
   rightContent,
 }: {
@@ -69,8 +70,13 @@ export function renderEventTabsBar({
   // The draw builder is one of the event's views (CA, 2026-11-17): its tab is there while it is open, and while a draw
   // being built is kept for the event, so the director can go back to it
   const building = activeTab === 'builder';
+  // building a flight's draw, the tab names the flight
+  const flight =
+    building && drawId
+      ? tournamentEngine.q.flightProfile({ eventId })?.flights?.find((f: any) => f.drawId === drawId)
+      : undefined;
   const builderTab = {
-    label: t('pages.events.drawBuilder'),
+    label: flight ? `${t('pages.events.drawBuilder')} \u00B7 ${flight.drawName}` : t('pages.events.drawBuilder'),
     key: 'builder' as ActiveTab,
     onClick: () => navigateToTopology({ eventId }),
     discard: !building && hasTopologyDraft(eventId),

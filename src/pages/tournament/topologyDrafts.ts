@@ -8,6 +8,11 @@ import type { TopologyState } from 'courthive-components';
 
 const drafts = new Map<string, Partial<TopologyState>>();
 
+/** A draft is the event's, or one of its flights' (a flight is a reserved drawId with its own entries). */
+export function topologyDraftKey(eventId: string, flightDrawId?: string | null): string {
+  return flightDrawId ? `${eventId}:${flightDrawId}` : eventId;
+}
+
 export function getTopologyDraft(eventId: string): Partial<TopologyState> | undefined {
   return drafts.get(eventId);
 }

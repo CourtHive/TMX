@@ -155,7 +155,8 @@ export function addDraw({
       rotatingFields = mountRotatingFormatFields({ target: elem, inputs, event, selectedParticipantIds });
     }
     // a new draw can go on in the draw builder, laid out as the drawer now describes it (CA, 2026-11-17)
-    if (mode.kind === 'NEW_MAIN') elem.appendChild(openInBuilderLink({ eventId, inputs: () => inputs }));
+    // a flight's drawer (its reserved drawId) hands over the flight, so the builder works on the flight's entries
+    if (mode.kind === 'NEW_MAIN') elem.appendChild(openInBuilderLink({ eventId, drawId, inputs: () => inputs }));
   };
 
   const isValid = () => {
@@ -284,7 +285,15 @@ export function addDraw({
 }
 
 /** The drawer's choices, handed to the draw builder: a saved template chosen as the type opens as that template. */
-function openInBuilderLink({ eventId, inputs }: { eventId: string; inputs: () => any }): HTMLElement {
+function openInBuilderLink({
+  eventId,
+  drawId,
+  inputs,
+}: {
+  eventId: string;
+  drawId?: string;
+  inputs: () => any;
+}): HTMLElement {
   const link = document.createElement('button');
   link.type = 'button';
   link.className = 'add-draw-open-in-builder';
@@ -297,7 +306,7 @@ function openInBuilderLink({ eventId, inputs }: { eventId: string; inputs: () =>
     const drawType = select?.options?.[select.selectedIndex]?.getAttribute('value') || select?.value;
     context.drawer.close();
     if (drawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) {
-      navigateToTopology({ eventId, templateName: drawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length) });
+      navigateToTopology({ eventId, drawId, templateName: drawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length) });
       return;
     }
     const count = (field: string) => {
@@ -306,6 +315,7 @@ function openInBuilderLink({ eventId, inputs }: { eventId: string; inputs: () =>
     };
     navigateToTopology({
       eventId,
+      drawId,
       formChoices: {
         drawName: values[DRAW_NAME]?.value,
         drawSize: count(DRAW_SIZE),
