@@ -12,12 +12,13 @@ import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { NONE, TMX_TOPOLOGY, TOURNAMENT } from 'constants/tmxConstants';
 import { generateDraw } from 'components/drawers/addDraw/generateDraw';
 import { drawDefinitionConstants } from 'tods-competition-factory';
-import { showTopology } from 'services/transitions/screenSlaver';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { defaultTopology } from './topologyDefaults';
+import { discardTopologyDraft, getTopologyDraft, keepTopologyDraft } from './topologyDrafts';
+import { fillToViewportBottom } from 'functions/heightToViewportBottom';
+import { defaultTopology, type DrawFormChoices } from './topologyDefaults';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -44,6 +45,14 @@ import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
+/** The Add Draw drawer's choices, handed to the builder by its "Open in draw builder". */
+let pendingFormChoices: DrawFormChoices | null = null;
+/** The event whose new draw is on the canvas: kept as its draft when the builder is left. */
+let draftEventId: string | null = null;
+let releaseHeight: (() => void) | null = null;
+
+/** Room under the builder for the page's own bottom margin, as the draw view's inline topology leaves. */
+const BOTTOM_GAP = 8;
 
 const IS_SUCCESS = 'is-success';
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
@@ -63,7 +72,6 @@ export function renderTopologyPage({
 
   destroyTopologyPage();
   removeAllChildNodes(container);
-  showTopology();
 
   // Hydrate from existing draw if drawId provided
   const event = tournamentEngine.q.event({ eventId });
@@ -85,8 +93,13 @@ export function renderTopologyPage({
   }
   pendingTemplateName = null;
 
-  // A new draw opens with the structures its accepted entries already call for (CA, 2026-11-16)
-  if (!initialState && !drawId && !readOnly) initialState = defaultTopology(event);
+  // A new draw: what the Add Draw drawer handed over, else the canvas left for this event, else the structures its
+  // accepted entries already call for
+  const isNewDraw = !drawId && !readOnly;
+  if (!initialState && isNewDraw && pendingFormChoices) initialState = defaultTopology(event, pendingFormChoices);
+  pendingFormChoices = null;
+  if (!initialState && isNewDraw) initialState = getTopologyDraft(eventId) ?? defaultTopology(event);
+  draftEventId = isNewDraw ? eventId : null;
 
   const savedTemplates = getTopologyTemplates();
 
@@ -137,7 +150,12 @@ export function renderTopologyPage({
         },
   });
 
-  currentControl.render(container);
+  // The builder fills the window below the event's tabs, footer included, as the draw view's inline topology does
+  const host = document.createElement('div');
+  host.className = 'tmx-topology-host';
+  container.appendChild(host);
+  currentControl.render(host);
+  releaseHeight = fillToViewportBottom(host, { gap: BOTTOM_GAP });
 
   // Auto-layout for hydrated or template-loaded topologies
   if (initialState) {
@@ -270,6 +288,8 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
         } else {
           tmxToast({ message: t('topology.drawGenerated'), intent: IS_SUCCESS });
         }
+        // the draft is the draw now
+        if (!drawId) abandonTopologyDraft(eventId);
         navigateToEvent({ eventId, drawId: generatedDrawId, structureId: mainStructureId, renderDraw: true });
       },
     });
@@ -324,10 +344,20 @@ function handleSaveTemplate({ state }: { state: TopologyState }): void {
 }
 
 export function destroyTopologyPage(): void {
+  releaseHeight?.();
+  releaseHeight = null;
   if (currentControl) {
+    if (draftEventId) keepTopologyDraft(draftEventId, currentControl.getState());
     currentControl.destroy();
     currentControl = null;
   }
+  draftEventId = null;
+}
+
+/** Let an event's draft go: the one on the canvas is then not kept when the builder is left. */
+export function abandonTopologyDraft(eventId: string): void {
+  if (draftEventId === eventId) draftEventId = null;
+  discardTopologyDraft(eventId);
 }
 
 export function navigateToTopology({
@@ -335,13 +365,16 @@ export function navigateToTopology({
   drawId,
   readOnly,
   templateName,
+  formChoices,
 }: {
   eventId: string;
   drawId?: string;
   readOnly?: boolean;
   templateName?: string;
+  formChoices?: DrawFormChoices;
 }): void {
   pendingTemplateName = templateName || null;
+  pendingFormChoices = formChoices ?? null;
   const tournamentId = tournamentEngine.q.tournament()?.tournamentId;
   let route = `/${TOURNAMENT}/${tournamentId}/topology/${eventId}`;
   if (drawId) route += `/${drawId}`;

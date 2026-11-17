@@ -75,13 +75,6 @@ body {
   justify-content: flex-start;
 }
 
-/* The topology page is a sibling of #tmxContent, not inside it, and its only class (`flexgrow`) has no rule: it sized
-   to its content — a 400px builder on a 1000px+ window, its footer floating mid-page (CA, 2026-11-16). It grows like
-   #tmxContent so the builder fills the window with its footer at the bottom, as the schedule page does. */
-#tmxTopology {
-  flex: 1 1 auto;
-}
-
 /* A flex item refuses to shrink below its content by default (`min-height:
    auto`), which is right for a tab that is genuinely taller than the window —
    it overflows and the document scrolls, as it always did. It is wrong for the
@@ -93,8 +86,7 @@ body {
 .app_shell,
 #navMain,
 #tmxContent,
-#tcContainer,
-#tmxTopology {
+#tcContainer {
   min-height: 0;
 }
 

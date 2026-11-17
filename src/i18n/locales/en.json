@@ -2214,6 +2214,7 @@
       "generate": "Generate",
       "generateFlight": "Generate flight",
       "configureDraw": "Configure draw",
+      "openInBuilder": "Open in draw builder",
       "customScorecard": "Custom scorecard",
       "invalidDrawSize": "Invalid draw size",
       "feedInQualifiersInvalid": "A staggered entry qualifying of {{drawSize}} can produce only these numbers of qualifiers: {{counts}}",
@@ -2770,6 +2771,9 @@
       "draws": "Draws",
       "entries": "Entries",
       "rankings": "Rankings",
+      "drawBuilder": "Draw builder",
+      "savedTemplates": "Saved templates",
+      "addDrawMenu": "Draw builder and templates",
       "actions": "Actions",
       "editEventAction": "Edit event",
       "displaySettings": "Display settings",
@@ -3540,7 +3544,9 @@
     "structuresNotAttached": "Draw generated, but these structures could not be attached: {{unattached}}",
     "templateName": "Template Name",
     "templateSaved": "Template saved",
-    "eventNotFound": "Event not found"
+    "eventNotFound": "Event not found",
+    "discardDraft": "Discard draft",
+    "discardDraftQuery": "Discard the draw being built for this event?"
   },
   "participantFields": {
     "identifiers": "Identifiers",

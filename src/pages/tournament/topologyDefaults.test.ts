@@ -67,4 +67,39 @@ describe('defaultTopology', () => {
     expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 16, qualifyingPositions: 4 });
     expect(node(state, 'MAIN').drawSize).toBe(64);
   });
+
+  describe("handed the Add Draw drawer's choices", () => {
+    it('opens the draw the drawer describes: its name, Main type and size', () => {
+      const state: any = defaultTopology(event(entries(20)), {
+        drawName: 'Gold',
+        drawType: 'FEED_IN_CHAMPIONSHIP',
+        drawSize: 32,
+      });
+      expect(state.drawName).toBe('Gold');
+      expect(node(state, 'MAIN')).toMatchObject({ structureType: 'FEED_IN_CHAMPIONSHIP', drawSize: 32 });
+    });
+
+    it('a Main type the builder does not lay out opens as single elimination', () => {
+      const state: any = defaultTopology(event(entries(20)), { drawType: 'CURTIS_CONSOLATION', drawSize: 32 });
+      expect(node(state, 'MAIN').structureType).toBe('SINGLE_ELIMINATION');
+    });
+
+    it("takes the drawer's qualifiers, as a count the qualifying draw can produce", () => {
+      const state: any = defaultTopology(event(entries(28), entries(12, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
+        drawSize: 32,
+        qualifiersCount: 2,
+      });
+      expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 16, qualifyingPositions: 2 });
+      expect(state.edges[0].qualifyingPositions).toBe(2);
+    });
+
+    it('no qualifiers in the drawer is a draw without a qualifying structure', () => {
+      const state: any = defaultTopology(event(entries(28), entries(12, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
+        drawSize: 32,
+        qualifiersCount: 0,
+      });
+      expect(state.nodes).toHaveLength(1);
+      expect(state.edges).toEqual([]);
+    });
+  });
 });

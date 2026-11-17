@@ -9,6 +9,7 @@ import {
   EVENT_TABS_BAR,
   NONE,
   POINTS_VIEW,
+  TMX_TOPOLOGY,
 } from 'constants/tmxConstants';
 
 function setDisplayById(id: string, display: string): void {
@@ -20,8 +21,9 @@ export function setEventView({
   eventId,
   renderDraw,
   renderPoints,
-}: { eventId?: string; renderDraw?: boolean; renderPoints?: boolean } = {}): void {
-  const showEvent = eventId || renderDraw || renderPoints;
+  renderBuilder,
+}: { eventId?: string; renderDraw?: boolean; renderPoints?: boolean; renderBuilder?: boolean } = {}): void {
+  const showEvent = eventId || renderDraw || renderPoints || renderBuilder;
   const showOrHide = (visible: boolean | undefined | string) => (visible ? '' : NONE);
 
   // Tab header (e.g. "Events (5)") — hide when event selected
@@ -41,10 +43,12 @@ export function setEventView({
 
   // Content visibility within Zone 3
   // EVENT_INFO holds the control bar — visible for draws/entries, hidden for points (no control bar needed)
-  setDisplayById(EVENT_INFO, showOrHide(showEvent && !renderPoints));
-  setDisplayById(ENTRIES_VIEW, showOrHide(eventId && !renderDraw && !renderPoints));
-  setDisplayById(DRAWS_VIEW, showOrHide(renderDraw && !renderPoints));
-  setDisplayById(POINTS_VIEW, showOrHide(renderPoints));
+  // The draw builder carries its own toolbar: no control bar above it
+  setDisplayById(EVENT_INFO, showOrHide(showEvent && !renderPoints && !renderBuilder));
+  setDisplayById(ENTRIES_VIEW, showOrHide(eventId && !renderDraw && !renderPoints && !renderBuilder));
+  setDisplayById(DRAWS_VIEW, showOrHide(renderDraw && !renderPoints && !renderBuilder));
+  setDisplayById(POINTS_VIEW, showOrHide(renderPoints && !renderBuilder));
+  setDisplayById(TMX_TOPOLOGY, showOrHide(renderBuilder));
 
   // The draws-list "Draws (N)" header is shown only by `renderDrawsTableView`;
   // every other view path clears it here so it doesn't bleed into entries/points/single-draw.

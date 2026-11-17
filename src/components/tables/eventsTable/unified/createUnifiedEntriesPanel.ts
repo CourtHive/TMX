@@ -21,6 +21,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { isSeedingEnabled } from '../seeding/seedingState';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { getUnifiedColumns } from './unifiedColumns';
+import { addDrawMenu } from './addDrawMenu';
 import { ENTRY_POSITION_FIELD, withEntryIndex, withStatusOrdinals } from './entryPosition';
 import { inheritedEntryStage } from './pairSegment';
 import { pairFromUnified } from './pairFromUnified';
@@ -590,6 +591,15 @@ export function createUnifiedEntriesPanel({
         intent: 'is-primary',
         label: t('pages.events.addDraw'),
         location: RIGHT,
+        // A split button (CA, 2026-11-17): the drawer stays one click; the draw builder, and the templates saved on
+        // the tournament, open from the menu. Hidden on a flight's entries until the builder is scoped to a flight.
+        // The caret's name says what it holds, and is never mistaken for Add draw itself.
+        ...(!drawId && {
+          menuLabel: t('pages.events.addDrawMenu'),
+          options: addDrawMenu(eventId),
+          align: RIGHT,
+          split: true,
+        }),
       },
     ];
 

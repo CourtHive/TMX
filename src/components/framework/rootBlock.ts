@@ -18,7 +18,6 @@ import {
   TMX_CONTENT,
   TMX_TOURNAMENTS,
   TMX_PARTICIPATION,
-  TMX_TOPOLOGY,
   TMX_FORMAT_WIZARD,
   TMX_TEMPLATES,
   TMX_POLICIES,
@@ -175,13 +174,6 @@ export function rootBlock(): HTMLElement {
   participation.id = TMX_PARTICIPATION;
 
   main.appendChild(participation);
-
-  const topology = document.createElement('div');
-  topology.className = flexColFlexGrow;
-  topology.style.display = NONE;
-  topology.id = TMX_TOPOLOGY;
-
-  main.appendChild(topology);
 
   const formatWizard = document.createElement('div');
   formatWizard.className = flexColFlexGrow;

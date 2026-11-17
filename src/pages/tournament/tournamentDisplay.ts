@@ -38,7 +38,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { displayTab } from './container/tournamentContent';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { clearChat } from 'services/chat/chatService';
-import { renderTopologyPage } from './topologyPage';
+import { destroyTopologyPage } from './topologyPage';
 import { tmx2db } from 'services/storage/tmx2db';
 import { debugConfig } from 'config/debugConfig';
 import { context } from 'services/context';
@@ -187,23 +187,15 @@ let activeRenderedTab: string | null = null;
 export function destroyActiveTab(): void {
   if (activeRenderedTab === SCHEDULING_TAB) destroySchedulingTab();
   if (activeRenderedTab === OFFICIALS_TAB) destroyOfficialsTab();
+  destroyTopologyPage();
   activeRenderedTab = null;
 }
 
 export function routeTo(config: any): void {
   const { selectedTab = TOURNAMENT_OVERVIEW } = config;
 
-  // Topology page is standalone — does not use tournament tab system
-  if (selectedTab === 'topology') {
-    destroyActiveTab();
-    highlightTab(selectedTab);
-    renderTopologyPage({
-      eventId: config.eventId,
-      drawId: config.drawId,
-      readOnly: config.readOnly,
-    });
-    return;
-  }
+  // The draw builder is one of the event's views (CA, 2026-11-17): its routes keep their URLs
+  if (selectedTab === 'topology') return routeTo({ ...config, selectedTab: EVENTS_TAB, renderBuilder: true });
 
   // Format Wizard is also standalone — full-page tournament-context
   // surface with no navbar icon. Launched from overview.
