@@ -1,5 +1,20 @@
 # Changelog
 
+## [8.56.0](https://github.com/CourtHive/TMX/compare/v8.55.0...v8.56.0) (2026-11-18)
+
+
+### Features
+
+* **publishing:** a release time per order-of-play date ([#2030](https://github.com/CourtHive/TMX/issues/2030)) ([cb88899](https://github.com/CourtHive/TMX/commit/cb888996098cc1be9b385f0688d06a2b88c509de))
+
+
+### Bug Fixes
+
+* **crowd:** skip the crowd-sessions poll while no token is stored ([#2026](https://github.com/CourtHive/TMX/issues/2026)) ([cbdb8a6](https://github.com/CourtHive/TMX/commit/cbdb8a60a5ae19ebb40e607c6149dbf10971ea21))
+* **deps:** update courthive-components to 7.17.0 ([#2029](https://github.com/CourtHive/TMX/issues/2029)) ([a70d60e](https://github.com/CourtHive/TMX/commit/a70d60eff9d25934cb48f3293d799a06ad210f90))
+* **deps:** update pdf-factory to 1.1.12 ([#2031](https://github.com/CourtHive/TMX/issues/2031)) ([fb7c965](https://github.com/CourtHive/TMX/commit/fb7c9657727347576e227c498f5714f5b507cd5a))
+* **deps:** update tods-competition-factory to 7.40.0 ([#2027](https://github.com/CourtHive/TMX/issues/2027)) ([7f6c60b](https://github.com/CourtHive/TMX/commit/7f6c60be25179f77ec3c29a1cc9eb7ca96d733e6))
+
 ## [8.55.0](https://github.com/CourtHive/TMX/compare/v8.54.1...v8.55.0) (2026-11-17)
 
 
