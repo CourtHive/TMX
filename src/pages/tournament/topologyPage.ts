@@ -16,7 +16,14 @@ import { removeAllChildNodes } from 'services/dom/transformers';
 import { preferencesConfig } from 'config/preferencesConfig';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
-import { discardTopologyDraft, getTopologyDraft, keepTopologyDraft, topologyDraftKey } from './topologyDrafts';
+import {
+  discardTopologyDraft,
+  getTopologyDraft,
+  hasTopologyDraft,
+  keepTopologyDraft,
+  topologyDraftKey,
+} from './topologyDrafts';
+import { designForFlight } from './topologyFlightDesign';
 import { fillToViewportBottom } from 'functions/heightToViewportBottom';
 import { defaultMatchUpFormat, defaultTopology, type DrawFormChoices } from './topologyDefaults';
 import { scalesMap } from 'config/scalesConfig';
@@ -429,6 +436,42 @@ export function abandonTopologyDraft(eventId: string, drawId?: string | null): v
   const key = topologyDraftKey(eventId, drawId);
   if (draftKey === key) draftKey = null;
   discardTopologyDraft(key);
+}
+
+/** The event's other flights without a draw: those a flight's design can be given to. */
+export function otherFlightsWithoutDraws(eventId: string, drawId?: string | null): any[] {
+  const event = tournamentEngine.q.event({ eventId });
+  const made = new Set((event?.drawDefinitions ?? []).map((dd: any) => dd.drawId));
+  const flights = tournamentEngine.q.flightProfile({ eventId })?.flights ?? [];
+  return flights.filter((flight: any) => flight.drawId !== drawId && !made.has(flight.drawId));
+}
+
+/**
+ * Use this flight's design for the event's other flights (topology builder 3B, CA, 2026-11-18): each flight without a
+ * draw gets the design as its builder draft, sized to its own entries. Nothing is generated; the director opens each
+ * flight, checks its fit, and generates it, and each draw is independent once made. Drafts a flight already holds are
+ * replaced only when the director confirms.
+ */
+export function useDesignForOtherFlights(eventId: string, onDone?: () => void): void {
+  if (!currentControl || !flightDrawId) return;
+  const others = otherFlightsWithoutDraws(eventId, flightDrawId);
+  if (!others.length) return;
+  const design = currentControl.getState();
+  const apply = () => {
+    for (const flight of others)
+      keepTopologyDraft(topologyDraftKey(eventId, flight.drawId), designForFlight(design, flight));
+    tmxToast({ message: t('topology.flightDraftsMade', { count: others.length }), intent: IS_SUCCESS });
+    onDone?.();
+  };
+  const replacing = others.filter((flight: any) => hasTopologyDraft(topologyDraftKey(eventId, flight.drawId)));
+  if (!replacing.length) return apply();
+  confirmModal({
+    title: t('topology.useForOtherFlights'),
+    query: t('topology.replaceFlightDrafts', { count: replacing.length }),
+    okIntent: 'is-warning',
+    okAction: apply,
+    cancelAction: undefined,
+  });
 }
 
 /** The flight of the event with this drawId, while it has no draw. */

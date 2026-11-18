@@ -11,7 +11,9 @@ import { drawEntriesClick } from 'components/tables/eventsTable/drawEntriesClick
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { hasTopologyDraft, topologyDraftKey } from 'pages/tournament/topologyDrafts';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
@@ -51,6 +53,9 @@ export function renderDrawsTable({ eventId, target }: { eventId: string; target:
     const { drawId, flightNumber, generated } = drawData;
     if (generated) {
       navigateToEvent({ eventId, drawId, renderDraw: true });
+    } else if (hasTopologyDraft(topologyDraftKey(eventId, drawId))) {
+      // a flight holding a draft opens it in the builder, where the director checks its fit and generates it
+      navigateToTopology({ eventId, drawId });
     } else {
       // Ungenerated flight — open addDraw to generate it
       const callback = (result: any) => {
@@ -204,6 +209,10 @@ function buildDrawRows(eventId: string): any[] {
         drawName: flight.drawName,
         drawId: flight.drawId,
         generated: false,
+        // a design given to the flight (CA, 2026-11-18): it is still not generated
+        ...(hasTopologyDraft(topologyDraftKey(eventId, flight.drawId)) && {
+          drawTypeLabel: t('topology.draftInBuilder'),
+        }),
       });
     }
   });
