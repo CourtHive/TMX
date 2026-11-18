@@ -14,10 +14,14 @@ import { initDevBridge, waitForAppReady } from '../helpers/dev-bridge';
  * for `{ value, label }` entries in the list. The zone list is plain strings,
  * so the lookup never matched and the input rendered empty for every tournament
  * that had a zone set.
+ *
+ * Since the time zone picker (CA, 2026-11-17) the box shows the zone by name ("Paris · Central European Time") and
+ * the form reads the IANA id from the picker's value.
  */
 
 const TIME_ZONE = 'Europe/Paris';
-const TZ_INPUT = 'input[placeholder="e.g. America/New_York"]';
+const TZ_SEARCH = '.chc-tz-search';
+const TZ_VALUE = '.chc-tz-value';
 
 test.describe('Journey 98 — Edit Dates modal time zone pre-fill', () => {
   test.beforeEach(async ({ page }) => {
@@ -51,8 +55,9 @@ test.describe('Journey 98 — Edit Dates modal time zone pre-fill', () => {
 
     await datesCard.click();
 
-    const tzInput = page.locator(TZ_INPUT);
-    await expect(tzInput).toBeVisible({ timeout: 10_000 });
-    await expect(tzInput).toHaveValue(TIME_ZONE);
+    const tzSearch = page.locator(TZ_SEARCH);
+    await expect(tzSearch).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(TZ_VALUE)).toHaveValue(TIME_ZONE);
+    await expect(tzSearch).toHaveValue(/^Paris · /);
   });
 });

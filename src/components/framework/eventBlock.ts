@@ -28,6 +28,7 @@ import {
   DRAWS_HEADER,
   EVENT_CONTROL,
   TMX_PANEL,
+  TMX_TOPOLOGY,
 } from 'constants/tmxConstants';
 
 export function eventBlock(): HTMLDivElement {
@@ -67,6 +68,8 @@ export function eventBlock(): HTMLDivElement {
           <div id=${WITHDRAWN_PANEL} class='tableClass block ${TMX_PANEL}'> </div>
         </div>
         <div id=${POINTS_VIEW} style="display: none; width: 100%;"></div>
+        <!-- The draw builder: one of the event's views (CA, 2026-11-17) -->
+        <div id=${TMX_TOPOLOGY} style="display: none; width: 100%;"></div>
         <div style="width: 100%; margin: 0">
           <div id=${DRAW_CONTROL}></div>
           <div id=${DRAW_FRAME} class="flexrow flexjustifystart" style="width: 100%">

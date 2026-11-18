@@ -12,9 +12,12 @@ import { initDevBridge, waitForAppReady } from '../helpers/dev-bridge';
  *
  * Visibility is judged by what is actually drawn at a point (`elementFromPoint`): `toBeVisible` counts a
  * clipped element as visible, and a click would pass too, because it scrolls the body first.
+ *
+ * The time zone field is now the time zone picker (CA, 2026-11-17); its list is anchored the same way
+ * (`anchorModalPopups`, `chc-tz-place`). It scrolls its own rows, so the rows judged are the ones it shows.
  */
 
-const TZ_INPUT = 'input[placeholder="e.g. America/New_York"]';
+const TZ_INPUT = '.chc-tz-search';
 const OPEN_CALENDAR = '.datepicker-dropdown.active';
 const SUGGESTIONS = 'ul[role="listbox"]:not([hidden]) li';
 
@@ -88,19 +91,14 @@ test.describe('Journey 161 — popups inside the Edit Dates modal', () => {
     const items = page.locator(SUGGESTIONS);
     await expect.poll(() => items.count()).toBeGreaterThanOrEqual(5);
 
-    // Awesomplete scales the list in from zero, and a scaled row's centre is still inside the row: wait until
-    // the list's drawn width equals its layout width, which ignores transforms.
-    const list = page.locator('ul[role="listbox"]:not([hidden])');
-    await expect
-      .poll(() =>
-        list.evaluate(
-          (element) => Math.round(element.getBoundingClientRect().width) === (element as HTMLElement).offsetWidth,
-        ),
-      )
-      .toBe(true);
-
     const covered = await items.evaluateAll((rows) =>
       rows
+        // the rows the list shows: it scrolls its own rows, so one below its bottom edge is hidden by design
+        .filter((row) => {
+          const box = row.parentElement!.getBoundingClientRect();
+          const { top, bottom } = row.getBoundingClientRect();
+          return (top + bottom) / 2 < box.bottom;
+        })
         .filter((row) => {
           const { left, right, top, bottom } = row.getBoundingClientRect();
           const drawn = document.elementFromPoint((left + right) / 2, (top + bottom) / 2);

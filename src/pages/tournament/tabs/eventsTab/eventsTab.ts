@@ -19,6 +19,7 @@ import { buildViewToggleElement } from 'components/tables/common/viewToggle';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import type { VizDataAvailability } from './renderDraws/drawCardVizGating';
 import { setEventView } from 'components/tables/eventsTable/setEventView';
+import { destroyTopologyPage, renderTopologyPage } from 'pages/tournament/topologyPage';
 import { renderEventSelector, hideEventSelector } from './eventSelector';
 import { defaultStructureId } from './renderDraws/defaultStructureId';
 import { addFlights } from 'components/modals/addFlights/addFlights';
@@ -61,11 +62,14 @@ type RenderEventsTabParams = {
   structureId?: string;
   renderDraw?: boolean;
   renderPoints?: boolean;
+  /** The draw builder, one of the event's views (CA, 2026-11-17). */
+  renderBuilder?: boolean;
+  readOnly?: boolean;
   roundsView?: string;
 };
 
 export function renderEventsTab(params: RenderEventsTabParams): void {
-  let { eventId, drawId, structureId, renderDraw, renderPoints, roundsView } = params;
+  let { eventId, drawId, structureId, renderDraw, renderPoints, renderBuilder, readOnly, roundsView } = params;
 
   // Resolve structureId from draw data when not provided. The view is the structure's default (Grid for round robin)
   // unless the route names one the structure offers: a stats or grid route on an elimination structure has no tally.
@@ -79,6 +83,8 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
   highlightTab(EVENTS_TAB);
   destroyTables();
   cleanupDrawPanel();
+  // leaving the builder keeps its canvas as the event's draft
+  if (!renderBuilder) destroyTopologyPage();
 
   const showEvent = eventId || drawId;
 
@@ -95,7 +101,11 @@ export function renderEventsTab(params: RenderEventsTabParams): void {
   // Event selected — show compact selector
   renderEventSelector({ eventId });
 
-  if (renderPoints) {
+  if (renderBuilder) {
+    renderEventTabsBar({ eventId, drawId, activeTab: 'builder' });
+    setEventView({ eventId, renderBuilder });
+    renderTopologyPage({ eventId, drawId, readOnly });
+  } else if (renderPoints) {
     const { policyControlsElement } = createPointsTable({ eventId });
     renderEventTabsBar({ eventId, drawId, activeTab: 'points', rightContent: policyControlsElement });
     setEventView({ renderPoints });

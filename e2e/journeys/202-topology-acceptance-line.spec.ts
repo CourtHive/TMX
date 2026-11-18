@@ -1,5 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { getTournamentRecord, seedTournament } from '../helpers/seed';
+import { generateFromTopology } from '../helpers/topologyGenerate';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -32,11 +33,8 @@ test.describe('Topology — the acceptance line', () => {
     const topology = page.locator('#tmxTopology');
     await expect(topology.locator(FIT)).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
 
-    await topology.getByRole('button', { name: 'Add Structure' }).click();
-    await page
-      .locator('.dropdown-item', { hasText: /^Main$/ })
-      .first()
-      .click();
+    // the page opens with the Main its 26 accepted entries call for: a 32
+    await expect(topology.locator('.tb-card')).toHaveCount(1);
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
     // 26 for 16 positions: ten have no place
     await main.locator('.tb-fit-stepper[data-lever="size"] .tb-fit-step[data-direction="down"]').click();
@@ -61,7 +59,7 @@ test.describe('Topology — the acceptance line', () => {
     await page.screenshot({ path: test.info().outputPath('acceptance-line.png') });
 
     // Generate: the statuses and the draw land together
-    await topology.getByRole('button', { name: 'Generate Draw' }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0, {
         timeout: 10_000,

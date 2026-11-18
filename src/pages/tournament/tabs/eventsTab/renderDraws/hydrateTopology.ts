@@ -105,7 +105,9 @@ export function hydrateTopology(drawDefinition: any): Partial<TopologyState> | u
         : stage === 'VOLUNTARY_CONSOLATION'
           ? (structure.positionAssignments?.length ?? 0)
           : structurePositions(structure),
-      matchUpFormat: structure.matchUpFormat,
+      // a structure plays its draw's format unless it names its own; read only from the structure, a generated draw
+      // showed "Not set" on every card (CA, 2026-11-17)
+      matchUpFormat: structure.matchUpFormat ?? drawDefinition.matchUpFormat,
       ...(structureOptions && { structureOptions }),
       position: {
         x: col * 280 + 40,

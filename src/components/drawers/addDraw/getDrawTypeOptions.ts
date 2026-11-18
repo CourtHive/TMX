@@ -37,7 +37,7 @@ const {
 } = drawDefinitionConstants;
 
 /** Returns true if the template's topology has no validation errors (warnings are OK). */
-function isValidTemplate(template: TopologyTemplate | { state: TopologyTemplate['state'] }): boolean {
+export function isValidTemplate(template: TopologyTemplate | { state: TopologyTemplate['state'] }): boolean {
   if (!template.state?.nodes?.length) return false;
   const state = {
     drawName: template.state.drawName || '',

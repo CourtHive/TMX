@@ -2,6 +2,7 @@
  * Draw form items configuration.
  * Generates form field definitions for draw creation with validation and options.
  */
+import { activeRatingScales } from 'components/tables/matchUpsTable/getPresentRatings';
 import { targetNotice, targetOptionLabel, type QualifyingTarget } from './qualifyingTargets';
 import { drawFormModel, DrawFormMode } from './drawFormModel';
 import { acceptedEntriesCount } from './acceptedEntriesCount';
@@ -13,13 +14,7 @@ import { providerConfig } from 'config/providerConfig';
 import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
 import { t, translate } from 'i18n';
-import {
-  factoryConstants,
-  drawDefinitionConstants,
-  eventConstants,
-  policyConstants,
-  fixtures,
-} from 'tods-competition-factory';
+import { factoryConstants, drawDefinitionConstants, eventConstants, policyConstants } from 'tods-competition-factory';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {
@@ -59,7 +54,6 @@ import {
 const { MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
 const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
-const { SINGLES } = factoryConstants.eventConstants;
 const { TEAM } = eventConstants;
 
 // Seeding policy constants
@@ -203,17 +197,7 @@ export function getDrawFormItems({ event, mode }: { event: any; mode: DrawFormMo
       });
 
   // Discover available rating scales for DrawMatic configuration
-  const { ratingsParameters } = fixtures;
-  const { participants: allParticipants = [] } = tournamentEngine.getParticipants({ withScaleValues: true }) ?? {};
-  const presentRatings = new Set<string>();
-  for (const p of allParticipants) {
-    for (const item of p.ratings?.[SINGLES] || []) {
-      presentRatings.add(item.scaleName);
-    }
-  }
-  const activeRatingKeys = Object.keys(ratingsParameters).filter(
-    (key) => !(ratingsParameters as any)[key].deprecated && presentRatings.has(key),
-  );
+  const activeRatingKeys = activeRatingScales();
   const ratingScaleOptions = [
     { label: t('drawers.addDraw.offOption'), value: '', selected: true },
     ...activeRatingKeys.map((key) => ({ label: key, value: key.toLowerCase() })),

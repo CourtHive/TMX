@@ -34,12 +34,8 @@ test.describe('Topology — Fit mode', () => {
     const topology = page.locator('#tmxTopology');
     await expect(topology.locator(FIT)).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
 
-    // a main structure to fit the entries to: the toolbar's default is a 32
-    await topology.getByRole('button', { name: 'Add Structure' }).click();
-    await page
-      .locator('.dropdown-item', { hasText: /^Main$/ })
-      .first()
-      .click();
+    // the page opens with the Main its 26 accepted entries call for: the 32 that holds them (CA, 2026-11-16)
+    await expect(topology.locator('.tb-card')).toHaveCount(1);
 
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'SHORT', { timeout: 10_000 });

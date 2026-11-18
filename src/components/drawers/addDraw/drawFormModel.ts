@@ -280,7 +280,16 @@ export function resolveDrawFormMode({
   }
   if (isQualifying && drawId && draw) return { kind: 'GENERATE_QUALIFYING', event, draw };
   if (isQualifying) return { kind: 'NEW_QUALIFYING', event };
-  return { kind: 'NEW_MAIN', event };
+  // A flight with no draw yet is a reserved drawId with its own entries: its new draw is sized from those, as the
+  // form's later recalculations (`acceptedEntriesCount`) already were. It opened sized for the whole event.
+  const flight = drawId && !draw ? flightOf(event, drawId) : undefined;
+  return { kind: 'NEW_MAIN', event: flight ? { ...event, entries: flight.drawEntries ?? [] } : event };
+}
+
+function flightOf(event: any, drawId: string): any {
+  const flightProfile =
+    event?.flightProfile ?? event?.extensions?.find((ext: any) => ext?.name === 'flightProfile')?.value;
+  return flightProfile?.flights?.find((f: any) => f?.drawId === drawId);
 }
 
 export function drawFormModel(
@@ -675,9 +684,7 @@ function readNumericInput(value: number | string | undefined, fallback: number):
 function readFlightMainEntries(draw: any, event: any): any[] {
   // Pure-function model: read first-class with extension fallback inline (no
   // engine dependency — see file header). Mode-agnostic across LEGACY/NATIVE.
-  const flightProfile =
-    event?.flightProfile ?? event?.extensions?.find((ext: any) => ext?.name === 'flightProfile')?.value;
-  const flight = flightProfile?.flights?.find((f: any) => f?.drawId === draw?.drawId);
+  const flight = flightOf(event, draw?.drawId);
   const flightMainEntries = (flight?.drawEntries ?? []).filter((entry: any) => {
     const entryStage = entry?.entryStage;
     return (!entryStage || entryStage === 'MAIN') && isAcceptedEntry(entry?.entryStatus);

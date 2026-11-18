@@ -11,6 +11,7 @@
   "generate",
   "getTournamentIds",
   "light",
+  "ratingTypes",
   "route",
   "scrollTo",
   "segments",
@@ -18,5 +19,6 @@
   "setTournamentId",
   "tabindex",
   "targets",
-  "timeItem"
+  "timeItem",
+  "timeZones"
 ]

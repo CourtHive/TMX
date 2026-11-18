@@ -8,7 +8,6 @@ import {
   SPLASH,
   TMX_CONTENT,
   TMX_TOURNAMENTS,
-  TMX_TOPOLOGY,
   TMX_FORMAT_WIZARD,
   TMX_TEMPLATES,
   TMX_POLICIES,
@@ -20,14 +19,13 @@ import {
 let content: string | undefined;
 
 const HOME_CONTEXT_PAGES = [TMX_TOURNAMENTS, TMX_PARTICIPATION, TMX_TEMPLATES, TMX_POLICIES, TMX_SETTINGS];
-const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_TOPOLOGY, TMX_FORMAT_WIZARD];
+const TOURNAMENT_CONTEXT_PAGES = [TMX_CONTENT, TMX_FORMAT_WIZARD];
 
 function selectDisplay(which: string): void {
   setState(TMX_CONTENT, which);
   setState(SPLASH, which);
   setState(TMX_TOURNAMENTS, which);
   setState(TMX_PARTICIPATION, which);
-  setState(TMX_TOPOLOGY, which);
   setState(TMX_FORMAT_WIZARD, which);
   setState(TMX_ADMIN, which);
   setState(TMX_TEMPLATES, which);
@@ -89,10 +87,6 @@ export const showTMXtournaments = (): void => {
     tournamentElement.innerHTML = `<div class='tmx-title'>Tournaments</div>`;
   }
   content = TMX_TOURNAMENTS;
-  selectDisplay(content);
-};
-export const showTopology = (): void => {
-  content = TMX_TOPOLOGY;
   selectDisplay(content);
 };
 export const showFormatWizard = (): void => {
