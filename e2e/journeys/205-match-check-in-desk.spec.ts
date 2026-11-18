@@ -89,11 +89,20 @@ test('round robin desk checks in individuals, refreshes counts, filters and pers
   expect(await page.locator(DESK).evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('check-in-desk-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByRole('combobox', { name: 'Check-in status', exact: true }).selectOption('partial');
+  // The check-in state is a section of the desk's filter popover (TMX #2005), no longer a toolbar combobox.
+  await page.locator('#filterPopoverButton').click();
+  const status = page.locator('.filter-popover-row', { hasText: 'Check-in status' }).locator('select');
+  await status.selectOption({ label: 'Partially checked in' });
   await expect(page.locator(CARD)).toHaveCount(1);
-  await page.getByRole('searchbox', { name: 'Search participant names' }).fill(seed.name);
+  await page.keyboard.press('Escape');
+  // The desk's search is the shared controlBar input since #2005: a textbox that filters on keyup and change, not
+  // on `input`, so the journey types into it as a user does rather than `fill`ing it.
+  const search = page.getByRole('textbox', { name: 'Search participant names' });
+  await search.pressSequentially(seed.name);
   await expect(card).toBeVisible();
-  await page.getByRole('searchbox').fill('no such player');
+  await expect(page.locator(CARD)).toHaveCount(1);
+  await search.clear();
+  await search.pressSequentially('no such player');
   await expect(page.locator(CARD)).toHaveCount(0);
   await page.reload();
   await waitForAppReady(page);
