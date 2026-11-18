@@ -5,10 +5,11 @@
  * - MAIN accepted entries → a single-elimination Main, sized as the Add Draw drawer sizes it (`drawFormModel`): the
  *   power of two that holds the main entries, with the places left over held for qualifiers when there are qualifying
  *   entries.
- * - QUALIFYING accepted entries as well → a Qualifying structure sized to hold them, linked into the Main's first
- *   round. Its qualifiers are the drawer's places left over, brought to a count an elimination draw can produce (a
- *   power of two, at most half the qualifying draw); with no places left over the builder's own default for a new
- *   qualifying structure applies (a quarter of its draw) and the Main grows to take them.
+ * - QUALIFYING accepted entries as well → a Qualifying structure of exactly those entrants, linked into the Main's
+ *   first round. Its qualifiers are the drawer's places left over, brought down to a count the structure can produce
+ *   (the builder's own list: 40 entrants → 20, 16, 10, 8, 5, 4, 2, 1; the factory plays a 64 draw with byes for 16);
+ *   with no places left over the builder's default for a new qualifying structure applies (the largest count of about
+ *   a quarter of its entrants) and the Main grows to take them. Both start on the event's default format.
  *
  * No accepted MAIN entries, no default: a draw made only of qualifying, or before anyone has entered, is built by
  * hand. Pure: the event is handed in.
@@ -18,6 +19,7 @@
  * the drawer asks for none.
  */
 import { drawDefinitionConstants, entryStatusConstants } from 'tods-competition-factory';
+import { defaultQualifiers, eliminationQualifierCounts } from 'courthive-components';
 import { drawFormModel } from 'components/drawers/addDraw/drawFormModel';
 import { randomId } from 'functions/randomId';
 
@@ -58,9 +60,29 @@ export type DrawFormChoices = {
 const ACCEPTED = new Set<string>(entryStatusConstants.STRUCTURE_SELECTED_STATUSES);
 
 const nextPowerOfTwo = (n: number) => Math.max(2, 2 ** Math.ceil(Math.log2(Math.max(n, 1))));
-const powerOfTwoAtMost = (n: number) => (n >= 1 ? 2 ** Math.floor(Math.log2(n)) : 0);
 
-export function defaultTopology(event: any, form?: DrawFormChoices): Partial<TopologyState> | undefined {
+/** Standard Advantage: the format a structure plays when nothing above it names one (CA, 2026-11-17). */
+export const STANDARD_ADVANTAGE = 'SET3-S:6/TB7';
+
+/**
+ * The format a new structure starts on (CA, 2026-11-17): the event's own, else its competition format's, else the
+ * tournament's competition format's, else Standard Advantage. It was "Not set", and a draw generated without one
+ * played whatever the scoring default happened to be.
+ */
+export function defaultMatchUpFormat(event: any, tournament?: any): string {
+  return (
+    event?.matchUpFormat ||
+    event?.competitionFormat?.matchUpFormat ||
+    tournament?.competitionFormat?.matchUpFormat ||
+    STANDARD_ADVANTAGE
+  );
+}
+
+export function defaultTopology(
+  event: any,
+  form?: DrawFormChoices,
+  matchUpFormat = defaultMatchUpFormat(event),
+): Partial<TopologyState> | undefined {
   const accepted = (stage: string) =>
     (event?.entries ?? []).filter(
       (entry: any) => ACCEPTED.has(entry.entryStatus) && (entry.entryStage ?? MAIN) === stage,
@@ -77,16 +99,19 @@ export function defaultTopology(event: any, form?: DrawFormChoices): Partial<Top
     structureName: 'Main',
     stage: MAIN,
     structureType: form?.drawType && BUILDER_MAIN_TYPES.has(form.drawType) ? form.drawType : SINGLE_ELIMINATION,
+    matchUpFormat,
     position: { x: 0, y: 0 },
   };
   const base = { drawName: form?.drawName || event?.eventName || '', selectedNodeId: null, selectedEdgeId: null };
   if (!qualifyingCount) return { ...base, nodes: [{ ...main, drawSize: mainSize }], edges: [] };
 
-  const qualifyingSize = nextPowerOfTwo(qualifyingCount);
+  // the qualifying structure is its entrants; the qualifiers a count it produces, as the builder offers them (40
+  // entrants: 20, 16, 10, 8, 5, 4, 2, 1), and the factory plays a larger draw with byes when the count needs one
+  const qualifyingSize = qualifyingCount;
   const asked = form?.qualifiersCount ?? derivedValues.qualifiersCount ?? 0;
-  let qualifiers = powerOfTwoAtMost(Math.min(asked, qualifyingSize / 2));
+  let qualifiers = asked > 0 ? eliminationQualifierCounts(qualifyingSize).find((count) => count <= asked) : undefined;
   if (!qualifiers) {
-    qualifiers = Math.max(1, Math.floor(qualifyingSize / 4));
+    qualifiers = defaultQualifiers({ drawSize: qualifyingSize, structureType: SINGLE_ELIMINATION });
     mainSize = nextPowerOfTwo(mainCount + qualifiers);
   }
   const qualifying = {
@@ -96,6 +121,7 @@ export function defaultTopology(event: any, form?: DrawFormChoices): Partial<Top
     structureType: SINGLE_ELIMINATION,
     drawSize: qualifyingSize,
     qualifyingPositions: qualifiers,
+    matchUpFormat,
     position: { x: 0, y: 0 },
   };
   return {

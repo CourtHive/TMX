@@ -112,13 +112,15 @@ test.describe('Topology — qualifying acceptance', () => {
   });
 
   test('a new draw opens with the Main and Qualifying its accepted entries call for', async ({ page }) => {
-    // 40 accepted in MAIN make a 64, 24 places left over; 12 in QUALIFYING make a 16, which produces at most 8
+    // 40 accepted in MAIN make a 64, 24 places left over; the 12 in QUALIFYING are its qualifying structure, which
+    // produces 6, 4, 3, 2 or 1 (CA, 2026-11-17): 6 of the 24 places, by halving its own 12, with no byes
     const topology = await setup(page, { qualifying: 12, fromDefaults: true });
     await expect(topology.locator('.tb-card')).toHaveCount(2);
     const card = (name: string) =>
       topology.locator('.tb-card').filter({ has: page.locator('.tb-card-name', { hasText: name }) });
     await expect(card('Main').locator('.tb-card-size')).toHaveText('×64');
-    await expect(card('Qualifying').locator('.tb-card-size')).toHaveText('×16');
+    await expect(card('Qualifying').locator('.tb-card-size')).toHaveText('×12');
+    await expect(card('Qualifying').locator('.tb-card-byes')).toHaveCount(0);
     await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['40 DA', '12 DA']);
     const record: any = await getTournamentRecord(page);
     expect(record.events[0].drawDefinitions ?? []).toHaveLength(0);

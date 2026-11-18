@@ -54,6 +54,37 @@ describe('topologyDrawSettings', () => {
     expect(above).toMatchObject({ seedsCount: 16, enforcePolicyLimits: false });
   });
 
+  // The factory finds seeding values under seedingScaleName, else the event's category name, else its eventId; TMX
+  // saves them under the eventId. Without the name a categorised event's draw had seed slots and nobody in them.
+  it("seeds from the event's seeding values, as the Add Draw drawer does, even for an event with a category", () => {
+    const settings = topologyDrawSettings({ values: { creation: AUTOMATED, seedsCount: '8' }, eventId, main });
+    expect(settings.seedingScaleName).toBe(eventId);
+
+    const record = tournamentEngine.getTournament().tournamentRecord;
+    record.events[0].category = { categoryName: '18U' };
+    tournamentEngine.setState(record);
+    const event = tournamentEngine.getEvent({ eventId }).event;
+    expect(event.category?.categoryName).toBe('18U');
+    const seeded = event.entries.slice(0, 8).map((entry: any) => entry.participantId);
+    tournamentEngine.setParticipantScaleItems({
+      scaleItemsWithParticipantIds: seeded.map((participantId: string, i: number) => ({
+        participantId,
+        scaleItems: [{ scaleType: 'SEEDING', eventType: 'SINGLES', scaleName: eventId, scaleValue: i + 1 }],
+      })),
+    });
+    const generate = (drawOptions: any): any[] => {
+      const result: any = tournamentEngine.generateDrawDefinition({ eventId, ...drawOptions });
+      return result.drawDefinition.structures[0].seedAssignments;
+    };
+    const options = { drawType: SINGLE_ELIMINATION, drawSize: 32, automated: true };
+
+    const withScale = generate(applyTopologyDrawSettings(options, settings));
+    expect(withScale.map((assignment: any) => assignment.participantId)).toEqual(seeded);
+    // without it the factory looks under '18U': the slots are there and empty
+    const { seedingScaleName: _omitted, ...without } = settings;
+    expect(generate(applyTopologyDrawSettings(options, without)).every((a: any) => !a.participantId)).toBe(true);
+  });
+
   it('asks for no seed count for a Main that cannot be seeded', () => {
     const settings = topologyDrawSettings({
       values: { creation: AUTOMATED, seedsCount: '8' },

@@ -39,14 +39,15 @@ test.describe('Topology — Configure draw', () => {
   test('offers what the topology does not define, and makes the draw with it', async ({ page }) => {
     const topology = await openTopology(page);
     await generateFromTopology(page, topology, async (drawer) => {
-      for (const label of ['Score format', 'Seeding policy', 'Seed count', 'Creation']) {
+      for (const label of ['Seeding policy', 'Seed count', 'Creation']) {
         await expect(field(drawer, label)).toBeVisible();
       }
-      for (const label of ['Draw name', 'Draw Type', 'Draw size']) {
+      // the Main card starts on the event's format (CA, 2026-11-17: Standard Advantage when nothing names one), so
+      // the score format is the topology's and the drawer does not ask for it
+      for (const label of ['Draw name', 'Draw Type', 'Draw size', 'Score format']) {
         await expect(field(drawer, label)).toHaveCount(0);
       }
       await page.screenshot({ path: test.info().outputPath('configure-draw.png') });
-      await field(drawer, 'Score format').locator('select').selectOption('SET1-S:6/TB7');
       await field(drawer, 'Creation').locator('select').selectOption({ label: 'Manual' });
     });
 
@@ -56,7 +57,7 @@ test.describe('Topology — Configure draw', () => {
       })
       .toBe(1);
     const drawDefinition = ((await getTournamentRecord(page)) as any).events[0].drawDefinitions[0];
-    expect(drawDefinition.matchUpFormat).toBe('SET1-S:6/TB7');
+    expect(drawDefinition.matchUpFormat).toBe('SET3-S:6/TB7');
     // Manual: the draw is made with nobody placed
     const main = drawDefinition.structures.find((structure: any) => structure.stage === 'MAIN');
     expect(main.positionAssignments.filter((assignment: any) => assignment.participantId)).toHaveLength(0);

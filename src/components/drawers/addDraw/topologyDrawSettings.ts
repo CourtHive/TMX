@@ -17,6 +17,8 @@ export type TopologyDrawSettings = {
   matchUpFormat?: string;
   tieFormatName?: string;
   automated: boolean | { seedsOnly: true };
+  /** The event's seeding values: the scale the factory seeds from, as the Add Draw drawer names it. */
+  seedingScaleName?: string;
   seedsCount?: number;
   tieFormat?: any;
   isDraft: boolean;
@@ -76,6 +78,9 @@ export function topologyDrawSettings({
       drawType: main.drawType,
     });
     settings.seedsCount = seedsCount;
+    // as in submitDrawParams: the event's seeding values are what seeds are placed from. Without it a topology's draw
+    // had seed slots and no seeded players in them (CA's tournament, 2026-11-17)
+    settings.seedingScaleName = eventId;
     // as in submitDrawParams: only a count above the policy's ceiling lifts its limits
     if (isOverride) settings.enforcePolicyLimits = false;
   }

@@ -1,4 +1,4 @@
-import { defaultTopology } from './topologyDefaults';
+import { defaultMatchUpFormat, defaultTopology, STANDARD_ADVANTAGE } from './topologyDefaults';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -31,12 +31,12 @@ describe('defaultTopology', () => {
   });
 
   it("with QUALIFYING entries: the drawer's places left over become qualifiers, linked into the Main's first round", () => {
-    // 28 main entries in a 32 leave 4 places; 12 qualifying entries make a 16 that produces those 4
+    // 28 main entries in a 32 leave 4 places; 12 qualifying entrants produce those 4 (a 16 draw with byes)
     const state: any = defaultTopology(event(entries(28), entries(12, 'DIRECT_ACCEPTANCE', 'QUALIFYING')));
     const main = node(state, 'MAIN');
     const qualifying = node(state, 'QUALIFYING');
     expect(main.drawSize).toBe(32);
-    expect(qualifying).toMatchObject({ drawSize: 16, qualifyingPositions: 4 });
+    expect(qualifying).toMatchObject({ drawSize: 12, qualifyingPositions: 4 });
     expect(state.edges).toEqual([
       expect.objectContaining({
         sourceNodeId: qualifying.id,
@@ -48,17 +48,18 @@ describe('defaultTopology', () => {
     ]);
   });
 
-  it('qualifiers are a count an elimination draw can produce: a power of two, at most half the qualifying draw', () => {
-    // 26 in a 32 leave 6 places: 4 qualifiers; 3 qualifying entries make a 4, which produces at most 2
+  it('qualifiers are a count the qualifying structure can produce, every one of them winning a match', () => {
+    // 26 in a 32 leave 6 places: 12 entrants produce 6, 4, 3, 2 or 1, so 6; 3 entrants produce 1 (a second would
+    // qualify on a bye)
     expect(
       node(defaultTopology(event(entries(26), entries(12, 'DIRECT_ACCEPTANCE', 'QUALIFYING'))), 'QUALIFYING')
         .qualifyingPositions,
-    ).toBe(4);
+    ).toBe(6);
     expect(
       node(defaultTopology(event(entries(26), entries(3, 'DIRECT_ACCEPTANCE', 'QUALIFYING'))), 'QUALIFYING'),
     ).toMatchObject({
-      drawSize: 4,
-      qualifyingPositions: 2,
+      drawSize: 3,
+      qualifyingPositions: 1,
     });
   });
 
@@ -89,7 +90,7 @@ describe('defaultTopology', () => {
         drawSize: 32,
         qualifiersCount: 2,
       });
-      expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 16, qualifyingPositions: 2 });
+      expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 12, qualifyingPositions: 2 });
       expect(state.edges[0].qualifyingPositions).toBe(2);
     });
 
@@ -100,6 +101,40 @@ describe('defaultTopology', () => {
       });
       expect(state.nodes).toHaveLength(1);
       expect(state.edges).toEqual([]);
+    });
+  });
+
+  // CA's tournament, 2026-11-17: 24 main entries and 40 qualifying, the Main a 40 with 16 qualifiers
+  it('40 qualifying entrants for 16 qualifiers: a qualifying structure of 40, which the factory plays as a 64', () => {
+    const state: any = defaultTopology(event(entries(24), entries(40, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
+      drawSize: 40,
+      qualifiersCount: 16,
+    });
+    expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 40, qualifyingPositions: 16 });
+    // a count 40 cannot produce is brought down to one it can: 18 → 16
+    const eighteen: any = defaultTopology(event(entries(24), entries(40, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
+      drawSize: 42,
+      qualifiersCount: 18,
+    });
+    expect(node(eighteen, 'QUALIFYING').qualifyingPositions).toBe(16);
+  });
+
+  describe('the format each structure starts on (CA, 2026-11-17)', () => {
+    const PRO_SET = 'SET1-S:8/TB7';
+    it("the event's own, else its competition format's, else the tournament's, else Standard Advantage", () => {
+      expect(defaultMatchUpFormat({ matchUpFormat: PRO_SET })).toBe(PRO_SET);
+      expect(defaultMatchUpFormat({ competitionFormat: { matchUpFormat: 'SET3-S:4/TB7' } })).toBe('SET3-S:4/TB7');
+      expect(defaultMatchUpFormat({}, { competitionFormat: { matchUpFormat: 'SET3-S:6NOAD/TB7' } })).toBe(
+        'SET3-S:6NOAD/TB7',
+      );
+      expect(defaultMatchUpFormat({})).toBe(STANDARD_ADVANTAGE);
+    });
+
+    it('every structure of a new draw starts on it', () => {
+      const state: any = defaultTopology(event(entries(28), entries(12, 'DIRECT_ACCEPTANCE', 'QUALIFYING')));
+      expect(state.nodes.map((n: any) => n.matchUpFormat)).toEqual([STANDARD_ADVANTAGE, STANDARD_ADVANTAGE]);
+      const set: any = defaultTopology({ ...event(entries(20)), matchUpFormat: PRO_SET });
+      expect(node(set, 'MAIN').matchUpFormat).toBe(PRO_SET);
     });
   });
 });

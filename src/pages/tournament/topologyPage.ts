@@ -18,7 +18,7 @@ import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { discardTopologyDraft, getTopologyDraft, keepTopologyDraft, topologyDraftKey } from './topologyDrafts';
 import { fillToViewportBottom } from 'functions/heightToViewportBottom';
-import { defaultTopology, type DrawFormChoices } from './topologyDefaults';
+import { defaultMatchUpFormat, defaultTopology, type DrawFormChoices } from './topologyDefaults';
 import { scalesMap } from 'config/scalesConfig';
 import { context } from 'services/context';
 import { t } from 'i18n';
@@ -89,6 +89,8 @@ export function renderTopologyPage({
     hideTemplates: true,
     readOnly,
     footer: true,
+    // a structure added on the canvas starts on the event's format, not "Not set" (CA, 2026-11-17)
+    defaultMatchUpFormat: eventMatchUpFormat(eventId),
     // A draw being built (the event's, or a flight's) opens in Fit mode: how its entries would fill it, with levers
     // (CA, 2026-11-08). A made draw's entries are placed already, so it has no fit to ask for.
     ...(isNewDraw && {
@@ -169,10 +171,18 @@ function startingTopology({ eventId, drawId, readOnly }: { eventId: string; draw
   if (!initialState && isNewDraw) {
     // a flight's draw is named as the flight is
     const choices = handedOver ?? (flight ? { drawName: flight.drawName } : undefined);
-    initialState = (handedOver ? undefined : getTopologyDraft(key)) ?? defaultTopology(builderEvent(eventId), choices);
+    initialState =
+      (handedOver ? undefined : getTopologyDraft(key)) ??
+      defaultTopology(builderEvent(eventId), choices, eventMatchUpFormat(eventId));
   }
   draftKey = isNewDraw ? key : null;
   return { initialState, isNewDraw };
+}
+
+/** The format the event's new structures start on: its own, its competition format's, the tournament's, else SA. */
+function eventMatchUpFormat(eventId: string): string {
+  const event = tournamentEngine.getEvent({ eventId })?.event;
+  return defaultMatchUpFormat(event, tournamentEngine.getTournament()?.tournamentRecord);
 }
 
 /**
