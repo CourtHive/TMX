@@ -1,4 +1,10 @@
-import { acceptanceEntries, composeEntryChanges, entryChangeMethods, withEntryChanges } from './acceptanceEntries';
+import {
+  acceptanceEntries,
+  composeEntryChanges,
+  entryChangeMethods,
+  qualifyingPathMethods,
+  withEntryChanges,
+} from './acceptanceEntries';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
@@ -206,4 +212,44 @@ it('composes a stage move and a later qualifying demotion without losing the MAI
     { participantId: 'main', from: 'DIRECT_ACCEPTANCE', to: 'ALTERNATE', fromStage: 'MAIN', toStage: 'QUALIFYING' },
   ]);
   expect(withEntryChanges(entries, changes)).toEqual([entry('main', 'ALTERNATE', 'QUALIFYING'), entries[1]]);
+});
+
+describe('qualifyingPathMethods (CA, 2026-11-18)', () => {
+  const band = (structureName: string, roundTarget: number, entryStageSequence: number, ids: string[]) => ({
+    structureName,
+    roundTarget,
+    entryStageSequence,
+    participantIds: ids,
+  });
+
+  it("writes each band's path: the stronger field to R3, the weaker to R1", () => {
+    const methods = qualifyingPathMethods('e1', [band('Stronger', 3, 1, ['a', 'b']), band('Weaker', 1, 1, ['c'])]);
+    expect(methods).toEqual([
+      {
+        method: 'setEntryQualifyingPath',
+        params: { eventId: 'e1', participantIds: ['a', 'b'], roundTarget: 3, entryStageSequence: 1 },
+      },
+      {
+        method: 'setEntryQualifyingPath',
+        params: { eventId: 'e1', participantIds: ['c'], roundTarget: 1, entryStageSequence: 1 },
+      },
+    ]);
+  });
+
+  it("a flight's draw writes its own entries; an empty band writes nothing", () => {
+    const methods = qualifyingPathMethods('e1', [band('Q', 1, 2, ['a']), band('Pre', 1, 1, [])], 'flight-1');
+    expect(methods).toEqual([
+      {
+        method: 'setEntryQualifyingPath',
+        params: { eventId: 'e1', drawId: 'flight-1', participantIds: ['a'], roundTarget: 1, entryStageSequence: 2 },
+      },
+    ]);
+  });
+
+  it('one qualifying structure into round 1 changes no entry', () => {
+    expect(qualifyingPathMethods('e1', [band('Qualifying', 1, 1, ['a', 'b'])])).toEqual([]);
+    expect(qualifyingPathMethods('e1', [])).toEqual([]);
+    // one structure into a later round is routing all the same
+    expect(qualifyingPathMethods('e1', [band('Qualifying', 3, 1, ['a'])])).toHaveLength(1);
+  });
 });

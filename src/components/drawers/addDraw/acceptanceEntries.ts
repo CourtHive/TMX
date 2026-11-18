@@ -14,7 +14,7 @@
 import { drawDefinitionConstants, entryStatusConstants, resolveScaleValueNumber } from 'tods-competition-factory';
 import { compareEntryPosition } from 'components/tables/eventsTable/unified/entryPosition';
 
-import { MODIFY_ENTRIES_STATUS } from 'constants/mutationConstants';
+import { MODIFY_ENTRIES_STATUS, SET_ENTRY_QUALIFYING_PATH } from 'constants/mutationConstants';
 
 type Entry = { participantId: string; entryStatus?: string; entryStage?: string; entryPosition?: number };
 type Scale = { scaleName: string; accessor?: string };
@@ -146,4 +146,61 @@ export function entryChangeMethods(eventId: string, changes: EntryChange[] = [],
     method: MODIFY_ENTRIES_STATUS,
     params: { eventId, ...(flightDrawId && { drawId: flightDrawId }), ...group, participantIds: [...participantIds] },
   }));
+}
+
+/** A band of the QUALIFYING acceptance list, as the topology builder assigns it: who plays which qualifying card. */
+export type QualifyingPathAssignment = {
+  participantIds: string[];
+  entryStageSequence: number;
+  structureName: string;
+  roundTarget: number;
+};
+
+/** Whether the bands route their entries: more than one, or one into a MAIN round after the first. */
+function routesQualifying(assignments: QualifyingPathAssignment[]): boolean {
+  return assignments.length > 1 || assignments.some(({ roundTarget }) => roundTarget > 1);
+}
+
+/**
+ * The entries with the paths the bands give them, as Generate will write them: the fit and the draw are asked about
+ * the entries as they will be. Without the paths the factory cannot tell which qualifying structure an entry plays,
+ * and a stronger field of 16 for R3 beside a weaker 32 for R1 reads as 48 entries for one structure of 32.
+ */
+export function withQualifyingPaths(entries: any[], assignments: QualifyingPathAssignment[] = []): any[] {
+  if (!routesQualifying(assignments)) return entries;
+  const paths = new Map(
+    assignments.flatMap(({ participantIds, roundTarget, entryStageSequence }) =>
+      participantIds.map((participantId) => [participantId, { roundTarget, entryStageSequence }] as const),
+    ),
+  );
+  return entries.map((entry) => {
+    const path = entry.entryStage === QUALIFYING ? paths.get(entry.participantId) : undefined;
+    return path ? { ...entry, ...path } : entry;
+  });
+}
+
+/**
+ * The paths the topology builder decided for the QUALIFYING entries, as `setEntryQualifyingPath` methods for Generate's
+ * request (CA, 2026-11-18): each band's entries take its card's MAIN round and stage sequence. Written only when the
+ * routing needs them — more than one band, or a band into a MAIN round after the first — so a draw with one qualifying
+ * structure into round 1 changes no entry it did not change before.
+ */
+export function qualifyingPathMethods(
+  eventId: string,
+  assignments: QualifyingPathAssignment[] = [],
+  flightDrawId?: string | null,
+): any[] {
+  if (!routesQualifying(assignments)) return [];
+  return assignments
+    .filter(({ participantIds }) => participantIds.length)
+    .map(({ participantIds, roundTarget, entryStageSequence }) => ({
+      method: SET_ENTRY_QUALIFYING_PATH,
+      params: {
+        eventId,
+        ...(flightDrawId && { drawId: flightDrawId }),
+        participantIds,
+        roundTarget,
+        entryStageSequence,
+      },
+    }));
 }

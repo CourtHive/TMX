@@ -26,7 +26,9 @@ import {
   acceptanceEntries,
   composeEntryChanges,
   entryChangeMethods,
+  qualifyingPathMethods,
   withEntryChanges,
+  withQualifyingPaths,
 } from 'components/drawers/addDraw/acceptanceEntries';
 import {
   attachTopologyStructures,
@@ -40,8 +42,10 @@ import {
 } from 'components/drawers/addDraw/topologyTemplates';
 
 // constants and types
-import type { EntryChange } from 'components/drawers/addDraw/acceptanceEntries';
+import type { EntryChange, QualifyingPathAssignment } from 'components/drawers/addDraw/acceptanceEntries';
 import { acceptedStatusSet } from 'constants/acceptedEntryStatuses';
+import { getSeedingAllowance, INHERIT } from 'components/drawers/addDraw/seedingPolicies';
+import { isSeedableDrawType } from 'components/drawers/addDraw/seedCount';
 
 let currentControl: TopologyBuilderControl | null = null;
 let pendingTemplateName: string | null = null;
@@ -95,8 +99,10 @@ export function renderTopologyPage({
     // (CA, 2026-11-08). A made draw's entries are placed already, so it has no fit to ask for.
     ...(isNewDraw && {
       mode: 'fit' as const,
-      drawFit: (state: TopologyState, trial?: { entryChanges: EntryChange[] }) =>
-        drawFitFor({ state, eventId, entryChanges: trial?.entryChanges }),
+      drawFit: (
+        state: TopologyState,
+        trial?: { entryChanges: EntryChange[]; qualifyingPaths?: QualifyingPathAssignment[] },
+      ) => drawFitFor({ state, eventId, entryChanges: trial?.entryChanges, qualifyingPaths: trial?.qualifyingPaths }),
       fitProposals: (state: TopologyState, trial: { entryChanges: EntryChange[] }) =>
         fitProposalsFor(state, eventId, trial.entryChanges),
       // Both stages use the active rating scale; Generate applies their changes together.
@@ -193,20 +199,51 @@ function drawFitFor({
   state,
   eventId,
   entryChanges,
+  qualifyingPaths,
 }: {
   state: TopologyState;
   eventId: string;
   /** the acceptance line's pending changes: the fit is asked about the entries as they would be */
   entryChanges?: EntryChange[];
+  /** the paths the qualifying bands give their entries, as the builder asks with them */
+  qualifyingPaths?: QualifyingPathAssignment[];
 }): any {
   const event = builderEvent(eventId);
   if (!event) return undefined;
   const { drawOptions } = topologyToDrawOptions(state);
+  // the entries as Generate will make them: the acceptance lines' changes, then the paths the qualifying bands give
+  const drawEntries = withQualifyingPaths(
+    withEntryChanges(topologyFitEntries({ event, state }), entryChanges),
+    qualifyingPaths,
+  );
   return tournamentEngine.getDrawFit({
     ...drawOptions,
-    drawEntries: withEntryChanges(topologyFitEntries({ event, state }), entryChanges),
+    // the seeds Configure draw will place by default: MAIN's late entry counts them against its fed positions, and
+    // the fit's seed BYEs are the draw's (CA, 2026-11-18). Unasked, the fit reads 0 seeds.
+    seedsCount: fitSeedsCount({ eventId, drawOptions, drawEntries }),
+    drawEntries,
     eventId,
   });
+}
+
+/** The default seed count Configure draw resolves for this MAIN, from the event's seeding policy. */
+function fitSeedsCount({
+  eventId,
+  drawOptions,
+  drawEntries,
+}: {
+  eventId: string;
+  drawOptions: any;
+  drawEntries: any[];
+}) {
+  if (!isSeedableDrawType(drawOptions.drawType)) return 0;
+  const participantsCount = drawEntries.filter(
+    (entry: any) => (entry.entryStage ?? MAIN) === MAIN && acceptedStatusSet.has(entry.entryStatus),
+  ).length;
+  return (
+    getSeedingAllowance({ selectedSeedingPolicy: INHERIT, participantsCount, drawSize: drawOptions.drawSize, eventId })
+      .thresholdSeedsCount ?? 0
+  );
 }
 
 /** Ask the factory about trial entries; choosing an option remains a local preview. */
@@ -278,7 +315,10 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
   // the acceptance line's pending changes: the draw is made from the entries as they will be, and the changes are
   // applied in the same request that adds it
   const entryChanges = currentControl?.getEntryChanges?.() ?? [];
-  const entries = withEntryChanges(event.entries ?? [], entryChanges);
+  // the paths the qualifying bands give their entries (CA, 2026-11-18): written before the draw, and the draw is made
+  // from the entries with them
+  const pathAssignments = currentControl?.qualifyingPathAssignments?.() ?? [];
+  const entries = withQualifyingPaths(withEntryChanges(event.entries ?? [], entryChanges), pathAssignments);
   drawOptions.drawEntries = topologyDrawEntries({ event: { ...event, entries }, state, includeAlternates: true });
 
   // the Add Draw drawer's settings the topology does not define: score format, seeding, creation (CA, 2026-11-17)
@@ -328,7 +368,11 @@ function handleGenerate({ state, eventId, drawId }: { state: TopologyState; even
         drawOptions: applyTopologyDrawSettings(drawOptions, settings),
         eventId,
         callback: postGeneration,
-        entryMethods: entryChangeMethods(eventId, entryChanges, flightId),
+        // the stage moves first: a qualifying path is set only on a QUALIFYING entry
+        entryMethods: [
+          ...entryChangeMethods(eventId, entryChanges, flightId),
+          ...qualifyingPathMethods(eventId, pathAssignments, flightId),
+        ],
       }),
   });
 }

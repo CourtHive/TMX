@@ -104,7 +104,7 @@ describe('defaultTopology', () => {
     });
   });
 
-  // CA's tournament, 2026-11-17: 24 main entries and 40 qualifying, the Main a 40 with 16 qualifiers
+  // a generated event (CA, 2026-11-17): 24 main entries and 40 qualifying, the Main a 40 with 16 qualifiers
   it('40 qualifying entrants for 16 qualifiers: a qualifying structure of 40, which the factory plays as a 64', () => {
     const state: any = defaultTopology(event(entries(24), entries(40, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
       drawSize: 40,
