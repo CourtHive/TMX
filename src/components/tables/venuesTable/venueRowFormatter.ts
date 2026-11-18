@@ -153,7 +153,7 @@ export const venueRowFormatter =
         'scheduledMinutes',
         'unscheduledMinutes',
         'floodlit',
-        'surfaceType',
+        'surfaceCategory',
         'indoorOutdoor',
       ]),
       data: row.getData().courts,
