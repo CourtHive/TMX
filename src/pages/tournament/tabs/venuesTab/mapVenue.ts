@@ -6,7 +6,8 @@ function findResourceIdentifier(resources: any[] | undefined, name: string): str
   return resource?.identifier;
 }
 
-export function mapVenue(venue: any, engine?: AvailabilityEngine): any {
+// `scheduledByVenue` is scheduledMatchUpsByVenue's count of the matchUps placed on each venue.
+export function mapVenue(venue: any, engine?: AvailabilityEngine, scheduledByVenue?: Map<string, number>): any {
   const { venueName, venueAbbreviation, addresses, venueId, courts, onlineResources } = venue;
 
   const mappedCourts = courts?.map((court: any) => {
@@ -28,7 +29,7 @@ export function mapVenue(venue: any, engine?: AvailabilityEngine): any {
   return {
     hasLocation: addresses?.[0]?.longitude,
     courtsCount: courts?.length || 0,
-    scheduledMatchUpsCount: 0,
+    scheduledMatchUpsCount: scheduledByVenue?.get(venueId) ?? 0,
     address: addresses?.[0],
     availableTime: '',
     venueAbbreviation,
