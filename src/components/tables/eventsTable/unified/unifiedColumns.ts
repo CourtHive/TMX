@@ -16,6 +16,7 @@ import { cellBorder } from '../../common/formatters/cellBorder';
 import { entryStatusConstants } from 'tods-competition-factory';
 import { navigateToEvent } from '../../common/navigateToEvent';
 import { isSeedingEnabled } from '../seeding/seedingState';
+import { qualifyingPathLabels } from './entryPath';
 import { headerMenu } from '../../common/headerMenu';
 import { GROUPED_RANK } from './rotatingPartners';
 import type { SortState } from './segmentSorter';
@@ -113,6 +114,9 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
   const seeding = entries.find((entry) => entry.seedNumber);
   const ranking = entries.find((entry) => entry.ranking);
   const showPositions = hasEntryPositions(entries);
+  // each QUALIFYING entry's path to MAIN, as Generate wrote it (read-only; the builder decides it)
+  const paths = qualifyingPathLabels(entries);
+  const pathOf = (data: any) => (data?._isSeparator ? '' : (paths.get(data?.participantId) ?? ''));
 
   return applyColumnVisibility([
     {
@@ -245,6 +249,15 @@ export function getUnifiedColumns({ entries, hasDrawDefinitions, sortState }: Un
       sorter: 'number',
       title: t('tables.entries.drawPosition'),
       maxWidth: 70,
+    },
+    {
+      formatter: (cell: any) => pathOf(cell.getRow().getData()),
+      sorter: (_a: any, _b: any, aRow: any, bRow: any) => pathOf(aRow.getData()).localeCompare(pathOf(bRow.getData())),
+      title: t('tables.entries.path'),
+      visible: paths.size > 0,
+      field: 'qualifyingPath',
+      headerSort: true,
+      minWidth: 120,
     },
     {
       formatter: (cell: any) => {

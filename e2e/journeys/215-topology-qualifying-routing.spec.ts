@@ -108,6 +108,26 @@ function paths(record: any): Map<string, [number | undefined, number | undefined
   );
 }
 
+/**
+ * The Entries tab's Path column after Generate (read-only): its header, and a cell for each label. The table draws only
+ * the rows near its view, and the qualifying entries follow the MAIN ones, so it is scrolled until each is drawn.
+ */
+async function expectPathColumn(page: Page, labels: string[]) {
+  await page.locator('#eventTabsBar .event-tab-btn', { hasText: 'Entries' }).click();
+  await expect(page.locator('.tabulator-col[tabulator-field="qualifyingPath"]').first()).toBeVisible();
+  const holder = page.locator('.tabulator-tableholder').first();
+  for (const label of labels) {
+    const cell = page.locator('.tabulator-cell[tabulator-field="qualifyingPath"]', { hasText: label });
+    await expect
+      .poll(async () => {
+        if (await cell.count()) return true;
+        await holder.evaluate((el) => el.scrollBy(0, 300));
+        return false;
+      })
+      .toBe(true);
+  }
+}
+
 const countOf = (values: any[][], path: any[]) => values.filter((v) => v[0] === path[0] && v[1] === path[1]).length;
 
 test.describe('Topology — qualifying entry routing', () => {
@@ -168,6 +188,9 @@ test.describe('Topology — qualifying entry routing', () => {
     const structures = record.events[0].drawDefinitions[0].structures;
     expect(structures.find((s: any) => s.stage === 'MAIN').positionAssignments).toHaveLength(48);
     expect(structures.filter((s: any) => s.stage === QUALIFYING)).toHaveLength(2);
+
+    // the entries page shows each qualifying entry's path, read-only (CA, 2026-11-18)
+    await expectPathColumn(page, ['Qualifying · R3', 'Qualifying · R1']);
   });
 
   test('a pre-qualifying chain: the qualifying band is sequence 2, pre-qualifying 1, every entrant placed', async ({
@@ -193,5 +216,7 @@ test.describe('Topology — qualifying entry routing', () => {
         .length;
     expect(placed('Pre')).toBe(32);
     expect(placed('Qualifying')).toBe(16);
+
+    await expectPathColumn(page, ['Pre-qualifying → Qualifying · R1', 'Qualifying · R1']);
   });
 });
