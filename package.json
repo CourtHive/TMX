@@ -6,7 +6,7 @@
   "version": "8.56.0",
   "type": "module",
   "engines": {
-    "node": ">=24",
+    "node": ">=26",
     "pnpm": ">=8",
     "npm": "please-use-pnpm"
   },
