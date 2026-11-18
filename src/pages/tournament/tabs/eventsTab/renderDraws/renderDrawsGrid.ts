@@ -22,7 +22,9 @@ import {
 } from 'courthive-components';
 import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { hasTopologyDraft, topologyDraftKey } from 'pages/tournament/topologyDrafts';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
+import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { tournamentEngine } from 'services/factory/engine';
 import { sortByDrawOrder } from 'functions/drawOrder';
 
@@ -161,7 +163,13 @@ function buildUngeneratedRows(resolved: ResolvedEvent, eventId: string): DrawCar
       entryCount: f.drawEntries?.length || 0,
       generated: false,
       eventId,
-      status: { kind: 'ungenerated', label: t('ui.notGenerated') },
+      // a flight holding the builder's draft (a design given to it, CA 2026-11-18) says so; it is still not generated
+      status: {
+        kind: 'ungenerated',
+        label: hasTopologyDraft(topologyDraftKey(eventId, f.drawId))
+          ? t('topology.draftInBuilder')
+          : t('ui.notGenerated'),
+      },
     }));
 }
 
@@ -184,6 +192,11 @@ function openDrawCard(data: DrawCardData): void {
   if (!eventId) return;
   if (generated) {
     navigateToEvent({ eventId, drawId, renderDraw: true });
+    return;
+  }
+  // a flight holding a draft opens it in the builder, where the director checks its fit and generates it
+  if (drawId && hasTopologyDraft(topologyDraftKey(eventId, drawId))) {
+    navigateToTopology({ eventId, drawId });
     return;
   }
   const callback = (result: any) => {

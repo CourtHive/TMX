@@ -3542,6 +3542,13 @@
     "planGuardRefused": "Nothing was scheduled: the plan placed {{count}} matchUp(s) before matches already played. Please report this."
   },
   "topology": {
+    "useForOtherFlights": "Use for other flights",
+    "useForOtherFlightsTitle": "Give the other flights without a draw this design, sized to their own entries, as drafts to review",
+    "flightDraftsMade_one": "{{count}} flight has this design as its draft",
+    "flightDraftsMade_other": "{{count}} flights have this design as their draft",
+    "replaceFlightDrafts_one": "{{count}} flight already has a draft. Replace it with this design?",
+    "replaceFlightDrafts_other": "{{count}} flights already have a draft. Replace them with this design?",
+    "draftInBuilder": "Draft in the builder",
     "clearCanvas": "Clear Canvas",
     "drawFailed": "Draw generation failed",
     "drawGenerated": "Draw generated successfully",

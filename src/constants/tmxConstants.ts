@@ -173,6 +173,7 @@ export const DRAWS_VIEW = 'drawsView';
 export const EVENT_SELECTOR = 'eventSelector';
 export const EVENT_SELECTOR_TABLE = 'eventSelectorTable';
 export const EVENT_TABS_BAR = 'eventTabsBar';
+export const TOPOLOGY_FLIGHTS_DESIGN = 'topologyFlightsDesign';
 export const EVENT_TAB_CONTENT = 'eventTabContent';
 
 export const QUALIFYING = 'QUALIFYING';

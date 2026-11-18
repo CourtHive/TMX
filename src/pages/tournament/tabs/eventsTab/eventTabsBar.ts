@@ -2,7 +2,12 @@
  * Event tabs bar with Entries, Draws, Rankings tabs and Edit Event button.
  * Renders below the compact event selector when an event is selected.
  */
-import { abandonTopologyDraft, navigateToTopology } from 'pages/tournament/topologyPage';
+import {
+  abandonTopologyDraft,
+  navigateToTopology,
+  otherFlightsWithoutDraws,
+  useDesignForOtherFlights,
+} from 'pages/tournament/topologyPage';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { hasTopologyDraft } from 'pages/tournament/topologyDrafts';
@@ -10,7 +15,7 @@ import { addDraw } from 'components/drawers/addDraw/addDraw';
 import { tournamentEngine } from 'services/factory/engine';
 import { editEvent } from './editEvent';
 
-import { EVENT_TABS_BAR } from 'constants/tmxConstants';
+import { EVENT_TABS_BAR, TOPOLOGY_FLIGHTS_DESIGN } from 'constants/tmxConstants';
 import { t } from 'i18n';
 
 const CURSOR_POINTER = 'cursor: pointer';
@@ -129,30 +134,21 @@ export function renderEventTabsBar({
     rightWrapper.appendChild(rightContent);
   }
 
+  // building a flight's draw: its design can be the draft of the event's other flights without a draw (CA, 2026-11-18)
+  if (flight && otherFlightsWithoutDraws(eventId, flight.drawId).length) {
+    const share = outlinedButton(t('topology.useForOtherFlights'));
+    share.id = TOPOLOGY_FLIGHTS_DESIGN;
+    share.title = t('topology.useForOtherFlightsTitle');
+    share.onclick = (e) => {
+      e.stopPropagation();
+      useDesignForOtherFlights(eventId);
+    };
+    rightWrapper.appendChild(share);
+  }
+
   const event = tournamentEngine.q.event({ eventId });
   if (event) {
-    const editBtn = document.createElement('button');
-    editBtn.textContent = t('pages.events.editEventAction', 'Edit Event');
-    editBtn.style.cssText = [
-      'padding: 0.4em 1em',
-      `border: 1px solid ${ACCENT_BLUE}`,
-      'background: transparent',
-      `color: ${ACCENT_BLUE}`,
-      'border-radius: 4px',
-      CURSOR_POINTER,
-      'font-size: 0.85em',
-      'font-weight: 500',
-      'white-space: nowrap',
-      'transition: background 0.15s, color 0.15s',
-    ].join('; ');
-    editBtn.onmouseenter = () => {
-      editBtn.style.background = ACCENT_BLUE;
-      editBtn.style.color = ON_ACCENT;
-    };
-    editBtn.onmouseleave = () => {
-      editBtn.style.background = 'transparent';
-      editBtn.style.color = ACCENT_BLUE;
-    };
+    const editBtn = outlinedButton(t('pages.events.editEventAction', 'Edit Event'));
     editBtn.onclick = (e) => {
       e.stopPropagation();
       editEvent({ event, callback: () => navigateToEvent({ eventId }) });
@@ -242,4 +238,32 @@ export function renderNoDrawsPlaceholder({
   placeholder.appendChild(btn);
 
   target.appendChild(placeholder);
+}
+
+/** A button in the bar's outlined accent style, as Edit Event's. */
+function outlinedButton(label: string): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.style.cssText = [
+    'padding: 0.4em 1em',
+    `border: 1px solid ${ACCENT_BLUE}`,
+    'background: transparent',
+    `color: ${ACCENT_BLUE}`,
+    'border-radius: 4px',
+    CURSOR_POINTER,
+    'font-size: 0.85em',
+    'font-weight: 500',
+    'white-space: nowrap',
+    'transition: background 0.15s, color 0.15s',
+  ].join('; ');
+  button.onmouseenter = () => {
+    button.style.background = ACCENT_BLUE;
+    button.style.color = ON_ACCENT;
+  };
+  button.onmouseleave = () => {
+    button.style.background = 'transparent';
+    button.style.color = ACCENT_BLUE;
+  };
+  return button;
 }
