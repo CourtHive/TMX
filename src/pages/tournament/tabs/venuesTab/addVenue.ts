@@ -14,7 +14,9 @@ import { context } from 'services/context';
 import { t } from 'i18n';
 
 import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
+import { buildVenueAddress, defaultVenueTimeZone, readVenueTimeZone } from './venueAddress';
 import { addVenueFromRegistry } from './addVenueFromRegistry';
+import { resolveVenueFrame } from 'functions/venueTimeFrame';
 import { getLoginState } from 'services/authentication/loginState';
 import { ADD_COURTS, ADD_ONLINE_RESOURCE, ADD_VENUE } from 'constants/mutationConstants';
 import { RIGHT } from 'constants/tmxConstants';
@@ -38,6 +40,7 @@ const saveVenue = (callback?: (result: any) => void, engine?: string, selectedCo
     city,
     state,
     postalCode,
+    timeZone,
   } = values;
   const countryCode = (selectedCountryCode || '').trim().toUpperCase();
   const venueId = tools.UUID();
@@ -50,13 +53,15 @@ const saveVenue = (callback?: (result: any) => void, engine?: string, selectedCo
   if (defaultStartTime) venue.defaultStartTime = toMilitaryTime(defaultStartTime);
   if (defaultEndTime) venue.defaultEndTime = toMilitaryTime(defaultEndTime);
 
-  const address: any = {};
-  if (addressLine1) address.addressLine1 = addressLine1;
-  if (city) address.city = city;
-  if (state) address.state = state;
-  if (postalCode) address.postalCode = postalCode;
-  if (countryCode) address.countryCode = countryCode;
-  if (Object.keys(address).length) venue.addresses = [address];
+  const address = buildVenueAddress({
+    timeZone: readVenueTimeZone(timeZone, ''),
+    addressLine1,
+    countryCode,
+    postalCode,
+    state,
+    city,
+  });
+  if (address) venue.addresses = [address];
 
   const count = Number.parseInt(courtsCount);
   const courtIds = Array.from({ length: count }, () => tools.UUID());
@@ -221,7 +226,12 @@ export function addVenue(callback?: (result: any) => void, engine?: string): voi
     }
     const inputs = renderForm(
       elem,
-      venueForm({ values: {}, valueChange, countryCodeList, countryCodeChange }),
+      venueForm({
+        values: { timeZone: defaultVenueTimeZone(resolveVenueFrame()) },
+        countryCodeChange,
+        countryCodeList,
+        valueChange,
+      }),
       relationships,
     );
 
