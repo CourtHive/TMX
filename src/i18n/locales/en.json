@@ -2454,6 +2454,7 @@
       "seed": "Seed",
       "drawPosition": "Pos",
       "flights": "Draws",
+      "path": "Path",
       "status": "Status"
     },
     "teamRow": {
