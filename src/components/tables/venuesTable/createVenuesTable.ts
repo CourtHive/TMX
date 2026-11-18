@@ -1,3 +1,4 @@
+import { scheduledMatchUpsByVenue } from 'pages/tournament/tabs/venuesTab/scheduledMatchUpsByVenue';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
@@ -36,7 +37,9 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   const getTableData = () => {
     const { venues = [] } = competitionEngine.getVenuesAndCourts();
     const engine = createSchedulingEngine();
-    const rows = venues.map((v: any) => mapVenue(v, engine));
+    const { matchUps = [] } = competitionEngine.allCompetitionMatchUps({ inContext: false }) ?? {};
+    const scheduledByVenue = scheduledMatchUpsByVenue(matchUps, venues);
+    const rows = venues.map((v: any) => mapVenue(v, engine, scheduledByVenue));
     return { rows };
   };
 
