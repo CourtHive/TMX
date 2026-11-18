@@ -105,8 +105,8 @@ export function defaultTopology(
   const base = { drawName: form?.drawName || event?.eventName || '', selectedNodeId: null, selectedEdgeId: null };
   if (!qualifyingCount) return { ...base, nodes: [{ ...main, drawSize: mainSize }], edges: [] };
 
-  // the qualifying structure is its entrants; the qualifiers a count it produces, as the builder offers them (40
-  // entrants: 20, 16, 10, 8, 5, 4, 2, 1), and the factory plays a larger draw with byes when the count needs one
+  // the qualifying structure is its entrants; the qualifiers any count up to half of them, as the builder offers
+  // them, and the factory plays a larger draw with byes when the count needs one (40 entrants for 9: a 72 draw)
   const qualifyingSize = qualifyingCount;
   const asked = form?.qualifiersCount ?? derivedValues.qualifiersCount ?? 0;
   let qualifiers = asked > 0 ? eliminationQualifierCounts(qualifyingSize).find((count) => count <= asked) : undefined;

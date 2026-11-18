@@ -111,12 +111,17 @@ describe('defaultTopology', () => {
       qualifiersCount: 16,
     });
     expect(node(state, 'QUALIFYING')).toMatchObject({ drawSize: 40, qualifyingPositions: 16 });
-    // a count 40 cannot produce is brought down to one it can: 18 → 16
+    // any count up to half the entrants is kept (CA, 2026-11-18: 18 of 40 is a 72 draw); more is brought down to half
     const eighteen: any = defaultTopology(event(entries(24), entries(40, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
       drawSize: 42,
       qualifiersCount: 18,
     });
-    expect(node(eighteen, 'QUALIFYING').qualifyingPositions).toBe(16);
+    expect(node(eighteen, 'QUALIFYING').qualifyingPositions).toBe(18);
+    const tooMany: any = defaultTopology(event(entries(24), entries(40, 'DIRECT_ACCEPTANCE', 'QUALIFYING')), {
+      drawSize: 48,
+      qualifiersCount: 25,
+    });
+    expect(node(tooMany, 'QUALIFYING').qualifyingPositions).toBe(20);
   });
 
   describe('the format each structure starts on (CA, 2026-11-17)', () => {
