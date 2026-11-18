@@ -65,6 +65,7 @@ export const MODIFY_EVENT_MATCHUP_FORMAT_TIMING = 'modifyEventMatchUpFormatTimin
 export const REMOVE_EVENT_MATCHUP_FORMAT_TIMING = 'removeEventMatchUpFormatTiming';
 export const MODIFY_DRAW_DEFINITION = 'modifyDrawDefinition';
 export const MODIFY_ENTRIES_STATUS = 'modifyEntriesStatus';
+export const SET_ENTRY_QUALIFYING_PATH = 'setEntryQualifyingPath';
 export const PROMOTE_ALTERNATES = 'promoteAlternates';
 export const MODIFY_PARTICIPANT = 'modifyParticipant';
 export const MODIFY_PARTICIPANT_OTHER_NAME = 'modifyParticipantOtherName';

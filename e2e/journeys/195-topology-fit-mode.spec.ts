@@ -38,8 +38,10 @@ test.describe('Topology — Fit mode', () => {
     await expect(topology.locator('.tb-card')).toHaveCount(1);
 
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
-    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'SHORT', { timeout: 10_000 });
-    await expect(main.locator('.tb-fit-text')).toHaveText('26 entered · 6 BYEs');
+    // the fit is asked with the seeds Configure draw places by default (CA, 2026-11-18): 26 in a 32 seed 8, whose 6 BYEs
+    // are the seeds' own — the draw fits. Asked without seeds it read SHORT, a draw Generate never makes
+    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'FITS', { timeout: 10_000 });
+    await expect(main.locator('.tb-fit-text')).toHaveText('26 entered · 6 BYEs (6 to seeds)');
     await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['26 DA']);
 
     // half the size: 26 for 16 positions — ten have no place
