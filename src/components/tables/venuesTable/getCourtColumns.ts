@@ -1,4 +1,5 @@
 import { disabledNameFormatter } from '../common/formatters/disabledName';
+import { courtSurfaceCategory } from 'functions/courtSurface';
 import { isCourtDisabledAnyDate } from 'functions/courtUse';
 import { courtActions } from '../../popovers/courtActions';
 import { threeDots } from '../common/formatters/threeDots';
@@ -66,7 +67,12 @@ export function getCourtColumns(): any[] {
       headerHozAlign: CENTER,
     },
     { title: t('tables.courts.inOut'), field: 'indoorOutdoor' },
-    { title: t('tables.courts.surface'), field: 'surfaceType' },
+    // CODES' surface class; a class an earlier TMX left in surfaceType still shows (functions/courtSurface).
+    {
+      title: t('tables.courts.surface'),
+      field: 'surfaceCategory',
+      mutator: (_value: any, court: any) => courtSurfaceCategory(court),
+    },
     {
       title: `<i class="fa-regular fa-lightbulb"></i>`,
       formatter: lightsFormatter,

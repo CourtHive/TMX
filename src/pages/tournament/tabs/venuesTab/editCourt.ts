@@ -2,6 +2,7 @@
  * Edit court drawer with form validation.
  * Modifies court name, inOut, and surface via mutation.
  */
+import { courtSurfaceCategory, surfaceModifications } from 'functions/courtSurface';
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { factoryConstants } from 'tods-competition-factory';
@@ -33,7 +34,7 @@ export function editCourt({
   const values: any = {
     courtName: court?.courtName || '',
     indoorOutdoor: court?.indoorOutdoor || '',
-    surfaceType: court?.surfaceType || '',
+    surfaceCategory: courtSurfaceCategory(court) || '',
   };
 
   const valueChange = () => {
@@ -57,14 +58,14 @@ export function editCourt({
   const surfaceOptions = (Object.values(surfaceConstants) as string[]).map((surface: string) => ({
     value: surface,
     label: surface.charAt(0) + surface.slice(1).toLowerCase(),
-    selected: values.surfaceType === surface,
+    selected: values.surfaceCategory === surface,
   }));
 
   // Add empty option at the beginning
   surfaceOptions.unshift({
     value: '',
     label: EMPTY_OPTION,
-    selected: !values.surfaceType,
+    selected: !values.surfaceCategory,
   });
 
   const content = (elem: HTMLElement) =>
@@ -95,8 +96,8 @@ export function editCourt({
         },
         {
           label: t('pages.venues.editCourt.surfaceLabel'),
-          field: 'surfaceType',
-          value: values.surfaceType,
+          field: 'surfaceCategory',
+          value: values.surfaceCategory,
           onChange: valueChange,
           options: surfaceOptions,
         },
@@ -107,7 +108,7 @@ export function editCourt({
   const saveCourt = () => {
     const courtName = context.drawer.attributes.content.courtName.value;
     const indoorOutdoor = context.drawer.attributes.content.indoorOutdoor.value;
-    const surfaceType = context.drawer.attributes.content.surfaceType.value;
+    const surfaceCategory = context.drawer.attributes.content.surfaceCategory.value;
 
     // Validation
     if (!courtName || courtName.length < 1) {
@@ -124,12 +125,8 @@ export function editCourt({
       courtUpdates.indoorOutdoor = undefined;
     }
 
-    // Handle surfaceType: set to value if selected, undefined if cleared
-    if (surfaceType && surfaceType !== EMPTY_OPTION && surfaceType !== '') {
-      courtUpdates.surfaceType = surfaceType;
-    } else {
-      courtUpdates.surfaceType = undefined;
-    }
+    // The surface class goes to CODES' surfaceCategory (cleared when unset); see functions/courtSurface.
+    Object.assign(courtUpdates, surfaceModifications(surfaceCategory, court));
 
     // ONE payload, ONE call site — see the note in `editVenue.ts`. The error branch used to hand
     // back a bare `result` without `courtUpdates`, the same latent divergence.
