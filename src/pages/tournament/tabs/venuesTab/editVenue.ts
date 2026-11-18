@@ -4,13 +4,15 @@
  */
 import { validators, renderButtons, renderForm } from 'courthive-components';
 import { toDisplayTime, deriveCourtNameBase } from 'components/forms/venue';
+import { getSupportedTimeZones } from 'functions/getSupportedTimeZones';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { fixtures } from 'tods-competition-factory';
+import { readVenueTimeZone } from './venueAddress';
 import { isFunction } from 'functions/typeOf';
 import { context } from 'services/context';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 import { ADD_ONLINE_RESOURCE, MODIFY_VENUE, REMOVE_ONLINE_RESOURCE } from 'constants/mutationConstants';
 import { attachTimePicker, createTimeOrderValidator, toMilitaryTime } from './venueTimeHelpers';
@@ -80,6 +82,8 @@ export function editVenue({
     state: existingAddress.state || '',
     postalCode: existingAddress.postalCode || '',
     countryCode: existingAddress.countryCode || '',
+    // the venue's own zone, never pre-filled: saving an unrelated edit must not stamp one
+    timeZone: existingAddress.timeZone || '',
     updateCourtNames: false,
   };
 
@@ -231,6 +235,13 @@ export function editVenue({
           placeholder: t('pages.venues.editVenue.countryCodePlaceholder'),
           field: 'countryCode',
         },
+        {
+          value: values.timeZone,
+          label: t('drawers.editTournament.timeZoneLabel'),
+          placeholder: t('drawers.editTournament.timeZonePlaceholder'),
+          field: 'timeZone',
+          timeZone: { timeZones: getSupportedTimeZones(), locale: i18next.language, showMap: false },
+        },
       ],
       relationships,
     );
@@ -276,13 +287,18 @@ export function editVenue({
     const state = (context.drawer.attributes.content.state?.value || '').trim();
     const postalCode = (context.drawer.attributes.content.postalCode?.value || '').trim();
     const countryCode = (selectedCountryCode || '').trim().toUpperCase();
+    const timeZone = readVenueTimeZone(
+      context.drawer.attributes.content.timeZone?.value,
+      existingAddress.timeZone || '',
+    );
 
     const addressChanged =
       addressLine1 !== (existingAddress.addressLine1 || '') ||
       city !== (existingAddress.city || '') ||
       state !== (existingAddress.state || '') ||
       postalCode !== (existingAddress.postalCode || '') ||
-      countryCode !== (existingAddress.countryCode || '');
+      countryCode !== (existingAddress.countryCode || '') ||
+      timeZone !== (existingAddress.timeZone || '');
 
     if (addressChanged) {
       const nextAddress: any = { ...existingAddress };
@@ -296,6 +312,8 @@ export function editVenue({
       else delete nextAddress.postalCode;
       if (countryCode) nextAddress.countryCode = countryCode;
       else delete nextAddress.countryCode;
+      if (timeZone) nextAddress.timeZone = timeZone;
+      else delete nextAddress.timeZone;
       venueUpdates.addresses = [nextAddress, ...(venueDetails?.addresses?.slice(1) || [])];
     }
 
