@@ -18,7 +18,7 @@
  *   - schedule: the grid cell carries the trusted badge, LIVE and the score; the Now strip reads LIVE.
  */
 import { installFakeScoreRelay, pointScoreRelayAtApp, type FakeScoreRelay } from '../helpers/fakeScoreRelay';
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, loginAsSuperAdmin, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { seedScheduledMatchUp } from '../helpers/seedScheduledMatchUp';
 import { daysFromTodayLocal, todayLocal } from '../helpers/dates';
 import { TournamentPage } from '../pages/TournamentPage';
@@ -58,6 +58,9 @@ test.describe('Journey 180 — crowd session: visible, then promoted to the live
     await initDevBridge(page);
     await resetState(page);
     await pointScoreRelayAtApp(page);
+    // The crowd-sessions poll asks the relay only while a token is stored (#2026: a signed-out TMX has nothing to ask
+    // for), so the director is signed in, as a director following crowd scores is
+    await loginAsSuperAdmin(page);
   });
 
   test('the TD sees the session, promotes it, and follows its score', async ({ page }) => {
