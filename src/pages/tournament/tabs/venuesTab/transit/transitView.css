@@ -16,29 +16,12 @@
 
 .tmx-transit__header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   grid-template-areas:
-    'back titles policy'
-    'legend legend legend';
+    'titles policy'
+    'legend legend';
   align-items: center;
   gap: 0.75rem 1rem;
-}
-
-.tmx-transit__back {
-  grid-area: back;
-  align-self: start;
-  padding: 0.35rem 0.7rem;
-  background: transparent;
-  border: 1px solid var(--tmx-border-primary);
-  border-radius: 0.375rem;
-  color: var(--tmx-text-secondary);
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.tmx-transit__back:hover {
-  background: var(--tmx-bg-highlight);
-  color: var(--tmx-text-primary);
 }
 
 .tmx-transit__titles {
@@ -140,7 +123,7 @@
 
   .tmx-transit__header {
     grid-template-columns: 1fr;
-    grid-template-areas: 'back' 'titles' 'policy' 'legend';
+    grid-template-areas: 'titles' 'policy' 'legend';
   }
 }
 
