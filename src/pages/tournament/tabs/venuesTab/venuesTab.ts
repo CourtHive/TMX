@@ -75,9 +75,10 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
 
   // ─── Transit view (venue-to-venue travel times) ─────────────────────────
   if (venueView === TRANSIT && venuesAnchor) {
-    // the transit view owns its header and back button; the list's control bar does not apply
-    if (controlAnchor) controlAnchor.innerHTML = '';
-    renderTransitView({ anchor: venuesAnchor, onBack: () => navigateToVenues() });
+    // the list's control bar, with [Venues] in the slot [Transit times] holds; a venue added here redraws the view
+    const showTransit = () => renderTransitView({ anchor: venuesAnchor });
+    venueControl({ controlAnchor, updateVenueRow: showTransit, onVenues: () => navigateToVenues() });
+    showTransit();
     return;
   }
 

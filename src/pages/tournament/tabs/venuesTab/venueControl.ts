@@ -18,12 +18,16 @@ type VenueControlParams = {
   onToggleGrid?: () => void;
   /** open the Transit view: travel times between the venues */
   onTransit?: () => void;
+  /** in the Transit view: back to the venues list, from the slot [Transit times] holds in the list */
+  onVenues?: () => void;
   controlAnchor?: HTMLElement;
 };
 
 // `onToggleGrid` stays in `VenueControlParams` — callers still pass it — but is not destructured
 // here, because nothing in this function reads it. See the note below the delete handler.
-export function venueControl({ table, updateVenueRow, controlAnchor, onTransit }: VenueControlParams = {} as any): {
+export function venueControl(
+  { table, updateVenueRow, controlAnchor, onTransit, onVenues }: VenueControlParams = {} as any,
+): {
   elements: Record<string, HTMLElement>;
 } {
   if (!controlAnchor) return { elements: {} };
@@ -49,14 +53,17 @@ export function venueControl({ table, updateVenueRow, controlAnchor, onTransit }
       location: OVERLAY,
       hide: !providerConfig.isAllowed('canDeleteVenues'),
     },
-    {
-      label: t('pages.venues.transit.button'),
-      onClick: () => onTransit?.(),
-      location: RIGHT,
-      id: 'venueTransit',
-      intent: 'none',
-      hide: !onTransit,
-    },
+    // One slot, two views: [Transit times] in the list, [Venues] in the Transit view, so the way back is where the way in was.
+    onVenues
+      ? { label: t('pages.venues.transit.back'), onClick: onVenues, location: RIGHT, id: 'venuesList', intent: 'none' }
+      : {
+          label: t('pages.venues.transit.button'),
+          onClick: () => onTransit?.(),
+          location: RIGHT,
+          id: 'venueTransit',
+          intent: 'none',
+          hide: !onTransit,
+        },
     {
       label: t('pages.venues.addVenue.title'),
       onClick: () => addVenue(updateVenueRow),
