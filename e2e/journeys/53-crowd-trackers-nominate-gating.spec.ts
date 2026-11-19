@@ -16,7 +16,7 @@
  *   - Promote is enabled for a verified crowd scorer (nominatable) and disabled
  *     with an explanatory tooltip for an unverified one (gating).
  */
-import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { initDevBridge, loginAsSuperAdmin, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { PROFILE_COMPLETED, seedTournament } from '../helpers/seed';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect } from '@playwright/test';
@@ -43,14 +43,24 @@ function buildSessions(matchUpId: string, tournamentId: string) {
       sessionId: VERIFIED_SESSION,
       userId: 'user-verified',
       // Not a tournament participant → classified "crowd"; verified → nominatable.
-      crowdScoredBy: { personId: 'crowd-verified-person', displayName: 'Vera Verified', audience: 'hiveid', verified: true },
+      crowdScoredBy: {
+        personId: 'crowd-verified-person',
+        displayName: 'Vera Verified',
+        audience: 'hiveid',
+        verified: true,
+      },
     },
     {
       ...base,
       sessionId: UNVERIFIED_SESSION,
       userId: 'user-unverified',
       // Crowd + not email-verified → NOT nominatable (gated).
-      crowdScoredBy: { personId: 'crowd-unverified-person', displayName: 'Uma Unverified', audience: 'hiveid', verified: false },
+      crowdScoredBy: {
+        personId: 'crowd-unverified-person',
+        displayName: 'Uma Unverified',
+        audience: 'hiveid',
+        verified: false,
+      },
     },
   ];
 }
@@ -61,6 +71,9 @@ test.describe('Journey 53 — crowd-trackers modal + nominate gating', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+    // The crowd-sessions poll asks the relay only while a token is stored (#2026: a signed-out TMX has nothing to ask
+    // for), so the director is signed in, as a director following crowd scores is
+    await loginAsSuperAdmin(page);
   });
 
   test('relay sessions drive the menu + modal nominate gating', async ({ page }) => {
@@ -82,7 +95,11 @@ test.describe('Journey 53 — crowd-trackers modal + nominate gating', () => {
       if (method === 'GET') {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessions }) });
       } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ session: sessions[0] }) });
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ session: sessions[0] }),
+        });
       }
     });
 
