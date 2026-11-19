@@ -209,16 +209,22 @@ export function getEventControlItems({
     }
   }
 
-  // "Place qualifiers" when qualified participants wait for the viewed main structure's qualifier positions: a button,
-  // not an Actions entry nobody finds (CA, 2026-11-19)
+  // "Place qualifiers" when qualified participants wait for the viewed structure's qualifier positions: MAIN, or a
+  // qualifying stage pre-qualifying feeds. A button, not an Actions entry nobody finds (CA, 2026-11-19)
   const isMainStructure = structure?.stage === MAIN && structure?.stageSequence === 1;
   const hasQualifying = drawData?.structures?.some((s: any) => s?.stage === QUALIFYING);
-  if (isMainStructure && hasQualifying && !draftState) {
-    const { eligible } = getQualifierPlacementState({ engine: tournamentEngine, drawId, eventId });
-    if (eligible) {
+  if ((isMainStructure || structure?.stage === QUALIFYING) && hasQualifying && !draftState) {
+    const placement = getQualifierPlacementState({ engine: tournamentEngine, structureId, drawId, eventId });
+    // a qualifying stage nothing qualifies into answers for MAIN: no button there
+    if (placement.eligible && placement.targetStructureId === structure.structureId) {
       items.push({
         onClick: () =>
-          placeQualifiers({ onPlaced: () => renderDrawView({ eventId, drawId, structureId }), eventId, drawId }),
+          placeQualifiers({
+            onPlaced: () => renderDrawView({ eventId, drawId, structureId }),
+            structureId: isMainStructure ? undefined : structureId,
+            eventId,
+            drawId,
+          }),
         label: t('pages.events.actionOptions.placeQualifiers'),
         id: PLACE_QUALIFIERS_BUTTON,
         intent: 'is-warning',

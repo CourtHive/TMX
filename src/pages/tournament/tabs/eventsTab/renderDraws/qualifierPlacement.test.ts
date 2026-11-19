@@ -111,7 +111,7 @@ describe('qualifier placement', () => {
     expect([...method.params.randomList].sort()).toEqual([0, 1, 2, 3]);
     expect(method.params).toMatchObject({ drawId, eventId });
 
-    const assignments = mainAssignments(drawId, before.mainStructureId!);
+    const assignments = mainAssignments(drawId, before.targetStructureId!);
     const placedInQualifierPositions = before.openQualifierPositions.map(
       (drawPosition) => assignments.find((a: any) => a.drawPosition === drawPosition)?.participantId,
     );
@@ -250,7 +250,7 @@ describe('qualifier placement', () => {
     expect(summary.incomplete).toBe(false);
 
     // the round 2 qualifiers stand opposite the first round BYEs
-    const assignments = mainAssignments(drawId, state.mainStructureId as string);
+    const assignments = mainAssignments(drawId, state.targetStructureId as string);
     const byes = new Set(assignments.filter(({ bye }: any) => bye).map(({ drawPosition }: any) => drawPosition));
     const firstRound = engine
       .allTournamentMatchUps({ matchUpFilters: { drawIds: [drawId] } })
@@ -266,5 +266,75 @@ describe('qualifier placement', () => {
     for (const { participantId, drawPosition } of summary.placed) {
       expect(opponentIsBye(drawPosition)).toEqual(roundTwoQualifierIds.has(participantId));
     }
+  });
+});
+
+// pre-qualifying (8, two qualifiers) feeds qualifying (8, two qualifier positions), which feeds MAIN; every matchUp the
+// mock can play is played, so the pre-qualifying winners wait for the qualifying stage's two qualifier positions
+function setupPreQualifyingChain() {
+  const {
+    drawIds: [drawId],
+    eventIds: [eventId],
+  } = mocksEngine.generateTournamentRecord({
+    drawProfiles: [
+      {
+        drawSize: 8,
+        qualifyingProfiles: [
+          {
+            roundTarget: 1,
+            structureProfiles: [
+              { stageSequence: 1, drawSize: 8, qualifyingPositions: 2 },
+              { stageSequence: 2, drawSize: 8, qualifyingPositions: 2 },
+            ],
+          },
+        ],
+      },
+    ],
+    completeAllMatchUps: true,
+    setState: true,
+  });
+  const { structures } = engine.getEvent({ drawId }).drawDefinition;
+  const qualifying = structures.find((s: any) => s.stage === 'QUALIFYING' && s.stageSequence === 2);
+  const main = structures.find((s: any) => s.stage === 'MAIN' && s.stageSequence === 1);
+  return { drawId, eventId, qualifying, main };
+}
+
+describe('qualifier placement into a qualifying stage pre-qualifying feeds (CA, 2026-11-19)', () => {
+  it('answers for the qualifying stage when it is named, and places by its structureId', () => {
+    const { drawId, eventId, qualifying } = setupPreQualifyingChain();
+    const state = getQualifierPlacementState({ engine, structureId: qualifying.structureId, drawId, eventId });
+    expect(state.targetStructureId).toBe(qualifying.structureId);
+    expect(state.eligible).toBe(true);
+    expect(state.openQualifierPositions.length).toBe(2);
+
+    const methods = buildPlaceQualifiersMethods({
+      targetRoundNumbers: state.targetRoundNumbers,
+      positionsCount: state.openQualifierPositions.length,
+      structureId: qualifying.structureId,
+      shuffle: identity,
+      eventId,
+      drawId,
+    });
+    expect(methods[0].params.structureId).toBe(qualifying.structureId);
+    const result = engine.executionQueue(methods);
+    expect(result.success).toBe(true);
+
+    const placed = mainAssignments(drawId, qualifying.structureId).filter(
+      (pa: any) => pa.qualifier && pa.participantId,
+    );
+    expect(placed.map((pa: any) => pa.participantId).sort()).toEqual([...state.qualifiedParticipantIds].sort());
+    expect(getQualifierPlacementState({ engine, structureId: qualifying.structureId, drawId, eventId }).eligible).toBe(
+      false,
+    );
+  });
+
+  it('answers for MAIN when no structure, or a non-qualifying one, is named; MAIN places with no structureId', () => {
+    const { drawId, eventId, main } = setupPreQualifyingChain();
+    expect(getQualifierPlacementState({ engine, drawId, eventId }).targetStructureId).toBe(main.structureId);
+    expect(
+      getQualifierPlacementState({ engine, structureId: main.structureId, drawId, eventId }).targetStructureId,
+    ).toBe(main.structureId);
+    const [method] = buildPlaceQualifiersMethods({ targetRoundNumbers: [1], positionsCount: 2, eventId, drawId });
+    expect(method.params).not.toHaveProperty('structureId');
   });
 });

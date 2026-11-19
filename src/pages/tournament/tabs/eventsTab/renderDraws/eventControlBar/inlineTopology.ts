@@ -8,6 +8,9 @@
  * attaches that one playoff through the same path as the Add playoffs dialog (`attachGeneratedPlayoffs`). The offers
  * are the LIVE draw's — `getAvailablePlayoffProfiles` without a structureId answers every structure at once — read
  * once per draw state and again after each attach; the topology is then loaded again from the draw.
+ *
+ * The modes' toggles (Add playoffs, Player journey) sit in the page's own control bar, beside [View draw], rather than
+ * in a second bar of the topology's (CA, 2026-11-19: screen space).
  */
 import { hydrateTopology } from 'pages/tournament/tabs/eventsTab/renderDraws/hydrateTopology';
 import { addVoluntaryConsolation } from 'components/modals/addVoluntaryConsolation';
@@ -132,6 +135,7 @@ export function renderInlineTopology({
     hideTemplates: true,
     readOnly: true,
     footer: true,
+    hostModeToggles: true,
     playoffOffers: (node) => offers.get(node.id),
     onAddPlayoff: addPlayoff,
     onDoubleClickNode: (node) => {
@@ -164,6 +168,7 @@ export function renderInlineTopology({
   });
   const eventControlElement = document.getElementById(EVENT_CONTROL) || undefined;
   controlBar({ target: eventControlElement, items });
+  eventControlElement?.querySelector('.options_right')?.prepend(...inlineControl.modeToggleButtons());
 }
 
 export function destroyInlineTopology(): void {
