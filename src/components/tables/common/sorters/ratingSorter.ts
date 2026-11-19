@@ -36,7 +36,7 @@ export const ratingSorter =
   };
 
 function getConfidenceValue(x: any): number {
-  const band = getConfidenceBand(x.confidence ?? 100);
+  const band = getConfidenceBand(x?.confidence ?? 100);
   return (band === 'high' && 100) || (band === 'medium' && 80) || (band === 'low' && 60) || 0;
 }
 

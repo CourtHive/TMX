@@ -47,6 +47,7 @@ export const SUPER_ADMIN = 'superadmin';
 export const ROTATING_SETTLEMENT_TREATMENT = 'rotatingSettlementTreatment';
 export const ROTATING_SETTLEMENT_REASON = 'rotatingSettlementReason';
 export const PROMOTE_ALTERNATES_BUTTON = 'promoteAlternatesButton';
+export const PLACE_QUALIFIERS_BUTTON = 'placeQualifiersButton';
 export const PROMOTE_ALTERNATES_COUNT = 'promoteAlternatesCount';
 export const PROMOTE_ALTERNATES_CONFIRM = 'promoteAlternatesConfirm';
 export const ROTATING_SETTLEMENT_ACTOR = 'rotatingSettlementActor';
