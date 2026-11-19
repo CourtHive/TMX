@@ -1,4 +1,4 @@
-import { makeTimingResolver } from './scheduleTimingResolver';
+import { makeAverageMinutesResolver, makeTimingResolver } from './scheduleTimingResolver';
 import { tournamentEngine } from 'services/factory/engine';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { mocksEngine } from 'tods-competition-factory';
@@ -59,5 +59,21 @@ describe('makeTimingResolver — category-aware recovery', () => {
     seedEvent('ADULT');
     const timing = makeTimingResolver()({ matchUpId: 'x' });
     expect(timing).toMatchObject({ averageMinutes: 90, recoveryMinutes: 0 });
+  });
+});
+
+describe('makeAverageMinutesResolver — no figure where nobody set one', () => {
+  beforeEach(() => {
+    tournamentEngine.reset?.();
+  });
+
+  it('gives the same average as the timing resolver for a matchUp with a format', () => {
+    const matchUp = seedEvent('ADULT');
+    expect(makeAverageMinutesResolver()(matchUp)).toBe(makeTimingResolver()(matchUp).averageMinutes);
+  });
+
+  it('gives undefined, not the flat 90, for a matchUp carrying no format', () => {
+    seedEvent('ADULT');
+    expect(makeAverageMinutesResolver()({ matchUpId: 'x' })).toBeUndefined();
   });
 });
