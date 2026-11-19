@@ -2,7 +2,11 @@
  * The path a QUALIFYING entry takes to MAIN, as the topology builder wrote it on Generate (CA, 2026-11-18,
  * Mentat/planning/2026-11-17-qualifying-entry-routing.md decision 4): its depth in a qualifying chain
  * (`entryStageSequence`, 1 the deepest) and the MAIN round the chain leads to (`roundTarget`). The entries page shows
- * it read-only; the builder alone decides it. An entry with no path written shows none.
+ * it read-only; the builder alone decides it.
+ *
+ * Generate writes a path only where one qualifying structure could not say it alone (more than one band, or a target
+ * after round 1). Where none is written the draw has one qualifying path, the factory's default, and every QUALIFYING
+ * entry shows it: `Qualifying · R1` (CA, 2026-11-19: an empty column read as missing data).
  */
 import { drawDefinitionConstants, extensionConstants } from 'tods-competition-factory';
 import { depthLabel } from 'courthive-components';
@@ -33,6 +37,14 @@ export function qualifyingPathLabels(entries: PathEntry[]): Map<string, string> 
     .filter((entry) => entry.entryStage === QUALIFYING)
     .map((entry) => ({ entry, roundTarget: entryRoundTarget(entry), sequence: entry.entryStageSequence }))
     .filter(({ roundTarget, sequence }) => roundTarget !== undefined || sequence !== undefined);
+
+  // nothing written: the one default path, qualifying into MAIN's first round
+  if (!routed.length) {
+    const unrouted = entries.filter((entry) => entry.entryStage === QUALIFYING);
+    if (!unrouted.length) return new Map();
+    const label = `${depthLabel(1)} · R1`;
+    return new Map(unrouted.map((entry) => [entry.participantId, label]));
+  }
 
   const chainLength = new Map<number, number>();
   for (const { roundTarget = 1, sequence = 1 } of routed)

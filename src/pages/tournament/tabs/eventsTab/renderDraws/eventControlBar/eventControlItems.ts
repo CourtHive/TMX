@@ -9,6 +9,7 @@ import { enterParticipantAssignmentMode } from '../participantAssignmentMode';
 import { openConfigureDraft } from 'components/modals/draftConfigure';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { openCompleteMatchUpsPopover } from './completeMatchUpsPopover';
+import { getQualifierPlacementState } from '../qualifierPlacement';
 import { getStructureOptions } from '../getStructureOptions';
 import { tournamentEngine } from 'services/factory/engine';
 import { editMatchUpFormat } from '../editMatchUpFormat';
@@ -16,12 +17,13 @@ import { getActionOptions } from '../getActionOptions';
 import { getDrawsOptions } from '../getDrawsOptions';
 import { displayConfig } from 'config/displayConfig';
 import { compositions } from 'courthive-components';
+import { placeQualifiers } from '../placeQualifiers';
 import { renderDrawView } from '../renderDrawView';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
 
 import { ADD_DRAW_DEFINITION_EXTENSION, ADD_EVENT_EXTENSION } from 'constants/mutationConstants';
-import { LEFT, RIGHT } from 'constants/tmxConstants';
+import { LEFT, PLACE_QUALIFIERS_BUTTON, RIGHT } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING } = drawDefinitionConstants;
 const { TEAM } = eventConstants;
@@ -201,6 +203,24 @@ export function getEventControlItems({
       items.push({
         onClick: () => enterParticipantAssignmentMode({ drawId, eventId, structureId }),
         label: t('pages.events.actionOptions.assignParticipants'),
+        intent: 'is-warning',
+        location: RIGHT,
+      });
+    }
+  }
+
+  // "Place qualifiers" when qualified participants wait for the viewed main structure's qualifier positions: a button,
+  // not an Actions entry nobody finds (CA, 2026-11-19)
+  const isMainStructure = structure?.stage === MAIN && structure?.stageSequence === 1;
+  const hasQualifying = drawData?.structures?.some((s: any) => s?.stage === QUALIFYING);
+  if (isMainStructure && hasQualifying && !draftState) {
+    const { eligible } = getQualifierPlacementState({ engine: tournamentEngine, drawId, eventId });
+    if (eligible) {
+      items.push({
+        onClick: () =>
+          placeQualifiers({ onPlaced: () => renderDrawView({ eventId, drawId, structureId }), eventId, drawId }),
+        label: t('pages.events.actionOptions.placeQualifiers'),
+        id: PLACE_QUALIFIERS_BUTTON,
         intent: 'is-warning',
         location: RIGHT,
       });

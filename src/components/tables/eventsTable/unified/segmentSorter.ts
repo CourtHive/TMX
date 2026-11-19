@@ -38,22 +38,34 @@ export const SEGMENT_LABELS: Record<number, string> = {
 export type SortState = {
   secondaryField: string;
   secondaryDir: 'asc' | 'desc';
+  /**
+   * The clicked column's own sorter, when it has one. A column whose field holds an object (Name's participant, a
+   * rating) or no value at all (Path's label) compares only by it: its field's value would tie every row.
+   */
+  secondarySorter?: (aRow: any, bRow: any) => number;
 };
 
 export function createGroupedSorter(sortState: SortState) {
-  return (_a: any, _b: any, aRow: any, bRow: any) => compareSegmentRows(aRow.getData(), bRow.getData(), sortState);
+  return (_a: any, _b: any, aRow: any, bRow: any) =>
+    compareSegmentRows(aRow.getData(), bRow.getData(), sortState, aRow, bRow);
 }
 
 /**
  * Segment rank first; within a segment the TD's chosen column, otherwise the segment's default order
  * (alternates by entryPosition, the rest in array order). Ties keep array order.
  */
-export function compareSegmentRows(dataA: any, dataB: any, sortState: SortState): number {
+export function compareSegmentRows(dataA: any, dataB: any, sortState: SortState, rowA?: any, rowB?: any): number {
   const rankA = dataA._segmentRank ?? 6;
   const rankB = dataB._segmentRank ?? 6;
   if (rankA !== rankB) return rankA - rankB;
 
   if (!sortState.secondaryField) return defaultSegmentCompare(dataA, dataB);
+
+  if (sortState.secondarySorter && rowA && rowB) {
+    const cmp = sortState.secondarySorter(rowA, rowB) || 0;
+    if (cmp === 0) return compareEntryIndex(dataA, dataB);
+    return sortState.secondaryDir === 'desc' ? -cmp : cmp;
+  }
 
   let valA = dataA[sortState.secondaryField];
   let valB = dataB[sortState.secondaryField];
@@ -79,17 +91,32 @@ export function compareSegmentRows(dataA: any, dataB: any, sortState: SortState)
   return sortState.secondaryDir === 'desc' ? -cmp : cmp;
 }
 
-export function handleHeaderClick(sortState: SortState, field: string, applySort: () => void): void {
+export function handleHeaderClick(sortState: SortState, field: string, applySort: () => void, column?: any): void {
   if (!field || field === '_segmentRank') return;
 
   if (field === 'segment') {
     sortState.secondaryField = '';
     sortState.secondaryDir = 'asc';
+    sortState.secondarySorter = undefined;
   } else if (sortState.secondaryField === field) {
     sortState.secondaryDir = sortState.secondaryDir === 'asc' ? 'desc' : 'asc';
   } else {
     sortState.secondaryField = field;
     sortState.secondaryDir = 'asc';
+    sortState.secondarySorter = columnSorter(column);
   }
   applySort();
+}
+
+/**
+ * A column's own sorter function, asked in its ascending order (the grouped sort applies the direction). A named
+ * sorter ('number', 'string') compares the field's value, as the grouped sort already does, so it needs none.
+ */
+export function columnSorter(column?: any): SortState['secondarySorter'] {
+  const definition = column?.getDefinition?.();
+  const sorter = definition?.sorter;
+  if (typeof sorter !== 'function') return undefined;
+  const field = definition.field;
+  const valueOf = (row: any) => field?.split('.').reduce((obj: any, key: string) => obj?.[key], row.getData());
+  return (aRow, bRow) => sorter(valueOf(aRow), valueOf(bRow), aRow, bRow, column, 'asc', definition.sorterParams ?? {});
 }

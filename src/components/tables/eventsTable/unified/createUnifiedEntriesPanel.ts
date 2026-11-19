@@ -430,7 +430,7 @@ export function createUnifiedEntriesPanel({
   // ── Header click for secondary sort ──
   table.on('headerClick', (_e: Event, column: any) => {
     const field = column.getField();
-    handleHeaderClick(sortState, field, applySort);
+    handleHeaderClick(sortState, field, applySort, column);
   });
 
   // ── Doubles pairing mode: auto-pair on 2 ungrouped selected ──
