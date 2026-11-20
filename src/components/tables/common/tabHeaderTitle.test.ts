@@ -34,7 +34,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe('createTabHeaderTitle', () => {
   it('renders the label with its count, and a muted selected count at zero', () => {
     const title = createTabHeaderTitle({ label: 'Participants', count: 12, selected: 0 });
-    const [heading, selected] = title.element.children;
+    const [heading, selected]: any[] = [...(title.element.children as any)];
     expect(heading.textContent).toBe('Participants (12)');
     expect(selected.textContent).toBe('ui.selectedCount:0');
     expect(selected.dataset.selected).toBe('0');
