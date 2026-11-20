@@ -62,9 +62,10 @@ describe('mapVenue court times, end to end', () => {
       endDate: startDate,
       setState: true,
     });
-    const venue = tournamentEngine.getVenuesAndCourts().venues[0];
+    const { venues }: any = tournamentEngine.getVenuesAndCourts();
+    const venue = venues[0];
     const [c1, c2, c3] = venue.courts.map((court: any) => court.courtId);
-    const { matchUps } = tournamentEngine.allTournamentMatchUps({ inContext: true });
+    const { matchUps }: any = tournamentEngine.allTournamentMatchUps({ inContext: true });
     const place = (matchUp: any, courtId: string, courtOrder?: number) =>
       tournamentEngine.addMatchUpScheduleItems({
         schedule: { venueId: venue.venueId, courtId, scheduledDate: startDate, ...(courtOrder && { courtOrder }) },
@@ -90,11 +91,12 @@ describe('mapVenue court times, end to end', () => {
     const record = tournamentEngine.getTournament().tournamentRecord;
     const engine = new AvailabilityEngine();
     engine.init(record);
-    const inContext = tournamentEngine.allTournamentMatchUps({ inContext: true }).matchUps;
+    const { matchUps: inContext }: any = tournamentEngine.allTournamentMatchUps({ inContext: true });
     const averageMinutes = makeAverageMinutesResolver();
     const average = averageMinutes(inContext[0]) ?? 0;
     const gridMinutes = gridMinutesByCourt(inContext, averageMinutes);
-    const courts = mapVenue(tournamentEngine.getVenuesAndCourts().venues[0], engine, undefined, gridMinutes).courts;
+    const { venues: updated }: any = tournamentEngine.getVenuesAndCourts();
+    const courts = mapVenue(updated[0], engine, undefined, gridMinutes).courts;
     const byId = Object.fromEntries(courts.map((court: any) => [court.courtId, court]));
 
     expect(average).toBeGreaterThan(0);
