@@ -33,6 +33,8 @@ import {
 
 import { SET_DELEGATED_OUTCOME } from 'constants/mutationConstants';
 
+const WARNING_INTENT = 'is-warning';
+
 function trustedSession(sessions: CrowdScoringSession[]): CrowdScoringSession | undefined {
   return sessions.find((s) => s.trusted);
 }
@@ -59,7 +61,7 @@ export async function openSetDelegatedOutcome(args: {
   const sessions = await getSessionsByMatchUpId({ matchUpId, activeOnly: true }).catch(() => []);
   const session = trustedSession(sessions);
   if (!session) {
-    tmxToast({ intent: 'is-warning', message: t('crowd.toast.nominateFirst') });
+    tmxToast({ intent: WARNING_INTENT, message: t('crowd.toast.nominateFirst') });
     return;
   }
 
@@ -117,18 +119,23 @@ export async function acceptTrustedSession(args: {
 }): Promise<void> {
   const { session, matchUpId, drawId, callback } = args;
 
-  // Authoritative live feed. Best-effort — a relay hiccup shouldn't block the
-  // record application below.
-  await promoteSession(session.sessionId).catch(() => undefined);
+  // Authoritative live feed. Best-effort — a relay failure must not block the record application below, but it
+  // must not be reported as a promotion either (ecosystem review 690): `promoted` is true only when the relay
+  // returned the promoted session. Unconfigured relay and rejected request both count as not promoted.
+  const promoted = await promoteSession(session.sessionId).then(
+    (promotedSession) => !!promotedSession,
+    () => false,
+  );
+  if (!promoted) tmxToast({ intent: WARNING_INTENT, message: t('crowd.toast.promoteFailed'), pauseOnHover: true });
 
   const methods = buildAcceptMethods({ session, matchUpId, drawId });
   if (!methods.length) {
-    tmxToast({ intent: 'is-success', message: t('crowd.toast.acceptedLive') });
-    callback?.({ promoted: true });
+    if (promoted) tmxToast({ intent: 'is-success', message: t('crowd.toast.acceptedLive') });
+    callback?.({ promoted });
     return;
   }
 
-  mutationRequest({ methods, callback });
+  mutationRequest({ methods, callback: (result: any) => callback?.({ ...result, promoted }) });
 }
 
 /**
@@ -144,7 +151,7 @@ export function confirmDelegatedOutcome(args: {
   const { matchUpId, drawId, matchUp, callback } = args;
   const delegatedOutcome = readDelegatedOutcome(matchUp ?? tournamentEngine.q?.matchUp?.({ matchUpId }));
   if (!delegatedOutcome) {
-    tmxToast({ intent: 'is-warning', message: t('crowd.toast.noOutcomeToConfirm') });
+    tmxToast({ intent: WARNING_INTENT, message: t('crowd.toast.noOutcomeToConfirm') });
     return;
   }
   mutationRequest({ methods: buildConfirmMethods({ matchUpId, drawId, delegatedOutcome }), callback });
