@@ -4,6 +4,7 @@ import {
   directedTransit,
   formatMinutes,
   layoutVenues,
+  nodeInitials,
   policyDefaultTransitMinutes,
   transitEdges,
   transitInputsFromRecord,
@@ -173,5 +174,27 @@ describe('formatMinutes', () => {
       '1h 15m',
       '2h',
     ]);
+  });
+});
+
+const NORTH_PARK = 'North Park';
+
+describe('nodeInitials — what a venue’s circle shows', () => {
+  it('prefers the venue’s abbreviation, up to four characters', () => {
+    expect(nodeInitials({ name: NORTH_PARK, abbreviation: 'NPK' })).toBe('NPK');
+    expect(nodeInitials({ name: NORTH_PARK, abbreviation: 'NORTHP' })).toBe('NORT');
+  });
+
+  it('takes the initials of a name of several words, up to three', () => {
+    expect(nodeInitials({ name: NORTH_PARK })).toBe('NP');
+    expect(nodeInitials({ name: 'south club tennis centre' })).toBe('SCT');
+  });
+
+  it('takes the first three letters of a one-word name', () => {
+    expect(nodeInitials({ name: 'Riverside' })).toBe('RIV');
+  });
+
+  it('ignores a blank abbreviation and stray spaces', () => {
+    expect(nodeInitials({ name: '  North   Park ', abbreviation: '  ' })).toBe('NP');
   });
 });
