@@ -2,8 +2,10 @@
  * Event editor drawer for creating and modifying events.
  * Handles event configuration including name, type, gender, category, and dates.
  */
+import { invalidParticipantsFromRefusal } from 'components/modals/invalidParticipantsFromRefusal';
 import { getCategoryModal, renderButtons, renderForm, validators } from 'courthive-components';
 import { CUSTOM_CATEGORY, cleanAgeCode, watchCustomCategory } from './customCategorySelect';
+import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
 import { customisedFormatCount, eventTimingRows } from './eventTimingRows';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -66,6 +68,8 @@ function suggestCompetitionFormatKey(event: any): CompetitionFormatKey {
   return '';
 }
 
+// `U18` is "under 18" (17 at most), as the factory enforces it, so it is labelled that way: the label used to
+// read "18 and Under", the meaning of `18U`, which let an 18-year-old's entry be refused with no visible reason
 const defaultAgeCategories = () => [
   { code: 'U10', label: t('ageCategories.u10') },
   { code: 'U12', label: t('ageCategories.u12') },
@@ -200,17 +204,10 @@ export function editEvent({
     return types.includes(participant.participantType) ? types : types.concat(participant.participantType);
   }, []);
 
-  const participantAgeCategories: any[] = [];
-  for (const participant of [...enteredParticipants, ...(participants || []).map((p: any) => p.participant)].filter(
-    Boolean,
-  )) {
-    const rankings = participant.timeItems
-      ?.filter(({ itemType }: any) => itemType?.startsWith(`SCALE.RANKING.${values.eventType}`))
-      .map(({ itemType }: any) => itemType?.split('.').pop());
-    participantAgeCategories.push(rankings);
-  }
-  const categories = tools.unique(participantAgeCategories.flat());
-  if (categories.length === 1) values.ageCategoryCode = categories[0];
+  // The category is never inferred from the participants. It used to be taken from a ranking they all
+  // shared (SCALE.RANKING.<type>.<code>), which preselected a category the tournament may not define and
+  // that the players may not be eligible for, and overrode an existing event's own category on edit.
+  // Who may enter follows from the category; the category does not follow from who was selected.
 
   if (enteredParticipantGenders.length) {
     genderOptions = resolveEnteredGenderOptions(event, enteredParticipantGenders);
@@ -545,7 +542,14 @@ export function editEvent({
         const event = result.results?.[0]?.event;
         if (isFunction(callback)) callback({ ...result, event, eventUpdates });
       } else if (result.error) {
-        tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
+        // a refused entry (category, gender) names who and why: list them, as adding to an event does,
+        // rather than a bare "Invalid participants" (the queue rolls back, so no empty event is left)
+        const invalidParticipants = invalidParticipantsFromRefusal(result.context);
+        if (invalidParticipants.length) {
+          invalidParticipantsModal({ invalidParticipants });
+        } else {
+          tmxToast({ intent: 'is-warning', message: result.error?.message || t('common.error') });
+        }
         if (isFunction(callback)) callback(result);
       }
     };
