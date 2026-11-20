@@ -1,4 +1,3 @@
-import { createChipSelection, isNarrowing, paintChipColor, paintChipState } from 'components/tables/common/filters/chipFilter';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
@@ -11,6 +10,12 @@ import { getCachedAllMatchUps } from './schedule2DataCache';
 import { controlBar } from 'courthive-components';
 import { LEFT } from 'constants/tmxConstants';
 import { t } from 'i18n';
+import {
+  createChipSelection,
+  isNarrowing,
+  paintChipColor,
+  paintChipState,
+} from 'components/tables/common/filters/chipFilter';
 import {
   checkInDeskMatchUps,
   deskBucketCounts,
