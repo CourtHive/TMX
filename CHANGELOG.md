@@ -1,5 +1,35 @@
 # Changelog
 
+## [8.57.0](https://github.com/CourtHive/TMX/compare/v8.56.0...v8.57.0) (2026-11-20)
+
+
+### Features
+
+* **draws:** a Place qualifiers button; the entries sort by every column; the default path shows ([#2049](https://github.com/CourtHive/TMX/issues/2049)) ([188fbb5](https://github.com/CourtHive/TMX/commit/188fbb5b99145113dcab590725e3b126fa0f02d7))
+* **draws:** place qualifiers on a qualifying stage; the topology's modes in the page's bar ([#2054](https://github.com/CourtHive/TMX/issues/2054)) ([7422726](https://github.com/CourtHive/TMX/commit/7422726d003387aff4da0684be3998f2fb964fec))
+* **entries:** a read-only Path column for each qualifying entry's path to MAIN ([#2047](https://github.com/CourtHive/TMX/issues/2047)) ([a47f6dc](https://github.com/CourtHive/TMX/commit/a47f6dcf6340c486d3051a578568690b88173712))
+* **events:** open the category editor when Custom is selected ([#2046](https://github.com/CourtHive/TMX/issues/2046)) ([6e4ba6b](https://github.com/CourtHive/TMX/commit/6e4ba6b4256d04ce719e22550d0370fba9c2c4be))
+* **topology:** builder rounds 3–6 and the time zone picker ([#2039](https://github.com/CourtHive/TMX/issues/2039)) ([16143be](https://github.com/CourtHive/TMX/commit/16143be66ef8334c27c88c6a46067b7ad47a7252))
+* **topology:** use a flight's design for the other flights, as drafts sized to each ([#2044](https://github.com/CourtHive/TMX/issues/2044)) ([fded16a](https://github.com/CourtHive/TMX/commit/fded16a968e7315d61f001fab0dfe55d007cad8e))
+* **topology:** write each qualifying entry's path on Generate; the fit counts seeds ([#2043](https://github.com/CourtHive/TMX/issues/2043)) ([1bd52f5](https://github.com/CourtHive/TMX/commit/1bd52f52cf28083b95923b6f651eb8ee90788112))
+* **venues:** an added venue starts in the tournament's time zone, editable on Add and Edit venue ([#2045](https://github.com/CourtHive/TMX/issues/2045)) ([63416e2](https://github.com/CourtHive/TMX/commit/63416e23fc9edc9d9ff80a5190278c58f106144e))
+* **venues:** court Scheduled Time counts grid matchUps; add Practice Time and Blocked Time columns ([#2055](https://github.com/CourtHive/TMX/issues/2055)) ([9676583](https://github.com/CourtHive/TMX/commit/9676583dbbef4db3dc2f34787e9bb1e85716d932))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.19.2 ([#2048](https://github.com/CourtHive/TMX/issues/2048)) ([e5b5f5b](https://github.com/CourtHive/TMX/commit/e5b5f5b65b8fca45fb3fc3333335fdcd68edad65))
+* **deps:** update dependency focus-trap to v8.2.5 ([#2035](https://github.com/CourtHive/TMX/issues/2035)) ([959f53e](https://github.com/CourtHive/TMX/commit/959f53e199f9dad35b56b049d20eaa39fb8b9683))
+* **deps:** update pdf-factory to 1.1.13 ([#2053](https://github.com/CourtHive/TMX/issues/2053)) ([85745a8](https://github.com/CourtHive/TMX/commit/85745a861761f1cf159662ac7191b4ea7a87ed7d))
+* **deps:** update tods-competition-factory to 7.41.0 ([#2042](https://github.com/CourtHive/TMX/issues/2042)) ([9b002ab](https://github.com/CourtHive/TMX/commit/9b002ab90f35d8ea5c1c0ca8c08c71fa974a8e58))
+* **deps:** update tods-competition-factory to 7.43.0 ([#2052](https://github.com/CourtHive/TMX/issues/2052)) ([a2b33e6](https://github.com/CourtHive/TMX/commit/a2b33e6cb9860594812d009dd6afa34d5a95bde1))
+* **venues:** count the matchUps scheduled on each venue ([#2040](https://github.com/CourtHive/TMX/issues/2040)) ([779bb3e](https://github.com/CourtHive/TMX/commit/779bb3e981a613cc9e742b3c5e9eb12578e293ec))
+* **venues:** read and write a court's surface in CODES' surfaceCategory ([#2041](https://github.com/CourtHive/TMX/issues/2041)) ([09dc6c7](https://github.com/CourtHive/TMX/commit/09dc6c7738d22ebc81dd32aa3f569b10e0742c47))
+* **venues:** the courts table's time columns are headed Scheduled, Practice and Blocked ([#2058](https://github.com/CourtHive/TMX/issues/2058)) ([b9fefd6](https://github.com/CourtHive/TMX/commit/b9fefd6bf9fdaa265e7fa9fc92d9d45e3b07a5ff))
+* **venues:** the courts table's Unscheduled Time column is headed Unscheduled ([#2057](https://github.com/CourtHive/TMX/issues/2057)) ([f0f2ce8](https://github.com/CourtHive/TMX/commit/f0f2ce8d59309fc106320e49b7eafb45199a2394))
+* **venues:** the Transit view sets its own header; a venue's circle shows its initials ([#2056](https://github.com/CourtHive/TMX/issues/2056)) ([66bbfc4](https://github.com/CourtHive/TMX/commit/66bbfc41dd788698e6f612600d1ea2e4a0123052))
+* **venues:** the Transit view's way back is [Venues] in the button bar, where [Transit times] was ([#2050](https://github.com/CourtHive/TMX/issues/2050)) ([895e350](https://github.com/CourtHive/TMX/commit/895e3509ab88da1be98476f93396bf99ed63f23b))
+
 ## [8.56.0](https://github.com/CourtHive/TMX/compare/v8.55.0...v8.56.0) (2026-11-18)
 
 
