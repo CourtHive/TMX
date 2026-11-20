@@ -4,6 +4,7 @@
  */
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
+import { createTabHeaderTitle, trackSelectedRows } from '../common/tabHeaderTitle';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { participantConstants } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -64,14 +65,11 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
       columns,
     });
 
-    table.on('dataChanged', (rows: any[]) => {
-      const type = view === TEAM ? 'Teams' : 'Groups';
-      headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
-    });
-    table.on('dataFiltered', (_filters: any, rows: any[]) => {
-      const type = view === TEAM ? 'Teams' : 'Groups';
-      headerElement && (headerElement.innerHTML = `${type} (${rows.length})`);
-    });
+    const title = createTabHeaderTitle({ label: view === TEAM ? 'Teams' : 'Groups', count: data.length, selected: 0 });
+    headerElement?.replaceChildren(title.element);
+    trackSelectedRows(table, title);
+    table.on('dataChanged', (rows: any[]) => title.setCount(rows.length));
+    table.on('dataFiltered', (_filters: any, rows: any[]) => title.setCount(rows.length));
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => (ready = true));
   };

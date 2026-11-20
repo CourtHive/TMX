@@ -3,6 +3,7 @@
  * Displays individual participant details, ratings, and event assignments.
  * Rating columns and averages are determined dynamically from participant data.
  */
+import { createTabHeaderTitle, trackSelectedRows, type TabHeaderTitle } from '../common/tabHeaderTitle';
 import { ParticipantRoleEnum, participantConstants, tools, fixtures } from 'tods-competition-factory';
 import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
@@ -155,6 +156,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
     // on the right. The chart re-binds against the currently visible rows
     // so it tracks filter state without needing to re-query the engine.
     const headerHandle = headerElement ? installScalingsHeader(headerElement as HTMLElement, headerLabel) : null;
+    if (headerHandle) trackSelectedRows(table, headerHandle.title);
 
     // Refresh from row-data objects (works with both the `dataChanged`
     // signature, which passes the data array, and our manual call in
@@ -217,13 +219,14 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
 }
 
 interface ScalingsHeaderHandle {
+  title: TabHeaderTitle;
   setCount: (n: number) => void;
   setScales: (scales: ReturnType<typeof collectAvailableScales>) => void;
 }
 
 /**
  * Replace the section's `.tabHeader` text with a flex row hosting the
- * "Participants (n)" label on the left and a compact scalings sparkline
+ * "Participants (n)  Selected: n" title group on the left and a compact scalings sparkline
  * (with optional scale selector) on the right. Returns setters the
  * caller drives from Tabulator's dataChanged / dataFiltered events.
  */
@@ -232,9 +235,8 @@ function installScalingsHeader(headerElement: HTMLElement, labelText: string): S
     'display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: nowrap;';
   headerElement.replaceChildren();
 
-  const label = document.createElement('span');
-  label.textContent = `${labelText} (0)`;
-  headerElement.appendChild(label);
+  const title = createTabHeaderTitle({ label: labelText, selected: 0 });
+  headerElement.appendChild(title.element);
 
   const chartHandle = buildScalingsChart([], { variant: 'compact' });
   // Keep the chart on the right and prevent it from pushing the label
@@ -244,9 +246,8 @@ function installScalingsHeader(headerElement: HTMLElement, labelText: string): S
   headerElement.appendChild(chartHandle.element);
 
   return {
-    setCount: (n: number) => {
-      label.textContent = `${labelText} (${n})`;
-    },
+    title,
+    setCount: title.setCount,
     setScales: chartHandle.update,
   };
 }
