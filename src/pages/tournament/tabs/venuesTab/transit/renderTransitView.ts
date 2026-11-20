@@ -20,6 +20,7 @@ import {
   directedTransit,
   formatMinutes,
   layoutVenues,
+  nodeInitials,
   policyDefaultTransitMinutes,
   transitEdges,
   transitInputsFromRecord,
@@ -161,7 +162,7 @@ export function renderTransitView({ anchor }: { anchor: HTMLElement }): void {
       if (venue.venueId === hoveredVenueId) node.classList.add('is-hovered');
       node.appendChild(svg('circle', { r: NODE_RADIUS }));
       const initials = svg('text', { class: 'tmx-transit__node-initials', 'text-anchor': 'middle', dy: '0.35em' });
-      initials.textContent = (venue.abbreviation || venue.name).slice(0, 4);
+      initials.textContent = nodeInitials(venue);
       node.appendChild(initials);
       const label = svg('text', { class: 'tmx-transit__node-label', 'text-anchor': 'middle', y: NODE_RADIUS + 16 });
       label.textContent = venue.name;
