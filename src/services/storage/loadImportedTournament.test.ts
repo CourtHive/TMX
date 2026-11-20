@@ -1,7 +1,23 @@
 import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
-import { mocksEngine, tournamentEngine, tournamentGovernor } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { loadImportedTournament } from './loadImportedTournament';
 import { describe, expect, it, vi } from 'vitest';
+
+// The factory's module namespace is not configurable under ESM, so spying on the governor fails against a real
+// install. Replace the governor with a copy whose getTournamentInconsistencies a test can override.
+const inconsistencies = vi.hoisted(() => ({ override: undefined as undefined | ((...args: any[]) => any) }));
+vi.mock('tods-competition-factory', async (importOriginal) => {
+  const factory: any = await importOriginal();
+  const governor = factory.tournamentGovernor;
+  return {
+    ...factory,
+    tournamentGovernor: {
+      ...governor,
+      getTournamentInconsistencies: (...args: any[]) =>
+        (inconsistencies.override ?? governor.getTournamentInconsistencies)(...args),
+    },
+  };
+});
 
 function mockJSON(mutate?: (record: any) => void): { data: string; tournamentId: string } {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize: 4 }] });
@@ -66,9 +82,9 @@ describe('loadImportedTournament', () => {
 
   it('still loads when the integrity check throws, and reports the check as unavailable', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const integrity = vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockImplementation(() => {
+    inconsistencies.override = () => {
       throw new Error('engine exploded');
-    });
+    };
     try {
       const loaded: any[] = [];
       const { data, tournamentId } = mockJSON();
@@ -83,7 +99,7 @@ describe('loadImportedTournament', () => {
       expect(summary?.integrityUnavailable).toEqual(true);
       expect(summary?.integrityUnavailableReason).toEqual('engine exploded');
     } finally {
-      integrity.mockRestore();
+      inconsistencies.override = undefined;
       warn.mockRestore();
     }
   });
