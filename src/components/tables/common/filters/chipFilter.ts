@@ -221,6 +221,22 @@ export function createChoiceFilter({
   };
 }
 
+/**
+ * One chip rule everywhere (CA 2026-11-20): a chip is filled, and `aria-pressed`, only while it is NARROWING the list.
+ * With no filter set every value is included, yet every chip is drawn outlined, at rest, so a filled chip always means
+ * "this is limiting what you see". The selection rules are unchanged (every chip on and no chip on are both "no
+ * filter"; the first click isolates a chip); this is only how a chip shows and announces its state.
+ */
+export function paintChipState(chip: HTMLElement, narrowing: boolean): void {
+  chip.setAttribute('aria-pressed', String(narrowing));
+  chip.dataset.on = String(narrowing);
+}
+
+/** Whether `value`'s chip is narrowing: a filter is set and the value is one it lets through. */
+export function isNarrowing(selection: { isOn: (value: string) => boolean; isFiltered: () => boolean }, value: string) {
+  return selection.isFiltered() && selection.isOn(value);
+}
+
 /** A chip's own colour, as custom properties its stylesheet reads: the bars' colour for the bucket it filters. */
 export function paintChipColor(chip: HTMLElement, { color, ink }: { color?: string; ink?: string }): void {
   if (color) chip.style.setProperty('--chip-color', color);

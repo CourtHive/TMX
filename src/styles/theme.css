@@ -56,6 +56,13 @@ html {
 
   /* Fills — solid backgrounds that pair with white text (badges, active pills, selected chips, toggles). */
   --tmx-fill-accent: var(--chc-fill-accent);
+
+  /* Filter chips (CA 2026-11-20). A chip is outlined at rest and filled while it narrows a list, so both states sit
+     on every surface a chip is drawn on (page, elevated popover, tertiary): text >= 4.5:1, fill and border >= 3:1.
+     Enforced per theme and palette by e2e journey 219, which measures the computed colours. */
+  --tmx-chip-fill: var(--tmx-fill-accent);
+  --tmx-chip-ink: var(--tmx-text-inverse);
+  --tmx-chip-border: #6c7686;
   --tmx-fill-warning: #c2410c; /* 5.30 vs white — AA */
 
   /* Severity fills for count badges. `--tmx-fill-warning` above reads as an
@@ -148,6 +155,10 @@ html {
 
 /* ── Midnight (default dark) ── */
 [data-theme='dark'] {
+  /* inverse text is dark here, and on the accent fill it read 3.3:1: fill with the light accent, ink with the page */
+  --tmx-chip-fill: var(--tmx-accent-blue);
+  --tmx-chip-ink: var(--tmx-bg-primary);
+  --tmx-chip-border: #8484a8;
   --tmx-on-status: var(--chc-bg-primary);
   --tmx-accent-blue: #6aa6e0;
   --tmx-accent-green: #6cc488;
@@ -184,6 +195,7 @@ html {
 
 /* ── Linen (light) ── */
 :root[data-theme='light'][data-palette='linen'] {
+  --tmx-chip-border: #80776b;
   --tmx-accent-blue: #2f5fb3;
   --tmx-accent-green: #2e7048;
   --tmx-accent-purple: #7048a8;
@@ -219,6 +231,8 @@ html {
 
 /* ── Slate (light) ── */
 :root[data-theme='light'][data-palette='slate'] {
+  --tmx-chip-fill: #1d4ed8;
+  --tmx-chip-border: #707c8c;
   --tmx-accent-blue: #2563eb;
   --tmx-accent-green: #15803d;
   --tmx-accent-purple: #7c3aed;
@@ -254,6 +268,7 @@ html {
 
 /* ── Graphite (dark) ── */
 :root[data-theme='dark'][data-palette='graphite'] {
+  --tmx-chip-border: #848792;
   --tmx-accent-blue: #7fb2ff;
   --tmx-accent-green: #62c58a;
   --tmx-accent-purple: #c49bff;

@@ -1,4 +1,4 @@
-import { createChipSelection, paintChipColor } from 'components/tables/common/filters/chipFilter';
+import { createChipSelection, isNarrowing, paintChipColor, paintChipState } from 'components/tables/common/filters/chipFilter';
 import { filterPopoverButton } from 'components/tables/common/filters/filterPopoverButton';
 import { STATUS_BUCKETS } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
@@ -156,9 +156,7 @@ export function renderCheckInView(container: HTMLElement, date: string) {
     const tallies = deskBucketCounts(matchUps, date, filters);
     for (const chip of chipButtons) {
       const value = chip.dataset.value as (typeof STATUS_BUCKETS)[number];
-      const on = selection.isOn(value);
-      chip.setAttribute('aria-pressed', String(on));
-      chip.dataset.on = String(on);
+      paintChipState(chip, isNarrowing(selection, value));
       (chip.lastElementChild as HTMLElement).textContent = String(tallies[value]);
     }
     const visible = checkInDeskMatchUps(matchUps, date, filters);

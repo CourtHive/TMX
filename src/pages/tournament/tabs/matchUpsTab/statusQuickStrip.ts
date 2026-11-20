@@ -8,7 +8,7 @@
 import { STATUS_BUCKETS, statusBucketOf } from 'components/tables/common/filters/matchUpStatusPredicates';
 import { rowsPassingOthers } from 'components/tables/common/filters/rowsPassingOthers';
 import type { ChipFilter, ChipSection } from 'components/tables/common/filters/chipFilter';
-import { paintChipColor } from 'components/tables/common/filters/chipFilter';
+import { isNarrowing, paintChipColor, paintChipState } from 'components/tables/common/filters/chipFilter';
 import { t } from 'i18n';
 
 type StripArgs = {
@@ -62,9 +62,7 @@ export function mountStatusQuickStrip({ table, element, chips, bucketFilter, onT
     const counts = bucketCounts(rowsPassingOthers(table, bucketFilter.rowFilter));
     for (const chip of buttons) {
       const value = chip.dataset.value as string;
-      const on = chips.isOn(value);
-      chip.setAttribute('aria-pressed', String(on));
-      chip.dataset.on = String(on);
+      paintChipState(chip, isNarrowing(bucketFilter, value));
       (chip.lastElementChild as HTMLElement).textContent = String(counts[value] ?? 0);
     }
   };
