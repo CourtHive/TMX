@@ -187,6 +187,8 @@ export function createChoiceFilter({
   hasOptions: boolean;
   isFiltered: () => boolean;
   activeIndex: () => number;
+  /** the filter both faces drive, for a third surface (a table footer) that toggles and counts it */
+  filter: ChipFilter;
 } {
   const filter = createChipFilter({ table, values: items.map(({ value }) => value), matches, initial, persist });
 
@@ -215,6 +217,7 @@ export function createChoiceFilter({
     hasOptions: items.length > 1,
     isFiltered: filter.isFiltered,
     activeIndex,
+    filter,
   };
 }
 

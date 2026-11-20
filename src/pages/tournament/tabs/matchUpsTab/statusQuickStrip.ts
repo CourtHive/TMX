@@ -6,6 +6,7 @@
  * "To be played 37" with Doubles off in the Type chips is 37 singles still to play, whichever status chips are on.
  */
 import { STATUS_BUCKETS, statusBucketOf } from 'components/tables/common/filters/matchUpStatusPredicates';
+import { rowsPassingOthers } from 'components/tables/common/filters/rowsPassingOthers';
 import type { ChipFilter, ChipSection } from 'components/tables/common/filters/chipFilter';
 import { paintChipColor } from 'components/tables/common/filters/chipFilter';
 import { t } from 'i18n';
@@ -19,13 +20,7 @@ type StripArgs = {
   onToggle: () => void;
 };
 
-/** The rows every filter but `excluded` lets through. The matchUps table's filters are all functions. */
-export function rowsPassingOthers(table: any, excluded: (rowData: any) => boolean): any[] {
-  const others = (table.getFilters?.() ?? [])
-    .map((filter: any) => filter.field)
-    .filter((field: any) => typeof field === 'function' && field !== excluded);
-  return (table.getData?.() ?? []).filter((rowData: any) => others.every((filter: any) => filter(rowData)));
-}
+export { rowsPassingOthers };
 
 export function bucketCounts(rows: any[]): Record<string, number> {
   const counts: Record<string, number> = Object.fromEntries(STATUS_BUCKETS.map((bucket) => [bucket, 0]));
