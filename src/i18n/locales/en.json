@@ -2441,10 +2441,10 @@
     },
     "courts": {
       "courtName": "Court Name",
-      "scheduledTime": "Scheduled Time",
+      "scheduledTime": "Scheduled",
       "unscheduledTime": "Unscheduled",
-      "practiceTime": "Practice Time",
-      "blockedTime": "Blocked Time",
+      "practiceTime": "Practice",
+      "blockedTime": "Blocked",
       "inOut": "In/Out",
       "surface": "Surface"
     },
