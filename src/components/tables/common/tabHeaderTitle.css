@@ -1,0 +1,19 @@
+.tabHeader__titleGroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Muted at zero so it reads as a status, not a heading; the accent once rows are selected. */
+.tabHeader__selected {
+  font-size: 0.85em;
+  font-weight: normal;
+  color: var(--tmx-text-muted);
+  white-space: nowrap;
+}
+
+.tabHeader__selected.is-active {
+  font-weight: 600;
+  color: var(--tmx-accent-blue);
+}
