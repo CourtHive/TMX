@@ -30,7 +30,8 @@ const { INDIVIDUAL } = participantConstants;
 // See matchUpActions.ts — the participantRoles object widens to `string`.
 const { OFFICIAL, COMPETITOR } = ParticipantRoleEnum;
 
-export function createParticipantsTable({ view }: { view?: string } = {}): {
+/** `footerElement`: Tabulator's own footer slot, which the competitors view fills with its count chips. */
+export function createParticipantsTable({ view, footerElement }: { view?: string; footerElement?: HTMLElement } = {}): {
   table: any;
   replaceTableData: () => void;
   teamParticipants: any[];
@@ -137,6 +138,7 @@ export function createParticipantsTable({ view }: { view?: string } = {}): {
       ]),
       height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
       placeholder: t('ui.noParticipants'),
+      ...(footerElement && { footerElement }),
       index: 'participantId',
       layout: 'fitColumns',
       reactiveData: true,
