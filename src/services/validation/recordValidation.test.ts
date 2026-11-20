@@ -6,8 +6,24 @@ import {
 } from './recordValidationSummary';
 import { validateTournamentRecord } from './validateTournamentRecord';
 import { validateAgainstSchema } from './schemaValidator';
-import { mocksEngine, tournamentGovernor, version } from 'tods-competition-factory';
+import { mocksEngine, version } from 'tods-competition-factory';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+// The factory's module namespace is not configurable under ESM, so `vi.spyOn(tournamentGovernor, …)` fails against a
+// real install. Replace the governor with a copy whose getTournamentInconsistencies a test can override.
+const inconsistencies = vi.hoisted(() => ({ override: undefined as undefined | ((...args: any[]) => any) }));
+vi.mock('tods-competition-factory', async (importOriginal) => {
+  const factory: any = await importOriginal();
+  const governor = factory.tournamentGovernor;
+  return {
+    ...factory,
+    tournamentGovernor: {
+      ...governor,
+      getTournamentInconsistencies: (...args: any[]) =>
+        (inconsistencies.override ?? governor.getTournamentInconsistencies)(...args),
+    },
+  };
+});
 
 function mockRecord() {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
@@ -93,7 +109,10 @@ describe('record validation (real ajv + real factory engine)', () => {
 });
 
 describe('an integrity check that could not run is not a clean record', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    inconsistencies.override = undefined;
+    vi.restoreAllMocks();
+  });
 
   it('a clean record is fully checked: neither unavailable flag is set', async () => {
     const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
@@ -105,9 +124,9 @@ describe('an integrity check that could not run is not a clean record', () => {
 
   it('flags integrityUnavailable with the reason when getTournamentInconsistencies throws', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockImplementation(() => {
+    inconsistencies.override = () => {
       throw new Error('engine exploded');
-    });
+    };
 
     const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
     expect(summary.count).toEqual(0);
@@ -118,9 +137,10 @@ describe('an integrity check that could not run is not a clean record', () => {
   });
 
   it('flags integrityUnavailable when getTournamentInconsistencies returns { error }', async () => {
-    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockReturnValue({
-      error: { message: 'Missing tournamentRecord', code: 'ERR_MISSING_TOURNAMENT' },
-    } as any);
+    inconsistencies.override = () =>
+      ({
+        error: { message: 'Missing tournamentRecord', code: 'ERR_MISSING_TOURNAMENT' },
+      }) as any;
 
     const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
     expect(summary.count).toEqual(0);
@@ -129,7 +149,7 @@ describe('an integrity check that could not run is not a clean record', () => {
   });
 
   it('still reports schema errors when the integrity check is unavailable', async () => {
-    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockReturnValue({ error: 'nope' } as any);
+    inconsistencies.override = () => ({ error: 'nope' });
     const tournamentRecord = mockRecord();
     tournamentRecord.indoorOutdoor = 'SIDEWAYS';
 
