@@ -19,6 +19,7 @@ import { openScheduleResultsDrawer } from './scheduleResultsDrawer';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { openApplyTimesModal } from './applyTimesModal';
+import { getAttachedSchedulingPolicy } from './schedulingPolicyChoices';
 import { getScheduleDateRange } from '../scheduleUtils';
 import { openCapacityPopover } from './capacityPopover';
 import { profileRoundCatalog } from './profileRoundCatalog';
@@ -29,6 +30,7 @@ import { context } from 'services/context';
 import {
   periodLengthWriteMethod,
   schedulerPeriodLength,
+  policyPeriodLength,
   withPeriodLength,
 } from 'services/schedulePreferences/schedulingPeriodLength';
 import {
@@ -653,13 +655,18 @@ function runScheduleWithPolicy(
     const scheduleDates = profile.map((d) => d.scheduleDate);
     const courtIds = getVisibleCourtIdsOrUndefined();
     const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
-    const periodLength = schedulerPeriodLength(tournamentRecord, chosenPeriodLength);
+    // the policy the scheduler will run under: the one being attached, else the attached one
+    const policyDefault = policyPeriodLength(
+      mustAttach ? policyDefinitions?.scheduling : getAttachedSchedulingPolicy(),
+    );
+    const periodLength = schedulerPeriodLength(tournamentRecord, chosenPeriodLength, policyDefault);
     const params: any = withPeriodLength({ scheduleDates }, periodLength);
     if (courtIds) params.courtIds = courtIds;
     if (allowInactiveEventDates) params.allowInactiveEventDates = true;
 
     const methods: any[] = [];
-    const periodLengthWrite = chosenPeriodLength && periodLengthWriteMethod(tournamentRecord, chosenPeriodLength);
+    const periodLengthWrite =
+      chosenPeriodLength && periodLengthWriteMethod(tournamentRecord, chosenPeriodLength, policyDefault);
     if (periodLengthWrite) methods.push(periodLengthWrite);
     if (mustAttach) {
       methods.push({ method: 'attachPolicies', params: { policyDefinitions, allowReplacement: true } });

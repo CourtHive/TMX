@@ -6,6 +6,7 @@ import {
   effectivePeriodLength,
   periodLengthChoices,
   periodLengthWriteMethod,
+  policyPeriodLength,
   readStoredPeriodLength,
   schedulerPeriodLength,
   withPeriodLength,
@@ -40,9 +41,12 @@ function seed() {
 const record = () => tournamentEngine.getTournament().tournamentRecord;
 
 /** stores the period (when it changes anything) and runs the timed scheduler with it, as Apply Times does */
-function applyTimes(periodLength: number) {
-  const write = periodLengthWriteMethod(record(), periodLength);
-  const params = withPeriodLength({ scheduleDates: [DATE] }, schedulerPeriodLength(record(), periodLength));
+function applyTimes(periodLength: number, policyDefault?: number) {
+  const write = periodLengthWriteMethod(record(), periodLength, policyDefault);
+  const params = withPeriodLength(
+    { scheduleDates: [DATE] },
+    schedulerPeriodLength(record(), periodLength, policyDefault),
+  );
   const methods = [...(write ? [write] : []), { method: 'scheduleProfileRounds', params }];
   const result: any = competitionEngine.executionQueue(methods);
   expect(result.success).toEqual(true);
@@ -132,5 +136,41 @@ describe('the scheduling period length, through the real engine', () => {
     seed();
     const twenty = applyTimes(20);
     expect(twenty.every((time) => minutesFromOpening(time) % 20 === 0)).toEqual(true);
+  });
+
+  // CAPABILITY-001 (2026-11-13 review): TMX showed 30 and sent nothing, so the scheduler used the policy's 60
+  describe('under a scheduling policy that states its own period', () => {
+    const SIXTY = {
+      defaultPeriodLength: 60,
+      defaultTimes: { averageTimes: [{ minutes: { default: 60 } }], recoveryTimes: [{ minutes: { default: 0 } }] },
+    };
+    const seedWithPolicy = () => {
+      seed();
+      expect(tournamentEngine.attachPolicies({ policyDefinitions: { scheduling: SIXTY } }).success).toEqual(true);
+    };
+
+    it("shows the policy's period when none is stored", () => {
+      seedWithPolicy();
+      expect(policyPeriodLength(SIXTY)).toEqual(60);
+      expect(effectivePeriodLength(record(), policyPeriodLength(SIXTY))).toEqual(60);
+      expect(effectivePeriodLength(record())).toEqual(DEFAULT_PERIOD_LENGTH);
+    });
+
+    it("passes nothing for the policy's own period, so each draw keeps its policy", () => {
+      seedWithPolicy();
+      expect(schedulerPeriodLength(record(), 60, 60)).toBeUndefined();
+      expect(periodLengthWriteMethod(record(), 60, 60)).toBeUndefined();
+      expect(applyTimes(60, 60).every((time) => minutesFromOpening(time) % 60 === 0)).toEqual(true);
+    });
+
+    it('sends and stores a 30 chosen under a policy of 60, and the scheduler uses it', () => {
+      seedWithPolicy();
+      // the scheduler is sent the 30: with nothing sent it would take the policy's 60
+      expect(schedulerPeriodLength(record(), 30, 60)).toEqual(30);
+      expect(withPeriodLength({}, schedulerPeriodLength(record(), 30, 60))).toEqual({ periodLength: 30 });
+      expect(applyTimes(30, 60).length).toEqual(4);
+      expect(readStoredPeriodLength(record())).toEqual(30);
+      expect(effectivePeriodLength(record(), 60)).toEqual(30);
+    });
   });
 });
