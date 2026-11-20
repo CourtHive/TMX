@@ -188,7 +188,11 @@ function buildAgeIndex(tournamentRecord: any) {
 
 function ageIndexFor(tournamentRecord: any) {
   const { buckets } = ageBuckets(tournamentRecord?.events ?? [], tournamentRecord ?? {});
-  const key = JSON.stringify([tournamentRecord?.tournamentId, tournamentRecord?.startDate, buckets.map((b) => b.event)]);
+  const key = JSON.stringify([
+    tournamentRecord?.tournamentId,
+    tournamentRecord?.startDate,
+    buckets.map((b) => b.event),
+  ]);
   if (cachedAgeIndex?.key !== key) cachedAgeIndex = { key, value: buildAgeIndex(tournamentRecord) };
   return cachedAgeIndex.value;
 }

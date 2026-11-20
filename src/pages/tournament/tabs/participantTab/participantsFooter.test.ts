@@ -17,7 +17,13 @@ function fakeTable(rows: any[]) {
   };
 }
 
-function group(table: any, key: string, values: string[], matches: FacetGroup['matches'], valuesOf?: FacetGroup['valuesOf']) {
+function group(
+  table: any,
+  key: string,
+  values: string[],
+  matches: FacetGroup['matches'],
+  valuesOf?: FacetGroup['valuesOf'],
+) {
   const filter = createChipFilter({ table, values, matches, persist: () => {} });
   return { key, label: key, options: values.map((value) => ({ value, label: value })), filter, matches, valuesOf };
 }
@@ -28,14 +34,17 @@ function reference(table: any, groups: FacetGroup[]) {
   return new Map(
     groups.map((g) => {
       const rows = selected.length ? selected : rowsPassingOthers(table, g.filter.rowFilter);
-      return [g, Object.fromEntries(g.options.map(({ value }) => [value, rows.filter((r: any) => g.matches(r, value)).length]))];
+      return [
+        g,
+        Object.fromEntries(g.options.map(({ value }) => [value, rows.filter((r: any) => g.matches(r, value)).length])),
+      ];
     }),
   );
 }
 
 // a small deterministic generator, so a failure reproduces
 function prng(seed: number) {
-  return () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+  return () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
 }
 
 describe('paintCounts', () => {
@@ -53,12 +62,19 @@ describe('paintCounts', () => {
       group(table, 'x', ['a', 'b'], (r, v) => r.x === v),
       group(table, 'y', ['c', 'd'], (r, v) => r.y === v),
       // a multi-valued group counted through valuesOf; matches must agree with it
-      group(table, 'tags', ['p', 'q', 'r'], (r, v) => r.tags.includes(v), (r) => r.tags),
+      group(
+        table,
+        'tags',
+        ['p', 'q', 'r'],
+        (r, v) => r.tags.includes(v),
+        (r) => r.tags,
+      ),
     ] as FacetGroup[];
     const search = (r: any) => r.text === 'keep';
 
     for (let trial = 0; trial < 200; trial++) {
-      for (const g of groups) if (random() < 0.4) g.filter.toggle(g.options[Math.floor(random() * g.options.length)].value);
+      for (const g of groups)
+        if (random() < 0.4) g.filter.toggle(g.options[Math.floor(random() * g.options.length)].value);
       const searching = table.getFilters().some(({ field }: any) => field === search);
       if (random() < 0.3) {
         if (searching) table.removeFilter(search);
@@ -74,7 +90,16 @@ describe('presentValues', () => {
   it('sees a value as soon as a row with it is in the table, whichever route added it', () => {
     const rows: any[] = [{ tags: ['p'] }];
     const table = fakeTable(rows);
-    const tags = { ...group(table, 'tags', ['p', 'q'], (r, v) => r.tags.includes(v), (r) => r.tags), hideWhenEmpty: new Set(['p', 'q']) } as FacetGroup;
+    const tags = {
+      ...group(
+        table,
+        'tags',
+        ['p', 'q'],
+        (r, v) => r.tags.includes(v),
+        (r) => r.tags,
+      ),
+      hideWhenEmpty: new Set(['p', 'q']),
+    } as FacetGroup;
     expect([...(presentValues(table, [tags]).get(tags) ?? [])]).toEqual(['p']);
     rows.push({ tags: ['q'] }); // replaceData hands the table a new row, which a repaint reads
     expect([...(presentValues(table, [tags]).get(tags) ?? [])].sort()).toEqual(['p', 'q']);

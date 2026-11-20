@@ -50,6 +50,7 @@ export function createTabHeaderTitle({
 
 /** Keep a header's selected count in step with a Tabulator table's row selection. */
 export function trackSelectedRows(table: any, title: TabHeaderTitle): void {
-  title.setSelected(table?.getSelectedData?.().length ?? 0);
+  // before tableBuilt nothing can be selected, and Tabulator warns when getSelectedData is called that early
+  if (table?.initialized !== false) title.setSelected(table?.getSelectedData?.().length ?? 0);
   table?.on?.('rowSelectionChanged', (data: any[]) => title.setSelected(data?.length ?? 0));
 }

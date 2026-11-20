@@ -72,7 +72,9 @@ export function activateIndividualMergeAction(element: HTMLElement | undefined, 
   if (!element || !supportsIndividualMerge() || !mayMergeIndividuals()) return undefined;
   let supported = false;
   const update = () => {
-    if (element.isConnected) element.style.display = supported && table.getSelectedData().length === 2 ? '' : 'none';
+    // an unbuilt table has no selection, and Tabulator warns when getSelectedData is called before tableBuilt
+    const pair = supported && table.initialized !== false && table.getSelectedData().length === 2;
+    if (element.isConnected) element.style.display = pair ? '' : 'none';
   };
   table.on('rowSelectionChanged', update);
   serverSupportsMerge().then((available) => {

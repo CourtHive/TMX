@@ -13,6 +13,7 @@ import {
 } from './participantFacets';
 
 const FIRST_DAY = '2026-06-01';
+const U14_DOB = '2013-05-05';
 
 const row = (overrides: any = {}) => ({
   participantId: overrides.participantId ?? 'p1',
@@ -147,12 +148,27 @@ describe('expandAgeRules', () => {
     const { buckets } = ageBuckets(events, tournamentRecord);
     const expanded = expandAgeRules(buckets, tournamentRecord, (args) => eventGovernor.getCategoryAgeDetails(args));
     // the expansion did something: a bare code now carries its range
-    expect(expanded.find(({ label }) => label === 'U14')?.event.category).toMatchObject({ ageCategoryCode: 'U14', ageMax: 13 });
+    expect(expanded.find(({ label }) => label === 'U14')?.event.category).toMatchObject({
+      ageCategoryCode: 'U14',
+      ageMax: 13,
+    });
 
     // every day of the year around the start and end dates, for ages 5 to 40, plus birth-year-only DOBs
     const dobs: any[] = [];
     for (let age = 5; age <= 40; age++) {
-      for (const day of ['06-08', '06-09', '06-10', '06-11', '06-12', '06-13', '06-14', '06-15', '06-16', '01-01', '12-31']) {
+      for (const day of [
+        '06-08',
+        '06-09',
+        '06-10',
+        '06-11',
+        '06-12',
+        '06-13',
+        '06-14',
+        '06-15',
+        '06-16',
+        '01-01',
+        '12-31',
+      ]) {
         dobs.push({ birthDate: `${2026 - age}-${day}` });
       }
       dobs.push({ birthYear: 2026 - age });
@@ -175,21 +191,29 @@ describe('expandAgeRules', () => {
 });
 
 describe('createAgeIndex', () => {
-  const buckets = ageBuckets([{ eventId: 'u14', category: { ageCategoryCode: 'U14' } }, { eventId: 'u16', category: { ageCategoryCode: 'U16' } }]).buckets;
+  const buckets = ageBuckets([
+    { eventId: 'u14', category: { ageCategoryCode: 'U14' } },
+    { eventId: 'u16', category: { ageCategoryCode: 'U16' } },
+  ]).buckets;
 
   it('asks the factory once per distinct DOB, not once per participant', () => {
     const index = createAgeIndex(buckets, () => ({ eligible: true }), { categories: true });
-    const rows = Array.from({ length: 30 }, (_, i) => row({ participantId: `p${i}`, person: { birthDate: i % 2 ? '2013-05-05' : '2012-01-01' } }));
+    const rows = Array.from({ length: 30 }, (_, i) =>
+      row({ participantId: `p${i}`, person: { birthDate: i % 2 ? U14_DOB : '2012-01-01' } }),
+    );
     for (const rowData of rows) index.of(rowData);
     for (const rowData of rows) index.of(rowData); // a repaint
     expect(index.calls()).toBe(2 * buckets.length);
   });
 
   it('answers a participant added after it was built, and a changed DOB by the new DOB', () => {
-    const eligibility = (participant: any) => ({ eligible: participant.person.birthDate === '2013-05-05' });
+    const eligibility = (participant: any) => ({ eligible: participant.person.birthDate === U14_DOB });
     const index = createAgeIndex(buckets, eligibility, { categories: true });
     expect([...(index.of(row({ person: { birthDate: '1990-01-01' } })) ?? [])]).toEqual([NO_AGE_CATEGORY]);
     // a new row object, as replaceData brings after an add or an edit
-    expect([...(index.of(row({ participantId: 'late', person: { birthDate: '2013-05-05' } })) ?? [])]).toEqual(['age:U14', 'age:U16']);
+    expect([...(index.of(row({ participantId: 'late', person: { birthDate: U14_DOB } })) ?? [])]).toEqual([
+      'age:U14',
+      'age:U16',
+    ]);
   });
 });
