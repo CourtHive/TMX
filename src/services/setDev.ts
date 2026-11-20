@@ -2,7 +2,6 @@
  * Development mode utilities and debugging tools.
  * Exposes factory methods and utilities on globalThis.dev for debugging.
  */
-import { connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged } from './messaging/socketIo';
 import { forceStaleness, isStale, triggerStalenessCheck } from 'services/staleness/stalenessGuard';
 import { getProviders, getUsers, requestTournament, sendTournament } from './apis/servicesApi';
 import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
@@ -31,6 +30,13 @@ import { context } from 'services/context';
 import { env } from 'settings/env';
 import dayjs from 'dayjs';
 import { t } from 'i18n';
+import {
+  simulateFacilityScheduleChanged,
+  simulateTournamentMutation,
+  disconnectSocket,
+  connectSocket,
+  emitTmx,
+} from './messaging/socketIo';
 
 // constants
 import { TOURNAMENT } from 'constants/tmxConstants';
@@ -144,7 +150,14 @@ export function setDev(): void {
   // fetch, rather than a test-only setter, keeps the journey on the production
   // path: stub `/auth/me`, call this, and the cache fills the way it does live.
   addDev({ fetchUserContext, getUserContext });
-  addDev({ connectSocket, disconnectSocket, emitTmx, simulateFacilityScheduleChanged, outboxStore });
+  addDev({
+    connectSocket,
+    disconnectSocket,
+    emitTmx,
+    simulateFacilityScheduleChanged,
+    simulateTournamentMutation,
+    outboxStore,
+  });
   addDev({ tmx2db, load, build, exportTournamentRecord });
   // dev.exportAnonymized(): downloads an anonymized deep copy of the current record; the live record is untouched
   addDev({ exportAnonymized, validate });

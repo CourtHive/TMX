@@ -116,6 +116,12 @@ export function simulateFacilityScheduleChanged(data: any): void {
   handleFacilityScheduleChanged(data);
 }
 
+/** e2e/dev only: deliver a synthetic `tournamentMutation` (another director's command) to the registered listener,
+ * to exercise the remote-apply path and the views it refreshes without a second client on a live server. */
+export function simulateTournamentMutation(data: any): void {
+  handleTournamentMutation(data);
+}
+
 function handleTournamentMutation(data: any): void {
   slog(
     '[socket] received tournamentMutation — methods:',
