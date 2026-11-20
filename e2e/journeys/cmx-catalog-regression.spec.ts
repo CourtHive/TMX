@@ -14,7 +14,7 @@ for (const theme of ['light', 'dark'] as const)
     const id = await page.evaluate(async () => {
       localStorage.clear();
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
-        nonRandom: 7,
+        nonRandom: 1,
         setState: true,
         tournamentName: 'Synthetic catalog regression',
         tournamentAttributes: {
@@ -29,7 +29,7 @@ for (const theme of ['light', 'dark'] as const)
       const matchUp = dev.factory.tournamentEngine
         .allTournamentMatchUps({})
         .matchUps.find((m: any) => m.roundNumber === 1);
-      const result = dev.factory.tournamentEngine.addMatchUpScheduleItems({
+      let result: any = dev.factory.tournamentEngine.addMatchUpScheduleItems({
         drawId: matchUp.drawId,
         matchUpId: matchUp.matchUpId,
         schedule: { scheduledDate: '2026-11-20', scheduledTime: '10:30' },
