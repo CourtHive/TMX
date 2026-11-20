@@ -63,7 +63,7 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   const { eventOptions, events, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getEventFilter(table);
   const sex = getSexFilter(table);
-  const facets = isCompetitors ? createParticipantFacets(table, data) : [];
+  const facets = isCompetitors ? createParticipantFacets(table) : [];
   const {
     teamOptions,
     isFiltered: isTeamFiltered,

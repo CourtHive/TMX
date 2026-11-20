@@ -21,7 +21,8 @@ import {
   SIGNED_IN,
   UNENTERED,
   ageBuckets,
-  ageMembership,
+  createAgeIndex,
+  expandAgeRules,
   hasDob,
   hasRating,
   isEntered,
@@ -33,7 +34,6 @@ import {
   type ChipOption,
   type ChipSection,
 } from 'components/tables/common/filters/chipFilter';
-import { rowsPassingOthers } from 'components/tables/common/filters/rowsPassingOthers';
 import { eventGovernor, genderConstants } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { context } from 'services/context';
@@ -48,6 +48,17 @@ export type FacetGroup = {
   options: ChipOption[];
   filter: ChipFilter;
   matches: (rowData: any, value: string) => boolean;
+  /**
+   * Values whose chip the footer hides while no row has them (a decade nobody is in, "No age category" in a field
+   * where everyone fits). Judged on every paint over all the table's rows, so a participant added by any route (an
+   * import, generated participants, a manual add, another director's mutation) brings their chip back.
+   */
+  hideWhenEmpty?: Set<string>;
+  /**
+   * A row's values at once, for a group where finding them is the expensive part (age): one lookup per row
+   * instead of one `matches` call per value. Must agree with `matches`.
+   */
+  valuesOf?: (rowData: any) => Iterable<string> | undefined;
 };
 
 const section = (group: FacetGroup): ChipSection => ({
@@ -99,7 +110,7 @@ function chipGroup(table: any, { key, label, options, matches }: GroupArgs): Fac
  * The footer's groups after the sex filter (which the popover already had): sign-in, entry, missing data and age.
  * Age membership is the factory's eligibility answer per participant, worked out once for the table's data.
  */
-export function createParticipantFacets(table: any, data: any[]): FacetGroup[] {
+export function createParticipantFacets(table: any): FacetGroup[] {
   const signIn = chipGroup(table, {
     key: 'signIn',
     label: t('pages.participants.footer.signIn'),
@@ -131,44 +142,125 @@ export function createParticipantFacets(table: any, data: any[]): FacetGroup[] {
   });
 
   const { tournamentRecord } = tournamentEngine.getTournament?.() ?? {};
-  const { buckets, byCategory } = ageBuckets(tournamentRecord?.events ?? [], tournamentRecord ?? {});
-  const membership = ageMembership(
-    data,
-    buckets,
+  const { buckets, byCategory, index } = ageIndexFor(tournamentRecord);
+  const inBucket = (rowData: any, value: string) => !!index.of(rowData)?.has(value);
+  const ageOptions: ChipOption[] = [
+    ...buckets.map(({ value, label }) => ({ value, label })),
+    ...(byCategory ? [{ value: NO_AGE_CATEGORY, label: t('pages.participants.footer.noAgeCategory') }] : []),
+  ];
+  const ages: FacetGroup = {
+    ...chipGroup(table, {
+      key: 'ages',
+      label: t('pages.participants.footer.ages'),
+      options: ageOptions,
+      matches: inBucket,
+    }),
+    valuesOf: (rowData) => index.of(rowData),
+    // a category chip stays even at zero, since it names an event; decades and "No age category" only when used
+    hideWhenEmpty: new Set(byCategory ? [NO_AGE_CATEGORY] : ageOptions.map(({ value }) => value)),
+  };
+
+  return [signIn, entry, gaps, ages].filter((group) => group.options.length > 1 || group.key === 'gaps');
+}
+
+/**
+ * The tournament's age buckets and their membership index, kept across renders.
+ *
+ * The participants tab re-renders on every visit and every event change, and membership depends only on the buckets
+ * (their age rules and dates) and each participant's DOB. So the index is reused for as long as the tournament's
+ * buckets are unchanged; a participant whose DOB changes is simply looked up under the new DOB.
+ */
+let cachedAgeIndex: { key: string; value: ReturnType<typeof buildAgeIndex> } | undefined;
+
+function buildAgeIndex(tournamentRecord: any) {
+  const tournament = tournamentRecord ?? {};
+  const { buckets, byCategory } = ageBuckets(tournament.events ?? [], tournament);
+  const expanded = expandAgeRules(buckets, tournament, (args) => eventGovernor.getCategoryAgeDetails(args));
+  const index = createAgeIndex(
+    expanded,
     // the governor function itself, not the engine method: the engine resolves `event` by id from the record, and a
     // bucket's age-only event is not in the record
     (participant, event) => eventGovernor.getParticipantEligibility({ participant, event, tournamentRecord }),
     { categories: byCategory },
   );
-  const inBucket = (rowData: any, value: string) => !!membership.get(rowData.participantId)?.has(value);
-  // decades with nobody in them are noise; a category bucket stays even at zero, since it names an event
-  const used = (value: string) => [...membership.values()].some((values) => values.has(value));
-  const ageOptions: ChipOption[] = [
-    ...buckets.filter(({ value }) => byCategory || used(value)).map(({ value, label }) => ({ value, label })),
-    ...(byCategory && used(NO_AGE_CATEGORY)
-      ? [{ value: NO_AGE_CATEGORY, label: t('pages.participants.footer.noAgeCategory') }]
-      : []),
-  ];
-  const ages = chipGroup(table, {
-    key: 'ages',
-    label: t('pages.participants.footer.ages'),
-    options: ageOptions,
-    matches: inBucket,
-  });
-
-  return [signIn, entry, gaps, ages].filter((group) => group.options.length > 1 || group.key === 'gaps');
+  return { buckets, byCategory, index };
 }
 
-/** The rows a group counts: the selection when there is one (as the call sheet uses), else the rows other filters pass. */
-export function countedRows(table: any, group: FacetGroup): any[] {
+function ageIndexFor(tournamentRecord: any) {
+  const { buckets } = ageBuckets(tournamentRecord?.events ?? [], tournamentRecord ?? {});
+  const key = JSON.stringify([tournamentRecord?.tournamentId, tournamentRecord?.startDate, buckets.map((b) => b.event)]);
+  if (cachedAgeIndex?.key !== key) cachedAgeIndex = { key, value: buildAgeIndex(tournamentRecord) };
+  return cachedAgeIndex.value;
+}
+
+/**
+ * Every group's counts, in one pass over the rows.
+ *
+ * The selection when there is one (as the call sheet uses). Otherwise a group counts the rows that pass every filter
+ * but its own, so turning one chip on never zeroes its siblings. Rather than re-filtering the rows once per group,
+ * each row runs each filter once, stopping at a second failure: a row that fails nothing counts for every group, a
+ * row that fails exactly one group's own filter counts for that group alone, and anything else for none.
+ */
+export function paintCounts(table: any, groups: FacetGroup[]): Map<FacetGroup, Record<string, number>> {
+  const slots = groups.map((group) => ({
+    group,
+    tallies: Object.fromEntries(group.options.map(({ value }) => [value, 0])) as Record<string, number>,
+  }));
+  const counts = new Map(slots.map(({ group, tallies }) => [group, tallies]));
+  const tally = (rowData: any, { group, tallies }: (typeof slots)[number]) => {
+    if (group.valuesOf) {
+      for (const value of group.valuesOf(rowData) ?? []) if (value in tallies) tallies[value] += 1;
+      return;
+    }
+    for (const { value } of group.options) if (group.matches(rowData, value)) tallies[value] += 1;
+  };
+
   const selected = table.getSelectedData?.() ?? [];
-  return selected.length ? selected : rowsPassingOthers(table, group.filter.rowFilter);
+  if (selected.length) {
+    for (const rowData of selected) for (const slot of slots) tally(rowData, slot);
+    return counts;
+  }
+
+  const filters: ((rowData: any) => boolean)[] = (table.getFilters?.() ?? [])
+    .map((filter: any) => filter.field)
+    .filter((field: any) => typeof field === 'function');
+  const ownerOf = new Map(slots.map((slot) => [slot.group.filter.rowFilter, slot]));
+  for (const rowData of table.getData?.() ?? []) {
+    let failed: ((rowData: any) => boolean) | undefined;
+    let failures = 0;
+    for (const filter of filters) {
+      if (filter(rowData)) continue;
+      failed = filter;
+      if (++failures > 1) break;
+    }
+    if (failures === 0) for (const slot of slots) tally(rowData, slot);
+    else if (failures === 1 && failed) {
+      const owner = ownerOf.get(failed);
+      if (owner) tally(rowData, owner);
+    }
+  }
+  return counts;
 }
 
-export function facetCounts(rows: any[], group: FacetGroup): Record<string, number> {
-  return Object.fromEntries(
-    group.options.map(({ value }) => [value, rows.filter((rowData) => group.matches(rowData, value)).length]),
-  );
+/** For each group that hides empty chips: the values some row of the whole table has, filters or no filters. */
+export function presentValues(table: any, groups: FacetGroup[]): Map<FacetGroup, Set<string>> {
+  const present = new Map<FacetGroup, Set<string>>();
+  const hiding = groups.filter((group) => group.hideWhenEmpty?.size);
+  if (!hiding.length) return present;
+  for (const group of hiding) present.set(group, new Set());
+  for (const rowData of table.getData?.() ?? []) {
+    for (const group of hiding) {
+      const values = present.get(group) as Set<string>;
+      if (group.valuesOf) {
+        for (const value of group.valuesOf(rowData) ?? []) values.add(value);
+        continue;
+      }
+      for (const value of group.hideWhenEmpty as Set<string>) {
+        if (!values.has(value) && group.matches(rowData, value)) values.add(value);
+      }
+    }
+  }
+  return present;
 }
 
 export function mountParticipantsFooter({
@@ -233,9 +325,15 @@ export function mountParticipantsFooter({
       : t('pages.participants.footer.scopeShown', { count: table.getRows?.('active')?.length ?? 0 });
     scope.dataset.scope = selected ? 'selected' : 'shown';
 
-    const counts = new Map(groups.map((group) => [group, facetCounts(countedRows(table, group), group)]));
+    const counts = paintCounts(table, groups);
+    const present = presentValues(table, groups);
     for (const { group, value, button } of chips) {
       const on = group.filter.isOn(value);
+      // never hide a chip that is filtering, or the table would hide rows with no visible way back
+      button.hidden =
+        !!group.hideWhenEmpty?.has(value) &&
+        !present.get(group)?.has(value) &&
+        !(group.filter.isFiltered() && on);
       button.setAttribute('aria-pressed', String(on));
       button.dataset.on = String(on);
       (button.lastElementChild as HTMLElement).textContent = String(counts.get(group)?.[value] ?? 0);
@@ -245,8 +343,11 @@ export function mountParticipantsFooter({
     if (!frame) frame = requestAnimationFrame(paint);
   };
 
+  // replaceData (every add route: imports, generated participants, manual adds, remote mutations) fires
+  // dataProcessed; an in-place cell edit (the sign-in toggle's setValue) fires only dataChanged
   table.on?.('dataFiltered', refresh);
   table.on?.('dataProcessed', refresh);
+  table.on?.('dataChanged', refresh);
   table.on?.('tableBuilt', refresh);
   table.on?.('rowSelectionChanged', refresh);
   refresh();
