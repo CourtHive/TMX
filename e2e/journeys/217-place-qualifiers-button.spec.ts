@@ -6,6 +6,9 @@
  *
  * A 16 for 4 elimination qualifying feeds a 16 MAIN of 12 direct entrants. Before any qualifying result there is no
  * button; with the qualifying played out the button shows, places every qualifier by lot, and goes away.
+ *
+ * A qualifying stage pre-qualifying feeds has qualifier positions of its own: viewed, it shows the same button once
+ * the pre-qualifying is played, and fills them (factory 7.43.0 `qualifierProgression` with the stage's structureId).
  */
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { test, expect, type Page } from '@playwright/test';
@@ -73,6 +76,53 @@ async function openQualifierPositions(page: Page): Promise<number> {
   });
 }
 
+/** Pre-qualifying (8 → 2) feeds qualifying (8, two qualifier positions), which feeds an 8 MAIN; every playable
+ *  matchUp played, so the two pre-qualifying winners wait for the qualifying stage. */
+async function seedPreQualifying(page: Page): Promise<Ids & { qualifyingStructureId: string }> {
+  return page.evaluate(async (tournamentId) => {
+    await dev.tmx2db.initDB();
+    const factory: any = dev.factory;
+    const { tournamentRecord, drawIds, eventIds } = factory.mocksEngine.generateTournamentRecord({
+      tournamentAttributes: { tournamentId },
+      drawProfiles: [
+        {
+          drawSize: 8,
+          qualifyingProfiles: [
+            {
+              roundTarget: 1,
+              structureProfiles: [
+                { stageSequence: 1, drawSize: 8, qualifyingPositions: 2 },
+                { stageSequence: 2, drawSize: 8, qualifyingPositions: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+      completeAllMatchUps: true,
+    });
+    await dev.load({ tournamentRecord });
+    const drawDefinition = tournamentRecord.events[0].drawDefinitions[0];
+    const of = (stage: string, stageSequence: number) =>
+      drawDefinition.structures.find((s: any) => s.stage === stage && s.stageSequence === stageSequence).structureId;
+    return {
+      tournamentId,
+      eventId: eventIds[0],
+      drawId: drawIds[0],
+      mainStructureId: of('MAIN', 1),
+      qualifyingStructureId: of('QUALIFYING', 2),
+    };
+  }, `${TOURNAMENT_ID}-chain`);
+}
+
+/** A structure's qualifier positions still waiting for a participant. */
+async function openPositionsIn(page: Page, structureId: string): Promise<number> {
+  return page.evaluate((structureId) => {
+    const draw = dev.getTournament().events[0].drawDefinitions[0];
+    const structure = draw.structures.find((s: any) => s.structureId === structureId);
+    return structure.positionAssignments.filter((pa: any) => pa.qualifier && !pa.participantId).length;
+  }, structureId);
+}
+
 const mainUrl = (ids: Ids) =>
   `/#/tournament/${ids.tournamentId}/event/${ids.eventId}/draw/${ids.drawId}/structure/${ids.mainStructureId}`;
 
@@ -111,6 +161,26 @@ test.describe('Journey 217 — Place qualifiers button', () => {
 
     await expect.poll(() => openQualifierPositions(page)).toBe(0);
     // the summary of who went where, then the bar without the button
+    await page.locator('.chc-modal-dialog').getByRole('button', { name: 'OK' }).click();
+    await expect(button).toHaveCount(0);
+  });
+
+  test('a qualifying stage pre-qualifying feeds gets the button, and it fills that stage', async ({ page }) => {
+    const ids = await seedPreQualifying(page);
+    expect(await openPositionsIn(page, ids.qualifyingStructureId)).toBe(2);
+    const mainOpen = await openPositionsIn(page, ids.mainStructureId);
+
+    await page.goto(
+      `/#/tournament/${ids.tournamentId}/event/${ids.eventId}/draw/${ids.drawId}/structure/${ids.qualifyingStructureId}`,
+    );
+    const button = page.locator(BUTTON);
+    await expect(button).toBeVisible({ timeout: 10_000 });
+    await button.click();
+    await page.locator('.chc-modal-dialog').getByRole('button', { name: 'OK' }).click();
+
+    await expect.poll(() => openPositionsIn(page, ids.qualifyingStructureId)).toBe(0);
+    // MAIN is not touched: its qualifiers come from the qualifying stage, still to be played
+    expect(await openPositionsIn(page, ids.mainStructureId)).toBe(mainOpen);
     await page.locator('.chc-modal-dialog').getByRole('button', { name: 'OK' }).click();
     await expect(button).toHaveCount(0);
   });
