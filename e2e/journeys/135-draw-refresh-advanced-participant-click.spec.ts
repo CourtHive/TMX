@@ -54,6 +54,6 @@ test.describe('Journey 135 — advanced participant click after an in-place refr
     await expect(advanced).toHaveCount(1);
     await advanced.click();
 
-    await expect(page.locator('.tippy-content').getByText('View player card')).toBeVisible();
+    await expect(page.locator('.tippy-content').getByText('View participant card')).toBeVisible();
   });
 });

@@ -66,8 +66,8 @@ test.describe('Topology — Player journey', () => {
     // the menu names where they went, and the round
     const menu = page.locator('.tippy-content');
     await expect(menu.getByText(`Go to Consolation — round ${traveller.furthestConsolationRound}`)).toBeVisible();
-    await expect(menu.getByText('See player journey')).toBeVisible();
-    await menu.getByText('See player journey').click();
+    await expect(menu.getByText('See participant journey')).toBeVisible();
+    await menu.getByText('See participant journey').click();
 
     // the topology, in journey mode, on the traveller: both structures lit, the link they took, no name on the canvas
     const canvas = page.locator('.tb-canvas');

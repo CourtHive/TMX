@@ -32,8 +32,8 @@ const actionLabels: Record<string, string> = {
   SEED_CASCADE: 'Withdraw seed (cascade)',
   SEED_VALUE: 'Assign seed',
   SWAP: 'Swap draw positions',
-  VIEW_PLAYER_CARD: 'View player card',
-  VIEW_PLAYER_JOURNEY: 'See player journey',
+  VIEW_PLAYER_CARD: 'View participant card',
+  VIEW_PLAYER_JOURNEY: 'See participant journey',
   WITHDRAW: 'Withdraw participant',
 };
 
