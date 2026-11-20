@@ -2442,7 +2442,7 @@
     "courts": {
       "courtName": "Court Name",
       "scheduledTime": "Scheduled Time",
-      "unscheduledTime": "Unscheduled Time",
+      "unscheduledTime": "Unscheduled",
       "practiceTime": "Practice Time",
       "blockedTime": "Blocked Time",
       "inOut": "In/Out",
