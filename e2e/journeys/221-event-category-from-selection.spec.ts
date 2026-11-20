@@ -126,6 +126,9 @@ test.describe('Journey 221 — event category from a selection, and the tourname
   }) => {
     const tournamentId = await seedUndefinedCategory(page);
     await page.goto(`/#/tournament/${tournamentId}`);
+    // the card counts the tournament's own categories, and names the ones its events use without defining
+    const card = page.locator('.dash-panel').filter({ hasText: 'Categories (' });
+    await expect(card).toContainText('Undefined, used by events: U16');
     await page.getByText('Categories (0)', { exact: true }).click();
 
     const modal = page.locator('.chc-modal-dialog').filter({ hasText: 'Tournament Categories' });
@@ -144,5 +147,7 @@ test.describe('Journey 221 — event category from a selection, and the tourname
     await expect(modal).toContainText(`15 or younger on ${startDate}`);
     await expect(modal.getByRole('button', { name: 'Edit' })).toBeDisabled();
     await expect(modal.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    await expect(card).toContainText('Categories (1)');
+    await expect(card).not.toContainText('Undefined, used by events');
   });
 });

@@ -2175,6 +2175,7 @@
     "setTimeZone": "Set time zone",
     "setTimeZoneDetected": "(detected: {{zone}})",
     "categories": "Categories ({{count}})",
+    "categoriesUndefined": "Undefined, used by events: {{names}}",
     "noneSet": "None",
     "events": "Events",
     "draws": "Draws",
