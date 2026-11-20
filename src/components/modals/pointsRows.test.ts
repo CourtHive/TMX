@@ -1,5 +1,5 @@
 import { fixtures, mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { pointsRowsForEvent } from './pointsRows';
+import { pointsRowsForEvent, pointsTotalLabel } from './pointsRows';
 import { describe, expect, it } from 'vitest';
 
 const POLICY = (fixtures.policies as any).POLICY_RANKING_POINTS_ITF_JUNIOR_2025;
@@ -17,7 +17,7 @@ function doublesEvent() {
     eventId: event.eventId,
   });
   const { participants } = tournamentEngine.getParticipants({ participantFilters: { participantTypes: ['PAIR'] } });
-  return { event, awards: result.eventAwards ?? [], pairs: participants };
+  return { event, awards: result.eventAwards ?? [], pairs: participants ?? [] };
 }
 
 describe('pointsRowsForEvent', () => {
@@ -28,7 +28,7 @@ describe('pointsRowsForEvent', () => {
     expect(awards.length).toBeGreaterThan(0);
     expect(awards.some((award: any) => pairIds.has(award.participantId))).toBe(false);
 
-    const awarded = pairs.find((pair: any) =>
+    const awarded: any = pairs.find((pair: any) =>
       awards.some((award: any) => pair.individualParticipantIds?.includes(award.participantId)),
     );
     const rows = pointsRowsForEvent({
@@ -74,5 +74,26 @@ describe('pointsRowsForEvent', () => {
         eventName: 'Open',
       }),
     ).toEqual([{ eventName: 'Open', eventId: 'e', points: 0 }]);
+  });
+});
+
+describe('pointsTotalLabel', () => {
+  it("sums a player's own rows", () => {
+    expect(
+      pointsTotalLabel([
+        { participantId: 'p1', points: 50 },
+        { participantId: 'p1', points: 25 },
+      ]),
+    ).toBe('Total: 75');
+    expect(pointsTotalLabel([{ eventName: 'Open', points: 0 }])).toBe('Total: 0');
+  });
+
+  it('never adds partners together: equal partners read per player, unequal ones by name', () => {
+    const pair = [
+      { participantId: 'a', participantName: 'Ann', points: 100 },
+      { participantId: 'b', participantName: 'Bea', points: 100 },
+    ];
+    expect(pointsTotalLabel(pair)).toBe('Total: 100 per player');
+    expect(pointsTotalLabel([pair[0], { ...pair[1], points: 60 }])).toBe('Total: Ann 100 · Bea 60');
   });
 });

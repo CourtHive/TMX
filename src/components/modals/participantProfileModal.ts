@@ -11,7 +11,7 @@ import { buildParticipantFingerprint } from './participantFingerprint';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar, cModal } from 'courthive-components';
-import { pointsRowsForEvent } from './pointsRows';
+import { pointsRowsForEvent, pointsTotalLabel } from './pointsRows';
 
 // constants
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
@@ -638,14 +638,12 @@ export function participantProfileModal({ participantId, participantIds, readOnl
         },
       }));
 
-      const totalPoints = lastData.reduce((sum: number, r: any) => sum + (r.points || 0), 0);
-
       const leftEl = document.createElement('div');
       controlBar({
         target: leftEl,
         items: [
           {
-            label: `Total: ${totalPoints}`,
+            label: pointsTotalLabel(lastData),
             location: LEFT,
             intent: 'is-info',
           },

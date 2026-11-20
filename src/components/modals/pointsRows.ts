@@ -32,3 +32,23 @@ export function pointsRowsForEvent({
     eventName: own(award) ? eventName : `${eventName} · ${award.participantName ?? award.participantId}`,
   }));
 }
+
+/**
+ * The card's total. A player's card sums its rows. A pair's (or team's) rows belong to different players, and adding
+ * them would claim points nobody earned (two partners on 100 are not a pair on 200): the total is per player then.
+ */
+export function pointsTotalLabel(rows: any[]): string {
+  const byPlayer = new Map<string, { name: string; points: number }>();
+  for (const row of rows) {
+    const key = row.participantId ?? '';
+    const entry = byPlayer.get(key) ?? { name: row.participantName ?? key, points: 0 };
+    entry.points += row.points || 0;
+    byPlayer.set(key, entry);
+  }
+  const players = [...byPlayer.entries()].filter(([key]) => key);
+  if (players.length <= 1) return `Total: ${rows.reduce((sum, row) => sum + (row.points || 0), 0)}`;
+  const totals = players.map(([, { points }]) => points);
+  if (totals.every((points) => points === totals[0])) return `Total: ${totals[0]} per player`;
+  const perPlayer = players.map(([, { name, points }]) => name + ' ' + points).join(' · ');
+  return `Total: ${perPlayer}`;
+}
