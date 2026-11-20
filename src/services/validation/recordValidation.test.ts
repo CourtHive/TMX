@@ -1,8 +1,13 @@
-import { summarizeRecordValidation, formatFinding, DEFAULT_PREVIEW_COUNT } from './recordValidationSummary';
+import {
+  summarizeRecordValidation,
+  formatFinding,
+  isValidationIncomplete,
+  DEFAULT_PREVIEW_COUNT,
+} from './recordValidationSummary';
 import { validateTournamentRecord } from './validateTournamentRecord';
 import { validateAgainstSchema } from './schemaValidator';
-import { mocksEngine } from 'tods-competition-factory';
-import { describe, expect, it } from 'vitest';
+import { mocksEngine, tournamentGovernor, version } from 'tods-competition-factory';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 function mockRecord() {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({
@@ -87,6 +92,54 @@ describe('record validation (real ajv + real factory engine)', () => {
   });
 });
 
+describe('an integrity check that could not run is not a clean record', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('a clean record is fully checked: neither unavailable flag is set', async () => {
+    const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
+    expect(summary.count).toEqual(0);
+    expect(summary.integrityUnavailable).toBeUndefined();
+    expect(summary.schemaUnavailable).toBeUndefined();
+    expect(summary.factoryVersion).toEqual(version());
+  });
+
+  it('flags integrityUnavailable with the reason when getTournamentInconsistencies throws', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockImplementation(() => {
+      throw new Error('engine exploded');
+    });
+
+    const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
+    expect(summary.count).toEqual(0);
+    expect(summary.integrityUnavailable).toEqual(true);
+    expect(summary.integrityUnavailableReason).toEqual('engine exploded');
+    expect(summary.factoryVersion).toEqual(version());
+    expect(warn).toHaveBeenCalled();
+  });
+
+  it('flags integrityUnavailable when getTournamentInconsistencies returns { error }', async () => {
+    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockReturnValue({
+      error: { message: 'Missing tournamentRecord', code: 'ERR_MISSING_TOURNAMENT' },
+    } as any);
+
+    const summary = await validateTournamentRecord({ tournamentRecord: mockRecord() });
+    expect(summary.count).toEqual(0);
+    expect(summary.integrityUnavailable).toEqual(true);
+    expect(summary.integrityUnavailableReason).toEqual('Missing tournamentRecord');
+  });
+
+  it('still reports schema errors when the integrity check is unavailable', async () => {
+    vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockReturnValue({ error: 'nope' } as any);
+    const tournamentRecord = mockRecord();
+    tournamentRecord.indoorOutdoor = 'SIDEWAYS';
+
+    const summary = await validateTournamentRecord({ tournamentRecord });
+    expect(summary.schemaErrorCount).toBeGreaterThan(0);
+    expect(summary.integrityUnavailable).toEqual(true);
+    expect(summary.integrityUnavailableReason).toEqual('nope');
+  });
+});
+
 describe('summarizeRecordValidation', () => {
   const schemaErrors = Array.from({ length: 7 }, (_, index) => ({
     instancePath: `/participants/${index}/participantRole`,
@@ -118,5 +171,16 @@ describe('summarizeRecordValidation', () => {
 
   it('is empty for no findings', () => {
     expect(summarizeRecordValidation({})).toMatchObject({ count: 0, preview: [], text: '' });
+  });
+
+  it('carries the unavailable flags, and only carries a reason alongside integrityUnavailable', () => {
+    const unavailable = summarizeRecordValidation({ integrityUnavailable: true, integrityUnavailableReason: 'x' });
+    expect(unavailable).toMatchObject({ count: 0, integrityUnavailable: true, integrityUnavailableReason: 'x' });
+    expect(isValidationIncomplete(unavailable)).toEqual(true);
+    expect(isValidationIncomplete(summarizeRecordValidation({ schemaUnavailable: true }))).toEqual(true);
+
+    const clean = summarizeRecordValidation({ integrityUnavailableReason: 'ignored' });
+    expect(clean.integrityUnavailableReason).toBeUndefined();
+    expect(isValidationIncomplete(clean)).toEqual(false);
   });
 });

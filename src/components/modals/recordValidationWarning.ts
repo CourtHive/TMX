@@ -1,9 +1,14 @@
 /**
  * Non-blocking warning for an imported tournament record that has schema errors or
- * integrity findings. A clean record shows nothing. The toast offers a review modal with
+ * integrity findings, or that could not be fully validated. A clean, fully checked record
+ * shows nothing. The toast offers a review modal with
  * the first few findings, a "show all" toggle and a copy of the full list.
  */
-import { formatFinding, type RecordValidationSummary } from 'services/validation/recordValidationSummary';
+import {
+  formatFinding,
+  isValidationIncomplete,
+  type RecordValidationSummary,
+} from 'services/validation/recordValidationSummary';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { openModal } from './baseModal/baseModal';
 import { t } from 'i18n';
@@ -42,6 +47,20 @@ function copyFindings(summary: RecordValidationSummary): void {
     .catch(() => tmxToast({ message: t('modals.recordValidation.copyFailed'), intent: 'is-danger' }));
 }
 
+export function unavailableLines(summary: RecordValidationSummary): string[] {
+  const lines: string[] = [];
+  if (summary.schemaUnavailable) lines.push(t('modals.recordValidation.schemaUnavailable'));
+  if (summary.integrityUnavailable) {
+    lines.push(
+      t('modals.recordValidation.integrityUnavailable', {
+        version: summary.factoryVersion ?? '?',
+        reason: summary.integrityUnavailableReason ?? t('modals.recordValidation.unknownReason'),
+      }),
+    );
+  }
+  return lines;
+}
+
 export function openRecordValidationModal(summary: RecordValidationSummary): void {
   const content = document.createElement('div');
   content.style.cssText = 'color: var(--tmx-text-primary);';
@@ -54,10 +73,10 @@ export function openRecordValidationModal(summary: RecordValidationSummary): voi
   });
   content.appendChild(counts);
 
-  if (summary.schemaUnavailable) {
+  for (const line of unavailableLines(summary)) {
     const unavailable = document.createElement('p');
     unavailable.style.cssText = 'margin-bottom: .75em; color: var(--tmx-text-muted);';
-    unavailable.textContent = t('modals.recordValidation.schemaUnavailable');
+    unavailable.textContent = line;
     content.appendChild(unavailable);
   }
 
@@ -98,9 +117,14 @@ export function openRecordValidationModal(summary: RecordValidationSummary): voi
 }
 
 export function warnOnRecordValidation(summary: RecordValidationSummary | undefined): void {
-  if (!summary?.count) return;
+  if (!summary) return;
+  const incomplete = isValidationIncomplete(summary);
+  // zero findings is only "clean" when both checks actually ran
+  if (!summary.count && !incomplete) return;
   tmxToast({
-    message: t('modals.recordValidation.toast', { count: summary.count }),
+    message: summary.count
+      ? t('modals.recordValidation.toast', { count: summary.count })
+      : t('modals.recordValidation.incompleteToast'),
     intent: 'is-warning',
     pauseOnHover: true,
     duration: 10000,

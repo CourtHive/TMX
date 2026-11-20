@@ -1,7 +1,7 @@
 import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
-import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine, tournamentGovernor } from 'tods-competition-factory';
 import { loadImportedTournament } from './loadImportedTournament';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 function mockJSON(mutate?: (record: any) => void): { data: string; tournamentId: string } {
   const { tournamentRecord } = mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize: 4 }] });
@@ -62,5 +62,29 @@ describe('loadImportedTournament', () => {
       loadImportedTournament({ data: '{"tuid":"x","start":1}', onLoaded: () => undefined, validate }).classic,
     ).toEqual(true);
     expect(validated).toEqual(false);
+  });
+
+  it('still loads when the integrity check throws, and reports the check as unavailable', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const integrity = vi.spyOn(tournamentGovernor, 'getTournamentInconsistencies').mockImplementation(() => {
+      throw new Error('engine exploded');
+    });
+    try {
+      const loaded: any[] = [];
+      const { data, tournamentId } = mockJSON();
+      const result = loadImportedTournament({ data, onLoaded: (record) => loaded.push(record) });
+
+      expect(result.error).toBeUndefined();
+      expect(loaded).toHaveLength(1);
+      expect(tournamentEngine.getTournament().tournamentRecord.tournamentId).toEqual(tournamentId);
+
+      const summary = await result.validation;
+      expect(summary?.count).toEqual(0);
+      expect(summary?.integrityUnavailable).toEqual(true);
+      expect(summary?.integrityUnavailableReason).toEqual('engine exploded');
+    } finally {
+      integrity.mockRestore();
+      warn.mockRestore();
+    }
   });
 });

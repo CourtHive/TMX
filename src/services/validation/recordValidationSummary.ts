@@ -25,7 +25,16 @@ export type RecordValidationSummary = {
   // every finding, one per line, for copying
   text: string;
   schemaUnavailable?: boolean;
+  // the integrity check threw or returned an error: zero integrity findings means "not checked", not "clean"
+  integrityUnavailable?: boolean;
+  integrityUnavailableReason?: string;
+  // the factory that ran (or failed to run) the integrity check
+  factoryVersion?: string;
 };
+
+export function isValidationIncomplete(summary: RecordValidationSummary | undefined): boolean {
+  return !!(summary?.schemaUnavailable || summary?.integrityUnavailable);
+}
 
 export const DEFAULT_PREVIEW_COUNT = 5;
 
@@ -51,11 +60,17 @@ export function summarizeRecordValidation({
   inconsistencies = [],
   previewCount = DEFAULT_PREVIEW_COUNT,
   schemaUnavailable,
+  integrityUnavailable,
+  integrityUnavailableReason,
+  factoryVersion,
 }: {
   schemaErrors?: SchemaError[];
   inconsistencies?: any[];
   previewCount?: number;
   schemaUnavailable?: boolean;
+  integrityUnavailable?: boolean;
+  integrityUnavailableReason?: string;
+  factoryVersion?: string;
 }): RecordValidationSummary {
   const schemaFindings: ValidationFinding[] = schemaErrors.map((error) => ({
     source: 'schema',
@@ -87,5 +102,8 @@ export function summarizeRecordValidation({
     preview: findings.slice(0, previewCount),
     text: findings.map(formatFinding).join('\n'),
     ...(schemaUnavailable && { schemaUnavailable }),
+    ...(integrityUnavailable && { integrityUnavailable }),
+    ...(integrityUnavailable && integrityUnavailableReason && { integrityUnavailableReason }),
+    ...(factoryVersion && { factoryVersion }),
   };
 }
