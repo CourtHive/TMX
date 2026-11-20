@@ -8,7 +8,8 @@ declare const dev: any;
 /**
  * Journey 199 — the matchUps filter popover's chips (CA 2026-11-08). Type and Profile are chips, any combination
  * on; every chip on is "all"; with every chip on a click selects that chip alone, then clicks toggle; turning off
- * the last chip turns them all back on. A competitiveness bar segment selects exactly its profile, and the
+ * the last chip turns them all back on. A chip SHOWS (filled, aria-pressed) only while it narrows: at rest, with every
+ * value included, every chip is outlined and unpressed (one chip rule, CA 2026-11-20). A competitiveness bar segment selects exactly its profile, and the
  * popover's chips show it.
  */
 const rowCount = async (page: Page) => {
@@ -56,9 +57,9 @@ test.describe('Journey 199 — matchUps filter chips', () => {
     const chip = (group: string, label: string) =>
       page.locator(`.filter-popover-chips[aria-label="${group}"] .filter-popover-chip`, { hasText: label });
 
-    // every chip on: no filter
-    await expect(chip('Type', 'Singles')).toHaveAttribute('aria-pressed', 'true');
-    await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'true');
+    // no filter: every value included, every chip at rest, so none pressed (one chip rule, CA 2026-11-20)
+    await expect(chip('Type', 'Singles')).toHaveAttribute('aria-pressed', 'false');
+    await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.locator('.filter-popover-chips[aria-label="Profile"] .filter-popover-chip')).toHaveCount(4);
     // the popover fades in: capture once it is opaque, in both themes
     await expect
@@ -89,10 +90,10 @@ test.describe('Journey 199 — matchUps filter chips', () => {
       .last()
       .screenshot({ path: test.info().outputPath('chips-singles-only.png') });
 
-    // the last chip off turns them all back on
+    // the last chip off clears the filter: every chip back at rest
     await chip('Type', 'Singles').click();
-    await expect(chip('Type', 'Singles')).toHaveAttribute('aria-pressed', 'true');
-    await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'true');
+    await expect(chip('Type', 'Singles')).toHaveAttribute('aria-pressed', 'false');
+    await expect(chip('Type', 'Doubles')).toHaveAttribute('aria-pressed', 'false');
     await expect.poll(() => rowCount(page)).toBe(singles + doubles);
 
     // profiles combine: Competitive alone, then Routine added
@@ -105,9 +106,9 @@ test.describe('Journey 199 — matchUps filter chips', () => {
     expect(await rowCount(page)).toBeLessThanOrEqual(singles + doubles);
     await expect(page.locator('.tippy-box .filter-popover-row.is-filtering')).toHaveCount(1);
 
-    // Clear All turns every chip back on
+    // Clear All: every chip back at rest
     await page.locator('.tippy-box button', { hasText: 'Clear All' }).click();
-    await expect(page.locator('.tippy-box .filter-popover-chip[aria-pressed="false"]')).toHaveCount(0);
+    await expect(page.locator('.tippy-box .filter-popover-chip[aria-pressed="true"]')).toHaveCount(0);
     await expect.poll(() => rowCount(page)).toBe(singles + doubles);
     await expect(popover.first()).toBeVisible();
 

@@ -30,6 +30,8 @@ import {
 } from './participantFacets';
 import {
   createChipFilter,
+  paintChipState,
+  isNarrowing,
   type ChipFilter,
   type ChipOption,
   type ChipSection,
@@ -332,14 +334,12 @@ export function mountParticipantsFooter({
     const counts = paintCounts(table, groups);
     const present = presentValues(table, groups);
     for (const { group, value, button } of chips) {
-      const on = group.filter.isOn(value);
+      const narrowing = isNarrowing(group.filter, value);
       // never hide a chip that is filtering, or the table would hide rows with no visible way back. An inline style,
       // not the `hidden` attribute: the chip's own `display: inline-flex` outranks the attribute's `display: none`
-      const hide =
-        !!group.hideWhenEmpty?.has(value) && !present.get(group)?.has(value) && !(group.filter.isFiltered() && on);
+      const hide = !!group.hideWhenEmpty?.has(value) && !present.get(group)?.has(value) && !narrowing;
       button.style.display = hide ? 'none' : '';
-      button.setAttribute('aria-pressed', String(on));
-      button.dataset.on = String(on);
+      paintChipState(button, narrowing);
       (button.lastElementChild as HTMLElement).textContent = String(counts.get(group)?.[value] ?? 0);
     }
   };

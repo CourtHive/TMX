@@ -70,9 +70,9 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
     await tournament.navigateToMatchUps();
     await expect(strip(page)).toBeVisible();
 
-    // to be played, live, suspended, complete; every chip on
+    // to be played, live, suspended, complete; no filter, so every chip at rest (none pressed, CA 2026-11-20)
     await expect.poll(() => counts(page)).toEqual([5, 1, 1, 8]);
-    await expect(strip(page).locator('[aria-pressed="false"]')).toHaveCount(0);
+    await expect(strip(page).locator('[aria-pressed="true"]')).toHaveCount(0);
     await expect.poll(() => rowCount(page)).toBe(15);
     for (const theme of ['light', 'dark']) {
       await page.evaluate((theme) => document.documentElement.setAttribute('data-theme', theme), theme);
@@ -101,9 +101,9 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
     await expect(statusChip('Live')).toHaveAttribute('aria-pressed', 'true');
     await expect(statusChip('Complete')).toHaveAttribute('aria-pressed', 'false');
 
-    // Clear All: every chip on, here and in the footer
+    // Clear All: every chip back at rest, here and in the footer
     await page.locator('.tippy-box button', { hasText: 'Clear All' }).click();
-    await expect(strip(page).locator('[aria-pressed="false"]')).toHaveCount(0);
+    await expect(strip(page).locator('[aria-pressed="true"]')).toHaveCount(0);
     await expect.poll(() => rowCount(page)).toBe(15);
 
     // another filter changes the counts: Competitive alone keeps only completed, competitive matchUps
@@ -150,12 +150,18 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
       await page.screenshot({ path: test.info().outputPath(`page-${height}.png`) });
     }
 
-    // a status chip's fill is the Today bar's colour for its bucket
+    // a status chip carries the Today bar's colour for its bucket: as its dot at rest (outlined, CA 2026-11-20), as its
+    // fill while it narrows
     const fillOf = (selector: string) =>
       page
         .locator(selector)
         .first()
         .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const dotOf = (selector: string) =>
+      page
+        .locator(selector)
+        .first()
+        .evaluate((el) => getComputedStyle(el, '::before').backgroundColor);
     const painted = (color: string) =>
       page.evaluate((color) => {
         const probe = document.createElement('div');
@@ -167,9 +173,13 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
       }, color);
     // polled: the chips' colour eases in over 120ms
     const success = await painted('var(--chc-status-success, #16a34a)');
+    await expect.poll(() => dotOf('.tmx-status-strip-chip[data-value="complete"]')).toBe(success);
+    // the ready-to-score teal, teal-700 since journey 219 (white on teal-600 read 3.74:1)
+    const teal = await painted('var(--chc-status-teal, #0f766e)');
+    await expect.poll(() => dotOf('.tmx-status-strip-chip[data-value="toBePlayed"]')).toBe(teal);
+    await page.locator('.tmx-status-strip-chip[data-value="complete"]').click();
     await expect.poll(() => fillOf('.tmx-status-strip-chip[data-value="complete"]')).toBe(success);
-    const teal = await painted('var(--chc-status-teal, #0d9488)');
-    await expect.poll(() => fillOf('.tmx-status-strip-chip[data-value="toBePlayed"]')).toBe(teal);
+    await page.locator('.tmx-status-strip-chip[data-value="complete"]').click();
 
     // a profile chip's fill is the competitiveness bar's segment for that profile
     await page.locator('#filterPopoverButton').click();
@@ -177,7 +187,7 @@ test.describe('Journey 200 — the status strip in the matchUps footer', () => {
       const segment = page.locator(`.chc-cb__seg[data-bucket="${bucket}"]`);
       if (!(await segment.count())) continue;
       const barFill = await fillOf(`.chc-cb__seg[data-bucket="${bucket}"]`);
-      await expect.poll(() => fillOf(`.filter-popover-chip[data-value="${bucket}"]`)).toBe(barFill);
+      await expect.poll(() => dotOf(`.filter-popover-chip[data-value="${bucket}"]`)).toBe(barFill);
     }
     await expect
       .poll(() =>
