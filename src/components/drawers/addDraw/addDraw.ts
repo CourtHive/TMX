@@ -299,7 +299,7 @@ function openInBuilderLink({
   link.className = 'add-draw-open-in-builder';
   link.textContent = `${t('drawers.addDraw.openInBuilder')} \u2192`;
   link.style.cssText =
-    'margin-top: 1em; border: none; background: none; padding: 0; cursor: pointer; color: var(--tmx-container-link); text-decoration: underline;';
+    'margin-top: 1em; border: none; background: none; padding: 0; cursor: pointer; color: var(--tmx-accent-blue); text-decoration: underline;';
   link.onclick = () => {
     const values = inputs();
     const select = values[DRAW_TYPE] as HTMLSelectElement | undefined;
