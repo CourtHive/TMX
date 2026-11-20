@@ -27,6 +27,7 @@ import type { ScoreEntryApproach, StatusCodeGroups } from 'courthive-components'
 import { SET_MATCHUP_STATUS } from 'constants/mutationConstants';
 
 const WARNING_INTENT = 'is-warning';
+const COMMON_ERROR = 'common.error';
 
 const { POLICY_TYPE_SCORING } = policyConstants;
 
@@ -124,17 +125,17 @@ export function enterMatchUpScore(params: {
         // can adjust or cancel.
         // A refused score says WHICH set is wrong in `info` ("Set 1: …"), and the operator needs that
         // more than the generic "Invalid score" — the factory refuses unfinished sets since #5096.
-        const message = result.info ?? result.error.message ?? t('common.error');
+        const message = result.info ?? result.error.message ?? t(COMMON_ERROR);
         tmxToast({ message, intent: 'is-danger' });
       } else {
         onAccepted?.();
       }
       isFunction(callback) && callback({ ...result, outcome });
-      settle(result ?? { error: { message: t('common.error') } });
+      settle(result ?? { error: { message: t(COMMON_ERROR) } });
     };
     // mutationRequest reaches its callback on every path it handles; a throw would skip it, and an unsettled dispatch
     // leaves the dialog pending for good. Settle on the throw too: the dialog stays open with the score entered.
-    const failed = (error: any) => settle({ error: { message: error?.message ?? t('common.error') } });
+    const failed = (error: any) => settle({ error: { message: error?.message ?? t(COMMON_ERROR) } });
     const applyScore = () => {
       try {
         Promise.resolve(mutationRequest({ methods, callback: mutationCallback })).catch(failed);
