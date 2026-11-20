@@ -75,7 +75,8 @@
       "nominateFirst": "Nominate a verified scorer before setting a delegated outcome.",
       "noOutcomeToConfirm": "No delegated outcome to confirm on this match.",
       "noScorekeeperCandidates": "No HiveID-linked participants to nominate as scorekeeper.",
-      "acceptedLive": "Accepted — their live scores are now authoritative for this match."
+      "acceptedLive": "Accepted — their live scores are now authoritative for this match.",
+      "promoteFailed": "Their live scores could not be made authoritative (relay unavailable or refused). Nothing was promoted."
     },
     "tooltip": {
       "liveTracker": "Score reported via live tracker",
@@ -2326,6 +2327,7 @@
     "userRemoved": "User removed",
     "matchUpScoredElsewhere": "Another user just scored this match ({{score}}). Review before saving.",
     "overwriteRemoteScore": "Another user scored this match ({{score}}). Overwrite with your result?",
+    "overwriteNotConfirmed": "Not saved — the other score stands. Submit again to overwrite it.",
     "clearRefused": "This result can't be cleared: a later match depends on it. Clear that match first.",
     "scoreRefused": "This match can't be scored or corrected now: the draw does not offer scoring for it.",
     "scoreDiscardedByFormat": "Changing the format to {{matchUpFormat}} discarded {{count}} set(s): {{sets}}",

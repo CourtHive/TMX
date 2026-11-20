@@ -82,24 +82,28 @@ export function enterMatchUpScore(params: {
    * Send one `setMatchUpStatus` and report back. Shared by both front ends: the collision guard, the
    * refusal toast and the caller's callback are about the mutation, not about the dialog that built it.
    */
-  const dispatch = ({ outcome, onAccepted }: { outcome: any; onAccepted?: () => void }) => {
+  /**
+   * Resolves with the mutation's result once it is ACCEPTED OR REFUSED — never before. The dialog's submission is
+   * controlled (courthive-components >= 7.20): it stays open while this is pending and closes only on a result
+   * without `error`, so what the director sees closing is what was saved (ecosystem review 713). Local refusals
+   * resolve with `{ error }` too, so the dialog keeps the entered score.
+   */
+  const dispatch = ({ outcome, onAccepted }: { outcome: any; onAccepted?: () => void }): Promise<any> => {
+    const refuse = (message: string) => {
+      tmxToast({ message, intent: WARNING_INTENT, pauseOnHover: true });
+      return Promise.resolve({ error: { message } });
+    };
+
     // A clear the engine would refuse is stopped here, with the reason, rather than sent to be refused
     // as "No valid actions". Asked at submit time, of the live record, so a later match decided while
-    // the dialog was open still counts. Nothing is sent, so the result stands; the score modal stays
-    // open as it does for a refused score, while the score entry dialog closes after any submit.
+    // the dialog was open still counts. Nothing is sent, so the result stands and the dialog stays open.
     if (isClearingOutcome(outcome) && !clearPermitted({ matchUp, drawId: matchUp.drawId, matchUpId })) {
-      tmxToast({ message: t('toasts.clearRefused'), intent: WARNING_INTENT, pauseOnHover: true });
-      return;
+      return refuse(t('toasts.clearRefused'));
     }
 
     const disabledStatuses = resolveDisabledMatchUpStatuses(matchUp, matchUpId);
     if (new Set(disabledStatuses).has(outcome?.matchUpStatus)) {
-      tmxToast({
-        message: t('toasts.statusOutOfScope'),
-        intent: WARNING_INTENT,
-        pauseOnHover: true,
-      });
-      return undefined;
+      return refuse(t('toasts.statusOutOfScope'));
     }
 
     const methods = [
@@ -108,6 +112,10 @@ export function enterMatchUpScore(params: {
         params: { allowChangePropagation: true, drawId: matchUp.drawId, outcome, matchUpId },
       },
     ];
+    let settle!: (result: any) => void;
+    const settled = new Promise<any>((resolve) => {
+      settle = resolve;
+    });
     const mutationCallback = (result: any) => {
       if (result?.error) {
         // Surface the rejection (e.g. ERR_INCOMPATIBLE_MATCHUP_STATUS when
@@ -122,14 +130,17 @@ export function enterMatchUpScore(params: {
         onAccepted?.();
       }
       isFunction(callback) && callback({ ...result, outcome });
+      settle(result ?? { error: { message: t('common.error') } });
     };
     const applyScore = () => mutationRequest({ methods, callback: mutationCallback });
 
     // A remote mutation scored this matchUp while the modal was open. Do NOT
     // silently overwrite the colleague's result — require an explicit confirm
-    // that shows their current score. Cancel leaves the modal open so the
-    // director can reconsider (or close without saving).
+    // that shows their current score. The dialog stays open (pending) until the
+    // director confirms; dismissing the confirm leaves the score unsaved and the
+    // dialog open, so they can reconsider or cancel.
     if (activeScoringWasChangedRemotely()) {
+      let confirmed = false;
       tmxToast({
         message: t('toasts.overwriteRemoteScore', {
           score: currentScoreString(matchUpId),
@@ -142,15 +153,21 @@ export function enterMatchUpScore(params: {
           text: t('overwrite', { defaultValue: 'Overwrite' }),
           onClick: (event?: Event) => {
             event?.stopPropagation?.();
+            confirmed = true;
             acknowledgeRemoteScoringChange();
             applyScore();
           },
         },
+        onClose: () => {
+          if (!confirmed)
+            settle({ error: { message: t('toasts.overwriteNotConfirmed', { defaultValue: 'Not saved' }) } });
+        },
       });
-      return;
+      return settled;
     }
 
     applyScore();
+    return settled;
   };
 
   // The dialog may always reset its form. This permission gates submitting an empty replacement;
@@ -181,7 +198,7 @@ function openNewScoreEntry({
   disabledMatchUpStatuses,
 }: {
   matchUp: any;
-  dispatch: (params: { outcome: any; onAccepted?: () => void }) => void;
+  dispatch: (params: { outcome: any; onAccepted?: () => void }) => Promise<any>;
   onRelayCleanup: () => void;
   clearable: boolean;
   disabledMatchUpStatuses?: string[];
@@ -210,6 +227,7 @@ function openNewScoreEntry({
       });
     },
     onClose: onRelayCleanup,
+    // Controlled: the dialog closes only when the result is accepted, and stays open with the score on a refusal.
     onSubmit: ({ outcome }) => dispatch({ outcome: structuredClone(outcome) }),
   });
 }
