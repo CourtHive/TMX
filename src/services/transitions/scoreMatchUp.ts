@@ -132,7 +132,16 @@ export function enterMatchUpScore(params: {
       isFunction(callback) && callback({ ...result, outcome });
       settle(result ?? { error: { message: t('common.error') } });
     };
-    const applyScore = () => mutationRequest({ methods, callback: mutationCallback });
+    // mutationRequest reaches its callback on every path it handles; a throw would skip it, and an unsettled dispatch
+    // leaves the dialog pending for good. Settle on the throw too: the dialog stays open with the score entered.
+    const failed = (error: any) => settle({ error: { message: error?.message ?? t('common.error') } });
+    const applyScore = () => {
+      try {
+        Promise.resolve(mutationRequest({ methods, callback: mutationCallback })).catch(failed);
+      } catch (error) {
+        failed(error);
+      }
+    };
 
     // A remote mutation scored this matchUp while the modal was open. Do NOT
     // silently overwrite the colleague's result — require an explicit confirm

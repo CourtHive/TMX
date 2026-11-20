@@ -344,6 +344,22 @@ describe('scoreMatchUp — the dialog closes only on an accepted result', () => 
     close();
   });
 
+  it('settles as a refusal when mutationRequest rejects, so the dialog is never left pending', async () => {
+    mutationRequestMock.mockImplementationOnce(() => Promise.reject(new Error('transport exploded')));
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    await expect(submit()).resolves.toMatchObject({ error: { message: 'transport exploded' } });
+    close();
+  });
+
+  it('settles as a refusal when mutationRequest throws before answering', async () => {
+    mutationRequestMock.mockImplementationOnce(() => {
+      throw new Error('engine threw');
+    });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    await expect(submit()).resolves.toMatchObject({ error: { message: 'engine threw' } });
+    close();
+  });
+
   it('resolves a dismissed Overwrite confirm as not saved, and sends nothing', async () => {
     enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
     notifyRemoteScoringCollision(['X']);
