@@ -20,6 +20,7 @@ import {
   directedTransit,
   formatMinutes,
   layoutVenues,
+  nodeInitials,
   policyDefaultTransitMinutes,
   transitEdges,
   transitInputsFromRecord,
@@ -64,7 +65,7 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attributes: Record<st
   return element;
 }
 
-export function renderTransitView({ anchor, onBack }: { anchor: HTMLElement; onBack: () => void }): void {
+export function renderTransitView({ anchor }: { anchor: HTMLElement }): void {
   let selection: Selection | undefined;
   let hoveredVenueId: string | undefined;
 
@@ -75,7 +76,7 @@ export function renderTransitView({ anchor, onBack }: { anchor: HTMLElement; onB
   const render = () => {
     const inputs = readInputs();
     root.innerHTML = '';
-    root.appendChild(renderHeader(inputs, onBack));
+    root.appendChild(renderHeader(inputs));
 
     if (inputs.venues.length < 2) {
       root.appendChild(el('p', 'tmx-transit__empty', t('pages.venues.transit.needsTwoVenues')));
@@ -97,12 +98,9 @@ export function renderTransitView({ anchor, onBack }: { anchor: HTMLElement; onB
   };
 
   // ── header: what this is, the policy default, the legend ──────────────────
-  function renderHeader(inputs: TransitInputs, back: () => void): HTMLElement {
+  // The way back to the venues list is [Venues] in the button bar, where [Transit times] was.
+  function renderHeader(inputs: TransitInputs): HTMLElement {
     const header = el('div', 'tmx-transit__header');
-    const backButton = el('button', 'tmx-transit__back', t('pages.venues.transit.back'));
-    backButton.type = 'button';
-    backButton.addEventListener('click', back);
-    header.appendChild(backButton);
 
     const titles = el('div', 'tmx-transit__titles');
     titles.appendChild(el('h2', 'tmx-transit__title', t('pages.venues.transit.title')));
@@ -164,7 +162,7 @@ export function renderTransitView({ anchor, onBack }: { anchor: HTMLElement; onB
       if (venue.venueId === hoveredVenueId) node.classList.add('is-hovered');
       node.appendChild(svg('circle', { r: NODE_RADIUS }));
       const initials = svg('text', { class: 'tmx-transit__node-initials', 'text-anchor': 'middle', dy: '0.35em' });
-      initials.textContent = (venue.abbreviation || venue.name).slice(0, 4);
+      initials.textContent = nodeInitials(venue);
       node.appendChild(initials);
       const label = svg('text', { class: 'tmx-transit__node-label', 'text-anchor': 'middle', y: NODE_RADIUS + 16 });
       label.textContent = venue.name;

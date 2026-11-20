@@ -1,5 +1,7 @@
 /**
  * Placing qualifiers: every qualified participant goes into the main draw's open qualifier positions at once, by lot.
+ * Or into a QUALIFYING stage's, where pre-qualifying feeds it (CA, 2026-11-19; factory 7.43.0 `qualifierProgression`
+ * takes the target `structureId`).
  *
  * The qualifier positions are fixed when the main draw is made; once qualifying ends the qualifiers are drawn into
  * them by lot, never simply in order. The lot is drawn here, once, and travels in the mutation's params
@@ -20,12 +22,13 @@ const QUALIFIER_ACTION = 'QUALIFIER';
 type Engine = { [method: string]: any };
 
 export type QualifierPlacementState = {
-  /** the main structure rounds qualifiers enter, from the links that feed it; usually only round 1 */
+  /** the target structure rounds qualifiers enter, from the links that feed it; usually only round 1 */
   targetRoundNumbers: number[];
   qualifiedParticipantIds: string[];
   openQualifierPositions: number[];
   hasLinkedQualifying: boolean;
-  mainStructureId?: string;
+  /** where the qualifiers go: MAIN stageSequence 1, or the QUALIFYING stage that was asked about */
+  targetStructureId?: string;
   eligible: boolean;
 };
 
@@ -38,33 +41,41 @@ const NOT_ELIGIBLE: QualifierPlacementState = {
 };
 
 /**
- * Whether "Place qualifiers" applies to a draw: a qualifying structure feeds the main structure, the main structure
- * has open qualifier positions, and at least one qualified participant is not placed yet.
+ * Whether "Place qualifiers" applies to a structure: MAIN stageSequence 1 by default, or the `structureId` named when it
+ * is a QUALIFYING stage (one pre-qualifying feeds). A qualifying structure feeds it, it has open qualifier positions,
+ * and at least one qualified participant is not placed yet.
  *
  * Who counts as qualified is the factory's answer, not a TMX approximation: the qualifier action that
  * `positionActions` offers on each open qualifier position lists the qualified participants not yet placed.
  */
 export function getQualifierPlacementState({
+  structureId,
   engine,
   drawId,
   eventId,
 }: {
+  /** a QUALIFYING stage to place into; any other structure, or none, means MAIN stageSequence 1 */
+  structureId?: string;
   engine: Engine;
   drawId: string;
   eventId?: string;
 }): QualifierPlacementState {
   const drawDefinition = engine.getEvent({ drawId })?.drawDefinition;
   const structures: any[] = drawDefinition?.structures ?? [];
-  const mainStructure = structures.find(({ stage, stageSequence }) => stage === MAIN && stageSequence === 1);
-  if (!mainStructure) return NOT_ELIGIBLE;
+  const named = structures.find((structure) => structure.structureId === structureId);
+  const target =
+    named?.stage === QUALIFYING
+      ? named
+      : structures.find(({ stage, stageSequence }) => stage === MAIN && stageSequence === 1);
+  if (!target) return NOT_ELIGIBLE;
 
-  const mainStructureId = mainStructure.structureId;
+  const targetStructureId = target.structureId;
   const qualifyingStructureIds = new Set(
     structures.filter(({ stage }) => stage === QUALIFYING).map(({ structureId }) => structureId),
   );
   const qualifyingLinks = (drawDefinition?.links ?? []).filter(
     (link: any) =>
-      link?.target?.structureId === mainStructureId && qualifyingStructureIds.has(link?.source?.structureId),
+      link?.target?.structureId === targetStructureId && qualifyingStructureIds.has(link?.source?.structureId),
   );
   const hasLinkedQualifying = qualifyingLinks.length > 0;
   const targetRoundNumbers = [
@@ -72,7 +83,7 @@ export function getQualifierPlacementState({
   ].sort((a, b) => a - b);
 
   const positionAssignments: any[] =
-    engine.getPositionAssignments({ structureId: mainStructureId, drawId })?.positionAssignments ?? [];
+    engine.getPositionAssignments({ structureId: targetStructureId, drawId })?.positionAssignments ?? [];
   const openQualifierPositions = positionAssignments
     .filter((assignment) => assignment.qualifier && !assignment.participantId)
     .map(({ drawPosition }) => drawPosition);
@@ -81,7 +92,7 @@ export function getQualifierPlacementState({
   if (hasLinkedQualifying) {
     for (const drawPosition of openQualifierPositions) {
       const { validActions } =
-        engine.positionActions({ structureId: mainStructureId, drawPosition, eventId, drawId }) ?? {};
+        engine.positionActions({ structureId: targetStructureId, drawPosition, eventId, drawId }) ?? {};
       const qualifierAction = validActions?.find(({ type }: any) => type === QUALIFIER_ACTION);
       for (const participantId of qualifierAction?.qualifyingParticipantIds ?? []) {
         if (!qualifiedParticipantIds.includes(participantId)) qualifiedParticipantIds.push(participantId);
@@ -95,7 +106,7 @@ export function getQualifierPlacementState({
     openQualifierPositions,
     hasLinkedQualifying,
     targetRoundNumbers,
-    mainStructureId,
+    targetStructureId,
   };
 }
 
@@ -106,17 +117,23 @@ export function drawQualifierLot(positionsCount: number, shuffle: (values: numbe
 
 export function buildPlaceQualifiersMethod({
   positionsCount,
+  structureId,
   eventId,
   drawId,
   shuffle,
 }: {
   shuffle?: (values: number[]) => number[];
   positionsCount: number;
+  /** a QUALIFYING stage to place into; left out, the factory places into MAIN stageSequence 1 */
+  structureId?: string;
   eventId?: string;
   drawId: string;
 }) {
   const randomList = drawQualifierLot(positionsCount, shuffle);
-  return { method: QUALIFIER_PROGRESSION, params: tools.definedAttributes({ drawId, eventId, randomList }) };
+  return {
+    method: QUALIFIER_PROGRESSION,
+    params: tools.definedAttributes({ drawId, eventId, structureId, randomList }),
+  };
 }
 
 /**
@@ -126,6 +143,7 @@ export function buildPlaceQualifiersMethod({
 export function buildPlaceQualifiersMethods({
   targetRoundNumbers,
   positionsCount,
+  structureId,
   eventId,
   drawId,
   shuffle,
@@ -133,12 +151,14 @@ export function buildPlaceQualifiersMethods({
   shuffle?: (values: number[]) => number[];
   targetRoundNumbers: number[];
   positionsCount: number;
+  structureId?: string;
   eventId?: string;
   drawId: string;
 }) {
-  if (targetRoundNumbers.length < 2) return [buildPlaceQualifiersMethod({ positionsCount, eventId, drawId, shuffle })];
+  const single = { positionsCount, structureId, eventId, drawId, shuffle };
+  if (targetRoundNumbers.length < 2) return [buildPlaceQualifiersMethod(single)];
   return targetRoundNumbers.map((targetRoundNumber) => {
-    const method = buildPlaceQualifiersMethod({ positionsCount, eventId, drawId, shuffle });
+    const method = buildPlaceQualifiersMethod(single);
     return { ...method, params: { ...method.params, targetRoundNumber } };
   });
 }

@@ -17,12 +17,14 @@ import {
 
 type PlaceQualifiersParams = {
   onPlaced: () => void;
+  /** a QUALIFYING stage pre-qualifying feeds; left out, MAIN */
+  structureId?: string;
   eventId: string;
   drawId: string;
 };
 
-export function placeQualifiers({ drawId, eventId, onPlaced }: PlaceQualifiersParams) {
-  const state = getQualifierPlacementState({ engine: tournamentEngine, drawId, eventId });
+export function placeQualifiers({ drawId, eventId, onPlaced, structureId }: PlaceQualifiersParams) {
+  const state = getQualifierPlacementState({ engine: tournamentEngine, structureId, drawId, eventId });
   if (!state.eligible) {
     tmxToast({ message: t('pages.events.placeQualifiers.nothingToPlace'), intent: 'is-warning' });
     return;
@@ -33,8 +35,10 @@ export function placeQualifiers({ drawId, eventId, onPlaced }: PlaceQualifiersPa
 
   const okAction = () => {
     const { targetRoundNumbers } = state;
+    // MAIN is the factory's default target; a qualifying stage is named
+    const target = state.targetStructureId === structureId && structureId ? { structureId } : {};
     mutationRequest({
-      methods: buildPlaceQualifiersMethods({ targetRoundNumbers, positionsCount, eventId, drawId }),
+      methods: buildPlaceQualifiersMethods({ targetRoundNumbers, positionsCount, eventId, drawId, ...target }),
       callback: (result: any) => {
         if (!result?.success) {
           tmxToast({

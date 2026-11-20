@@ -16,6 +16,7 @@ import { mountRotatingFormatFields } from './rotatingFormatFields';
 import { getDrawTypeInfoKey } from './drawTypeDescriptions';
 import { tournamentEngine } from 'services/factory/engine';
 import { findTopologyTemplate } from './topologyTemplates';
+import { navigateToTopology } from 'pages/tournament/topologyPage';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { resolveDrawFormMode } from './drawFormModel';
 import { submitDrawParams } from './submitDrawParams';
@@ -153,6 +154,9 @@ export function addDraw({
     if (event.eventType === 'DOUBLES' && !drawId && !isQualifying && !isPopulateMain) {
       rotatingFields = mountRotatingFormatFields({ target: elem, inputs, event, selectedParticipantIds });
     }
+    // a new draw can go on in the draw builder, laid out as the drawer now describes it (CA, 2026-11-17)
+    // a flight's drawer (its reserved drawId) hands over the flight, so the builder works on the flight's entries
+    if (mode.kind === 'NEW_MAIN') elem.appendChild(openInBuilderLink({ eventId, drawId, inputs: () => inputs }));
   };
 
   const isValid = () => {
@@ -278,6 +282,49 @@ export function addDraw({
       if (!rotatingFields?.active() && isValid()) close();
     });
   context.drawer.open({ title, content, footer, side: RIGHT, width: '300px' });
+}
+
+/** The drawer's choices, handed to the draw builder: a saved template chosen as the type opens as that template. */
+function openInBuilderLink({
+  eventId,
+  drawId,
+  inputs,
+}: {
+  eventId: string;
+  drawId?: string;
+  inputs: () => any;
+}): HTMLElement {
+  const link = document.createElement('button');
+  link.type = 'button';
+  link.className = 'add-draw-open-in-builder';
+  link.textContent = `${t('drawers.addDraw.openInBuilder')} \u2192`;
+  link.style.cssText =
+    'margin-top: 1em; border: none; background: none; padding: 0; cursor: pointer; color: var(--tmx-container-link); text-decoration: underline;';
+  link.onclick = () => {
+    const values = inputs();
+    const select = values[DRAW_TYPE] as HTMLSelectElement | undefined;
+    const drawType = select?.options?.[select.selectedIndex]?.getAttribute('value') || select?.value;
+    context.drawer.close();
+    if (drawType?.startsWith(TOPOLOGY_TEMPLATE_PREFIX)) {
+      navigateToTopology({ eventId, drawId, templateName: drawType.slice(TOPOLOGY_TEMPLATE_PREFIX.length) });
+      return;
+    }
+    const count = (field: string) => {
+      const value = Number.parseInt(values[field]?.value, 10);
+      return Number.isFinite(value) ? value : undefined;
+    };
+    navigateToTopology({
+      eventId,
+      drawId,
+      formChoices: {
+        drawName: values[DRAW_NAME]?.value,
+        drawSize: count(DRAW_SIZE),
+        qualifiersCount: count(QUALIFIERS_COUNT),
+        drawType,
+      },
+    });
+  };
+  return link;
 }
 
 function generateFromTopologyTemplate({

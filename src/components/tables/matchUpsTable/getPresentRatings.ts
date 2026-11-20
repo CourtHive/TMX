@@ -29,3 +29,15 @@ export function getPresentRatings(participants?: any[]): Set<string> {
   }
   return presentRatings;
 }
+
+/**
+ * The rating scales a choice of scale offers: those present on the participants given (all of the tournament's by
+ * default), in the order the factory lists them, without the deprecated. The Add Draw drawer's DrawMatic scale and the
+ * Add flights rating systems both read it, so neither offers a scale nobody holds (CA, 2026-11-17).
+ */
+export function activeRatingScales(participants?: any[]): string[] {
+  const present = getPresentRatings(participants);
+  return Object.keys(ratingsParameters).filter(
+    (key) => !(ratingsParameters as any)[key].deprecated && present.has(key),
+  );
+}

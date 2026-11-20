@@ -182,3 +182,22 @@ describe('hydrateTopology — a lucky draw keeps its round profile', () => {
     expect(node.structureOptions?.roundProfile).toBeUndefined();
   });
 });
+
+// CA, 2026-11-17: a generated draw's format is the draw's, and its structures inherit it; every card read "Not set"
+describe("a structure's format", () => {
+  it("is the draw's when the structure names none, and its own when it does", () => {
+    const drawDefinition = structuredClone(
+      generateDraw({
+        drawSize: 16,
+        matchUpFormat: 'SET3-S:6/TB7',
+        qualifyingProfiles: [{ structureProfiles: [{ drawSize: 16, qualifyingPositions: 4 }] }],
+      }),
+    );
+    const qualifying = drawDefinition.structures.find((s: any) => s.stage === 'QUALIFYING');
+    qualifying.matchUpFormat = 'SET1-S:6/TB7';
+    const nodes = hydrateTopology(drawDefinition)!.nodes!;
+    expect(drawDefinition.structures.find((s: any) => s.stage === 'MAIN').matchUpFormat).toBeUndefined();
+    expect(nodes.find((n) => n.stage === 'MAIN')!.matchUpFormat).toBe('SET3-S:6/TB7');
+    expect(nodes.find((n) => n.stage === 'QUALIFYING')!.matchUpFormat).toBe('SET1-S:6/TB7');
+  });
+});

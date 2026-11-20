@@ -183,6 +183,23 @@ export function validateTransitMinutes(value: string, sanctionedMinutes?: number
 }
 
 /** minutes as a compact label: 45 → "45m", 75 → "1h 15m", 120 → "2h" */
+/**
+ * What a venue's circle shows: its abbreviation when it has one, else the initials of its first three words, or the
+ * first three letters of a one-word name. At most four characters, to fit the circle; the full name sits below it.
+ */
+export function nodeInitials(venue: Pick<TransitVenue, 'name' | 'abbreviation'>): string {
+  const abbreviation = venue.abbreviation?.trim();
+  if (abbreviation) return abbreviation.slice(0, 4);
+  const words = (venue.name ?? '').trim().split(/\s+/).filter(Boolean);
+  if (words.length > 1)
+    return words
+      .slice(0, 3)
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase();
+  return (words[0] ?? '').slice(0, 3).toUpperCase();
+}
+
 export function formatMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);

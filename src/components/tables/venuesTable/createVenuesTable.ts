@@ -1,3 +1,6 @@
+import { makeAverageMinutesResolver } from 'pages/tournament/tabs/scheduleViews/scheduleTimingResolver';
+import { scheduledMatchUpsByVenue } from 'pages/tournament/tabs/venuesTab/scheduledMatchUpsByVenue';
+import { gridMinutesByCourt } from 'pages/tournament/tabs/venuesTab/gridMinutesByCourt';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
@@ -18,6 +21,14 @@ type CreateVenuesTableResult = {
   replaceTableData: () => void;
 };
 
+// Format, type and event come only with context; hydrate just the matchUps in a grid row, not the whole tournament.
+function gridMatchUpsInContext(matchUps: any[]): any[] {
+  const matchUpIds = matchUps.filter((m: any) => m.schedule?.courtId && m.schedule?.courtOrder).map((m) => m.matchUpId);
+  if (!matchUpIds.length) return [];
+  const result: any = competitionEngine.allCompetitionMatchUps({ inContext: true, matchUpFilters: { matchUpIds } });
+  return result?.matchUps ?? [];
+}
+
 export function createVenuesTable({ table }: { table?: any } = {}): CreateVenuesTableResult {
   const nestedTables = new Map();
   const setNestedTable = (venueId: string, courtsTable: any) => {
@@ -36,7 +47,10 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
   const getTableData = () => {
     const { venues = [] } = competitionEngine.getVenuesAndCourts();
     const engine = createSchedulingEngine();
-    const rows = venues.map((v: any) => mapVenue(v, engine));
+    const { matchUps = [] } = competitionEngine.allCompetitionMatchUps({ inContext: false }) ?? {};
+    const scheduledByVenue = scheduledMatchUpsByVenue(matchUps, venues);
+    const gridMinutes = gridMinutesByCourt(gridMatchUpsInContext(matchUps), makeAverageMinutesResolver());
+    const rows = venues.map((v: any) => mapVenue(v, engine, scheduledByVenue, gridMinutes));
     return { rows };
   };
 

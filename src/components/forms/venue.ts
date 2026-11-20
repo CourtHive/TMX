@@ -2,8 +2,9 @@
  * Venue form configuration and value extraction.
  * Provides form fields for venue name, abbreviation, court count, and operating hours with validation.
  */
+import { getSupportedTimeZones } from 'functions/getSupportedTimeZones';
 import { validators } from 'courthive-components';
-import { t } from 'i18n';
+import { t, i18next } from 'i18n';
 
 export function venueForm({
   values,
@@ -132,6 +133,14 @@ export function venueForm({
           field: 'countryCode',
           onChange,
         },
+    // the caller pre-fills the tournament's zone (venuesTab/venueAddress); a venue elsewhere is a rare edit, not a step
+    {
+      value: values.timeZone || '',
+      label: t('drawers.editTournament.timeZoneLabel'),
+      placeholder: t('drawers.editTournament.timeZonePlaceholder'),
+      field: 'timeZone',
+      timeZone: { timeZones: getSupportedTimeZones(), locale: i18next.language, showMap: false },
+    },
   ];
 }
 
@@ -149,6 +158,7 @@ export function getVenueFormValues(content: any): any {
     city: (content?.city?.value || '').trim(),
     state: (content?.state?.value || '').trim(),
     postalCode: (content?.postalCode?.value || '').trim(),
+    timeZone: (content?.timeZone?.value || '').trim(),
   };
 }
 

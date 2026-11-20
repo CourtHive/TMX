@@ -69,44 +69,57 @@ function categoryOf(event: any): { categoryName?: string; categoryType?: string 
   };
 }
 
+/** The factory's timing for one matchUp's format; undefined when the matchUp has no format or the lookup fails. */
+function resolveFormatTiming(matchUp: ReadinessMatchUp, events: Map<string, any>): RestTiming | undefined {
+  const matchUpFormat = matchUp.matchUpFormat;
+  if (!matchUpFormat) return undefined;
+
+  // `matchUpType` is a plain string on the hydrated matchUp but an
+  // `EventTypeUnion` on the engine signature; the engine validates it and
+  // falls back to SINGLES, so widen at the boundary rather than duplicating
+  // the union here.
+  const event = events.get(matchUp.eventId ?? '');
+  const result: any = tournamentEngine.getMatchUpFormatTiming({
+    eventType: matchUp.matchUpType as any,
+    ...categoryOf(event),
+    matchUpFormat,
+    event,
+  });
+  if (result?.error) return undefined;
+  return {
+    averageMinutes: result?.averageMinutes ?? FALLBACK_TIMING.averageMinutes,
+    recoveryMinutes: result?.recoveryMinutes ?? FALLBACK_TIMING.recoveryMinutes,
+    typeChangeRecoveryMinutes: result?.typeChangeRecoveryMinutes ?? 0,
+  };
+}
+
+/** Memoised per `matchUpFormat|matchUpType|eventId` for one render pass; `undefined` results are cached too. */
+function memoiseTiming(): (matchUp: ReadinessMatchUp) => RestTiming | undefined {
+  const cache = new Map<string, RestTiming | undefined>();
+  const events = buildEventMap();
+
+  return (matchUp: ReadinessMatchUp) => {
+    const key = `${matchUp.matchUpFormat ?? ''}|${matchUp.matchUpType ?? ''}|${matchUp.eventId ?? ''}`;
+    if (!cache.has(key)) cache.set(key, resolveFormatTiming(matchUp, events));
+    return cache.get(key);
+  };
+}
+
 /**
  * A timing lookup valid for one render pass. Satisfies both `ReadinessTiming`
  * and `RestTiming` structurally, so readiness and rest share one resolver and
  * cannot drift apart on what a format costs.
  */
 export function makeTimingResolver(): (matchUp: ReadinessMatchUp) => RestTiming {
-  const cache = new Map<string, RestTiming>();
-  const events = buildEventMap();
+  const resolve = memoiseTiming();
+  return (matchUp: ReadinessMatchUp) => resolve(matchUp) ?? FALLBACK_TIMING;
+}
 
-  return (matchUp: ReadinessMatchUp) => {
-    const matchUpFormat = matchUp.matchUpFormat ?? '';
-    const eventId = matchUp.eventId ?? '';
-    const key = `${matchUpFormat}|${matchUp.matchUpType ?? ''}|${eventId}`;
-    const cached = cache.get(key);
-    if (cached) return cached;
-
-    let timing = FALLBACK_TIMING;
-    if (matchUpFormat) {
-      // `matchUpType` is a plain string on the hydrated matchUp but an
-      // `EventTypeUnion` on the engine signature; the engine validates it and
-      // falls back to SINGLES, so widen at the boundary rather than duplicating
-      // the union here.
-      const event = events.get(eventId);
-      const result: any = tournamentEngine.getMatchUpFormatTiming({
-        eventType: matchUp.matchUpType as any,
-        ...categoryOf(event),
-        matchUpFormat,
-        event,
-      });
-      if (!result?.error) {
-        timing = {
-          averageMinutes: result?.averageMinutes ?? FALLBACK_TIMING.averageMinutes,
-          recoveryMinutes: result?.recoveryMinutes ?? FALLBACK_TIMING.recoveryMinutes,
-          typeChangeRecoveryMinutes: result?.typeChangeRecoveryMinutes ?? 0,
-        };
-      }
-    }
-    cache.set(key, timing);
-    return timing;
-  };
+/**
+ * A matchUp's average minutes, or undefined when it has none to give: no format, or a lookup that failed.
+ * For totals that must not count a figure nobody set, where `makeTimingResolver` would supply a flat 90.
+ */
+export function makeAverageMinutesResolver(): (matchUp: ReadinessMatchUp) => number | undefined {
+  const resolve = memoiseTiming();
+  return (matchUp: ReadinessMatchUp) => resolve(matchUp)?.averageMinutes;
 }

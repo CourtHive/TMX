@@ -71,6 +71,12 @@ test.describe('Topology — Add playoffs mode', () => {
     const canvas = await openTopology(page, SE_PROFILE);
     await expect(canvas.locator('.tb-card')).toHaveCount(1);
 
+    // the modes sit in the page's own bar, beside [View draw]; the topology keeps no bar of its own for them
+    // (CA, 2026-11-19: screen space)
+    await expect(page.locator(S.EVENT_CONTROL).locator(TOGGLE)).toBeVisible();
+    await expect(page.locator(S.EVENT_CONTROL).locator('button.tb-mode-toggle[data-mode="journey"]')).toBeVisible();
+    await expect(page.locator(S.DRAWS_VIEW).locator('.tb-toolbar-wrapper .tb-mode-toggle')).toHaveCount(0);
+
     await page.locator(TOGGLE).click();
     // a 16 draw can play off 3-4 (or 1-4 as a page playoff), 5-8 and 9-16, and take a voluntary consolation
     await expect(canvas.locator(OFFER)).toHaveText([

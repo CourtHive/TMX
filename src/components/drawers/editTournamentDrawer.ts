@@ -101,14 +101,13 @@ export function editTournament({
       language: i18next.language,
     },
     {
-      // See the note in `editDatesModal` — the zone list is plain strings, so
-      // the typeAhead's `currentValue` label lookup never matches. `value` is
-      // what actually pre-fills the input.
+      // the time zone picker (CA, 2026-11-17: "America/New_York & etc" was confusing): search by city, zone name,
+      // country or offset, or pick on a map; `inputs.localTimeZone.value` is still the IANA id
       value: values.localTimeZone,
       label: t('drawers.editTournament.timeZoneLabel'),
       placeholder: t('drawers.editTournament.timeZonePlaceholder'),
       field: 'localTimeZone',
-      typeAhead: { list: supportedTimeZones },
+      timeZone: { timeZones: supportedTimeZones, locale: i18next.language },
     },
     // Tournament tier — the federation-specific competitive prestige
     // classification. When the provider config declares

@@ -1,5 +1,6 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { getTournamentRecord, seedTournament } from '../helpers/seed';
+import { generateFromTopology } from '../helpers/topologyGenerate';
 import { test, expect } from '@playwright/test';
 
 /**
@@ -32,13 +33,12 @@ test.describe('Topology — factory Fit proposals', () => {
     const topology = page.locator('#tmxTopology');
     await expect(topology.locator(FIT)).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
 
-    await topology.getByRole('button', { name: 'Add Structure' }).click();
-    await page
-      .locator('.dropdown-item', { hasText: /^Main$/ })
-      .first()
-      .click();
+    // the page opens with the 64 its 40 accepted entries call for; a 32 is one step down, and over-full
+    await expect(topology.locator('.tb-card')).toHaveCount(1);
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
-    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'OVER', { timeout: 10_000 });
+    await expect(main.locator('.tb-card-size')).toHaveText('×64', { timeout: 10_000 });
+    await main.locator('.tb-fit-stepper[data-lever="size"] .tb-fit-step[data-direction="down"]').click();
+    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'OVER');
     await topology.locator('.tb-proposals-toggle').click();
     await expect(topology.locator('[data-kind="Grow"]')).toContainText('24 extra BYEs');
     await page.evaluate(async () => {
@@ -59,7 +59,7 @@ test.describe('Topology — factory Fit proposals', () => {
     await page.screenshot({ path: test.info().outputPath('acceptance-line.png') });
 
     // Generate: the statuses and the draw land together
-    await topology.getByRole('button', { name: 'Generate Draw' }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0, {
         timeout: 10_000,

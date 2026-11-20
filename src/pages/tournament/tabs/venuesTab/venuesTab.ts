@@ -38,6 +38,7 @@ import {
 const NONE = 'none';
 const AVAILABILITY = 'availability';
 const TRANSIT = 'transit';
+const VENUES_TITLE = 'pages.venues.title';
 
 interface RenderVenueTabParams {
   venueView?: string;
@@ -61,7 +62,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
       const venue = tournamentEngine.getTournament()?.tournamentRecord?.venues?.find((v: any) => v.venueId === venueId);
       setTabHeader({
         anchor: venuesAnchor,
-        label: venue?.venueName || t('pages.venues.title'),
+        label: venue?.venueName || t(VENUES_TITLE),
         count: courtCount,
       });
     };
@@ -75,9 +76,15 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
 
   // ─── Transit view (venue-to-venue travel times) ─────────────────────────
   if (venueView === TRANSIT && venuesAnchor) {
-    // the transit view owns its header and back button; the list's control bar does not apply
-    if (controlAnchor) controlAnchor.innerHTML = '';
-    renderTransitView({ anchor: venuesAnchor, onBack: () => navigateToVenues() });
+    // the list's control bar, with [Venues] in the slot [Transit times] holds; a venue added here redraws the view
+    // its own header: the list's carries a cards/table toggle wired to the list, which would redraw it here
+    const showTransit = () => {
+      const venueCount = tournamentEngine.getTournament()?.tournamentRecord?.venues?.length ?? 0;
+      setTabHeader({ anchor: venuesAnchor, label: t(VENUES_TITLE), count: venueCount });
+      renderTransitView({ anchor: venuesAnchor });
+    };
+    venueControl({ controlAnchor, updateVenueRow: showTransit, onVenues: () => navigateToVenues() });
+    showTransit();
     return;
   }
 
@@ -104,7 +111,7 @@ export function renderVenueTab({ venueView, venueId }: RenderVenueTabParams = {}
     if (!venuesAnchor) return;
     setTabHeader({
       anchor: venuesAnchor,
-      label: t('pages.venues.title'),
+      label: t(VENUES_TITLE),
       count,
       trailing: availabilityVisible ? undefined : buildToggle(),
     });

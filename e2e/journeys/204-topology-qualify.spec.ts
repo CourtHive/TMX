@@ -1,6 +1,7 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { getTournamentRecord, seedTournament } from '../helpers/seed';
+import { generateFromTopology } from '../helpers/topologyGenerate';
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -17,6 +18,7 @@ async function setup(
     alternateLimit = undefined as number | undefined,
     mainAlternates = 0,
     qualifyingAlternates = 0,
+    fromDefaults = false,
   } = {},
 ) {
   const tournamentId = await seedTournament(page, {
@@ -86,6 +88,12 @@ async function setup(
   await page.goto(`/#/tournament/${tournamentId}/topology/${eventId}`);
   const topology = page.locator('#tmxTopology');
   await expect(topology.locator('button.tb-mode-toggle[data-mode="fit"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(topology.locator('.tb-card').first()).toBeVisible();
+  if (fromDefaults) return topology;
+  // These tests start from a lone, over-full Main 32: the page's default structures are cleared first
+  await topology.getByRole('button', { name: 'Clear', exact: true }).click();
+  await page.getByRole('button', { name: 'Ok', exact: true }).click();
+  await expect(topology.locator('.tb-card')).toHaveCount(0);
   await topology.getByRole('button', { name: 'Add Structure', exact: true }).click();
   await page
     .locator('.dropdown-item', { hasText: /^Main$/ })
@@ -101,6 +109,21 @@ test.describe('Topology — qualifying acceptance', () => {
     await waitForAppReady(page);
     await initDevBridge(page);
     await resetState(page);
+  });
+
+  test('a new draw opens with the Main and Qualifying its accepted entries call for', async ({ page }) => {
+    // 40 accepted in MAIN make a 64, 24 places left over; the 12 in QUALIFYING are its qualifying structure, which
+    // produces 6, 4, 3, 2 or 1 (CA, 2026-11-17): 6 of the 24 places, by halving its own 12, with no byes
+    const topology = await setup(page, { qualifying: 12, fromDefaults: true });
+    await expect(topology.locator('.tb-card')).toHaveCount(2);
+    const card = (name: string) =>
+      topology.locator('.tb-card').filter({ has: page.locator('.tb-card-name', { hasText: name }) });
+    await expect(card('Main').locator('.tb-card-size')).toHaveText('×64');
+    await expect(card('Qualifying').locator('.tb-card-size')).toHaveText('×12');
+    await expect(card('Qualifying').locator('.tb-card-byes')).toHaveCount(0);
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['40 DA', '12 DA']);
+    const record: any = await getTournamentRecord(page);
+    expect(record.events[0].drawDefinitions ?? []).toHaveLength(0);
   });
 
   test('Qualify previews and Generate moves the ranked tail before attaching both brackets', async ({ page }) => {
@@ -131,7 +154,7 @@ test.describe('Topology — qualifying acceptance', () => {
       }, theme);
       await page.screenshot({ path: test.info().outputPath(`qualifying-${theme}.png`) });
     }
-    await topology.getByRole('button', { name: 'Generate Draw', exact: true }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0)
       .toBe(1);
@@ -177,7 +200,7 @@ test.describe('Topology — qualifying acceptance', () => {
     await slider.focus();
     await slider.press('ArrowUp');
     await expect(slider).toHaveAttribute('aria-valuenow', '31');
-    await topology.getByRole('button', { name: 'Generate Draw', exact: true }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0)
       .toBe(1);
@@ -205,7 +228,7 @@ test.describe('Topology — qualifying acceptance', () => {
     await input.press('Tab');
     await topology.locator('.tb-proposals-toggle').click();
     await topology.locator('[data-kind="Grow"]').click();
-    await topology.getByRole('button', { name: 'Generate Draw', exact: true }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0)
       .toBe(1);
@@ -219,7 +242,7 @@ test.describe('Topology — qualifying acceptance', () => {
     const before = await getTournamentRecord(page);
     await topology.getByRole('button', { name: 'Acceptance line', exact: true }).click();
     await topology.locator('.tb-acceptance[data-stage="MAIN"] .tb-acceptance-row').nth(31).click();
-    await topology.getByRole('button', { name: 'Generate Draw', exact: true }).click();
+    await generateFromTopology(page, topology);
     await expect(
       page.locator('.notification').filter({ hasText: 'No stage space available for entryStatus' }),
     ).toBeVisible();
@@ -244,7 +267,7 @@ test.describe('Topology — qualifying acceptance', () => {
     await line.press('ArrowUp');
     await expect(line).toHaveAttribute('aria-valuenow', '32');
     expect(await getTournamentRecord(page)).toEqual(before);
-    await topology.getByRole('button', { name: 'Generate Draw', exact: true }).click();
+    await generateFromTopology(page, topology);
     await expect
       .poll(async () => ((await getTournamentRecord(page)) as any).events[0].drawDefinitions?.length ?? 0)
       .toBe(1);

@@ -98,23 +98,17 @@ export function openEditDatesModal({ onSave }: { onSave: () => void }): void {
       date: true,
       language: i18next.language,
     },
-    // Time zone picker — IANA zone backing every "Live"/"Completed"
-    // boundary, scheduled-time render, and audit timestamp on the
-    // tournament. Same typeAhead pattern used in the New Tournament
-    // drawer. Empty value === "clear" so TDs can unset back to the
+    // Time zone — the IANA zone backing every "Live"/"Completed" boundary, scheduled-time render, and audit timestamp
+    // on the tournament. The time zone picker (CA, 2026-11-17): search by city, zone name, country or offset, or pick
+    // on a map; `inputs.localTimeZone.value` is the IANA id. Empty === "clear", so TDs can unset back to the
     // host-local fallback.
     {
-      // `value` — not the typeAhead's `currentValue` — is what pre-fills this
-      // field. `currentValue` resolves a stored code to its display label by
-      // looking for `{ value, label }` entries in the list; the zone list is
-      // plain strings, so that lookup always misses and the input renders
-      // empty. `renderField` assigns `item.value` after the typeAhead is
-      // attached, so the pre-fill survives.
       value: existingTimeZone || detectedTimeZone,
       label: t('drawers.editTournament.timeZoneLabel'),
       placeholder: t('drawers.editTournament.timeZonePlaceholder'),
       field: 'localTimeZone',
-      typeAhead: { list: supportedTimeZones },
+      // a modal is tight: the map is a click away, behind the globe
+      timeZone: { timeZones: supportedTimeZones, locale: i18next.language, showMap: false },
     },
   ];
 

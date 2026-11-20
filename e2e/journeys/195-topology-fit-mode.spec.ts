@@ -34,23 +34,21 @@ test.describe('Topology — Fit mode', () => {
     const topology = page.locator('#tmxTopology');
     await expect(topology.locator(FIT)).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
 
-    // a main structure to fit the entries to: the toolbar's default is a 32
-    await topology.getByRole('button', { name: 'Add Structure' }).click();
-    await page
-      .locator('.dropdown-item', { hasText: /^Main$/ })
-      .first()
-      .click();
+    // the page opens with the Main its 26 accepted entries call for: the 32 that holds them (CA, 2026-11-16)
+    await expect(topology.locator('.tb-card')).toHaveCount(1);
 
     const main = topology.locator('.tb-card').filter({ has: page.locator('.tb-fit') });
-    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'SHORT', { timeout: 10_000 });
-    await expect(main.locator('.tb-fit-text')).toHaveText('26 entered · 6 BYEs');
-    await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  26 DA');
+    // the fit is asked with the seeds Configure draw places by default (CA, 2026-11-18): 26 in a 32 seed 8, whose 6 BYEs
+    // are the seeds' own — the draw fits. Asked without seeds it read SHORT, a draw Generate never makes
+    await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'FITS', { timeout: 10_000 });
+    await expect(main.locator('.tb-fit-text')).toHaveText('26 entered · 6 BYEs (6 to seeds)');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['26 DA']);
 
     // half the size: 26 for 16 positions — ten have no place
     await main.locator('.tb-fit-stepper[data-lever="size"] .tb-fit-step[data-direction="down"]').click();
     await expect(main.locator('.tb-fit-status')).toHaveAttribute('data-status', 'OVER');
     await expect(main.locator('.tb-fit-text')).toHaveText('16 entered · 10 not placed');
-    await expect(topology.locator('.tb-footer-hint')).toHaveText('Main  26 DA   |   10 not placed');
+    await expect(topology.locator('.tb-footer-hint .tb-ledger-chip')).toHaveText(['26 DA', '10 not placed']);
 
     // asking changed nothing: still no draw
     const after: any = await getTournamentRecord(page);
