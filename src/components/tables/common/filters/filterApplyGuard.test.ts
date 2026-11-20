@@ -178,10 +178,10 @@ describe('filter modules do not remove a filter they never added', () => {
   });
 
   describe('sexFilter (participant tables share the pattern)', () => {
-    // No setter is exposed; the filter is driven by its option onClick handlers.
-    // `sexOptions[0]` is the "all" option, which clears.
+    // Driven through the popover's option onClick handlers.
+    // `options[0]` is the "all" option, which clears.
     const clearAndPick = (table: any) => {
-      const { sexOptions } = getSexFilter(table, undefined as any) as any;
+      const { options: sexOptions } = getSexFilter(table) as any;
       const options = sexOptions.filter((o: any) => !o.divider);
       return { clear: () => options[0].onClick(), pick: () => options[1].onClick() };
     };

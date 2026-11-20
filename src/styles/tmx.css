@@ -1438,7 +1438,7 @@ img {
 
 .filter-popover-chip {
   padding: 0.2em 0.7em;
-  border: 1px solid var(--tmx-border-primary);
+  border: 1px solid var(--tmx-chip-border);
   border-radius: 999px;
   background: transparent;
   color: var(--tmx-text-muted);
@@ -1456,14 +1456,20 @@ img {
   color: var(--tmx-text-primary);
 }
 
-/* a chip's colour is the bars' colour for its bucket (statusColors.ts, set as --chip-color / --chip-ink); a chip
-   without one (Type, Event, Flight) takes the accent */
+/* `data-on` means NARROWING (paintChipState): at rest, with no filter set, every chip is outlined. A chip's colour is
+   the bars' colour for its bucket (statusColors.ts, set as --chip-color / --chip-ink); a chip without one (Type, Event,
+   Flight, the participants footer) takes the chip accent, whose contrast is set per theme in theme.css */
 .filter-popover-chip[data-on='true'] {
-  border-color: var(--chip-color, var(--tmx-fill-accent));
-  background: var(--chip-color, var(--tmx-fill-accent));
-  color: var(--chip-ink, var(--tmx-text-inverse));
+  border-color: var(--chip-color, var(--tmx-chip-fill));
+  background: var(--chip-color, var(--tmx-chip-fill));
+  color: var(--chip-ink, var(--tmx-chip-ink));
 }
 
+/* in the dark themes some status fills sit close to the surface (a walkover's dark pill, the muted success and info
+   containers): a filled coloured chip takes the chip border as its edge there, so the chip still stands out (3:1) */
+[data-theme='dark'] .filter-popover-chip[style*='--chip-color'][data-on='true'] {
+  border-color: var(--tmx-chip-border);
+}
 /* off, a coloured chip keeps a dot of its colour, so the eye still finds its bucket */
 .filter-popover-chip[style*='--chip-color'][data-on='false']::before {
   content: '';
@@ -1508,8 +1514,34 @@ img {
 }
 
 .tmx-status-strip-chip[data-on='true'] .tmx-status-strip-count {
-  background: var(--chip-ink, var(--tmx-text-inverse));
-  color: var(--chip-color, var(--tmx-fill-accent));
+  background: var(--chip-ink, var(--tmx-chip-ink));
+  color: var(--chip-color, var(--tmx-chip-fill));
+}
+
+/* Participants footer: the status strip's chips, in groups (gender, sign-in, entry, missing data, age) */
+/* groups are told apart by space alone: a divider would open a wrapped line with a stray rule */
+.tmx-participants-footer {
+  align-items: center;
+  column-gap: 20px;
+}
+
+.tmx-participants-footer-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.tmx-participants-footer-scope,
+.tmx-participants-footer-label {
+  color: var(--tmx-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tmx-participants-footer-scope[data-scope='selected'] {
+  color: var(--tmx-accent-blue);
+  font-weight: 600;
 }
 
 /* ── Clear-filters button inside empty-table placeholder ─────────────── */

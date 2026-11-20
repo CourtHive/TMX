@@ -29,6 +29,8 @@ export function eventsView(): void {
   let table: any;
   let setSearchFilter: (q: string) => void = () => {};
   let currentQuery = '';
+  let shownCount = 0;
+  let selectedCount: number | undefined;
 
   const anchor = document.getElementById(TOURNAMENT_EVENTS);
 
@@ -46,10 +48,12 @@ export function eventsView(): void {
 
   function refreshHeader(count: number): void {
     if (!anchor) return;
+    shownCount = count;
     setTabHeader({
       anchor,
       label: t('pages.events.title'),
       count,
+      selected: selectedCount,
       trailing: buildToggle(),
     });
   }
@@ -58,6 +62,7 @@ export function eventsView(): void {
     if (!anchor) return;
     destroyTable({ anchorId: TOURNAMENT_EVENTS });
     table = undefined;
+    selectedCount = undefined;
     const count = renderEventsGrid(anchor, currentQuery.toLowerCase());
     refreshHeader(count);
     setSearchFilter = (q: string) => {
@@ -71,10 +76,15 @@ export function eventsView(): void {
   function renderTable(): void {
     const result = createEventsTable();
     table = result.table;
+    selectedCount = 0;
     const initialCount = table?.getDataCount?.() ?? table?.getData?.().length ?? 0;
     refreshHeader(initialCount);
     table?.on?.('dataChanged', (rows: any[]) => refreshHeader(rows.length));
     table?.on?.('dataFiltered', (_filters: any, rows: any[]) => refreshHeader(rows.length));
+    table?.on?.('rowSelectionChanged', (data: any[]) => {
+      selectedCount = data?.length ?? 0;
+      refreshHeader(shownCount);
+    });
     setSearchFilter = createSearchFilter(table);
     if (currentQuery) setSearchFilter(currentQuery);
   }

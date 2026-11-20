@@ -3,6 +3,7 @@
  * Displays individual participants with filtering, editing, and management options.
  */
 import { INDIVIDUAL_MERGE_ACTION, PARTICIPANT_CONTROL, OVERLAY, STAFF, RIGHT, LEFT } from 'constants/tmxConstants';
+import { createParticipantFacets, facetSection, mountParticipantsFooter, sexGroup } from './participantsFooter';
 import { enableManualRatings } from 'components/tables/participantsTable/editRatings/enableManualRatings';
 import { mergeSelectedIndividuals, activateIndividualMergeAction } from './mergeIndividualParticipants';
 import { createParticipantsTable } from 'components/tables/participantsTable/createParticipantsTable';
@@ -44,7 +45,13 @@ const { OFFICIAL } = participantRoles;
 const isPrimary = 'is-primary';
 
 export function renderIndividuals({ view }: { view: string }): void {
-  const { table, replaceTableData, teamParticipants, groupParticipants, data } = createParticipantsTable({ view });
+  // competitors only: the footer's counts (sign-in, entry, ratings, age) are questions about players
+  const isCompetitors = view !== OFFICIAL && view !== STAFF;
+  const footerElement = isCompetitors ? document.createElement('div') : undefined;
+  const { table, replaceTableData, teamParticipants, groupParticipants, data } = createParticipantsTable({
+    view,
+    footerElement,
+  });
   context.refreshActiveTable = replaceTableData;
 
   const setSearchFilter = createSearchFilter(table, { persistKey: 'search', filterContext: 'participantFilters' });
@@ -55,7 +62,8 @@ export function renderIndividuals({ view }: { view: string }): void {
   const refreshAfterEventChange = () => renderIndividuals({ view });
 
   const { eventOptions, events, isFiltered: isEventFiltered, activeIndex: eventActiveIndex } = getEventFilter(table);
-  const { sexOptions, isFiltered: isSexFiltered, activeIndex: sexActiveIndex } = getSexFilter(table);
+  const sex = getSexFilter(table);
+  const facets = isCompetitors ? createParticipantFacets(table) : [];
   const {
     teamOptions,
     isFiltered: isTeamFiltered,
@@ -77,10 +85,13 @@ export function renderIndividuals({ view }: { view: string }): void {
     },
     {
       label: t('pages.participants.allGenders'),
-      options: sexOptions,
-      isFiltered: isSexFiltered,
-      activeIndex: sexActiveIndex,
+      chipsLabel: t('pages.participants.footer.gender'),
+      options: sex.options,
+      chips: sex.chips,
+      isFiltered: sex.isFiltered,
+      activeIndex: sex.activeIndex,
     },
+    ...facets.map(facetSection),
   ];
   const { item: filterButton, clearAllFilters, updateBadge } = filterPopoverButton(filterSections);
 
@@ -365,4 +376,13 @@ export function renderIndividuals({ view }: { view: string }): void {
 
   // Apply filter-active styling if a filter was persisted from a previous session
   updateBadge();
+
+  if (footerElement) {
+    mountParticipantsFooter({
+      table,
+      element: footerElement,
+      groups: [sexGroup(sex), ...facets],
+      onToggle: updateBadge,
+    });
+  }
 }

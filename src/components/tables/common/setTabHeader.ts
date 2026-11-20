@@ -1,5 +1,5 @@
 /**
- * Set a tab section header to "<label> (<count>)" plus an optional inline
+ * Set a tab section header to "<label> (<count>)", an optional "Selected: <n>", and an optional inline
  * right-aligned widget (e.g. the cards/table view toggle).
  *
  * The header is the `.tabHeader` element inside the section ancestor of the
@@ -8,6 +8,7 @@
  */
 
 import { findAncestor } from 'services/dom/parentAndChild';
+import { createTabHeaderTitle } from './tabHeaderTitle';
 
 import './setTabHeader.css';
 
@@ -15,10 +16,12 @@ interface SetTabHeaderParams {
   anchor: HTMLElement;
   label: string;
   count: number;
+  /** Rows selected in the table; omit for a view without row selection. */
+  selected?: number;
   trailing?: HTMLElement;
 }
 
-export function setTabHeader({ anchor, label, count, trailing }: SetTabHeaderParams): void {
+export function setTabHeader({ anchor, label, count, selected, trailing }: SetTabHeaderParams): void {
   const header = findAncestor(anchor, 'section')?.querySelector('.tabHeader') as HTMLElement | null;
   if (!header) return;
 
@@ -28,9 +31,7 @@ export function setTabHeader({ anchor, label, count, trailing }: SetTabHeaderPar
 
   while (header.firstChild) header.removeChild(header.firstChild);
 
-  const title = document.createElement('span');
-  title.textContent = `${label} (${count})`;
-  header.appendChild(title);
+  header.appendChild(createTabHeaderTitle({ label, count, selected }).element);
 
   if (trailing) header.appendChild(trailing);
 }
