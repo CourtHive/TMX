@@ -2443,6 +2443,8 @@
       "courtName": "Court Name",
       "scheduledTime": "Scheduled Time",
       "unscheduledTime": "Unscheduled Time",
+      "practiceTime": "Practice Time",
+      "blockedTime": "Blocked Time",
       "inOut": "In/Out",
       "surface": "Surface"
     },

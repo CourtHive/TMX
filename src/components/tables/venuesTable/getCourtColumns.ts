@@ -66,6 +66,20 @@ export function getCourtColumns(): any[] {
       hozAlign: CENTER,
       headerHozAlign: CENTER,
     },
+    {
+      title: t('tables.courts.practiceTime'),
+      field: 'practiceMinutes',
+      formatter: durationFormatter,
+      hozAlign: CENTER,
+      headerHozAlign: CENTER,
+    },
+    {
+      title: t('tables.courts.blockedTime'),
+      field: 'blockedMinutes',
+      formatter: durationFormatter,
+      hozAlign: CENTER,
+      headerHozAlign: CENTER,
+    },
     { title: t('tables.courts.inOut'), field: 'indoorOutdoor' },
     // CODES' surface class; a class an earlier TMX left in surfaceType still shows (functions/courtSurface).
     {

@@ -152,6 +152,8 @@ export const venueRowFormatter =
         'courtName',
         'scheduledMinutes',
         'unscheduledMinutes',
+        'practiceMinutes',
+        'blockedMinutes',
         'floodlit',
         'surfaceCategory',
         'indoorOutdoor',
