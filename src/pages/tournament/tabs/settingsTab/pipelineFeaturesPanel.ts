@@ -104,15 +104,21 @@ function settingRow(
   const row = document.createElement('div');
   row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0;';
 
+  // the panel's own scale: a bare <label> takes the global form-label size, larger than the panel's heading
   const label = document.createElement('label');
   label.htmlFor = `pipeline-${key}`;
   label.textContent = t(`settings.pipelineFeatures.options.${key}`);
+  label.style.cssText = 'font-size: 0.9rem; font-weight: 400; color: var(--tmx-text-primary); margin: 0;';
 
+  // the forms' select (courthive-components renderField): the wrapper draws the chevron and themed border
+  const wrapper = document.createElement('div');
+  wrapper.className = 'select font-medium';
+  wrapper.style.cssText = 'flex: 0 0 140px;';
   const select = document.createElement('select');
-  select.className = 'input is-small';
   select.id = `pipeline-${key}`;
   select.dataset.pipelineOption = key;
-  select.style.cssText = 'max-width: 120px;';
+  select.style.cssText = 'width: 100%;';
+  wrapper.appendChild(select);
   select.disabled = disabled;
   for (const setting of SETTINGS) {
     const option = new Option(t(`settings.pipelineFeatures.${setting}`), setting);
@@ -121,7 +127,7 @@ function settingRow(
   }
   select.addEventListener('change', () => onChange(select.value as PipelineSetting));
 
-  row.append(label, select);
+  row.append(label, wrapper);
   return row;
 }
 
