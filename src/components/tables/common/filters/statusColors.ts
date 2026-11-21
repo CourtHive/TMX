@@ -19,7 +19,8 @@ export const TODAY_COLORS = {
   live: 'var(--chc-status-info, #3b82f6)',
   suspended: 'var(--chc-status-warning, #d97706)',
   called: 'var(--chc-status-violet, #7c3aed)',
-  readyToScore: 'var(--chc-status-teal, #0d9488)',
+  // teal-700, not teal-600 (#0d9488): white on teal-600 read 3.74:1 on the filled "To be played" chip (journey 219)
+  readyToScore: 'var(--chc-status-teal, #0f766e)',
   notReady: 'var(--chc-text-muted, #6b7280)',
 } as const;
 

@@ -21,7 +21,10 @@ import { t } from 'i18n';
 const CURSOR_POINTER = 'cursor: pointer';
 const BORDER_NONE = 'border: none';
 // Used as a fill under its own ink: the accent itself lightens in dark palettes.
-const ACCENT_BLUE = 'var(--tmx-fill-accent)';
+// the accent as TEXT (active tab, outlined button) and as a FILL (the button's hover background) are different
+// tokens: the fill is made to sit behind white, and as dark-theme text it read 3.3:1 (UX survey 2026-11-20)
+const ACCENT_TEXT = 'var(--tmx-accent-blue)';
+const ACCENT_FILL = 'var(--tmx-fill-accent)';
 const ON_ACCENT = 'var(--chc-on-link)';
 const TEXT_SECONDARY = 'var(--tmx-text-secondary, #888)';
 
@@ -106,8 +109,8 @@ export function renderEventTabsBar({
       CURSOR_POINTER,
       'font-size: 0.95em',
       `font-weight: ${isActive ? '600' : '400'}`,
-      `color: ${isActive ? ACCENT_BLUE : TEXT_SECONDARY}`,
-      `border-bottom: 2px solid ${isActive ? ACCENT_BLUE : 'transparent'}`,
+      `color: ${isActive ? ACCENT_TEXT : TEXT_SECONDARY}`,
+      `border-bottom: 2px solid ${isActive ? ACCENT_TEXT : 'transparent'}`,
       'margin-bottom: -2px',
       'transition: color 0.15s, border-color 0.15s',
     ].join('; ');
@@ -223,7 +226,7 @@ export function renderNoDrawsPlaceholder({
   btn.style.cssText = [
     'padding: 0.6em 1.5em',
     BORDER_NONE,
-    `background: ${ACCENT_BLUE}`,
+    `background: ${ACCENT_FILL}`,
     `color: ${ON_ACCENT}`,
     'border-radius: 4px',
     CURSOR_POINTER,
@@ -247,9 +250,9 @@ function outlinedButton(label: string): HTMLButtonElement {
   button.textContent = label;
   button.style.cssText = [
     'padding: 0.4em 1em',
-    `border: 1px solid ${ACCENT_BLUE}`,
+    `border: 1px solid ${ACCENT_TEXT}`,
     'background: transparent',
-    `color: ${ACCENT_BLUE}`,
+    `color: ${ACCENT_TEXT}`,
     'border-radius: 4px',
     CURSOR_POINTER,
     'font-size: 0.85em',
@@ -258,12 +261,12 @@ function outlinedButton(label: string): HTMLButtonElement {
     'transition: background 0.15s, color 0.15s',
   ].join('; ');
   button.onmouseenter = () => {
-    button.style.background = ACCENT_BLUE;
+    button.style.background = ACCENT_FILL;
     button.style.color = ON_ACCENT;
   };
   button.onmouseleave = () => {
     button.style.background = 'transparent';
-    button.style.color = ACCENT_BLUE;
+    button.style.color = ACCENT_TEXT;
   };
   return button;
 }

@@ -4,6 +4,7 @@
  */
 import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { refreshReconciliationIndex } from 'services/crowd/delegatedReconciliation';
+import { createTabHeaderTitle, trackSelectedRows } from '../common/tabHeaderTitle';
 import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { subscribeCrowdActivity } from 'services/crowd/crowdActivityIndex';
 import { mapMatchUp } from 'pages/tournament/tabs/matchUpsTab/mapMatchUp';
@@ -75,9 +76,12 @@ export function createMatchUpsTable({ footerElement }: { footerElement?: HTMLEle
     });
     // to the window's bottom, footer chips and all — not a fraction of the window (fitTableToViewportBottom)
     table.on('tableBuilt', () => fitTableToViewportBottom(table, element, { gap: 8 }));
+    const title = createTabHeaderTitle({ label: t('pages.matchUps.title'), count: data.length, selected: 0 });
+    headerElement?.replaceChildren(title.element);
+    trackSelectedRows(table, title);
     table.on('dataFiltered', (_filters: any, rows: any[]) => {
       const matchUps = rows.map((row) => row.getData().matchUp);
-      headerElement && (headerElement.innerHTML = `${t('pages.matchUps.title')} (${matchUps.length})`);
+      title.setCount(matchUps.length);
 
       const presentRatings = getPresentRatings();
 

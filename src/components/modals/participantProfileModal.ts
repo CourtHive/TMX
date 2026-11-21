@@ -11,6 +11,7 @@ import { buildParticipantFingerprint } from './participantFingerprint';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
 import { controlBar, cModal } from 'courthive-components';
+import { pointsRowsForEvent, pointsTotalLabel } from './pointsRows';
 
 // constants
 import { entryStatusMapping, LEFT, RIGHT } from 'constants/tmxConstants';
@@ -511,17 +512,17 @@ export function participantProfileModal({ participantId, participantIds, readOnl
       );
       if (!res?.success) continue;
 
-      const eventName = res.eventName;
-      const awards = (res.eventAwards || []).filter(
-        (a: any) => a.participantId === participantId || a.personId === personId,
+      const evt = allEvents.find((e: any) => e.eventId === eventId);
+      rows.push(
+        ...pointsRowsForEvent({
+          participantId,
+          personId,
+          individualParticipantIds: participant.individualParticipantIds,
+          awards: res.eventAwards,
+          eventName: res.eventName || evt?.eventName || eventId,
+          eventId,
+        }),
       );
-
-      if (awards.length) {
-        for (const award of awards) rows.push({ ...award, eventName, eventId });
-      } else {
-        const evt = allEvents.find((e: any) => e.eventId === eventId);
-        rows.push({ eventName: evt?.eventName || eventName || eventId, eventId, points: 0 });
-      }
     }
     return rows;
   };
@@ -637,14 +638,12 @@ export function participantProfileModal({ participantId, participantIds, readOnl
         },
       }));
 
-      const totalPoints = lastData.reduce((sum: number, r: any) => sum + (r.points || 0), 0);
-
       const leftEl = document.createElement('div');
       controlBar({
         target: leftEl,
         items: [
           {
-            label: `Total: ${totalPoints}`,
+            label: pointsTotalLabel(lastData),
             location: LEFT,
             intent: 'is-info',
           },

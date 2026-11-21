@@ -1,4 +1,4 @@
-import { chipsFit, paintChipColor, type ChipSection } from './chipFilter';
+import { chipsFit, paintChipColor, paintChipState, type ChipSection } from './chipFilter';
 import tippy, { Instance } from 'tippy.js';
 
 import { LEFT } from 'constants/tmxConstants';
@@ -196,11 +196,8 @@ export function filterPopoverButton(
     });
     // every chip's state, after any toggle: turning off the last chip turns them all back on
     const paint = () => {
-      for (const chip of buttons) {
-        const on = chips.isOn(chip.dataset.value as string);
-        chip.setAttribute('aria-pressed', String(on));
-        chip.dataset.on = String(on);
-      }
+      const filtered = section.isFiltered();
+      for (const chip of buttons) paintChipState(chip, filtered && chips.isOn(chip.dataset.value as string));
     };
     paint();
 

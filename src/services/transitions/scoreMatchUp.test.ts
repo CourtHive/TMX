@@ -283,3 +283,91 @@ describe('scoreMatchUp — engine status restrictions', () => {
     actionsMock.mockReturnValue({ validActions: [] });
   });
 });
+
+/**
+ * The dialog's submission is controlled (courthive-components >= 7.20): it closes only when the returned promise
+ * resolves without `error`. What the director sees close must be what was saved (ecosystem review 713).
+ */
+describe('scoreMatchUp — the dialog closes only on an accepted result', () => {
+  beforeEach(() => {
+    toastMock.mockClear();
+    mutationRequestMock.mockClear();
+    capturedDialogParams = undefined;
+    actionsMock.mockReturnValue({ validActions: [] });
+  });
+
+  const answer = (result: any) => mutationRequestMock.mock.calls.at(-1)![0].callback(result);
+  const lastToast = () => toastMock.mock.calls.at(-1)![0];
+  const isPending = async (promise: Promise<any>) =>
+    (await Promise.race([promise.then(() => 'settled'), Promise.resolve('pending')])) === 'pending';
+
+  it('stays pending until the server answers, then resolves with the accepted result', async () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    const pending = submit();
+    expect(pending).toBeInstanceOf(Promise);
+    expect(await isPending(pending)).toBe(true);
+    answer({ success: true });
+    await expect(pending).resolves.toEqual({ success: true });
+    close();
+  });
+
+  it('resolves with the refusal, so the dialog stays open with the score', async () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    const pending = submit();
+    answer({ error: { message: INVALID_SCORE_MESSAGE }, info: 'Set 1: incomplete' });
+    await expect(pending).resolves.toMatchObject({ error: { message: INVALID_SCORE_MESSAGE } });
+    close();
+  });
+
+  it('resolves a status outside the engine scope as a refusal without sending', async () => {
+    actionsMock.mockReturnValue({ validActions: [{ type: 'SCORE', disabledMatchUpStatuses: ['DEAD_RUBBER'] }] });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    const result = await capturedDialogParams.onSubmit({ outcome: { matchUpStatus: 'DEAD_RUBBER' } });
+    expect(result.error).toBeDefined();
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    close();
+  });
+
+  it('keeps the dialog open through an Overwrite confirm and resolves with what the server then says', async () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    notifyRemoteScoringCollision(['X']);
+    toastMock.mockClear();
+    const pending = submit();
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    expect(await isPending(pending)).toBe(true);
+
+    const confirm = lastToast();
+    confirm.action.onClick();
+    confirm.onClose?.(); // the toast closes after the click; that is not a dismissal
+    answer({ success: true });
+    await expect(pending).resolves.toEqual({ success: true });
+    close();
+  });
+
+  it('settles as a refusal when mutationRequest rejects, so the dialog is never left pending', async () => {
+    mutationRequestMock.mockImplementationOnce(() => Promise.reject(new Error('transport exploded')));
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    await expect(submit()).resolves.toMatchObject({ error: { message: 'transport exploded' } });
+    close();
+  });
+
+  it('settles as a refusal when mutationRequest throws before answering', async () => {
+    mutationRequestMock.mockImplementationOnce(() => {
+      throw new Error('engine threw');
+    });
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    await expect(submit()).resolves.toMatchObject({ error: { message: 'engine threw' } });
+    close();
+  });
+
+  it('resolves a dismissed Overwrite confirm as not saved, and sends nothing', async () => {
+    enterMatchUpScore({ matchUpId: 'X', matchUp: { drawId: 'd1' } });
+    notifyRemoteScoringCollision(['X']);
+    toastMock.mockClear();
+    const pending = submit();
+    lastToast().onClose();
+    await expect(pending).resolves.toMatchObject({ error: { message: expect.any(String) } });
+    expect(mutationRequestMock).not.toHaveBeenCalled();
+    close();
+  });
+});

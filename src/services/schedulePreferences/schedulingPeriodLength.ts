@@ -8,8 +8,11 @@
  * call of the timed scheduler. The server and every client therefore run the
  * scheduler with the same value.
  *
- * No stored value: no parameter is passed, and the factory default applies
- * (30 minutes, or a matchUp's average plus recovery when that is shorter).
+ * No stored value: no parameter is passed, and the factory resolves the period
+ * itself: each draw's scheduling policy `defaultPeriodLength` (draw > event >
+ * tournament), else 30 minutes. What the operator is shown with nothing stored
+ * is therefore the policy's `defaultPeriodLength`, not a fixed 30: showing 30
+ * while the factory used the policy's 60 is CAPABILITY-001 (2026-11-13 review).
  *
  * Pure: every function takes the tournament record or the value it needs.
  */
@@ -35,9 +38,20 @@ export function readStoredPeriodLength(tournamentRecord: any): number | undefine
   return isValidPeriodLength(periodLength) ? periodLength : undefined;
 }
 
-/** The period length the operator sees: the stored one, else the default. */
-export function effectivePeriodLength(tournamentRecord: any): number {
-  return readStoredPeriodLength(tournamentRecord) ?? DEFAULT_PERIOD_LENGTH;
+/** A scheduling policy's `defaultPeriodLength` (the policy itself, not its `{ scheduling }` wrapper), or undefined. */
+export function policyPeriodLength(schedulingPolicy?: Record<string, any> | null): number | undefined {
+  const minutes = schedulingPolicy?.defaultPeriodLength;
+  return isValidPeriodLength(minutes) ? minutes : undefined;
+}
+
+/** What the scheduler uses when no period is passed: the policy's `defaultPeriodLength`, else the factory's 30. */
+function unstatedPeriodLength(policyDefault?: number): number {
+  return isValidPeriodLength(policyDefault) ? policyDefault : DEFAULT_PERIOD_LENGTH;
+}
+
+/** The period length the operator sees: the stored one, else what the scheduler will use (the policy's, else 30). */
+export function effectivePeriodLength(tournamentRecord: any, policyDefault?: number): number {
+  return readStoredPeriodLength(tournamentRecord) ?? unstatedPeriodLength(policyDefault);
 }
 
 /** The choices to offer: the standard ones, plus a stored value outside them so it is never lost from view. */
@@ -50,14 +64,14 @@ export function periodLengthChoices(tournamentRecord: any): number[] {
 
 /**
  * The method that stores `periodLength`, or undefined when nothing changes: the
- * value is already stored, or it is the default and nothing is stored. Other
- * keys of the extension round-trip.
+ * value is already stored, or nothing is stored and it is what the scheduler
+ * uses anyway (`policyDefault`, else 30). Other keys of the extension round-trip.
  */
-export function periodLengthWriteMethod(tournamentRecord: any, periodLength: number): any {
+export function periodLengthWriteMethod(tournamentRecord: any, periodLength: number, policyDefault?: number): any {
   if (!isValidPeriodLength(periodLength)) return undefined;
   const stored = readStoredPeriodLength(tournamentRecord);
   if (stored === periodLength) return undefined;
-  if (stored === undefined && periodLength === DEFAULT_PERIOD_LENGTH) return undefined;
+  if (stored === undefined && periodLength === unstatedPeriodLength(policyDefault)) return undefined;
   const value = { ...settingsValue(tournamentRecord), periodLength };
   return {
     method: ADD_TOURNAMENT_EXTENSION,
@@ -74,12 +88,18 @@ export function withPeriodLength<T extends Record<string, any>>(params: T, perio
 }
 
 /**
- * The period to pass the timed scheduler: the one just chosen, else the stored one. The default chosen with nothing
- * stored passes none, so the factory default applies, exactly as it does before any choice is made.
+ * The period to pass the timed scheduler: the one just chosen, else the stored one. With nothing stored, a choice
+ * equal to what the scheduler would use anyway (`policyDefault`, else 30) passes none, so each draw keeps its own
+ * policy's period. Any other choice is passed, so the scheduler uses exactly what the operator chose: a 30 chosen
+ * under a policy of 60 is sent, where it used to be dropped as "the default".
  */
-export function schedulerPeriodLength(tournamentRecord: any, chosen?: number): number | undefined {
+export function schedulerPeriodLength(
+  tournamentRecord: any,
+  chosen?: number,
+  policyDefault?: number,
+): number | undefined {
   const stored = readStoredPeriodLength(tournamentRecord);
   if (!isValidPeriodLength(chosen)) return stored;
-  if (stored === undefined && chosen === DEFAULT_PERIOD_LENGTH) return undefined;
+  if (stored === undefined && chosen === unstatedPeriodLength(policyDefault)) return undefined;
   return chosen;
 }

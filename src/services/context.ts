@@ -32,7 +32,14 @@ export const context: {
   participantFilters: {
     eventId?: string;
     teamId?: string;
+    /** @deprecated single-valued, read once by getSexFilter; the chip selection is `sexes` */
     sex?: string;
+    sexes?: string[];
+    /** participants footer chip selections */
+    signIn?: string[];
+    entry?: string[];
+    gaps?: string[];
+    ages?: string[];
     search?: string;
   };
   collectionTables?: any[];

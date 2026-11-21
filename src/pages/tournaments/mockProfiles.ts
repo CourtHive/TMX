@@ -1,0 +1,604 @@
+/**
+ * The example tournaments TMX offers to generate: pure data handed to mocksEngine, kept apart from
+ * mockTournaments.ts (which saves and displays them) so it can be imported, and checked, without a DOM.
+ */
+import { factoryConstants, drawDefinitionConstants, policyConstants, fixtures } from 'tods-competition-factory';
+import { SCHEDULER_DEMO_PROFILE } from 'pages/tournaments/schedulerDemoProfile';
+import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
+
+const {
+  FIRST_MATCH_LOSER_CONSOLATION,
+  FIRST_ROUND_LOSER_CONSOLATION,
+  ROUND_ROBIN_WITH_PLAYOFF,
+  FEED_IN_CHAMPIONSHIP,
+  SINGLE_ELIMINATION,
+  ROUND_ROBIN,
+  COMPASS,
+  AD_HOC,
+} = drawDefinitionConstants;
+
+const { WTN, DUPR, PSA, BWF, USATT, UTR } = factoryConstants.ratingConstants;
+const { DOUBLES, SINGLES, TEAM } = factoryConstants.eventConstants;
+const { MALE, FEMALE, MIXED } = factoryConstants.genderConstants;
+
+// Sport-specific matchUpFormat codes (not in factory constants)
+const FORMAT_TB11 = 'SET3-S:TB11'; // Pickleball standard (best of 3, tiebreak sets to 11)
+const FORMAT_TB11_BO5 = 'SET5-S:TB11'; // Table Tennis / Squash (best of 5, tiebreak sets to 11)
+const FORMAT_TB21 = 'SET3-S:TB21'; // Badminton (best of 3, tiebreak sets to 21)
+const FORMAT_TIMED_10 = 'SET1A-S:T10'; // INTENNSE doubles (1 × 10-min aggregate timed)
+const FORMAT_WIFFLE = 'INN4XA-S:O3-M:T50'; // BLW Wiffle Ball (4 innings, 3 outs/inning, aggregate, 50-min cap)
+
+/**
+ * A governing body's reason-code vocabulary, attached to the mock below so the scoring modal's
+ * reason control has something to offer. Taken from the factory fixture rather than restated here —
+ * a hand-copied vocabulary is how the scoring editor and the factory drifted apart while both
+ * looked correct.
+ */
+const REASON_CODE_SCORING_POLICY = {
+  [policyConstants.POLICY_TYPE_SCORING]: fixtures.policies.POLICY_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING],
+};
+
+const clubCourts = {
+  venueName: 'Super Fast Courts',
+  venueAbbreviation: 'SFC',
+  startTime: '08:00',
+  endTime: '20:00',
+  courtsCount: 8,
+};
+const venueProfiles = [clubCourts];
+
+const dinkCityCourts = {
+  venueName: 'Dink City Courts',
+  venueAbbreviation: 'DCC',
+  startTime: '07:00',
+  endTime: '21:00',
+  courtsCount: 12,
+};
+
+const typtiArena = {
+  venueName: 'TYPTI Arena',
+  venueAbbreviation: 'TYP',
+  startTime: '09:00',
+  endTime: '18:00',
+  courtsCount: 4,
+};
+
+const padelClub = {
+  venueName: 'Padel Club Central',
+  venueAbbreviation: 'PCC',
+  startTime: '08:00',
+  endTime: '22:00',
+  courtsCount: 6,
+};
+
+const spinCenter = {
+  venueName: 'Spin Center',
+  venueAbbreviation: 'SPC',
+  startTime: '09:00',
+  endTime: '21:00',
+  courtsCount: 16,
+};
+
+const glassCourtClub = {
+  venueName: 'Glass Court Club',
+  venueAbbreviation: 'GCC',
+  startTime: '07:00',
+  endTime: '22:00',
+  courtsCount: 6,
+};
+
+const shuttleSportsHall = {
+  venueName: 'Shuttle Sports Hall',
+  venueAbbreviation: 'SSH',
+  startTime: '08:00',
+  endTime: '21:00',
+  courtsCount: 8,
+};
+
+const intennseArena = {
+  venueName: 'INTENNSE Arena',
+  venueAbbreviation: 'INA',
+  startTime: '18:00',
+  endTime: '22:00',
+  courtsCount: 1,
+};
+
+const wiffleballPark = {
+  venueName: 'Wiffle Ball Park',
+  venueAbbreviation: 'WBP',
+  startTime: '08:00',
+  endTime: '18:00',
+  courtsCount: 4,
+};
+
+const ratingType = 'UTR';
+export const mockProfiles: any[] = [
+  // Tournament 1: CourtHive Challenge (existing)
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-1' },
+    participantsProfile: { scaledParticipantsCount: 200, idPrefix: 'p' },
+    tournamentName: 'CourtHive Challenge',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        category: { categoryName: 'U18', ageCategoryCode: 'U18' },
+        eventName: 'U18 Boys Doubles',
+        eventId: 'event-id-1',
+        drawId: 'draw-id-1',
+        eventType: DOUBLES,
+        gender: MALE,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        drawType: FIRST_MATCH_LOSER_CONSOLATION,
+        category: { categoryName: 'U16', ageCategoryCode: 'U16' },
+        eventName: 'U16 Girls Singles',
+        eventId: 'event-id-2',
+        drawId: 'draw-id-2',
+        gender: FEMALE,
+        seedsCount: 8,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles,
+  },
+  // Tournament 2: Level Based Play (existing)
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-02' },
+    participantsProfile: { idPrefix: 'p' },
+    tournamentName: 'Level Based Play',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        eventName: `WTN 14-19 SINGLES`,
+        category: { categoryName: 'WTN 14-19.99', ratingType: WTN, ratingMin: 14, ratingMax: 19.99 },
+        scaledParticipantsCount: 16,
+        eventId: 'event-id-1',
+        drawId: 'draw-id-1',
+        drawType: COMPASS,
+        seedsCount: 8,
+        drawSize: 16,
+      },
+      {
+        eventName: `UTR 10-12 SINGLES`,
+        category: { categoryName: 'UTR 10-12', ratingType: UTR, ratingMin: 10, ratingMax: 12 },
+        scaledParticipantsCount: 16,
+        drawType: ROUND_ROBIN,
+        eventId: 'event-id-2',
+        drawId: 'draw-id-2',
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        category: { categoryName: 'UTR 10-14', ratingType, ratingMin: 10, ratingMax: 14 },
+        eventName: 'DrawMatic with Dynamic Ratings',
+        scaleName: ratingType,
+        eventId: 'event-id-3',
+        drawId: 'draw-id-3',
+        drawType: AD_HOC,
+        automated: true,
+        roundsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles,
+  },
+  // Tournament 3: DUPR Pickleball Classic
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-pb-01' },
+    participantsProfile: {
+      scaledParticipantsCount: 80,
+      category: { ratingType: DUPR, ratingMin: 3, ratingMax: 5.99 },
+      idPrefix: 'pb',
+    },
+    tournamentName: 'DUPR Pickleball Classic',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        category: { categoryName: 'DUPR 3.0-4.49', ratingType: DUPR, ratingMin: 3, ratingMax: 4.49 },
+        matchUpFormat: FORMAT_TB11,
+        eventName: 'DUPR 3.0-4.5 Singles',
+        drawType: ROUND_ROBIN,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        category: { categoryName: 'DUPR 4.5-5.99', ratingType: DUPR, ratingMin: 4.5, ratingMax: 5.99 },
+        matchUpFormat: FORMAT_TB11,
+        eventName: 'DUPR 4.5-6.0 Doubles',
+        drawType: SINGLE_ELIMINATION,
+        eventType: DOUBLES,
+        seedsCount: 4,
+        drawSize: 16,
+        qualifyingProfiles: [
+          {
+            roundTarget: 1,
+            structureProfiles: [{ drawSize: 8, qualifyingPositions: 4 }],
+          },
+        ],
+      },
+      {
+        category: { categoryName: 'DUPR 3.0-4.49', ratingType: DUPR, ratingMin: 3, ratingMax: 4.49 },
+        matchUpFormat: FORMAT_TB11,
+        eventName: 'DUPR 3.0-4.5 Mixed Doubles',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        eventType: DOUBLES,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [dinkCityCourts],
+  },
+  // Tournament 4: Pickleball Formats Showcase
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-pb-02' },
+    participantsProfile: { idPrefix: 'pf' },
+    tournamentName: 'Pickleball Formats Showcase',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        matchUpFormat: 'SET3-S:TB11@RALLY',
+        eventName: 'Rally Scoring Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: 'SET3-S:TB15',
+        eventName: 'Traditional 15 Doubles',
+        drawType: ROUND_ROBIN,
+        eventType: DOUBLES,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+      {
+        matchUpFormat: 'SET5-S:TB21@RALLY-F:TB15@RALLY',
+        eventName: 'MLP Format Mixed Doubles',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        eventType: DOUBLES,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+      {
+        matchUpFormat: 'SET1-S:TB11',
+        eventName: 'Single Game Sprint',
+        drawType: SINGLE_ELIMINATION,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [dinkCityCourts],
+  },
+  // Tournament 5: TYPTI Invitational
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-ty-01' },
+    participantsProfile: { idPrefix: 'ty' },
+    tournamentName: 'TYPTI Invitational',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        matchUpFormat: 'SET5-S:5-G:3C',
+        eventName: 'TYPTI Standard Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: 'SET3-S:4-G:2C',
+        eventName: 'TYPTI Short Format',
+        drawType: ROUND_ROBIN,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [typtiArena],
+  },
+  // Tournament 6: Padel Club Championship
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-pd-01' },
+    participantsProfile: { idPrefix: 'pd' },
+    tournamentName: 'Padel Club Championship',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        matchUpFormat: 'SET3-S:6/TB7',
+        eventName: 'Open Doubles',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        eventType: DOUBLES,
+        gender: MALE,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: 'SET3-S:6NOAD/TB7',
+        eventName: 'Women Golden Point',
+        drawType: SINGLE_ELIMINATION,
+        eventType: DOUBLES,
+        gender: FEMALE,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: 'SET3-S:4/TB7',
+        eventName: 'Mixed Doubles Short Set',
+        drawType: ROUND_ROBIN,
+        eventType: DOUBLES,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [padelClub],
+  },
+  // Tournament 7: Table Tennis Open
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-tt-01' },
+    participantsProfile: {
+      scaledParticipantsCount: 64,
+      category: { ratingType: USATT, ratingMin: 1000, ratingMax: 2400 },
+      idPrefix: 'tt',
+    },
+    tournamentName: 'Table Tennis Open',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        category: { categoryName: 'USATT 1000-1800', ratingType: USATT, ratingMin: 1000, ratingMax: 1800 },
+        matchUpFormat: FORMAT_TB11_BO5,
+        eventName: 'USATT 1000-1800 Singles',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        category: { categoryName: 'USATT 1800-2400', ratingType: USATT, ratingMin: 1800, ratingMax: 2400 },
+        matchUpFormat: FORMAT_TB11_BO5,
+        eventName: 'USATT 1800-2400 Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: FORMAT_TB11,
+        eventName: 'Open Doubles',
+        drawType: ROUND_ROBIN,
+        eventType: DOUBLES,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [spinCenter],
+  },
+  // Tournament 8: Squash Gold Open
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-sq-01' },
+    participantsProfile: {
+      scaledParticipantsCount: 64,
+      category: { ratingType: PSA, ratingMin: 0, ratingMax: 1500 },
+      idPrefix: 'sq',
+    },
+    tournamentName: 'Squash Gold Open',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        category: { categoryName: 'PSA 0-1500', ratingType: PSA, ratingMin: 0, ratingMax: 1500 },
+        matchUpFormat: FORMAT_TB11_BO5,
+        eventName: 'PSA Men Singles',
+        drawType: SINGLE_ELIMINATION,
+        gender: MALE,
+        seedsCount: 8,
+        drawSize: 32,
+        qualifyingProfiles: [
+          {
+            roundTarget: 1,
+            structureProfiles: [{ drawSize: 16, qualifyingPositions: 4 }],
+          },
+        ],
+      },
+      {
+        category: { categoryName: 'PSA 0-1500', ratingType: PSA, ratingMin: 0, ratingMax: 1500 },
+        matchUpFormat: FORMAT_TB11,
+        eventName: 'PSA Women Singles',
+        drawType: FEED_IN_CHAMPIONSHIP,
+        gender: FEMALE,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: FORMAT_TB11_BO5,
+        eventName: 'Club Doubles',
+        drawType: FIRST_ROUND_LOSER_CONSOLATION,
+        eventType: DOUBLES,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles: [glassCourtClub],
+  },
+  // Tournament 9: Badminton Grand Prix
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-bd-01' },
+    participantsProfile: {
+      scaledParticipantsCount: 64,
+      category: { ratingType: BWF, ratingMin: 0, ratingMax: 80000 },
+      idPrefix: 'bd',
+    },
+    tournamentName: 'Badminton Grand Prix',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        category: { categoryName: 'BWF 0-80000', ratingType: BWF, ratingMin: 0, ratingMax: 80000 },
+        matchUpFormat: FORMAT_TB21,
+        eventName: 'BWF Men Singles',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        gender: MALE,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        category: { categoryName: 'BWF 0-80000', ratingType: BWF, ratingMin: 0, ratingMax: 80000 },
+        matchUpFormat: FORMAT_TB21,
+        eventName: 'BWF Women Singles',
+        drawType: SINGLE_ELIMINATION,
+        gender: FEMALE,
+        seedsCount: 4,
+        drawSize: 16,
+        qualifyingProfiles: [
+          {
+            roundTarget: 1,
+            structureProfiles: [{ drawSize: 8, qualifyingPositions: 4 }],
+          },
+        ],
+      },
+      {
+        matchUpFormat: FORMAT_TB21,
+        eventName: 'Mixed Doubles',
+        drawType: FIRST_MATCH_LOSER_CONSOLATION,
+        eventType: DOUBLES,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles: [shuttleSportsHall],
+  },
+  // Tournament 10: INTENNSE Showdown (Team event)
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-in-01' },
+    participantsProfile: { participantsCount: 0, idPrefix: 'in' },
+    tournamentName: 'INTENNSE Showdown',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        eventType: TEAM,
+        drawType: SINGLE_ELIMINATION,
+        drawSize: 2,
+        teamNames: ['The Authentics', 'Cauldron'],
+        teamGenders: { MALE: 3, FEMALE: 3 },
+        tieFormat: {
+          tieFormatName: 'INTENNSE',
+          winCriteria: { aggregateValue: true },
+          collectionDefinitions: [
+            {
+              collectionId: 'intennse-ms',
+              collectionName: "Men's Singles",
+              matchUpType: SINGLES,
+              matchUpCount: 2,
+              matchUpFormat: 'SET2XA-S:T10',
+              scoreValue: 1,
+              gender: MALE,
+              category: { categoryName: 'MS' },
+            },
+            {
+              collectionId: 'intennse-ws',
+              collectionName: "Women's Singles",
+              matchUpType: SINGLES,
+              matchUpCount: 2,
+              matchUpFormat: 'SET2XA-S:T10',
+              scoreValue: 1,
+              gender: FEMALE,
+              category: { categoryName: 'WS' },
+            },
+            {
+              collectionId: 'intennse-md',
+              collectionName: "Men's Doubles",
+              matchUpType: DOUBLES,
+              matchUpCount: 1,
+              matchUpFormat: FORMAT_TIMED_10,
+              scoreValue: 1,
+              gender: MALE,
+              category: { categoryName: 'MD' },
+            },
+            {
+              collectionId: 'intennse-wd',
+              collectionName: "Women's Doubles",
+              matchUpType: DOUBLES,
+              matchUpCount: 1,
+              matchUpFormat: FORMAT_TIMED_10,
+              scoreValue: 1,
+              gender: FEMALE,
+              category: { categoryName: 'WD' },
+            },
+            {
+              collectionId: 'intennse-xd',
+              collectionName: 'Mixed Doubles',
+              matchUpType: DOUBLES,
+              matchUpCount: 1,
+              matchUpFormat: FORMAT_TIMED_10,
+              scoreValue: 1,
+              gender: MIXED,
+              category: { categoryName: 'XD' },
+            },
+          ],
+        },
+      },
+    ],
+    venueProfiles: [intennseArena],
+  },
+  // Tournament 11: BLW Wiffle Ball Classic
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-wb-01' },
+    participantsProfile: { scaledParticipantsCount: 32, idPrefix: 'wb' },
+    tournamentName: 'BLW Wiffle Ball Classic',
+    completeAllMatchUps: true,
+    drawProfiles: [
+      {
+        matchUpFormat: FORMAT_WIFFLE,
+        eventName: 'Competitive Division',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+      {
+        matchUpFormat: FORMAT_WIFFLE,
+        eventName: 'Recreational Division',
+        drawType: ROUND_ROBIN_WITH_PLAYOFF,
+        seedsCount: 2,
+        drawSize: 8,
+      },
+    ],
+    venueProfiles: [wiffleballPark],
+  },
+  // Tournament 12: Reason Codes Invitational.
+  //
+  // The only mock carrying a scoring policy with `matchUpStatusCodes`, and the reason it exists:
+  // TMX ships no built-in reason vocabulary by design, so the scoring modal's reason control is
+  // invisible on every other tournament here. Attaching a governing body's policy is what turns it
+  // on. Score any matchUp, choose Retired, and the reason list appears with "Ret [inj]" and friends.
+  //
+  // `completeAllMatchUps` is deliberately OFF — a tournament with everything already scored has
+  // nothing to demonstrate the control on.
+  {
+    tournamentAttributes: { tournamentId: 'tournament-id-rc-01' },
+    participantsProfile: { scaledParticipantsCount: 32, idPrefix: 'rc' },
+    tournamentName: 'Reason Codes Invitational',
+    policyDefinitions: REASON_CODE_SCORING_POLICY,
+    drawProfiles: [
+      {
+        eventName: 'Open Singles',
+        drawType: SINGLE_ELIMINATION,
+        seedsCount: 4,
+        drawSize: 16,
+      },
+    ],
+    venueProfiles: [clubCourts],
+  },
+  LIVE_SCHEDULE_PROFILE,
+  SCHEDULER_DEMO_PROFILE,
+];
+
+/**
+ * The profile with its tournament categories declared: one for each distinct category its events use
+ * (by name), so the categories a tournament lists are exactly the ones its events reference. Declared by
+ * hand they drifted: every example named categories on its events and defined none for the tournament.
+ * A participantsProfile category only shapes generated ratings or ages and is not one of them.
+ */
+export function withTournamentCategories(profile: any): any {
+  const byName = new Map<string, any>();
+  for (const drawProfile of profile.drawProfiles ?? []) {
+    const category = drawProfile.category;
+    // with the editor's `type`, which setTournamentCategories requires: without it a later edit drops them
+    if (category?.categoryName && !byName.has(category.categoryName))
+      byName.set(category.categoryName, { ...category, type: category.ratingType ? 'RATING' : 'AGE' });
+  }
+  if (!byName.size) return profile;
+  const tournamentAttributes = { ...profile.tournamentAttributes, tournamentCategories: [...byName.values()] };
+  return { ...profile, tournamentAttributes };
+}

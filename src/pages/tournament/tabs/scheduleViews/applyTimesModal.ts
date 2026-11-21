@@ -16,7 +16,12 @@
  * `schedulingPolicyChoices.ts`. Creating or editing a scheduling policy is out
  * of scope here — that lives on the `/policies` page.
  */
-import { effectivePeriodLength, periodLengthChoices } from 'services/schedulePreferences/schedulingPeriodLength';
+import {
+  effectivePeriodLength,
+  periodLengthChoices,
+  policyPeriodLength,
+  readStoredPeriodLength,
+} from 'services/schedulePreferences/schedulingPeriodLength';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { tournamentEngine } from 'services/factory/engine';
 import { escapeHtml } from 'utilities/escapeHtml';
@@ -56,7 +61,12 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
   let selectedId = attachedChoice?.id ?? matchingChoiceId ?? choices[0]?.id ?? '';
 
   const tournamentRecord = tournamentEngine.getTournament?.()?.tournamentRecord;
-  let periodLength = effectivePeriodLength(tournamentRecord);
+  // with nothing stored, the scheduler uses the selected policy's own period: that is what is shown
+  const policyDefaultOf = (id: string) =>
+    policyPeriodLength(allChoices.find((choice) => choice.id === id)?.definition?.scheduling);
+  let periodLength = effectivePeriodLength(tournamentRecord, policyDefaultOf(selectedId));
+  let periodTouched = false;
+  let periodSelect: HTMLSelectElement | undefined;
 
   const content = (root: HTMLElement) => {
     root.style.cssText = 'display: flex; flex-direction: column; gap: 12px; padding: 16px; font-size: 0.8125rem;';
@@ -99,6 +109,11 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
       appendChoiceGroup(select, 'Saved', allChoices, 'user', selectedId);
       select.addEventListener('change', () => {
         selectedId = select.value;
+        // a policy switch moves the shown period with it, until the operator picks one or one is stored
+        if (!periodTouched && readStoredPeriodLength(tournamentRecord) === undefined) {
+          periodLength = effectivePeriodLength(tournamentRecord, policyDefaultOf(selectedId));
+          fillPeriodOptions();
+        }
       });
     } else {
       const opt = document.createElement('option');
@@ -115,23 +130,33 @@ export async function openApplyTimesModal(params: ApplyTimesModalParams): Promis
     root.appendChild(buildPeriodLengthRow(select.style.cssText));
   };
 
-  function buildPeriodLengthRow(selectStyle: string): HTMLElement {
-    const row = document.createElement('label');
-    row.style.cssText = 'display: flex; align-items: center; gap: 10px;';
-    const label = document.createElement('span');
-    label.style.cssText = 'flex: 0 0 auto; font-size: 0.75rem;';
-    label.textContent = t('applyScheduling.periodLength');
-    const periodSelect = document.createElement('select');
-    periodSelect.style.cssText = selectStyle;
-    for (const minutes of periodLengthChoices(tournamentRecord)) {
+  /** the period choices, the shown period among them (a policy's period outside the standard ones is added) */
+  function fillPeriodOptions() {
+    if (!periodSelect) return;
+    periodSelect.replaceChildren();
+    const choices = periodLengthChoices(tournamentRecord);
+    if (!choices.includes(periodLength)) choices.push(periodLength);
+    for (const minutes of choices.sort((a, b) => a - b)) {
       const option = document.createElement('option');
       option.value = String(minutes);
       option.textContent = t('applyScheduling.periodMinutes', { count: minutes });
       option.selected = minutes === periodLength;
       periodSelect.appendChild(option);
     }
+  }
+
+  function buildPeriodLengthRow(selectStyle: string): HTMLElement {
+    const row = document.createElement('label');
+    row.style.cssText = 'display: flex; align-items: center; gap: 10px;';
+    const label = document.createElement('span');
+    label.style.cssText = 'flex: 0 0 auto; font-size: 0.75rem;';
+    label.textContent = t('applyScheduling.periodLength');
+    periodSelect = document.createElement('select');
+    periodSelect.style.cssText = selectStyle;
+    fillPeriodOptions();
     periodSelect.addEventListener('change', () => {
-      periodLength = Number(periodSelect.value);
+      periodTouched = true;
+      periodLength = Number(periodSelect?.value);
     });
     const hint = document.createElement('div');
     hint.style.cssText = 'font-size: 0.6875rem; color: var(--tmx-text-secondary);';

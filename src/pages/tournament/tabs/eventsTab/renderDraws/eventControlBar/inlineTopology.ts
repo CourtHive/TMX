@@ -49,7 +49,7 @@ export function renderInlineTopology({
   eventId: string;
   drawId: string;
   structureId?: string;
-  /** Open on this participant's journey (the participant menu's "See player journey"). */
+  /** Open on this participant's journey (the participant menu's "See participant journey"). */
   journeyParticipantId?: string;
 }): void {
   const drawsView = document.getElementById(DRAWS_VIEW);
