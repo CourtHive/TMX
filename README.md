@@ -125,6 +125,10 @@ pnpm test:e2e
 | **Tables / PDF**   | Tabulator · pdfMake                                                              |
 | **Testing**        | Vitest · Playwright                                                              |
 
+## Operator guides
+
+- [Reporting a problem and verifying your contact address](documentation/reporting-a-problem.md)
+
 ## Related projects
 
 - **[How CourtHive works](https://courthive.com/#/how-it-works)** — the platform in one page: the

@@ -51,14 +51,13 @@ test.beforeEach(async ({ page }) => {
   await expect.poll(() => page.evaluate(() => !!localStorage.getItem('tmxToken'))).toBe(true);
 });
 
-test('Help submits only description-safe evidence, preserves an idempotent retry and shows truthful contact/receipt states', async ({
-  page,
-}) => {
+test('Help preserves a report through a disabled-intake 503 and retries it idempotently', async ({ page }) => {
   const requests: any[] = [];
   await page.route('**/support/reports', async (route) => {
     const body = route.request().postDataJSON();
     requests.push(body);
-    if (requests.length === 1) await route.abort('failed');
+    if (requests.length === 1)
+      await route.fulfill({ status: 503, json: { statusCode: 503, message: 'New support reports are disabled' } });
     else await route.fulfill({ json: receipt });
   });
   await page.getByText('Help', { exact: true }).click();
