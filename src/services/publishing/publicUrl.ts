@@ -1,3 +1,4 @@
+import { isTimeWarpActive, isWarpTournamentId } from 'services/timeWarp/warpState';
 import { tournamentEngine } from 'services/factory/engine';
 import { env } from 'settings/env';
 
@@ -37,6 +38,7 @@ export function isDrawPublished(drawId: string): boolean {
 }
 
 export function getPublicTournamentUrl(tournamentId: string): string {
+  if (isTimeWarpActive() || isWarpTournamentId(tournamentId)) return '';
   const base = getPublicBaseUrl();
   return `${base}/#/tournament/${tournamentId}`;
 }
@@ -48,7 +50,7 @@ export function getPublicEventUrl({
   tournamentId: string;
   eventId: string;
 }): string | undefined {
-  if (!isEventPublished(eventId)) return undefined;
+  if (isTimeWarpActive() || isWarpTournamentId(tournamentId) || !isEventPublished(eventId)) return undefined;
   const base = getPublicBaseUrl();
   return `${base}/#/tournament/${tournamentId}/event/${eventId}`;
 }
@@ -62,7 +64,7 @@ export function getPublicDrawUrl({
   eventId: string;
   drawId: string;
 }): string | undefined {
-  if (!isDrawPublished(drawId)) return undefined;
+  if (isTimeWarpActive() || isWarpTournamentId(tournamentId) || !isDrawPublished(drawId)) return undefined;
   const base = getPublicBaseUrl();
   return `${base}/#/tournament/${tournamentId}/event/${eventId}/draw/${drawId}`;
 }
@@ -78,7 +80,7 @@ export function getPublicStructureUrl({
   drawId: string;
   structureId: string;
 }): string | undefined {
-  if (!isDrawPublished(drawId)) return undefined;
+  if (isTimeWarpActive() || isWarpTournamentId(tournamentId) || !isDrawPublished(drawId)) return undefined;
   const base = getPublicBaseUrl();
   return `${base}/#/tournament/${tournamentId}/event/${eventId}/draw/${drawId}/structure/${structureId}`;
 }

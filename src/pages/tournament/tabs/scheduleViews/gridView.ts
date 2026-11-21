@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Schedule 2 — Grid View
  *
@@ -1821,6 +1822,13 @@ export function refreshGridView(): void {
 /** Whether there are unsaved bulk scheduling changes. */
 export function hasUnsavedGridChanges(): boolean {
   return bulkDraft.pending.length > 0;
+}
+
+/** Drop disposable sandbox intents without applying a rollback to any restored production record. */
+export function abandonWarpGridDraft(): void {
+  if (!isTimeWarpActive()) return;
+  bulkDraft.clear();
+  bulkMode = false;
 }
 
 /** Number of unsaved bulk scheduling changes — for caller-side confirm copy. */

@@ -3,7 +3,7 @@ export const SCHEDULER_DEMO_NAME = 'Scheduling Lab — Garman + Pro';
 export const SCHEDULER_DEMO_VENUE = 'scheduler-demo-venue';
 export const SCHEDULER_DEMO_ZONE = 'America/New_York';
 export const SCHEDULER_DEMO_SCRIPT = 'scheduling-lab-v1';
-/** Each "Load guided scheduling demo" saves a fresh copy under this prefix; only the newest is kept. */
+/** Prefix of older saved guided-demo copies. New guided sessions use disposable time-warp ids. */
 export const GUIDED_DEMO_ID_PREFIX = 'scheduling-demo-';
 
 /** The earlier guided-demo copies to remove once `keepId` is loaded: every stored id with the prefix but that one. */

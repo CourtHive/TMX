@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Staleness guard — detects when local tournament data may be behind the server
  * (device sleep, tab background, socket drop, or a silent broadcast gap) and
@@ -74,7 +75,7 @@ export function resetActivityTimer(): void {
   timerExpired = false;
   if (inactivityTimer) clearTimeout(inactivityTimer);
   if (countdownInterval) clearInterval(countdownInterval);
-  if (!getLoginState()) return;
+  if (isTimeWarpActive() || !getLoginState()) return;
 
   const timeoutMs = getTimeoutMs();
   const debug = isDebugMode();
@@ -116,7 +117,7 @@ export function resetActivityTimer(): void {
  * already in flight. Used by the inactivity timer, visibility handler, reconnect
  * hook, and periodic poll. */
 export function triggerStalenessCheck(): void {
-  if (!getLoginState()) return;
+  if (isTimeWarpActive() || !getLoginState()) return;
   const { tournamentRecord } = tournamentEngine.getTournament();
   if (tournamentRecord?.tournamentId) void probeStaleness(tournamentRecord.tournamentId);
 }
@@ -124,7 +125,7 @@ export function triggerStalenessCheck(): void {
 /** Lightweight staleness probe — fetches only the server's write time for the tournament and, when
  * the server holds a write this tab never applied, flags the sync indicator stale (no full-record pull). */
 async function probeStaleness(tournamentId: string): Promise<void> {
-  if (checking || isSyncStale()) return;
+  if (isTimeWarpActive() || checking || isSyncStale()) return;
   checking = true;
 
   try {

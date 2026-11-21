@@ -1,3 +1,4 @@
+import { getWarpSession } from 'services/timeWarp/warpState';
 import { isTournamentProviderMember, type IsTournamentProviderMemberInput } from './isTournamentProviderMember';
 
 /**
@@ -18,6 +19,8 @@ import { isTournamentProviderMember, type IsTournamentProviderMemberInput } from
  */
 export function isRunningDesk(input: IsTournamentProviderMemberInput & { demoTournament?: boolean }): boolean {
   if (!input.tournamentRecord) return false;
+  if (input.tournamentRecord.isMock === true && input.tournamentRecord.tournamentId === getWarpSession()?.tournamentId)
+    return true;
   const anonymousLocal = !input.tournamentRecord.parentOrganisation?.organisationId && !input.loginState;
   if (anonymousLocal && input.demoTournament) return true;
   return isTournamentProviderMember(input);

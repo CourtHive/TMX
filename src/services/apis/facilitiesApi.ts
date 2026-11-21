@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Facility-registry reads for the Venues tab, proxied by courthive-ams.
  *
@@ -77,7 +78,7 @@ export async function searchFacilities(
   if (options.city) params.set('city', options.city);
   if (options.limit) params.set('limit', String(options.limit));
 
-  const res = await fetch(`${getAmsBaseUrl()}/facilities/search?${params.toString()}`, {
+  const res = await serverFetch(`${getAmsBaseUrl()}/facilities/search?${params.toString()}`, {
     headers: authHeaders(),
     signal: options.signal,
   });
@@ -93,7 +94,7 @@ export async function searchFacilities(
  * is no such facility" must not look the same to the caller.
  */
 export async function fetchRegistryVenue(facilityId: string, signal?: AbortSignal): Promise<RegistryVenue | null> {
-  const res = await fetch(`${getAmsBaseUrl()}/facilities/${encodeURIComponent(facilityId)}/venue`, {
+  const res = await serverFetch(`${getAmsBaseUrl()}/facilities/${encodeURIComponent(facilityId)}/venue`, {
     headers: authHeaders(),
     signal,
   });

@@ -1,3 +1,5 @@
+import { initializeTournamentWarpBoundary } from 'pages/tournament/tournamentDisplay';
+import { initializeWarpController } from 'components/timeWarp/initializeWarpController';
 /**
  * Application initialization and setup.
  * Sets up context, environment, event listeners, and routing.
@@ -192,6 +194,8 @@ function tmxReady(): void {
   // after the router would be worse than not hydrating at all: the route guard would admit a
   // deep link the restored posture denies, and only then would the posture appear.
   hydrateDemoOverlay();
+  initializeTournamentWarpBoundary();
+  initializeWarpController();
 
   setDev();
   setSubscriptions();

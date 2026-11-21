@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Fetch TMX's build-emitted deploy manifest (`version.json`) — a description of
  * the SPA a hard refresh would load: its SPA `version` and the `factoryVersion`
@@ -19,7 +20,7 @@ export interface DeployedManifest {
 export async function fetchDeployedManifest(): Promise<DeployedManifest> {
   const url = `${import.meta.env.BASE_URL}version.json?t=${Date.now()}`;
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await serverFetch(url, { cache: 'no-store' });
     if (!res.ok) {
       slog('[version] version.json returned', res.status);
       return {};

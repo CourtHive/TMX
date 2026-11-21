@@ -1,7 +1,7 @@
+import { createServerApi, isNetworkIsolationError } from 'services/network/serverNetwork';
 import { getJwtTokenStorageKey, getRefreshTokenStorageKey } from 'config/localStorage';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { platform } from 'platform';
-import axios from 'axios';
 import { t } from 'i18n';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
@@ -25,7 +25,7 @@ const baseURL =
   globalThis.location?.origin ||
   '';
 console.log('[baseApi] server URL:', baseURL);
-const axiosInstance = axios.create({ baseURL });
+const axiosInstance = createServerApi({ baseURL });
 
 /**
  * The identity provider (courthive-hiveid) URL for an `/auth/*` or `/account/*` path.
@@ -109,6 +109,7 @@ async function performRefresh(): Promise<string | null> {
     }
     console.warn('[baseApi] performRefresh: server returned no token (data shape):', Object.keys(data ?? {}));
   } catch (err: any) {
+    if (isNetworkIsolationError(err)) throw err;
     const status = err?.response?.status;
     const message = err?.response?.data?.message || err?.message || 'unknown';
     console.warn(`[baseApi] performRefresh: server rejected refresh status=${status} message=${message}`);
@@ -130,7 +131,7 @@ export function refreshAccessToken(): Promise<string | null> {
 }
 
 axiosInstance.interceptors.response.use(
-  (response) => {
+  (response): any => {
     if (response.data?.error && !(response.config as any)?.silenceErrors) {
       const { error } = response.data;
       tmxToast({ message: typeof error === 'string' ? error : error?.message, intent: 'is-danger' });
@@ -138,6 +139,7 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    if (isNetworkIsolationError(error) || error?.code === 'ERR_CANCELED') throw error;
     const original = error.config;
     const silenceErrors = (original as any)?.silenceErrors;
 

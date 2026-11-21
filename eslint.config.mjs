@@ -1,3 +1,4 @@
+import networkBoundaries from './scripts/eslint/network-boundaries.mjs';
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
@@ -155,5 +156,11 @@ export default [
         },
       ],
     },
+  },
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    plugins: { network: networkBoundaries },
+    rules: { 'network/approved-primitives': 'error' },
   },
 ];

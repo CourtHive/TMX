@@ -1,3 +1,6 @@
+import { exitTimeWarp } from 'services/timeWarp/timeWarp';
+import { exportDemoWalkthrough, getWalkthroughStatus } from 'services/clock/demoWalkthrough';
+import { getWarpSession, isWarpEntryLocation } from 'services/timeWarp/warpState';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
@@ -79,6 +82,8 @@ function applyJwtProviderConfig(valid: LoginState): void {
 }
 
 export function getLoginState(): LoginState | undefined {
+  // Retain the entry identity/permissions while the tab is isolated; normal validation resumes on exit.
+  if (getWarpSession()) return getWarpSession()!.loginState;
   const token = getToken();
   const valid = validateToken(token);
   if (valid) {
@@ -94,6 +99,7 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
+  exitTimeWarp({ navigate: false, resume: false });
   // A demo posture and competition clock must never outlive an identity change.
   stopDemoClock();
   clearDemoWalkthrough();
@@ -175,6 +181,7 @@ export function logIn({
     });
     return;
   }
+  exitTimeWarp({ navigate: false, resume: false });
   // A session that has not chosen yet (e.g. issued by HiveID account verification) is exchanged the same way.
   const unchosen = validateToken(data.token);
   if (unchosen?.providerSelectionRequired) {
@@ -264,6 +271,7 @@ let silentRefreshInFlight: Promise<boolean> | null = null;
  * On failure, logs out cleanly.
  */
 export function attemptSilentRefresh(): Promise<boolean> {
+  if (getWarpSession()) return Promise.resolve(true);
   if (!silentRefreshInFlight) {
     silentRefreshInFlight = doSilentRefresh().finally(() => {
       silentRefreshInFlight = null;
@@ -274,6 +282,7 @@ export function attemptSilentRefresh(): Promise<boolean> {
 
 async function doSilentRefresh(): Promise<boolean> {
   const newToken = await refreshAccessToken();
+  if (getWarpSession()) return true;
   if (!newToken) {
     logOut();
     return false;
@@ -331,6 +340,21 @@ export function initLoginToggle(id: string): void {
       const impersonating = context?.provider;
 
       const items = [
+        {
+          text: t('timeWarp.enter'),
+          hide: !isWarpEntryLocation(tournamentEngine.getTournamentId()),
+          onClick: () => void import('services/timeWarp/timeWarp').then((m) => m.enterTimeWarp()),
+        },
+        {
+          text: t('timeWarp.exit'),
+          hide: !getWarpSession(),
+          onClick: () => exitTimeWarp(),
+        },
+        {
+          text: t('demoClock.exportCapture'),
+          hide: !getWalkthroughStatus().available,
+          onClick: () => void exportDemoWalkthrough(),
+        },
         {
           onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
           text: t('loginMenu.register'),

@@ -1,3 +1,4 @@
+import { createServerApi, isNetworkIsolationError } from 'services/network/serverNetwork';
 /**
  * Score-relay REST client — Phase 4 / crowd promotion UI.
  *
@@ -23,7 +24,6 @@ import { tmxToast } from 'services/notifications/tmxToast';
 import { refreshAccessToken } from 'services/apis/baseApi';
 import { providerConfig } from 'config/providerConfig';
 import { serverConfig } from 'config/serverConfig';
-import axios from 'axios';
 import { t } from 'i18n';
 
 const JWT_TOKEN_STORAGE_NAME = getJwtTokenStorageKey();
@@ -100,7 +100,7 @@ const initialBaseURL = resolveInitialBaseURL();
 if (initialBaseURL) console.log('[scoreRelayApi] score-relay URL:', initialBaseURL);
 else console.log('[scoreRelayApi] score-relay disabled (set VITE_SCORE_RELAY_URL to enable)');
 
-const axiosInstance = axios.create({ baseURL: initialBaseURL });
+const axiosInstance = createServerApi({ baseURL: initialBaseURL });
 
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -132,8 +132,11 @@ async function retryWithFreshToken(original: any): Promise<any> {
 }
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   async (error) => {
+    if (isNetworkIsolationError(error) || error?.code === 'ERR_CANCELED') throw error;
     const original = error.config;
     if (error.response?.status === 401 && original && !original._retried) {
       const retried = await retryWithFreshToken(original);

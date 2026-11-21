@@ -1,4 +1,5 @@
-import { canUseDemoClock, getDemoClock, isDemoClockSessionEligible, onDemoClockChange } from './demoClock';
+import { getSessionIdentity } from 'services/authentication/sessionIdentity';
+import { canUseDemoClock, getDemoClock, onDemoClockChange } from './demoClock';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { tournamentEngine } from 'services/factory/engine';
 import { venueTimeZone } from 'functions/venueTimeFrame';
@@ -36,6 +37,7 @@ const MAX_BYTES = 25 * 1024 * 1024;
 const encoder = new TextEncoder();
 const observers = new Set<() => void>();
 let capture: DemoWalkthrough | undefined;
+let captureOwner: string | undefined;
 let recording = false;
 let bytes = 0;
 let lastTime = 0;
@@ -123,6 +125,7 @@ export function startDemoWalkthrough(): boolean {
   lastRecord = JSON.stringify(initialTournament);
   bytes = encoder.encode(lastRecord).byteLength;
   if (bytes > MAX_BYTES) return false;
+  captureOwner = getSessionIdentity();
   capture = {
     schema: 'courthive.demo-walkthrough',
     schemaVersion: 1,
@@ -162,7 +165,7 @@ export function startDemoWalkthrough(): boolean {
 
 /** Download uses the app's browser/Electron export adapter; no network or automatic upload. */
 export async function exportDemoWalkthrough(): Promise<void> {
-  if (!isDemoClockSessionEligible()) return;
+  if (getSessionIdentity() !== captureOwner) return;
   stopDemoWalkthrough();
   const artifact = getDemoWalkthrough();
   if (!artifact) return;

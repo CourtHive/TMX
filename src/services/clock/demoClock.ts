@@ -1,3 +1,4 @@
+import { getWarpSession, isTimeWarpActive } from 'services/timeWarp/warpState';
 import { venueCalendarDate, venueClock, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { isDemoActive, onDemoOverlayChange } from 'services/demoMode/demoState';
 import { getToken } from 'services/authentication/tokenManagement';
@@ -20,24 +21,26 @@ function signedIn(): boolean {
   }
 }
 
-/** Eligibility to enter clock control; no signed-in identity, including super-admins. */
+/** Clock control requires an isolated Warp, or an anonymous legacy Scheduling Lab session. */
 export function isDemoClockSessionEligible(): boolean {
-  return !signedIn() && !context.provider;
+  return isTimeWarpActive() || (!signedIn() && !context.provider);
 }
 
 /**
- * Demo tournaments seen loading, by id. The clock only ever runs on a demo tournament (the Scheduling Lab), and the
- * engine cannot hand out a record without deep-copying it, so the clock never reads the record: TMX notes a demo
- * tournament's id and start date from the plain record it already holds while loading it (`loadTournament`), and
- * every check below is a lookup of the engine's current tournament id.
+ * Clock-eligible records seen loading: legacy Scheduling Labs or the active isMock Warp copy. Read from the record
+ * already in hand, so frequent eligibility/time reads only compare the current engine id (never clone a record).
  */
 const demoTournaments = new Map<string, { startDate: string }>();
 
-/** Called with the record being loaded; notes it only if it is a demo tournament with no provider. */
+/** Called with the record being loaded; only explicitly disposable copies admit signed-in clock control. */
 export function noteLoadedTournament(record: any): void {
   const tournamentId = record?.tournamentId;
   if (!tournamentId) return;
-  if (hasSchedulingDemoScript(record) && !record.parentOrganisation?.organisationId && record.startDate)
+  if (
+    ((record.isMock === true && tournamentId === getWarpSession()?.tournamentId) ||
+      (hasSchedulingDemoScript(record) && !record.parentOrganisation?.organisationId)) &&
+    record.startDate
+  )
     demoTournaments.set(tournamentId, { startDate: record.startDate });
   else demoTournaments.delete(tournamentId);
 }
@@ -47,19 +50,19 @@ export function demoTournamentStartDate(): string | undefined {
   return demoTournaments.get(tournamentEngine.getTournamentId())?.startDate;
 }
 
-/** The loaded tournament is a demo tournament (a Scheduling Lab), whoever is signed in. */
+/** The selected record was noted as a Scheduling Lab or the active disposable Warp copy. */
 export function isDemoTournament(): boolean {
   return demoTournaments.has(tournamentEngine.getTournamentId());
 }
 
-/** The loaded tournament is a demo tournament and nobody is signed in. */
+/** The selected record qualifies for the current anonymous or isolated session. */
 export function isDemoClockEligible(): boolean {
   return isDemoClockSessionEligible() && demoTournaments.has(tournamentEngine.getTournamentId());
 }
 
-/** Eligibility alone is insufficient: the demo posture must also be active. */
+/** Warp isolation or the legacy demo posture must be active as well as record eligibility. */
 export function canUseDemoClock(): boolean {
-  return isDemoActive() && isDemoClockEligible();
+  return (isTimeWarpActive() || isDemoActive()) && isDemoClockEligible();
 }
 
 /** Read on every competition-time lookup (the factory reads it once per engine call): id comparisons only. */
@@ -67,7 +70,7 @@ function clockApplies(): boolean {
   return (
     !!state &&
     isDemoClockSessionEligible() &&
-    isDemoActive() &&
+    (isTimeWarpActive() || isDemoActive()) &&
     tournamentEngine.getTournamentId() === state.tournamentId
   );
 }

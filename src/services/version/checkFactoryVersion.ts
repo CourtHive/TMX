@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Verify the bundled factory version matches the server's factory version on
  * the major.minor axis. Patch differences are tolerated.
@@ -55,7 +56,7 @@ async function fetchServerFactoryVersion(): Promise<string | undefined> {
   const base = serverConfig.get().socketPath || globalThis.location.origin;
   const url = `${base}/factory/version`;
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await serverFetch(url, { cache: 'no-store' });
     if (!res.ok) {
       slog('[version] /factory/version returned', res.status);
       return undefined;

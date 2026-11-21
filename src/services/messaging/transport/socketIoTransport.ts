@@ -1,4 +1,5 @@
-import { io } from 'socket.io-client';
+import { assertServerAccess } from 'services/network/serverNetwork';
+import { createServerSocket } from 'services/network/serverNetwork';
 
 // types
 import type { MessageTransport, TransportOptions, TransportStatus } from './messageTransport';
@@ -15,7 +16,8 @@ function bearer(getToken: () => string | undefined): { authorization: string } |
  * opens the `/tmx` socket.
  */
 export function createSocketIoTransport({ url, getToken }: TransportOptions): MessageTransport {
-  const socket = io(url, {
+  const socket = createServerSocket(url, {
+    autoConnect: true,
     // `auth` is a function so socket.io-client re-invokes it before every
     // (re)connect, always presenting the *current* token. The server's
     // SocketGuard prefers handshake.auth.token over the Authorization header
@@ -56,6 +58,7 @@ export function createSocketIoTransport({ url, getToken }: TransportOptions): Me
     isConnected: () => socket.connected,
     connectionId: () => socket.id,
     send: (event, data) => {
+      assertServerAccess(data);
       if (!socket.connected) return false;
       socket.emit(event, data);
       return true;

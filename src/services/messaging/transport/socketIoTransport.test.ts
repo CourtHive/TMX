@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { setNetworkIsolation } from 'services/network/networkPolicy';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The Socket.IO MessageTransport against a fake socket.io-client: what it asks
@@ -35,6 +36,7 @@ vi.mock('socket.io-client', () => ({
   io: (_url: string, options: any) => {
     fake.options = options;
     fake.socket.io.opts = { transportOptions: options.transportOptions };
+    fake.socket.off = vi.fn();
     return fake.socket;
   },
 }));
@@ -48,6 +50,8 @@ describe('createSocketIoTransport', () => {
     fake.reset();
     token = 'token-1';
   });
+
+  afterEach(() => setNetworkIsolation(false));
 
   const create = () => createSocketIoTransport({ url: 'http://server/tmx', getToken: () => token });
 
@@ -84,6 +88,22 @@ describe('createSocketIoTransport', () => {
     expect(fake.emit).toHaveBeenCalledWith('executionQueue', { a: 1 });
   });
 
+  it('propagates typed boundary refusals and suppresses late event delivery during Warp', () => {
+    const transport = create();
+    const handler = vi.fn();
+    transport.on('tournamentMutation', handler);
+    fake.connect.mockClear();
+    setNetworkIsolation(true);
+    for (const action of [transport.connect, transport.reconnect, () => transport.send('executionQueue', { a: 1 })]) {
+      expect(action).toThrowError(expect.objectContaining({ code: 'NETWORK_ISOLATED' }));
+    }
+    expect(create).toThrowError(expect.objectContaining({ code: 'NETWORK_ISOLATED' }));
+    fake.handlers.tournamentMutation({ methods: [] });
+    expect(fake.connect).not.toHaveBeenCalled();
+    expect(fake.emit).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it('maps socket lifecycle events onto transport status', () => {
     const transport = create();
     const status = vi.fn();
@@ -101,7 +121,9 @@ describe('createSocketIoTransport', () => {
   });
 
   it('reconnect drops and re-opens the connection', () => {
-    create().reconnect();
+    const transport = create();
+    fake.connect.mockClear();
+    transport.reconnect();
     expect(fake.disconnect).toHaveBeenCalledTimes(1);
     expect(fake.connect).toHaveBeenCalledTimes(1);
     expect(fake.disconnect.mock.invocationCallOrder[0]).toBeLessThan(fake.connect.mock.invocationCallOrder[0]);
