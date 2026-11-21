@@ -95,3 +95,14 @@ html[data-tmx-demo-clock='true'] .tmx-demo-clock-bar {
   gap: 8px;
   margin-bottom: 8px;
 }
+
+html[data-tmx-time-warp='true'] {
+  --tmx-demo-clock-surface: color-mix(in srgb, var(--tmx-fill-error) 28%, var(--tmx-bg-primary));
+}
+
+html[data-tmx-time-warp='true'] #dnav,
+html[data-tmx-time-warp='true'] .tmx-demo-clock-host--active,
+html[data-tmx-time-warp='true'] .tmx-demo-clock-bar {
+  background: var(--tmx-demo-clock-surface) !important;
+  border-color: var(--tmx-fill-error);
+}

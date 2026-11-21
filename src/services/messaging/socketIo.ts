@@ -1,3 +1,5 @@
+import { assertServerAccess } from 'services/network/serverNetwork';
+import { networkIsIsolated } from 'services/network/networkPolicy';
 /**
  * The TMX application protocol over the server connection: ack correlation,
  * tournament room membership, chat installation, reconnect recovery.
@@ -11,6 +13,7 @@ import { checkFactoryVersion, resetFactoryVersionCheck } from 'services/version/
 import { createSocketIoTransport } from 'services/messaging/transport/socketIoTransport';
 import { closeAmsChat, installAmsChat } from 'services/chat/amsChatTransport';
 import { showOSNotification } from 'services/notifications/osNotification';
+import { rejoinChatMonitorIfActive } from 'services/chat/adminChatService';
 import { handleSocketException } from 'services/session/sessionGuard';
 import { getOriginClientId } from 'services/messaging/clientIdentity';
 import { getLoginState } from 'services/authentication/loginState';
@@ -23,7 +26,6 @@ import { version as tmxVersion } from 'config/version';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
 import { t } from 'i18n';
-import { rejoinChatMonitorIfActive } from 'services/chat/adminChatService';
 import {
   persistMessage,
   forgetMessage,
@@ -252,7 +254,7 @@ export function disconnectSocket(): void {
  * `disconnectSocket()` it neither closes chat (the lifecycle suspends that separately) nor drops the transport.
  */
 export function suspendSocket(): void {
-  if (oi.connection?.isConnected()) oi.connection.disconnect();
+  if (oi.connection) oi.connection?.disconnect();
 }
 
 /**
@@ -282,6 +284,7 @@ export function reconnectSocket(): void {
  * object happened to have been deleted yet.
  */
 export function ensureConnected(): boolean {
+  if (networkIsIsolated()) return false;
   if (oi.connection?.isConnected()) return false;
   const state = getLoginState();
   if (!state) return false;
@@ -337,6 +340,7 @@ export function emitTmx({
   ackCallback?: (ack: ServerAck) => void;
   durable?: boolean;
 }): EmitHandle {
+  assertServerAccess(data);
   const state = getLoginState();
   const { email: userId } = state || {};
   const messageType = data.type ?? 'tmx';
@@ -515,6 +519,7 @@ function forget(entry: OutboxEntry | undefined): void {
  * left to its sender's timeout.
  */
 function dispatch(event: string, data: any): boolean {
+  assertServerAccess(data);
   if (!HTTP_COMMANDS.has(event)) return !!oi.connection?.send(event, data);
   if (!oi.connection?.isConnected()) return false;
   postCommand(event, data)
@@ -701,6 +706,7 @@ function watchReplayedAck(entry: OutboxEntry): void {
  * queued. Durable entries await persistence, acquire a temporary lease, then await their receipt.
  */
 async function flushOutbox(): Promise<void> {
+  if (networkIsIsolated()) return; // Pause durable replay during the intentional offline lifecycle.
   if (flushing || !outbox.length) return;
   flushing = true;
   let replayed = 0;
@@ -899,6 +905,7 @@ function receiveAcknowledgement(ack: ServerAck): void {
 
 /** Join a tournament room to receive mutation broadcasts from other clients. */
 export function joinTournamentRoom(tournamentId: string): void {
+  if (networkIsIsolated()) return; // Background view subscription; request enforcement belongs to the boundary.
   currentTournamentRoom = tournamentId;
   if (!tournamentId || !connected()) {
     slog('[socket] joinTournamentRoom skipped — tournamentId=%s, connected=%s', tournamentId, connected());

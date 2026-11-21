@@ -2,8 +2,11 @@
  * Invalid Participants Modal - displays participants that failed validation when adding to event
  * Shows table with participant names and reasons for validation failure
  */
+import { supportReportingAvailable } from 'services/support/reportAvailability';
+import { recordSupportDiagnostic } from 'services/support/reportContext';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
+import { supportText } from 'services/support/text';
 import { cModal } from 'courthive-components';
 import { t } from 'i18n';
 
@@ -146,11 +149,23 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
     table?.destroy();
   };
 
+  recordSupportDiagnostic('INVALID_PARTICIPANTS');
   // Open modal
   cModal.open({
     title: t('modals.invalidParticipants.title'),
     content,
     buttons: [
+      {
+        label: supportText('report'),
+        hide: !supportReportingAvailable(),
+        footer: { className: 'button font-medium tmx-support-entry' },
+        close: true,
+        onClick: () => {
+          setTimeout(() => {
+            void import('components/support/reportProblem').then(({ openProblemReport }) => openProblemReport());
+          }, 0);
+        },
+      },
       {
         label: 'OK',
         close: true,

@@ -42,10 +42,13 @@ const socket = vi.hoisted(() => {
     },
   };
 });
-vi.mock('socket.io-client', () => ({ io: vi.fn(() => socket.instance) }));
+vi.mock('services/network/serverNetwork', async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  createServerSocket: vi.fn(() => socket.instance),
+}));
 
 import { closeAmsChat, enterChat, installAmsChat } from './amsChatTransport';
-import { io } from 'socket.io-client';
+import { createServerSocket as io } from 'services/network/serverNetwork';
 
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock as any;

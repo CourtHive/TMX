@@ -1,3 +1,5 @@
+import { isTimeWarpActive, isWarpRecord } from 'services/timeWarp/warpState';
+import { assertServerAccess } from 'services/network/networkPolicy';
 import { maintainLocalCalendarEntry } from './localCalendar';
 import { tournamentEngine } from 'services/factory/engine';
 import { serverConfig } from 'config/serverConfig';
@@ -7,7 +9,8 @@ import { tmx2db } from './tmx2db';
 
 export async function saveTournamentRecord(params?: { tournamentRecord?: any }): Promise<void> {
   const tournamentRecord = params?.tournamentRecord ?? tournamentEngine.q.tournament();
-  if (!tournamentRecord) return;
+  if (!tournamentRecord || isTimeWarpActive()) return;
+  if (isWarpRecord(tournamentRecord)) assertServerAccess({ tournamentId: tournamentRecord.tournamentId });
 
   // Provider-owned tournaments are only saved locally if "Save local copies" is enabled — they are
   // caches of the server's copy. One held offline is not: its local copy is the only one, so it is

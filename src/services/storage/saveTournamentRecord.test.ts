@@ -47,4 +47,14 @@ describe('saveTournamentRecord', () => {
     await saveTournamentRecord({ tournamentRecord: { tournamentId: 'demo' } });
     expect(h.addTournament).toHaveBeenCalledTimes(2);
   });
+
+  it('rejects a reimported reserved sandbox ID visibly, instead of silently pretending to save', async () => {
+    const tournamentRecord = { tournamentId: 'time-warp-11111111-2222-3333-4444-555555555555', isMock: true };
+    await expect(saveTournamentRecord({ tournamentRecord })).rejects.toMatchObject({
+      code: 'NETWORK_ISOLATED',
+      reason: 'sandbox-id',
+    });
+    expect(h.addTournament).not.toHaveBeenCalled();
+    expect(h.maintain).not.toHaveBeenCalled();
+  });
 });

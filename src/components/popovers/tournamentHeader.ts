@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { isPipelineActive, isPipelineModified } from 'services/pipeline/pipelineFeatures';
 import { openEditTournamentNameModal } from 'components/modals/editTournamentName';
 import { getLoginState } from 'services/authentication/loginState';
@@ -27,6 +28,13 @@ export function tournamentHeader(): void {
     titleDiv.addEventListener('click', () => openEditTournamentNameModal());
     tournamentElement.appendChild(titleDiv);
     syncPipelineBadge();
+    if (isTimeWarpActive()) {
+      const badge = document.createElement('span');
+      badge.className = 'tag is-danger';
+      badge.textContent = t('timeWarp.label');
+      badge.title = t('timeWarp.hint');
+      tournamentElement.appendChild(badge);
+    }
   } else {
     context.router?.navigate('/tournaments');
   }

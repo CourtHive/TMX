@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Google Sheets fetcher for the participant import pipeline.
  *
@@ -40,7 +41,7 @@ export async function fetchGoogleSheetRaw({ sheetId }: { sheetId: string }): Pro
 async function fetchSheetText(sheetId: string): Promise<string | undefined> {
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?`;
   try {
-    const response = await window.fetch(sheetUrl);
+    const response = await serverFetch(sheetUrl);
     return response?.ok ? response.text() : undefined;
   } catch (error) {
     console.error('Error fetching sheet:', error);

@@ -76,6 +76,9 @@ describe('policiesApi', () => {
     const fetchMock = mockFetch({ policies: [] });
     const controller = new AbortController();
     await fetchPolicyCatalog(controller.signal);
-    expect(fetchMock.mock.calls[0][1].signal).toBe(controller.signal);
+    const forwarded = fetchMock.mock.calls[0][1].signal;
+    expect(forwarded.aborted).toBe(false);
+    controller.abort();
+    expect(forwarded.aborted).toBe(true);
   });
 });

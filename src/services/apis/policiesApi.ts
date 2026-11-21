@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Policy reads, served by courthive-ams.
  *
@@ -36,7 +37,7 @@ export interface CatalogPolicy {
 }
 
 async function readPolicies(path: string, headers: Record<string, string>, signal?: AbortSignal) {
-  const res = await fetch(`${getAmsBaseUrl()}${path}`, { headers, signal });
+  const res = await serverFetch(`${getAmsBaseUrl()}${path}`, { headers, signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const body = (await res.json()) as { policies?: CatalogPolicy[] };
   return Array.isArray(body?.policies) ? body.policies : [];

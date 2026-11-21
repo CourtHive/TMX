@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Active provider context with localStorage persistence.
  *
@@ -32,6 +33,7 @@ type SetActiveProviderOptions = {
 };
 
 export function setActiveProvider(provider: ProviderValue, options: SetActiveProviderOptions = {}): void {
+  if (isTimeWarpActive()) return;
   const persistServer = options.persistServer !== false;
   context.provider = provider;
   try {
@@ -54,6 +56,7 @@ export function setActiveProvider(provider: ProviderValue, options: SetActivePro
   if (provider?.organisationId) {
     fetchEffectiveConfig(provider.organisationId).then(
       (effective) => {
+        if (isTimeWarpActive()) return;
         // Guard against a stale fetch resolving after the user switched
         // providers again — applying it would repaint the wrong provider's
         // branding/permissions.
@@ -95,6 +98,7 @@ async function fetchEffectiveConfig(providerId: string): Promise<any | undefined
 }
 
 export function clearActiveProvider(): void {
+  if (isTimeWarpActive()) return;
   context.provider = undefined;
   try {
     globalThis.localStorage?.removeItem(IMPERSONATED_PROVIDER_KEY);

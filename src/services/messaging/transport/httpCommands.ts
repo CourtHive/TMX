@@ -1,3 +1,4 @@
+import { isNetworkIsolationError, assertServerAccess } from 'services/network/serverNetwork';
 /**
  * Commands over HTTP — realtime transport Phase 1
  * (Mentat/planning/REALTIME_TRANSPORT_PLUGGABILITY.md).
@@ -122,6 +123,7 @@ export function postCommand(event: string, data: any, isCurrent: () => boolean =
 }
 
 async function send(event: string, data: any): Promise<CommandOutcome> {
+  assertServerAccess(data);
   const route = ROUTES[event];
   if (heldBehind) {
     // Not sent, so it gets what an unanswered command gets, including a chat message's failure.
@@ -139,6 +141,7 @@ async function send(event: string, data: any): Promise<CommandOutcome> {
       silenceErrors: true,
     });
   } catch (error) {
+    if (isNetworkIsolationError(error)) throw error;
     console.warn(`[socket] '${event}' request failed; outcome uncertain:`, error);
   }
   const outcome = route.answer(data, response);

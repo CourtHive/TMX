@@ -1,0 +1,92 @@
+.tmx-support-help {
+  position: relative;
+  margin-inline: 0.4rem;
+  font-size: 0.85rem;
+}
+.tmx-support-help summary {
+  cursor: pointer;
+}
+.tmx-support-help button {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 1.8rem;
+  min-width: 10rem;
+  z-index: 200;
+}
+.tmx-support-form {
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border: 1px solid var(--sp-border, #888);
+  border-radius: 0.5rem;
+  color: var(--sp-text, #222);
+  background: var(--sp-bg, white);
+}
+.tmx-support-form::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+.tmx-support-form h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+}
+.tmx-support-form p {
+  margin-block: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.tmx-support-form label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-block: 0.7rem 0.25rem;
+}
+.tmx-support-form textarea,
+.tmx-support-form input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 4rem;
+  resize: vertical;
+  padding: 0.5rem;
+  color: inherit;
+  background: inherit;
+  border: 1px solid var(--sp-border, #888);
+  border-radius: 0.25rem;
+  font: inherit;
+}
+.tmx-support-form input {
+  min-height: 2.5rem;
+}
+.tmx-support-form section {
+  margin-top: 1rem;
+  border-top: 1px solid var(--sp-border);
+}
+.tmx-support-form button,
+.tmx-support-help button {
+  padding: 0.5rem 0.75rem;
+  color: var(--sp-text, #222);
+  background: var(--sp-bg, white);
+  border: 1px solid var(--sp-border, #888);
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+.tmx-support-form button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.tmx-support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Component button display rules must not override the isolation state. */
+.tmx-support-entry[hidden],
+.tmx-support-report-toast button[hidden] {
+  display: none !important;
+}

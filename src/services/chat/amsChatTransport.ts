@@ -1,3 +1,5 @@
+import { networkIsIsolated } from 'services/network/networkPolicy';
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Tournament chat on courthive-ams and score-relay (Mentat/planning/CHAT_TO_AMS.md, phase 3).
  *
@@ -22,7 +24,8 @@ import { authHeaders, getAmsBaseUrl } from 'services/apis/facilitiesApi';
 import { relaySocketTarget } from 'services/messaging/scoreRelay';
 import { debugConfig } from 'config/debugConfig';
 import { tools } from 'tods-competition-factory';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { createServerSocket } from 'services/network/serverNetwork';
 import {
   receiveAccepted,
   receiveHistory,
@@ -39,7 +42,7 @@ type AmsAnswer = { status: number; data: any } | undefined;
 
 async function amsRequest(method: 'GET' | 'POST', path: string, body?: unknown): Promise<AmsAnswer> {
   try {
-    const response = await fetch(`${getAmsBaseUrl()}${path}`, {
+    const response = await serverFetch(`${getAmsBaseUrl()}${path}`, {
       method,
       headers: authHeaders(),
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -119,6 +122,7 @@ async function joinRoom(socket: Socket, tournamentId: string): Promise<void> {
 
 /** Enter a tournament's chat: its history, and its live room when the relay is there and AMS issues a token. */
 export function enterChat(tournamentId: string): void {
+  if (networkIsIsolated()) return;
   // Already in its room: a reload of the same tournament clears the panel (clearChat), so history comes again.
   if (roomTournamentId === tournamentId && roomSocket) {
     void loadHistory(tournamentId);
@@ -130,7 +134,11 @@ export function enterChat(tournamentId: string): void {
 
   const target = relaySocketTarget();
   if (!target) return;
-  const socket = io(`${target.origin}/chat`, { path: target.path, transports: ['websocket'], forceNew: true });
+  const socket = createServerSocket(`${target.origin}/chat`, {
+    path: target.path,
+    transports: ['websocket'],
+    forceNew: true,
+  });
   roomSocket = socket;
   socket.on('connect', () => void joinRoom(socket, tournamentId));
   socket.on('chatMessage', (message: any) => {
@@ -142,7 +150,7 @@ export function enterChat(tournamentId: string): void {
 export function leaveChat(): void {
   roomTournamentId = undefined;
   if (!roomSocket) return;
-  roomSocket.emit('leaveChat');
+  if (!networkIsIsolated()) roomSocket.emit('leaveChat');
   roomSocket.disconnect();
   roomSocket = undefined;
 }
@@ -166,7 +174,11 @@ async function startMonitor(): Promise<void> {
 
   const target = relaySocketTarget();
   if (!target || monitorSocket) return;
-  const socket = io(`${target.origin}/chat`, { path: target.path, transports: ['websocket'], forceNew: true });
+  const socket = createServerSocket(`${target.origin}/chat`, {
+    path: target.path,
+    transports: ['websocket'],
+    forceNew: true,
+  });
   monitorSocket = socket;
   socket.on('connect', () => void joinMonitorFeed(socket));
   socket.on('adminChatFeed', receiveAdminChatFeed);
@@ -206,6 +218,7 @@ export function suspendAmsChat(): void {
 
 /** Reopen what `suspendAmsChat` closed. True when a reconnect was started. */
 export function resumeAmsChat(): boolean {
+  if (networkIsIsolated()) return false;
   let resumed = false;
   for (const socket of [roomSocket, monitorSocket]) {
     if (socket && !socket.connected) {

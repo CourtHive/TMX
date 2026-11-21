@@ -1,3 +1,5 @@
+import { getWarpSession, isTimeWarpActive, isWarpRecord } from 'services/timeWarp/warpState';
+import { recordSupportDiagnostic } from 'services/support/reportContext';
 /**
  * Mutation request handler with server and local execution.
  * Handles tournament modifications with authentication and permission checks.
@@ -132,7 +134,8 @@ export function determineExecutionStrategy(
 }
 
 export async function mutationRequest(params: MutationParams): Promise<void> {
-  if (isStale()) {
+  if (!isTimeWarpActive() && isStale()) {
+    recordSupportDiagnostic('STALE_DATA', params?.methods?.[0]?.method);
     const msg = 'Please refresh tournament data before making changes';
     tmxToast({ message: msg, intent: 'is-warning' });
     if (params.callback) params.callback({ error: { message: msg }, notified: true });
@@ -150,13 +153,28 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     commandId = factory.tools.UUID(),
   } = params;
   const state = getLoginState();
+  // A sandbox owns one record only. Never let a caller install or mutate a production record inside it.
+  if (isTimeWarpActive()) {
+    const records = params.tournamentRecord
+      ? [params.tournamentRecord]
+      : Object.values(factory[engine]?.getState()?.tournamentRecords ?? {});
+    if (
+      !records.length ||
+      records.some((record: any) => record.tournamentId !== getWarpSession()?.tournamentId || record.isMock !== true)
+    ) {
+      callback?.({ error: { message: t('timeWarp.copyOnly') } } as any);
+      return;
+    }
+  }
 
   let isCurrent = () => true;
   let isSelected = () => true;
   let completed = false;
-  const completion = (result?: any): void => {
+  const completion = (result?: any, diagnosticCode?: string): void => {
     if (completed) return;
     completed = true;
+    if (result?.error)
+      recordSupportDiagnostic(diagnosticCode ?? result.error?.code ?? 'MUTATION_REFUSED', methods?.[0]?.method);
     if (tournamentRecord && isCurrent()) factory[engine].reset();
     if (callback && isFunction(callback)) {
       callback(result);
@@ -168,7 +186,17 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
     }
   };
 
-  const reject = (key: string) => completion({ error: { message: t(key) } });
+  const reject = (key: string) =>
+    completion(
+      { error: { message: t(key) } },
+      (
+        {
+          'toasts.notLoggedIn': 'NOT_LOGGED_IN',
+          'toasts.notAuthorized': 'NOT_AUTHORIZED',
+          'toasts.notAllOffline': 'OFFLINE',
+        } as Record<string, string>
+      )[key],
+    );
 
   if (!Array.isArray(methods)) return reject('common.error');
   const factoryEngine = factory[engine];
@@ -230,11 +258,11 @@ export async function mutationRequest(params: MutationParams): Promise<void> {
           commandId,
         }).catch(fail)
       : Promise.resolve(completion({ error: { message: t('mutationPrompts.tournamentChangedBeforeApply') } }));
-  if (!inDateRange) {
+  if (!inDateRange && !isTimeWarpActive()) {
     queryDateRange({ state, providerIds, mutate, reject, fail });
     return;
   }
-  if (providerIds.length && !offline && state) {
+  if (providerIds.length && !offline && state && !isTimeWarpActive()) {
     checkPermissions({ state, providerIds, mutate, reject }).catch((error) => completion({ error }));
     return;
   }
@@ -397,7 +425,10 @@ async function makeMutation({
   const resolvedMethods = applyPipelineOverrides(applyDevOverrides(methods, window['dev']?.params), pipeline.params);
   if (window?.['dev']?.getContext().internal) console.log({ methods: resolvedMethods });
 
-  const strategy = determineExecutionStrategy(hasProvider, !!offline, serverConfig.get().serverFirst);
+  const strategy =
+    isTimeWarpActive() || isWarpRecord(tournamentRecord)
+      ? LOCAL_ONLY
+      : determineExecutionStrategy(hasProvider, !!offline, serverConfig.get().serverFirst);
 
   let factoryResult: any;
   if (strategy === LOCAL_ONLY || strategy === LOCAL_FIRST) {

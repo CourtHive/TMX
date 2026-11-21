@@ -257,7 +257,7 @@ test('loads a fresh guided tournament and captures a clock walkthrough', async (
   await page.locator('#login').click();
   await page.getByText('Demo mode…', { exact: true }).click();
   await page.getByRole('button', { name: 'Load guided scheduling demo', exact: true }).click();
-  await expect(page).toHaveURL(/tournament\/scheduling-demo-(?!three-days)/);
+  await expect(page).toHaveURL(/tournament\/time-warp-/);
   const panel = page.locator(PANEL);
   await expect(panel).toBeVisible();
   await panel.getByRole('button', { name: 'Clock controls', exact: true }).click();

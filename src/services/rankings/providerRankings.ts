@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Provider rankings helpers.
  *
@@ -34,7 +35,9 @@ function fetchProviderSet(): Promise<Set<string>> {
   if (!providerSetPromise) {
     providerSetPromise = (async () => {
       try {
-        const res = await fetch(`${origin()}/api/rankings/providers`, { headers: { accept: 'application/json' } });
+        const res = await serverFetch(`${origin()}/api/rankings/providers`, {
+          headers: { accept: 'application/json' },
+        });
         if (!res.ok) return new Set<string>();
         const providers = (await res.json()) as RankingsProvider[];
         if (!Array.isArray(providers)) return new Set<string>();
