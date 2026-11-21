@@ -52,32 +52,46 @@ describe('approved network boundary', () => {
 });
 
 // The main lint config skips legacy/charts for unrelated rules. Those directories must never exempt network safety.
-it('applies the network rule to every production TypeScript file, including otherwise ignored directories', () => {
-  function files(dir) {
-    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-      const path = `${dir}/${entry.name}`;
-      if (entry.isDirectory()) return files(path);
-      return entry.isFile() && path.endsWith('.ts') && !/\.(test|d)\.ts$/.test(path) ? [path] : [];
-    });
-  }
-  const source = files('src');
-  expect(source.length).toBeGreaterThan(100);
-  const linter = new Linter({ configType: 'flat' });
-  const violations = source.flatMap((filename) =>
-    linter
-      .verify(
-        readFileSync(filename, 'utf8'),
-        [
-          {
-            files: ['**/*.ts'],
-            languageOptions: { parser: tsparser, parserOptions: { project: false } },
-            plugins: { network: plugin },
-            rules: { 'network/approved-primitives': 'error' },
-          },
-        ],
-        { filename, allowInlineConfig: false },
-      )
-      .map((finding) => ({ filename, ...finding })),
-  );
-  expect(violations).toEqual([]);
+function productionFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return productionFiles(path);
+    return entry.isFile() && path.endsWith('.ts') && !/\.(test|d)\.ts$/.test(path) ? [path] : [];
+  });
+}
+
+const source = productionFiles('src').toSorted((a, b) => a.localeCompare(b, 'en'));
+const batchSize = 50;
+const batches = Array.from({ length: Math.ceil(source.length / batchSize) }, (_, index) => ({
+  batch: index + 1,
+  paths: source.slice(index * batchSize, (index + 1) * batchSize),
+}));
+
+describe('production network boundary inventory', () => {
+  it('includes production files even in directories excluded from ordinary lint', () => {
+    expect(source.length).toBeGreaterThan(100);
+    expect(source.some((path) => path.includes('/legacy/') || path.includes('/charts/'))).toBe(true);
+  });
+
+  // Bound each test's synchronous AST work instead of raising its timeout on slower CI runners.
+  it.each(batches)('checks every production TypeScript file in batch $batch', ({ paths }) => {
+    const linter = new Linter({ configType: 'flat' });
+    const violations = paths.flatMap((filename) =>
+      linter
+        .verify(
+          readFileSync(filename, 'utf8'),
+          [
+            {
+              files: ['**/*.ts'],
+              languageOptions: { parser: tsparser, parserOptions: { project: false } },
+              plugins: { network: plugin },
+              rules: { 'network/approved-primitives': 'error' },
+            },
+          ],
+          { filename, allowInlineConfig: false },
+        )
+        .map((finding) => ({ filename, ...finding })),
+    );
+    expect(violations).toEqual([]);
+  });
 });
