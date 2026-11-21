@@ -76,7 +76,8 @@ asserts zero HTTP/socket traffic while isolated, then proves authoritative reloa
 mutation commands with resulting record checkpoints. **Export recording** downloads
 JSON; stopping or exiting Warp retains the capture in memory for export from the login menu or Demo drawer.
 Export does not clear it. Starting another recording replaces it; reload or identity changes clear it.
-Export is restricted to the capturing identity.
+Export is restricted to the capturing identity. Navigation capture replaces routes outside the captured tournament
+with a placeholder, so invitation, magic-link and SSO route tokens are not exported.
 The isolated `replayDemoWalkthrough` test driver (`services/clock/testing/`) reexecutes commands and compares
 checkpoints. Uninstrumented state edits and nondeterministic results are reported
 as unverified; recordings are candidates for regression fixtures, not automatically
@@ -113,8 +114,9 @@ factory behavior, not real relay integration. Guidon real-stack evidence must be
 
 The domain lifecycle imports no page or component and registers no listeners on import. Startup explicitly wires
 its UI host, and the tournament page registers its own draft guard and teardown via `registerWarpParticipant`.
-The entry identity/permissions snapshot intentionally remains fixed during local experimentation; expiry and
-normal token validation/refresh and server authorization resume on exit. Cross-tab identity changes discard the sandbox.
+The entry identity/permissions snapshot intentionally remains fixed during local experimentation. Normal token
+validation, silent refresh and server authorization resume on exit. A browser regression expires the access token
+during Warp and verifies refresh occurs only after exit. Cross-tab identity changes discard the sandbox.
 
 Copying uses one native clone and then rewrites known identity fields/lists/maps, reference extension values,
 JSON reference extensions and tournament URLs in place. It preserves prose and opaque extension text. Other live
@@ -136,6 +138,61 @@ local reads. A restore failure discards the sandbox and shows a recovery notice.
 asynchronous local reload; the barrier prevents edits from the outgoing sandbox during that interval.
 
 Local browser evidence is a set of test cases, not the entire journey suite: files 170 (guided demo), 171 (free
-clock) and 222 (Warp). The guided demo now launches inside a disposable Warp copy and returns to its launch
-location on exit. Report exact counts and source refs in the validation record. Local validation is not remote
-CI or a release: this branch remains local until explicitly authorized for push/PR.
+clock) and 222 (Warp). The guided demo launches inside a disposable Warp copy and returns to its launch
+location on exit. Report exact counts and source refs in the validation record.
+
+## Factory and service integration
+
+This feature was implemented in TMX and qualified through Guidon. It required no factory source changes, new
+engine API, factory PR or package release. Qualification used the published `tods-competition-factory` 7.44.0 and
+`courthive-components` 7.21.1 packages, without sibling source links.
+
+TMX captures one owned `tournamentEngine.getState()` snapshot, clones/rebases the selected tournament, and
+installs/restores records through the existing engine state APIs. Native `structuredClone` avoids depending on
+configurable factory copy-depth behavior. Ordinary actions continue through `mutationRequest` and the factory
+execution queue; Warp forces local execution before the server-first/local-first decision can dispatch a command.
+`mocksEngine` supplies deterministic test fixtures and the guided demo. Existing Garman/Pro scheduling behavior
+is exercised, not replaced by sandbox-specific scheduling rules.
+
+Only the disposable copy receives `isMock: true`. Its original record and identity remain unchanged. Tests cover
+the resulting TMX Pipeline Features eligibility, attached scoring policy precedence and local desk eligibility;
+those are deliberate sandbox choices, not new factory authorization semantics. Other linked tournaments are
+neither fetched nor cloned.
+
+The performance work removed an extra engine snapshot/deep-copy pass and added
+`node scripts/benchmark-network-policy.ts`. On the qualification host, a 1.65 MB envelope containing eight
+256-player draws took roughly 2.1–2.2 ms median / 2.7–2.8 ms p95 per identity scan after warmup. That benchmark
+measures the network payload guard, not factory scheduler runtime or total Warp-entry latency.
+
+No CFS, HiveID, AMS or score-relay source was changed for Time Warp. The existing services were built and run on
+disposable Guidon databases/ports to verify the real integration. The isolated TMX browser suite uses stubs and a
+disabled relay; the separate Guidon journey establishes real CFS/relay connectivity before entry, observes zero
+backend requests during Warp, independently checks unchanged server data, and requires an authoritative read on
+exit. It also rejects an upload of the retired copy after exit.
+
+## Delivery, regression evidence and release prerequisites
+
+[TMX #2082](https://github.com/CourtHive/TMX/pull/2082) merged into `dev` as `0ae36723`.
+[Guidon #52](https://github.com/CourtHive/Guidon/pull/52) merged the real-stack `time-warp` journey as `a030aa2`.
+The feature commits separate the network boundary, session lifecycle and clock/demo integration; their bodies
+record the decisions and the guided-demo behavior change.
+
+[Required CI run 44920489527](https://github.com/CourtHive/TMX/actions/runs/44920489527) passed 3,500 unit tests
+(one skipped), lint, formatting, audits and app/e2e/Electron type checks. The production build was also qualified
+against published dependencies. The browser run passed **22 cases**: 170 (8), 171 (1), 222 (13). Inspection of the
+actual JSON report found **zero flaky entries and zero retries**. These are dated delivery results, not claims
+about the size of the current suite.
+
+CI emits HTML and JSON reports under `e2e/warp-report/` and `e2e/warp-results.json`, prints retry/flaky statistics,
+and uploads the `warp-playwright-report` artifact for 14 days. The complete production source inventory is
+checked in deterministic batches of 50 files, including directories excluded from ordinary lint. The first CI
+attempt exceeded the default five-second test budget when all files were parsed in one test. Batching kept the
+same timeout and coverage; a planted raw fetch in a lint-excluded directory still fails the rule.
+
+[Guidon #54](https://github.com/CourtHive/Guidon/pull/54) subsequently checkpointed `dev` into **Guidon main** as
+`f56eb0e3`, carrying both the Time Warp and support-reporting journeys. The release gate must use that checkpoint
+or a newer main checkout. Before TMX promotion, the entire Guidon gate must pass; individual journey passes do
+not substitute for that gate.
+One original `display` run timed out before TMX splash/navigation appeared and passed on rerun. Its root cause
+was not established: a host startup problem is a hypothesis, not a proven diagnosis. Retain early console,
+request-failure, server and trace evidence on a cold full-gate run before deciding whether any startup fix is needed.
