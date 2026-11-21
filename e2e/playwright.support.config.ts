@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 45_000,
-  outputDir: '/private/tmp/tmx-support-browser-results',
+  outputDir: './test-results/support-reporting',
   reporter: 'list',
   use: { baseURL: 'http://127.0.0.1:5187', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
