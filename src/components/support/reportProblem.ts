@@ -14,6 +14,8 @@ export function openProblemReport(code?: string): void {
   if (document.getElementById(SUPPORT_DIALOG)) return;
   if (code) recordSupportDiagnostic(code);
   const scope = reportScope();
+  const [expectedReporter, selectedProvider, impersonatedProvider] = scope ? JSON.parse(scope) : [];
+  const expectedProvider = selectedProvider || impersonatedProvider;
   let record: any;
   try {
     record = structuredClone(tournamentEngine.getTournament()?.tournamentRecord);
@@ -116,7 +118,7 @@ export function openProblemReport(code?: string): void {
   form.onsubmit = async (event) => {
     event.preventDefault();
     if (active) return;
-    if (!scope) {
+    if (!scope || !expectedProvider) {
       status.textContent = supportText('login');
       return;
     }
@@ -152,6 +154,8 @@ export function openProblemReport(code?: string): void {
         }
         frozenPayload = structuredClone({
           submissionKey,
+          expectedReporter,
+          expectedProvider,
           description: text,
           evidence,
           ...(tournamentId && { tournamentId }),

@@ -68,6 +68,8 @@ test('Help submits only description-safe evidence, preserves an idempotent retry
   expect(Object.keys(requests[0]).toSorted((a, b) => a.localeCompare(b))).toEqual([
     'description',
     'evidence',
+    'expectedProvider',
+    'expectedReporter',
     'submissionKey',
   ]);
   expect(JSON.stringify(requests[0].evidence)).not.toMatch(

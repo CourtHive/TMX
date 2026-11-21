@@ -12,7 +12,10 @@ export function reportScope(): string {
     if (!token) return '';
     const claims = jwtDecode<any>(token);
     const identity = claims.userId ?? claims.sub ?? claims.email;
-    const selected = claims.providerId ?? '';
+    const selected =
+      claims.providerId ??
+      claims.provider?.organisationId ??
+      (claims.providerIds?.length === 1 ? claims.providerIds[0] : '');
     const impersonated = context.provider?.organisationId ?? '';
     return identity ? JSON.stringify([identity, selected, impersonated]) : '';
   } catch {
