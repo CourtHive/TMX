@@ -1,3 +1,4 @@
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { recordSupportDiagnostic } from 'services/support/reportContext';
 import { supportText } from 'services/support/text';
 import { toast } from './toaster';
@@ -23,7 +24,7 @@ export function tmxToast(params) {
   } = params ?? {};
 
   let reportAction = action;
-  if (intent === 'is-danger') {
+  if (intent === 'is-danger' && supportReportingAvailable()) {
     recordSupportDiagnostic('UNCLASSIFIED');
     reportAction ??= { text: supportText('report'), onClick: () => {
       void import('components/support/reportProblem').then(({ openProblemReport }) => openProblemReport());
@@ -33,6 +34,7 @@ export function tmxToast(params) {
     // animate: { in: 'fadeInRight', out: 'fadeOutLeft' }, // see animate.css
     // animate: { in: 'bounceInDown', out: 'bounceOutUp' }, // see animate.css
     animate: { in: 'fadeIn', out: 'fadeOut' }, // see animate.css
+    classList: reportAction !== action ? 'tmx-support-report-toast' : undefined,
     pauseOnHover,
     offsetBottom,
     type: intent,

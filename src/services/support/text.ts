@@ -17,6 +17,7 @@ type SupportKey =
   | 'verified'
   | 'failed'
   | 'changed'
+  | 'isolated'
   | 'tooLong'
   | 'login'
   | 'receipt'

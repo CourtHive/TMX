@@ -1,5 +1,6 @@
 import { SupportDiagnosticBuffer, reportRoute } from './diagnostics';
 import { getToken } from 'services/authentication/tokenManagement';
+import { supportReportingAvailable } from './reportAvailability';
 import { context } from 'services/context';
 import { jwtDecode } from 'jwt-decode';
 
@@ -24,6 +25,7 @@ export function reportScope(): string {
 }
 let diagnosticFailures = 0;
 export function recordSupportDiagnostic(code: unknown, method?: unknown) {
+  if (!supportReportingAvailable()) return;
   try {
     buffer.record(reportScope(), { code, method, route: reportRoute(globalThis.location?.hash ?? '') });
     if (diagnosticFailures) console.warn('[support] diagnostic recording recovered');

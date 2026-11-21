@@ -2,6 +2,7 @@
  * Invalid Participants Modal - displays participants that failed validation when adding to event
  * Shows table with participant names and reasons for validation failure
  */
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { recordSupportDiagnostic } from 'services/support/reportContext';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { tournamentEngine } from 'services/factory/engine';
@@ -156,6 +157,8 @@ export function invalidParticipantsModal({ invalidParticipants }: InvalidPartici
     buttons: [
       {
         label: supportText('report'),
+        hide: !supportReportingAvailable(),
+        footer: { className: 'button font-medium tmx-support-entry' },
         close: true,
         onClick: () => {
           setTimeout(() => {

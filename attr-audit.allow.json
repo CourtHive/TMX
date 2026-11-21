@@ -15,6 +15,7 @@
   "getTournamentIds",
   "light",
   "ratingTypes",
+  "records",
   "route",
   "scrollTo",
   "segments",

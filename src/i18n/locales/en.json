@@ -4237,6 +4237,7 @@
     "verified": "Your account contact address is verified.",
     "failed": "The report was not confirmed. Your text is preserved; try again.",
     "changed": "Your account or provider changed. Close this form and open a new report.",
+    "isolated": "Time Warp started. Close this form and reopen it after returning to your tournament.",
     "tooLong": "Keep the complete report within 8 KiB.",
     "login": "Sign in with a provider account before sending a report.",
     "receipt": "Check receipt",

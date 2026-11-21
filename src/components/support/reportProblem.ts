@@ -1,6 +1,8 @@
 import { reportScope, recentSupportDiagnostics, recordSupportDiagnostic } from 'services/support/reportContext';
 import { submitSupportReport, fetchSupportReceipt } from 'services/support/reportApi';
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { reportRoute, safeValidation } from 'services/support/diagnostics';
+import { onNetworkIsolation } from 'services/network/networkPolicy';
 import { accountContactSettings } from './accountContactSettings';
 import { tournamentEngine } from 'services/factory/engine';
 import { supportText } from 'services/support/text';
@@ -11,9 +13,10 @@ import { SUPPORT_DIALOG, SUPPORT_TITLE } from 'constants/tmxConstants';
 import './reportProblem.css';
 
 export function openProblemReport(code?: string): void {
-  if (document.getElementById(SUPPORT_DIALOG)) return;
+  if (!supportReportingAvailable() || document.getElementById(SUPPORT_DIALOG)) return;
   if (code) recordSupportDiagnostic(code);
   const scope = reportScope();
+  let isolatedSinceOpen = false;
   const [expectedReporter, selectedProvider, impersonatedProvider] = scope ? JSON.parse(scope) : [];
   const expectedProvider = selectedProvider || impersonatedProvider;
   let record: any;
@@ -85,7 +88,7 @@ export function openProblemReport(code?: string): void {
   const settings = document.createElement('button');
   settings.type = 'button';
   settings.textContent = supportText('settings');
-  const account = accountContactSettings(scope);
+  const account = accountContactSettings(scope, () => !isolatedSinceOpen && supportReportingAvailable());
   settings.onclick = () => account.open();
   const close = document.createElement('button');
   close.type = 'button';
@@ -96,9 +99,19 @@ export function openProblemReport(code?: string): void {
   dialog.append(form, account.section);
   document.body.append(dialog);
   const opener = document.activeElement as HTMLElement | null;
+  const stopWatching = onNetworkIsolation(() => {
+    isolatedSinceOpen = true;
+    send.disabled = settings.disabled = true;
+    account.section.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input, button').forEach((element) => {
+      element.disabled = true;
+    });
+    status.textContent = supportText('isolated');
+    record = undefined;
+  });
   dialog.addEventListener(
     'close',
     () => {
+      stopWatching();
       record = undefined;
       dialog.remove();
       opener?.focus();
@@ -118,6 +131,10 @@ export function openProblemReport(code?: string): void {
   form.onsubmit = async (event) => {
     event.preventDefault();
     if (active) return;
+    if (isolatedSinceOpen || !supportReportingAvailable()) {
+      status.textContent = supportText('isolated');
+      return;
+    }
     if (!scope || !expectedProvider) {
       status.textContent = supportText('login');
       return;
@@ -131,7 +148,8 @@ export function openProblemReport(code?: string): void {
     try {
       if (receipt) {
         const current = await fetchSupportReceipt(receipt.reference);
-        if (scope === reportScope() && dialog.isConnected) paintReceipt(current);
+        if (!isolatedSinceOpen && supportReportingAvailable() && scope === reportScope() && dialog.isConnected)
+          paintReceipt(current);
         return;
       }
       if (!frozenPayload) {
@@ -148,8 +166,8 @@ export function openProblemReport(code?: string): void {
         }
         // Validation has a UI budget; unavailable is explicit, never a reason to block a bug report.
         await Promise.race([validation, new Promise((resolve) => setTimeout(resolve, 1000))]);
-        if (scope !== reportScope() || !dialog.isConnected) {
-          status.textContent = supportText('changed');
+        if (isolatedSinceOpen || !supportReportingAvailable() || scope !== reportScope() || !dialog.isConnected) {
+          status.textContent = supportText(isolatedSinceOpen || !supportReportingAvailable() ? 'isolated' : 'changed');
           return;
         }
         frozenPayload = structuredClone({
@@ -163,15 +181,15 @@ export function openProblemReport(code?: string): void {
         description.disabled = expected.disabled = steps.disabled = true;
       }
       const result = await submitSupportReport(frozenPayload);
-      if (scope !== reportScope() || !dialog.isConnected) return;
+      if (isolatedSinceOpen || !supportReportingAvailable() || scope !== reportScope() || !dialog.isConnected) return;
       receipt = result;
       paintReceipt(result);
       send.textContent = supportText('receipt');
     } catch {
-      if (dialog.isConnected) status.textContent = supportText('failed');
+      if (!isolatedSinceOpen && dialog.isConnected) status.textContent = supportText('failed');
     } finally {
       active = false;
-      send.disabled = false;
+      send.disabled = isolatedSinceOpen || !supportReportingAvailable();
     }
   };
 }

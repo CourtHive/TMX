@@ -84,3 +84,9 @@
   gap: 0.5rem;
   margin-top: 1rem;
 }
+
+/* Component button display rules must not override the isolation state. */
+.tmx-support-entry[hidden],
+.tmx-support-report-toast button[hidden] {
+  display: none !important;
+}

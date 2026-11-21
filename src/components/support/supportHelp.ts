@@ -1,3 +1,4 @@
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { SUPPORT_HELP } from 'constants/tmxConstants';
 import { supportText } from 'services/support/text';
 import './reportProblem.css';
@@ -12,8 +13,14 @@ export function mountSupportHelp() {
   summary.textContent = supportText('help');
   const report = document.createElement('button');
   report.type = 'button';
+  report.className = 'tmx-support-entry';
+  report.hidden = !supportReportingAvailable();
+  help.ontoggle = () => {
+    report.hidden = !supportReportingAvailable();
+  };
   report.textContent = supportText('report');
   report.onclick = () => {
+    if (!supportReportingAvailable()) return;
     help.open = false;
     summary.focus();
     void import('./reportProblem').then(({ openProblemReport }) => openProblemReport());

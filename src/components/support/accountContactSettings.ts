@@ -1,9 +1,10 @@
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { accountContactRequest } from 'services/support/reportApi';
 import { reportScope } from 'services/support/reportContext';
 import { supportText } from 'services/support/text';
 
 /** Account-level adapter to the existing HiveID flow. No contact value enters report evidence. */
-export function accountContactSettings(scope: string) {
+export function accountContactSettings(scope: string, available = supportReportingAvailable) {
   const section = document.createElement('section');
   section.hidden = true;
   const heading = document.createElement('h3');
@@ -32,6 +33,10 @@ export function accountContactSettings(scope: string) {
   let busy = false;
   const action = async (kind: 'read' | 'set' | 'resend') => {
     if (busy) return;
+    if (!available()) {
+      status.textContent = supportText('isolated');
+      return;
+    }
     if (!scope || reportScope() !== scope) {
       status.textContent = supportText('changed');
       return;
@@ -41,7 +46,7 @@ export function accountContactSettings(scope: string) {
     input.disabled = save.disabled = resend.disabled = true;
     try {
       const data = await accountContactRequest(kind, input.value.trim());
-      if (!section.isConnected || reportScope() !== scope) return;
+      if (!available() || !section.isConnected || reportScope() !== scope) return;
       if (kind === 'read') {
         input.value = data.contactEmail ?? '';
         status.textContent = supportText(data.emailVerifiedAt ? 'verified' : 'pending');
@@ -54,10 +59,10 @@ export function accountContactSettings(scope: string) {
               : 'accountSaved',
         );
     } catch {
-      if (section.isConnected) status.textContent = supportText('accountFailed');
+      if (available() && section.isConnected) status.textContent = supportText('accountFailed');
     } finally {
       busy = false;
-      input.disabled = save.disabled = resend.disabled = false;
+      input.disabled = save.disabled = resend.disabled = !available();
     }
   };
   save.onclick = () => {
@@ -69,6 +74,7 @@ export function accountContactSettings(scope: string) {
   return {
     section,
     open: () => {
+      if (!available()) return;
       section.hidden = false;
       void action('read');
       input.focus();

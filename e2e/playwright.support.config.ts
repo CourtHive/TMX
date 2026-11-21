@@ -14,6 +14,14 @@ export default defineConfig({
   webServer: {
     cwd: fileURLToPath(new URL('..', import.meta.url)),
     command: 'node_modules/.bin/vite --host 127.0.0.1 --port 5187 --strictPort',
+    env: {
+      SERVER: 'http://127.0.0.1:5187',
+      AUTH_SERVER: 'http://127.0.0.1:5187',
+      QUERY_SERVER: 'http://127.0.0.1:5187',
+      SCORE_RELAY_URL: 'disabled',
+      VITE_SCORE_RELAY_URL: 'disabled',
+      VITE_AMS_URL: 'http://127.0.0.1:5187',
+    },
     url: 'http://127.0.0.1:5187',
     reuseExistingServer: false,
     timeout: 60_000,
