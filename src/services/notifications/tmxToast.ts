@@ -23,7 +23,7 @@ export function tmxToast(params) {
   } = params ?? {};
 
   let reportAction = action;
-  if (intent === 'is-danger' || intent === 'is-warning') {
+  if (intent === 'is-danger') {
     recordSupportDiagnostic('UNCLASSIFIED');
     reportAction ??= { text: supportText('report'), onClick: () => {
       void import('components/support/reportProblem').then(({ openProblemReport }) => openProblemReport());

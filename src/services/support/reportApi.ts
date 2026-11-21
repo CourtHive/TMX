@@ -1,4 +1,4 @@
-import { baseApi } from 'services/apis/baseApi';
+import { baseApi, authUrl } from 'services/apis/baseApi';
 
 export async function submitSupportReport(payload: unknown) {
   const response = await baseApi.post('/support/reports', payload);
@@ -12,7 +12,6 @@ export async function fetchSupportReceipt(reference: string) {
 }
 
 export async function accountContactRequest(action: 'read' | 'set' | 'resend', contactEmail?: string) {
-  const { authUrl } = await import('services/apis/baseApi');
   const response =
     action === 'read'
       ? await baseApi.get(authUrl('/auth/me'))

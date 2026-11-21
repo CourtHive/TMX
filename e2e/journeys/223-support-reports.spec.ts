@@ -168,3 +168,37 @@ test('a refused client operation remains in evidence even when a callback consum
   expect(submitted.evidence.diagnostics.some((entry: any) => entry.method === 'addEvent')).toBe(true);
   expect(JSON.stringify(submitted)).not.toContain('PRIVATE_ATTEMPT_SENTINEL');
 });
+
+test('routine warnings do not offer reporting or add a second diagnostic; errors retain existing actions', async ({
+  page,
+}) => {
+  await page.evaluate(async () => {
+    const { tmxToast } = await import('/src/services/notifications/tmxToast.ts');
+    const { recordSupportDiagnostic } = await import('/src/services/support/reportContext.ts');
+    recordSupportDiagnostic('STALE_DATA');
+    tmxToast({ message: 'Refresh data', intent: 'is-warning', duration: 0 });
+  });
+  await expect(page.getByText('Refresh data', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Report a problem', exact: true })).toHaveCount(0);
+  const codes = await page.evaluate(async () => {
+    const { recentSupportDiagnostics } = await import('/src/services/support/reportContext.ts');
+    return recentSupportDiagnostics().map((item) => item.code);
+  });
+  expect(codes).toEqual(['STALE_DATA']);
+  await page.evaluate(async () => {
+    const { tmxToast } = await import('/src/services/notifications/tmxToast.ts');
+    tmxToast({
+      message: 'Error with details',
+      intent: 'is-danger',
+      duration: 0,
+      action: { text: 'Details', onClick() {} },
+    });
+  });
+  await expect(page.getByText('Details', { exact: true })).toBeVisible();
+  await page.evaluate(async () => {
+    const { tmxToast } = await import('/src/services/notifications/tmxToast.ts');
+    tmxToast({ message: 'Unexpected failure', intent: 'is-danger', duration: 0 });
+  });
+  await page.getByText('Report a problem', { exact: true }).last().click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+});
