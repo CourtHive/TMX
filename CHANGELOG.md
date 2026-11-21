@@ -1,5 +1,30 @@
 # Changelog
 
+## [8.59.0](https://github.com/CourtHive/TMX/compare/v8.58.0...v8.59.0) (2026-11-21)
+
+
+### Features
+
+* add disposable Time Warp clock sandboxes ([0ae3672](https://github.com/CourtHive/TMX/commit/0ae36723fef7c295d2f8a55eea47f732eac24075))
+* add disposable Warp sessions with registered lifecycle hooks ([69d4495](https://github.com/CourtHive/TMX/commit/69d44951fb70b51f815a669eb35771a38e8d7ef8))
+* centralize sandbox network isolation and enforce its boundary ([4f09af2](https://github.com/CourtHive/TMX/commit/4f09af2eb3c0879b62e4788b9966c173b6f1598d))
+* integrate Warp clock UI and gate isolation journeys in CI ([7931b06](https://github.com/CourtHive/TMX/commit/7931b06de4f0862e49b55a5f7d23fdb7b25c5fa3))
+* **support:** checkpoint TMX reporting and Time Warp for release ([bec9cc3](https://github.com/CourtHive/TMX/commit/bec9cc326fd0a27398a4ef61e3ca231224088fae))
+* **support:** report problems with safe diagnostics and verified contact ([#2084](https://github.com/CourtHive/TMX/issues/2084)) ([1fedda0](https://github.com/CourtHive/TMX/commit/1fedda02d19877cf160f55f6a1691c687b975fb3))
+
+
+### Bug Fixes
+
+* **participants:** the footer names its scope only while a selection narrows the counts ([#2079](https://github.com/CourtHive/TMX/issues/2079)) ([0292348](https://github.com/CourtHive/TMX/commit/0292348853e9151e06896c33048455dbf77c6a0a))
+* **schedule:** drop the legend row for a rest badge cards almost never show ([#2081](https://github.com/CourtHive/TMX/issues/2081)) ([c09bb5e](https://github.com/CourtHive/TMX/commit/c09bb5e3aef8ccb595606cd07943513ffe4649f8))
+* **sync:** a record refreshed from the server clears the disconnect flag ([#2080](https://github.com/CourtHive/TMX/issues/2080)) ([ad65aeb](https://github.com/CourtHive/TMX/commit/ad65aeb408af84843ec961c6739a7907106a36c4))
+
+
+### Documentation
+
+* record Time Warp integration and delivery ([115c7eb](https://github.com/CourtHive/TMX/commit/115c7ebec7ba18c98d9b256abec238765af71ab0))
+* record Time Warp integration and delivery ([2531be2](https://github.com/CourtHive/TMX/commit/2531be2c1286f025283c06894cdcbdba8dc73ba7))
+
 ## [8.58.0](https://github.com/CourtHive/TMX/compare/v8.57.0...v8.58.0) (2026-11-21)
 
 
