@@ -1,3 +1,6 @@
+import { registerWarpParticipant } from 'services/timeWarp/warpParticipants';
+import { abandonWarpGridDraft, hasUnsavedGridChanges } from './tabs/scheduleViews/gridView';
+import { consumeWarpTransitionRender, isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Main tournament display router and loader.
  * Handles tournament loading, navigation, and tab rendering.
@@ -83,6 +86,17 @@ import {
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
+/** The page owns its drafts and teardown; the Warp service never imports this page. */
+export function initializeTournamentWarpBoundary(): () => void {
+  return registerWarpParticipant({
+    canEnter: () => !hasUnsavedGridChanges(),
+    beforeSwitch: (phase) => {
+      if (phase === 'exit') abandonWarpGridDraft();
+      destroyActiveTab();
+    },
+  });
+}
+
 export function displayTournament({ config }: { config?: any } = {}): void {
   const isCurrent = beginTournamentLoad(config.tournamentId);
   const { tournamentRecord } = tournamentEngine.getTournament();
@@ -90,11 +104,12 @@ export function displayTournament({ config }: { config?: any } = {}): void {
     // Already in the engine (dev.load, a catalog demo): note it for the demo clock from the record this branch holds.
     noteLoadedTournament(tournamentRecord);
     // Tournament already loaded — check if we missed updates while disconnected
-    if (hadDisconnect() && getLoginState()) {
+    if (!isTimeWarpActive() && hadDisconnect() && getLoginState()) {
       clearDisconnectFlag();
       checkForStaleData(config.tournamentId);
     }
-    routeTo(config);
+    if (consumeWarpTransitionRender(config.tournamentId)) renderTournament({ config });
+    else routeTo(config);
   } else {
     const prevId = (context as any).tournamentId;
     slog('[tournament] switching from %s to %s (loggedIn=%s)', prevId, config.tournamentId, !!getLoginState());
@@ -111,6 +126,8 @@ export function displayTournament({ config }: { config?: any } = {}): void {
 }
 
 export function renderTournament({ config }: { config: any }): void {
+  // A normal authoritative load also completes the Warp transition; do not leave its render pending for the next tab.
+  consumeWarpTransitionRender(config.tournamentId);
   // Announce the tournament switch before anything renders so per-tournament
   // caches (e.g. the schedule data cache) drop the previous tournament's
   // entries first. renderTournament runs only on an actual load/switch — not
@@ -132,7 +149,7 @@ export function renderTournament({ config }: { config: any }): void {
   }
 
   // Join the tournament room so we receive mutation broadcasts from other clients
-  if (config.tournamentId && getLoginState()) {
+  if (!isTimeWarpActive() && config.tournamentId && getLoginState()) {
     slog('[tournament] renderTournament — joining room for', config.tournamentId);
     joinTournamentRoom(config.tournamentId);
     enterChat(config.tournamentId);
@@ -145,7 +162,7 @@ export function renderTournament({ config }: { config: any }): void {
   }
 
   // Connect to score relay for live scores from trackers
-  if (config.tournamentId) {
+  if (!isTimeWarpActive() && config.tournamentId) {
     connectRelay(config.tournamentId);
     onTournamentScore(handleRelayScore);
     loadLiveTrackedScores(config.tournamentId);

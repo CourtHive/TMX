@@ -4072,13 +4072,25 @@
     "title": "Tournament time: {{when}} ({{zone}}). Your time: {{local}}"
   },
   "networkIsolation": {
-    "blocked": "Server access is disabled for this isolated session"
+    "blocked": "Server access is disabled in Time Warp",
+    "reservedId": "This tournament ID is reserved for disposable Time Warp copies. Import a copy with a new tournament ID to save it."
+  },
+  "timeWarp": {
+    "publicLinksUnavailable": "Public links are unavailable in Time Warp",
+    "serverDisabled": "Server access is disabled in Time Warp",
+    "copyOnly": "Time Warp can only modify its sandbox copy",
+    "enter": "Enter Time Warp",
+    "exit": "Exit Warp",
+    "label": "Time Warp",
+    "hint": "Temporary local sandbox. Server communication is disabled. Exit Warp discards all sandbox changes.",
+    "finishFirst": "Save or discard drafts and finish pending actions before entering Time Warp.",
+    "exitRecovered": "Time Warp ended after a restore error. The sandbox was discarded; reopen the original tournament if needed."
   },
   "demoClock": {
     "title": "Demo Clock",
     "launch": "Open Demo Clock",
     "cannotStart": "The demo clock could not start: this tournament needs a start date and a venue time zone.",
-    "launchHint": "Load a fresh Scheduling Lab with the Garman, Pro and combined walkthrough and its demo clock. The clock runs only in a Scheduling Lab: while one is open, Open Demo Clock brings the clock back. Available only while signed out.",
+    "launchHint": "Enter Time Warp to experiment on a temporary copy of this tournament, or load a guided Scheduling Lab. Server communication is disabled in Warp. Exit Warp discards the copy; recordings remain available for export.",
     "collapse": "Hide controls",
     "expand": "Clock controls",
     "exit": "Exit clock",

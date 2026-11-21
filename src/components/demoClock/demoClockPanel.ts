@@ -1,3 +1,6 @@
+import { hasSchedulingDemoScript } from 'services/clock/schedulingDemoScript';
+import { exitTimeWarp } from 'services/timeWarp/timeWarp';
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { schedulerPeriodLength, withPeriodLength } from 'services/schedulePreferences/schedulingPeriodLength';
 import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
@@ -113,7 +116,8 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     collapse.setAttribute('aria-expanded', String(!body.hidden));
   });
   collapse.setAttribute('aria-expanded', 'false');
-  const exit = button(t('demoClock.exit'), () => {
+  const exit = button(t(isTimeWarpActive() ? 'timeWarp.exit' : 'demoClock.exit'), () => {
+    if (isTimeWarpActive()) return exitTimeWarp();
     stopDemoClock();
     if (getDemoOverlay()?.transient) clearDemoOverlay();
     renderDemoAffordance();
@@ -224,7 +228,8 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   modeLabel.textContent = t('demoClock.mode');
   const modeSelect = document.createElement('select');
   modeSelect.setAttribute(ARIA_LABEL, t('demoClock.mode'));
-  const modes: DemoClockMode[] = ['clock', 'script'];
+  const guided = hasSchedulingDemoScript(tournamentEngine.q.tournament());
+  const modes: DemoClockMode[] = guided ? ['clock', 'script'] : ['clock'];
   for (const value of modes) {
     const option = document.createElement('option');
     option.value = value;
@@ -265,7 +270,18 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   const hint = document.createElement('p');
   hint.textContent = t('demoClock.hint');
   header.append(collapse, exit);
-  body.append(timezone, modeLabel, fields, steps, boundary, scenes, hint, captureControls, captureStatus, status);
+  body.append(
+    timezone,
+    ...(guided ? [modeLabel] : []),
+    fields,
+    steps,
+    boundary,
+    scenes,
+    hint,
+    captureControls,
+    captureStatus,
+    status,
+  );
   panel.append(header, body);
   document.documentElement.dataset[CLOCK_ACTIVE_ATTRIBUTE] = 'true';
   const unmount = mountDemoClock(panel);
@@ -275,10 +291,12 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       disposePanel?.();
       return;
     }
-    clock.textContent = `${t('demoClock.shortLabel')} · ${venueClock(state.nowMs, zone)}`;
+    clock.textContent = `${t(isTimeWarpActive() ? 'timeWarp.label' : 'demoClock.shortLabel')} · ${venueClock(state.nowMs, zone)}`;
     clock.title = `${venueCalendarDate(state.nowMs, zone)} · ${zone} · ${t('demoClock.modes.' + state.mode)} · ${t('demoClock.paused')}`;
     scenes.hidden = state.mode !== 'script';
-    hint.textContent = t(state.mode === 'script' ? 'demoClock.hint' : 'demoClock.freeHint');
+    hint.textContent = t(
+      state.mode === 'script' ? 'demoClock.hint' : isTimeWarpActive() ? 'timeWarp.hint' : 'demoClock.freeHint',
+    );
     modeSelect.value = state.mode;
     if (document.activeElement !== date) date.value = venueCalendarDate(state.nowMs, zone);
     if (document.activeElement !== time) time.value = venueClock(state.nowMs, zone);

@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Session guard — turns a silent, expired-session failure into a clear,
  * recoverable UX.
@@ -244,6 +245,7 @@ export function notifySessionRecovered(): void {
 /** Proactive tick: banner the moment provider work is stranded by a session
  * that cannot silently recover — before the user even attempts a save. */
 function proactiveCheck(): void {
+  if (isTimeWarpActive()) return;
   if (recovering) return;
   if (isSessionValid()) {
     hideBanner();
