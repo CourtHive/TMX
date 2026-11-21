@@ -1398,7 +1398,7 @@
     },
     "editCategories": {
       "title": "Tournament Categories",
-      "intro": "Add or remove categories defined for this tournament. Categories in use cannot be edited or removed — change them by replacing the events that reference them.",
+      "intro": "Add, edit or remove categories defined for this tournament. Categories in use cannot be edited or removed — change them by replacing the events that reference them.",
       "add": "+ Add category",
       "empty": "No categories defined yet.",
       "duplicate": "A category with that name or code already exists.",
@@ -1407,7 +1407,18 @@
       "deleteDisabledHint": "This category is used by one or more events. Remove or reassign those events first.",
       "unused": "Unused",
       "usageCount": "{{count}} event(s)",
-      "usageList": "{{name}} is used by: {{events}}"
+      "usageList": "{{name}} is used by: {{events}}",
+      "ageAtMost": "{{max}} or younger on {{date}} (born on or after {{born}})",
+      "ageAtLeast": "{{min}} or older on {{date}} (born on or before {{born}})",
+      "ageBetween": "Ages {{min}}–{{max}} on {{date}}",
+      "ratingBetween": "{{ratingType}} {{min}}–{{max}}",
+      "ratingAtMost": "{{ratingType}} {{max}} or lower",
+      "ratingAtLeast": "{{ratingType}} {{min}} or higher",
+      "ratingAny": "{{ratingType}}, any rating",
+      "noRule": "No age or rating rule: restricts nobody",
+      "ball": "Ball: {{ballType}}",
+      "undefinedTitle": "Used by events, not defined for this tournament",
+      "define": "Define"
     },
     "editDates": {
       "title": "Edit Dates",
@@ -2167,6 +2178,7 @@
     "setTimeZone": "Set time zone",
     "setTimeZoneDetected": "(detected: {{zone}})",
     "categories": "Categories ({{count}})",
+    "categoriesUndefined": "Undefined, used by events: {{names}}",
     "noneSet": "None",
     "events": "Events",
     "draws": "Draws",
@@ -3797,11 +3809,11 @@
     }
   },
   "ageCategories": {
-    "u10": "10 and Under",
-    "u12": "12 and Under",
-    "u14": "14 and Under",
-    "u16": "16 and Under",
-    "u18": "18 and Under"
+    "u10": "Under 10",
+    "u12": "Under 12",
+    "u14": "Under 14",
+    "u16": "Under 16",
+    "u18": "Under 18"
   },
   "roundOptions": {
     "roundActions": "Round actions",

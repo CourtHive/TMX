@@ -1,5 +1,6 @@
 /**
- * Tournament Categories manager — list view with Add / Edit / Delete.
+ * Tournament Categories manager — list view with Add / Edit / Delete, each category with the rule it
+ * applies (categoryDefinition.ts), and the categories events use that the tournament does not define.
  *
  * Reuses courthive-components.getCategoryModal for the per-row editor.
  * Persists via mutationRequest against SET_TOURNAMENT_CATEGORIES.
@@ -14,23 +15,22 @@ import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import {
+  undefinedEventCategories,
+  editorCategoryType,
+  referencingEvents,
+  describeCategory,
+  cleanCode,
+  type TournamentCategory,
+} from './categoryDefinition';
 import { getCategoryModal } from 'courthive-components';
+import { eventGovernor } from 'tods-competition-factory';
 import { t } from 'i18n';
 
 import { SET_TOURNAMENT_CATEGORIES } from 'constants/mutationConstants';
 import { NONE } from 'constants/tmxConstants';
 
 const TOAST_WARNING = 'is-warning';
-
-interface TournamentCategory {
-  categoryName?: string;
-  type?: string;
-  ageCategoryCode?: string;
-  ratingType?: string;
-  ratingMin?: number;
-  ratingMax?: number;
-  notes?: string;
-}
 
 function getCategories(): TournamentCategory[] {
   const { tournamentRecord } = tournamentEngine.getTournament() ?? {};
@@ -42,48 +42,33 @@ function getEvents(): any[] {
   return tournamentRecord?.events ?? [];
 }
 
-/**
- * Walk events looking for any whose category.ageCategoryCode or
- * categoryName matches this row. Returns the matching event names so
- * the blocked-delete toast can name them.
- */
-function findReferencingEvents(category: TournamentCategory, events: any[]): string[] {
-  const code = category.ageCategoryCode;
-  const name = category.categoryName;
-  const matches: string[] = [];
-  for (const event of events) {
-    const cat = event?.category;
-    if (!cat) continue;
-    const eCode = cat.ageCategoryCode;
-    const eName = cat.categoryName;
-    const referenced = (!!code && (eCode === code || eName === code)) || (!!name && (eCode === name || eName === name));
-    if (referenced) matches.push(event.eventName ?? event.eventId ?? '?');
-  }
-  return matches;
-}
-
 function categoryRowLabel(cat: TournamentCategory): string {
   const name = cat.categoryName ?? '(unnamed)';
-  const code = cat.ageCategoryCode && /^[-—–_]+$/.test(cat.ageCategoryCode) ? undefined : cat.ageCategoryCode;
+  const code = cleanCode(cat.ageCategoryCode);
   if (code) return `${name} (${code})`;
   return name;
 }
 
+/** The tournament's start date: the day age rules are stated for, as eligibility checks them. */
+function consideredDate(): string | undefined {
+  return tournamentEngine.getTournament()?.tournamentRecord?.startDate;
+}
+
 function categoryRowDetail(cat: TournamentCategory): string {
-  const fragments: string[] = [];
-  if (cat.type) fragments.push(cat.type);
-  if (cat.ratingType && (cat.ratingMin !== undefined || cat.ratingMax !== undefined)) {
-    const range = [cat.ratingMin, cat.ratingMax].filter((v) => v !== undefined).join('–');
-    fragments.push(`${cat.ratingType} ${range}`);
-  } else if (cat.ratingType) {
-    fragments.push(cat.ratingType);
-  }
-  return fragments.join(' · ');
+  const rule = describeCategory(cat, {
+    getAgeDetails: (args) => eventGovernor.getCategoryAgeDetails(args),
+    consideredDate: consideredDate(),
+    t: (key, values) => String(t(key, values ?? {})),
+  });
+  return [...rule, cat.notes].filter(Boolean).join(' · ');
 }
 
 function persistCategories(updated: TournamentCategory[], onSuccess?: () => void): void {
+  // setTournamentCategories keeps only categories with a `type` (the editor's AGE / RATING / BOTH), so one made
+  // anywhere else (an event's, a generated one) is given the type its rule implies rather than silently dropped
+  const categories = updated.map((category) => ({ ...category, type: editorCategoryType(category) }));
   mutationRequest({
-    methods: [{ method: SET_TOURNAMENT_CATEGORIES, params: { categories: updated } }],
+    methods: [{ method: SET_TOURNAMENT_CATEGORIES, params: { categories } }],
     callback: (resp: any) => {
       if (resp?.success) {
         onSuccess?.();
@@ -109,6 +94,7 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
     listContainer.innerHTML = '';
 
     const categories = getCategories();
+    renderUndefined(categories);
     if (!categories.length) {
       const empty = document.createElement('div');
       empty.style.cssText =
@@ -146,9 +132,22 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
 
     row.appendChild(meta);
 
-    const refs = findReferencingEvents(cat, getEvents());
+    const refs = referencingEvents(cat, getEvents());
     const usagePill = buildUsagePill(cat, refs);
     row.appendChild(usagePill);
+
+    // a category in use is not edited: its events would silently change who may enter (see the intro)
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'button is-small is-light';
+    editBtn.textContent = t('common.edit');
+    editBtn.disabled = refs.length > 0;
+    if (refs.length === 0) {
+      editBtn.addEventListener('click', () => editAt(index));
+    } else {
+      editBtn.title = t('modals.editCategories.deleteDisabledHint');
+    }
+    row.appendChild(editBtn);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
@@ -190,7 +189,7 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
 
     // Guard already enforced by the disabled button + factory backstop,
     // but re-check here in case state shifted between render and click.
-    const refs = findReferencingEvents(target, getEvents());
+    const refs = referencingEvents(target, getEvents());
     if (refs.length) {
       tmxToast({
         message: t('modals.editCategories.deleteBlocked', {
@@ -213,31 +212,100 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
     });
   };
 
-  const addNew = () => {
+  const isDuplicate = (candidate: TournamentCategory, exceptIndex?: number) =>
+    getCategories().some(
+      (c, i) =>
+        i !== exceptIndex &&
+        ((!!candidate.ageCategoryCode && c.ageCategoryCode === candidate.ageCategoryCode) ||
+          (!!candidate.categoryName && c.categoryName === candidate.categoryName)),
+    );
+
+  /** The category editor, opened on the tournament's start date so its age details match this list. */
+  const openEditor = (existingCategory: TournamentCategory, onChosen: (category: TournamentCategory) => void) => {
     getCategoryModal({
-      existingCategory: {},
-      editorConfig: {},
-      callback: (created: any) => {
-        if (!created) return;
-        const existing = getCategories();
-        const isDuplicate = existing.some(
-          (c) =>
-            (created.ageCategoryCode && c.ageCategoryCode === created.ageCategoryCode) ||
-            (created.categoryName && c.categoryName === created.categoryName),
-        );
-        if (isDuplicate) {
-          tmxToast({
-            message: t('modals.editCategories.duplicate'),
-            intent: TOAST_WARNING,
-          });
-          return;
-        }
-        persistCategories([...existing, created], () => {
-          renderList();
-          onSave?.();
-        });
-      },
+      existingCategory: { ...existingCategory, type: editorCategoryType(existingCategory) },
+      editorConfig: { defaultConsideredDate: consideredDate() },
+      callback: (chosen: any) => chosen && onChosen(chosen),
     });
+  };
+
+  const saveAndRefresh = (next: TournamentCategory[]) =>
+    persistCategories(next, () => {
+      renderList();
+      onSave?.();
+    });
+
+  const addCategory = (created: TournamentCategory) => {
+    if (isDuplicate(created)) {
+      tmxToast({ message: t('modals.editCategories.duplicate'), intent: TOAST_WARNING });
+      return;
+    }
+    saveAndRefresh([...getCategories(), created]);
+  };
+
+  const addNew = () => openEditor({}, addCategory);
+
+  const editAt = (index: number) => {
+    const target = getCategories()[index];
+    if (!target) return;
+    openEditor(target, (edited) => {
+      if (isDuplicate(edited, index)) {
+        tmxToast({ message: t('modals.editCategories.duplicate'), intent: TOAST_WARNING });
+        return;
+      }
+      saveAndRefresh(getCategories().map((c, i) => (i === index ? edited : c)));
+    });
+  };
+
+  let undefinedContainer: HTMLElement | null = null;
+
+  /**
+   * The categories events use that the tournament does not define: an event can name a category ("U18")
+   * that appears nowhere in this list, which is how a mock event read as restricted while nothing said so.
+   */
+  const renderUndefined = (categories: TournamentCategory[]) => {
+    if (!undefinedContainer) return;
+    undefinedContainer.innerHTML = '';
+    const missing = undefinedEventCategories(categories, getEvents());
+    undefinedContainer.style.display = missing.length ? 'flex' : NONE;
+    if (!missing.length) return;
+
+    const heading = document.createElement('div');
+    heading.style.cssText = 'font-weight: 500; color: var(--tmx-text-primary);';
+    heading.textContent = t('modals.editCategories.undefinedTitle');
+    undefinedContainer.appendChild(heading);
+
+    for (const { category, usedBy } of missing) {
+      const row = document.createElement('div');
+      row.style.cssText =
+        'display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border: 1px dashed var(--tmx-border-secondary); border-radius: 6px;';
+      const meta = document.createElement('div');
+      meta.style.cssText = 'flex: 1; min-width: 0;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-weight: 500; color: var(--tmx-text-primary); word-break: break-word;';
+      label.textContent = categoryRowLabel(category);
+      meta.appendChild(label);
+      const detail = document.createElement('div');
+      detail.style.cssText = 'font-size: .8rem; color: var(--tmx-text-secondary);';
+      detail.textContent = [
+        categoryRowDetail(category),
+        t('modals.editCategories.usageList', { name: category.categoryName ?? '?', events: usedBy.join(', ') }),
+      ].join(' · ');
+      meta.appendChild(detail);
+      row.appendChild(meta);
+
+      // a category with a rule is defined exactly as its events have it; one with only a name opens the editor,
+      // so the rule it is missing can be given before anything relies on it
+      const defineBtn = document.createElement('button');
+      defineBtn.type = 'button';
+      defineBtn.className = 'button is-small is-info is-light';
+      defineBtn.textContent = t('modals.editCategories.define');
+      defineBtn.addEventListener('click', () =>
+        editorCategoryType(category) ? addCategory(category) : openEditor(category, addCategory),
+      );
+      row.appendChild(defineBtn);
+      undefinedContainer.appendChild(row);
+    }
   };
 
   const content = (elem: HTMLElement) => {
@@ -255,6 +323,10 @@ export function openCategoriesEditorModal({ onSave }: { onSave?: () => void } = 
     // Scroll the list so 40+ categories don't push the modal off-screen.
     // Cap at roughly half the viewport; the modal-shell handles overflow
     // above this if needed.
+    undefinedContainer = document.createElement('div');
+    undefinedContainer.style.cssText = 'flex-direction: column; gap: .4rem; padding-bottom: .5rem;';
+    elem.appendChild(undefinedContainer);
+
     listContainer = document.createElement('div');
     listContainer.style.cssText =
       'display: flex; flex-direction: column; gap: .4rem; max-height: 50vh; overflow-y: auto; padding-right: .25rem;';
