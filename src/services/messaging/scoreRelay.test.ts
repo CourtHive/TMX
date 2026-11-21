@@ -29,8 +29,9 @@ const mockSocket = {
   }),
 };
 
-vi.mock('socket.io-client', () => ({
-  io: vi.fn(() => {
+vi.mock('services/network/serverNetwork', async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  createServerSocket: vi.fn(() => {
     handlers.clear();
     mockSocket.connected = true;
     mockSocket.on.mockImplementation((event: string, handler: Function) => {
@@ -108,7 +109,7 @@ describe('TMX scoreRelay client', () => {
   });
 
   it('connects to /live namespace on the relay URL', async () => {
-    const { io } = await import('socket.io-client');
+    const { createServerSocket: io } = await import('services/network/serverNetwork');
 
     connectRelay('tid-001');
 
@@ -119,7 +120,7 @@ describe('TMX scoreRelay client', () => {
   });
 
   it('opens no socket when crowd scoring is disabled', async () => {
-    const { io } = await import('socket.io-client');
+    const { createServerSocket: io } = await import('services/network/serverNetwork');
     mockCrowdScoringEnabled.mockReturnValue(false);
 
     connectRelay('tid-disabled');
@@ -128,7 +129,7 @@ describe('TMX scoreRelay client', () => {
   });
 
   it('derives local dev relay URL with port 8384', async () => {
-    const { io } = await import('socket.io-client');
+    const { createServerSocket: io } = await import('services/network/serverNetwork');
     connectRelay('tid-url');
 
     const calledUrl = (io as any).mock.calls[0]?.[0];
@@ -137,7 +138,7 @@ describe('TMX scoreRelay client', () => {
   });
 
   it('dev host: connects with the default /socket.io/ transport path', async () => {
-    const { io } = await import('socket.io-client');
+    const { createServerSocket: io } = await import('services/network/serverNetwork');
     mockServerConfig.socketPath = DEV_SOCKET_PATH;
     connectRelay('tid-dev-path');
 
@@ -150,7 +151,7 @@ describe('TMX scoreRelay client', () => {
     afterEach(() => mockConfiguredRelayURL.mockReturnValue(undefined));
 
     it('a bare origin: that origin, on the default transport path', async () => {
-      const { io } = await import('socket.io-client');
+      const { createServerSocket: io } = await import('services/network/serverNetwork');
       mockServerConfig.socketPath = DEV_SOCKET_PATH;
       mockConfiguredRelayURL.mockReturnValue('http://localhost:18384');
       connectRelay('tid-configured');
@@ -161,7 +162,7 @@ describe('TMX scoreRelay client', () => {
     });
 
     it('a proxied relay (a URL with a path): its origin, with the path as the transport prefix', async () => {
-      const { io } = await import('socket.io-client');
+      const { createServerSocket: io } = await import('services/network/serverNetwork');
       mockConfiguredRelayURL.mockReturnValue('https://relay.example.org/relay/');
       connectRelay('tid-configured-proxied');
 
@@ -176,7 +177,7 @@ describe('TMX scoreRelay client', () => {
     // default-path handshake (or a `${host}/relay/live` URL, which socket.io
     // parses as the namespace `/relay/live` on the default path) lands on CFS
     // and fails with "Invalid namespace" — no live scores reach TMX.
-    const { io } = await import('socket.io-client');
+    const { createServerSocket: io } = await import('services/network/serverNetwork');
     mockServerConfig.socketPath = 'https://courthive.net';
     connectRelay('tid-prod-path');
 

@@ -4071,6 +4071,9 @@
     "ariaLabel": "Time where the tournament is played",
     "title": "Tournament time: {{when}} ({{zone}}). Your time: {{local}}"
   },
+  "networkIsolation": {
+    "blocked": "Server access is disabled for this isolated session"
+  },
   "demoClock": {
     "title": "Demo Clock",
     "launch": "Open Demo Clock",

@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Official-registry reads, proxied by courthive-ams.
  *
@@ -57,7 +58,7 @@ export async function fetchOfficialRecords(
 
   try {
     const params = new URLSearchParams({ personIds: ids.join(',') });
-    const res = await fetch(`${getAmsBaseUrl()}/officiating/records?${params.toString()}`, {
+    const res = await serverFetch(`${getAmsBaseUrl()}/officiating/records?${params.toString()}`, {
       headers: authHeaders(),
       signal,
     });

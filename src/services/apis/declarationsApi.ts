@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 /**
  * Director-side reads/decisions against the courthive-declarations service.
  *
@@ -88,7 +89,7 @@ export async function fetchTournamentRegistrations(
   if (!provider) throw new Error('Missing provider');
   if (!tournamentId) throw new Error('Missing tournamentId');
   const url = `${getDeclarationsBaseUrl()}/registrations?provider=${encodeURIComponent(provider)}&tournamentId=${encodeURIComponent(tournamentId)}`;
-  const res = await fetch(url, { headers: authHeaders() });
+  const res = await serverFetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error(`registrations fetch failed: HTTP ${res.status}`);
   const snaps = await res.json();
   return Array.isArray(snaps) ? snaps.map((s: RegistrationSnapshot) => mapSnapshotToEntry(s, tournamentId)) : [];
@@ -102,7 +103,11 @@ export async function decideRegistration(
   reason?: string,
 ): Promise<RegistrationEntry> {
   const url = `${getDeclarationsBaseUrl()}/registrations/${encodeURIComponent(declarationId)}/decision?provider=${encodeURIComponent(provider)}`;
-  const res = await fetch(url, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ toStatus, reason }) });
+  const res = await serverFetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ toStatus, reason }),
+  });
   if (!res.ok) throw new Error(`registration decision failed: HTTP ${res.status}`);
   const snap = (await res.json()) as RegistrationSnapshot;
   return mapSnapshotToEntry(snap, snap?.tournamentId ?? '');
