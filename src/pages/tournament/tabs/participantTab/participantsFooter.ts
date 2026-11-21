@@ -326,10 +326,11 @@ export function mountParticipantsFooter({
     // Tabulator warns when getFilters runs before the table is built
     if (table.initialized === false) return;
     const selected = table.getSelectedData?.().length ?? 0;
-    scope.textContent = selected
-      ? t('pages.participants.footer.scopeSelected', { count: selected })
-      : t('pages.participants.footer.scopeShown', { count: table.getRows?.('active')?.length ?? 0 });
-    scope.dataset.scope = selected ? 'selected' : 'shown';
+    // named only while a selection narrows the counts: at rest they count the rows shown, which the table title
+    // already says ("N shown" here repeated it)
+    scope.textContent = selected ? t('pages.participants.footer.scopeSelected', { count: selected }) : '';
+    scope.hidden = !selected;
+    scope.dataset.scope = selected ? 'selected' : '';
 
     const counts = paintCounts(table, groups);
     const present = presentValues(table, groups);

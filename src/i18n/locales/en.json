@@ -2928,7 +2928,6 @@
       "footer": {
         "label": "Participant counts",
         "scopeSelected": "{{count}} selected",
-        "scopeShown": "{{count}} shown",
         "gender": "Gender",
         "signIn": "Sign-in",
         "signedIn": "Signed in",
