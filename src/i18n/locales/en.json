@@ -1231,7 +1231,6 @@
       "restDurationSample": "41m",
       "restDuration": "How long the least-rested player has had off",
       "restUnknown": "The prior match has no recorded finish, so rest cannot be measured",
-      "restNone": "Nobody on this card has played yet today",
       "restLimit": "Which match of the day this would be for that player",
       "inspector": "Inspector rest rows",
       "estimatedSample": "(est.)",

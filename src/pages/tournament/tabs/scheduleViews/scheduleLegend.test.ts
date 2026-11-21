@@ -15,12 +15,18 @@ const rows = () => legendSections().flatMap((section) => section.rows);
 const samples = () => rows().map((row) => row.sample);
 
 describe('the schedule legend explains the badge vocabulary', () => {
-  it.each([['schedule.card.rest.onCourt'], ['schedule.card.rest.unknown'], ['schedule.card.rest.none']])(
+  it.each([['schedule.card.rest.onCourt'], ['schedule.card.rest.unknown']])(
     'carries the real %s badge text as a sample',
     (key) => {
       expect(samples()).toContain(t(key));
     },
   );
+
+  // A card where nobody has played draws no badge (restBadge `shouldRender`); "no prior match" reaches a chip only
+  // beside a daily-limit marker, where it explains itself. A legend row for it was noise to parse for a rare sight.
+  it('does not list "no prior match", which a card almost never shows', () => {
+    expect(samples()).not.toContain(t('schedule.card.rest.none'));
+  });
 
   it('carries the daily-limit marker in the form the badge renders it', () => {
     expect(samples()).toContain(t('schedule.card.rest.limit', { ordinal: 3 }));
@@ -34,7 +40,8 @@ describe('the schedule legend explains the badge vocabulary', () => {
   it('explains every sample it carries', () => {
     // A row with a sample and no meaning is a mark named but not explained,
     // which is the failure this affordance exists to prevent.
-    expect(rows().length).toBeGreaterThanOrEqual(9);
+    // 8 since the "no prior match" row was dropped (it explains itself on the rare card that shows it)
+    expect(rows().length).toBeGreaterThanOrEqual(8);
     for (const row of rows()) {
       expect(row.sample.trim()).toBeTruthy();
       expect(row.meaning.trim()).toBeTruthy();
