@@ -198,6 +198,7 @@ jobs:
           if-no-files-found: error
 
       - name: Support reporting browser journey
+        timeout-minutes: 5
         if: steps.scope.outputs.light != 'true'
         run: pnpm exec playwright test --config e2e/playwright.support.config.ts
 
