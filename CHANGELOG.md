@@ -1,5 +1,32 @@
 # Changelog
 
+## [8.58.0](https://github.com/CourtHive/TMX/compare/v8.57.0...v8.58.0) (2026-11-21)
+
+
+### Features
+
+* **participants:** footer count chips for gender, sign-in, entry, missing data and age ([#2064](https://github.com/CourtHive/TMX/issues/2064)) ([6427337](https://github.com/CourtHive/TMX/commit/6427337fffdecf733ef6145608a92b85efcb4ac7))
+* **tables:** selected count in table headers; README logo, demo link and screenshots ([#2063](https://github.com/CourtHive/TMX/issues/2063)) ([a65d71f](https://github.com/CourtHive/TMX/commit/a65d71fc72ee8e110705ced358ae0eb83273bac1))
+
+
+### Bug Fixes
+
+* **chips:** one chip rule everywhere, outlined at rest; chip contrast fixed in every theme ([#2066](https://github.com/CourtHive/TMX/issues/2066)) ([ca972a1](https://github.com/CourtHive/TMX/commit/ca972a136fc0ba21b3025f34f3e7e782dbb230ad))
+* **deps:** update courthive-components to 7.21.0 ([#2068](https://github.com/CourtHive/TMX/issues/2068)) ([4448df8](https://github.com/CourtHive/TMX/commit/4448df8d09577d206411140ec9ece2bafc27e070))
+* **deps:** update courthive-components to 7.21.1 ([#2074](https://github.com/CourtHive/TMX/issues/2074)) ([59622c8](https://github.com/CourtHive/TMX/commit/59622c8ab3e9ff5262ba08134b9be34fc785266a))
+* **deps:** update tods-competition-factory to 7.44.0 ([#2072](https://github.com/CourtHive/TMX/issues/2072)) ([faad664](https://github.com/CourtHive/TMX/commit/faad6649d7fc8637fd4c594bc5e434259e1350a5))
+* **events:** no guessed category, explained refusals, categories that say what they mean ([#2075](https://github.com/CourtHive/TMX/issues/2075)) ([cf4abd9](https://github.com/CourtHive/TMX/commit/cf4abd95a7044efdd33d35a09788a088d0eec526))
+* **participants:** a pair's card shows its players' ranking points ([#2069](https://github.com/CourtHive/TMX/issues/2069)) ([38fb36b](https://github.com/CourtHive/TMX/commit/38fb36bee2f65d882ba6742335e1a7ba3a5d4840))
+* **scheduling:** show and send the scheduling policy's period length ([#2070](https://github.com/CourtHive/TMX/issues/2070)) ([52b7362](https://github.com/CourtHive/TMX/commit/52b736216e0430f94d30a2f81a0f897cfb88d589))
+* **scoring:** close the score dialog only on an accepted result; report crowd promotion truthfully ([#2062](https://github.com/CourtHive/TMX/issues/2062)) ([21e93a6](https://github.com/CourtHive/TMX/commit/21e93a695b3b27c33a3a1b5b507c05f5963d754c))
+* **ui:** survey fixes, text accents in dark and the pipeline features panel ([#2067](https://github.com/CourtHive/TMX/issues/2067)) ([b26de25](https://github.com/CourtHive/TMX/commit/b26de25c7622ba666099ca93bac35e2fb1a10ab9))
+* **validation:** an integrity check that could not run no longer looks like a clean record ([#2071](https://github.com/CourtHive/TMX/issues/2071)) ([c4834bd](https://github.com/CourtHive/TMX/commit/c4834bdc75381efaa30e9c40165ff90e74bdb254))
+
+
+### Performance
+
+* **participants:** footer chips 87-92% faster to render, and kept current by every add route ([#2065](https://github.com/CourtHive/TMX/issues/2065)) ([ba36583](https://github.com/CourtHive/TMX/commit/ba365832a6923a26a0e381748b0d1c0343f7f2f2))
+
 ## [8.57.0](https://github.com/CourtHive/TMX/compare/v8.56.0...v8.57.0) (2026-11-20)
 
 
