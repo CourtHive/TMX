@@ -120,7 +120,7 @@ test('mobile dark form keeps fields and actions within the viewport', async ({ p
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   expect(box!.height).toBeLessThanOrEqual(844);
   await expect(dialog.getByRole('textbox', { name: 'What went wrong?' })).toBeFocused();
-  await dialog.screenshot({ path: '/private/tmp/tmx-support-mobile-dark.png' });
+  await dialog.screenshot({ path: test.info().outputPath('mobile-dark.png') });
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeAttached();
   await expect(page.getByText('Help', { exact: true })).toBeFocused();
