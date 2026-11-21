@@ -54,7 +54,6 @@ export function legendSections(): LegendSection[] {
         { sample: t('schedule.card.rest.onCourt'), meaning: t('schedule.legend.restOnCourt'), chip: true },
         { sample: t('schedule.legend.restDurationSample'), meaning: t('schedule.legend.restDuration'), chip: true },
         { sample: t('schedule.card.rest.unknown'), meaning: t('schedule.legend.restUnknown'), chip: true },
-        { sample: t('schedule.card.rest.none'), meaning: t('schedule.legend.restNone'), chip: true },
         {
           sample: t('schedule.card.rest.limit', { ordinal: 3 }),
           meaning: t('schedule.legend.restLimit'),
