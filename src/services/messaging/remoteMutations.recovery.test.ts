@@ -13,6 +13,7 @@ const h = vi.hoisted(() => ({
   identity: 'td-a' as string | undefined,
   requestTournament: vi.fn(),
   resumeCommands: vi.fn(),
+  clearDisconnectFlag: vi.fn(),
   unsettled: 0,
   scoring: false,
   current: true,
@@ -41,6 +42,7 @@ vi.mock('services/messaging/socketIo', () => ({
   onTournamentMutation: vi.fn(),
   onTournamentReplaced: vi.fn(),
   joinTournamentRoom: vi.fn(),
+  clearDisconnectFlag: () => h.clearDisconnectFlag(),
   unsettledCommandCount: () => h.unsettled,
 }));
 vi.mock('services/messaging/transport/httpCommands', () => ({ resumeCommands: () => h.resumeCommands() }));
@@ -93,6 +95,7 @@ describe('remoteMutations — guarded automatic recovery', () => {
     h.toast.mockClear();
     h.requestTournament.mockReset().mockResolvedValue(answer());
     h.resumeCommands.mockClear();
+    h.clearDisconnectFlag.mockClear();
     h.unsettled = 0;
     h.scoring = false;
     h.current = true;
@@ -247,6 +250,28 @@ describe('remoteMutations — guarded automatic recovery', () => {
 
     expect(h.setState).toHaveBeenCalledTimes(1);
     expect(h.resumeCommands).toHaveBeenCalledTimes(1);
+  });
+
+  // A record installed from the server is current, so the disconnect that made it stale is answered. Left set, the
+  // flag made the next tournament page load fetch the whole record again (tournamentDisplay's stale check): a
+  // second download of what had just been installed, and the Guidon check-in journey's intermittent extra fetch.
+  it('clears the disconnect flag once the server record is installed', async () => {
+    optIn();
+    markStaleNeedsRefresh('t1');
+    await settle();
+
+    expect(h.setState).toHaveBeenCalledTimes(1);
+    expect(h.clearDisconnectFlag).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the disconnect flag when the fetch fails: the desk is still behind', async () => {
+    h.requestTournament.mockReset().mockRejectedValue(new Error('offline'));
+    optIn();
+    markStaleNeedsRefresh('t1');
+    await settle();
+
+    expect(h.setState).not.toHaveBeenCalled();
+    expect(h.clearDisconnectFlag).not.toHaveBeenCalled();
   });
 });
 
