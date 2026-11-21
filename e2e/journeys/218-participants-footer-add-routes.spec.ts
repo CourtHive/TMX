@@ -48,7 +48,7 @@ const count = async (page: Page, value: string) =>
   Number(await chip(page, value).locator('.tmx-status-strip-count').innerText());
 const individuals = (page: Page) =>
   page.evaluate((args) => dev.factory.tournamentEngine.getParticipants(args).participants.length, INDIVIDUALS);
-const shown = (page: Page) => page.locator(`${FOOTER} .tmx-participants-footer-scope`);
+const scope = (page: Page) => page.locator(`${FOOTER} .tmx-participants-footer-scope`);
 
 test.describe('Journey 218 — participants footer follows every add route', () => {
   test.beforeEach(async ({ page }) => {
@@ -62,8 +62,15 @@ test.describe('Journey 218 — participants footer follows every add route', () 
     const tournamentId = await seed(page);
     await page.goto(`/#/tournament/${tournamentId}/participants`);
     await page.locator(`${S.TOURNAMENT_PARTICIPANTS} .tabulator-row`).first().waitFor();
-    await expect(shown(page)).toHaveText('16 shown');
+    await expect.poll(() => count(page, 'unentered')).toBe(0);
     await expect(chip(page, 'age:60+')).toBeHidden();
+
+    // the scope is named only while a selection narrows the counts; at rest the table title gives the row count
+    await expect(scope(page)).toBeHidden();
+    await page.locator(`${S.TOURNAMENT_PARTICIPANTS} .tabulator-row input[type="checkbox"]`).first().check();
+    await expect(scope(page)).toHaveText('1 selected');
+    await page.locator(`${S.TOURNAMENT_PARTICIPANTS} .tabulator-row input[type="checkbox"]`).first().uncheck();
+    await expect(scope(page)).toBeHidden();
 
     // generated participants: the control bar's button and its modal, at its default count
     await page.getByText('Generate mock participants', { exact: true }).click();
@@ -72,7 +79,6 @@ test.describe('Journey 218 — participants footer follows every add route', () 
       .last()
       .click();
     await expect.poll(() => individuals(page)).toBe(48);
-    await expect(shown(page)).toHaveText('48 shown');
     await expect.poll(() => count(page, 'unentered')).toBe(32);
 
     // manual add, with no DOB
@@ -85,7 +91,7 @@ test.describe('Journey 218 — participants footer follows every add route', () 
       .locator('button', { hasText: /^Save$/ })
       .last()
       .click();
-    await expect(shown(page)).toHaveText('49 shown');
+    await expect.poll(() => individuals(page)).toBe(49);
     await expect.poll(() => count(page, 'noDob')).toBe(33);
 
     // CSV import: the import view importPlayersCsv opens once a file is dropped, with the same refresh callback
@@ -111,7 +117,7 @@ test.describe('Journey 218 — participants footer follows every add route', () 
       .locator('button', { hasText: /^Import$/ })
       .last()
       .click();
-    await expect(shown(page)).toHaveText('51 shown');
+    await expect.poll(() => individuals(page)).toBe(51);
     await expect(chip(page, 'age:60+')).toBeVisible();
     await expect.poll(() => count(page, 'age:60+')).toBe(1);
 
@@ -152,7 +158,7 @@ test.describe('Journey 218 — participants footer follows every add route', () 
         ],
       }),
     );
-    await expect(shown(page)).toHaveText('52 shown');
+    await expect.poll(() => individuals(page)).toBe(52);
     await expect.poll(() => count(page, 'age:60+')).toBe(2);
   });
 });
