@@ -1,3 +1,5 @@
+import { recordSupportDiagnostic } from 'services/support/reportContext';
+import { supportText } from 'services/support/text';
 import { toast } from './toaster';
 
 export function tmxToast(params) {
@@ -20,6 +22,13 @@ export function tmxToast(params) {
     action
   } = params ?? {};
 
+  let reportAction = action;
+  if (intent === 'is-danger' || intent === 'is-warning') {
+    recordSupportDiagnostic('UNCLASSIFIED');
+    reportAction ??= { text: supportText('report'), onClick: () => {
+      void import('components/support/reportProblem').then(({ openProblemReport }) => openProblemReport());
+    } };
+  }
   toast({
     // animate: { in: 'fadeInRight', out: 'fadeOutLeft' }, // see animate.css
     // animate: { in: 'bounceInDown', out: 'bounceOutUp' }, // see animate.css
@@ -37,7 +46,7 @@ export function tmxToast(params) {
     message,
     onClose,
     opacity,
-    action,
+    action: reportAction,
     single
   });
 }

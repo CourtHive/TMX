@@ -166,7 +166,7 @@ jobs:
         if: steps.scope.outputs.light != 'true'
         run: pnpm test --run
 
-      - name: Install Warp journey browser
+      - name: Install journey browser
         if: steps.scope.outputs.light != 'true'
         timeout-minutes: 5
         run: pnpm exec playwright install --with-deps chromium
@@ -196,3 +196,8 @@ jobs:
             e2e/warp-results.json
           retention-days: 14
           if-no-files-found: error
+
+      - name: Support reporting browser journey
+        if: steps.scope.outputs.light != 'true'
+        run: pnpm exec playwright test --config e2e/playwright.support.config.ts
+
