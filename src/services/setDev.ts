@@ -17,10 +17,11 @@ import { completeMatchUps } from 'services/devCompleteMatchUps';
 import { mutationRequest } from './mutation/mutationRequest';
 import { anonymizedCopy } from 'services/dev/anonymizedCopy';
 import { getLoginState } from './authentication/loginState';
-import { downloadJSON } from 'services/export/download';
 import { setScoreRelayURL } from './apis/scoreRelayApi';
+import { downloadJSON } from 'services/export/download';
 import * as outboxStore from './messaging/outboxStore';
 import { providerConfig } from 'config/providerConfig';
+import { devNetwork } from 'services/dev/devNetwork';
 import * as factory from 'tods-competition-factory';
 import { tmxToast } from './notifications/tmxToast';
 import { serverConfig } from 'config/serverConfig';
@@ -164,6 +165,8 @@ export function setDev(): void {
   addDev({ env, tournamentContext: context });
   // drive TMX's competition clock for demos and journeys: dev.setCompetitionClock({ nowMs: () => ms })
   addDev({ setCompetitionClock });
+  // The app's own network clients, for Guidon's time-warp isolation proof (see services/dev/devNetwork).
+  addDev({ network: devNetwork });
 
   addDev({
     mutationRequest: (params: any) => {
