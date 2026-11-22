@@ -52,9 +52,16 @@ async function seed(page: Page, provider = false) {
   });
 }
 
-async function enter(page: Page) {
+/**
+ * Enter the warp from the account menu. A tournament under way asks where the clock starts (CA 2026-11-22); `start`
+ * answers it (`now`, as the warp always started before, by default). An ended tournament does not ask.
+ */
+async function enter(page: Page, start: 'now' | 'last' | 'none' = 'now') {
   await page.locator('#login').click();
   await page.getByText('Enter Time Warp', { exact: true }).click();
+  if (start !== 'none') {
+    await page.getByRole('button', { name: start === 'now' ? /^Now · / : /^Last change · / }).click();
+  }
   await expect(page).toHaveURL(/tournament\/time-warp-/);
   await expect(page.locator(PANEL)).toBeVisible();
   await page.locator(PANEL).getByRole('button', { name: 'Clock controls', exact: true }).click();
@@ -615,4 +622,71 @@ test('changing only the date starts the new day at its prep time', async ({ page
   await page.locator(PANEL).getByRole('button', { name: 'Set time', exact: true }).click();
   await expect(page.locator(PANEL).locator('output')).toContainText(prep!);
   await expect(page.locator(PANEL).locator('output')).toHaveAttribute('title', new RegExp(`^${tomorrow}`));
+});
+
+/** every stamp in the record set to `older`, then one matchUp stamped `last`: a record whose last change is known */
+async function stampRecord(
+  page: Page,
+  { older, last, shiftDays = 0 }: { older: string; last: string; shiftDays?: number },
+) {
+  await page.evaluate(
+    async ({ older, last, shiftDays }) => {
+      const record = dev.factory.tournamentEngine.getTournament().tournamentRecord;
+      const visit = (value: any) => {
+        if (Array.isArray(value)) return value.forEach(visit);
+        if (!value || typeof value !== 'object') return;
+        for (const key of Object.keys(value)) {
+          if ((key === 'updatedAt' || key === 'createdAt') && typeof value[key] === 'string') value[key] = older;
+          else visit(value[key]);
+        }
+      };
+      visit(record);
+      const shift = (date: string) => {
+        const [y, m, d] = date.slice(0, 10).split('-').map(Number);
+        const shifted = new Date(y, m - 1, d + shiftDays);
+        return `${shifted.getFullYear()}-${String(shifted.getMonth() + 1).padStart(2, '0')}-${String(shifted.getDate()).padStart(2, '0')}`;
+      };
+      record.startDate = shift(record.startDate);
+      record.endDate = shift(record.endDate);
+      record.events[0].drawDefinitions[0].updatedAt = last;
+      await dev.load(record);
+      dev.tournamentContext.router.navigate(`/tournament/${record.tournamentId}/scheduling`);
+    },
+    { older, last, shiftDays },
+  );
+}
+
+const lastChangeClock = (page: Page, last: string) =>
+  page.evaluate(
+    async ({ framePath, last }) => {
+      const { venueClock, venueCalendarDate } = await import(/* @vite-ignore */ framePath);
+      return { time: venueClock(Date.parse(last)) as string, day: venueCalendarDate(Date.parse(last)) as string };
+    },
+    { ...MODULES, last },
+  );
+
+test('an ended tournament warps to its last change, without asking', async ({ page }) => {
+  await seed(page);
+  const older = new Date(Date.now() - 20 * 86_400_000).toISOString();
+  const last = new Date(Date.now() - 10 * 86_400_000 - 3 * 3_600_000).toISOString();
+  // the whole tournament ten days in the past, last changed during it
+  await stampRecord(page, { older, last, shiftDays: -12 });
+  await enter(page, 'none');
+  const { time, day } = await lastChangeClock(page, last);
+  await expect(page.locator(PANEL).locator('output')).toContainText(time);
+  await expect(page.locator(PANEL).locator('output')).toHaveAttribute('title', new RegExp(`^${day}`));
+});
+
+test('a tournament under way asks, and Last change starts the clock there', async ({ page }) => {
+  await seed(page);
+  const older = new Date(Date.now() - 2 * 86_400_000).toISOString();
+  const last = new Date(Date.now() - 90 * 60_000).toISOString();
+  await stampRecord(page, { older, last });
+  await page.locator('#login').click();
+  await page.getByText('Enter Time Warp', { exact: true }).click();
+  const { time } = await lastChangeClock(page, last);
+  await expect(page.getByRole('button', { name: /^Now · / })).toBeVisible();
+  await page.getByRole('button', { name: new RegExp(`^Last change · .*${time}$`) }).click();
+  await expect(page).toHaveURL(/tournament\/time-warp-/);
+  await expect(page.locator(PANEL).locator('output')).toContainText(time);
 });

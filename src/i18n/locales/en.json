@@ -4112,7 +4112,11 @@
     "label": "Time Warp",
     "hint": "Temporary local sandbox. Server communication is disabled. Exit Warp discards all sandbox changes.",
     "finishFirst": "Save or discard drafts and finish pending actions before entering Time Warp.",
-    "exitRecovered": "Time Warp ended after a restore error. The sandbox was discarded; reopen the original tournament if needed."
+    "exitRecovered": "Time Warp ended after a restore error. The sandbox was discarded; reopen the original tournament if needed.",
+    "startTitle": "Start Time Warp",
+    "startQuestion": "The tournament is under way. Start the warp clock where the record last changed, or now?",
+    "startAtLastChange": "Last change · {{when}}",
+    "startNow": "Now · {{when}}"
   },
   "demoClock": {
     "title": "Demo Clock",

@@ -15,7 +15,12 @@ import {
   WARP_ID_PREFIX,
 } from './warpState';
 
-export type WarpOptions = { record?: any; mode?: 'clock' | 'script' };
+export type WarpOptions = {
+  record?: any;
+  mode?: 'clock' | 'script';
+  /** when the warp clock starts; the last change or now, chosen on entry (`warpStartPrompt.ts`) */
+  startAt?: number;
+};
 export type ExitWarpOptions = { navigate?: boolean; resume?: boolean };
 export type WarpHost = {
   path(): string;

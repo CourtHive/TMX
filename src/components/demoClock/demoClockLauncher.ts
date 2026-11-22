@@ -1,5 +1,6 @@
 import { isDemoClockEligible } from 'services/clock/demoClock';
 import { exportDemoWalkthrough, getWalkthroughStatus } from 'services/clock/demoWalkthrough';
+import { enterTimeWarpAtChosenTime } from 'components/timeWarp/warpStartPrompt';
 import { canEnterTimeWarp, enterTimeWarp } from 'services/timeWarp/timeWarp';
 import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { buildSchedulerDemoProfile } from 'pages/tournaments/schedulerDemoProfile';
@@ -21,7 +22,7 @@ export function buildDemoClockLauncher(): HTMLElement {
   free.addEventListener('click', () => {
     context.drawer.close();
     if (isTimeWarpActive()) openDemoClockPanel('clock');
-    else void enterTimeWarp();
+    else void enterTimeWarpAtChosenTime();
   });
   const guided = document.createElement('button');
   guided.type = 'button';
