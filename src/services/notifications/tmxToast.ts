@@ -1,5 +1,6 @@
 import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { recordSupportDiagnostic } from 'services/support/reportContext';
+import { SUPPORT_DIALOG } from 'constants/tmxConstants';
 import { supportText } from 'services/support/text';
 import { toast } from './toaster';
 
@@ -24,7 +25,9 @@ export function tmxToast(params) {
   } = params ?? {};
 
   let reportAction = action;
-  if (intent === 'is-danger' && supportReportingAvailable()) {
+  // Never offer "Report a problem" from inside the report form itself: a failed report must not suggest reporting it.
+  const reporting = Boolean(globalThis.document?.getElementById(SUPPORT_DIALOG));
+  if (intent === 'is-danger' && supportReportingAvailable() && !reporting) {
     recordSupportDiagnostic('UNCLASSIFIED');
     reportAction ??= { text: supportText('report'), onClick: () => {
       void import('components/support/reportProblem').then(({ openProblemReport }) => openProblemReport());

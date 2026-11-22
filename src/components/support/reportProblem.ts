@@ -5,6 +5,7 @@ import { reportRoute, safeValidation } from 'services/support/diagnostics';
 import { onNetworkIsolation } from 'services/network/networkPolicy';
 import { accountContactSettings } from './accountContactSettings';
 import { tournamentEngine } from 'services/factory/engine';
+import { refusalText } from 'services/support/refusal';
 import { supportText } from 'services/support/text';
 import { randomId } from 'functions/randomId';
 import { version } from 'config/version';
@@ -185,8 +186,8 @@ export function openProblemReport(code?: string): void {
       receipt = result;
       paintReceipt(result);
       send.textContent = supportText('receipt');
-    } catch {
-      if (!isolatedSinceOpen && dialog.isConnected) status.textContent = supportText('failed');
+    } catch (error) {
+      if (!isolatedSinceOpen && dialog.isConnected) status.textContent = refusalText(error);
     } finally {
       active = false;
       send.disabled = isolatedSinceOpen || !supportReportingAvailable();

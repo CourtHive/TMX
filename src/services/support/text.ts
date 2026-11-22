@@ -1,6 +1,6 @@
 import { t } from 'i18n';
 
-type SupportKey =
+export type SupportKey =
   | 'help'
   | 'report'
   | 'title'
@@ -20,6 +20,9 @@ type SupportKey =
   | 'isolated'
   | 'tooLong'
   | 'login'
+  | 'noProvider'
+  | 'notPermitted'
+  | 'disabled'
   | 'receipt'
   | 'status'
   | 'accountTitle'
