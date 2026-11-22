@@ -6,11 +6,20 @@ import { supportText, type SupportKey } from 'services/support/text';
  * sat behind the modal dialog and offered "Report a problem" for the report itself.
  */
 const BY_CODE: Record<string, SupportKey> = {
+  // Refused only by a CFS older than #1309, which needs a selected provider; newer CFS sends platform feedback instead.
   SUPPORT_NO_SESSION_PROVIDER: 'noProvider',
+  SUPPORT_PROVIDER_UNKNOWN: 'unknownProvider',
+  SUPPORT_IDENTITY_REQUIRED: 'login',
   SUPPORT_PROVIDER_NOT_PERMITTED: 'notPermitted',
   SUPPORT_INTAKE_DISABLED: 'disabled',
   SUPPORT_SESSION_CHANGED: 'changed',
 };
+
+/** The text for a refusal code, from a capability answer or a refused request; undefined when unmapped. */
+export function refusalCodeText(code: unknown): string | undefined {
+  const key = typeof code === 'string' ? BY_CODE[code] : undefined;
+  return key ? supportText(key) : undefined;
+}
 
 export function refusalText(error: any): string {
   const data = error?.response?.data;

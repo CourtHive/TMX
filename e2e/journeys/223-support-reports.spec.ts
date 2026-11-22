@@ -1,8 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// "Report a problem" lives in the user-icon menu, under Help (CA, 2026-11-22); the header Help is gone.
+// "Feedback" lives in the user-icon menu, under Help, and opens one form for a problem or a suggestion (CA, 2026-11-22).
 const menu = (page: Page) => page.locator('.tippy-box');
-const menuReport = (page: Page) => menu(page).getByText('Report a problem', { exact: true });
+const menuReport = (page: Page) => menu(page).getByText('Feedback', { exact: true });
+const CAPABILITY = /\/support\/capability(\?|$)/;
+const capable = { available: true, scope: 'provider', providerId: 'support-provider', kinds: ['bug', 'suggestion'] };
 async function openUserMenu(page: Page) {
   await page.locator('#login').click();
   await expect(menu(page)).toBeVisible();
@@ -16,7 +18,6 @@ async function expectNoReportInMenu(page: Page) {
   await expect(menuReport(page)).toHaveCount(0);
   await page.locator('#login').click(); // the menu toggles closed
 }
-
 
 const reference = 'cb405e2b-9829-4538-b934-079bc4ea197a';
 const receipt = {
@@ -51,6 +52,7 @@ test.beforeEach(async ({ page }) => {
     }),
   );
   await page.route('**/auth/validate', (route) => route.fulfill({ json: { success: true } }));
+  await page.route(CAPABILITY, (route) => route.fulfill({ json: capable }));
   await page.goto('/#/tournaments');
   await page.waitForFunction(() => typeof globalThis.dev !== 'undefined');
   await page.evaluate(() => {
@@ -361,4 +363,94 @@ test('reporting stays suppressed through actual Warp exit recovery and returns a
     .toBe(false);
   await openReportFromMenu(page);
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Send report' })).toBeEnabled();
+});
+
+test('a suggestion drops the reproduction fields and diagnostics and is acknowledged without email', async ({
+  page,
+}) => {
+  let submitted: any;
+  await page.route('**/support/reports', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: { ...receipt, kind: 'suggestion', scope: 'provider' } });
+  });
+  await openReportFromMenu(page);
+  const dialog = page.getByRole('dialog', { name: 'Report a problem' });
+  await dialog.getByRole('radio', { name: 'Suggestion' }).check();
+  // The title follows the choice, so the dialog's accessible name changes with it.
+  const suggestionDialog = page.getByRole('dialog', { name: 'Make a suggestion' });
+  await expect(suggestionDialog).toBeVisible();
+  await expect(suggestionDialog.getByRole('textbox', { name: 'Steps to reproduce (optional)' })).toBeHidden();
+  await expect(suggestionDialog.getByRole('button', { name: 'Open account settings' })).toBeHidden();
+  await suggestionDialog.getByRole('textbox', { name: 'What would you like to suggest?' }).fill('Sort courts by name');
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((value) => document.documentElement.setAttribute('data-theme', value), theme);
+    await suggestionDialog.screenshot({ path: test.info().outputPath(`suggestion-${theme}.png`) });
+  }
+  await suggestionDialog.getByRole('button', { name: 'Send suggestion' }).click();
+  await expect(suggestionDialog.getByRole('status')).toContainText('Suggestion received');
+  await expect(suggestionDialog.getByRole('status')).not.toContainText('Resolution email');
+  expect(submitted).toMatchObject({ kind: 'suggestion', expectedProvider: 'support-provider' });
+  expect(Object.keys(submitted.evidence).toSorted((a, b) => a.localeCompare(b))).toEqual([
+    'online',
+    'route',
+    'version',
+  ]);
+  expect(submitted.description).toBe('Sort courts by name');
+  await expect(suggestionDialog.getByRole('radio', { name: 'Problem' })).toBeDisabled(); // the sent kind is frozen
+});
+
+test('with no provider selected, feedback goes to the platform and names no provider or tournament', async ({
+  page,
+}) => {
+  await page.route(CAPABILITY, (route) =>
+    route.fulfill({ json: { ...capable, scope: 'platform', providerId: undefined } }),
+  );
+  let submitted: any;
+  await page.route('**/support/reports', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: { ...receipt, scope: 'platform' } });
+  });
+  await openReportFromMenu(page);
+  const dialog = page.getByRole('dialog', { name: 'Report a problem' });
+  await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('Login page is slow');
+  await dialog.getByRole('button', { name: 'Send report' }).click();
+  await expect(dialog.getByRole('button', { name: 'Check receipt' })).toBeVisible();
+  expect(submitted).not.toHaveProperty('expectedProvider');
+  expect(submitted).not.toHaveProperty('tournamentId');
+  expect(submitted).not.toHaveProperty('kind');
+});
+
+test('a session CFS cannot accept reads why before anything is typed, and cannot send', async ({ page }) => {
+  await page.route(CAPABILITY, (route) =>
+    route.fulfill({ json: { available: false, reason: 'SUPPORT_INTAKE_DISABLED', kinds: ['bug', 'suggestion'] } }),
+  );
+  let sent = false;
+  await page.route('**/support/reports', async (route) => {
+    sent = true;
+    await route.fulfill({ json: receipt });
+  });
+  await openReportFromMenu(page);
+  const dialog = page.getByRole('dialog', { name: 'Report a problem' });
+  await expect(dialog.getByRole('status')).toContainText('temporarily unavailable');
+  await expect(dialog.getByRole('button', { name: 'Send report' })).toBeDisabled();
+  expect(sent).toBe(false);
+});
+
+test('against a CFS without the capability route, problem reports still send and suggestions are unavailable', async ({
+  page,
+}) => {
+  await page.route(CAPABILITY, (route) => route.fulfill({ status: 404, json: { statusCode: 404 } }));
+  let submitted: any;
+  await page.route('**/support/reports', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: receipt });
+  });
+  await openReportFromMenu(page);
+  const dialog = page.getByRole('dialog', { name: 'Report a problem' });
+  await expect(dialog.getByRole('radio', { name: 'Suggestion' })).toBeDisabled();
+  await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('Still works on an older server');
+  await dialog.getByRole('button', { name: 'Send report' }).click();
+  await expect(dialog.getByRole('button', { name: 'Check receipt' })).toBeVisible();
+  expect(submitted).toMatchObject({ expectedProvider: 'support-provider' });
+  expect(submitted).not.toHaveProperty('kind');
 });
