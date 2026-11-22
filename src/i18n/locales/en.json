@@ -4174,7 +4174,8 @@
     "capturing": "Recording · {{count}} steps",
     "captureReady": "Recording ready · {{count}} steps",
     "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
-    "captureFailed": "Could not start recording. Check that demo clock control is active."
+    "captureFailed": "Could not start recording. Check that demo clock control is active.",
+    "notPastEnd": "The clock goes no further than {{date}}, the day after the tournament ends."
   },
   "teamPresentation": {
     "title": "Tournament team presentation",

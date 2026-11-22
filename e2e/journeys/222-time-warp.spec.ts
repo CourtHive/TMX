@@ -74,7 +74,9 @@ test('anonymous demo posture: copies, records, discards, returns, and exports af
   await enter(page);
   expect(await page.evaluate(() => dev.factory.tournamentEngine.q.tournament().isMock)).toBe(true);
   await expect(page.locator('#pageTitle')).toContainText('Production schedule');
-  await expect(page.locator('#pageTitle')).toContainText('Time Warp');
+  // one badge beside the title, naming the sandbox: "Time Warp" takes the demo badge's place (CA 2026-11-22)
+  await expect(page.locator('#demoBadge')).toHaveText('Time Warp');
+  await expect(page.locator('#pageTitle')).not.toContainText('Time Warp');
   await expect(page.locator('html')).toHaveAttribute('data-tmx-time-warp', 'true');
   await expect(page.locator(PANEL).getByLabel('Demo mode', { exact: true })).toHaveCount(0);
   await page.screenshot({ path: test.info().outputPath('time-warp.png') });
@@ -501,4 +503,67 @@ test('importing a reserved sandbox identity rejects visibly outside Warp', async
   expect(result).toBe('NETWORK_ISOLATED');
   await expect(page.getByText(/This tournament ID is reserved for disposable Time Warp copies/)).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`${SOURCE}/scheduling`));
+});
+
+// the dev server serves these source modules; passed as values so tsc does not resolve a path only Vite knows
+const MODULES = { clockPath: '/src/services/clock/demoClock.ts', framePath: '/src/functions/venueTimeFrame.ts' };
+
+/** the local calendar day of a picker cell's timestamp */
+const cellDay = (ms: number) => {
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+test('the warp clock offers its own day through the day after the end, and goes no further', async ({ page }) => {
+  await seed(page);
+  await enter(page);
+  const { clockDay, endDate } = await page.evaluate(async ({ clockPath, framePath }) => {
+    const { getDemoClock } = await import(/* @vite-ignore */ clockPath);
+    const { venueCalendarDate } = await import(/* @vite-ignore */ framePath);
+    return {
+      clockDay: venueCalendarDate(getDemoClock().nowMs),
+      endDate: dev.factory.tournamentEngine.q.tournamentInfo().endDate as string,
+    };
+  }, MODULES);
+  const dayAfterEnd = (() => {
+    const [y, m, d] = endDate.split('-').map(Number);
+    return cellDay(new Date(y, m - 1, d + 1).getTime());
+  })();
+
+  // the shared date picker (CA 2026-11-22), not a native date input
+  await page.locator(PANEL).getByRole('button', { name: 'Demo date', exact: true }).click();
+  await page.getByPlaceholder('YYYY-MM-DD').click();
+  const enabled = await page
+    .locator('.datepicker-cell.day:not(.disabled):not(.prev):not(.next)')
+    .evaluateAll((cells) => cells.map((cell) => Number((cell as HTMLElement).dataset.date)));
+  const days = [...new Set(enabled.map(cellDay))].sort((a, b) => a.localeCompare(b));
+  expect(days[0]).toBe(clockDay);
+  expect(days.at(-1)).toBe(dayAfterEnd);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+
+  // a step past the end of the day after the end is refused, and the clock stays put
+  await page.evaluate(
+    async ({ day, clockPath, framePath }) => {
+      const { setDemoClockTime, demoWallTime } = await import(/* @vite-ignore */ clockPath);
+      const { venueTimeZone } = await import(/* @vite-ignore */ framePath);
+      setDemoClockTime(demoWallTime(day, '23:50', venueTimeZone()));
+    },
+    { day: dayAfterEnd, ...MODULES },
+  );
+  await expect(page.locator(PANEL).locator('output')).toContainText('23:50');
+  await page.locator(PANEL).getByRole('button', { name: '+15 min', exact: true }).click();
+  await expect(page.locator(PANEL).locator('p[role=status]')).toContainText('the day after the tournament ends');
+  await expect(page.locator(PANEL).locator('output')).toContainText('23:50');
+});
+
+test('Exit Warp stays on the page being looked at, now on the original', async ({ page }) => {
+  await seed(page);
+  await enter(page);
+  const copyId = await page.evaluate(() => dev.factory.tournamentEngine.getTournamentId());
+  await page.evaluate((id) => dev.tournamentContext.router.navigate(`/tournament/${id}/participants`), copyId);
+  await expect(page).toHaveURL(new RegExp(`${copyId}/participants`));
+  await page.locator(PANEL).getByRole('button', { name: 'Exit Warp', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`tournament/${SOURCE}/participants`));
+  await expect(page.locator('html')).not.toHaveAttribute('data-tmx-time-warp', 'true');
+  await expect(page.locator('#demoBadge')).toHaveCount(0);
 });

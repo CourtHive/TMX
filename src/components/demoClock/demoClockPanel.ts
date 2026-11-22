@@ -1,22 +1,26 @@
-import { hasSchedulingDemoScript } from 'services/clock/schedulingDemoScript';
-import { exitTimeWarp } from 'services/timeWarp/timeWarp';
-import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { schedulerPeriodLength, withPeriodLength } from 'services/schedulePreferences/schedulingPeriodLength';
 import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
+import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
+import { hasSchedulingDemoScript } from 'services/clock/schedulingDemoScript';
 import { schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
+import { warpClockDates, warpLastDate } from './warpClockRange';
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
+import { exitTimeWarp } from 'services/timeWarp/timeWarp';
+import { datePicker } from 'components/modals/datePicker';
+import { timePicker } from 'components/modals/timePicker';
 import { mountDemoClock } from './demoClockDock';
+import { tools } from 'tods-competition-factory';
 import { context } from 'services/context';
 import { t } from 'i18n';
 import {
-  advanceDemoClock,
   canUseDemoClock,
   demoClockResumeAt,
   demoTournamentStartDate,
@@ -49,6 +53,11 @@ const CLOCK_ACTIVE_ATTRIBUTE = 'tmxDemoClock';
 const ARIA_LABEL = 'aria-label';
 
 let disposePanel: (() => void) | undefined;
+
+/** the (sandbox) tournament's last day, which bounds how far the clock goes */
+function tournamentEndDate(): string | undefined {
+  return tournamentEngine.q.tournamentInfo()?.endDate;
+}
 
 function button(label: string, action: () => void): HTMLButtonElement {
   const element = document.createElement('button');
@@ -131,19 +140,61 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
 
-  const date = document.createElement('input');
-  date.type = 'date';
+  // The shared date and time pickers (CA 2026-11-22). The date runs from the clock's day, which is never earlier than
+  // the warp began, to the day after the tournament's end (`warpClockRange.ts`); the time is checked when set.
+  let pendingDate = '';
+  let pendingTime = '';
+  let picked = false;
+  const showPending = () => {
+    date.textContent = pendingDate ? formatDateLabel(pendingDate) : t('demoClock.date');
+    time.textContent = pendingTime || t('demoClock.setTime');
+  };
+  const date = button('', () => {
+    const now = getDemoClock()?.nowMs;
+    if (now === undefined) return;
+    datePicker({
+      date: pendingDate,
+      activeDates: warpClockDates({ clockDate: venueCalendarDate(now, zone), endDate: tournamentEndDate() }),
+      callback: ({ date: chosen }) => {
+        pendingDate = chosen;
+        picked = true;
+        showPending();
+      },
+    });
+  });
   date.setAttribute(ARIA_LABEL, t('demoClock.date'));
-  const time = document.createElement('input');
-  time.type = 'time';
+  const time = button('', () =>
+    timePicker({
+      time: pendingTime,
+      callback: ({ time: chosen }) => {
+        const converted = tools.dateTime.convertTime(chosen, true) as string;
+        if (!converted) return;
+        pendingTime = converted;
+        picked = true;
+        showPending();
+      },
+    }),
+  );
   time.setAttribute(ARIA_LABEL, t('demoClock.setTime'));
   const error = () => {
     status.textContent = t('demoClock.forwardOnly');
   };
-  const set = button(t('demoClock.set'), () => {
-    const at = demoWallTime(date.value, time.value, zone);
+  /** the latest moment the clock may reach: the end of the day after the tournament's last day */
+  const latest = () => {
+    const last = warpLastDate(tournamentEndDate());
+    return last ? demoWallTime(last, '23:59', zone) : undefined;
+  };
+  /** move the clock, refusing a moment past `latest` with its own message */
+  const moveTo = (at: number | undefined) => {
+    const limit = latest();
+    if (at !== undefined && limit !== undefined && at > limit) {
+      status.textContent = t('demoClock.notPastEnd', { date: formatDateLabel(warpLastDate(tournamentEndDate())!) });
+      return;
+    }
     if (at === undefined || !setDemoClockTime(at)) error();
-  });
+    else picked = false;
+  };
+  const set = button(t('demoClock.set'), () => moveTo(demoWallTime(pendingDate, pendingTime, zone)));
   const fields = document.createElement('div');
   fields.className = 'tmx-demo-clock-row';
   fields.append(date, time, set);
@@ -152,13 +203,14 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   for (const minutes of [1, 5, 15])
     steps.append(
       button(t('demoClock.step', { minutes }), () => {
-        if (!advanceDemoClock(minutes)) error();
+        const now = getDemoClock()?.nowMs;
+        if (now !== undefined) moveTo(now + minutes * 60_000);
       }),
     );
 
   const boundary = button('', () => {
     const next = readBoundary();
-    if (next && !setDemoClockTime(next.at)) error();
+    if (next) moveTo(next.at);
   });
   function readBoundary() {
     const now = getDemoClock()?.nowMs;
@@ -298,10 +350,14 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       state.mode === 'script' ? 'demoClock.hint' : isTimeWarpActive() ? 'timeWarp.hint' : 'demoClock.freeHint',
     );
     modeSelect.value = state.mode;
-    if (document.activeElement !== date) date.value = venueCalendarDate(state.nowMs, zone);
-    if (document.activeElement !== time) time.value = venueClock(state.nowMs, zone);
-    for (const control of panel.querySelectorAll('button, input, select'))
-      (control as HTMLButtonElement | HTMLInputElement).disabled = state.busy;
+    // the pickers show the clock until the operator picks a moment of their own
+    if (!picked) {
+      pendingDate = venueCalendarDate(state.nowMs, zone);
+      pendingTime = venueClock(state.nowMs, zone);
+    }
+    showPending();
+    for (const control of panel.querySelectorAll('button, select'))
+      (control as HTMLButtonElement | HTMLSelectElement).disabled = state.busy;
     refreshCapture();
     collapse.disabled = false;
     exit.disabled = false;

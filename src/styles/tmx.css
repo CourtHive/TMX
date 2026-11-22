@@ -1859,6 +1859,11 @@ img {
   border-radius: 3px;
   margin-left: 0.4rem;
 }
+/* In a Time Warp the same badge names the sandbox (demoAffordance.ts); the fill is the same in light and dark */
+.tmx-demo-navbar-badge.tmx-time-warp-badge {
+  background: var(--tmx-fill-error);
+  white-space: nowrap;
+}
 
 /* ── Per-matchUp check-in ────────────────────────────────────────────── */
 /*
