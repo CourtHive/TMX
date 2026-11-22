@@ -6,6 +6,25 @@ export async function submitSupportReport(payload: unknown) {
   if (!response?.data?.accepted || !response.data.reference) throw new Error('report-not-confirmed');
   return response.data;
 }
+export type SupportCapability = {
+  available: boolean;
+  reason?: string;
+  scope?: 'provider' | 'platform';
+  providerId?: string;
+};
+
+/**
+ * What CFS will accept from this session (competition-factory-server #1309), asked before the form can send so it
+ * never shows a form that is refused afterwards. `provider` is the selected or impersonated provider: CFS uses it only
+ * for a super-admin, whose impersonation lives in the client.
+ */
+export async function fetchSupportCapability(provider?: string): Promise<SupportCapability> {
+  const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
+  const response = await baseApi.get(`/support/capability${query}`, { rejectErrors: true } as any);
+  if (typeof response?.data?.available !== 'boolean') throw new Error('capability-unavailable');
+  return response.data;
+}
+
 export async function fetchSupportReceipt(reference: string) {
   const response = await baseApi.get(`/support/reports/${encodeURIComponent(reference)}`, {
     rejectErrors: true,
