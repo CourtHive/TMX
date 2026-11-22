@@ -1,5 +1,17 @@
 # Changelog
 
+## [8.61.0](https://github.com/CourtHive/TMX/compare/v8.60.0...v8.61.0) (2026-11-22)
+
+
+### Features
+
+* **nav:** move Help into the account menu, with Time Warp under its own heading ([20db3bf](https://github.com/CourtHive/TMX/commit/20db3bf5677165b78287f79bd238e17b6157be9b))
+
+
+### Bug Fixes
+
+* **support:** show a refused report inline, never behind the dialog ([e586106](https://github.com/CourtHive/TMX/commit/e586106df38c7b43009219fe470234f678524233))
+
 ## [8.60.0](https://github.com/CourtHive/TMX/compare/v8.59.1...v8.60.0) (2026-11-22)
 
 
