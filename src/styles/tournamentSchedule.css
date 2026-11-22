@@ -1029,3 +1029,83 @@
 .tmx-checkin-event {
   font-weight: 600;
 }
+
+/* Carryover WARNING beside the schedule date selector (carryoverWarning.ts): red in every palette. */
+.tmx-carryover-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--tmx-panel-red-border);
+  background: var(--tmx-panel-red-bg);
+  color: var(--tmx-panel-red-border);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.tmx-carryover-warning[hidden] {
+  display: none;
+}
+.tmx-carryover-warning:hover {
+  filter: brightness(0.96);
+}
+.tmx-carryover-count {
+  font-size: 0.6875rem;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--tmx-panel-red-border);
+  color: var(--tmx-panel-red-bg);
+}
+.tmx-carryover-modal p {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+.tmx-carryover-why {
+  color: var(--tmx-text-muted);
+  font-size: 0.8125rem !important;
+}
+.tmx-carryover-heading {
+  margin: 10px 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--tmx-text-muted);
+}
+.tmx-carryover-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 40vh;
+  overflow-y: auto;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 6px;
+}
+.tmx-carryover-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+.tmx-carryover-row + .tmx-carryover-row {
+  border-top: 1px solid var(--tmx-border-primary);
+}
+.tmx-carryover-row input {
+  margin-top: 3px;
+}
+.tmx-carryover-row-meta {
+  font-size: 0.75rem;
+  color: var(--tmx-text-muted);
+}
+
+/* Why the schedule-date picker offers fewer days (scheduleDatePicker.ts). */
+.tmx-date-picker-note {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--tmx-panel-yellow-border);
+  background: var(--tmx-panel-yellow-bg);
+  font-size: 0.8125rem;
+}

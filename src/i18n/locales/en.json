@@ -1260,6 +1260,32 @@
       "inspectorFloating": "Inspector: Floating",
       "previousCards": "Previous cards",
       "nextCards": "Next cards"
+    },
+    "carryover": {
+      "warning": "Warning",
+      "tooltip_one": "{{count}} match from an earlier day has no result and holds back {{blocked}} matches that cannot be scheduled after it",
+      "tooltip_other": "{{count}} matches from earlier days have no result and hold back {{blocked}} matches that cannot be scheduled after them",
+      "title": "Unfinished matches from earlier days",
+      "explanation_one": "{{count}} match is still scheduled on an earlier day without a result. It holds back {{blocked}} matches that feed into it.",
+      "explanation_other": "{{count}} matches are still scheduled on earlier days without a result. They hold back {{blocked}} matches that feed into them.",
+      "why": "A match may not be scheduled after a match it feeds into. Until these matches move off their earlier day, the matches feeding them cannot be given today's date, and the date picker will not offer it.",
+      "blockingHeading": "Holding matches back",
+      "otherHeading": "Also unfinished, holding nothing back",
+      "holdsBack_one": "holds back {{count}} match",
+      "holdsBack_other": "holds back {{count}} matches",
+      "underWay": "already started",
+      "locked": "schedule locked",
+      "tbd": "TBD",
+      "clearNote": "Clearing removes the day, time and court from the selected matches. They return to the Unscheduled catalog to be placed again.",
+      "clearSelected_one": "Clear {{count}} match",
+      "clearSelected_other": "Clear {{count}} matches",
+      "cleared_one": "Cleared the schedule of {{count}} match",
+      "cleared_other": "Cleared the schedule of {{count}} matches"
+    },
+    "dateBounds": {
+      "notAfter": "Days after {{date}} are not offered: {{matchUp}}, which this match feeds into, is scheduled {{when}}. Move or clear that match to schedule this one later.",
+      "notBefore": "Days before {{date}} are not offered: {{matchUp}}, which feeds into this match, is scheduled {{when}}.",
+      "linkedMatchUp": "a linked match"
     }
   },
   "penalties": {
