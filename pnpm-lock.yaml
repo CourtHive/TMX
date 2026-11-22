@@ -241,8 +241,8 @@ importers:
         specifier: 8.2.5
         version: 8.2.5
       hotkeys-js:
-        specifier: 4.1.2
-        version: 4.1.2
+        specifier: 4.1.3
+        version: 4.1.3
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -2862,8 +2862,8 @@ packages:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
     engines: {node: '>=10'}
 
-  hotkeys-js@4.1.2:
-    resolution: {integrity: sha512-SXPG2KJ4AW0wyZwh7lBtBavfbunm78kcTqjc2b7TXe7bkyKwDJDlByXbMoGiNrhRkONfdzNg6KqRc3PKBj6tfQ==}
+  hotkeys-js@4.1.3:
+    resolution: {integrity: sha512-QMJ0hjQtQteer0S8MBu36ZFz/SsjiK2kWifCcacNW9TrXd9aBZhaJm9/GHjSBH6R5P6NfX8MHs3Jei9YJh8xOw==}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -7471,7 +7471,7 @@ snapshots:
     dependencies:
       lru-cache: 6.0.0
 
-  hotkeys-js@4.1.2: {}
+  hotkeys-js@4.1.3: {}
 
   html-escaper@2.0.2: {}
 
