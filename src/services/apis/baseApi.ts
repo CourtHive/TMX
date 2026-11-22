@@ -141,7 +141,10 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (isNetworkIsolationError(error) || error?.code === 'ERR_CANCELED') throw error;
     const original = error.config;
-    const silenceErrors = (original as any)?.silenceErrors;
+    // `rejectErrors`: the caller shows the refusal itself (the support report dialog), so no global toast, and the
+    // error is rethrown with its response instead of resolving to undefined. The 401 refresh below still runs first.
+    const rejectErrors = (original as any)?.rejectErrors;
+    const silenceErrors = (original as any)?.silenceErrors || rejectErrors;
 
     // Access token expired (or otherwise rejected): attempt one silent refresh
     // and replay the original request before surfacing any error to the user.
@@ -168,6 +171,7 @@ axiosInstance.interceptors.response.use(
       if (error.response?.status === 401) removeAuthorization();
       if (!silenceErrors) reportErrorResponse(error.response.data);
     }
+    if (rejectErrors) throw error;
     // Preserve the pre-existing contract: rejected requests resolve to
     // `undefined` (errors are surfaced via toasts), not a rejected promise.
     return undefined;

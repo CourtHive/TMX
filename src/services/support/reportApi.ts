@@ -1,12 +1,15 @@
 import { baseApi, authUrl } from 'services/apis/baseApi';
 
 export async function submitSupportReport(payload: unknown) {
-  const response = await baseApi.post('/support/reports', payload);
+  // rejectErrors: the dialog shows CFS's refusal reason inline instead of a global toast behind the modal.
+  const response = await baseApi.post('/support/reports', payload, { rejectErrors: true } as any);
   if (!response?.data?.accepted || !response.data.reference) throw new Error('report-not-confirmed');
   return response.data;
 }
 export async function fetchSupportReceipt(reference: string) {
-  const response = await baseApi.get(`/support/reports/${encodeURIComponent(reference)}`);
+  const response = await baseApi.get(`/support/reports/${encodeURIComponent(reference)}`, {
+    rejectErrors: true,
+  } as any);
   if (!response?.data?.accepted) throw new Error('receipt-not-confirmed');
   return response.data;
 }

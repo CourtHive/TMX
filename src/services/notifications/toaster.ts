@@ -73,8 +73,34 @@ const generateStyle = (
   return [left, right, top, bottom, alignItems, textAlign].filter(Boolean).join(';');
 };
 
+/**
+ * Where toasts must live to be seen and clicked. A dialog opened with showModal() sits in the browser's top layer and
+ * makes everything outside it inert, so a toast appended to <body> rendered behind it and its action could not be
+ * clicked (the report dialog, 2026-11-22). While a modal dialog is open, toasts render inside it.
+ */
+function openModalDialog(doc: Document | undefined): Element | null {
+  try {
+    return doc?.querySelector('dialog:modal') ?? null;
+  } catch {
+    return null; // :modal unsupported: keep the previous behaviour
+  }
+}
+
+export function toastHost(
+  doc: Document | undefined = globalThis.document,
+  fallback?: HTMLElement,
+): HTMLElement | undefined {
+  return (openModalDialog(doc) as HTMLElement | null) ?? fallback ?? doc?.body;
+}
+
 function getContainer(options: ToastOptions): HTMLElement {
-  if (containers.position) return containers.position;
+  const host = toastHost(document, options.appendTo);
+  const cached = containers.position;
+  if (cached) {
+    // Re-home the one container when a modal opens or the dialog it lived in has closed and gone.
+    if (host && (cached.parentElement !== host || !cached.isConnected)) host.appendChild(cached);
+    return cached;
+  }
 
   const container = document.createElement('div');
   container.style.cssText =
@@ -86,7 +112,7 @@ function getContainer(options: ToastOptions): HTMLElement {
       options.offsetLeft!,
       options.offsetRight!,
     );
-  (options.appendTo || document.body).appendChild(container);
+  (host ?? document.body).appendChild(container);
   containers.position = container;
   return container;
 }
