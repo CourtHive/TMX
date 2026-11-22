@@ -15,6 +15,7 @@ import { mockTournaments, EXAMPLE_TOURNAMENT_CATALOG } from 'pages/tournaments/m
 import { createOnlineSearchController } from 'pages/tournaments/onlineSearchController';
 import { searchRowToTournamentRow } from 'pages/tournaments/searchRowToTournamentRow';
 import { mapTournamentRecord, TournamentRow } from 'pages/tournaments/mapTournamentRecord';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { searchTournaments } from 'services/apis/searchTournaments';
 import { calendarControls } from 'pages/tournaments/tournamentsControls';
 import { editTournament } from 'components/drawers/editTournamentDrawer';
@@ -150,6 +151,8 @@ function renderTable(anchor: HTMLElement, rows: TournamentRow[]): any {
     data: rows,
     columns: getTournamentColumns(),
   });
+  // to the window's bottom, as every page table is: not a fraction of the window (fitTableToViewportBottom)
+  table.on('tableBuilt', () => fitTableToViewportBottom(table, anchor, { gap: 8 }));
   table.on('scrollVertical', destroyTipster);
   return table;
 }

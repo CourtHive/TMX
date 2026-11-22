@@ -4,6 +4,7 @@ import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/draw
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
 import { selectPositionAction } from 'components/popovers/selectPositionAction';
 import { getBracketColumns, attachHeaderTooltip } from './getBracketColumns';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { showTallyReportModal } from 'components/modals/tallyReportModal';
 import { enterMatchUpScore } from 'services/transitions/scoreMatchUp';
 import { scoreGovernor, fixtures } from 'tods-competition-factory';
@@ -397,6 +398,8 @@ export async function createBracketTable({
 
       // Attach header tooltips for opponent columns after table renders
       table.on('tableBuilt', () => {
+        // one group: to the window's bottom, as every page table is; several stack at their natural height
+        if (groups.length === 1) fitTableToViewportBottom(table, tableDiv, { gap: 8 });
         for (const col of table.getColumns()) {
           const def = col.getDefinition();
           if (def.field?.startsWith('opponent_')) {
