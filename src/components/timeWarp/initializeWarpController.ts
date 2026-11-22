@@ -68,7 +68,7 @@ export function initializeWarpController(): () => void {
       !getDemoClock()?.busy,
     refused: () => tmxToast({ message: t('timeWarp.finishFirst'), intent: WARNING_INTENT }),
     prepare: () => import('components/demoClock/demoClockPanel'),
-    capture: ({ record }) => {
+    capture: ({ record, startAt }) => {
       if (!record && (!tournamentEngine.q.tournamentInfo()?.startDate || !venueTimeZone())) {
         tmxToast({ message: t('demoClock.cannotStart'), intent: WARNING_INTENT });
         return undefined;
@@ -79,7 +79,7 @@ export function initializeWarpController(): () => void {
       return {
         loginState,
         identity: getSessionIdentity(),
-        initialTime: getDemoClock()?.nowMs ?? Date.now(),
+        initialTime: startAt ?? getDemoClock()?.nowMs ?? Date.now(),
         overlay: overlay && !overlay.transient ? structuredClone(overlay) : undefined,
         selectedScheduleDate: context.displayed.selectedScheduleDate,
         viewState: structuredClone({

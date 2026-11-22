@@ -357,7 +357,7 @@ export function initLoginToggle(id: string): void {
         {
           text: t('timeWarp.enter'),
           hide: !isWarpEntryLocation(tournamentEngine.getTournamentId()),
-          onClick: () => void import('services/timeWarp/timeWarp').then((m) => m.enterTimeWarp()),
+          onClick: () => void import('components/timeWarp/warpStartPrompt').then((m) => m.enterTimeWarpAtChosenTime()),
         },
         {
           text: t('timeWarp.exit'),
