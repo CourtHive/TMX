@@ -1,5 +1,6 @@
 import { schedulerPeriodLength, withPeriodLength } from 'services/schedulePreferences/schedulingPeriodLength';
 import { clearDemoOverlay, getDemoOverlay, isDemoActive, setDemoOverlay } from 'services/demoMode/demoState';
+import { addCalendarDays, dayOpening, prepTime, warpClockDates, warpLastDate } from './warpClockRange';
 import { hasUnsavedChanges, isAvailabilityDirty } from 'services/schedulingWorkspace/queueService';
 import { venueCalendarDate, venueClock, venueTimeZone } from 'functions/venueTimeFrame';
 import { hasUnsavedGridChanges } from 'pages/tournament/tabs/scheduleViews/gridView';
@@ -9,7 +10,6 @@ import { schedulerDemoDates } from 'pages/tournaments/schedulerDemoProfile';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { warpClockDates, warpLastDate } from './warpClockRange';
 import { isTimeWarpActive } from 'services/timeWarp/warpState';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
@@ -144,7 +144,14 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
   // the warp began, to the day after the tournament's end (`warpClockRange.ts`); the time is checked when set.
   let pendingDate = '';
   let pendingTime = '';
-  let picked = false;
+  // what the operator chose, apart: a date chosen alone takes the new day's prep time, a time chosen is kept
+  let datePicked = false;
+  let timePicked = false;
+  /** an hour before the courts open on `day`: the director's prep time on a new day (CA 2026-11-22) */
+  const dayStart = (day: string) => {
+    const { courts, venues } = tournamentEngine.getVenuesAndCourts() ?? {};
+    return prepTime(dayOpening({ courts, venues, date: day }));
+  };
   const showPending = () => {
     date.textContent = pendingDate ? formatDateLabel(pendingDate) : t('demoClock.date');
     time.textContent = pendingTime || t('demoClock.setTime');
@@ -157,7 +164,12 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       activeDates: warpClockDates({ clockDate: venueCalendarDate(now, zone), endDate: tournamentEndDate() }),
       callback: ({ date: chosen }) => {
         pendingDate = chosen;
-        picked = true;
+        datePicked = true;
+        // only the date changed: a later day starts at its prep time; the clock's own day keeps the clock's time
+        if (!timePicked) {
+          const nowMs = getDemoClock()?.nowMs ?? now;
+          pendingTime = chosen > venueCalendarDate(nowMs, zone) ? dayStart(chosen) : venueClock(nowMs, zone);
+        }
         showPending();
       },
     });
@@ -170,7 +182,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
         const converted = tools.dateTime.convertTime(chosen, true) as string;
         if (!converted) return;
         pendingTime = converted;
-        picked = true;
+        timePicked = true;
         showPending();
       },
     }),
@@ -192,7 +204,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
       return;
     }
     if (at === undefined || !setDemoClockTime(at)) error();
-    else picked = false;
+    else datePicked = timePicked = false;
   };
   const set = button(t('demoClock.set'), () => moveTo(demoWallTime(pendingDate, pendingTime, zone)));
   const fields = document.createElement('div');
@@ -207,6 +219,20 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
         if (now !== undefined) moveTo(now + minutes * 60_000);
       }),
     );
+
+  // one step to the next day's prep time: the end of a day's play, then straight to the morning
+  const nextDay = () => {
+    const now = getDemoClock()?.nowMs;
+    if (now === undefined) return undefined;
+    const day = addCalendarDays(venueCalendarDate(now, zone), 1);
+    const last = warpLastDate(tournamentEndDate());
+    return last && day > last ? undefined : { day, time: dayStart(day) };
+  };
+  const startNextDay = button('', () => {
+    const next = nextDay();
+    if (next) moveTo(demoWallTime(next.day, next.time, zone));
+  });
+  steps.append(startNextDay);
 
   const boundary = button('', () => {
     const next = readBoundary();
@@ -351,11 +377,15 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     );
     modeSelect.value = state.mode;
     // the pickers show the clock until the operator picks a moment of their own
-    if (!picked) {
+    if (!datePicked && !timePicked) {
       pendingDate = venueCalendarDate(state.nowMs, zone);
       pendingTime = venueClock(state.nowMs, zone);
     }
     showPending();
+    const tomorrow = nextDay();
+    startNextDay.textContent = tomorrow
+      ? t('demoClock.startNextDay', { date: formatDateLabel(tomorrow.day), time: tomorrow.time })
+      : t('demoClock.noNextDay');
     for (const control of panel.querySelectorAll('button, select'))
       (control as HTMLButtonElement | HTMLSelectElement).disabled = state.busy;
     refreshCapture();
@@ -363,6 +393,7 @@ export function openDemoClockPanel(mode?: DemoClockMode): void {
     exit.disabled = false;
     const next = readBoundary();
     boundary.disabled = state.busy || !next;
+    startNextDay.disabled = state.busy || !tomorrow;
     boundary.textContent = next
       ? t('demoClock.boundary', {
           kind: t(`demoClock.boundaries.${next.kind}`),

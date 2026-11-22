@@ -567,3 +567,52 @@ test('Exit Warp stays on the page being looked at, now on the original', async (
   await expect(page.locator('html')).not.toHaveAttribute('data-tmx-time-warp', 'true');
   await expect(page.locator('#demoBadge')).toHaveCount(0);
 });
+
+/** the clock's day, and the next day's prep time as the panel's "Start next day" button names it */
+async function clockAndNextDay(page: Page) {
+  return page.evaluate(async ({ clockPath, framePath }) => {
+    const { getDemoClock } = await import(/* @vite-ignore */ clockPath);
+    const { venueCalendarDate } = await import(/* @vite-ignore */ framePath);
+    const today = venueCalendarDate(getDemoClock().nowMs) as string;
+    const [y, m, d] = today.split('-').map(Number);
+    const next = new Date(y, m - 1, d + 1);
+    const tomorrow = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+    return { today, tomorrow, tomorrowMs: next.getTime() };
+  }, MODULES);
+}
+
+test('Start next day moves the clock to an hour before the next day opens', async ({ page }) => {
+  await seed(page);
+  await enter(page);
+  const { tomorrow } = await clockAndNextDay(page);
+  const start = page.locator(PANEL).getByRole('button', { name: /^Start .* · \d\d:\d\d$/ });
+  await expect(start).toBeEnabled();
+  const prep = /· (\d\d:\d\d)$/.exec((await start.textContent()) ?? '')?.[1];
+  expect(prep).toBeTruthy();
+
+  await start.click();
+  await expect(page.locator(PANEL).locator('output')).toContainText(prep!);
+  await expect(page.locator(PANEL).locator('output')).toHaveAttribute('title', new RegExp(`^${tomorrow}`));
+});
+
+test('changing only the date starts the new day at its prep time', async ({ page }) => {
+  await seed(page);
+  await enter(page);
+  const { tomorrow, tomorrowMs } = await clockAndNextDay(page);
+  const prep = /· (\d\d:\d\d)$/.exec(
+    (await page
+      .locator(PANEL)
+      .getByRole('button', { name: /^Start .* · \d\d:\d\d$/ })
+      .textContent()) ?? '',
+  )?.[1];
+
+  await page.locator(PANEL).getByRole('button', { name: 'Demo date', exact: true }).click();
+  await page.getByPlaceholder('YYYY-MM-DD').click();
+  await page.locator(`.datepicker-cell.day[data-date="${tomorrowMs}"]`).click();
+  await page.getByRole('button', { name: 'Ok', exact: true }).click();
+  // the time follows the date, an hour before the courts open; nothing is set until Set
+  await expect(page.locator(PANEL).getByRole('button', { name: 'Demo wall time', exact: true })).toHaveText(prep!);
+  await page.locator(PANEL).getByRole('button', { name: 'Set time', exact: true }).click();
+  await expect(page.locator(PANEL).locator('output')).toContainText(prep!);
+  await expect(page.locator(PANEL).locator('output')).toHaveAttribute('title', new RegExp(`^${tomorrow}`));
+});
