@@ -8,8 +8,8 @@ import { competitiveProfileSorter } from '../common/sorters/competitiveProfileSo
 import { participantMatchUpActions } from '../../popovers/participantMatchUpActions';
 import { participantProfileModal } from 'components/modals/participantProfileModal';
 import { makeUpdatedAtFormatter } from '../common/formatters/updatedAtFormatter';
+import { openScheduleDatePicker } from 'components/popovers/scheduleDatePicker';
 import { formatParticipant } from '../common/formatters/participantFormatter';
-import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { resolveTimeSeed, validateTimeValue } from './scheduleTimeFields';
 import { profileFormatter } from '../common/formatters/profileFormatter';
 import { participantSorter } from '../common/sorters/participantSorter';
@@ -25,7 +25,6 @@ import { scoreSorter } from '../common/sorters/scoreSorter';
 import { tournamentEngine } from 'services/factory/engine';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { setMatchUpSchedule } from './setMatchUpSchedule';
-import { datePicker } from 'components/modals/datePicker';
 import { timePicker } from 'components/modals/timePicker';
 import { getCourtTimeBounds } from './courtTimeBounds';
 import { headerMenu } from '../common/headerMenu';
@@ -128,23 +127,21 @@ export function getMatchUpColumns({
 
   const matchUpDateClick = (_e: Event, cell: any) => {
     const existingDate = cell.getValue();
-    const activeDates = getScheduleDateRange();
     const row = cell.getRow();
     const data = row.getData();
     const { matchUpId } = data;
 
-    datePicker({
-      date: existingDate,
-      activeDates,
-      callback: ({ date }) => {
-        if (date && date !== existingDate) {
-          setMatchUpSchedule({
-            matchUpId,
-            schedule: { scheduledDate: date },
-            callback: () => row.update({ ...data, scheduledDate: date }),
-          });
-        }
-      },
+    // bounded by the linked matchUps, as the matchUp menu's date item is (`scheduleDatePicker.ts`)
+    openScheduleDatePicker({
+      drawId: data.matchUp?.drawId ?? data.drawId,
+      existingDate,
+      matchUpId,
+      onPicked: (date) =>
+        setMatchUpSchedule({
+          matchUpId,
+          schedule: { scheduledDate: date },
+          callback: () => row.update({ ...data, scheduledDate: date }),
+        }),
     });
   };
 

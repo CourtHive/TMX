@@ -3,6 +3,7 @@
  * Provides options for start/end time, official selection, and schedule clearing.
  */
 import { openNominateScorekeeper, removeScorekeeperNomination } from 'services/crowd/nominateScorekeeperFlow';
+import { matchUpMenuGates, timeOutsideBounds, type MenuAction } from 'components/popovers/matchUpMenuGates';
 import { resolveTimeSeed, validateTimeValue } from 'components/tables/matchUpsTable/scheduleTimeFields';
 import { confirmDelegatedOutcome, openSetDelegatedOutcome } from 'services/crowd/delegatedOutcomeFlow';
 import { clearHomeMethod, homeTeamMenu, setHomeMethod } from 'components/overlays/scorecard/homeTeam';
@@ -14,9 +15,9 @@ import { setMatchUpSchedule } from 'components/tables/matchUpsTable/setMatchUpSc
 import { getMatchUpCheckInState, checkInSummary } from 'services/checkIn/checkInState';
 import { getCourtTimeBounds } from 'components/tables/matchUpsTable/courtTimeBounds';
 import type { CandidateConflicts } from 'services/officiating/officialConflicts';
+import { openScheduleDatePicker } from 'components/popovers/scheduleDatePicker';
 import { openCrowdTrackersModal } from 'components/modals/crowdTrackersModal';
 import { getSettlementContext } from 'services/rotatingPartners/settlement';
-import { getScheduleDateRange } from 'pages/tournament/tabs/scheduleUtils';
 import { getActiveSessionCount } from 'services/crowd/crowdActivityIndex';
 import { readDelegatedOutcome } from 'services/crowd/delegatedOutcome';
 import { ParticipantRoleEnum, tools } from 'tods-competition-factory';
@@ -32,17 +33,10 @@ import { canExportStatCrew } from 'services/export/statCrew';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { tournamentEngine } from 'services/factory/engine';
 import { timePicker } from 'components/modals/timePicker';
-import { datePicker } from 'components/modals/datePicker';
 import { tipster } from 'components/popovers/tipster';
 import { isFunction } from 'functions/typeOf';
 import tippy, { Instance } from 'tippy.js';
 import { t } from 'i18n';
-import {
-  datesWithinBounds,
-  matchUpMenuGates,
-  timeOutsideBounds,
-  type MenuAction,
-} from 'components/popovers/matchUpMenuGates';
 
 // constants
 import type { ScheduleTimeField } from 'components/tables/matchUpsTable/scheduleTimeFields';
@@ -129,27 +123,19 @@ export function matchUpActions({
     });
   };
 
-  const setScheduleDate = () => {
-    const existingDate = matchUp?.schedule?.scheduledDate || '';
-    // limited to the dates the write accepts: none before a linked match it follows, none after one that follows it
-    const activeDates = datesWithinBounds(getScheduleDateRange(), gates.scheduleDate?.bounds);
-    if (!activeDates.length) {
-      tmxToast({ message: t('toasts.schedule.noValidDate'), intent: 'is-danger' });
-      return;
-    }
-    datePicker({
-      date: existingDate,
-      activeDates,
-      callback: ({ date }) => {
-        if (!date) return;
+  // the dates the write accepts, and why the rest are not offered (`scheduleDatePicker.ts`)
+  const setScheduleDate = () =>
+    openScheduleDatePicker({
+      existingDate: matchUp?.schedule?.scheduledDate,
+      matchUpId: matchUp.matchUpId,
+      drawId: matchUp.drawId,
+      onPicked: (date) =>
         setMatchUpSchedule({
           matchUpId: matchUp.matchUpId,
           schedule: { scheduledDate: date },
           callback: () => updateRow({ scheduledDate: date }),
-        });
-      },
+        }),
     });
-  };
 
   const applySelectedTime = (field: ScheduleTimeField, time: string) => {
     const schedule = matchUp?.schedule || {};
