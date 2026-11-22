@@ -1,4 +1,22 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+// "Report a problem" lives in the user-icon menu, under Help (CA, 2026-11-22); the header Help is gone.
+const menu = (page: Page) => page.locator('.tippy-box');
+const menuReport = (page: Page) => menu(page).getByText('Report a problem', { exact: true });
+async function openUserMenu(page: Page) {
+  await page.locator('#login').click();
+  await expect(menu(page)).toBeVisible();
+}
+async function openReportFromMenu(page: Page) {
+  await openUserMenu(page);
+  await menuReport(page).click();
+}
+async function expectNoReportInMenu(page: Page) {
+  await openUserMenu(page);
+  await expect(menuReport(page)).toHaveCount(0);
+  await page.locator('#login').click(); // the menu toggles closed
+}
+
 
 const reference = 'cb405e2b-9829-4538-b934-079bc4ea197a';
 const receipt = {
@@ -60,8 +78,7 @@ test('Help preserves a report through a disabled-intake 503 and retries it idemp
       await route.fulfill({ status: 503, json: { statusCode: 503, message: 'New support reports are disabled' } });
     else await route.fulfill({ json: receipt });
   });
-  await page.getByText('Help', { exact: true }).click();
-  await page.getByRole('button', { name: 'Report a problem', exact: true }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   await expect(dialog).toBeVisible();
   await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('Creating an event was refused');
@@ -99,8 +116,7 @@ test('an account/provider change prevents a draft from submitting under the new 
     sent = true;
     await route.fulfill({ json: receipt });
   });
-  await page.getByText('Help', { exact: true }).click();
-  await page.getByRole('button', { name: 'Report a problem', exact: true }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('A problem');
   await page.evaluate(() => localStorage.removeItem('tmxToken'));
@@ -112,8 +128,7 @@ test('an account/provider change prevents a draft from submitting under the new 
 test('mobile dark form keeps fields and actions within the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
-  await page.getByText('Help', { exact: true }).click();
-  await page.getByRole('button', { name: 'Report a problem', exact: true }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   const box = await dialog.boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -123,7 +138,7 @@ test('mobile dark form keeps fields and actions within the viewport', async ({ p
   await dialog.screenshot({ path: test.info().outputPath('mobile-dark.png') });
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeAttached();
-  await expect(page.getByText('Help', { exact: true })).toBeFocused();
+  await expect(page.locator('#login')).toBeFocused(); // focus returns to the account icon that opened the menu
 });
 
 test('account settings reuse HiveID verification without putting the contact address into a report', async ({
@@ -139,8 +154,7 @@ test('account settings reuse HiveID verification without putting the contact add
     submitted = route.request().postDataJSON();
     await route.fulfill({ json: receipt });
   });
-  await page.getByText('Help', { exact: true }).click();
-  await page.getByRole('button', { name: 'Report a problem', exact: true }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('A refused operation');
   await dialog.getByRole('button', { name: 'Open account settings' }).click();
@@ -169,8 +183,7 @@ test('a refused client operation remains in evidence even when a callback consum
     submitted = route.request().postDataJSON();
     await route.fulfill({ json: receipt });
   });
-  await page.getByText('Help', { exact: true }).click();
-  await page.getByRole('button', { name: 'Report a problem', exact: true }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('The create was refused');
   await dialog.getByRole('button', { name: 'Send report' }).click();
@@ -230,8 +243,7 @@ test('isolation hides existing reporting actions, preserves an open draft and re
     tmxToast({ message: 'Failure before Warp', intent: 'is-danger', duration: 0 });
   });
   await expect(page.locator('.tmx-support-report-toast button:not(.delete)')).toBeVisible();
-  await page.locator('#tmx-support-help summary').click();
-  await page.locator('#tmx-support-help').getByRole('button', { name: 'Report a problem' }).click();
+  await openReportFromMenu(page);
   const dialog = page.getByRole('dialog');
   await dialog.locator('textarea[name="description"]').fill('Preserved description');
   await page.evaluate(async () => {
@@ -263,8 +275,7 @@ test('isolation hides existing reporting actions, preserves an open draft and re
   });
   expect(result).toEqual(['NETWORK_ISOLATED', 'NETWORK_ISOLATED', 'NETWORK_ISOLATED']);
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
-  await page.locator('#tmx-support-help summary').click();
-  await expect(page.locator('#tmx-support-help button')).toBeHidden();
+  await expectNoReportInMenu(page);
   await page.evaluate(async () => {
     const load = (path: string) => import(/* @vite-ignore */ path);
     const { openProblemReport } = await load('/src/components/support/reportProblem.ts');
@@ -296,8 +307,7 @@ test('reporting stays suppressed through actual Warp exit recovery and returns a
     dev.tournamentContext.router.navigate('/tournament/support-warp-source/scheduling');
   });
   await expect(page).toHaveURL(/support-warp-source\/scheduling/);
-  await page.locator('#tmx-support-help summary').click();
-  await page.locator('#tmx-support-help button').click();
+  await openReportFromMenu(page);
   await page.getByRole('dialog').locator('textarea[name="description"]').fill('Draft before Warp entry');
   const entered = await page.evaluate(async () => {
     const load = (path: string) => import(/* @vite-ignore */ path);
@@ -338,8 +348,7 @@ test('reporting stays suppressed through actual Warp exit recovery and returns a
   });
   expect(recovering).toEqual({ isolated: true, hasSession: true, decoration: undefined });
   await expect(page.locator('#tmx-support-dialog')).toHaveCount(0);
-  await page.locator('#tmx-support-help summary').click();
-  await expect(page.locator('#tmx-support-help button')).toBeHidden();
+  await expectNoReportInMenu(page);
   await page.evaluate(() => (globalThis as any).releaseSupportRecovery());
   await expect
     .poll(() =>
@@ -350,8 +359,6 @@ test('reporting stays suppressed through actual Warp exit recovery and returns a
       }),
     )
     .toBe(false);
-  await page.locator('#tmx-support-help summary').click();
-  await page.locator('#tmx-support-help summary').click();
-  await page.locator('#tmx-support-help button').click();
+  await openReportFromMenu(page);
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Send report' })).toBeEnabled();
 });
