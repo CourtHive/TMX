@@ -2,7 +2,6 @@
  * Root application block structure.
  * Creates main navigation, content areas, tournament container, and drawer components.
  */
-import { mountSupportHelp } from 'components/support/supportHelp';
 import { tournamentInfoBlock } from './infoiBlock';
 import { initScrollNav } from './initScrollNav';
 import { context } from 'services/context';
@@ -36,7 +35,6 @@ const flexColFlexGrow = 'flexcol flexgrow';
 export function rootBlock(): HTMLElement {
   const root = document.getElementById('root')!;
   root.appendChild(newBlock());
-  mountSupportHelp();
 
   // `main` is read before the splash is built because the splash mounts INSIDE
   // it: `.app_shell` grows to fill the viewport, so a splash appended to #root

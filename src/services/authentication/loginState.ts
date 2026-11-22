@@ -1,3 +1,4 @@
+import { supportReportingAvailable } from 'services/support/reportAvailability';
 import { exitTimeWarp } from 'services/timeWarp/timeWarp';
 import { exportDemoWalkthrough, getWalkthroughStatus } from 'services/clock/demoWalkthrough';
 import { getWarpSession, isWarpEntryLocation } from 'services/timeWarp/warpState';
@@ -24,6 +25,7 @@ import { stopDemoClock } from 'services/clock/demoClock';
 import { getLoginColor } from 'functions/getLoginColor';
 import { providerConfig } from 'config/providerConfig';
 import { tipster } from 'components/popovers/tipster';
+import { supportText } from 'services/support/text';
 import { tmx2db } from 'services/storage/tmx2db';
 import { setupChatIndicator } from 'navigation';
 import { revokeRefreshToken } from './authApi';
@@ -334,12 +336,24 @@ export function initLoginToggle(id: string): void {
   const el = document.getElementById(id);
 
   if (el) {
+    // The account icon is the only route to Help and reporting, so it must work from the keyboard too.
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', t('loginMenu.accountMenu'));
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
     el.addEventListener('click', () => {
       const loggedIn = getLoginState();
       const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
       const impersonating = context?.provider;
 
-      const items = [
+      // Account first; Time Warp and Help each under their own heading (CA, 2026-11-22). Help moved here from the
+      // header, where it was spelled out beside the user icon.
+      const timeWarp = [
         {
           text: t('timeWarp.enter'),
           hide: !isWarpEntryLocation(tournamentEngine.getTournamentId()),
@@ -355,6 +369,26 @@ export function initLoginToggle(id: string): void {
           hide: !getWalkthroughStatus().available,
           onClick: () => void exportDemoWalkthrough(),
         },
+        {
+          text: t('demoMode.menuItem'),
+          hide: !isDemoEligible(),
+          onClick: () => void import('components/drawers/demoModeDrawer').then((m) => m.demoModeDrawer()),
+        },
+      ];
+      const help = [
+        {
+          text: supportText('report'),
+          // A report needs a signed-in account; Time Warp isolation hides it as before.
+          hide: !loggedIn || !supportReportingAvailable(),
+          onClick: () => {
+            // The dialog returns focus to whatever had it when it opened: the account icon, not the vanished menu item.
+            el.focus();
+            void import('components/support/reportProblem').then((m) => m.openProblemReport());
+          },
+        },
+      ];
+
+      const items = [
         {
           onClick: () => tmxToast({ message: 'TBD: Registration Modal' }),
           text: t('loginMenu.register'),
@@ -377,18 +411,21 @@ export function initLoginToggle(id: string): void {
           onClick: () => context.router?.navigate('/admin'),
         },
         {
-          text: t('demoMode.menuItem'),
-          hide: !isDemoEligible(),
-          onClick: () => void import('components/drawers/demoModeDrawer').then((m) => m.demoModeDrawer()),
-        },
-        {
           text: t('loginMenu.logOut'),
           hide: !loggedIn,
           onClick: logOut,
         },
       ];
 
-      tipster({ target: el, title: t('loginMenu.authorization'), items });
+      tipster({
+        target: el,
+        title: t('loginMenu.account'),
+        items,
+        sections: [
+          { text: t('loginMenu.timeWarpSection'), items: timeWarp },
+          { text: t('loginMenu.help'), items: help },
+        ],
+      });
     });
   }
 }

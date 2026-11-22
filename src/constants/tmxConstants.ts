@@ -346,4 +346,3 @@ export const TOURNAMENT_CLOCK = 'tournamentClock';
 
 export const SUPPORT_DIALOG = 'tmx-support-dialog';
 export const SUPPORT_TITLE = 'tmx-support-title';
-export const SUPPORT_HELP = 'tmx-support-help';
