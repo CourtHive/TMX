@@ -53,15 +53,17 @@ export function fillToViewportBottom(element: HTMLElement, options: { gap?: numb
  * band of background under the table on a tall window and pushed the table's footer off a short one (CA 2026-11-08).
  */
 export function fitTableToViewportBottom(
-  table: { setHeight?: (height: number) => void; element?: HTMLElement },
+  table: { setHeight?: (height: number) => void; element?: HTMLElement; on?: (event: string, cb: () => void) => void },
   element: HTMLElement,
   options: { gap?: number; min?: number } = {},
 ): () => void {
   let frame = 0;
   let last = 0;
+  let chrome: ResizeObserver | undefined;
   const release = () => {
     cancelAnimationFrame(frame);
     window.removeEventListener('resize', fit);
+    chrome?.disconnect();
   };
   function fit() {
     if (!element.isConnected) return release();
@@ -79,5 +81,29 @@ export function fitTableToViewportBottom(
   // the chrome above can settle a frame later (control bars and summary bars are rendered after the table)
   frame = requestAnimationFrame(fit);
   window.addEventListener('resize', fit);
+  // A table rebuilt into the same anchor (every visit to its tab, every participants re-render) leaves the anchor on
+  // the page, so the disconnect check above never lets go: release with the table, or each rebuild adds a listener
+  // that resizes a destroyed table.
+  table.on?.('tableDestroyed', release);
+  // Tabulator gives its rows what the height leaves after the header and footer as they measured when it laid out, and
+  // does not look again when they change. A footer of chips that wraps to a second line and then unwraps (the
+  // participants footer hides its empty chips a frame after it is built) left the rows short, and the table's content
+  // sat centred inside it, a band above the header and another under the footer. Lay out again when they change.
+  if (typeof ResizeObserver !== 'undefined') {
+    let sizes = '';
+    chrome = new ResizeObserver(() => {
+      const next = [...element.children]
+        .filter((child) => !child.classList.contains('tabulator-tableholder'))
+        .map((child) => Math.round(child.getBoundingClientRect().height))
+        .join();
+      if (next === sizes) return;
+      sizes = next;
+      // the first report counts too: the footer may have settled between the fit and the observer starting
+      if (last) table.setHeight?.(last);
+    });
+    for (const child of element.children) {
+      if (!child.classList.contains('tabulator-tableholder')) chrome.observe(child);
+    }
+  }
   return release;
 }

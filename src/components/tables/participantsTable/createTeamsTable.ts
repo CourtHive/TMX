@@ -5,6 +5,7 @@
 import { participantResponsiveLayourFormatter } from './participantResponsiveLayoutFormatter';
 import { mapTeamParticipant } from 'pages/tournament/tabs/participantTab/mapTeamParticipant';
 import { createTabHeaderTitle, trackSelectedRows } from '../common/tabHeaderTitle';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { participantConstants } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -71,7 +72,11 @@ export function createTeamsTable({ view }: { view?: string } = {}): { table: any
     table.on('dataChanged', (rows: any[]) => title.setCount(rows.length));
     table.on('dataFiltered', (_filters: any, rows: any[]) => title.setCount(rows.length));
     table.on('scrollVertical', destroyTipster);
-    table.on('tableBuilt', () => (ready = true));
+    table.on('tableBuilt', () => {
+      ready = true;
+      // to the window's bottom, as the participants and matchUps tables are (fitTableToViewportBottom)
+      fitTableToViewportBottom(table, element, { gap: 8 });
+    });
   };
 
   render(getTableData());

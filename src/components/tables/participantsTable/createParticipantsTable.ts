@@ -7,6 +7,7 @@ import { createTabHeaderTitle, trackSelectedRows, type TabHeaderTitle } from '..
 import { ParticipantRoleEnum, participantConstants, tools, fixtures } from 'tods-competition-factory';
 import { buildScalingsChart, collectAvailableScales } from 'components/charts/participantScalings';
 import { mapParticipant } from 'pages/tournament/tabs/participantTab/mapParticipant';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { getGroupingParticipants } from './getGroupingParticipants';
 import { getParticipantColumns } from './getParticipantColumns';
@@ -208,6 +209,9 @@ export function createParticipantsTable({ view, footerElement }: { view?: string
     table.on('scrollVertical', destroyTipster);
     table.on('tableBuilt', () => {
       ready = true;
+      // to the window's bottom, footer chips and all, as the matchUps table is: a fraction of the window left a band
+      // under the footer on a tall window and pushed it off a short one (fitTableToViewportBottom)
+      if (element) fitTableToViewportBottom(table, element, { gap: 8 });
       // Initial render. `dataChanged` may not fire when data is seeded
       // via the constructor's `data:` option, so prime the header
       // explicitly the moment the table is interactive.
