@@ -25,7 +25,16 @@ export function heightToViewportBottom({
 /**
  * Keep an element sized from its top to the bottom of the window, as the window resizes. Returns the cleanup.
  */
-export function fillToViewportBottom(element: HTMLElement, options: { gap?: number; min?: number } = {}): () => void {
+export function fillToViewportBottom(
+  element: HTMLElement,
+  options: {
+    gap?: number;
+    min?: number;
+    /** `minHeight` for an element that must still grow with its content (the venues table's expanding rows) */
+    property?: 'height' | 'minHeight';
+  } = {},
+): () => void {
+  const { property = 'height', ...heightOptions } = options;
   let frame = 0;
   const release = () => {
     cancelAnimationFrame(frame);
@@ -35,7 +44,8 @@ export function fillToViewportBottom(element: HTMLElement, options: { gap?: numb
   function fit() {
     if (!element.isConnected) return release();
     const top = element.getBoundingClientRect().top + window.scrollY;
-    element.style.height = `${heightToViewportBottom({ top, viewportHeight: window.innerHeight, ...options })}px`;
+    element.style[property] =
+      `${heightToViewportBottom({ top, viewportHeight: window.innerHeight, ...heightOptions })}px`;
   }
   fit();
   // the chrome above can settle a frame later (control bars are rendered after the view)
