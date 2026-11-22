@@ -89,3 +89,35 @@ export function warpExitPath({
   }
   return segments.join('/');
 }
+
+type AvailabilityCourt = { dateAvailability?: { date?: string; startTime?: string }[] };
+type DefaultVenue = { defaultStartTime?: string };
+
+/** when the day opens at the venue: the earliest court start on `date` (its own availability, else the court's
+ * default), else the earliest venue default start, else 08:00 */
+export function dayOpening({
+  courts = [],
+  venues = [],
+  date,
+}: {
+  courts?: AvailabilityCourt[];
+  venues?: DefaultVenue[];
+  date: string;
+}): string {
+  const earliest = (times: (string | undefined)[]) =>
+    times.filter((time): time is string => !!time).sort((a, b) => a.localeCompare(b))[0];
+  const courtStart = earliest(
+    courts.map((court) => {
+      const own = court.dateAvailability?.find((availability) => availability.date === date);
+      return (own ?? court.dateAvailability?.find((availability) => !availability.date))?.startTime;
+    }),
+  );
+  return courtStart ?? earliest(venues.map((venue) => venue.defaultStartTime)) ?? '08:00';
+}
+
+/** `minutes` before `time` (`HH:MM`), never before midnight: the director's prep time before the day opens */
+export function prepTime(time: string, minutes = 60): string {
+  const [hours, mins] = time.split(':').map(Number);
+  const total = Math.max(0, hours * 60 + mins - minutes);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}

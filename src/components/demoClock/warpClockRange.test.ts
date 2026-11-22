@@ -1,4 +1,4 @@
-import { addCalendarDays, warpClockDates, warpExitPath, warpLastDate } from './warpClockRange';
+import { addCalendarDays, dayOpening, prepTime, warpClockDates, warpExitPath, warpLastDate } from './warpClockRange';
 import { describe, expect, it } from 'vitest';
 
 const [SUN, MON, TUE, WED] = ['2026-11-22', '2026-11-23', '2026-11-24', '2026-11-25'];
@@ -58,5 +58,33 @@ describe('warpExitPath', () => {
     expect(exit('/tournaments')).toBeUndefined();
     expect(exit(`/tournament/${COPY}x/events`)).toBeUndefined();
     expect(warpExitPath({ current: `/tournament/${COPY}`, copyId: COPY })).toBeUndefined();
+  });
+});
+
+describe('the start of a warp day', () => {
+  const court = (startTime: string, date?: string) => ({
+    dateAvailability: [{ ...(date ? { date } : {}), startTime }],
+  });
+
+  it('opens at the earliest court start on the day, a date of its own before the default', () => {
+    expect(dayOpening({ date: SUN, courts: [court('09:00'), court('08:30')] })).toEqual('08:30');
+    expect(
+      dayOpening({
+        date: SUN,
+        courts: [{ dateAvailability: [{ startTime: '08:00' }, { date: SUN, startTime: '10:00' }] }],
+      }),
+    ).toEqual('10:00');
+    expect(dayOpening({ date: MON, courts: [court('10:00', SUN)] })).toEqual('08:00');
+  });
+
+  it('falls back to the venue default, then 08:00', () => {
+    expect(dayOpening({ date: SUN, venues: [{ defaultStartTime: '07:30' }, {}] })).toEqual('07:30');
+    expect(dayOpening({ date: SUN })).toEqual('08:00');
+  });
+
+  it('leaves an hour of prep before the opening, never before midnight', () => {
+    expect(prepTime('08:00')).toEqual('07:00');
+    expect(prepTime('08:30')).toEqual('07:30');
+    expect(prepTime('00:30')).toEqual('00:00');
   });
 });
