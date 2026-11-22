@@ -1,5 +1,18 @@
 # Changelog
 
+## [8.60.0](https://github.com/CourtHive/TMX/compare/v8.59.1...v8.60.0) (2026-11-22)
+
+
+### Features
+
+* **dev:** expose the app's network clients on dev.network ([#2096](https://github.com/CourtHive/TMX/issues/2096)) ([66c1292](https://github.com/CourtHive/TMX/commit/66c12927ebd48b4c35f5b13f0fdf5ea80324e210))
+
+
+### Bug Fixes
+
+* **deps:** update dependency hotkeys-js to v4.1.3 ([1d7cf6f](https://github.com/CourtHive/TMX/commit/1d7cf6f8df64ef82f225864aea4ecff5f35856c0))
+* **deps:** update dependency hotkeys-js to v4.1.3 ([b9ab67b](https://github.com/CourtHive/TMX/commit/b9ab67be4d0b439067865ad23bc81987e37a83b3))
+
 ## [8.59.1](https://github.com/CourtHive/TMX/compare/v8.59.0...v8.59.1) (2026-11-22)
 
 
