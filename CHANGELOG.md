@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.59.1](https://github.com/CourtHive/TMX/compare/v8.59.0...v8.59.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.22.0 ([#2090](https://github.com/CourtHive/TMX/issues/2090)) ([e6cf80a](https://github.com/CourtHive/TMX/commit/e6cf80ae60761b7337b9e9a7828642b0eee09acd))
+* **deps:** update tods-competition-factory to 7.45.0 ([#2089](https://github.com/CourtHive/TMX/issues/2089)) ([9dcbadf](https://github.com/CourtHive/TMX/commit/9dcbadfb98abf6557be41db804a5efbb8e55659f))
+
 ## [8.59.0](https://github.com/CourtHive/TMX/compare/v8.58.0...v8.59.0) (2026-11-21)
 
 
