@@ -17,6 +17,8 @@ import {
   getScenarioStatus,
 } from 'services/scheduleScenarios/scheduleScenariosService';
 import { placementsHoldCourts, timesOnlyPlacements } from './recovery/timesOnly';
+import { getActivePlanScenarioId, setActivePlanScenarioId } from './planSelection';
+import { openRecoveryModal } from './recovery/recoveryModal';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderGridView, destroyGridView } from './gridView';
@@ -25,8 +27,7 @@ import { t } from 'i18n';
 
 import { SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
-// Selected scenario persists across re-renders within a tab session.
-let activePlanScenarioId: string | null = null;
+// The selected scenario persists across re-renders within a tab session (planSelection.ts).
 
 function styledButton(label: string, kind: 'default' | 'accent' | 'danger' = 'default'): HTMLButtonElement {
   const btn = document.createElement('button');
@@ -52,7 +53,10 @@ function renderEmptyState(container: HTMLElement, tournamentId: string, rerender
   msg.style.marginBottom = '1rem';
   const create = styledButton(t('schedule.plan.create'), 'accent');
   create.addEventListener('click', () => void createPlan(tournamentId, rerender));
-  wrap.append(msg, create);
+  const recover = styledButton(t('schedule.plan.recovery'));
+  recover.addEventListener('click', () => openRecoveryModal());
+  recover.style.marginLeft = '8px';
+  wrap.append(msg, create, recover);
   container.appendChild(wrap);
 }
 
@@ -64,7 +68,7 @@ async function createPlan(tournamentId: string, rerender: () => void): Promise<v
     tmxToast({ message: t('schedule.plan.createFailed'), intent: 'is-danger' });
     return;
   }
-  activePlanScenarioId = result?.scenarioId ?? result?.scenario?.scenarioId ?? null;
+  setActivePlanScenarioId(result?.scenarioId ?? result?.scenario?.scenarioId ?? null);
   rerender();
 }
 
@@ -96,7 +100,7 @@ function buildPlanChrome(args: {
     select.appendChild(opt);
   }
   select.addEventListener('change', () => {
-    activePlanScenarioId = select.value;
+    setActivePlanScenarioId(select.value);
     rerender();
   });
 
@@ -160,7 +164,7 @@ function buildPlanChrome(args: {
       tmxToast({ message: t('schedule.plan.createFailed'), intent: 'is-danger' });
       return;
     }
-    activePlanScenarioId = result?.scenarioId ?? result?.scenario?.scenarioId ?? null;
+    setActivePlanScenarioId(result?.scenarioId ?? result?.scenario?.scenarioId ?? null);
     rerender();
   });
 
@@ -172,7 +176,7 @@ function buildPlanChrome(args: {
       okIntent: 'is-danger',
       okAction: async () => {
         await removeScheduleScenario(tournamentId, scenarioId);
-        activePlanScenarioId = null;
+        setActivePlanScenarioId(null);
         rerender();
       },
     });
@@ -241,7 +245,9 @@ function buildPlanChrome(args: {
     bar.append(warn, rebase);
   }
 
-  bar.appendChild(makeOfficial);
+  const recoverBtn = styledButton(t('schedule.plan.recovery'));
+  recoverBtn.addEventListener('click', () => openRecoveryModal());
+  bar.append(recoverBtn, makeOfficial);
   return bar;
 }
 
@@ -255,9 +261,10 @@ export function renderPlanMode(container: HTMLElement, scheduledDate: string, to
   container.innerHTML = '';
 
   const scenarios = listScheduleScenarios(tournamentId);
-  if (!scenarios.find((s: any) => s.scenarioId === activePlanScenarioId)) {
-    activePlanScenarioId = scenarios[0]?.scenarioId ?? null;
+  if (!scenarios.find((s: any) => s.scenarioId === getActivePlanScenarioId())) {
+    setActivePlanScenarioId(scenarios[0]?.scenarioId ?? null);
   }
+  const activePlanScenarioId = getActivePlanScenarioId();
 
   if (!activePlanScenarioId) {
     renderEmptyState(container, tournamentId, rerender);
