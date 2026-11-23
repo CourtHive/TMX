@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.62.0](https://github.com/CourtHive/TMX/compare/v8.61.0...v8.62.0) (2026-11-23)
+
+
+### Features
+
+* **schedule:** warn when an earlier day's unplayed matches block today's scheduling ([#2104](https://github.com/CourtHive/TMX/issues/2104)) ([36cf0f7](https://github.com/CourtHive/TMX/commit/36cf0f707f76664db9cd0c469e7389455c36f44f))
+* **support:** one feedback form for a problem or a suggestion, scoped by CFS ([#2109](https://github.com/CourtHive/TMX/issues/2109)) ([b03b819](https://github.com/CourtHive/TMX/commit/b03b819c0145af759cc8fbe5de968bd65fdc1e00))
+* **time-warp:** a new day starts an hour before the courts open ([#2110](https://github.com/CourtHive/TMX/issues/2110)) ([85f0a63](https://github.com/CourtHive/TMX/commit/85f0a6365e35173a1d02aafb089660f9ab3d6330))
+* **time-warp:** shared pickers, a bounded clock, one badge, exit in place ([#2108](https://github.com/CourtHive/TMX/issues/2108)) ([3cc2f4b](https://github.com/CourtHive/TMX/commit/3cc2f4bad85a804e722b6eb45e2508967ffc3311))
+* **time-warp:** start the clock at the record's last change ([#2111](https://github.com/CourtHive/TMX/issues/2111)) ([9627392](https://github.com/CourtHive/TMX/commit/96273929ea439db66edbca1722b2b23a79662e21))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.22.1 ([#2117](https://github.com/CourtHive/TMX/issues/2117)) ([f67b911](https://github.com/CourtHive/TMX/commit/f67b911cf88bd237fb724f5c9f8abecab16db1f3))
+* **deps:** update pdf-factory to 1.1.14 ([#2116](https://github.com/CourtHive/TMX/issues/2116)) ([56e421e](https://github.com/CourtHive/TMX/commit/56e421e659bb5fc237044134f5592423ae200a76))
+* **deps:** update tods-competition-factory to 7.46.0 ([#2115](https://github.com/CourtHive/TMX/issues/2115)) ([b744ab1](https://github.com/CourtHive/TMX/commit/b744ab16a0582015874c7df83cf1cff505abf687))
+* **participants:** size the table to the window bottom; hide an empty Age group ([#2106](https://github.com/CourtHive/TMX/issues/2106)) ([0595ec7](https://github.com/CourtHive/TMX/commit/0595ec74ff9270b0eed0fd3db828f717eca5e374))
+* **support:** clarify report and account settings controls ([#2112](https://github.com/CourtHive/TMX/issues/2112)) ([ed8165a](https://github.com/CourtHive/TMX/commit/ed8165a9f1d27f19fca4b3392829ee8432df6f3e))
+* **tables:** size every page table to the window bottom ([#2107](https://github.com/CourtHive/TMX/issues/2107)) ([5c068a2](https://github.com/CourtHive/TMX/commit/5c068a204f1b451f16d6593f7a1b61f80d6ede4b))
+* **toast:** give the message its own element, apart from the action ([#2105](https://github.com/CourtHive/TMX/issues/2105)) ([6a32ee0](https://github.com/CourtHive/TMX/commit/6a32ee0aaaeb0c29120660e9117819379ade1c74))
+
 ## [8.61.0](https://github.com/CourtHive/TMX/compare/v8.60.0...v8.61.0) (2026-11-22)
 
 
