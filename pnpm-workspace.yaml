@@ -70,6 +70,6 @@ overrides:
   pdf-factory: link:../pdf-factory
   picomatch: ^4.0.4
   socket.io-parser: ^4.2.6
-  tods-competition-factory: link:../factory
+  tods-competition-factory: link:../factory/packages/competition-factory
   undici: ^8.0.0
   ws: ^8.20.1
