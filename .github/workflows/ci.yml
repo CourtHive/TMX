@@ -102,7 +102,7 @@ jobs:
       # everything else at its locked version, so CI is deterministic too.
       - name: Cache Playwright Chromium
         if: steps.scope.outputs.light != 'true'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-warp-chromium-${{ hashFiles('pnpm-lock.yaml') }}
