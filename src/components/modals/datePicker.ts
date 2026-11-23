@@ -11,12 +11,20 @@ import { NONE } from 'constants/tmxConstants';
 type DatePickerParams = {
   date?: string;
   activeDates?: string[];
+  /** why some dates are not offered (shown above the picker), e.g. a linked matchUp's date bounds this one */
+  notes?: string[];
   callback?: (result: { date: string }) => void;
 };
 
-export function datePicker({ date, activeDates, callback }: DatePickerParams): void {
+export function datePicker({ date, activeDates, notes, callback }: DatePickerParams): void {
   let selectedDate = date || '';
   const content = (elem: HTMLElement) => {
+    for (const text of notes ?? []) {
+      const note = document.createElement('p');
+      note.className = 'tmx-date-picker-note';
+      note.textContent = text;
+      elem.appendChild(note);
+    }
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'input';

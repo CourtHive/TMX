@@ -3,6 +3,7 @@ import { scheduledMatchUpsByVenue } from 'pages/tournament/tabs/venuesTab/schedu
 import { gridMinutesByCourt } from 'pages/tournament/tabs/venuesTab/gridMinutesByCourt';
 import { competitionEngine, tournamentEngine } from 'services/factory/engine';
 import { headerSortElement } from '../common/sorters/headerSortElement';
+import { fillToViewportBottom } from 'functions/heightToViewportBottom';
 import { mapVenue } from 'pages/tournament/tabs/venuesTab/mapVenue';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { AvailabilityEngine } from 'tods-competition-factory';
@@ -88,6 +89,13 @@ export function createVenuesTable({ table }: { table?: any } = {}): CreateVenues
       data,
     });
 
+    // at least to the window's bottom, as every page table reaches; still a minimum, never a height: a venue's row
+    // expands into a table of its courts, and a fixed height would put those nested tables in Tabulator's virtual rows
+    table.on('tableBuilt', () => {
+      if (!element) return;
+      const release = fillToViewportBottom(element, { gap: 8, property: 'minHeight' });
+      table.on('tableDestroyed', release);
+    });
     table.on('scrollVertical', destroyTipster);
     table.on('cellEdited', (cell: any) => {
       const def = cell.getColumn().getDefinition();

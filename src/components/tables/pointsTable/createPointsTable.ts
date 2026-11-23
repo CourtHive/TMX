@@ -6,6 +6,7 @@
  * the table placeholder explains when no level is selected.
  */
 import { getAvailablePolicies, getLevelDisplayLabel, PolicyOption } from './policyUtils';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -154,6 +155,8 @@ export function createPointsTable({ eventId }: CreatePointsTableParams): CreateP
       columns,
       data,
     });
+    // to the window's bottom, as every page table is: not a fraction of the window (fitTableToViewportBottom)
+    table.on('tableBuilt', () => fitTableToViewportBottom(table, tableElement, { gap: 8 }));
 
     context.tables.pointsTable = table;
   };

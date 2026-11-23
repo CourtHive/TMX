@@ -1260,6 +1260,32 @@
       "inspectorFloating": "Inspector: Floating",
       "previousCards": "Previous cards",
       "nextCards": "Next cards"
+    },
+    "carryover": {
+      "warning": "Warning",
+      "tooltip_one": "{{count}} match from an earlier day has no result and holds back {{blocked}} matches that cannot be scheduled after it",
+      "tooltip_other": "{{count}} matches from earlier days have no result and hold back {{blocked}} matches that cannot be scheduled after them",
+      "title": "Unfinished matches from earlier days",
+      "explanation_one": "{{count}} match is still scheduled on an earlier day without a result. It holds back {{blocked}} matches that feed into it.",
+      "explanation_other": "{{count}} matches are still scheduled on earlier days without a result. They hold back {{blocked}} matches that feed into them.",
+      "why": "A match may not be scheduled after a match it feeds into. Until these matches move off their earlier day, the matches feeding them cannot be given today's date, and the date picker will not offer it.",
+      "blockingHeading": "Holding matches back",
+      "otherHeading": "Also unfinished, holding nothing back",
+      "holdsBack_one": "holds back {{count}} match",
+      "holdsBack_other": "holds back {{count}} matches",
+      "underWay": "already started",
+      "locked": "schedule locked",
+      "tbd": "TBD",
+      "clearNote": "Clearing removes the day, time and court from the selected matches. They return to the Unscheduled catalog to be placed again.",
+      "clearSelected_one": "Clear {{count}} match",
+      "clearSelected_other": "Clear {{count}} matches",
+      "cleared_one": "Cleared the schedule of {{count}} match",
+      "cleared_other": "Cleared the schedule of {{count}} matches"
+    },
+    "dateBounds": {
+      "notAfter": "Days after {{date}} are not offered: {{matchUp}}, which this match feeds into, is scheduled {{when}}. Move or clear that match to schedule this one later.",
+      "notBefore": "Days before {{date}} are not offered: {{matchUp}}, which feeds into this match, is scheduled {{when}}.",
+      "linkedMatchUp": "a linked match"
     }
   },
   "penalties": {
@@ -4086,7 +4112,11 @@
     "label": "Time Warp",
     "hint": "Temporary local sandbox. Server communication is disabled. Exit Warp discards all sandbox changes.",
     "finishFirst": "Save or discard drafts and finish pending actions before entering Time Warp.",
-    "exitRecovered": "Time Warp ended after a restore error. The sandbox was discarded; reopen the original tournament if needed."
+    "exitRecovered": "Time Warp ended after a restore error. The sandbox was discarded; reopen the original tournament if needed.",
+    "startTitle": "Start Time Warp",
+    "startQuestion": "The tournament is under way. Start the warp clock where the record last changed, or now?",
+    "startAtLastChange": "Last change · {{when}}",
+    "startNow": "Now · {{when}}"
   },
   "demoClock": {
     "title": "Demo Clock",
@@ -4148,7 +4178,10 @@
     "capturing": "Recording · {{count}} steps",
     "captureReady": "Recording ready · {{count}} steps",
     "captureLimit": "Recording stopped at the capture limit. Export the recorded steps.",
-    "captureFailed": "Could not start recording. Check that demo clock control is active."
+    "captureFailed": "Could not start recording. Check that demo clock control is active.",
+    "notPastEnd": "The clock goes no further than {{date}}, the day after the tournament ends.",
+    "startNextDay": "Start {{date}} · {{time}}",
+    "noNextDay": "Last day reached"
   },
   "teamPresentation": {
     "title": "Tournament team presentation",
@@ -4226,7 +4259,20 @@
   },
   "supportReports": {
     "help": "Help",
+    "feedback": "Feedback",
     "report": "Report a problem",
+    "kind": "Feedback type",
+    "kindBug": "Problem",
+    "kindSuggestion": "Suggestion",
+    "suggestionTitle": "Make a suggestion",
+    "suggestionDescription": "What would you like to suggest?",
+    "suggestionExplanation": "Your suggestion and the screen you were on are sent to the CourtHive team. Leave out participant names, dates of birth and contact details. Suggestions are kept for 30 days.",
+    "suggestionPromise": "Suggestions are acknowledged but not answered by email.",
+    "sendSuggestion": "Send suggestion",
+    "acknowledged": "Suggestion received. Reference: {{reference}}. Retained until {{expiry}}. Thank you.",
+    "checking": "Checking whether feedback can be sent…",
+    "unavailable": "Feedback could not be checked. Your text is preserved; try again.",
+    "unknownProvider": "The provider you selected no longer exists. Choose another provider, then send again. Your text is preserved.",
     "title": "Report a problem",
     "description": "What went wrong?",
     "expected": "What did you expect? (optional)",
@@ -4236,6 +4282,7 @@
     "explanation": "Your description and limited technical error information will be sent to support. No tournament snapshot is attached. Leave out participant names, dates of birth and contact details. Reports are kept for 30 days.",
     "promise": "We will email you the outcome and any fix or workaround when the investigation is complete. A verified account contact address is required.",
     "settings": "Open account settings",
+    "closeSettings": "Close account settings",
     "accepted": "Report received. Reference: {{reference}}. No tournament snapshot attached. Retained until {{expiry}}.",
     "pending": "Verify your contact address in account settings to receive the resolution email.",
     "verified": "Your account contact address is verified.",
@@ -4243,7 +4290,7 @@
     "changed": "Your account or provider changed. Close this form and open a new report.",
     "isolated": "Time Warp started. Close this form and reopen it after returning to your tournament.",
     "tooLong": "Keep the complete report within 8 KiB.",
-    "login": "Sign in with a provider account before sending a report.",
+    "login": "Sign in before sending feedback.",
     "noProvider": "No provider is selected for this session. Choose a provider, then send the report again. Your text is preserved.",
     "notPermitted": "This account cannot send reports for the selected provider. Your text is preserved.",
     "disabled": "Problem reports are temporarily unavailable. Your text is preserved; try again later.",

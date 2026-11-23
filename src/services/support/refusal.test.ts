@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { refusalText } from './refusal';
+import { refusalCodeText, refusalText } from './refusal';
 
 vi.mock('services/support/text', () => ({ supportText: (key: string) => `text:${key}` }));
 
@@ -12,6 +12,14 @@ describe('refusalText', () => {
     expect(refusalText(refused({ code: 'SUPPORT_PROVIDER_NOT_PERMITTED' }))).toBe('text:notPermitted');
     expect(refusalText({ response: { status: 503, data: { code: 'SUPPORT_INTAKE_DISABLED' } } })).toBe('text:disabled');
     expect(refusalText(refused({ code: 'SUPPORT_SESSION_CHANGED' }))).toBe('text:changed');
+    expect(refusalText(refused({ code: 'SUPPORT_PROVIDER_UNKNOWN' }))).toBe('text:unknownProvider');
+  });
+
+  it("names a capability answer's reason, and nothing for one it does not know", () => {
+    expect(refusalCodeText('SUPPORT_INTAKE_DISABLED')).toBe('text:disabled');
+    expect(refusalCodeText('SUPPORT_IDENTITY_REQUIRED')).toBe('text:login');
+    expect(refusalCodeText('SUPPORT_SOMETHING_NEW')).toBeUndefined();
+    expect(refusalCodeText(undefined)).toBeUndefined();
   });
 
   it('keeps the generic promise for an unmapped refusal, with the server reason when it gave one', () => {

@@ -6,6 +6,7 @@ import { eventControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/eve
 import { renderDrawView } from 'pages/tournament/tabs/eventsTab/renderDraws/renderDrawView';
 import { drawControlBar } from 'pages/tournament/tabs/eventsTab/renderDraws/drawControlBar';
 import { cleanupDrawPanel } from 'pages/tournament/tabs/eventsTab/cleanupDrawPanel';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { drawDefinitionConstants } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -102,6 +103,8 @@ export async function createRoundsTable({
       columns,
       data,
     });
+    // to the window's bottom, as every page table is: not a fraction of the window (fitTableToViewportBottom)
+    table.on('tableBuilt', () => element && fitTableToViewportBottom(table, element, { gap: 8 }));
   };
 
   render(data);

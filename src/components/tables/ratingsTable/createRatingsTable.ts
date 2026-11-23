@@ -4,6 +4,7 @@
  */
 import { formatParticipant } from '../common/formatters/participantFormatter';
 import { ratedMatchUpIds, ratingsPolicyCaption } from './ratingsTableLogic';
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { participantSorter } from '../common/sorters/participantSorter';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { renderMatchUp, compositions } from 'courthive-components';
@@ -467,7 +468,7 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
   const element = document.getElementById(DRAWS_VIEW);
 
   const sortableFields = ['participantName', 'rating', 'dynamicRating', 'ratingChange'];
-  new Tabulator(element, {
+  const table = new Tabulator(element, {
     headerSortElement: headerSortElement(sortableFields),
     height: window.innerHeight * (displayConfig.get().tableHeightMultiplier ?? 0.85),
     placeholder: t('entries.noRatingData'),
@@ -477,4 +478,6 @@ export function createRatingsTable({ structureId, drawId }: CreateRatingsTablePa
     columns,
     data: tableData,
   });
+  // to the window's bottom, as every page table is: not a fraction of the window (fitTableToViewportBottom)
+  table.on('tableBuilt', () => element && fitTableToViewportBottom(table, element, { gap: 8 }));
 }

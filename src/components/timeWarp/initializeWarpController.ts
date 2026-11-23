@@ -16,6 +16,7 @@ import { isScoringActive } from 'services/transitions/activeScoringGuard';
 import { renderDemoAffordance } from 'services/demoMode/demoAffordance';
 import { clearSyncIndicator } from 'services/messaging/remoteMutations';
 import { resetActivityTimer } from 'services/staleness/stalenessGuard';
+import { warpExitPath } from 'components/demoClock/warpClockRange';
 import { clearActiveProvider } from 'services/provider/providerState';
 import { getLoginState } from 'services/authentication/loginState';
 import { getToken } from 'services/authentication/tokenManagement';
@@ -40,6 +41,22 @@ import {
 const TOURNAMENTS_PATH = '/tournaments';
 const WARNING_INTENT = 'is-warning';
 
+/**
+ * Exit Warp stays on the page being looked at, now showing the original tournament (CA 2026-11-22); a page about
+ * something made only in the sandbox steps up to what the original has. A warp of an example record has no original,
+ * so it returns where the warp began.
+ */
+function exitPath(session: any): string {
+  return (
+    warpExitPath({
+      current: globalThis.location.hash,
+      copyId: session.tournamentId,
+      sourceId: session.sourceId,
+      record: session.sourceRecord,
+    }) ?? session.returnPath
+  );
+}
+
 export function initializeWarpController(): () => void {
   const dispose = initializeTimeWarp({
     path: () => globalThis.location.hash.replace(/^#/, '') || TOURNAMENTS_PATH,
@@ -51,7 +68,7 @@ export function initializeWarpController(): () => void {
       !getDemoClock()?.busy,
     refused: () => tmxToast({ message: t('timeWarp.finishFirst'), intent: WARNING_INTENT }),
     prepare: () => import('components/demoClock/demoClockPanel'),
-    capture: ({ record }) => {
+    capture: ({ record, startAt }) => {
       if (!record && (!tournamentEngine.q.tournamentInfo()?.startDate || !venueTimeZone())) {
         tmxToast({ message: t('demoClock.cannotStart'), intent: WARNING_INTENT });
         return undefined;
@@ -62,7 +79,7 @@ export function initializeWarpController(): () => void {
       return {
         loginState,
         identity: getSessionIdentity(),
-        initialTime: getDemoClock()?.nowMs ?? Date.now(),
+        initialTime: startAt ?? getDemoClock()?.nowMs ?? Date.now(),
         overlay: overlay && !overlay.transient ? structuredClone(overlay) : undefined,
         selectedScheduleDate: context.displayed.selectedScheduleDate,
         viewState: structuredClone({
@@ -83,6 +100,8 @@ export function initializeWarpController(): () => void {
       clearSyncIndicator();
       noteLoadedTournament(copy);
       document.documentElement.dataset.tmxTimeWarp = 'true';
+      // the badge beside the title becomes "Time Warp" whether or not a demo posture was already on
+      renderDemoAffordance();
       resetActivityTimer();
       if (session.mode === 'clock') setDemoClockTime(session.initialTime, 'clock');
       context.router?.navigate(
@@ -120,7 +139,7 @@ export function initializeWarpController(): () => void {
       const finish = () => {
         complete();
         if (resume) ensureConnected();
-        context.router?.navigate(session.returnPath);
+        context.router?.navigate(exitPath(session));
       };
       if (online) {
         tournamentEngine.reset();
@@ -153,7 +172,7 @@ export function initializeWarpController(): () => void {
       else clearDemoOverlay();
       renderDemoAffordance();
       tmxToast({ message: t('timeWarp.exitRecovered'), intent: WARNING_INTENT });
-      context.router?.navigate(session.returnPath);
+      context.router?.navigate(exitPath(session));
     },
   });
   const identityChanged = (event: StorageEvent) => {

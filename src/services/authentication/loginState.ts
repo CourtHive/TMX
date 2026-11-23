@@ -357,7 +357,7 @@ export function initLoginToggle(id: string): void {
         {
           text: t('timeWarp.enter'),
           hide: !isWarpEntryLocation(tournamentEngine.getTournamentId()),
-          onClick: () => void import('services/timeWarp/timeWarp').then((m) => m.enterTimeWarp()),
+          onClick: () => void import('components/timeWarp/warpStartPrompt').then((m) => m.enterTimeWarpAtChosenTime()),
         },
         {
           text: t('timeWarp.exit'),
@@ -377,8 +377,9 @@ export function initLoginToggle(id: string): void {
       ];
       const help = [
         {
-          text: supportText('report'),
-          // A report needs a signed-in account; Time Warp isolation hides it as before.
+          // "Feedback" opens one form with a choice of problem report or suggestion (CA, 2026-11-22). Anyone signed in
+          // can send it: the form asks CFS where it goes. Time Warp isolation hides it as before.
+          text: supportText('feedback'),
           hide: !loggedIn || !supportReportingAvailable(),
           onClick: () => {
             // The dialog returns focus to whatever had it when it opened: the account icon, not the vanished menu item.

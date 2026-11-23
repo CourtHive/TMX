@@ -174,7 +174,15 @@ function createToast(options: ToastOptions): { element: HTMLElement } {
   // A string message is TEXT: toasts often carry record data (names in "Added N to <draw>",
   // conflict summaries), which must never be parsed as markup. A caller that needs formatting
   // passes an element.
-  if (options.message) container.append(options.message);
+  // The message has its own element, apart from the action: a bare text node beside the action button made the
+  // toast's text "<message><action>", so neither a screen reader nor a lookup by the message could tell them apart
+  // (every danger toast gained a "Report a problem" action in #2084, and journey 205 lost its toast).
+  if (options.message) {
+    const messageElement = document.createElement('span');
+    messageElement.className = 'tmx-toast-message';
+    messageElement.append(options.message);
+    container.appendChild(messageElement);
+  }
 
   if (isFunction(options.action?.onClick)) {
     const actionButton = document.createElement('button');

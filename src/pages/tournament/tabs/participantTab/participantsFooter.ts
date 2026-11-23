@@ -343,6 +343,11 @@ export function mountParticipantsFooter({
       paintChipState(button, narrowing);
       (button.lastElementChild as HTMLElement).textContent = String(counts.get(group)?.[value] ?? 0);
     }
+    // a group with every chip hidden goes too, label and all: "Age" with no age beside it (CA 2026-11-22)
+    groups.forEach((group, index) => {
+      const shown = chips.some((chip) => chip.group === group && chip.button.style.display !== 'none');
+      groupElements[index].style.display = shown ? '' : 'none';
+    });
   };
   const refresh = () => {
     if (!frame) frame = requestAnimationFrame(paint);
