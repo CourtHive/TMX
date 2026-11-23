@@ -19,7 +19,8 @@ export type ReleasePolicy = 'ready' | 'finish';
 /** the round a matchUp belongs to, as a scheduling profile names it */
 type RoundKey = { tournamentId: string; eventId: string; drawId: string; structureId: string; roundNumber: number };
 
-export type RecoveryMatchUp = RoundKey & {
+/** an inContext matchUp: the factory types its round identity as optional, though a drawn matchUp always has it */
+export type RecoveryMatchUp = Partial<RoundKey> & {
   matchUpId: string;
   /** the matchUp's stored schedule: its venue, and on the target day its imported start */
   schedule?: { venueId?: string; scheduledTime?: string };
@@ -31,7 +32,20 @@ export type RecoveryProfile = {
   schedulingProfile: { scheduleDate: string; venues: { venueId: string; rounds: RecoveryProfileRound[] }[] }[];
   /** matchUps with no venue of their own and no default to fall back to: left out, so the caller can say so */
   unvenuedMatchUpIds: string[];
+  /** matchUps without the round identity a profile round needs: left out, so the caller can say so */
+  unroundedMatchUpIds: string[];
 };
+
+function roundKeyOf({
+  tournamentId,
+  eventId,
+  drawId,
+  structureId,
+  roundNumber,
+}: RecoveryMatchUp): RoundKey | undefined {
+  if (!tournamentId || !eventId || !drawId || !structureId || !roundNumber) return undefined;
+  return { tournamentId, eventId, drawId, structureId, roundNumber };
+}
 
 type RecoveryProfileArgs = {
   /** the carryover, in the order it should be offered slots (analyzeCarryover's: oldest first) */
@@ -65,19 +79,25 @@ export function buildRecoveryProfile({
 }: RecoveryProfileArgs): RecoveryProfile {
   const venueRounds = new Map<string, Map<string, RecoveryProfileRound>>();
   const unvenuedMatchUpIds: string[] = [];
+  const unroundedMatchUpIds: string[] = [];
 
   const add = (matchUp: RecoveryMatchUp, notBeforeTime?: string) => {
+    const roundKey = roundKeyOf(matchUp);
+    if (!roundKey) {
+      unroundedMatchUpIds.push(matchUp.matchUpId);
+      return;
+    }
     const venueId = matchUp.schedule?.venueId || defaultVenueId;
     if (!venueId) {
       unvenuedMatchUpIds.push(matchUp.matchUpId);
       return;
     }
-    const { tournamentId, eventId, drawId, structureId, roundNumber } = matchUp;
+    const { tournamentId, drawId, structureId, roundNumber } = roundKey;
     const key = [tournamentId, drawId, structureId, roundNumber, notBeforeTime ?? ''].join('|');
     if (!venueRounds.has(venueId)) venueRounds.set(venueId, new Map());
     const rounds = venueRounds.get(venueId)!;
     if (!rounds.has(key)) {
-      const round: RecoveryProfileRound = { tournamentId, eventId, drawId, structureId, roundNumber, matchUpIds: [] };
+      const round: RecoveryProfileRound = { ...roundKey, matchUpIds: [] };
       if (notBeforeTime) round.notBeforeTime = notBeforeTime;
       rounds.set(key, round);
     }
@@ -97,5 +117,5 @@ export function buildRecoveryProfile({
   }
 
   const venues = [...venueRounds.entries()].map(([venueId, rounds]) => ({ venueId, rounds: [...rounds.values()] }));
-  return { schedulingProfile: [{ scheduleDate, venues }], unvenuedMatchUpIds };
+  return { schedulingProfile: [{ scheduleDate, venues }], unvenuedMatchUpIds, unroundedMatchUpIds };
 }

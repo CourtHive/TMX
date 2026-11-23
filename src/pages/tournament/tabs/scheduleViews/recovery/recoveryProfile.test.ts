@@ -150,6 +150,19 @@ describe('buildRecoveryProfile', () => {
   });
 });
 
+describe('buildRecoveryProfile without a round identity', () => {
+  it('leaves out a matchUp missing its round identity and reports it', () => {
+    const { schedulingProfile, unroundedMatchUpIds } = buildRecoveryProfile({
+      carryover: [{ matchUpId: 'orphan', schedule: { venueId: 'venue' } }],
+      releasePolicy: 'ready',
+      scheduleDate: TARGET,
+      targetDay: [],
+    });
+    expect(unroundedMatchUpIds).toEqual(['orphan']);
+    expect(schedulingProfile[0].venues).toEqual([]);
+  });
+});
+
 describe('importedStart', () => {
   it('reads HH:MM from an ISO or HH:MM scheduledTime, and nothing from none', () => {
     const matchUp = (scheduledTime?: string): any => ({ schedule: { scheduledTime } });
