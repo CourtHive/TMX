@@ -107,7 +107,7 @@
   },
   "dependencies": {
     "@courthive/provider-config": "1.2.0",
-    "@courthive/scoring-visualizations": "^0.2.27",
+    "@courthive/scoring-visualizations": "^0.2.31",
     "@eslint/js": "^10.0.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
