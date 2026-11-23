@@ -1101,6 +1101,94 @@
   color: var(--tmx-text-muted);
 }
 
+/* Rain-day recovery panel (recovery/recoveryModal.ts): both release policies side by side. */
+.tmx-recovery-modal p {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+.tmx-recovery-note {
+  color: var(--tmx-text-muted);
+  font-size: 0.8125rem !important;
+}
+.tmx-recovery-error {
+  color: var(--tmx-status-error);
+}
+.tmx-recovery-limit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8125rem;
+}
+.tmx-recovery-limit select {
+  padding: 2px 6px;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 6px;
+  background: var(--tmx-bg-primary);
+  color: var(--tmx-text-primary);
+}
+.tmx-recovery-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+@media (max-width: 720px) {
+  .tmx-recovery-columns {
+    grid-template-columns: 1fr;
+  }
+}
+.tmx-recovery-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 8px;
+}
+.tmx-recovery-column h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.tmx-recovery-summary {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.8125rem;
+}
+.tmx-recovery-group summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tmx-text-muted);
+}
+.tmx-recovery-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0 3px 12px;
+  font-size: 0.75rem;
+}
+.tmx-recovery-row[data-beyond-day='true'] .tmx-recovery-time {
+  color: var(--tmx-status-error);
+}
+.tmx-recovery-time {
+  white-space: nowrap;
+  color: var(--tmx-text-muted);
+}
+.tmx-recovery-save {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--tmx-border-primary);
+  border-radius: 6px;
+  background: var(--tmx-fill-accent);
+  color: var(--chc-on-link);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
 /* Why the schedule-date picker offers fewer days (scheduleDatePicker.ts). */
 .tmx-date-picker-note {
   margin: 0 0 8px;

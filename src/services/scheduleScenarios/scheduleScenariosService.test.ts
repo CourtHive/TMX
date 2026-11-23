@@ -79,12 +79,19 @@ describe('writes dispatch through mutationRequest', () => {
   }
 
   it('addScheduleScenario dispatches addScheduleScenario and resolves the callback result', async () => {
-    mutationRequestMock.mockImplementationOnce(({ callback }: any) => callback({ success: true, scenarioId: 's9' }));
+    mutationRequestMock.mockImplementationOnce(({ methods, callback }: any) =>
+      callback({ success: true, results: [{ scenarioId: methods[0].params.scenario.scenarioId, success: true }] }),
+    );
     const scenario = { scenarioName: 'Rain', placements: [] };
     const result = await addScheduleScenario(TID, scenario);
-    expect(result).toEqual({ success: true, scenarioId: 's9' });
+    expect(result.scenarioId).toEqual(expect.any(String));
     expect(mutationRequestMock.mock.calls[0][0].engine).toEqual(COMPETITION_ENGINE);
-    expect(dispatchedMethods()).toEqual([{ method: 'addScheduleScenario', params: { tournamentId: TID, scenario } }]);
+    expect(dispatchedMethods()).toEqual([
+      {
+        method: 'addScheduleScenario',
+        params: { tournamentId: TID, scenario: { ...scenario, scenarioId: result.scenarioId } },
+      },
+    ]);
   });
 
   it('updateScheduleScenario dispatches with scenarioId + updates', async () => {
