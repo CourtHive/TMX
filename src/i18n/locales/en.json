@@ -4282,6 +4282,7 @@
     "explanation": "Your description and limited technical error information will be sent to support. No tournament snapshot is attached. Leave out participant names, dates of birth and contact details. Reports are kept for 30 days.",
     "promise": "We will email you the outcome and any fix or workaround when the investigation is complete. A verified account contact address is required.",
     "settings": "Open account settings",
+    "closeSettings": "Close account settings",
     "accepted": "Report received. Reference: {{reference}}. No tournament snapshot attached. Retained until {{expiry}}.",
     "pending": "Verify your contact address in account settings to receive the resolution email.",
     "verified": "Your account contact address is verified.",

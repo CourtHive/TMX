@@ -159,9 +159,26 @@ test('account settings reuse HiveID verification without putting the contact add
   await openReportFromMenu(page);
   const dialog = page.getByRole('dialog', { name: 'Report a problem' });
   await dialog.getByRole('textbox', { name: 'What went wrong?' }).fill('A refused operation');
-  await dialog.getByRole('button', { name: 'Open account settings' }).click();
-  await dialog.getByRole('textbox', { name: 'Account email address' }).fill('verified-contact@example.test');
+  const openSettings = dialog.getByRole('button', { name: 'Open account settings' });
+  const closeSettings = dialog.getByRole('button', { name: 'Close account settings' });
+  const email = dialog.getByRole('textbox', { name: 'Account email address' });
+  await openSettings.click();
+  await expect(closeSettings).toHaveAttribute('aria-expanded', 'true');
+  await closeSettings.click();
+  await expect(email).toBeHidden();
+  await openSettings.click();
+  await email.fill('verified-contact@example.test');
   await dialog.getByRole('button', { name: 'Save account email' }).click();
+  await expect(email).toBeHidden();
+  await expect(openSettings).toBeFocused();
+  await expect(dialog.getByText('Verification requested.', { exact: false })).toBeVisible();
+  await page.route('**/account/contact-email/resend-verification', (route) =>
+    route.fulfill({ json: { success: true, status: 'pending_verification' } }),
+  );
+  await openSettings.click();
+  await dialog.getByRole('button', { name: 'Resend verification' }).click();
+  await expect(email).toBeHidden();
+  await expect(openSettings).toHaveAttribute('aria-expanded', 'false');
   await expect(dialog.getByText('Verification requested.', { exact: false })).toBeVisible();
   expect(accountEmail).toBe('verified-contact@example.test');
   await dialog.getByRole('button', { name: 'Send report' }).click();
