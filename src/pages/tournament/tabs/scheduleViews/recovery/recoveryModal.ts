@@ -1,27 +1,28 @@
 /**
  * Rain-day recovery, T4 (Mentat planning/RAIN_DAY_RECOVERY_PLAN.md § 4): the Recovery panel. It projects the target day
  * (the day after the interrupted day: the venue's today) with the carryover, under both release policies side by side
- * (CA 2026-11-23, Q3), and saves either one as a Plan-mode scenario, times only (Q5).
+ * (CA 2026-11-23, Q3), and saves either one as a Plan-mode scenario with the chosen scheduler’s placements.
  *
  * Opened from Plan mode's chrome and from the carryover WARNING's modal (T5), both only while `schedulePlan` is on (Q1).
  * Projecting reads the live record and writes nothing (`runRecovery` works on a deep copy). Saving is Plan mode's own
  * `addScheduleScenario`, through `mutationRequest`; making the plan official stays Plan mode's existing commit.
  */
+import { runRecovery, type RecoveryProjection, type RecoveryScheduler } from './recoveryRun';
 import { addScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
-import { analyzeCarryover, isConcluded } from '../carryoverAnalysis';
 import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
-import { runRecovery, type RecoveryProjection } from './recoveryRun';
-import { tmxToast } from 'services/notifications/tmxToast';
-import { competitionEngine } from 'services/factory/engine';
+import { analyzeCarryover, isConcluded } from '../carryoverAnalysis';
 import { getCachedAllMatchUps } from '../schedule2DataCache';
-import { venueToday } from 'functions/venueTimeFrame';
-import { recoveryPlacements } from './recoveryPlacements';
+import { competitionEngine } from 'services/factory/engine';
+import { tmxToast } from 'services/notifications/tmxToast';
 import { setActivePlanScenarioId } from '../planSelection';
+import { recoveryPlacements } from './recoveryPlacements';
+import { venueToday } from 'functions/venueTimeFrame';
 import { isScheduleLocked } from '../scheduleLocks';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
+// constants and types
 import { NONE, SCHEDULING_TAB, TOURNAMENT } from 'constants/tmxConstants';
 
 const SINGLES_LIMITS = [2, 3, 4];
@@ -53,6 +54,7 @@ export function recoveryInputs(scheduleDate: string = venueToday()): RecoveryInp
 
 export function openRecoveryModal(): void {
   const inputs = recoveryInputs();
+  let scheduler: RecoveryScheduler = 'profile';
   let singlesLimit: number | undefined;
   let body: HTMLElement | undefined;
 
@@ -67,10 +69,11 @@ export function openRecoveryModal(): void {
     if (inputs.lockedCount) {
       body.appendChild(paragraph(t('schedule.recovery.locked', { count: inputs.lockedCount }), NOTE));
     }
-    body.appendChild(limitControl());
+    body.append(schedulerControl(), limitControl());
 
     const { venues = [] }: any = competitionEngine.getVenuesAndCourts() ?? {};
     const run = runRecovery({
+      scheduler,
       tournamentRecords: competitionEngine.getState()?.tournamentRecords ?? {},
       matchUpDailyLimits: singlesLimit ? { SINGLES: singlesLimit } : undefined,
       defaultVenueId: venues[0]?.venueId,
@@ -88,7 +91,27 @@ export function openRecoveryModal(): void {
     columns.className = 'tmx-recovery-columns';
     columns.append(column('ready', run.ready), column('finish', run.finish));
     body.appendChild(columns);
-    body.appendChild(paragraph(t('schedule.recovery.pacing'), NOTE));
+    body.appendChild(
+      paragraph(t(scheduler === 'grid' ? 'schedule.recovery.gridTiming' : 'schedule.recovery.pacing'), NOTE),
+    );
+  };
+
+  const schedulerControl = () => {
+    const label = document.createElement('label');
+    label.className = 'tmx-recovery-limit';
+    label.textContent = t('schedule.recovery.scheduler');
+    const select = document.createElement('select');
+    for (const kind of ['profile', 'grid'] as const) {
+      const option = new Option(t(`schedule.recovery.${kind}Scheduler`), kind);
+      option.selected = scheduler === kind;
+      select.appendChild(option);
+    }
+    select.addEventListener('change', () => {
+      scheduler = select.value === 'grid' ? 'grid' : 'profile';
+      render();
+    });
+    label.appendChild(select);
+    return label;
   };
 
   const limitControl = () => {
@@ -162,6 +185,7 @@ export function openRecoveryModal(): void {
         const when = document.createElement('span');
         when.className = 'tmx-recovery-time';
         when.textContent = row.projectedTime ?? t('schedule.recovery.anotherDay');
+        if (row.courtName) when.textContent += ` · ${row.courtName}`;
         if (row.holds) when.textContent += ` · ${t('schedule.recovery.holds')}`;
         line.append(who, when);
         details.appendChild(line);
@@ -188,7 +212,7 @@ export function openRecoveryModal(): void {
     const tournamentId = inputs.carryover[0]?.tournamentId;
     if (!tournamentId || !placements.length) return;
     const result: any = await addScheduleScenario(tournamentId, {
-      scenarioName: t('schedule.recovery.planName', {
+      scenarioName: t(scheduler === 'grid' ? 'schedule.recovery.gridPlanName' : 'schedule.recovery.planName', {
         date: formatDateLabel(inputs.scheduleDate),
         policy: t(`schedule.recovery.${policy}`),
       }),

@@ -112,7 +112,7 @@ export function buildRecoveryProfile({
     .map((matchUp) => ({ matchUp, start: importedStart(matchUp) }))
     .toSorted((a, b) => (a.start ? minutes(a.start) : Infinity) - (b.start ? minutes(b.start) : Infinity));
   for (const { matchUp, start } of timed) {
-    const notBeforeTime = start && (releasePolicy === 'finish' ? later(start, carryoverFinishTime) : start);
+    const notBeforeTime = releasePolicy === 'finish' && carryoverFinishTime ? later(carryoverFinishTime, start) : start;
     add(matchUp, notBeforeTime);
   }
 

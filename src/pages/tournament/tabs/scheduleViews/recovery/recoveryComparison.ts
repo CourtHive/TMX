@@ -10,8 +10,16 @@
 import { importedStart, type RecoveryMatchUp } from './recoveryProfile';
 import { tools } from 'tods-competition-factory';
 
+export type ProjectedPlacement = {
+  matchUpId: string;
+  scheduleTime: string;
+  courtId?: string;
+  courtOrder?: number;
+  courtName?: string;
+};
+
 export type RecoveryRunResult = {
-  placements?: { [scheduleDate: string]: { [venueId: string]: { matchUpId: string; scheduleTime: string }[] } };
+  placements?: { [scheduleDate: string]: { [venueId: string]: ProjectedPlacement[] } };
   noTimeMatchUpIds?: { [scheduleDate: string]: string[] };
 };
 
@@ -22,6 +30,7 @@ export type RecoveryRow = {
   importedStart?: string;
   /** the projected start; absent when the run found it no time */
   projectedTime?: string;
+  courtName?: string;
   /** a target-day matchUp projected at its imported start */
   holds: boolean;
   beyondDay: boolean;
@@ -64,17 +73,19 @@ export function compareRecovery({
   targetDay,
   result,
 }: RecoveryComparisonArgs): RecoveryComparison {
-  const projected = new Map<string, string>();
+  const projected = new Map<string, ProjectedPlacement>();
   for (const placements of Object.values(result.placements?.[scheduleDate] ?? {}))
-    for (const { matchUpId, scheduleTime } of placements) projected.set(matchUpId, scheduleTime);
+    for (const placement of placements) projected.set(placement.matchUpId, placement);
   const noTime = new Set(result.noTimeMatchUpIds?.[scheduleDate] ?? []);
 
   const row = (matchUp: RecoveryMatchUp, isCarryover: boolean): RecoveryRow => {
     const start = isCarryover ? undefined : importedStart(matchUp);
-    const projectedTime = projected.get(matchUp.matchUpId);
+    const placement = projected.get(matchUp.matchUpId);
+    const projectedTime = placement?.scheduleTime;
     return {
       holds: !!start && !!projectedTime && minutes(projectedTime) === minutes(start),
       beyondDay: !projectedTime || noTime.has(matchUp.matchUpId),
+      courtName: placement?.courtName,
       matchUpId: matchUp.matchUpId,
       carryover: isCarryover,
       ...(start ? { importedStart: start } : {}),

@@ -1,6 +1,6 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
-import { runRecovery } from './recoveryRun';
 import { describe, expect, it } from 'vitest';
+import { runRecovery } from './recoveryRun';
 
 const INTERRUPTED = '2026-11-21';
 const TARGET = '2026-11-22';
@@ -148,5 +148,159 @@ describe('runRecovery', () => {
     }
     // the carryover itself is placed exactly as under ready
     for (const { matchUpId } of fixture.carryover) expect(times[matchUpId]).toEqual('08:00');
+  });
+});
+
+describe('court grid recovery', () => {
+  it('places the requested matches on their courts under each release policy without changing the live record', () => {
+    const fixture = setup();
+    const records = tournamentEngine.getState().tournamentRecords;
+    const before = JSON.stringify(records);
+    const grid = runRecovery({ ...fixture, tournamentRecords: records, scheduleDate: TARGET, scheduler: 'grid' });
+    expect(grid.error).toBeUndefined();
+    expect(JSON.stringify(records)).toBe(before);
+    for (const projection of [grid.ready, grid.finish]) {
+      const placements = projection.result.placements[TARGET][fixture.venueId];
+      expect(placements.map((p: any) => p.matchUpId).sort()).toEqual(
+        [...fixture.carryover, ...fixture.targetDay].map((m) => m.matchUpId).sort(),
+      );
+      expect(new Set(placements.map((p: any) => p.courtId + '/' + p.courtOrder)).size).toBe(placements.length);
+      const times = projectedTimes(projection);
+      expect(fixture.carryover.every((m) => times[m.matchUpId] === '08:00')).toBe(true);
+      expect(fixture.drawB.every((id) => times[id] === '11:00')).toBe(true);
+    }
+  });
+});
+
+function gridDay(endTime = '17:00') {
+  const {
+    venueIds: [venueId, secondVenueId],
+  } = mocksEngine.generateTournamentRecord({
+    drawProfiles: [{ drawSize: 16 }],
+    startDate: INTERRUPTED,
+    endDate: TARGET,
+    setState: true,
+    venueProfiles: [
+      { courtsCount: 1, startTime: '08:00', endTime },
+      { courtsCount: 1, startTime: '08:00', endTime: '17:00' },
+    ],
+  });
+  const engine = tournamentEngine;
+  const { matchUps = [] } = engine.allTournamentMatchUps({ inContext: true, matchUpFilters: { roundNumbers: [1] } });
+  const { courts = [] } = engine.getVenuesAndCourts();
+  const courtId = courts.find((c) => c.venueId === venueId)!.courtId;
+  const book = (index: number, date: string, scheduledTime?: string, venue = venueId, order?: number) => {
+    const { matchUpId, drawId } = matchUps[index];
+    const schedule = {
+      scheduledDate: date,
+      venueId: venue,
+      scheduledTime,
+      ...(order ? { courtId, courtOrder: order } : {}),
+    };
+    const result = engine.addMatchUpScheduleItems({ matchUpId, drawId, schedule });
+    expect(result.success).toBe(true);
+    return { ...matchUps[index], schedule };
+  };
+  const project = (carryover: ReturnType<typeof book>[], targetDay: ReturnType<typeof book>[], limit?: number) =>
+    runRecovery({
+      scheduler: 'grid',
+      carryover,
+      targetDay,
+      scheduleDate: TARGET,
+      tournamentRecords: engine.getState().tournamentRecords,
+      matchUpDailyLimits: limit ? { SINGLES: limit } : undefined,
+    });
+  return { book, project, venueId, secondVenueId, courtId };
+}
+
+describe('court grid constraints', () => {
+  it('keeps an existing booking and the order on its court, and holds an untimed target at another venue until release', () => {
+    const { book, project, venueId, secondVenueId, courtId } = gridDay();
+    book(0, TARGET, '10:00', venueId, 1);
+    const stale = book(1, INTERRUPTED, '16:30');
+    const target = book(2, TARGET, undefined, secondVenueId);
+    const { ready, finish, error } = project([stale], [target], 2);
+    expect(error).toBeUndefined();
+    for (const run of [ready, finish]) {
+      expect(run.result.placements[TARGET][venueId]).toMatchObject([
+        { matchUpId: stale.matchUpId, courtId, courtOrder: 2, scheduleTime: '11:30' },
+      ]);
+      expect(run.result.placements[TARGET][secondVenueId][0].courtId).not.toBe(courtId);
+    }
+    expect(projectedTimes(ready)[target.matchUpId]).toBe('08:00');
+    expect(projectedTimes(finish)[target.matchUpId]).toBe('13:00');
+  });
+
+  it('uses the target date’s opening hours when the venue opens late that day', () => {
+    const { book, project, venueId } = gridDay();
+    const update = tournamentEngine.modifyVenue({
+      venueId,
+      modifications: {
+        dateAvailability: [
+          { date: INTERRUPTED, startTime: '08:00', endTime: '17:00' },
+          { date: TARGET, startTime: '12:00', endTime: '17:00' },
+        ],
+      },
+    });
+    expect(update.success).toBe(true);
+    const carried = book(0, INTERRUPTED, '16:00');
+    const recovery = project([carried], []);
+    expect(recovery.error).toBeUndefined();
+    expect(projectedTimes(recovery.ready)[carried.matchUpId]).toBe('12:00');
+  });
+
+  it('keeps the finish barrier closed when a carryover has no playable court window', () => {
+    const { book, project, secondVenueId } = gridDay('08:30');
+    const stale = book(0, INTERRUPTED, '16:00');
+    const target = book(1, TARGET, '09:00', secondVenueId);
+    const { ready, finish, error } = project([stale], [target]);
+    expect(error).toBeUndefined();
+    expect(ready.comparison.beyondDayMatchUpIds).toEqual([stale.matchUpId]);
+    expect(projectedTimes(ready)[target.matchUpId]).toBe('09:00');
+    expect(finish.comparison.beyondDayMatchUpIds).toEqual([stale.matchUpId, target.matchUpId]);
+  });
+
+  it('honors feeder rest and the singles limit when the next round moves to another venue', () => {
+    const venue = { courtsCount: 2, startTime: '08:00', endTime: '18:00' };
+    const {
+      venueIds: [first, second],
+    } = mocksEngine.generateTournamentRecord({
+      drawProfiles: [{ drawSize: 4 }],
+      startDate: INTERRUPTED,
+      endDate: TARGET,
+      setState: true,
+      venueProfiles: [venue, { ...venue }],
+    });
+    const { matchUps = [] } = tournamentEngine.allTournamentMatchUps({ inContext: true });
+    const carryover = matchUps.filter((m) => m.roundNumber === 1).map((m) => ({ ...m, schedule: { venueId: first } }));
+    const targetDay = matchUps.filter((m) => m.roundNumber === 2).map((m) => ({ ...m, schedule: { venueId: second } }));
+    expect(carryover).toHaveLength(2);
+    expect(targetDay).toHaveLength(1);
+    const args = {
+      carryover,
+      targetDay,
+      tournamentRecords: tournamentEngine.getState().tournamentRecords,
+      scheduleDate: TARGET,
+      scheduler: 'grid' as const,
+    };
+    const grid = runRecovery(args);
+    expect(grid.error).toBeUndefined();
+    const times = projectedTimes(grid.ready);
+    for (const feeder of carryover) {
+      expect(minutes(times[targetDay[0].matchUpId]) - minutes(times[feeder.matchUpId])).toBeGreaterThanOrEqual(150);
+    }
+    const limited = runRecovery({ ...args, matchUpDailyLimits: { SINGLES: 1 } });
+    expect(limited.error).toBeUndefined();
+    expect(limited.ready.comparison.beyondDayMatchUpIds).toEqual([targetDay[0].matchUpId]);
+  });
+
+  it('leaves the original court cell reserved for an overflow target that will keep its imported schedule', () => {
+    const { book, project, venueId } = gridDay('10:00');
+    const stale = book(0, INTERRUPTED, '16:00');
+    // It cannot fit 90 minutes at 09:30. Its original first row survives Make official.
+    const target = book(1, TARGET, '09:30', venueId, 1);
+    const { ready, error } = project([stale], [target]);
+    expect(error).toBeUndefined();
+    expect(ready.comparison.beyondDayMatchUpIds).toEqual([stale.matchUpId, target.matchUpId]);
   });
 });

@@ -941,6 +941,10 @@
       "title": "Plan recovery",
       "intro": "Projects {{date}} with the matches carried over from earlier days, under both release policies. Nothing changes until you save a plan and make it official.",
       "none": "No matches are carried over from an earlier day.",
+      "scheduler": "Projection scheduler",
+      "profileScheduler": "Profile (times only)",
+      "gridScheduler": "Court grid (times and courts)",
+      "gridTiming": "The grid assigns courts and order of play. Projected times use each assigned court’s availability and the scheduling policy.",
       "singlesLimit": "Singles per player",
       "tournamentLimits": "Tournament limits",
       "ready": "Release as courts and players free up",
@@ -964,6 +968,7 @@
       "pacing": "The scheduler starts a round in waves as courts allow, so only a round's first matches can keep a shared start time.",
       "saveAsPlan": "Save as plan",
       "planName": "Recovery {{date}} · {{policy}}",
+      "gridPlanName": "Recovery {{date}} · {{policy}} · Court grid",
       "saved": "Recovery plan saved. Review it here, then make it official.",
       "saveFailed": "Could not save the recovery plan",
       "failed": "Could not project the day"
