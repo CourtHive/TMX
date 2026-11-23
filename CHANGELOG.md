@@ -1,5 +1,90 @@
 # Changelog
 
+## [8.61.0](https://github.com/CourtHive/TMX/compare/v8.60.0...v8.61.0) (2026-11-22)
+
+
+### Features
+
+* **nav:** move Help into the account menu, with Time Warp under its own heading ([20db3bf](https://github.com/CourtHive/TMX/commit/20db3bf5677165b78287f79bd238e17b6157be9b))
+
+
+### Bug Fixes
+
+* **support:** show a refused report inline, never behind the dialog ([e586106](https://github.com/CourtHive/TMX/commit/e586106df38c7b43009219fe470234f678524233))
+
+## [8.60.0](https://github.com/CourtHive/TMX/compare/v8.59.1...v8.60.0) (2026-11-22)
+
+
+### Features
+
+* **dev:** expose the app's network clients on dev.network ([#2096](https://github.com/CourtHive/TMX/issues/2096)) ([66c1292](https://github.com/CourtHive/TMX/commit/66c12927ebd48b4c35f5b13f0fdf5ea80324e210))
+
+
+### Bug Fixes
+
+* **deps:** update dependency hotkeys-js to v4.1.3 ([1d7cf6f](https://github.com/CourtHive/TMX/commit/1d7cf6f8df64ef82f225864aea4ecff5f35856c0))
+* **deps:** update dependency hotkeys-js to v4.1.3 ([b9ab67b](https://github.com/CourtHive/TMX/commit/b9ab67be4d0b439067865ad23bc81987e37a83b3))
+
+## [8.59.1](https://github.com/CourtHive/TMX/compare/v8.59.0...v8.59.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.22.0 ([#2090](https://github.com/CourtHive/TMX/issues/2090)) ([e6cf80a](https://github.com/CourtHive/TMX/commit/e6cf80ae60761b7337b9e9a7828642b0eee09acd))
+* **deps:** update tods-competition-factory to 7.45.0 ([#2089](https://github.com/CourtHive/TMX/issues/2089)) ([9dcbadf](https://github.com/CourtHive/TMX/commit/9dcbadfb98abf6557be41db804a5efbb8e55659f))
+
+## [8.59.0](https://github.com/CourtHive/TMX/compare/v8.58.0...v8.59.0) (2026-11-21)
+
+
+### Features
+
+* add disposable Time Warp clock sandboxes ([0ae3672](https://github.com/CourtHive/TMX/commit/0ae36723fef7c295d2f8a55eea47f732eac24075))
+* add disposable Warp sessions with registered lifecycle hooks ([69d4495](https://github.com/CourtHive/TMX/commit/69d44951fb70b51f815a669eb35771a38e8d7ef8))
+* centralize sandbox network isolation and enforce its boundary ([4f09af2](https://github.com/CourtHive/TMX/commit/4f09af2eb3c0879b62e4788b9966c173b6f1598d))
+* integrate Warp clock UI and gate isolation journeys in CI ([7931b06](https://github.com/CourtHive/TMX/commit/7931b06de4f0862e49b55a5f7d23fdb7b25c5fa3))
+* **support:** checkpoint TMX reporting and Time Warp for release ([bec9cc3](https://github.com/CourtHive/TMX/commit/bec9cc326fd0a27398a4ef61e3ca231224088fae))
+* **support:** report problems with safe diagnostics and verified contact ([#2084](https://github.com/CourtHive/TMX/issues/2084)) ([1fedda0](https://github.com/CourtHive/TMX/commit/1fedda02d19877cf160f55f6a1691c687b975fb3))
+
+
+### Bug Fixes
+
+* **participants:** the footer names its scope only while a selection narrows the counts ([#2079](https://github.com/CourtHive/TMX/issues/2079)) ([0292348](https://github.com/CourtHive/TMX/commit/0292348853e9151e06896c33048455dbf77c6a0a))
+* **schedule:** drop the legend row for a rest badge cards almost never show ([#2081](https://github.com/CourtHive/TMX/issues/2081)) ([c09bb5e](https://github.com/CourtHive/TMX/commit/c09bb5e3aef8ccb595606cd07943513ffe4649f8))
+* **sync:** a record refreshed from the server clears the disconnect flag ([#2080](https://github.com/CourtHive/TMX/issues/2080)) ([ad65aeb](https://github.com/CourtHive/TMX/commit/ad65aeb408af84843ec961c6739a7907106a36c4))
+
+
+### Documentation
+
+* record Time Warp integration and delivery ([115c7eb](https://github.com/CourtHive/TMX/commit/115c7ebec7ba18c98d9b256abec238765af71ab0))
+* record Time Warp integration and delivery ([2531be2](https://github.com/CourtHive/TMX/commit/2531be2c1286f025283c06894cdcbdba8dc73ba7))
+
+## [8.58.0](https://github.com/CourtHive/TMX/compare/v8.57.0...v8.58.0) (2026-11-21)
+
+
+### Features
+
+* **participants:** footer count chips for gender, sign-in, entry, missing data and age ([#2064](https://github.com/CourtHive/TMX/issues/2064)) ([6427337](https://github.com/CourtHive/TMX/commit/6427337fffdecf733ef6145608a92b85efcb4ac7))
+* **tables:** selected count in table headers; README logo, demo link and screenshots ([#2063](https://github.com/CourtHive/TMX/issues/2063)) ([a65d71f](https://github.com/CourtHive/TMX/commit/a65d71fc72ee8e110705ced358ae0eb83273bac1))
+
+
+### Bug Fixes
+
+* **chips:** one chip rule everywhere, outlined at rest; chip contrast fixed in every theme ([#2066](https://github.com/CourtHive/TMX/issues/2066)) ([ca972a1](https://github.com/CourtHive/TMX/commit/ca972a136fc0ba21b3025f34f3e7e782dbb230ad))
+* **deps:** update courthive-components to 7.21.0 ([#2068](https://github.com/CourtHive/TMX/issues/2068)) ([4448df8](https://github.com/CourtHive/TMX/commit/4448df8d09577d206411140ec9ece2bafc27e070))
+* **deps:** update courthive-components to 7.21.1 ([#2074](https://github.com/CourtHive/TMX/issues/2074)) ([59622c8](https://github.com/CourtHive/TMX/commit/59622c8ab3e9ff5262ba08134b9be34fc785266a))
+* **deps:** update tods-competition-factory to 7.44.0 ([#2072](https://github.com/CourtHive/TMX/issues/2072)) ([faad664](https://github.com/CourtHive/TMX/commit/faad6649d7fc8637fd4c594bc5e434259e1350a5))
+* **events:** no guessed category, explained refusals, categories that say what they mean ([#2075](https://github.com/CourtHive/TMX/issues/2075)) ([cf4abd9](https://github.com/CourtHive/TMX/commit/cf4abd95a7044efdd33d35a09788a088d0eec526))
+* **participants:** a pair's card shows its players' ranking points ([#2069](https://github.com/CourtHive/TMX/issues/2069)) ([38fb36b](https://github.com/CourtHive/TMX/commit/38fb36bee2f65d882ba6742335e1a7ba3a5d4840))
+* **scheduling:** show and send the scheduling policy's period length ([#2070](https://github.com/CourtHive/TMX/issues/2070)) ([52b7362](https://github.com/CourtHive/TMX/commit/52b736216e0430f94d30a2f81a0f897cfb88d589))
+* **scoring:** close the score dialog only on an accepted result; report crowd promotion truthfully ([#2062](https://github.com/CourtHive/TMX/issues/2062)) ([21e93a6](https://github.com/CourtHive/TMX/commit/21e93a695b3b27c33a3a1b5b507c05f5963d754c))
+* **ui:** survey fixes, text accents in dark and the pipeline features panel ([#2067](https://github.com/CourtHive/TMX/issues/2067)) ([b26de25](https://github.com/CourtHive/TMX/commit/b26de25c7622ba666099ca93bac35e2fb1a10ab9))
+* **validation:** an integrity check that could not run no longer looks like a clean record ([#2071](https://github.com/CourtHive/TMX/issues/2071)) ([c4834bd](https://github.com/CourtHive/TMX/commit/c4834bdc75381efaa30e9c40165ff90e74bdb254))
+
+
+### Performance
+
+* **participants:** footer chips 87-92% faster to render, and kept current by every add route ([#2065](https://github.com/CourtHive/TMX/issues/2065)) ([ba36583](https://github.com/CourtHive/TMX/commit/ba365832a6923a26a0e381748b0d1c0343f7f2f2))
+
 ## [8.57.0](https://github.com/CourtHive/TMX/compare/v8.56.0...v8.57.0) (2026-11-20)
 
 

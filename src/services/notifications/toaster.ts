@@ -73,8 +73,34 @@ const generateStyle = (
   return [left, right, top, bottom, alignItems, textAlign].filter(Boolean).join(';');
 };
 
+/**
+ * Where toasts must live to be seen and clicked. A dialog opened with showModal() sits in the browser's top layer and
+ * makes everything outside it inert, so a toast appended to <body> rendered behind it and its action could not be
+ * clicked (the report dialog, 2026-11-22). While a modal dialog is open, toasts render inside it.
+ */
+function openModalDialog(doc: Document | undefined): Element | null {
+  try {
+    return doc?.querySelector('dialog:modal') ?? null;
+  } catch {
+    return null; // :modal unsupported: keep the previous behaviour
+  }
+}
+
+export function toastHost(
+  doc: Document | undefined = globalThis.document,
+  fallback?: HTMLElement,
+): HTMLElement | undefined {
+  return (openModalDialog(doc) as HTMLElement | null) ?? fallback ?? doc?.body;
+}
+
 function getContainer(options: ToastOptions): HTMLElement {
-  if (containers.position) return containers.position;
+  const host = toastHost(document, options.appendTo);
+  const cached = containers.position;
+  if (cached) {
+    // Re-home the one container when a modal opens or the dialog it lived in has closed and gone.
+    if (host && (cached.parentElement !== host || !cached.isConnected)) host.appendChild(cached);
+    return cached;
+  }
 
   const container = document.createElement('div');
   container.style.cssText =
@@ -86,7 +112,7 @@ function getContainer(options: ToastOptions): HTMLElement {
       options.offsetLeft!,
       options.offsetRight!,
     );
-  (options.appendTo || document.body).appendChild(container);
+  (host ?? document.body).appendChild(container);
   containers.position = container;
   return container;
 }
@@ -148,7 +174,15 @@ function createToast(options: ToastOptions): { element: HTMLElement } {
   // A string message is TEXT: toasts often carry record data (names in "Added N to <draw>",
   // conflict summaries), which must never be parsed as markup. A caller that needs formatting
   // passes an element.
-  if (options.message) container.append(options.message);
+  // The message has its own element, apart from the action: a bare text node beside the action button made the
+  // toast's text "<message><action>", so neither a screen reader nor a lookup by the message could tell them apart
+  // (every danger toast gained a "Report a problem" action in #2084, and journey 205 lost its toast).
+  if (options.message) {
+    const messageElement = document.createElement('span');
+    messageElement.className = 'tmx-toast-message';
+    messageElement.append(options.message);
+    container.appendChild(messageElement);
+  }
 
   if (isFunction(options.action?.onClick)) {
     const actionButton = document.createElement('button');

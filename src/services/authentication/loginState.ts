@@ -1,3 +1,7 @@
+import { supportReportingAvailable } from 'services/support/reportAvailability';
+import { exitTimeWarp } from 'services/timeWarp/timeWarp';
+import { exportDemoWalkthrough, getWalkthroughStatus } from 'services/clock/demoWalkthrough';
+import { getWarpSession, isWarpEntryLocation } from 'services/timeWarp/warpState';
 import { renderSettingsTab } from 'pages/tournament/tabs/settingsTab/renderSettingsTab';
 import { clearDemoOverlay, isDemoEligible } from 'services/demoMode/demoEligibility';
 import { renderOverview } from 'pages/tournament/tabs/overviewTab/renderOverview';
@@ -21,6 +25,7 @@ import { stopDemoClock } from 'services/clock/demoClock';
 import { getLoginColor } from 'functions/getLoginColor';
 import { providerConfig } from 'config/providerConfig';
 import { tipster } from 'components/popovers/tipster';
+import { supportText } from 'services/support/text';
 import { tmx2db } from 'services/storage/tmx2db';
 import { setupChatIndicator } from 'navigation';
 import { revokeRefreshToken } from './authApi';
@@ -79,6 +84,8 @@ function applyJwtProviderConfig(valid: LoginState): void {
 }
 
 export function getLoginState(): LoginState | undefined {
+  // Retain the entry identity/permissions while the tab is isolated; normal validation resumes on exit.
+  if (getWarpSession()) return getWarpSession()!.loginState;
   const token = getToken();
   const valid = validateToken(token);
   if (valid) {
@@ -94,6 +101,7 @@ export function getLoginState(): LoginState | undefined {
 }
 
 export function logOut(): void {
+  exitTimeWarp({ navigate: false, resume: false });
   // A demo posture and competition clock must never outlive an identity change.
   stopDemoClock();
   clearDemoWalkthrough();
@@ -175,6 +183,7 @@ export function logIn({
     });
     return;
   }
+  exitTimeWarp({ navigate: false, resume: false });
   // A session that has not chosen yet (e.g. issued by HiveID account verification) is exchanged the same way.
   const unchosen = validateToken(data.token);
   if (unchosen?.providerSelectionRequired) {
@@ -264,6 +273,7 @@ let silentRefreshInFlight: Promise<boolean> | null = null;
  * On failure, logs out cleanly.
  */
 export function attemptSilentRefresh(): Promise<boolean> {
+  if (getWarpSession()) return Promise.resolve(true);
   if (!silentRefreshInFlight) {
     silentRefreshInFlight = doSilentRefresh().finally(() => {
       silentRefreshInFlight = null;
@@ -274,6 +284,7 @@ export function attemptSilentRefresh(): Promise<boolean> {
 
 async function doSilentRefresh(): Promise<boolean> {
   const newToken = await refreshAccessToken();
+  if (getWarpSession()) return true;
   if (!newToken) {
     logOut();
     return false;
@@ -325,10 +336,58 @@ export function initLoginToggle(id: string): void {
   const el = document.getElementById(id);
 
   if (el) {
+    // The account icon is the only route to Help and reporting, so it must work from the keyboard too.
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', t('loginMenu.accountMenu'));
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
     el.addEventListener('click', () => {
       const loggedIn = getLoginState();
       const superAdmin = loggedIn?.roles?.includes(SUPER_ADMIN);
       const impersonating = context?.provider;
+
+      // Account first; Time Warp and Help each under their own heading (CA, 2026-11-22). Help moved here from the
+      // header, where it was spelled out beside the user icon.
+      const timeWarp = [
+        {
+          text: t('timeWarp.enter'),
+          hide: !isWarpEntryLocation(tournamentEngine.getTournamentId()),
+          onClick: () => void import('components/timeWarp/warpStartPrompt').then((m) => m.enterTimeWarpAtChosenTime()),
+        },
+        {
+          text: t('timeWarp.exit'),
+          hide: !getWarpSession(),
+          onClick: () => exitTimeWarp(),
+        },
+        {
+          text: t('demoClock.exportCapture'),
+          hide: !getWalkthroughStatus().available,
+          onClick: () => void exportDemoWalkthrough(),
+        },
+        {
+          text: t('demoMode.menuItem'),
+          hide: !isDemoEligible(),
+          onClick: () => void import('components/drawers/demoModeDrawer').then((m) => m.demoModeDrawer()),
+        },
+      ];
+      const help = [
+        {
+          // "Feedback" opens one form with a choice of problem report or suggestion (CA, 2026-11-22). Anyone signed in
+          // can send it: the form asks CFS where it goes. Time Warp isolation hides it as before.
+          text: supportText('feedback'),
+          hide: !loggedIn || !supportReportingAvailable(),
+          onClick: () => {
+            // The dialog returns focus to whatever had it when it opened: the account icon, not the vanished menu item.
+            el.focus();
+            void import('components/support/reportProblem').then((m) => m.openProblemReport());
+          },
+        },
+      ];
 
       const items = [
         {
@@ -353,18 +412,21 @@ export function initLoginToggle(id: string): void {
           onClick: () => context.router?.navigate('/admin'),
         },
         {
-          text: t('demoMode.menuItem'),
-          hide: !isDemoEligible(),
-          onClick: () => void import('components/drawers/demoModeDrawer').then((m) => m.demoModeDrawer()),
-        },
-        {
           text: t('loginMenu.logOut'),
           hide: !loggedIn,
           onClick: logOut,
         },
       ];
 
-      tipster({ target: el, title: t('loginMenu.authorization'), items });
+      tipster({
+        target: el,
+        title: t('loginMenu.account'),
+        items,
+        sections: [
+          { text: t('loginMenu.timeWarpSection'), items: timeWarp },
+          { text: t('loginMenu.help'), items: help },
+        ],
+      });
     });
   }
 }

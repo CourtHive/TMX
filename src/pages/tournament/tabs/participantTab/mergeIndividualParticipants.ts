@@ -1,3 +1,4 @@
+import { serverFetch } from 'services/network/serverNetwork';
 import { refreshTournamentFromServer } from 'services/messaging/remoteMutations';
 import { isActiveProviderAdmin } from 'services/authentication/isProviderAdmin';
 import { isStandaloneLocal } from 'services/authentication/isStandaloneLocal';
@@ -87,7 +88,7 @@ async function serverSupportsMerge(): Promise<boolean> {
   if (isStandalone()) return true; // the merge runs on the local engine only; no server is consulted
   try {
     const base = serverConfig.get().socketPath || globalThis.location.origin;
-    const response = await fetch(`${base}/factory/capabilities`, { cache: 'no-store' });
+    const response = await serverFetch(`${base}/factory/capabilities`, { cache: 'no-store' });
     return response.ok && (await response.json()).individualParticipantMerge === true;
   } catch {
     return false;

@@ -37,6 +37,7 @@ import {
 import {
   onTournamentMutation,
   onTournamentReplaced,
+  clearDisconnectFlag,
   joinTournamentRoom,
   onDurableRecovery,
 } from 'services/messaging/socketIo';
@@ -263,6 +264,9 @@ export async function refreshTournamentFromServer(
       // anything sent from here on is written against it. A connected desk would otherwise wait for a reconnect.
       resumeCommands();
       if (staleRefreshTournamentId === tournamentId) clearSyncIndicator();
+      // the record is the server's current one, so whatever a disconnect missed is in it: left set, the flag made the
+      // next tournament page load fetch the whole record again (tournamentDisplay's stale check)
+      clearDisconnectFlag();
       setServerSync(tournamentId, result?.data?.serverUpdatedAt?.[tournamentId]);
       notifyMutationApplied();
       await saveTournamentRecord();

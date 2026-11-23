@@ -2,6 +2,7 @@
  * Add participants to events with entry status configuration.
  * Filters out participants already in the event and prompts for entry status/stage.
  */
+import { invalidParticipantsFromRefusal } from 'components/modals/invalidParticipantsFromRefusal';
 import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { closeModal } from 'components/modals/baseModal/baseModal';
@@ -53,64 +54,7 @@ export function addParticipantsToEvent({
       if (result.success) {
         isFunction(callback) && callback?.();
       } else {
-        // Transform error context into invalidParticipants format
-        const context = result.context;
-        let invalidParticipants: any[] = [];
-
-        if (context) {
-          // Handle categoryRejections (includes participantName and rejectionReasons)
-          if (context.categoryRejections?.length) {
-            invalidParticipants.push(
-              ...context.categoryRejections.map((p: any) => ({
-                participantId: p.participantId,
-                participantName: p.participantName,
-                errors: [
-                  {
-                    error: p.rejectionReasons[0]?.type || 'categoryRejection',
-                    reason: p.rejectionReasons[0]?.reason,
-                  },
-                ],
-              })),
-            );
-          }
-
-          // Handle mismatchedGender
-          if (context.mismatchedGender?.length) {
-            const expectedGender = context.gender;
-            invalidParticipants.push(
-              ...context.mismatchedGender.map((p: any) => ({
-                participantId: p.participantId,
-                errors: [
-                  {
-                    error: 'mismatchedGender',
-                    sex: p.sex,
-                    expectedGender,
-                  },
-                ],
-              })),
-            );
-          }
-
-          // Handle invalidAge
-          if (context.invalidAge?.length) {
-            invalidParticipants.push(
-              ...context.invalidAge.map((p: any) => ({
-                participantId: p.participantId,
-                errors: [{ error: 'invalidAge', ...p }],
-              })),
-            );
-          }
-
-          // Handle invalidRating
-          if (context.invalidRating?.length) {
-            invalidParticipants.push(
-              ...context.invalidRating.map((p: any) => ({
-                participantId: p.participantId,
-                errors: [{ error: 'invalidRating', ...p }],
-              })),
-            );
-          }
-        }
+        const invalidParticipants = invalidParticipantsFromRefusal(result.context);
 
         if (invalidParticipants.length) {
           // Close the "Add to event" modal before opening invalid participants modal

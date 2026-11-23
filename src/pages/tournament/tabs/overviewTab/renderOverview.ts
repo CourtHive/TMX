@@ -4,6 +4,7 @@ import { readParticipantsWithScaleValues } from 'services/factory/passReads';
 import { openCategoriesEditorModal } from './categoriesEditorModal';
 import { openPracticeCapacityModal } from './practiceCapacityModal';
 import { getDetectedTimeZone } from 'functions/getDetectedTimeZone';
+import { undefinedEventCategories } from './categoryDefinition';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { tournamentEngine } from 'services/factory/engine';
 import { openEditDatesModal } from './editDatesModal';
@@ -202,10 +203,20 @@ export function renderOverview(): void {
           .map((c: any) => c.categoryName)
           .filter(Boolean)
           .join(', ') + (categories.length > 3 ? ` +${categories.length - 3}` : '');
+  // the categories events name that the tournament does not define: the card said "None" while events used them
+  const undefinedNames = undefinedEventCategories(categories, tournamentEngine.q.tournament()?.events ?? []).map(
+    ({ category }) => category.categoryName ?? category.ageCategoryCode ?? '?',
+  );
   const categoriesCard = createStatCard(
     t('dashboard.categories', { count: categories.length }),
     categoriesValue,
     'fa-layer-group',
+    undefinedNames.length
+      ? t('dashboard.categoriesUndefined', {
+          names:
+            undefinedNames.slice(0, 3).join(', ') + (undefinedNames.length > 3 ? ` +${undefinedNames.length - 3}` : ''),
+        })
+      : undefined,
   );
   categoriesCard.style.cursor = 'pointer';
   categoriesCard.addEventListener('click', () => openCategoriesEditorModal({ onSave: () => renderOverview() }));

@@ -1,5 +1,6 @@
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { initDevBridge, resetState } from '../helpers/dev-bridge';
+import { pickTime } from '../helpers/timePicker';
 import { test, expect } from '@playwright/test';
 
 const PANEL = '#demoClockPanel';
@@ -46,7 +47,9 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator(PANEL)).toBeVisible();
   await page.locator(PANEL).getByRole('button', { name: 'Clock controls', exact: true }).click();
   await page.locator(PANEL).getByLabel('Demo mode', { exact: true }).selectOption('script');
-  await page.locator(PANEL).getByLabel('Demo wall time').fill('09:55');
+  // the shared time picker (CA 2026-11-22): open it from the panel, dial, confirm, then Set
+  await page.locator(PANEL).getByRole('button', { name: 'Demo wall time', exact: true }).click();
+  await pickTime(page, '09:55');
   await page.locator(PANEL).getByRole('button', { name: 'Set time', exact: true }).click();
 });
 
@@ -126,7 +129,8 @@ test('steps both clocks, keeps centered controls usable, refuses rewind and clea
   }));
   // 10:00 on the venue's wall clock on the clock's date; the UTC offset depends on the season.
   expect(stamp).toBe(new Date(zonedWallTimeToMs(date, '10:00', DEMO_ZONE)).toISOString());
-  await panel.getByLabel('Demo wall time').fill('09:00');
+  await panel.getByRole('button', { name: 'Demo wall time', exact: true }).click();
+  await pickTime(page, '09:00');
   await panel.getByRole('button', { name: 'Set time', exact: true }).click();
   await expect(panel.locator('p[role=status]')).toContainText('cannot be rewound');
   await expect(panel.locator('output')).toContainText('10:00');
@@ -257,7 +261,7 @@ test('loads a fresh guided tournament and captures a clock walkthrough', async (
   await page.locator('#login').click();
   await page.getByText('Demo mode…', { exact: true }).click();
   await page.getByRole('button', { name: 'Load guided scheduling demo', exact: true }).click();
-  await expect(page).toHaveURL(/tournament\/scheduling-demo-(?!three-days)/);
+  await expect(page).toHaveURL(/tournament\/time-warp-/);
   const panel = page.locator(PANEL);
   await expect(panel).toBeVisible();
   await panel.getByRole('button', { name: 'Clock controls', exact: true }).click();

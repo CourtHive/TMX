@@ -326,10 +326,11 @@ export function mountParticipantsFooter({
     // Tabulator warns when getFilters runs before the table is built
     if (table.initialized === false) return;
     const selected = table.getSelectedData?.().length ?? 0;
-    scope.textContent = selected
-      ? t('pages.participants.footer.scopeSelected', { count: selected })
-      : t('pages.participants.footer.scopeShown', { count: table.getRows?.('active')?.length ?? 0 });
-    scope.dataset.scope = selected ? 'selected' : 'shown';
+    // named only while a selection narrows the counts: at rest they count the rows shown, which the table title
+    // already says ("N shown" here repeated it)
+    scope.textContent = selected ? t('pages.participants.footer.scopeSelected', { count: selected }) : '';
+    scope.hidden = !selected;
+    scope.dataset.scope = selected ? 'selected' : '';
 
     const counts = paintCounts(table, groups);
     const present = presentValues(table, groups);
@@ -342,6 +343,11 @@ export function mountParticipantsFooter({
       paintChipState(button, narrowing);
       (button.lastElementChild as HTMLElement).textContent = String(counts.get(group)?.[value] ?? 0);
     }
+    // a group with every chip hidden goes too, label and all: "Age" with no age beside it (CA 2026-11-22)
+    groups.forEach((group, index) => {
+      const shown = chips.some((chip) => chip.group === group && chip.button.style.display !== 'none');
+      groupElements[index].style.display = shown ? '' : 'none';
+    });
   };
   const refresh = () => {
     if (!frame) frame = requestAnimationFrame(paint);

@@ -63,6 +63,9 @@ as a reusable template. Entry management covers singles, doubles and teams.
 - **plan mode** — draft a day as a scenario without touching the official schedule
 - venue and court availability, reserved cells, and printable court cards
 - check-in, with a configurable prompt before a match is called to court
+- **[Time Warp and Scheduling Lab](src/components/demoClock/README.md)** — enter a disposable, isolated copy of
+  the open tournament, control its clock and optionally record a walkthrough, then discard it and return to the
+  original. The guided scheduling demo uses the same sandbox lifecycle.
 
 **Scoring and live scoring integration** — several input paths for different desk habits, including hotkey entry
 from the matchUps table. **Delegated scoring** nominates a scorekeeper and takes a live relay from the court: live
@@ -107,7 +110,7 @@ pnpm lint && pnpm format:check && pnpm attr-audit --ci && pnpm i18n-audit --ci
 pnpm check-types
 pnpm test --run
 
-# Playwright journeys — 200+ specs, not run by CI
+# Full Playwright journey suite — CI runs targeted Warp/demo and support subsets
 pnpm test:e2e
 ```
 
@@ -124,6 +127,10 @@ pnpm test:e2e
 | **Transport**      | Socket.IO to the competition factory server                                      |
 | **Tables / PDF**   | Tabulator · pdfMake                                                              |
 | **Testing**        | Vitest · Playwright                                                              |
+
+## Operator guides
+
+- [Reporting a problem and verifying your contact address](documentation/reporting-a-problem.md)
 
 ## Related projects
 

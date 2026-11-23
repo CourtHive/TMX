@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Publishing tab — comprehensive publishing management page.
  * Surfaces the full publishing capabilities of the competition factory:
@@ -304,7 +305,7 @@ function renderQRPanel(grid: HTMLElement): void {
   header.innerHTML = `<i class="fa fa-qrcode"></i> ${t('phrases.qrcode')}`;
   panel.appendChild(header);
 
-  if (tournamentId) {
+  if (tournamentId && !isTimeWarpActive()) {
     const url = getPublicTournamentUrl(tournamentId);
     const img = renderQRimage(panel, url, 200);
 
@@ -325,7 +326,7 @@ function renderQRPanel(grid: HTMLElement): void {
   } else {
     const placeholder = document.createElement('span');
     placeholder.className = 'pub-qr-placeholder';
-    placeholder.textContent = t('publishing.noEvents');
+    placeholder.textContent = t(isTimeWarpActive() ? 'timeWarp.publicLinksUnavailable' : 'publishing.noEvents');
     panel.appendChild(placeholder);
   }
 

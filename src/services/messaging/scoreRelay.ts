@@ -1,3 +1,4 @@
+import { networkIsIsolated } from 'services/network/networkPolicy';
 /**
  * Score relay client — connects to the score-relay /live namespace
  * to receive live score updates from epixodic trackers.
@@ -9,7 +10,8 @@
 import { configuredRelayURL, isCrowdScoringEnabled, isScoreRelayConfigured } from 'services/apis/scoreRelayApi';
 import { serverConfig } from 'config/serverConfig';
 import { debugConfig } from 'config/debugConfig';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { createServerSocket } from 'services/network/serverNetwork';
 
 const slog = (...args: any[]) => debugConfig.get().socketLog && console.log(...args);
 
@@ -55,7 +57,7 @@ function getRelayConfig(): { origin: string; path: string } {
  * when this deployment has no relay (the disabled sentinel): such a client opens no relay socket at all.
  */
 export function relaySocketTarget(): { origin: string; path: string } | undefined {
-  return isScoreRelayConfigured() ? getRelayConfig() : undefined;
+  return !networkIsIsolated() && isScoreRelayConfigured() ? getRelayConfig() : undefined;
 }
 
 export function connectRelay(tournamentId: string): void {
@@ -63,7 +65,7 @@ export function connectRelay(tournamentId: string): void {
   // sentinel, or has no server URL at all), or the provider turned crowd
   // scoring off -> open no socket, and tear down one already open rather than
   // leaving it reconnecting against a host that is not there.
-  if (!isCrowdScoringEnabled()) {
+  if (networkIsIsolated() || !isCrowdScoringEnabled()) {
     disconnectRelay();
     slog('[relay] disabled — connection skipped');
     return;
@@ -77,7 +79,7 @@ export function connectRelay(tournamentId: string): void {
   const url = `${origin}/live`;
   slog('[relay] connecting to', url, 'path', path);
 
-  relaySocket = io(url, {
+  relaySocket = createServerSocket(url, {
     path,
     transports: ['websocket'],
     forceNew: true,
@@ -178,6 +180,7 @@ export function relayConnected(): boolean {
  * subscription and the guard above has already returned.
  */
 export function ensureRelayConnected(): boolean {
+  if (networkIsIsolated()) return false;
   if (!currentTournamentId) return false;
   if (!relaySocket) {
     slog('[relay] ensureRelayConnected — tournamentId set with no socket (unexpected); leaving alone');

@@ -2,6 +2,7 @@
  * Add entries action for events table.
  * Opens participant selection modal and adds selected entries to event.
  */
+import { invalidParticipantsFromRefusal } from 'components/modals/invalidParticipantsFromRefusal';
 import { invalidParticipantsModal } from 'components/modals/invalidParticipantsModal';
 import { selectParticipant } from 'components/modals/selectParticipant';
 import { mutationRequest } from 'services/mutation/mutationRequest';
@@ -16,44 +17,6 @@ const { ASSIGN_PARTICIPANT } = positionActionConstants;
 
 function toParticipantId({ participantId }: any) {
   return participantId;
-}
-
-function categoryRejectionToInvalid(p: any) {
-  return {
-    participantId: p.participantId,
-    participantName: p.participantName,
-    errors: [
-      {
-        error: p.rejectionReasons[0]?.type || 'categoryRejection',
-        reason: p.rejectionReasons[0]?.reason,
-      },
-    ],
-  };
-}
-
-function mismatchedGenderToInvalid(expectedGender: string) {
-  return (p: any) => ({
-    participantId: p.participantId,
-    errors: [{ error: 'mismatchedGender', sex: p.sex, expectedGender }],
-  });
-}
-
-function invalidAgeToInvalid(p: any) {
-  return { participantId: p.participantId, errors: [{ error: 'invalidAge', ...p }] };
-}
-
-function invalidRatingToInvalid(p: any) {
-  return { participantId: p.participantId, errors: [{ error: 'invalidRating', ...p }] };
-}
-
-function collectInvalidParticipants(ctx: any): any[] {
-  const invalid: any[] = [];
-  if (!ctx) return invalid;
-  if (ctx.categoryRejections?.length) invalid.push(...ctx.categoryRejections.map(categoryRejectionToInvalid));
-  if (ctx.mismatchedGender?.length) invalid.push(...ctx.mismatchedGender.map(mismatchedGenderToInvalid(ctx.gender)));
-  if (ctx.invalidAge?.length) invalid.push(...ctx.invalidAge.map(invalidAgeToInvalid));
-  if (ctx.invalidRating?.length) invalid.push(...ctx.invalidRating.map(invalidRatingToInvalid));
-  return invalid;
 }
 
 function showInvalidParticipantsLater(invalidParticipants: any[]) {
@@ -116,7 +79,7 @@ function handleAddEntriesResult(
     applyAddEntriesSuccess(ctx);
     return;
   }
-  const invalidParticipants = collectInvalidParticipants(result.context);
+  const invalidParticipants = invalidParticipantsFromRefusal(result.context);
   if (invalidParticipants.length) {
     closeModal();
     setTimeout(() => showInvalidParticipantsLater(invalidParticipants), 100);

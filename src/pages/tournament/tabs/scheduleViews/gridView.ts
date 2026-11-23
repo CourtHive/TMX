@@ -1,3 +1,4 @@
+import { isTimeWarpActive } from 'services/timeWarp/warpState';
 /**
  * Schedule 2 — Grid View
  *
@@ -22,6 +23,7 @@
 import { venueClock, venueNowClock, venueNowOnDate, venueToday, venueWallClockToMs } from 'functions/venueTimeFrame';
 import { listScheduleScenarios, updateScheduleScenario } from 'services/scheduleScenarios/scheduleScenariosService';
 import { readUserMinCourtWidth, writeUserMinCourtWidth } from 'services/schedulePreferences/userMinCourtWidth';
+import { holdCatalogDockHeight, releaseCatalogDockHeight, resetCatalogDockHeight } from './catalogDockHeight';
 import { competitionNow, competitionNowMs, onCompetitionClockChange } from 'services/clock/competitionClock';
 import { buildGridDropMethods, shouldRejectStripDrop, type GridDropPayload } from './gridDropMethods';
 import { eventDateGridIssues, eventDateIssueIds, warnInactiveEventDates } from './eventDateGrid';
@@ -719,6 +721,8 @@ export function renderGridView(
     writeCatalogPlacement(placement);
     activeControl?.setCatalogPlacement(placement);
     syncCatalogToolbar?.();
+    resetCatalogDockHeight();
+    holdDock();
     layoutTip.hide();
   });
   const inspectorPlacement = buildPlacementSelect(
@@ -942,6 +946,11 @@ function buildPlacementSelect(label: string, options: [string, string][], value:
 }
 
 let syncCatalogToolbar: (() => void) | null = null;
+/** The catalog region's dock: docked at the bottom it holds its tallest height (`catalogDockHeight.ts`). */
+let catalogDock: HTMLElement | null = null;
+function holdDock(): void {
+  holdCatalogDockHeight(catalogDock, currentCatalogPlacement === 'bottom');
+}
 let disposePresentationActions: (() => void) | null = null;
 let disposeCatalogPopover: (() => void) | null = null;
 
@@ -1086,6 +1095,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   scheduledSearchInput.addEventListener('input', () => {
     scheduledSearchQuery = scheduledSearchInput.value;
     writeScheduledSearch(scheduledSearchQuery);
+    shareSearch(scheduledSearchQuery);
     updateScheduledPanel();
   });
 
@@ -1093,9 +1103,26 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     scheduledSearchInput.value = '';
     scheduledSearchQuery = '';
     writeScheduledSearch('');
+    shareSearch('');
     scheduledSearchInput.focus();
     updateScheduledPanel();
   });
+
+  // One search across both tabs (CA 2026-11-22): an operator looking for a matchUp switches tabs to look on the other
+  // side, and two fields holding different queries hid it. The Unscheduled query lives in the component's store, the
+  // Scheduled one here; each change is handed to the other, and an equal value ends the exchange.
+  function shareSearch(query: string): void {
+    const store = activeControl?.getStore();
+    if (store && store.getState().catalogSearchQuery !== query) store.setCatalogSearch(query);
+  }
+  function adoptSearch(query: string): void {
+    if (query === scheduledSearchQuery) return;
+    scheduledSearchQuery = query;
+    scheduledSearchInput.value = query;
+    syncClearVisibility(scheduledSearchWrap);
+    writeScheduledSearch(query);
+    if (sidebarTab === 'scheduled') updateScheduledPanel();
+  }
 
   const scheduledGroupSelect = document.createElement('select');
   scheduledGroupSelect.className = 'sp-select';
@@ -1181,6 +1208,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     syncClearVisibility(scheduledSearchWrap);
     writeScheduledFilters(scheduledFilters);
     writeScheduledSearch('');
+    shareSearch('');
     updateScheduledFilterBadge();
     updateScheduledPanel();
   }
@@ -1338,6 +1366,8 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     scheduledToolbar.hidden = bottom && !scheduled;
     scheduledFilterBtn.hidden = bottom && !scheduled;
   };
+  catalogDock = layout.querySelector<HTMLElement>(':scope > [data-panel="catalog-region"]');
+  holdDock();
 
   // Default sidebar tab is resolved after the scheduled-orphan helpers are
   // declared (see `resolveInitialTab` below), so we can land on "Scheduled"
@@ -1613,8 +1643,21 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     else updateScheduledPanel();
   };
 
-  unschedTab.addEventListener('click', () => setTab('unscheduled'));
-  schedTab.addEventListener('click', () => setTab('scheduled'));
+  // The search is the only control in the catalog that takes typing, so a tab switch puts the cursor in it.
+  function focusSearch(tab: SidebarTab): void {
+    const input =
+      tab === 'scheduled' ? scheduledSearchInput : catalogToolbar.querySelector<HTMLInputElement>('input[type="text"]');
+    input?.focus({ preventScroll: true });
+  }
+  for (const [button, tab] of [
+    [unschedTab, 'unscheduled'],
+    [schedTab, 'scheduled'],
+  ] as const) {
+    button.addEventListener('click', () => {
+      setTab(tab);
+      focusSearch(tab);
+    });
+  }
 
   // Drop-to-unschedule: dragging a placed matchUp onto the Scheduled tab or
   // its panel removes the court assignment. If the matchUp has a scheduled
@@ -1628,6 +1671,9 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
   // scheduled-but-unplaced matchUps, else the operator's last explicit choice).
   // Not persisted — this is a per-mount view decision, not a preference change.
   activeTab = resolveInitialTab();
+  // the two queries are one from here on: the tab the operator lands on keeps its own
+  if (activeTab === 'scheduled') shareSearch(scheduledSearchQuery);
+  else adoptSearch(activeControl?.getStore().getState().catalogSearchQuery ?? '');
   setTab(activeTab, { persist: false });
   updateBadge();
 
@@ -1648,6 +1694,7 @@ function injectSidebarControls(container: HTMLElement, refresh: () => void): voi
     const dataChanged = state.matchUpCatalog !== renderedCatalog || state.showCompleted !== renderedShowCompleted;
     renderedCatalog = state.matchUpCatalog;
     renderedShowCompleted = state.showCompleted;
+    adoptSearch(state.catalogSearchQuery ?? '');
     if (dataChanged) updateBadge();
     if (activeTab !== 'scheduled' || !sidebarVisible) return;
     if (dataChanged) updateScheduledPanel();
@@ -1737,6 +1784,8 @@ function scheduledTimeToMinutes(time: string | undefined): number {
 }
 
 export function destroyGridView(): void {
+  // the held height itself survives: the next mount (a date change) starts the dock where this one left it
+  releaseCatalogDockHeight({ keepHeight: true });
   disposePresentationActions?.();
   disposePresentationActions = null;
   disposeCatalogPopover?.();
@@ -1821,6 +1870,13 @@ export function refreshGridView(): void {
 /** Whether there are unsaved bulk scheduling changes. */
 export function hasUnsavedGridChanges(): boolean {
   return bulkDraft.pending.length > 0;
+}
+
+/** Drop disposable sandbox intents without applying a rollback to any restored production record. */
+export function abandonWarpGridDraft(): void {
+  if (!isTimeWarpActive()) return;
+  bulkDraft.clear();
+  bulkMode = false;
 }
 
 /** Number of unsaved bulk scheduling changes — for caller-side confirm copy. */

@@ -2,6 +2,7 @@
  * Create events table with light mode optimization.
  * Displays tournament events with conditional data loading based on event count threshold.
  */
+import { fitTableToViewportBottom } from 'functions/heightToViewportBottom';
 import { headerSortElement } from '../common/sorters/headerSortElement';
 import { mapEvent } from 'pages/tournament/tabs/eventsTab/mapEvent';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -67,6 +68,8 @@ export function createEventsTable(): { table: any; replaceTableData: () => void 
       columns,
       data,
     });
+    // to the window's bottom, as every page table is: not a fraction of the window (fitTableToViewportBottom)
+    table.on('tableBuilt', () => fitTableToViewportBottom(table, element, { gap: 8 }));
     table.on('scrollVertical', destroyTipster);
     // Header count updates are owned by the orchestrator via dataChanged /
     // dataFiltered subscriptions on the returned table.

@@ -343,3 +343,6 @@ export const ROTATING_ROSTER = 'rotatingRoster';
 
 export const DEMO_CLOCK_PANEL = 'demoClockPanel';
 export const TOURNAMENT_CLOCK = 'tournamentClock';
+
+export const SUPPORT_DIALOG = 'tmx-support-dialog';
+export const SUPPORT_TITLE = 'tmx-support-title';

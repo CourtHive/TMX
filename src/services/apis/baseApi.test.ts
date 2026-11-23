@@ -27,6 +27,7 @@ const { fakeInstance, post } = vi.hoisted(() => {
 vi.mock('axios', () => ({ default: { create: () => fakeInstance }, create: () => fakeInstance }));
 vi.mock('services/notifications/tmxToast', () => ({ tmxToast: vi.fn() }));
 
+import { tmxToast } from 'services/notifications/tmxToast';
 import { authUrl, refreshAccessToken } from './baseApi';
 
 beforeEach(() => {
@@ -133,5 +134,29 @@ describe('baseApi.authUrl', () => {
     process.env.AUTH_SERVER = 'http://localhost:3140';
     expect(authUrl('/auth/me')).toBe('http://localhost:3140/auth/me');
     restore();
+  });
+});
+
+describe('baseApi error interceptor: rejectErrors', () => {
+  // Registered once at import; [onFulfilled, onRejected]. Captured while the describe block is collected, because
+  // clearMocks wipes mock.calls before each test.
+  const handler = fakeInstance.interceptors.response.use.mock.calls[0][1];
+  const onRejected = () => handler;
+
+  it('rethrows a refusal with its response and raises no toast, so the caller can show the reason', async () => {
+    vi.mocked(tmxToast).mockClear();
+    const error = {
+      config: { rejectErrors: true, url: '/support/reports' },
+      response: { status: 403, data: { code: 'SUPPORT_NO_SESSION_PROVIDER', message: 'Select a provider' } },
+    };
+    await expect(onRejected()(error)).rejects.toBe(error);
+    expect(tmxToast).not.toHaveBeenCalled();
+  });
+
+  it('keeps the existing contract without it: one toast and an undefined result', async () => {
+    vi.mocked(tmxToast).mockClear();
+    const error = { config: { url: '/factory' }, response: { status: 403, data: { message: 'Forbidden' } } };
+    await expect(onRejected()(error)).resolves.toBeUndefined();
+    expect(tmxToast).toHaveBeenCalledTimes(1);
   });
 });

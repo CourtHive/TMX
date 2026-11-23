@@ -10,6 +10,9 @@ type TipsterParams = {
   title?: string;
   options?: any[];
   menuItems?: any[];
+  /** Further headed sections, treated like `items`: hidden items dropped, a click closes the menu, empty sections
+   *  omitted. Separate from `menuItems`, which carries form inputs (selectPositionAction) and is passed through as is. */
+  sections?: { text: string; items: any[] }[];
   coords?: any;
   callback?: (result: any) => void;
   config?: any;
@@ -29,7 +32,7 @@ class TipsterManager {
   };
 
   create = (params: TipsterParams): Instance | undefined => {
-    const { title, options, menuItems = [], coords, callback, config } = params;
+    const { title, options, menuItems = [], sections = [], coords, callback, config } = params;
     let { target, items } = params;
     if (!options?.length && !items?.length && !menuItems) return;
 
@@ -37,17 +40,20 @@ class TipsterManager {
     const tippyMenu = document.createElement('div');
     let focusElement: HTMLElement | undefined;
 
+    const visible = (list?: any[]) =>
+      list
+        ?.filter((i) => !i.hide && !i.disabled)
+        .map((i) => ({
+          ...i,
+          onClick: () => {
+            this.destroy(tippyMenu);
+            if (isFunction(i.onClick)) i.onClick();
+          },
+        }));
+
     const content = () => {
       items =
-        items
-          ?.filter((i) => !i.hide && !i.disabled)
-          .map((i) => ({
-            ...i,
-            onClick: () => {
-              this.destroy(tippyMenu);
-              if (isFunction(i.onClick)) i.onClick();
-            },
-          })) ||
+        visible(items) ||
         options
           ?.filter((o) => !o.hide && !o.disabled)
           .map((o) => ({
@@ -70,7 +76,10 @@ class TipsterManager {
             },
           }));
 
-      const menu = [{ text: title, items }, ...menuItems];
+      const headed = sections
+        .map((section) => ({ text: section.text, items: visible(section.items) ?? [] }))
+        .filter((section) => section.items.length);
+      const menu = [{ text: title, items }, ...headed, ...menuItems];
       const result = (renderMenu as any)(tippyMenu, menu);
       focusElement = result.focusElement;
 

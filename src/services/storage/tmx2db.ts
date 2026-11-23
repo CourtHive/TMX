@@ -1,3 +1,5 @@
+import { isTimeWarpActive, isWarpRecord } from 'services/timeWarp/warpState';
+import { assertServerAccess } from 'services/network/networkPolicy';
 /**
  * IndexedDB database wrapper using Dexie.
  * Manages local storage for tournaments, providers, and language idioms.
@@ -158,7 +160,10 @@ export class TMXDatabase {
   };
 
   addIdiom = (idiom: any): Promise<string | any> => this.modifyOrAddUnique('idioms', 'ioc', idiom.ioc, idiom);
-  addTournament = (tournamentRecord: any): Promise<string | any> => {
+  addTournament = async (tournamentRecord: any): Promise<string | any> => {
+    if (isTimeWarpActive()) return Promise.resolve();
+    // Imported sandbox IDs are reserved: refuse visibly rather than pretending the record was saved.
+    if (isWarpRecord(tournamentRecord)) assertServerAccess({ tournamentId: tournamentRecord.tournamentId });
     return this.modifyOrAddUnique('tournaments', 'tournamentId', tournamentRecord.tournamentId, tournamentRecord);
   };
   addProvider = (provider: any): Promise<string | any> => {

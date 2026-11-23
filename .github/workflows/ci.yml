@@ -100,6 +100,13 @@ jobs:
       # Keeping the lockfile re-resolves only the five stripped overrides — which are
       # exactly the packages minimumReleaseAgeExclude already exempts — and installs
       # everything else at its locked version, so CI is deterministic too.
+      - name: Cache Playwright Chromium
+        if: steps.scope.outputs.light != 'true'
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-warp-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+
       - run: pnpm install --no-frozen-lockfile
         if: steps.scope.outputs.light != 'true'
       - run: pnpm lint
@@ -158,3 +165,40 @@ jobs:
       - name: test
         if: steps.scope.outputs.light != 'true'
         run: pnpm test --run
+
+      - name: Install journey browser
+        if: steps.scope.outputs.light != 'true'
+        timeout-minutes: 5
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Warp and affected demo journeys
+        id: warp_journeys
+        if: steps.scope.outputs.light != 'true'
+        timeout-minutes: 5
+        run: pnpm exec playwright test --config e2e/playwright.warp.config.ts e2e/journeys/170-scheduling-demo-clock.spec.ts e2e/journeys/171-free-demo-clock.spec.ts e2e/journeys/222-time-warp.spec.ts
+
+      - name: Summarize Warp results including flaky retries
+        if: always() && (steps.warp_journeys.outcome == 'success' || steps.warp_journeys.outcome == 'failure')
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync('e2e/warp-results.json', 'utf8'));
+          console.log('Warp Playwright results:', JSON.stringify(report.stats));
+          NODE
+
+      - name: Upload Warp Playwright report
+        if: always() && (steps.warp_journeys.outcome == 'success' || steps.warp_journeys.outcome == 'failure')
+        uses: actions/upload-artifact@v7
+        with:
+          name: warp-playwright-report
+          path: |
+            e2e/warp-report/
+            e2e/warp-results.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Support reporting browser journey
+        timeout-minutes: 5
+        if: steps.scope.outputs.light != 'true'
+        run: pnpm exec playwright test --config e2e/playwright.support.config.ts
+

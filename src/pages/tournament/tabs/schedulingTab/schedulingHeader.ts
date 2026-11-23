@@ -2,11 +2,12 @@
  * Scheduling workspace header — mirrors schedule2's `.sch2-header` shape so the
  * control bar visual is shared across Availability, Profile, Check-In, Grid and Plan.
  *
- * Left: the shared `buildScheduleDateSelector` component (calendar button +
- *       match-count badge + tippy date-chip popover + its own recompute
- *       subscription).
+ * Left: the carryover WARNING (shown only while a past day holds unresulted matchUps that block today's
+ *       scheduling, `carryoverWarning.ts`), then the shared `buildScheduleDateSelector` component (calendar
+ *       button + match-count badge + tippy date-chip popover + its own recompute subscription).
  * Right: workspace mode switcher; Plan appears only when enabled.
  */
+import { buildCarryoverWarning } from 'pages/tournament/tabs/scheduleViews/carryoverWarning';
 import { buildScheduleDateSelector } from 'components/schedule/scheduleDateSelector';
 import { ScheduleDate } from 'courthive-components';
 import { featureFlags } from 'config/featureFlags';
@@ -39,7 +40,7 @@ interface ModeOption {
 
 export interface SchedulingHeader {
   element: HTMLElement;
-  /** Tear down the date selector's subscription + tippy instance. */
+  /** Tear down the carryover warning's and the date selector's subscriptions + the selector's tippy instance. */
   destroy: () => void;
 }
 
@@ -59,9 +60,12 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   const bar = document.createElement('div');
   bar.className = 'sch2-header';
 
-  // ── Left: shared date selector ──
+  // ── Left: carryover warning + shared date selector ──
+  const left = document.createElement('div');
+  const carryover = buildCarryoverWarning();
   const selector = buildScheduleDateSelector({ selectedDate, dates: scheduleDates, recomputeDates, onDateChange });
-  bar.appendChild(selector.element);
+  left.append(carryover.element, selector.element);
+  bar.appendChild(left);
 
   // ── Right: Mode switcher ──
   const right = document.createElement('div');
@@ -98,7 +102,13 @@ export function buildSchedulingHeader(params: SchedulingHeaderParams): Schedulin
   right.appendChild(switcher);
   bar.appendChild(right);
 
-  return { element: bar, destroy: selector.destroy };
+  return {
+    element: bar,
+    destroy: () => {
+      carryover.destroy();
+      selector.destroy();
+    },
+  };
 }
 
 function segmentBtnStyle(active: boolean): string {

@@ -45,16 +45,22 @@ export function renderDemoAffordance(): void {
   reapplyTabCapability();
 
   // ── navbar badge ──
+  // In a Time Warp the badge reads "Time Warp", not "Demo" (CA 2026-11-22): opening the warp clock enters a transient
+  // demo posture, but the tournament is a sandbox copy of a real one, not a demo. One badge, in one place.
+  // The warp controller's own marker, set before it renders this on entry and removed before it renders this on exit:
+  // the warp session itself is released only after the exit renders, so it would keep the badge on.
+  const warp = document.documentElement.dataset.tmxTimeWarp === 'true';
   let badge = document.getElementById(BADGE_ID);
-  if (!active) {
+  if (!active && !warp) {
     badge?.remove();
   } else {
     if (!badge) {
       badge = document.createElement('span');
       badge.id = BADGE_ID;
-      badge.className = 'tmx-demo-navbar-badge';
       document.getElementById('provider')?.parentElement?.appendChild(badge);
     }
-    badge.textContent = t('demoMode.badgeLabel');
+    badge.className = warp ? 'tmx-demo-navbar-badge tmx-time-warp-badge' : 'tmx-demo-navbar-badge';
+    badge.textContent = t(warp ? 'timeWarp.label' : 'demoMode.badgeLabel');
+    badge.title = warp ? t('timeWarp.hint') : '';
   }
 }

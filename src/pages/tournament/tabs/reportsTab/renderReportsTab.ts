@@ -11,7 +11,7 @@ import { exportReportPDF } from './exportReportPDF';
 import { controlBar } from 'courthive-components';
 import { context } from 'services/context';
 import { env } from 'settings/env';
-import axios from 'axios';
+import { baseApi } from 'services/apis/baseApi';
 
 import { LEFT, REPORTS_CONTROL, REPORTS_TAB, RIGHT, TOURNAMENT, TOURNAMENT_REPORTS } from 'constants/tmxConstants';
 import { t } from 'i18n';
@@ -227,7 +227,7 @@ async function fetchServerReport(reportId: string): Promise<void> {
   if (reportContainer) reportContainer.innerHTML = '<div style="padding: 2em;">Loading audit data...</div>';
 
   try {
-    const response = await axios.post(`${baseUrl}/condense/${tournamentId}/${reportType}`);
+    const response = await baseApi.post(`${baseUrl}/condense/${tournamentId}/${reportType}`);
     const data = response?.data;
     if (data?.columns && data?.rows) {
       activeReport = { columns: data.columns, rows: data.rows };

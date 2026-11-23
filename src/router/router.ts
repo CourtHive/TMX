@@ -1,3 +1,6 @@
+import { exitTimeWarp } from 'services/timeWarp/timeWarp';
+import { recoverWarpReturnPath } from 'services/timeWarp/warpReturnPath';
+import { getWarpSession, isWarpTournamentId } from 'services/timeWarp/warpState';
 import { firstPermittedTab, isTabAvailable, tabDenialReason } from 'services/capability/navCapability';
 import { renderProviderSchedulePage } from 'pages/participation/renderProviderSchedulePage';
 import { invalidatePendingTournamentLoads } from 'services/tournament/operationOwnership';
@@ -73,6 +76,17 @@ export function routeTMX() {
   // Reconnect socket on any navigation if it was lost
   router.hooks({
     before(done, match) {
+      const recovery = !getWarpSession() && isWarpTournamentId(match?.data?.tournamentId) && recoverWarpReturnPath();
+      if (recovery) {
+        done(false);
+        queueMicrotask(() => router.navigate(recovery));
+        return;
+      }
+      if (getWarpSession() && match?.data?.tournamentId !== getWarpSession()!.tournamentId) {
+        done(false);
+        exitTimeWarp();
+        return;
+      }
       const previous = router.lastResolved()?.[0];
       const cancel = () => {
         if (previous) {
