@@ -929,7 +929,12 @@
       "createFailed": "Could not create plan",
       "applyFailed": "Could not apply plan",
       "updateFailed": "Plan update failed",
-      "defaultName": "Plan {{n}}"
+      "defaultName": "Plan {{n}}",
+      "timesOnly": "Save times only",
+      "timesOnlyTip": "Keep this plan's times and remove its court assignments",
+      "timesOnlyTitle": "Save this plan as times only?",
+      "timesOnlyQuery": "Every planned match keeps its date and time and loses its court. Made official, it clears any court the match holds, including one left from an earlier day.",
+      "timesOnlySaved": "Plan saved as times only"
     },
     "column": "Column",
     "rows": "Schedule Rows",

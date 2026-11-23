@@ -16,6 +16,7 @@ import {
   addScheduleScenario,
   getScenarioStatus,
 } from 'services/scheduleScenarios/scheduleScenariosService';
+import { placementsHoldCourts, timesOnlyPlacements } from './recovery/timesOnly';
 import { confirmModal } from 'components/modals/baseModal/baseModal';
 import { tmxToast } from 'services/notifications/tmxToast';
 import { renderGridView, destroyGridView } from './gridView';
@@ -200,6 +201,31 @@ function buildPlanChrome(args: {
   });
 
   bar.append(badge, summary, select, renameBtn, duplicateBtn, newBtn, deleteBtn);
+
+  // Save times only (rain-day recovery T8, CA 2026-11-23): offered while the plan still assigns a court
+  if (placementsHoldCourts(placements)) {
+    const timesOnlyBtn = styledButton(t('schedule.plan.timesOnly'));
+    timesOnlyBtn.title = t('schedule.plan.timesOnlyTip');
+    timesOnlyBtn.addEventListener('click', () => {
+      confirmModal({
+        title: t('schedule.plan.timesOnlyTitle'),
+        query: t('schedule.plan.timesOnlyQuery'),
+        okIntent: 'is-warning',
+        okAction: async () => {
+          const result: any = await updateScheduleScenario(tournamentId, scenarioId, {
+            placements: timesOnlyPlacements(placements),
+          });
+          if (result?.error) {
+            tmxToast({ message: t('schedule.plan.updateFailed'), intent: 'is-danger' });
+            return;
+          }
+          tmxToast({ message: t('schedule.plan.timesOnlySaved'), intent: 'is-success' });
+          rerender();
+        },
+      });
+    });
+    bar.appendChild(timesOnlyBtn);
+  }
 
   // Drift indicator + rebase (reuses the render-time status computed above).
   if (renderStatus?.outOfDate) {
