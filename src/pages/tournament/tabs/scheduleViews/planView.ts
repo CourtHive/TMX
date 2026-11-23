@@ -260,6 +260,8 @@ export function renderPlanMode(container: HTMLElement, scheduledDate: string, to
   destroyGridView();
   container.innerHTML = '';
 
+  // The empty state also needs to pick up a recovery saved on this route.
+  context.refreshActiveTable = rerender;
   const scenarios = listScheduleScenarios(tournamentId);
   if (!scenarios.find((s: any) => s.scenarioId === getActivePlanScenarioId())) {
     setActivePlanScenarioId(scenarios[0]?.scenarioId ?? null);
@@ -284,9 +286,6 @@ export function renderPlanMode(container: HTMLElement, scheduledDate: string, to
     titleSlot: chrome,
     activeStripVisible: false,
   });
-
-  // Plan data is derived, not the live table — don't let remote-refresh repaint it as official.
-  context.refreshActiveTable = rerender;
 }
 
 /**

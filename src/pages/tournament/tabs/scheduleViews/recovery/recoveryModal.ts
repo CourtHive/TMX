@@ -203,7 +203,10 @@ export function openRecoveryModal(): void {
     closeModal();
     setActivePlanScenarioId(scenarioId);
     tmxToast({ message: t('schedule.recovery.saved'), intent: 'is-success' });
-    context.router?.navigate(`/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${inputs.scheduleDate}/plan`);
+    const planRoute = `/${TOURNAMENT}/${tournamentId}/${SCHEDULING_TAB}/${inputs.scheduleDate}/plan`;
+    // Navigo skips the handler for the current route. Refresh the mounted plan to show the new selection.
+    if (globalThis.location.hash === `#${planRoute}`) context.refreshActiveTable?.();
+    else context.router?.navigate(planRoute);
   };
 
   openModal({

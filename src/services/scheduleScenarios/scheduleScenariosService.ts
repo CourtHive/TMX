@@ -9,6 +9,7 @@
  */
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { competitionEngine } from 'services/factory/engine';
+import { randomId } from 'functions/randomId';
 
 // constants and types
 import { COMPETITION_ENGINE } from 'constants/tmxConstants';
@@ -55,7 +56,12 @@ export function getScenarioStatus(tournamentId: string, scenarioId: string): any
 
 function dispatch(method: string, params: Record<string, any>): Promise<any> {
   return new Promise((resolve) => {
-    mutationRequest({ methods: [{ method, params }], engine: COMPETITION_ENGINE, callback: resolve });
+    mutationRequest({
+      methods: [{ method, params }],
+      engine: COMPETITION_ENGINE,
+      callback: (result: any) =>
+        resolve(result?.success && result.results?.[0] ? { ...result.results[0], ...result } : result),
+    });
   });
 }
 
@@ -63,7 +69,11 @@ export function addScheduleScenario(
   tournamentId: string,
   scenario: Partial<ScheduleScenario> & { scenarioName: string },
 ): Promise<any> {
-  return dispatch(ADD_SCHEDULE_SCENARIO, { tournamentId, scenario });
+  // The server and client each execute this directive. Both must create the same scenario.
+  return dispatch(ADD_SCHEDULE_SCENARIO, {
+    tournamentId,
+    scenario: { ...scenario, scenarioId: scenario.scenarioId ?? randomId() },
+  });
 }
 
 export function updateScheduleScenario(
