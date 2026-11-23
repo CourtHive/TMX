@@ -175,3 +175,43 @@ test('opening recovery from an existing plan selects the new ready plan on the s
   await expect(scheduledCard(page, staleId).locator('.spl-card-time-header')).toHaveText('08:00');
   await expect(scheduledCard(page, targetId).locator('.spl-card-time-header')).toHaveText('09:00');
 });
+
+test('the court-grid projection previews courts and commits the selected policy with its grid positions', async ({
+  page,
+}) => {
+  const { staleId, targetId, staleSchedule } = await openInterruptedTournament(page);
+  await page.locator('.tmx-carryover-warning').click();
+  await page.getByRole('button', { name: 'Plan recovery…' }).click();
+  const scheduler = page.getByLabel('Projection scheduler');
+  await expect(scheduler).toHaveValue('profile');
+  await scheduler.selectOption('grid');
+  for (const [policy, time] of [
+    ['ready', '09:00'],
+    ['finish', '09:30'],
+  ]) {
+    const group = page.locator(`[data-recovery-policy="${policy}"] details`).filter({ hasText: '09:00 (1)' });
+    await group.locator('summary').click();
+    await expect(group.locator('.tmx-recovery-time')).toContainText(time + ' · Court');
+  }
+  await page.locator('[data-recovery-policy="finish"]').getByRole('button', { name: 'Save as plan' }).click();
+  await expect(page.locator('option:checked').filter({ hasText: 'Court grid' })).toHaveCount(1);
+  await expect(page.locator('.tmx-planned-cell')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Save times only', exact: true })).toBeVisible();
+  expect(await officialSchedule(page, staleId)).toMatchObject(staleSchedule);
+  await makeOfficial(page);
+  const stale = await officialSchedule(page, staleId);
+  const target = await officialSchedule(page, targetId);
+  expect(stale).toMatchObject({
+    scheduledDate: TODAY,
+    scheduledTime: '08:00',
+    courtId: expect.any(String),
+    courtOrder: 1,
+  });
+  expect(target).toMatchObject({
+    scheduledDate: TODAY,
+    scheduledTime: '09:30',
+    courtId: expect.any(String),
+    courtOrder: 1,
+  });
+  expect(target.courtId).not.toBe(stale.courtId);
+});

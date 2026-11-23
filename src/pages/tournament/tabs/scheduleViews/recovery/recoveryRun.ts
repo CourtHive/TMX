@@ -16,6 +16,7 @@
 import { buildRecoveryProfile, type RecoveryMatchUp, type ReleasePolicy } from './recoveryProfile';
 import { queryGovernor, scheduleGovernor, tools } from 'tods-competition-factory';
 import { compareRecovery, type RecoveryComparison } from './recoveryComparison';
+import { projectRecoveryGrid } from './recoveryGrid';
 
 export type RecoveryAssumption = {
   matchUpFormat?: string;
@@ -41,6 +42,7 @@ export type RecoveryRun = {
 };
 
 type RunRecoveryArgs = {
+  scheduler?: RecoveryScheduler;
   /** the live records: read, never written */
   tournamentRecords: Record<string, any>;
   /** inContext matchUps: the carryover, oldest first (analyzeCarryover's order) */
@@ -53,9 +55,12 @@ type RunRecoveryArgs = {
   matchUpDailyLimits?: { [matchUpType: string]: number };
 };
 
+export type RecoveryScheduler = 'profile' | 'grid';
+
 const CLEARED = { scheduledDate: '', scheduledTime: '', courtId: '', courtOrder: '', venueId: '' };
 
 export function runRecovery({
+  scheduler = 'profile',
   matchUpDailyLimits,
   tournamentRecords,
   defaultVenueId,
@@ -69,8 +74,8 @@ export function runRecovery({
     for (const matchUpId of matchUpIds) averageMinutes[matchUpId] = minutes;
 
   // the working copy: the carryover loses the interrupted day's placement, as the WARNING's Clear would make it
-  const workingCopy = tools.makeDeepCopy(tournamentRecords, false, true);
-  if (carryover.length) {
+  const workingCopy = scheduler === 'profile' ? tools.makeDeepCopy(tournamentRecords, false, true) : tournamentRecords;
+  if (scheduler === 'profile' && carryover.length) {
     const cleared: any = scheduleGovernor.bulkScheduleMatchUps({
       matchUpDetails: carryover.map(({ tournamentId, matchUpId }) => ({ tournamentId, matchUpId, schedule: CLEARED })),
       tournamentRecords: workingCopy,
@@ -84,24 +89,34 @@ export function runRecovery({
     rounds: { carryover: RunRecoveryArgs['carryover']; targetDay: RunRecoveryArgs['targetDay'] },
     carryoverFinishTime?: string,
   ): RecoveryProjection | { error: any } => {
-    const { schedulingProfile, unvenuedMatchUpIds, unroundedMatchUpIds } = buildRecoveryProfile({
+    const profile = buildRecoveryProfile({
       ...rounds,
       carryoverFinishTime,
       defaultVenueId,
       releasePolicy,
       scheduleDate,
     });
-    const set: any = scheduleGovernor.setSchedulingProfile({ tournamentRecords: workingCopy, schedulingProfile });
-    if (set?.error) return { error: set.error };
-    const result: any = scheduleGovernor.scheduleProfileRounds({
-      ...(matchUpDailyLimits ? { matchUpDailyLimits } : {}),
-      tournamentRecords: workingCopy,
-      clearScheduleDates: [scheduleDate],
-      scheduleDates: [scheduleDate],
-      dryRun: true,
+    const { schedulingProfile, unvenuedMatchUpIds, unroundedMatchUpIds } = profile;
+    const result =
+      scheduler === 'grid'
+        ? projectRecoveryGrid({
+            profile,
+            carryover: rounds.carryover,
+            targetDay: rounds.targetDay,
+            scheduleDate,
+            tournamentRecords: workingCopy,
+            averageMinutes,
+            matchUpDailyLimits,
+            waitFor: new Set(releasePolicy === 'finish' ? carryover.map((m) => m.matchUpId) : []),
+          })
+        : timeProfileRounds({ tournamentRecords: workingCopy, schedulingProfile, scheduleDate, matchUpDailyLimits });
+    if ('error' in result && result.error) return { error: result.error };
+    const comparison = compareRecovery({
+      ...rounds,
+      averageMinutes,
+      scheduleDate,
+      result: 'placements' in result ? result : {},
     });
-    if (result?.error) return { error: result.error };
-    const comparison = compareRecovery({ ...rounds, averageMinutes, scheduleDate, result });
     return { comparison, result, unvenuedMatchUpIds, unroundedMatchUpIds };
   };
 
@@ -109,12 +124,31 @@ export function runRecovery({
   if ('error' in ready) return failed(ready.error, assumptions);
 
   // finish: when does the carryover end on its own? then hold the target day until then
-  const alone = project('finish', { carryover, targetDay: [] });
-  if ('error' in alone) return failed(alone.error, assumptions);
-  const finish = project('finish', { carryover, targetDay }, alone.comparison.carryoverFinishTime);
+  const alone = scheduler === 'grid' ? undefined : project('finish', { carryover, targetDay: [] });
+  if (alone && 'error' in alone) return failed(alone.error, assumptions);
+  const finish = project('finish', { carryover, targetDay }, alone?.comparison.carryoverFinishTime);
   if ('error' in finish) return failed(finish.error, assumptions);
 
   return { ready, finish, assumptions };
+}
+
+function timeProfileRounds({
+  tournamentRecords,
+  schedulingProfile,
+  scheduleDate,
+  matchUpDailyLimits,
+}: Pick<RunRecoveryArgs, 'tournamentRecords' | 'scheduleDate' | 'matchUpDailyLimits'> & {
+  schedulingProfile: ReturnType<typeof buildRecoveryProfile>['schedulingProfile'];
+}) {
+  const set = scheduleGovernor.setSchedulingProfile({ tournamentRecords, schedulingProfile });
+  if (set.error) return { error: set.error };
+  return scheduleGovernor.scheduleProfileRounds({
+    tournamentRecords,
+    matchUpDailyLimits,
+    clearScheduleDates: [scheduleDate],
+    scheduleDates: [scheduleDate],
+    dryRun: true,
+  });
 }
 
 /** the scheduling policy's average and recovery minutes for each format among the matchUps, from the live record */
