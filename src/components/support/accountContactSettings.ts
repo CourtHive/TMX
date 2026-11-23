@@ -30,6 +30,19 @@ export function accountContactSettings(scope: string, available = supportReporti
   resend.textContent = supportText('accountResend');
   actions.append(save, resend);
   section.append(heading, description, label, status, actions);
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.textContent = supportText('settings');
+  toggle.ariaExpanded = 'false';
+  const confirmation = document.createElement('p');
+  confirmation.setAttribute('role', 'status');
+  confirmation.hidden = true;
+  const close = () => {
+    section.hidden = true;
+    confirmation.hidden = true;
+    toggle.textContent = supportText('settings');
+    toggle.ariaExpanded = 'false';
+  };
   let busy = false;
   const action = async (kind: 'read' | 'set' | 'resend') => {
     if (busy) return;
@@ -46,18 +59,18 @@ export function accountContactSettings(scope: string, available = supportReporti
     input.disabled = save.disabled = resend.disabled = true;
     try {
       const data = await accountContactRequest(kind, input.value.trim());
-      if (!available() || !section.isConnected || reportScope() !== scope) return;
+      if (!available() || !section.isConnected || section.hidden || reportScope() !== scope) return;
       if (kind === 'read') {
         input.value = data.contactEmail ?? '';
         status.textContent = supportText(data.emailVerifiedAt ? 'verified' : 'pending');
-      } else
-        status.textContent = supportText(
-          data.status === 'already_verified'
-            ? 'verified'
-            : data.status === 'no_contact_email'
-              ? 'accountMissing'
-              : 'accountSaved',
-        );
+      } else if (data.status === 'no_contact_email') {
+        status.textContent = supportText('accountMissing');
+      } else {
+        close();
+        confirmation.hidden = false;
+        confirmation.textContent = supportText(data.status === 'already_verified' ? 'verified' : 'accountSaved');
+        toggle.focus();
+      }
     } catch {
       if (available() && section.isConnected) status.textContent = supportText('accountFailed');
     } finally {
@@ -71,14 +84,18 @@ export function accountContactSettings(scope: string, available = supportReporti
   resend.onclick = () => {
     void action('resend');
   };
-  return {
-    section,
-    open: () => {
-      if (!available()) return;
-      section.hidden = false;
-      void action('read');
-      input.focus();
-      section.scrollIntoView({ block: 'nearest' });
-    },
+  toggle.onclick = () => {
+    if (!section.hidden) {
+      close();
+      return;
+    }
+    if (!available()) return;
+    confirmation.hidden = true;
+    section.hidden = false;
+    toggle.ariaExpanded = 'true';
+    toggle.textContent = supportText('closeSettings');
+    void action('read');
+    section.scrollIntoView({ block: 'nearest' });
   };
+  return { toggle, section, confirmation, close };
 }

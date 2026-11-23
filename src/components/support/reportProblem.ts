@@ -120,18 +120,16 @@ export function openProblemReport(code?: string): void {
   const send = document.createElement('button');
   send.type = 'submit';
   send.textContent = supportText('send');
-  const settings = document.createElement('button');
-  settings.type = 'button';
-  settings.textContent = supportText('settings');
   const account = accountContactSettings(scope, () => !isolatedSinceOpen && supportReportingAvailable());
-  settings.onclick = () => account.open();
+  const settings = account.toggle;
   const close = document.createElement('button');
   close.type = 'button';
+  close.className = 'tmx-support-close';
   close.textContent = supportText('close');
   close.onclick = () => dialog.close();
   actions.append(send, settings, close);
   form.append(status, actions);
-  dialog.append(form, account.section);
+  dialog.append(form, account.section, account.confirmation);
   const applyKind = (value: 'bug' | 'suggestion') => {
     kind = value;
     const suggestion = value === 'suggestion';
@@ -142,6 +140,7 @@ export function openProblemReport(code?: string): void {
       suggestion ? 'suggestionDescription' : 'description',
     );
     expected.parentElement!.hidden = steps.parentElement!.hidden = suggestion;
+    if (suggestion) account.close();
     settings.hidden = suggestion; // the contact address matters only for a resolution email
     send.textContent = supportText(suggestion ? 'sendSuggestion' : 'send');
   };

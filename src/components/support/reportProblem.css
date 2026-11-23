@@ -58,6 +58,13 @@
   border-radius: 0.3rem;
   cursor: pointer;
 }
+.tmx-support-form .tmx-support-close {
+  margin-inline-start: auto;
+  font-weight: 700;
+  color: var(--sp-bg, white);
+  background: var(--sp-text, #222);
+  border-color: var(--sp-text, #222);
+}
 .tmx-support-form button:disabled {
   opacity: 0.5;
   cursor: wait;

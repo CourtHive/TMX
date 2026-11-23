@@ -25,6 +25,7 @@ export type SupportKey =
   | 'explanation'
   | 'promise'
   | 'settings'
+  | 'closeSettings'
   | 'accepted'
   | 'pending'
   | 'verified'
