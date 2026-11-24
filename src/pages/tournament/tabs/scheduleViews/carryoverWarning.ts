@@ -16,12 +16,14 @@ import { formatDateLabel } from 'components/schedule/scheduleDateSelectorLogic';
 import { openModal, closeModal } from 'components/modals/baseModal/baseModal';
 import { analyzeCarryover, type CarryoverItem } from './carryoverAnalysis';
 import { onMutationApplied } from 'services/mutation/mutationObservers';
+import { openRecoveryModal } from './recovery/recoveryModal';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { getCachedAllMatchUps } from './schedule2DataCache';
 import { competitionEngine } from 'services/factory/engine';
 import { venueToday } from 'functions/venueTimeFrame';
 import { isScheduleLocked } from './scheduleLocks';
 import { scheduleToast } from './scheduleToast';
+import { featureFlags } from 'config/featureFlags';
 import { context } from 'services/context';
 import { t } from 'i18n';
 
@@ -208,6 +210,19 @@ export function openCarryoverModal(): void {
     config: { padding: '.5', content: { padding: '1' }, maxWidth: 640 },
     buttons: [
       { label: t('common.cancel'), intent: NONE, close: true },
+      // the projection Clear stands in for (T5): offered while Plan mode is on (CA 2026-11-23, Q1)
+      ...(featureFlags.get().schedulePlan
+        ? [
+            {
+              label: t('schedule.plan.recovery'),
+              intent: NONE,
+              onClick: () => {
+                closeModal();
+                openRecoveryModal();
+              },
+            },
+          ]
+        : []),
       {
         label: t('schedule.carryover.clearSelected', { count: selected.size }),
         disabled: selected.size === 0,

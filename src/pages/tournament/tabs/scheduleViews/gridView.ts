@@ -3999,7 +3999,14 @@ function checkBlockInterruption(matchUp: any, courtId: string): BlockInterruptio
  */
 function listScheduledOrphans(scheduledDate: string): any[] {
   const { matchUps } = getCachedAllMatchUps();
-  const filtered = (matchUps || []).filter((m: any) => {
+  // In Plan mode the list reflects the projected plan (T7, rain-day recovery): a times-only plan's matchUps have a date
+  // and a time but no court, so they belong here. Each is returned with its effective schedule, so the card shows the
+  // plan's time. Outside Plan mode the placement map is empty and every schedule is the official one.
+  const placements = planPlacementMap();
+  const projected = (matchUps || []).map((m: any) =>
+    placements[m.matchUpId] ? { ...m, schedule: effectiveMatchUpSchedule(m, placements) } : m,
+  );
+  const filtered = projected.filter((m: any) => {
     if (m.matchUpStatus === BYE) return false;
     if (m.schedule?.scheduledDate !== scheduledDate) return false;
     // Already on the grid — don't show. The grid places a matchUp by court AND order (the factory's

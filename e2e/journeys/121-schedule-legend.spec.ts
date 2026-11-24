@@ -68,8 +68,11 @@ test.describe('Journey 121 — scheduling page legend', () => {
     // Every row carries both halves; the unit test asserts this over the model,
     // this asserts the renderer actually emitted both.
     const rows = legend.locator('.tmx-legend-row');
-    expect(await rows.count()).toBeGreaterThanOrEqual(9);
-    await expect(rows.first().locator('.tmx-legend-meaning')).not.toBeEmpty();
+    await expect(rows).toHaveCount(8);
+    for (const row of await rows.all()) {
+      await expect(row.locator('.tmx-legend-sample')).not.toBeEmpty();
+      await expect(row.locator('.tmx-legend-meaning')).not.toBeEmpty();
+    }
   });
 
   test('the legend dismisses on an outside click', async ({ page }) => {
