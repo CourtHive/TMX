@@ -1,5 +1,6 @@
-import { publishingGovernor, drawDefinitionConstants } from 'tods-competition-factory';
+import { publishingGovernor, drawDefinitionConstants, tools } from 'tods-competition-factory';
 import { COURT_SVG_RESOURCE_SUB_TYPE } from 'courthive-components';
+import { competitionNow } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
 
 const { CONTAINER, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, LUCKY_DRAW, AD_HOC } = drawDefinitionConstants;
@@ -85,7 +86,7 @@ export function getDashboardData(): DashboardData {
       for (const drawDef of drawDefs) {
         const detail = drawDetails[drawDef.drawId];
         if (detail?.publishingDetail?.published) publishedDraws++;
-        if (publishingGovernor.isEmbargoed(detail?.publishingDetail)) {
+        if (tools.publishing.isEmbargoed(detail?.publishingDetail, competitionNow())) {
           activeEmbargoes++;
         }
       }
@@ -94,8 +95,8 @@ export function getDashboardData(): DashboardData {
     }
   }
 
-  if (publishingGovernor.isEmbargoed(tournamentPubState?.orderOfPlay)) activeEmbargoes++;
-  if (publishingGovernor.isEmbargoed(tournamentPubState?.participants)) activeEmbargoes++;
+  if (tools.publishing.isEmbargoed(tournamentPubState?.orderOfPlay, competitionNow())) activeEmbargoes++;
+  if (tools.publishing.isEmbargoed(tournamentPubState?.participants, competitionNow())) activeEmbargoes++;
 
   const publishingStats: PublishingStats = {
     publishedDraws,

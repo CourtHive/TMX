@@ -23,8 +23,8 @@ vi.mock('tods-competition-factory', () => ({
     getEvents: () => ({ events: [] }),
   },
   competitionEngine: {},
-  publishingGovernor: { getPublishState: () => ({ publishState: {} }), isEmbargoed: () => false },
-  tools: { generateDateRange: (s: string, e: string) => [s, e] },
+  publishingGovernor: { getPublishState: () => ({ publishState: {} }) },
+  tools: { generateDateRange: (s: string, e: string) => [s, e], publishing: { isEmbargoed: () => false } },
 }));
 vi.mock('i18n', () => ({ t: (k: string) => k }));
 

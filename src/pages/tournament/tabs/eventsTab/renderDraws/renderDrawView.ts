@@ -5,14 +5,14 @@
 import { applySwissScoreGroupShading, sortSwissRoundMatchUpsByScoreGroup } from './applySwissScoreGroupShading';
 import { eventConstants, drawDefinitionConstants, tools, publishingGovernor } from 'tods-competition-factory';
 import { createSwissStandingsTable } from 'components/tables/swissStandingsTable/createSwissStandingsTable';
-import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
-import { defaultDrawComposition } from 'services/compositions/defaultDrawComposition';
 import { shouldShowDrawMinimap, wireDrawMinimap, pickMinimapQuarterCount } from './applyDrawMinimap';
 import { peekPendingMatchUpFocus, consumePendingMatchUpFocus } from 'services/dom/matchUpFocus';
+import { resolveCompositionByName } from 'services/compositions/resolveCompositionByName';
 import { highlightTeam, removeTeamHighlight } from 'services/dom/events/teamHighlights';
 import { createBracketTable } from 'components/tables/bracketTable/createBracketTable';
 import { createRatingsTable } from 'components/tables/ratingsTable/createRatingsTable';
 import { overlayLiveScores, pickLiveScore } from 'services/messaging/liveScoreDisplay';
+import { defaultDrawComposition } from 'services/compositions/defaultDrawComposition';
 import { refreshTournamentCrowdActivity } from 'services/crowd/tournamentCrowdPoller';
 import { renderSwissChart } from 'components/tables/swissChartView/renderSwissChart';
 import { createRoundsTable } from 'components/tables/roundsTable/createRoundsTable';
@@ -27,6 +27,7 @@ import { renderScorecard } from 'components/overlays/scorecard/scorecard';
 import { applyMatchUpActivityBadges } from './applyMatchUpActivityBadges';
 import { getTrustedCrowdScore } from 'services/crowd/crowdActivityIndex';
 import { voluntaryConsolationPanel } from './voluntaryConsolationPanel';
+import { competitionNow } from 'services/clock/competitionClock';
 import { renderSwissGenerateButton } from './generateSwissRound';
 import { removeAllChildNodes } from 'services/dom/transformers';
 import { eventManager } from 'services/dom/events/eventManager';
@@ -395,7 +396,11 @@ export function renderDrawView({
     } else {
       const { event: currentEvent } = tournamentEngine.getEvent({ drawId });
       const structureDetail = currentEvent ? getStructureDetail(drawId, structureId!, currentEvent) : undefined;
-      const roundVisibilityState = publishingGovernor.getRoundVisibilityState(structureDetail, displayMatchUps as any);
+      const roundVisibilityState = tools.publishing.getRoundVisibilityState(
+        structureDetail,
+        displayMatchUps as any,
+        competitionNow(),
+      );
 
       const irregularStatuses = new Set(['RETIRED', 'DEFAULTED', 'WALKOVER', 'SUSPENDED', 'CANCELLED', 'ABANDONED']);
       if (inlineManager) {

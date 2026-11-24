@@ -4,10 +4,10 @@
  * clickable names (navigate to draw), and public URL links.
  */
 import { getPublicEventUrl, getPublicDrawUrl } from 'services/publishing/publicUrl';
+import { competitionNowMs, competitionNow } from 'services/clock/competitionClock';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
+import { publishingGovernor, tools } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
-import { competitionNowMs } from 'services/clock/competitionClock';
-import { publishingGovernor } from 'tods-competition-factory';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { venueLocaleString } from 'functions/venueTimeFrame';
 import { renderPublishingTab } from './renderPublishingTab';
@@ -290,7 +290,7 @@ function handleScheduleEmbargoClick(cell: any): void {
   for (const [, sd] of Object.entries(existingStructureDetails) as [string, any][]) {
     const scheduledRounds = sd?.scheduledRounds || {};
     for (const [, rd] of Object.entries(scheduledRounds) as [string, any][]) {
-      if (publishingGovernor.isEmbargoed(rd)) {
+      if (tools.publishing.isEmbargoed(rd, competitionNow())) {
         currentScheduleEmbargo = rd.embargo;
         break;
       }
