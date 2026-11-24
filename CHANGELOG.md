@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.63.0](https://github.com/CourtHive/TMX/compare/v8.62.0...v8.63.0) (2026-11-24)
+
+
+### Features
+
+* offer court-grid projections in rain-day recovery ([#2126](https://github.com/CourtHive/TMX/issues/2126)) ([889877e](https://github.com/CourtHive/TMX/commit/889877e0ca567be4cde9253d09a94c6e33c8ccdd))
+* **schedule:** compare rain-day recovery policies and save a plan ([#2125](https://github.com/CourtHive/TMX/issues/2125)) ([042d246](https://github.com/CourtHive/TMX/commit/042d246d86bc41fd1eebfd48516c0bcc0f40a1ec))
+* **schedule:** rain-day recovery projection (profile, run, comparison) ([#2124](https://github.com/CourtHive/TMX/issues/2124)) ([bce1a14](https://github.com/CourtHive/TMX/commit/bce1a14fe7044706ab18626bc0536395c1f340be))
+
+
+### Bug Fixes
+
+* **deps:** update @courthive/scoring-visualizations to 0.2.31 ([420779f](https://github.com/CourtHive/TMX/commit/420779fae745e56648506c22d42c28ccd4194a8a))
+* **deps:** update @courthive/scoring-visualizations to 0.2.31 ([b60e7d5](https://github.com/CourtHive/TMX/commit/b60e7d58f109207911e0d581724a75c9521c912b))
+* **deps:** update courthive-components to 7.22.2 ([e43c483](https://github.com/CourtHive/TMX/commit/e43c48344c402b859aef219cce1789380526e6ae))
+* **deps:** update courthive-components to 7.22.2 ([37eaff9](https://github.com/CourtHive/TMX/commit/37eaff9f880beac6327075cf7c021602367c89e9))
+* **deps:** update pdf-factory to 1.1.15 ([5827b15](https://github.com/CourtHive/TMX/commit/5827b1505c697a94da1881d6657164d434734de9))
+* **deps:** update pdf-factory to 1.1.15 ([aeb0de9](https://github.com/CourtHive/TMX/commit/aeb0de99a4d3c2b7793688a9097266b2fe7b9694))
+* **deps:** update tods-competition-factory to 7.47.0 ([#2123](https://github.com/CourtHive/TMX/issues/2123)) ([6a56019](https://github.com/CourtHive/TMX/commit/6a560196d2db66c2e2a781c56815cd3f6af36ec2))
+* **deps:** update tods-competition-factory to 7.48.0 ([33e2c4e](https://github.com/CourtHive/TMX/commit/33e2c4e2892189c1b62ea017250df7d08d66d237))
+* **deps:** update tods-competition-factory to 7.48.0 ([f38c7d9](https://github.com/CourtHive/TMX/commit/f38c7d9df226eca7f44df3c383ff72c5a2934531))
+
 ## [8.62.0](https://github.com/CourtHive/TMX/compare/v8.61.0...v8.62.0) (2026-11-23)
 
 
