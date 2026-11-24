@@ -21,6 +21,36 @@ describe('lastChangeTime', () => {
     expect(lastChangeTime(record(), NOW)).toEqual(Date.parse(LAST));
   });
 
+  it('compares the tournament stamp and the stamps of all draws across events', () => {
+    const snapshot = record({
+      factory: { timeStamp: NOW - 5 },
+      events: [
+        { drawDefinitions: [{ factory: { timeStamp: NOW - 4 } }] },
+        { drawDefinitions: [{ factory: { timeStamp: NOW - 1 } }, { factory: { timeStamp: NOW - 3 } }] },
+      ],
+    });
+    expect(lastChangeTime(snapshot, NOW)).toBe(NOW - 1);
+    expect(lastChangeTime({ ...snapshot, factory: { timeStamp: NOW } }, NOW)).toBe(NOW);
+  });
+
+  it('reads a legacy factory extension and gives the native stamp precedence on the same element', () => {
+    const extensions = [{ name: 'factory', value: { timeStamp: NOW } }];
+    expect(lastChangeTime({ extensions }, NOW)).toBe(NOW);
+    expect(lastChangeTime({ extensions, factory: { timeStamp: NOW - 1 } }, NOW)).toBe(NOW - 1);
+  });
+
+  it('keeps newer activity stamps and ignores future, invalid and unrelated clocks', () => {
+    const snapshot = record({
+      factory: { timeStamp: NOW + 1 },
+      events: [
+        { drawDefinitions: [{ factory: { timeStamp: NaN } }, { factory: { timeStamp: Date.parse(LAST) - 1 } }] },
+      ],
+      updatedAt: LAST,
+      extensions: [{ name: 'import', value: { timeStamp: NOW, factory: { timeStamp: NOW } } }],
+    });
+    expect(lastChangeTime(snapshot, NOW)).toBe(Date.parse(LAST));
+  });
+
   it('does not believe a stamp from the future, and finds none in a record without stamps', () => {
     expect(lastChangeTime(record({ extensions: [{ createdAt: '2027-01-01T00:00:00Z' }] }), NOW)).toEqual(
       Date.parse(LAST),
