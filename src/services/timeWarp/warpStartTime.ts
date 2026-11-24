@@ -7,6 +7,7 @@
  *
  * Pure: the caller hands in the record, the venue's today and the moment.
  */
+import { extensionConstants, tools } from 'tods-competition-factory';
 
 export type WarpStartChoice =
   | { kind: 'start'; startAt: number; reason: 'ended' | 'notStarted' | 'noChanges' }
@@ -15,12 +16,26 @@ export type WarpStartChoice =
 const STAMP_KEYS = new Set(['updatedAt', 'createdAt']);
 
 /**
- * The latest change the record carries: its newest `updatedAt` or `createdAt`, wherever it sits (the factory stamps
- * matchUps, draws, structures, time items and extensions as it writes them). A stamp after `now` is a clock's error
- * and is not believed. `undefined` when the record carries none.
+ * The newest tournament or draw factory stamp, or any nested updatedAt/createdAt.
+ * With modified stamp scope a draw can carry a later write than its tournament. Ignore future stamps.
  */
 export function lastChangeTime(record: unknown, now: number): number | undefined {
   let latest: number | undefined;
+  const consider = (ms: number) => {
+    if (Number.isFinite(ms) && ms <= now && (latest === undefined || ms > latest)) latest = ms;
+  };
+  const considerFactoryStamp = (element: unknown) => {
+    const stamp = tools.firstClassOrExtension({ element, attribute: 'factory', name: extensionConstants.FACTORY });
+    if (typeof stamp?.timeStamp === 'number') consider(stamp.timeStamp);
+  };
+  if (record && typeof record === 'object') {
+    considerFactoryStamp(record);
+    if ('events' in record && Array.isArray(record.events)) {
+      for (const event of record.events) {
+        if (Array.isArray(event?.drawDefinitions)) event.drawDefinitions.forEach(considerFactoryStamp);
+      }
+    }
+  }
   const visit = (value: unknown): void => {
     if (Array.isArray(value)) {
       for (const item of value) visit(item);
@@ -29,8 +44,7 @@ export function lastChangeTime(record: unknown, now: number): number | undefined
     if (!value || typeof value !== 'object') return;
     for (const [key, child] of Object.entries(value)) {
       if (STAMP_KEYS.has(key) && typeof child === 'string') {
-        const ms = Date.parse(child);
-        if (Number.isFinite(ms) && ms <= now && (latest === undefined || ms > latest)) latest = ms;
+        consider(Date.parse(child));
       } else if (child && typeof child === 'object') {
         visit(child);
       }
