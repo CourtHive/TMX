@@ -4,8 +4,9 @@
  * and set/clear round schedule embargo (all draw types).
  */
 import { setRoundScheduleEmbargo, setStructureRoundLimit } from '../../publishingTab/structurePublishing';
+import { publishingGovernor, tools } from 'tods-competition-factory';
 import { openEmbargoModal } from '../../publishingTab/embargoModal';
-import { publishingGovernor } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
 import { tournamentEngine } from 'services/factory/engine';
 import { tipster } from 'components/popovers/tipster';
 import { t } from 'i18n';
@@ -60,7 +61,7 @@ export function handleRoundVisibilityClick(props: any): void {
 
   // Option 2: Schedule embargo for this round — all draw types
   const roundEmbargoDetail = currentScheduledRounds[roundNumber];
-  const hasEmbargo = publishingGovernor.isEmbargoed(roundEmbargoDetail);
+  const hasEmbargo = tools.publishing.isEmbargoed(roundEmbargoDetail, competitionNow());
 
   items.push({
     text: hasEmbargo
