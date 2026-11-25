@@ -3178,6 +3178,13 @@
       "restoreAutoScore": "Restore automatic scoring",
       "manualScore": "Set by hand",
       "winner": "Winner",
+      "decidedBy": "Decided by",
+      "decisionMethods": {
+        "SHOOTOUT": "Shootout",
+        "COMPETITION_RULE": "Competition rule",
+        "LOTS": "Lots",
+        "OFFICIAL_DECISION": "Official decision"
+      },
       "home": "Home",
       "homeVenue": "Home (venue)",
       "homeHostOrganisation": "Home (host organisation)",

@@ -65,6 +65,36 @@ describe('dual override', () => {
     expect(dual().winningSide).toBeUndefined();
   });
 
+  // a winner on a level team score records how it was decided (TEAM results item 3): the factory refuses one without it
+  it('a level team score set by hand is recorded with its decision', () => {
+    const { drawId, matchUpId } = unscoredDual();
+    const decidedBy = { method: 'OFFICIAL_DECISION' as const };
+    const method = overrideTeamScoreMethod({
+      teamScore: { side1Score: 2, side2Score: 2, winningSide: 1, decidedBy },
+      matchUpId,
+      drawId,
+    });
+    expect(method.params.outcome.matchUpStatus).toEqual('COMPLETED');
+    expect(method.params.outcome.score.overtime).toEqual({ decidedIn: 'EXTERNAL', decidedBy });
+
+    const result: any = run([method]);
+    expect(result.success).toEqual(true);
+    expect(dual().winningSide).toEqual(1);
+    expect(dual().matchUpStatus).toEqual('COMPLETED');
+    expect(dual().score.sets[0]).toMatchObject({ side1Score: 2, side2Score: 2 });
+    expect(dual().score.overtime).toMatchObject({ decidedIn: 'EXTERNAL', decidedBy });
+  });
+
+  it('a team score that decides the dual carries no decision', () => {
+    const method = overrideTeamScoreMethod({
+      teamScore: { side1Score: 3, side2Score: 1, winningSide: 1, decidedBy: { method: 'LOTS' } },
+      matchUpId: 'm',
+      drawId: 'd',
+    });
+    expect(method.params.outcome.score.overtime).toBeUndefined();
+    expect(method.params.outcome.matchUpStatus).toBeUndefined();
+  });
+
   it("the scorecard's issues are the factory's: a held score is reported, and diverges from the lines", () => {
     const { drawId, matchUpId, tieMatchUps } = unscoredDual();
     expect(dualIssues({ drawId, matchUpId })).toEqual([]);

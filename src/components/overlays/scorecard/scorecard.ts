@@ -3,7 +3,6 @@
  * Uses renderScorecard from courthive-components for the layout,
  * wires TMX-specific event handlers for scoring and substitution.
  */
-import { deadRubberMethods, dualIssues, overrideTeamScoreMethod, restoreAutoCalcMethod } from './dualOverride';
 import { renderScorecard as renderScorecardLayout, updateTieScore, compositions } from 'courthive-components';
 import { clearHomeMethod, dualHome, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { participantMatchUpActions } from 'components/popovers/participantMatchUpActions';
@@ -23,6 +22,13 @@ import { tipster } from 'components/popovers/tipster';
 import { displayConfig } from 'config/displayConfig';
 import { isFunction } from 'functions/typeOf';
 import { t } from 'i18n';
+import {
+  DECISION_METHODS,
+  deadRubberMethods,
+  dualIssues,
+  overrideTeamScoreMethod,
+  restoreAutoCalcMethod,
+} from './dualOverride';
 
 // constants
 import { RESET_MATCHUP_LINEUPS, RESET_SCORECARD, SET_MATCHUP_STATUS } from 'constants/mutationConstants';
@@ -197,6 +203,10 @@ function scorecardLabels(): any {
     restore: t('overlays.scorecard.restoreAutoScore'),
     manual: t('overlays.scorecard.manualScore'),
     winner: t('overlays.scorecard.winner'),
+    decidedBy: t('overlays.scorecard.decidedBy'),
+    decisionMethods: Object.fromEntries(
+      DECISION_METHODS.map((method) => [method, t(`overlays.scorecard.decisionMethods.${method}`)]),
+    ),
     home: t('overlays.scorecard.home'),
     homeVenue: t('overlays.scorecard.homeVenue'),
     homeHostOrganisation: t('overlays.scorecard.homeHostOrganisation'),
