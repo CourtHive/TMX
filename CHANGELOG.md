@@ -1,5 +1,15 @@
 # Changelog
 
+## [8.63.1](https://github.com/CourtHive/TMX/compare/v8.63.0...v8.63.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.23.0 ([#2142](https://github.com/CourtHive/TMX/issues/2142)) ([5013da3](https://github.com/CourtHive/TMX/commit/5013da3069b617fbc8de1e6a7fd2a0c1a0c83b1a))
+* **deps:** update dependency focus-trap to v8.2.6 ([#2139](https://github.com/CourtHive/TMX/issues/2139)) ([9de1088](https://github.com/CourtHive/TMX/commit/9de1088e3e37f4509d7f3193090092b86ea20c2f))
+* **deps:** update tods-competition-factory to 7.49.0 ([#2140](https://github.com/CourtHive/TMX/issues/2140)) ([84bac4d](https://github.com/CourtHive/TMX/commit/84bac4d1d00ee089b4dcb25ea35397e7e91b6d81))
+* **time-warp:** include draw and tournament factory stamps in last change ([#2135](https://github.com/CourtHive/TMX/issues/2135)) ([94ecbda](https://github.com/CourtHive/TMX/commit/94ecbda44aae11e6f31a2ba9027f7c6910b6ed3b))
+
 ## [8.63.0](https://github.com/CourtHive/TMX/compare/v8.62.0...v8.63.0) (2026-11-24)
 
 
