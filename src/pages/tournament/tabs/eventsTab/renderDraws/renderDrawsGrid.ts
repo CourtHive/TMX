@@ -20,7 +20,8 @@ import {
   mapDrawDefinitionToCardData,
   pickProgressionStructure,
 } from 'courthive-components';
-import { publishingGovernor, entryStatusConstants } from 'tods-competition-factory';
+import { competitionNow } from 'services/clock/competitionClock';
+import { entryStatusConstants, tools } from 'tods-competition-factory';
 import { navigateToEvent } from 'components/tables/common/navigateToEvent';
 import { hasTopologyDraft, topologyDraftKey } from 'pages/tournament/topologyDrafts';
 import { addDraw } from 'components/drawers/addDraw/addDraw';
@@ -66,7 +67,7 @@ function publishFlagsFor(drawId: string): { published?: boolean; embargoActive?:
   const drawDetail = publishState?.status?.drawDetails?.[drawId]?.publishingDetail;
   return {
     published: publishState?.status?.published,
-    embargoActive: publishingGovernor.isEmbargoed(drawDetail),
+    embargoActive: tools.publishing.isEmbargoed(drawDetail, competitionNow()),
   };
 }
 

@@ -3,8 +3,8 @@
  * Queries factory publish state and structures it for the UI.
  */
 import { readTournamentDateRange, readEvents, readPublishState } from 'services/factory/passReads';
+import { competitionNowMs, competitionNow } from 'services/clock/competitionClock';
 import { publishingGovernor, tools } from 'tods-competition-factory';
-import { competitionNowMs } from 'services/clock/competitionClock';
 import { orderedDrawDefinitions } from 'functions/drawOrder';
 import { tournamentEngine } from 'services/factory/engine';
 import { t } from 'i18n';
@@ -88,11 +88,11 @@ export function getTournamentPublishData(): TournamentPublishData {
     infoEmbargo: tournamentPubState?.info?.embargo,
     oopPublished: !!tournamentPubState?.orderOfPlay?.published,
     oopEmbargo,
-    oopEmbargoActive: publishingGovernor.isEmbargoed(tournamentPubState?.orderOfPlay),
+    oopEmbargoActive: tools.publishing.isEmbargoed(tournamentPubState?.orderOfPlay, competitionNow()),
     oopScheduledDates: tournamentPubState?.orderOfPlay?.scheduledDates,
     participantsPublished: !!tournamentPubState?.participants?.published,
     participantsEmbargo,
-    participantsEmbargoActive: publishingGovernor.isEmbargoed(tournamentPubState?.participants),
+    participantsEmbargoActive: tools.publishing.isEmbargoed(tournamentPubState?.participants, competitionNow()),
     participantsColumns: tournamentPubState?.participants?.columns,
     publishLanguage: tournamentPubState?.language,
     tournamentDateRange: getTournamentDateRange(startDate ?? '', endDate ?? ''),
@@ -205,7 +205,7 @@ function buildRoundRows({ event, dd, structureId, sd }): PublishingRowData[] {
   // Round rows with schedule embargo
   const scheduledRounds = sd?.scheduledRounds || {};
   for (const [rn, rd] of Object.entries(scheduledRounds) as [string, any][]) {
-    if (publishingGovernor.isEmbargoed(rd)) {
+    if (tools.publishing.isEmbargoed(rd, competitionNow())) {
       roundRows.push({
         id: `${dd.drawId}:${structureId}:sched${rn}`,
         name: `${t(PUB_ROUND_KEY)} ${rn} ${t('publishing.roundSchedule').toLowerCase()}`,
@@ -243,7 +243,7 @@ function buildStructureRows({ event, dd, drawRow, structureDetails }): Publishin
       structureId,
       published,
       embargo: sd?.embargo,
-      embargoActive: publishingGovernor.isEmbargoed(sd),
+      embargoActive: tools.publishing.isEmbargoed(sd, competitionNow()),
       publishState: resolvePublishState(published, latestEmbargo(drawEmbargo, sd?.embargo)),
       expanded: roundRows.length > 0,
       _children: roundRows.length ? roundRows : undefined,
@@ -264,7 +264,7 @@ function buildDrawRow({ event, dd, drawDetails, eventPublished }): PublishingRow
     drawId: dd.drawId,
     published,
     embargo,
-    embargoActive: publishingGovernor.isEmbargoed(detail),
+    embargoActive: tools.publishing.isEmbargoed(detail, competitionNow()),
     publishState: resolvePublishState(published, embargo),
   };
 
@@ -337,7 +337,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
       type: 'orderOfPlay',
       label: t('publishing.orderOfPlay'),
       embargo,
-      embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.orderOfPlay),
+      embargoActive: tools.publishing.isEmbargoed(tournamentPubState.orderOfPlay, competitionNow()),
     });
   }
 
@@ -347,7 +347,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
       type: 'participants',
       label: t('publishing.participants'),
       embargo,
-      embargoActive: publishingGovernor.isEmbargoed(tournamentPubState.participants),
+      embargoActive: tools.publishing.isEmbargoed(tournamentPubState.participants, competitionNow()),
     });
   }
 
@@ -359,7 +359,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
     for (const [drawId, details] of Object.entries(drawDetails) as [string, any][]) {
       const detail = details?.publishingDetail;
       if (detail?.embargo) {
-        const embargoActive = publishingGovernor.isEmbargoed(detail);
+        const embargoActive = tools.publishing.isEmbargoed(detail, competitionNow());
         const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
         embargoes.push({
           type: 'draw',
@@ -381,7 +381,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
             type: 'structure',
             label: `${event.eventName} — ${drawDef?.drawName || drawId} — ${structure?.structureName || structureId}`,
             embargo: sd.embargo,
-            embargoActive: publishingGovernor.isEmbargoed(sd),
+            embargoActive: tools.publishing.isEmbargoed(sd, competitionNow()),
             eventId: event.eventId,
             drawId,
             structureId,
@@ -391,7 +391,7 @@ export function getActiveEmbargoes(): EmbargoEntry[] {
         const scheduledRounds = sd?.scheduledRounds || {};
         for (const [roundNumber, rd] of Object.entries(scheduledRounds) as [string, any][]) {
           if (rd?.embargo) {
-            const embargoActive = publishingGovernor.isEmbargoed(rd);
+            const embargoActive = tools.publishing.isEmbargoed(rd, competitionNow());
             const drawDef = event.drawDefinitions?.find((dd: any) => dd.drawId === drawId);
             embargoes.push({
               type: 'scheduledRound',

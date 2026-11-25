@@ -624,7 +624,7 @@ test('changing only the date starts the new day at its prep time', async ({ page
   await expect(page.locator(PANEL).locator('output')).toHaveAttribute('title', new RegExp(`^${tomorrow}`));
 });
 
-/** every stamp in the record set to `older`, then one matchUp stamped `last`: a record whose last change is known */
+/** A stored snapshot whose latest write is the factory stamp on one draw. */
 async function stampRecord(
   page: Page,
   { older, last, shiftDays = 0 }: { older: string; last: string; shiftDays?: number },
@@ -648,7 +648,13 @@ async function stampRecord(
       };
       record.startDate = shift(record.startDate);
       record.endDate = shift(record.endDate);
-      record.events[0].drawDefinitions[0].updatedAt = last;
+      record.factory = { ...record.factory, timeStamp: Date.parse(older) };
+      for (const event of record.events) {
+        for (const draw of event.drawDefinitions ?? []) {
+          draw.factory = { ...draw.factory, timeStamp: Date.parse(older) };
+        }
+      }
+      record.events[0].drawDefinitions[0].factory.timeStamp = Date.parse(last);
       await dev.load(record);
       dev.tournamentContext.router.navigate(`/tournament/${record.tournamentId}/scheduling`);
     },
