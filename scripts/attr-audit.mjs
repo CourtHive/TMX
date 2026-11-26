@@ -23,18 +23,32 @@
 //      property-name AST pass is blind to these because they are StringLiteral nodes,
 //      not property identifiers (this is why `TournamentStatusUnion = 'ABANDONDED'`
 //      survived a full property audit).
+//   5. KEY/VALUE MISMATCH — in a "self-mapping enum" object (`export const X = { FOO:
+//      'FOO', BAR: 'BAR', … } as const`, the pattern behind `type T = keyof typeof X`)
+//      OR a string enum declaration (`export enum X { FOO = 'FOO', … }`, `type T = keyof
+//      typeof X`), the KEY is declared identical to its string VALUE: the KEY becomes a
+//      union member while the VALUE is what code emits. A KEY that differs from its own
+//      VALUE — most often by CASE alone (`CURTIS_cONSOLATION: 'CURTIS_CONSOLATION'`) —
+//      silently pollutes the `keyof typeof` union with a misspelled member. Passes #1 and #4 are
+//      both blind to this: the CORRECT spelling appears only as a string VALUE (never as
+//      a frequent property NAME, so #1 has no canonical), and the VALUE itself is
+//      canonical (so #4 sees nothing wrong). This pass compares each key to its own value
+//      inside self-mapping objects and enums and flags case-only, case+separator
+//      (`NETcORD` vs `NET_CORD`) or edit-distance-1 divergence. When the deviating keys
+//      outnumber the exact self-maps, the container is reported once as SYSTEMIC (a
+//      naming convention, not a set of typos) so it cannot drown out lone outliers.
 //
 // This file is the CANONICAL source. It is:
 //   - installed into each repo as `scripts/attr-audit.mjs` + a `pnpm attr-audit` script
-//     (see Mentat/tools/attr-audit/install.mjs), and
-//   - invoked cross-repo by Mentat/tools/attr-audit/run.mjs.
+//     by the shared CourtHive tooling's installer, and
+//   - invoked cross-repo by that tooling's runner.
 // Zero dependencies beyond the target repo's own `typescript`.
 //
 // Usage:
 //   node attr-audit.mjs [--root DIR] [--src DIR]... [--exclude REGEX]...
 //                       [--schema FILE]... [--types DIR]... [--constants DIR]...
 //                       [--ignore NAME]... [--min-common N] [--ratio N] [--max-suspect N]
-//                       [--write-only] [--json OUTDIR] [--ci] [--quiet]
+//                       [--write-only] [--extended] [--json OUTDIR] [--ci] [--quiet]
 //
 // Config: flags override an optional `attr-audit.config.json` in --root. Shape:
 //   { "src": ["src"], "exclude": ["/scratch/"], "schema": ["src/global/schema/x.json"],
@@ -68,6 +82,7 @@ function parseArgs(argv) {
     else if (a === '--max-suspect') out.maxSuspect = Number(next());
     else if (a === '--json') out.json = next();
     else if (a === '--write-only') out.writeOnly = true;
+    else if (a === '--extended') out.extended = true;
     else if (a === '--ci') out.ci = true;
     else if (a === '--quiet') out.quiet = true;
     else if (a === '--help' || a === '-h') out.help = true;
@@ -89,6 +104,7 @@ const HELP = `attr-audit — AST attribute dictionary + typo / schema-divergence
   --ratio N          canonical must be >= N x more frequent than suspect (default 5)
   --max-suspect N    only names with total <= N are typo suspects (default 3)
   --write-only       also emit the (low-precision) write-only pool
+  --extended         also emit orphan values, cross-enum near-pairs, dead schema values (informational)
   --json OUTDIR      write dictionary + report JSON to OUTDIR
   --ci               exit 1 if a PROP-class candidate is not allow-listed
   --quiet            suppress the console summary`;
@@ -163,50 +179,62 @@ function collectSchemaProps(files, root) {
   }
   return props;
 }
+// Provenance-tracking merge helper: value -> Set(sourceLabel). Provenance lets the
+// cross-enum pass tell "two spellings from different origins" (COMPLETE in schema,
+// COMPLETED in a const module) apart from a deliberate singular/plural pair defined
+// in the same file.
+function addProv(map, value, source) {
+  let s = map.get(value);
+  if (!s) { s = new Set(); map.set(value, s); }
+  s.add(source);
+}
+
 // Canonical string VALUES from JSON schema: every string member of an `enum`
 // array and any `const` string keyword. These are the authoritative allowable
-// values a status/type field may hold.
+// values a status/type field may hold. Returns value -> Set('schema:<file>').
 function collectSchemaEnumValues(files, root) {
-  const values = new Set();
+  const prov = new Map();
   for (const rel of files) {
     const p = path.isAbsolute(rel) ? rel : path.join(root, rel);
     if (!fs.existsSync(p)) continue;
     let json;
     try { json = JSON.parse(fs.readFileSync(p, 'utf8')); } catch { continue; }
+    const label = `schema:${path.basename(rel)}`;
     const recurse = (o) => {
       if (!o || typeof o !== 'object') return;
-      if (Array.isArray(o.enum)) for (const v of o.enum) if (typeof v === 'string') values.add(v);
-      if (typeof o.const === 'string') values.add(o.const);
+      if (Array.isArray(o.enum)) for (const v of o.enum) if (typeof v === 'string') addProv(prov, v, label);
+      if (typeof o.const === 'string') addProv(prov, o.const, label);
       for (const v of Object.values(o)) recurse(v);
     };
     recurse(json);
   }
-  return values;
+  return prov;
 }
 
 // Canonical string VALUES from constants modules: the RHS of `const X = '…'`
 // declarations and string values in exported object literals / enum members.
 // These plus the schema enum values form the value vocab that literal-type and
-// enum-member string values are checked against.
+// enum-member string values are checked against. Returns value -> Set('const:<file>').
 function collectConstantValues(ts, dirs, root, excludeRe) {
-  const values = new Set();
+  const prov = new Map();
   for (const d of dirs) {
     const abs = path.isAbsolute(d) ? d : path.join(root, d);
     if (!fs.existsSync(abs)) continue;
     const files = fs.statSync(abs).isDirectory() ? walk(abs, excludeRe) : [abs];
     for (const f of files) {
       if (!/\.tsx?$/.test(f)) continue;
+      const label = `const:${path.relative(root, f)}`;
       const sf = ts.createSourceFile(f, fs.readFileSync(f, 'utf8'), ts.ScriptTarget.Latest, true);
       const visit = (n) => {
-        if (ts.isVariableDeclaration(n) && n.initializer && ts.isStringLiteral(n.initializer)) values.add(n.initializer.text);
-        else if (ts.isPropertyAssignment(n) && n.initializer && ts.isStringLiteral(n.initializer)) values.add(n.initializer.text);
-        else if (ts.isEnumMember(n) && n.initializer && ts.isStringLiteral(n.initializer)) values.add(n.initializer.text);
+        if (ts.isVariableDeclaration(n) && n.initializer && ts.isStringLiteral(n.initializer)) addProv(prov, n.initializer.text, label);
+        else if (ts.isPropertyAssignment(n) && n.initializer && ts.isStringLiteral(n.initializer)) addProv(prov, n.initializer.text, label);
+        else if (ts.isEnumMember(n) && n.initializer && ts.isStringLiteral(n.initializer)) addProv(prov, n.initializer.text, label);
         ts.forEachChild(n, visit);
       };
       visit(sf);
     }
   }
-  return values;
+  return prov;
 }
 
 function collectTypeProps(ts, dirs, root, excludeRe) {
@@ -272,26 +300,38 @@ function extract(ts, files, root) {
   return { usage, funcValued, occ };
 }
 
-// Collect string *values* declared in a type-level literal (`'FOO'` inside a
-// LiteralTypeNode, i.e. union members / discriminants) or an enum member. These
-// are the suspects for the value-typo pass — a StringLiteral node the property
-// audit never sees.
-function extractLiteralValues(ts, files, root) {
-  const occ = new Map(); // value -> [{file,line,ctx}]
-  const add = (value, file, node, sf, ctx) => {
+// Collect every string *value*, tagged by context:
+//   'literalType' — `'FOO'` inside a LiteralTypeNode (union member / discriminant)
+//   'enumMember'  — a string-initialized enum member
+//   'expr'        — a string literal in expression position (assignment, comparison,
+//                   object value, call arg, return). The property audit never sees any
+//                   of these — they are StringLiteral nodes, not property identifiers.
+// For type/enum contexts we also record the owning declaration name (the enum / type
+// alias / interface the value belongs to) so orphan and cross-enum output can name it.
+function extractStringValues(ts, files, root) {
+  const occ = new Map(); // value -> [{file,line,ctx,owner}]
+  const add = (value, file, node, sf, ctx, owner) => {
     if (!occ.has(value)) occ.set(value, []);
     const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
-    occ.get(value).push({ file, line: line + 1, ctx });
+    occ.get(value).push({ file, line: line + 1, ctx, owner });
+  };
+  const ownerName = (node) => {
+    for (let p = node.parent; p; p = p.parent) {
+      if ((ts.isEnumDeclaration(p) || ts.isTypeAliasDeclaration(p) || ts.isInterfaceDeclaration(p)) && p.name) return p.name.text;
+      if (ts.isPropertySignature(p) && p.name && ts.isIdentifier(p.name)) return p.name.text;
+    }
+    return undefined;
   };
   for (const file of files) {
     const rel = path.relative(root, file);
     let sf;
     try { sf = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true); } catch { continue; }
     const visit = (node) => {
-      if (ts.isLiteralTypeNode(node) && node.literal && ts.isStringLiteral(node.literal)) {
-        add(node.literal.text, rel, node.literal, sf, 'literalType');
-      } else if (ts.isEnumMember(node) && node.initializer && ts.isStringLiteral(node.initializer)) {
-        add(node.initializer.text, rel, node.initializer, sf, 'enumMember');
+      if (ts.isStringLiteral(node)) {
+        const p = node.parent;
+        if (p && ts.isLiteralTypeNode(p)) add(node.text, rel, node, sf, 'literalType', ownerName(node));
+        else if (p && ts.isEnumMember(p) && p.initializer === node) add(node.text, rel, node, sf, 'enumMember', ownerName(node));
+        else add(node.text, rel, node, sf, 'expr');
       }
       ts.forEachChild(node, visit);
     };
@@ -299,6 +339,8 @@ function extractLiteralValues(ts, files, root) {
   }
   return occ;
 }
+
+const ENUM_SHAPE = /^[A-Z][A-Z0-9_.]{3,}$/; // SCREAMING_SNAKE / DOTTED, length >= 4
 
 // ---------- Damerau-Levenshtein (capped) ----------
 function dl(a, b) {
@@ -315,7 +357,6 @@ function dl(a, b) {
   return d[al][bl];
 }
 
-const PROP_KINDS = new Set(['propRead', 'propAssign', 'objectKey', 'shorthandKey', 'destructure']);
 const DANGEROUS_KINDS = new Set(['propRead', 'propAssign', 'objectKey']);
 
 function detectTypos(usage, occ, opts, schemaProps, ignore) {
@@ -337,8 +378,6 @@ function detectTypos(usage, occ, opts, schemaProps, ignore) {
     }
     if (!best) continue;
     const kinds = (occ.get(a.name) || []).map((o) => o.kind);
-    const isProp = kinds.some((k) => DANGEROUS_KINDS.has(k)) ||
-      (kinds.every((k) => k === 'destructure') && false); // destructure-only counted as var below
     const dangerous = kinds.some((k) => DANGEROUS_KINDS.has(k));
     const primary = (occ.get(a.name) || []).find((o) => DANGEROUS_KINDS.has(o.kind)) || (occ.get(a.name) || [])[0] || {};
     candidates.push({
@@ -366,18 +405,21 @@ function detectWriteOnly(usage, funcValued, occ, ignore) {
   return out;
 }
 
+const TYPE_CTX = new Set(['literalType', 'enumMember']);
+
 // Value-typo detection. A suspect string value declared in a literal type / enum
 // member that is NOT in the canonical value vocab but is edit-distance 1 from a
 // value that IS. The canonical vocab (schema enums + const values) is treated as
 // authoritative, so — unlike property typos — no frequency ratio is required: a
 // near-miss of a canonical value is high-confidence regardless of how often it
 // appears (a typo'd union member often appears exactly once).
-function detectValueTypos(valueOcc, canonicalValues, ignore, allow) {
+function detectValueTypos(stringOcc, canonicalValues, ignore, allow) {
   if (!canonicalValues || !canonicalValues.size) return [];
   const canon = [...canonicalValues].filter((v) => v.length >= 4);
   const out = [];
-  for (const [value, occs] of valueOcc) {
-    if (value.length < 4) continue;
+  for (const [value, all] of stringOcc) {
+    const occs = all.filter((o) => TYPE_CTX.has(o.ctx));
+    if (!occs.length || value.length < 4) continue;
     if (canonicalValues.has(value)) continue; // declared value matches the vocab — fine
     if (ignore.has(value) || allow.has(value)) continue;
     let best = null;
@@ -393,6 +435,181 @@ function detectValueTypos(valueOcc, canonicalValues, ignore, allow) {
       at: `${primary.file}:${primary.line}`,
       occurrences: occs.map((o) => `${o.file}:${o.line}`),
     });
+  }
+  out.sort((a, b) => a.suspect.localeCompare(b.suspect));
+  return out;
+}
+
+// (A) Expression-value typos. A string literal in EXPRESSION position (assignment,
+// comparison, object value, arg) that is enum-shaped, not canonical, and edit-distance
+// 1 from an enum-shaped canonical value. This is the class that hid
+// `draftState.status = 'COMPLETE'` from every other pass: it is neither a property
+// name nor a literal-type node, just a bare string in code. Restricting BOTH the
+// suspect and the target to ENUM_SHAPE keeps prose/message/camelCase strings out.
+function detectExpressionValueTypos(stringOcc, canonicalValues, ignore, allow, alreadyFlagged) {
+  if (!canonicalValues || !canonicalValues.size) return [];
+  const targets = [...canonicalValues].filter((v) => ENUM_SHAPE.test(v));
+  const out = [];
+  for (const [value, all] of stringOcc) {
+    if (!ENUM_SHAPE.test(value) || canonicalValues.has(value)) continue;
+    if (ignore.has(value) || allow.has(value) || alreadyFlagged.has(value)) continue;
+    const occs = all.filter((o) => o.ctx === 'expr');
+    if (!occs.length) continue;
+    let best = null;
+    for (const c of targets) {
+      if (c === value) { best = null; break; }
+      if (dl(value, c) === 1 && (!best || c < best)) best = c;
+    }
+    if (!best) continue;
+    const primary = occs[0] || {};
+    out.push({
+      suspect: value, canonical: best, count: occs.length,
+      at: `${primary.file}:${primary.line}`,
+      occurrences: occs.map((o) => `${o.file}:${o.line}`),
+    });
+  }
+  out.sort((a, b) => a.suspect.localeCompare(b.suspect));
+  return out;
+}
+
+// (B) Orphan / dead union values. A value declared in a literal type or enum member
+// that no code ever PRODUCES (zero expression-position occurrences). Informational:
+// a shared type library legitimately declares values populated only by external data
+// (e.g. `drawStatus` set by an ingest pipeline), so "no in-repo producer" is a lead,
+// not a verdict. Most useful in application repos and for spotting aspirational enums.
+function detectOrphanValues(stringOcc, ignore) {
+  const out = [];
+  for (const [value, all] of stringOcc) {
+    if (value.length < 4 || ignore.has(value)) continue;
+    const decls = all.filter((o) => TYPE_CTX.has(o.ctx));
+    if (!decls.length) continue;
+    if (all.some((o) => o.ctx === 'expr')) continue; // produced somewhere → not orphan
+    const owners = [...new Set(decls.map((o) => o.owner).filter(Boolean))];
+    const primary = decls[0];
+    out.push({ value, owners, ctx: [...new Set(decls.map((o) => o.ctx))].join(','), at: `${primary.file}:${primary.line}` });
+  }
+  out.sort((a, b) => (a.owners[0] || '').localeCompare(b.owners[0] || '') || a.value.localeCompare(b.value));
+  return out;
+}
+
+// (C) Cross-enum consistency. Two canonical, enum-shaped values that are edit-distance
+// 1 of each other AND come from DIFFERENT origins (disjoint provenance) — a strong hint
+// that one concept has two spellings (COMPLETE in the draw schema vs COMPLETED for
+// matchUps). Same-origin near-neighbours (deliberate singular/plural in one const file)
+// are excluded by the disjoint-provenance test. Informational / review list.
+function detectCrossEnumPairs(canonicalProv, ignore, allow) {
+  const vals = [...canonicalProv.keys()].filter((v) => ENUM_SHAPE.test(v)).sort();
+  const out = [];
+  for (let i = 0; i < vals.length; i++) {
+    for (let j = i + 1; j < vals.length; j++) {
+      const a = vals[i], b = vals[j];
+      if (Math.abs(a.length - b.length) > 1) continue;
+      if (ignore.has(a) || ignore.has(b) || allow.has(a) || allow.has(b)) continue;
+      if (dl(a, b) !== 1) continue;
+      const sa = canonicalProv.get(a), sb = canonicalProv.get(b);
+      const disjoint = ![...sa].some((s) => sb.has(s));
+      if (!disjoint) continue;
+      out.push({ a, b, sourcesA: [...sa], sourcesB: [...sb] });
+    }
+  }
+  return out;
+}
+
+// (D) Reverse value schema-divergence. Schema `enum` values that appear NOWHERE in the
+// scanned code (no literal type, enum member, or expression). Either a dead schema
+// entry or a value only ever supplied by external data — worth a look when trimming or
+// reconciling the published contract. Informational.
+function detectDeadSchemaValues(schemaProv, stringOcc, ignore) {
+  if (!schemaProv || !schemaProv.size) return [];
+  const out = [];
+  for (const [value, sources] of schemaProv) {
+    if (value.length < 3 || ignore.has(value)) continue;
+    if (stringOcc.has(value)) continue; // referenced somewhere in code
+    out.push({ value, sources: [...sources] });
+  }
+  out.sort((a, b) => a.value.localeCompare(b.value));
+  return out;
+}
+
+// (E) Key/value mismatch in self-mapping enum objects. Object literals of the form
+// `{ FOO: 'FOO', BAR: 'BAR', … }` — the shape behind `export const X = {…} as const;
+// type T = keyof typeof X` — are declared so each KEY equals its string VALUE. A KEY
+// that differs from its own VALUE, especially by CASE alone (`CURTIS_cONSOLATION:
+// 'CURTIS_CONSOLATION'`), poisons the `keyof typeof` union with a member no producer
+// emits. To keep precision high we only inspect objects that are actually self-mapping
+// enums (>= MIN_SELFMAP identical key/value pairs), then within them flag a key that
+// (a) matches its value case-insensitively but not exactly — a pure capitalization
+// typo, the highest-confidence class — or (b) is enum-shaped and edit-distance 1 from
+// its value. Keys equal to their value, or far from it (a deliberate short-key → long-
+// value map), are never flagged. Config keys use the same allow/ignore lists as #1.
+const MIN_SELFMAP = 2;
+function keyText(ts, name) {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text;
+  return null;
+}
+function detectKeyValueMismatch(ts, files, root, ignore, allow) {
+  const out = [];
+  const norm = (s) => s.replace(/[^a-z0-9]/gi, '').toUpperCase();
+  // Given self-mapping key/value pairs, flag any key that differs from its own value
+  // by case alone (highest-confidence typo), by case+separator (`NETcORD`/`NET_CORD` —
+  // edit-distance 2, missed by both the case-only and edit-distance-1 tests), or is
+  // enum-shaped edit-distance 1. When the DEVIATIONS OUTNUMBER the exact self-maps the
+  // deviation is a systemic convention (e.g. an all-PascalCase country-code enum), not a
+  // set of typos — collapse it to a single advisory so it can't drown out lone outliers.
+  const flag = (pairs, sf, rel, container) => {
+    const selfMap = pairs.filter((p) => p.key === p.value).length;
+    if (selfMap < MIN_SELFMAP) return;
+    const hits = [];
+    for (const p of pairs) {
+      if (p.key === p.value || ignore.has(p.key) || allow.has(p.key)) continue;
+      const caseOnly = p.key.toUpperCase() === p.value.toUpperCase();
+      const sepCase = !caseOnly && norm(p.key) === norm(p.value);
+      const near = ENUM_SHAPE.test(p.value) && dl(p.key, p.value) === 1;
+      if (!caseOnly && !sepCase && !near) continue;
+      const { line } = sf.getLineAndCharacterOfPosition(p.nameNode.getStart(sf));
+      const klass = caseOnly ? 'case' : sepCase ? 'sep' : 'near';
+      hits.push({ suspect: p.key, canonical: p.value, klass, at: `${rel}:${line + 1}`, container });
+    }
+    if (!hits.length) return;
+    if (hits.length > selfMap) {
+      out.push({ suspect: container, canonical: `${hits.length} of ${pairs.length} members`, klass: 'systemic', at: hits[0].at, container, systemic: true });
+    } else {
+      out.push(...hits);
+    }
+  };
+  for (const file of files) {
+    const rel = path.relative(root, file);
+    let sf;
+    try { sf = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true); } catch { continue; }
+    const visit = (node) => {
+      // (a) `export const X = { FOO: 'FOO', … }` object-literal self-maps.
+      if (ts.isObjectLiteralExpression(node)) {
+        const pairs = [];
+        for (const prop of node.properties) {
+          if (!ts.isPropertyAssignment(prop) || !prop.initializer || !ts.isStringLiteral(prop.initializer)) continue;
+          const key = keyText(ts, prop.name);
+          if (key !== null) pairs.push({ key, value: prop.initializer.text, nameNode: prop.name });
+        }
+        // Name the container from the enclosing `const X = {…}` when present, else anonymous.
+        const owner = node.parent && ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name)
+          ? node.parent.name.text : '(object literal)';
+        flag(pairs, sf, rel, owner);
+      }
+      // (b) `export enum X { FOO = 'FOO', … }` string-enum declarations. Same class of
+      // bug (key poisons the `keyof typeof X` union), different AST node — this branch
+      // is why WinReasonEnum.NETcORD / BallTypeEnum.Stage1Green slipped past pass #5.
+      if (ts.isEnumDeclaration(node)) {
+        const pairs = [];
+        for (const member of node.members) {
+          if (!member.initializer || !ts.isStringLiteral(member.initializer)) continue;
+          const key = keyText(ts, member.name);
+          if (key !== null) pairs.push({ key, value: member.initializer.text, nameNode: member.name });
+        }
+        flag(pairs, sf, rel, node.name.text);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(sf);
   }
   out.sort((a, b) => a.suspect.localeCompare(b.suspect));
   return out;
@@ -415,6 +632,7 @@ async function main() {
     ratio: cli.ratio ?? cfg.ratio ?? 5,
     maxSuspect: cli.maxSuspect ?? cfg.maxSuspect ?? 3,
     writeOnly: cli.writeOnly ?? false,
+    extended: cli.extended ?? cfg.extended ?? false,
     json: cli.json,
     ci: cli.ci ?? false,
     quiet: cli.quiet ?? false,
@@ -441,16 +659,29 @@ async function main() {
 
   const { usage, funcValued, occ } = extract(ts, files, root);
   const typos = detectTypos(usage, occ, opts, canonical, opts.ignore);
+  const keyValueMismatch = detectKeyValueMismatch(ts, files, root, opts.ignore, allow);
   const writeOnly = opts.writeOnly ? detectWriteOnly(usage, funcValued, occ, opts.ignore) : [];
 
-  // Value-typo pass: canonical string values = schema enums + const-module values.
+  // Value passes: canonical string values = schema enums + const-module values, with
+  // provenance so the cross-enum pass can tell different origins apart.
   const schemaValues = opts.schema.length ? collectSchemaEnumValues(opts.schema, root) : null;
   const constantValues = opts.constants.length ? collectConstantValues(ts, opts.constants, root, excludeRe) : null;
-  const canonicalValues = schemaValues || constantValues
-    ? new Set([...(schemaValues || []), ...(constantValues || [])])
-    : null;
-  const valueOcc = extractLiteralValues(ts, files, root);
-  const valueTypos = detectValueTypos(valueOcc, canonicalValues, opts.ignore, allow);
+  let canonicalProv = null, canonicalValues = null;
+  if (schemaValues || constantValues) {
+    canonicalProv = new Map();
+    for (const src of [schemaValues, constantValues]) {
+      if (!src) continue;
+      for (const [v, sources] of src) for (const s of sources) addProv(canonicalProv, v, s);
+    }
+    canonicalValues = new Set(canonicalProv.keys());
+  }
+  const stringOcc = extractStringValues(ts, files, root);
+  const valueTypos = detectValueTypos(stringOcc, canonicalValues, opts.ignore, allow);
+  const flagged = new Set(valueTypos.map((t) => t.suspect));
+  const exprValueTypos = detectExpressionValueTypos(stringOcc, canonicalValues, opts.ignore, allow, flagged);
+  const orphanValues = opts.extended ? detectOrphanValues(stringOcc, opts.ignore) : [];
+  const crossEnum = opts.extended && canonicalProv ? detectCrossEnumPairs(canonicalProv, opts.ignore, allow) : [];
+  const deadSchema = opts.extended && schemaValues ? detectDeadSchemaValues(schemaValues, stringOcc, opts.ignore) : [];
 
   const dictionary = [...usage.entries()]
     .map(([name, e]) => ({ name, ...e, inSchema: canonical ? canonical.has(name) : null }))
@@ -463,21 +694,28 @@ async function main() {
       root, files: files.length, distinctAttributes: usage.size,
       schemaProps: schemaProps ? schemaProps.size : 0, typeProps: typeProps ? typeProps.size : 0,
       canonicalValues: canonicalValues ? canonicalValues.size : 0,
-      typoCandidates: typos, valueTypoCandidates: valueTypos, writeOnly,
+      typoCandidates: typos, keyValueMismatchCandidates: keyValueMismatch,
+      valueTypoCandidates: valueTypos,
+      expressionValueTypoCandidates: exprValueTypos,
+      orphanValues, crossEnumPairs: crossEnum, deadSchemaValues: deadSchema,
+      writeOnly,
     }, null, 2));
   }
 
   const propCandidates = typos.filter((t) => t.dangerous);
   const varCandidates = typos.filter((t) => !t.dangerous);
   const unallowedProp = propCandidates.filter((t) => !allow.has(t.suspect));
-  const unallowedValue = valueTypos.filter((t) => !allow.has(t.suspect));
+  const unallowedValue = [...valueTypos, ...exprValueTypos].filter((t) => !allow.has(t.suspect));
+  const unallowedKeyValue = keyValueMismatch.filter((t) => !allow.has(t.suspect));
 
   if (!opts.quiet) {
     console.log(`\nattr-audit  ${path.basename(root)}`);
     console.log(`  files: ${files.length}  |  distinct attributes: ${usage.size}` +
       (canonical ? `  |  canonical vocab: ${canonical.size}` : ''));
     console.log(`  typo candidates: ${typos.length}  (PROP/dangerous: ${propCandidates.length}, var/cosmetic: ${varCandidates.length})`);
-    if (canonicalValues) console.log(`  value vocab: ${canonicalValues.size}  |  VALUE typo candidates: ${valueTypos.length}`);
+    console.log(`  key/value mismatch candidates: ${keyValueMismatch.length}  (self-mapping enum key ≠ its own value)`);
+    if (canonicalValues) console.log(`  value vocab: ${canonicalValues.size}  |  VALUE typo candidates: ${valueTypos.length} (type/enum) + ${exprValueTypos.length} (expression)`);
+    if (opts.extended && canonicalValues) console.log(`  orphan values: ${orphanValues.length}  |  cross-enum near-pairs: ${crossEnum.length}  |  dead schema values: ${deadSchema.length}`);
     if (opts.writeOnly) console.log(`  write-only (low precision): ${writeOnly.length}`);
     console.log(`\n  === PROP-class typo candidates (dead-branch / divergence risk) ===`);
     if (!propCandidates.length) console.log('    (none)');
@@ -486,6 +724,13 @@ async function main() {
       const sch = t.canonicalInSchema ? ' {canon∈schema}' : '';
       console.log(`    ${t.suspect} (x${t.total} w${t.writes}/r${t.reads}) ~ ${t.canonical} (x${t.canonicalTotal})${sch}  @ ${t.at} ${t.kind || ''}${flag}`);
     }
+    console.log(`\n  === KEY/VALUE mismatch candidates (self-mapping enum key ≠ its own value — case/near typo) ===`);
+    if (!keyValueMismatch.length) console.log('    (none)');
+    for (const t of keyValueMismatch) {
+      const flag = allow.has(t.suspect) ? ' [allow]' : '';
+      if (t.systemic) console.log(`    ${t.suspect}: ${t.canonical} deviate from their values (systemic — review as a group)  @ ${t.at}${flag}`);
+      else console.log(`    ${t.suspect}: '${t.canonical}'  (${t.klass})  @ ${t.at}${flag}`);
+    }
     if (canonicalValues) {
       console.log(`\n  === ENUM / LITERAL-VALUE typo candidates (type admits a value nothing produces) ===`);
       if (!valueTypos.length) console.log('    (none)');
@@ -493,6 +738,32 @@ async function main() {
         const flag = allow.has(t.suspect) ? ' [allow]' : '';
         console.log(`    '${t.suspect}' ~ '${t.canonical}'  (${t.ctx}, x${t.count})  @ ${t.at}${flag}`);
       }
+      console.log(`\n  === EXPRESSION-VALUE typo candidates (bare string literal near an enum value) ===`);
+      if (!exprValueTypos.length) console.log('    (none)');
+      for (const t of exprValueTypos) {
+        const flag = allow.has(t.suspect) ? ' [allow]' : '';
+        console.log(`    '${t.suspect}' ~ '${t.canonical}'  (expr, x${t.count})  @ ${t.at}${flag}`);
+      }
+    }
+    if (opts.extended && canonicalValues) {
+      console.log(`\n  === orphan values (declared in a type/enum, never produced in code) [informational] ===`);
+      if (!orphanValues.length) console.log('    (none)');
+      for (const o of orphanValues.slice(0, 40)) {
+        console.log(`    '${o.value}'  ${o.owners.length ? `in ${o.owners.join('/')}` : ''}  (${o.ctx})  @ ${o.at}`);
+      }
+      if (orphanValues.length > 40) console.log(`    … ${orphanValues.length - 40} more (see --json)`);
+      console.log(`\n  === cross-enum near-pairs (one concept, two spellings across origins) [informational] ===`);
+      if (!crossEnum.length) console.log('    (none)');
+      for (const p of crossEnum.slice(0, 40)) {
+        console.log(`    '${p.a}' ~ '${p.b}'   [${p.sourcesA.join(',')}] vs [${p.sourcesB.join(',')}]`);
+      }
+      if (crossEnum.length > 40) console.log(`    … ${crossEnum.length - 40} more (see --json)`);
+      console.log(`\n  === dead schema values (schema enum value with no code reference) [informational] ===`);
+      if (!deadSchema.length) console.log('    (none)');
+      for (const d of deadSchema.slice(0, 40)) {
+        console.log(`    '${d.value}'   [${d.sources.join(',')}]`);
+      }
+      if (deadSchema.length > 40) console.log(`    … ${deadSchema.length - 40} more (see --json)`);
     }
     if (varCandidates.length) {
       console.log(`\n  === var/cosmetic candidates (local-variable misspellings) ===`);
@@ -504,10 +775,14 @@ async function main() {
     if (opts.json) console.log(`\n  JSON written to ${opts.json}/`);
   }
 
-  if (opts.ci && (unallowedProp.length || unallowedValue.length)) {
+  if (opts.ci && (unallowedProp.length || unallowedValue.length || unallowedKeyValue.length)) {
     if (unallowedProp.length) {
       console.error(`\nattr-audit: ${unallowedProp.length} PROP-class typo candidate(s) not in allow-list:`);
       for (const t of unallowedProp) console.error(`  - ${t.suspect} ~ ${t.canonical}  @ ${t.at}`);
+    }
+    if (unallowedKeyValue.length) {
+      console.error(`\nattr-audit: ${unallowedKeyValue.length} KEY/VALUE mismatch candidate(s) not in allow-list:`);
+      for (const t of unallowedKeyValue) console.error(`  - ${t.suspect}: '${t.canonical}' (${t.klass})  @ ${t.at}`);
     }
     if (unallowedValue.length) {
       console.error(`\nattr-audit: ${unallowedValue.length} ENUM/LITERAL-VALUE typo candidate(s) not in allow-list:`);
