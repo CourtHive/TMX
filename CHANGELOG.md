@@ -1,5 +1,23 @@
 # Changelog
 
+## [8.64.0](https://github.com/CourtHive/TMX/compare/v8.63.1...v8.64.0) (2026-11-26)
+
+
+### Features
+
+* **scorecard:** record how a level team score's winner was decided ([#2147](https://github.com/CourtHive/TMX/issues/2147)) ([87945ff](https://github.com/CourtHive/TMX/commit/87945ff9d4737a9283ee4c9541daf5075609fc2b))
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.24.0 ([#2154](https://github.com/CourtHive/TMX/issues/2154)) ([5762a6d](https://github.com/CourtHive/TMX/commit/5762a6d5fb7e548d2383bd689e45f7030efb11cc))
+* **deps:** update tods-competition-factory to 7.50.0 ([#2155](https://github.com/CourtHive/TMX/issues/2155)) ([f542eaf](https://github.com/CourtHive/TMX/commit/f542eafd0a4784925ff12afaa0ee7d9342a7f097))
+
+
+### Documentation
+
+* keep the agent guide self-contained and ignore CLAUDE.local.md ([#2150](https://github.com/CourtHive/TMX/issues/2150)) ([f7ba0b9](https://github.com/CourtHive/TMX/commit/f7ba0b94976c48438cee143da5f265cc6a16c937))
+
 ## [8.63.1](https://github.com/CourtHive/TMX/compare/v8.63.0...v8.63.1) (2026-11-25)
 
 
