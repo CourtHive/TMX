@@ -64,6 +64,8 @@ let builderBody: HTMLElement | null = null;
 let builderHeader: HTMLElement | null = null;
 let emptyEl: HTMLElement | null = null;
 
+// Keyed by the LOWERCASED route segment (the chips navigate to `view.key.toLowerCase()` and the entry point
+// lowercases `templateView` before the lookup), so `tieformats` → 'tieFormats' is deliberate, not a typo.
 const VALID_VIEWS: Record<string, TemplateView> = {
   topologies: 'topologies',
   tieformats: 'tieFormats',
