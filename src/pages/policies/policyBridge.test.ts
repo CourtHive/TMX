@@ -12,10 +12,10 @@ const { POLICY_TYPE_RANKING_POINTS } = policyConstants;
 
 const RANKING_PRESETS = [
   ['builtin-ranking-points-basic', 'POLICY_RANKING_POINTS_BASIC'],
-  ['builtin-ranking-points-atp', 'POLICY_RANKING_POINTS_ATP'],
-  ['builtin-ranking-points-wta', 'POLICY_RANKING_POINTS_WTA'],
-  ['builtin-ranking-points-itf-wtt', 'POLICY_RANKING_POINTS_ITF_WTT'],
-  ['builtin-ranking-points-itf-junior', 'POLICY_RANKING_POINTS_ITF_JUNIOR'],
+  ['builtin-ranking-points-atp', 'TEMPLATE_RANKING_POINTS_ATP'],
+  ['builtin-ranking-points-wta', 'TEMPLATE_RANKING_POINTS_WTA'],
+  ['builtin-ranking-points-itf-wtt', 'TEMPLATE_RANKING_POINTS_ITF_WTT'],
+  ['builtin-ranking-points-itf-junior', 'TEMPLATE_RANKING_POINTS_ITF_JUNIOR'],
 ] as const;
 
 /**

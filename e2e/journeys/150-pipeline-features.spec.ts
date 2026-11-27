@@ -9,7 +9,7 @@
  * the same path every score in TMX takes.
  */
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect, type Page } from '@playwright/test';
 import { enterScore } from '../helpers/enterScore';
@@ -36,7 +36,7 @@ async function seed(page: Page, policy?: 'USTA'): Promise<string> {
       await dev.load({ tournamentRecord: factory.tournamentEngine.getTournament().tournamentRecord });
       return tournamentId;
     },
-    { policy, scoringPolicy: POLICY_SCORING_USTA },
+    { policy, scoringPolicy: TEMPLATE_SCORING_USTA },
   );
 }
 

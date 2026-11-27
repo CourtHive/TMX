@@ -1,5 +1,5 @@
 import { factoryConstants, mocksEngine, policyConstants } from 'tods-competition-factory';
-import { POLICY_SEEDING_ITF } from '@courthive/competition-catalogue';
+import { TEMPLATE_SEEDING_ITF } from '@courthive/competition-catalogue';
 import { tournamentEngine } from 'services/factory/engine';
 import { describe, expect, it } from 'vitest';
 
@@ -7,9 +7,9 @@ import { getAdditionalSeedContext } from './additionalSeedContext';
 
 const { POLICY_TYPE_SEEDING } = policyConstants;
 const { seedingBasisConstants } = factoryConstants;
-const ITF = POLICY_SEEDING_ITF;
+const ITF = TEMPLATE_SEEDING_ITF;
 
-// POLICY_SEEDING_ITF yields 8 seeds at drawSize 32 with 24+ participants. An `additionalSeeds`
+// TEMPLATE_SEEDING_ITF yields 8 seeds at drawSize 32 with 24+ participants. An `additionalSeeds`
 // allowance lets a governing body permit seeds ABOVE that, so a protected ranking is seeded
 // alongside the eight rather than in place of one of them.
 const withAllowance = (maxCount: number, bases?: string[]) => ({

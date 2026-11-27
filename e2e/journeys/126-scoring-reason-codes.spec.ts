@@ -1,5 +1,5 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
@@ -72,7 +72,7 @@ async function seedTournament(page: Page, withPolicy: boolean): Promise<Seeded> 
 
       return { tournamentId: tournamentRecord.tournamentId, matchUpId: matchUp.matchUpId };
     },
-    { withPolicy, policyType: SCORING_POLICY_TYPE, scoringPolicy: POLICY_SCORING_USTA[SCORING_POLICY_TYPE] },
+    { withPolicy, policyType: SCORING_POLICY_TYPE, scoringPolicy: TEMPLATE_SCORING_USTA[SCORING_POLICY_TYPE] },
   );
 }
 

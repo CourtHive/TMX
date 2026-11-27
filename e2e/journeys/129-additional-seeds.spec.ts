@@ -18,7 +18,7 @@
  * @see factory documentation/docs/concepts/additional-seeds.md
  */
 import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
-import { POLICY_SEEDING_ITF } from '@courthive/competition-catalogue';
+import { TEMPLATE_SEEDING_ITF } from '@courthive/competition-catalogue';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
@@ -60,7 +60,7 @@ async function attachAllowancePolicy(page: any, maxCount: number, bases?: string
         },
       });
     },
-    { maxCount, bases, base: POLICY_SEEDING_ITF.seeding },
+    { maxCount, bases, base: TEMPLATE_SEEDING_ITF.seeding },
   );
 }
 
@@ -107,7 +107,7 @@ async function seedWithAllowance(page: any, tournamentId: string): Promise<strin
       });
       return dev.load(tournamentRecord).then(() => tournamentRecord.tournamentId as string);
     },
-    { tournamentId, base: POLICY_SEEDING_ITF.seeding },
+    { tournamentId, base: TEMPLATE_SEEDING_ITF.seeding },
   );
 }
 
@@ -210,7 +210,7 @@ test.describe('Journey 129 — additional seeds', () => {
             )
             .filter(Boolean);
         },
-        { seedsCount, base: POLICY_SEEDING_ITF.seeding },
+        { seedsCount, base: TEMPLATE_SEEDING_ITF.seeding },
       );
 
     const baseline = await positionsFor(8);
