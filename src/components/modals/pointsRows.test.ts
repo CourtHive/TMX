@@ -1,8 +1,9 @@
-import { fixtures, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { POLICY_RANKING_POINTS_ITF_JUNIOR_2025 } from '@courthive/competition-catalogue';
 import { pointsRowsForEvent, pointsTotalLabel } from './pointsRows';
 import { describe, expect, it } from 'vitest';
 
-const POLICY = (fixtures.policies as any).POLICY_RANKING_POINTS_ITF_JUNIOR_2025;
+const POLICY = POLICY_RANKING_POINTS_ITF_JUNIOR_2025;
 
 /** A completed doubles event, and the ranking-point awards the factory makes for it. */
 function doublesEvent() {

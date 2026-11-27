@@ -2,10 +2,12 @@
  * Utilities for ranking policy introspection — detect level requirements,
  * extract available levels, and build policy option lists.
  */
+import { policies as cataloguePolicies } from '@courthive/competition-catalogue';
 import { fixtures } from 'tods-competition-factory';
 import { escapeHtml } from 'utilities/escapeHtml';
 
-const { policies: factoryPolicies } = fixtures;
+// the factory keeps its provider-neutral presets; the organisation presets come from the catalogue
+const rankingPolicies = { ...fixtures.policies, ...cataloguePolicies };
 
 export type PolicyOption = {
   id: string;
@@ -109,7 +111,7 @@ export function getAvailablePolicies(): PolicyOption[] {
   const options: PolicyOption[] = [];
 
   for (const [key, fallbackLabel] of POLICY_KEYS) {
-    const data = (factoryPolicies as any)[key];
+    const data = (rankingPolicies as any)[key];
     if (!data) continue;
     const policy = data[Object.keys(data)[0]];
     const { requiresLevel, availableLevels } = analyzePolicyLevels(data);

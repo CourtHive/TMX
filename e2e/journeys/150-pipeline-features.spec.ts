@@ -9,6 +9,7 @@
  * the same path every score in TMX takes.
  */
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect, type Page } from '@playwright/test';
 import { enterScore } from '../helpers/enterScore';
@@ -19,22 +20,24 @@ const option = (key: string) => `${PANEL} select[data-pipeline-option="${key}"]`
 
 /** An 8-draw FIRST_MATCH_LOSER_CONSOLATION mock; `policy` attaches a scoring policy of the tournament's own. */
 async function seed(page: Page, policy?: 'USTA'): Promise<string> {
-  return page.evaluate(async (policy) => {
-    await dev.tmx2db.initDB();
-    const factory: any = dev.factory;
-    const tournamentId = `e2e-pipeline-features-${policy ?? 'plain'}`;
-    factory.mocksEngine.generateTournamentRecord({
-      tournamentAttributes: { tournamentId },
-      tournamentName: 'E2E Pipeline Features',
-      drawProfiles: [{ drawSize: 8, drawType: 'FIRST_MATCH_LOSER_CONSOLATION' }],
-      setState: true,
-      nonRandom: 1,
-    });
-    if (policy)
-      factory.tournamentEngine.attachPolicies({ policyDefinitions: factory.fixtures.policies.POLICY_SCORING_USTA });
-    await dev.load({ tournamentRecord: factory.tournamentEngine.getTournament().tournamentRecord });
-    return tournamentId;
-  }, policy);
+  return page.evaluate(
+    async ({ policy, scoringPolicy }) => {
+      await dev.tmx2db.initDB();
+      const factory: any = dev.factory;
+      const tournamentId = `e2e-pipeline-features-${policy ?? 'plain'}`;
+      factory.mocksEngine.generateTournamentRecord({
+        tournamentAttributes: { tournamentId },
+        tournamentName: 'E2E Pipeline Features',
+        drawProfiles: [{ drawSize: 8, drawType: 'FIRST_MATCH_LOSER_CONSOLATION' }],
+        setState: true,
+        nonRandom: 1,
+      });
+      if (policy) factory.tournamentEngine.attachPolicies({ policyDefinitions: scoringPolicy });
+      await dev.load({ tournamentRecord: factory.tournamentEngine.getTournament().tournamentRecord });
+      return tournamentId;
+    },
+    { policy, scoringPolicy: POLICY_SCORING_USTA },
+  );
 }
 
 /** Main round 1, position 1 — and the consolation matchUp its loser feeds. */

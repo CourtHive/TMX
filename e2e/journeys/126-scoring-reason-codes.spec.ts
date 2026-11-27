@@ -1,4 +1,5 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { POLICY_SCORING_USTA } from '@courthive/competition-catalogue';
 import { test, expect, type Page } from '@playwright/test';
 
 /**
@@ -9,7 +10,7 @@ import { test, expect, type Page } from '@playwright/test';
  * actually decides whether an operator ever meets it — TMX resolving a scoring policy for the
  * event and handing the vocabulary in.
  *
- * TMX ships NO built-in vocabulary by design (CA, 2026-09-20): the reason control exists only
+ * TMX ships NO built-in vocabulary by design: the reason control exists only
  * where a governing body's policy is attached. That makes "no control" the state almost every
  * tournament is in, and it is the state most likely to become permanent by accident — a resolver
  * that quietly returns undefined looks exactly like a tournament with no policy. So both halves
@@ -17,11 +18,11 @@ import { test, expect, type Page } from '@playwright/test';
  *
  *  - WITHOUT a policy, the control must be absent and the result must still submit.
  *  - WITH one attached, the control must offer the policy's own codes and the chosen code must
- *    reach `matchUp.matchUpStatusCodes`.
+ *    reach the retiring side's `matchUp.sideStatusCodes`.
  *
  * The second assertion is the one that matters most, because every layer beneath it can be green
- * while the code is dropped in transit: the engine has accepted `outcome.matchUpStatusCodes` for a
- * long time, and TMX was the one place that never sent it.
+ * while the code is dropped in transit: the engine accepts a side's reason in `outcome.sideStatusCodes`,
+ * and the dialog is what has to send it.
  */
 
 const SCORING_POLICY_TYPE = 'scoring';
@@ -40,18 +41,17 @@ const INJURY_CODE = 'RJ';
 type Seeded = { tournamentId: string; matchUpId: string };
 
 /**
- * Seed a tournament, optionally attaching a scoring policy that carries `matchUpStatusCodes`.
+ * Seed a tournament, optionally attaching a scoring policy that carries a `matchUpStatusCodes` vocabulary.
  *
- * The vocabulary comes from the factory fixture rather than being restated here — a hand-copied
- * vocabulary is how the scoring editor and the factory fixture drifted apart while both looked
+ * The vocabulary comes from the competition catalogue rather than being restated here — a hand-copied
+ * vocabulary is how the scoring editor and the shipped policy drifted apart while both looked
  * correct, and a journey asserting against its own copy would assert nothing about the real one.
  */
 async function seedTournament(page: Page, withPolicy: boolean): Promise<Seeded> {
   return page.evaluate(
-    async ({ withPolicy, policyType }) => {
+    async ({ withPolicy, policyType, scoringPolicy }) => {
       await dev.tmx2db.initDB();
 
-      const scoringPolicy = (dev.factory as any).fixtures.policies.POLICY_SCORING_USTA[policyType];
       const policyDefinitions = withPolicy ? { [policyType]: scoringPolicy } : undefined;
 
       const { tournamentRecord } = dev.factory.mocksEngine.generateTournamentRecord({
@@ -72,7 +72,7 @@ async function seedTournament(page: Page, withPolicy: boolean): Promise<Seeded> 
 
       return { tournamentId: tournamentRecord.tournamentId, matchUpId: matchUp.matchUpId };
     },
-    { withPolicy, policyType: SCORING_POLICY_TYPE },
+    { withPolicy, policyType: SCORING_POLICY_TYPE, scoringPolicy: POLICY_SCORING_USTA[SCORING_POLICY_TYPE] },
   );
 }
 
@@ -100,7 +100,7 @@ async function readStatusCodes(page: Page, matchUpId: string): Promise<any> {
     const m: any = (dev.factory.competitionEngine.allTournamentMatchUps({}).matchUps || []).find(
       (x: any) => x.matchUpId === id,
     );
-    return { matchUpStatus: m?.matchUpStatus, matchUpStatusCodes: m?.matchUpStatusCodes, winningSide: m?.winningSide };
+    return { matchUpStatus: m?.matchUpStatus, sideStatusCodes: m?.sideStatusCodes, winningSide: m?.winningSide };
   }, matchUpId);
 }
 
@@ -133,10 +133,8 @@ test.describe('journey 126 — scoring reason codes', () => {
       .toBe('RETIRED');
 
     const recorded = await readStatusCodes(page, matchUpId);
-    // The code may arrive as a bare string or wrapped as { code } — the factory rewraps string
-    // elements once propagation touches the matchUp, and both shapes are legitimate.
-    const codes = (recorded.matchUpStatusCodes ?? []).map((c: any) => (typeof c === 'string' ? c : c?.code));
-    expect(codes).toContain(INJURY_CODE);
+    // the reason is the retiring side's, keyed by its side number
+    expect(recorded.sideStatusCodes?.[RETIRING_SIDE]).toBe(INJURY_CODE);
     expect(recorded.winningSide).toBe(1);
   });
 
@@ -155,7 +153,6 @@ test.describe('journey 126 — scoring reason codes', () => {
       .toBe('RETIRED');
 
     const recorded = await readStatusCodes(page, matchUpId);
-    const codes = (recorded.matchUpStatusCodes ?? []).map((c: any) => (typeof c === 'string' ? c : c?.code));
-    expect(codes).not.toContain(INJURY_CODE);
+    expect(Object.values(recorded.sideStatusCodes ?? {})).not.toContain(INJURY_CODE);
   });
 });

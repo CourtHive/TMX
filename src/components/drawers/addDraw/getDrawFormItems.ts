@@ -14,7 +14,8 @@ import { providerConfig } from 'config/providerConfig';
 import { buildSeedCountOptions } from './seedCount';
 import { validators } from 'courthive-components';
 import { t, translate } from 'i18n';
-import { factoryConstants, drawDefinitionConstants, eventConstants, policyConstants } from 'tods-competition-factory';
+import { drawDefinitionConstants, eventConstants, policyConstants } from 'tods-competition-factory';
+import { tieFormatConstants } from '@courthive/competition-catalogue';
 
 import POLICY_SCORING from 'assets/policies/scoringPolicy';
 import {
@@ -52,7 +53,7 @@ import {
 } from 'constants/tmxConstants';
 
 const { MAIN, QUALIFYING, ROUND_ROBIN, ROUND_ROBIN_WITH_PLAYOFF, SINGLE_ELIMINATION } = drawDefinitionConstants;
-const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = factoryConstants.tieFormatConstants;
+const { DOMINANT_DUO, COLLEGE_DEFAULT, LAVER_CUP } = tieFormatConstants;
 const { POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING } = policyConstants;
 const { TEAM } = eventConstants;
 

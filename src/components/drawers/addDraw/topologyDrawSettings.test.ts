@@ -1,4 +1,5 @@
 import { applyTopologyDrawSettings, topologyDrawSettings } from './topologyDrawSettings';
+import { resolveTieFormat, tieFormatConstants } from '@courthive/competition-catalogue';
 import { drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -101,7 +102,18 @@ describe('topologyDrawSettings', () => {
       main,
     });
     expect(settings.matchUpFormat).toBeUndefined();
-    expect(settings.tieFormatName).toBeUndefined();
+    expect(settings.tieFormat).toBeUndefined();
+  });
+
+  it('passes a named scorecard as its tieFormat object, never as a name', () => {
+    const settings = topologyDrawSettings({
+      values: { creation: AUTOMATED, tieFormatName: tieFormatConstants.DOMINANT_DUO },
+      eventId,
+      main,
+    });
+    expect(settings).not.toHaveProperty('tieFormatName');
+    expect(settings.tieFormat).toEqual(resolveTieFormat(tieFormatConstants.DOMINANT_DUO));
+    expect(settings.tieFormat?.collectionDefinitions?.length).toBeGreaterThan(0);
   });
 });
 

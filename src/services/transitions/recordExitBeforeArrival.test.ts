@@ -109,11 +109,15 @@ describe('recordExitBeforeArrival', () => {
     expect(methods[0].params).toEqual({
       drawId: 'd1',
       matchUpId: 'm1',
-      outcome: { matchUpStatus: 'TO_BE_PLAYED', score: { scoreStringSide1: '', scoreStringSide2: '' } },
+      outcome: {
+        matchUpStatus: 'TO_BE_PLAYED',
+        score: { scoreStringSide1: '', scoreStringSide2: '' },
+        clearStatusCodes: true,
+      },
     });
   });
 
-  it('submits the payload with the chosen status and reason, awarding the empty side', () => {
+  it('submits the payload with the chosen status and the reason keyed to the exiting side, awarding the empty side', () => {
     recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
     choose(DEFAULTED_DM);
     const [{ methods }] = mutationRequestMock.mock.calls[0];
@@ -123,16 +127,16 @@ describe('recordExitBeforeArrival', () => {
         params: {
           drawId: 'd1',
           matchUpId: 'm1',
-          outcome: { matchUpStatus: DEFAULTED, winningSide: 2, matchUpStatusCodes: ['DM'] },
+          outcome: { matchUpStatus: DEFAULTED, winningSide: 2, sideStatusCodes: { 1: 'DM' } },
         },
       },
     ]);
   });
 
-  it('sends no matchUpStatusCodes when no reason is chosen (an empty array would blank them)', () => {
+  it('clears the reasons explicitly when no reason is chosen, so a changed exit keeps none it no longer names', () => {
     recordExitBeforeArrival({ action: EXIT_ACTION, matchUp: MATCHUP });
     choose('WALKOVER');
     const [{ methods }] = mutationRequestMock.mock.calls[0];
-    expect(methods[0].params.outcome).toEqual({ matchUpStatus: 'WALKOVER', winningSide: 2 });
+    expect(methods[0].params.outcome).toEqual({ matchUpStatus: 'WALKOVER', winningSide: 2, clearStatusCodes: true });
   });
 });

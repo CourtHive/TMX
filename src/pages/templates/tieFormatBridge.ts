@@ -1,7 +1,5 @@
-import { fixtures } from 'tods-competition-factory';
+import { tieFormats as builtinFixtures } from '@courthive/competition-catalogue';
 import { tmx2db } from 'services/storage/tmx2db';
-
-const { tieFormats: builtinFixtures } = fixtures;
 
 export interface TieFormatCatalogItem {
   id: string;

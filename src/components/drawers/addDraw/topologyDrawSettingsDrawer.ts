@@ -1,5 +1,5 @@
 /**
- * The Configure draw drawer the topology builder's Generate opens (CA, 2026-11-17): the Add Draw drawer's settings
+ * The Configure draw drawer the topology builder's Generate opens: the Add Draw drawer's settings
  * that the topology does not already define — score format, seeding policy, seeds, creation and (TEAM) scorecard.
  * The draw's name, type, size and structures come from the canvas, so their fields are not offered again.
  *
@@ -22,6 +22,7 @@ import { t } from 'i18n';
 import { AUTOMATED, CUSTOM, MATCHUP_FORMAT, NONE, RIGHT, SEEDING_POLICY, SEEDS_COUNT } from 'constants/tmxConstants';
 
 const TIE_FORMAT_NAME = 'tieFormatName';
+const TEAM_EVENT = 'TEAM';
 
 function seedCountOptions({
   eventId,
@@ -94,7 +95,8 @@ export function openTopologyDrawSettings({
       seedingPolicy: inputs[SEEDING_POLICY]?.value,
       seedsCount: inputs[SEEDS_COUNT]?.value,
       creation: inputs[AUTOMATED]?.value,
-      tieFormatName: inputs[TIE_FORMAT_NAME]?.value,
+      // the scorecard field is hidden, and holds its default, for an event that is not TEAM
+      tieFormatName: event.eventType === TEAM_EVENT ? inputs[TIE_FORMAT_NAME]?.value : undefined,
     };
     const settings = topologyDrawSettings({ values, eventId, main });
     const withTieFormat = () => {

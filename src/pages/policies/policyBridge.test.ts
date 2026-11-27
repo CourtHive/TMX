@@ -1,3 +1,4 @@
+import { policies as cataloguePolicies } from '@courthive/competition-catalogue';
 import { fixtures, policyConstants } from 'tods-competition-factory';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -18,10 +19,12 @@ const RANKING_PRESETS = [
 ] as const;
 
 /**
- * The ranking-points presets are read from `fixtures.policies`, the only place the factory publishes them (the root
- * `fixtures` object has no POLICY_* members). A read from the wrong object yields `undefined` policyData silently,
- * and the catalogue offers an entry that holds nothing; these tests fail first if the factory stops shipping one.
+ * The ranking-points presets are read from the factory's `fixtures.policies` (its provider-neutral BASIC preset) and
+ * from the competition catalogue (the organisation presets). A read from the wrong object yields `undefined`
+ * policyData silently, and the catalogue offers an entry that holds nothing; these tests fail first if either source
+ * stops shipping one.
  */
+const presetSources = { ...fixtures.policies, ...cataloguePolicies };
 describe('policyBridge built-in ranking presets', () => {
   it('finds every ranking-points preset it lists', () => {
     const builtins = getBuiltinPolicies();
@@ -31,7 +34,7 @@ describe('policyBridge built-in ranking presets', () => {
       expect(item, id).toBeDefined();
       expect(item?.policyType).toEqual(POLICY_TYPE_RANKING_POINTS);
       expect(item?.policyData, id).toBeDefined();
-      expect(item?.policyData).toBe((fixtures.policies as any)[key][POLICY_TYPE_RANKING_POINTS]);
+      expect(item?.policyData).toBe((presetSources as any)[key][POLICY_TYPE_RANKING_POINTS]);
       const { awardProfiles } = (item?.policyData ?? {}) as { awardProfiles?: unknown[] };
       expect(awardProfiles?.length, id).toBeGreaterThan(0);
     }

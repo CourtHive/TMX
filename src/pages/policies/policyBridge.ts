@@ -1,4 +1,10 @@
 import { fixtures, policyConstants } from 'tods-competition-factory';
+import {
+  POLICY_RANKING_POINTS_ATP,
+  POLICY_RANKING_POINTS_ITF_JUNIOR,
+  POLICY_RANKING_POINTS_ITF_WTT,
+  POLICY_RANKING_POINTS_WTA,
+} from '@courthive/competition-catalogue';
 import { POLICY_SCHEDULING } from 'assets/policies/schedulingPolicy';
 import { POLICY_SCORING } from 'assets/policies/scoringPolicy';
 import { POLICY_SEEDING } from 'assets/policies/seedingPolicy';
@@ -8,15 +14,8 @@ import { tmx2db } from 'services/storage/tmx2db';
 const { POLICY_TYPE_SCHEDULING, POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING, POLICY_TYPE_RANKING_POINTS } =
   policyConstants;
 
-const {
-  policies: {
-    POLICY_RANKING_POINTS_ATP,
-    POLICY_RANKING_POINTS_BASIC,
-    POLICY_RANKING_POINTS_WTA,
-    POLICY_RANKING_POINTS_ITF_WTT,
-    POLICY_RANKING_POINTS_ITF_JUNIOR,
-  },
-} = fixtures;
+// the factory keeps its provider-neutral presets; the organisation presets come from the catalogue
+const { POLICY_RANKING_POINTS_BASIC } = fixtures.policies;
 
 // Federation-specific ranking policies (USTA Junior, Tennis Europe, LTA,
 // Tennis Canada, Tennis Australia, CTS) used to live here as built-in

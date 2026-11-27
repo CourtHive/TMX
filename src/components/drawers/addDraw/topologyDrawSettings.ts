@@ -1,11 +1,12 @@
 /**
- * What the topology builder's Configure draw drawer adds to the topology's draw options (CA, 2026-11-17): the Add
+ * What the topology builder's Configure draw drawer adds to the topology's draw options: the Add
  * Draw drawer's settings that the topology does not already define — score format, seeding policy, seeds, creation
  * and (TEAM) scorecard. Read here as the Add Draw drawer reads them (`submitDrawParams`); the drawer itself is
  * `topologyDrawSettingsDrawer`.
  */
 import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { isSeedableDrawType, resolveSeedsCount } from './seedCount';
+import { resolveTieFormat } from '@courthive/competition-catalogue';
 
 // constants
 import { AUTOMATED, CUSTOM, DRAFT } from 'constants/tmxConstants';
@@ -15,7 +16,6 @@ export type TopologyDrawSettings = {
   enforcePolicyLimits?: boolean;
   policyDefinitions?: any;
   matchUpFormat?: string;
-  tieFormatName?: string;
   automated: boolean | { seedsOnly: true };
   /** The event's seeding values: the scale the factory seeds from, as the Add Draw drawer names it. */
   seedingScaleName?: string;
@@ -55,7 +55,9 @@ export function topologyDrawSettings({
     isDraft,
   };
   if (values.matchUpFormat && values.matchUpFormat !== CUSTOM) settings.matchUpFormat = values.matchUpFormat;
-  if (values.tieFormatName && values.tieFormatName !== CUSTOM) settings.tieFormatName = values.tieFormatName;
+  // a named scorecard is passed as its tieFormat object: the factory resolves no names
+  const tieFormat = values.tieFormatName && values.tieFormatName !== CUSTOM && resolveTieFormat(values.tieFormatName);
+  if (tieFormat) settings.tieFormat = tieFormat;
 
   const seedingPolicy = values.seedingPolicy || INHERIT;
   const policyDefinitions = getSeedingPolicyDefinition(seedingPolicy);
@@ -79,7 +81,7 @@ export function topologyDrawSettings({
     });
     settings.seedsCount = seedsCount;
     // as in submitDrawParams: the event's seeding values are what seeds are placed from. Without it a topology's draw
-    // had seed slots and no seeded players in them (CA, 2026-11-17)
+    // had seed slots and no seeded players in them
     settings.seedingScaleName = eventId;
     // as in submitDrawParams: only a count above the policy's ceiling lifts its limits
     if (isOverride) settings.enforcePolicyLimits = false;
