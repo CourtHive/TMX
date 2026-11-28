@@ -157,6 +157,7 @@ export function downloadUTRmatches(): void {
     },
   };
 
-  const csv = tools.JSON2CSV(matchUpsWinnersLosers, config);
+  // an array in and no header-only or transformed-JSON flag: JSON2CSV returns the CSV text
+  const csv = tools.JSON2CSV(matchUpsWinnersLosers, config) as string;
   downloadText(`UTR-${tournamentInfo.tournamentId}.csv`, csv);
 }
