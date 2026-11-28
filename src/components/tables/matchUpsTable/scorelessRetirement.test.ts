@@ -7,6 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { scoreFormatter } from '../common/formatters/scoreFormatter';
 import { handleScoreClick } from './handleMatchUpScoreClick';
 
+/** The outcome the engine's setMatchUpStatus accepts. */
+type MatchUpOutcome = NonNullable<Parameters<typeof tournamentEngine.setMatchUpStatus>[0]>['outcome'];
+
 const toastMock = vi.fn();
 let capturedDialogParams: any;
 
@@ -56,7 +59,7 @@ function completedOutcome(winningSide: number) {
         winningSide,
       })),
     },
-  };
+  } satisfies NonNullable<MatchUpOutcome>;
 }
 
 /** What the score entry dialog hands back on submit: an engine-ready outcome and its sets. */
