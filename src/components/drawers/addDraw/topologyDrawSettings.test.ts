@@ -17,7 +17,7 @@ beforeAll(() => {
     eventProfiles: [{ participantsProfile: { participantsCount: 32 } }],
   });
   tournamentEngine.setState(tournamentRecord);
-  eventId = tournamentRecord.events[0].eventId;
+  eventId = defined(tournamentRecord.events)[0].eventId;
 });
 
 describe('topologyDrawSettings', () => {
@@ -65,9 +65,11 @@ describe('topologyDrawSettings', () => {
     const record = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
     defined(record.events, 'events')[0].category = { categoryName: '18U' };
     tournamentEngine.setState(record);
-    const event = tournamentEngine.getEvent({ eventId }).event;
+    const event = defined(tournamentEngine.getEvent({ eventId }).event);
     expect(event.category?.categoryName).toBe('18U');
-    const seeded = event.entries.slice(0, 8).map((entry: any) => entry.participantId);
+    const seeded = defined(event.entries)
+      .slice(0, 8)
+      .map((entry: any) => entry.participantId);
     tournamentEngine.setParticipantScaleItems({
       scaleItemsWithParticipantIds: seeded.map((participantId: string, i: number) => ({
         participantId,

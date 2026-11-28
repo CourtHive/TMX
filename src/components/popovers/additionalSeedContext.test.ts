@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { factoryConstants, mocksEngine, policyConstants } from 'tods-competition-factory';
 import { TEMPLATE_SEEDING_ITF } from '@courthive/competition-catalogue';
 import { tournamentEngine } from 'services/factory/engine';
@@ -24,8 +25,8 @@ function setup({ policyDefinitions, seedsCount = 8 }: any) {
     drawProfiles: [{ policyDefinitions, participantsCount: 32, drawSize: 32, seedsCount }],
   });
   tournamentEngine.setState(tournamentRecord);
-  const drawId = tournamentRecord.events?.[0]?.drawDefinitions?.[0]?.drawId;
-  const structure: any = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0];
+  const drawId = defined(tournamentRecord.events?.[0]?.drawDefinitions?.[0]?.drawId);
+  const structure: any = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0];
   const structureId = structure.structureId;
   const seeded = structure.seedAssignments.map((assignment: any) => assignment.participantId);
   const unseeded = structure.positionAssignments

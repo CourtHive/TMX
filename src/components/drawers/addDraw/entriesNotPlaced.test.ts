@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 /**
  * The notice a director gets when a draw generation leaves entries out because their stage was full, read from
  * the factory's ENTRIES_NOT_PLACED warnings on a real generation.
@@ -61,7 +62,7 @@ describe('getEntriesNotPlacedNotices', () => {
 
   it('names the qualifying entries left out when qualifying takes the event entries into a smaller draw', () => {
     const { eventId, qualifyingIds, participants, nameOf } = seedEvent({ mainCount: 12, qualifyingCount: 12 });
-    const entries = tournamentEngine.getEvent({ eventId }).event.entries;
+    const entries = defined(defined(tournamentEngine.getEvent({ eventId }).event).entries);
     const mainEntries = entries.filter(({ entryStage }: any) => entryStage !== 'QUALIFYING');
 
     // the drawer's main draw with a qualifying placeholder (its drawOptions, as submitDrawParams builds them)

@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, positionActionConstants, policyConstants } from 'tods-competition-factory';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { selectPositionAction } from './selectPositionAction';
@@ -31,10 +32,10 @@ function openMenu(disabledActions: string[] = []) {
     setState: true,
   });
   const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-  const structure = drawDefinition.structures[0];
-  const participantId = structure.seedAssignments[0].participantId;
-  const drawPosition = structure.positionAssignments.find(
-    (assignment) => assignment.participantId === participantId,
+  const structure = defined(defined(drawDefinition).structures)[0];
+  const participantId = defined(structure.seedAssignments)[0].participantId;
+  const drawPosition = defined(
+    defined(structure.positionAssignments).find((assignment) => assignment.participantId === participantId),
   ).drawPosition;
   const { validActions = [] } = tournamentEngine.positionActions({
     drawId,

@@ -32,7 +32,7 @@ beforeEach(() => {
   expect(result.success).toBe(true);
 });
 
-const storedEvent = () => tournamentEngine.getEvent({ eventId }).event;
+const storedEvent = () => defined(tournamentEngine.getEvent({ eventId }).event);
 
 describe('event dates: pure helpers', () => {
   it('lists the factory weekdays Monday first, with short labels from i18n', () => {
@@ -135,7 +135,7 @@ describe('event dates: building the method', () => {
       defined(setDates, 'setDates'),
     ]);
     expect(result.success).toBe(true);
-    const { event } = tournamentEngine.getEvent({ eventId: newEventId });
+    const event = defined(tournamentEngine.getEvent({ eventId: newEventId }).event);
     expect(event.activeDates).toEqual([jun(2)]);
     expect(event.weekdays).toEqual(['TUE']);
   });

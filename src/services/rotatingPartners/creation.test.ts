@@ -15,7 +15,7 @@ function setup(count = 8) {
   const record = generated.tournamentRecord;
   record.events = [{ eventId: 'doubles', eventName: 'Doubles', eventType: 'DOUBLES' }];
   tournamentEngine.setState(record);
-  return record.participants.map((participant) => participant.participantId);
+  return defined(record.participants).map((participant) => participant.participantId);
 }
 
 function config(participantIds: string[], format: RotatingCreation['format'] = 'AMERICANO'): RotatingCreation {

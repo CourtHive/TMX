@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { drawDefinitionConstants, entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { compareSegmentRows, withSegmentRanks, type SortState } from './segmentSorter';
 import { describe, expect, it } from 'vitest';
@@ -24,7 +25,7 @@ const defaultSort: SortState = { secondaryField: '', secondaryDir: 'asc' };
 // The rows the unified entries table builds from an event's entries, in display order.
 function displayRows(eventId: string, sortState: SortState = defaultSort) {
   const { event } = tournamentEngine.getEvent({ eventId });
-  const rows = withEntryIndex(withSegmentRanks(event.entries.map((entry: any) => ({ ...entry }))));
+  const rows = withEntryIndex(withSegmentRanks(defined(defined(event).entries).map((entry: any) => ({ ...entry }))));
   return rows.sort((a, b) => compareSegmentRows(a, b, sortState));
 }
 
@@ -34,7 +35,7 @@ function setup() {
   const {
     tournamentRecord: { participants },
   } = mocksEngine.generateTournamentRecord({ participantsProfile: { participantsCount: 12 }, setState: true });
-  const participantIds = participants.map(({ participantId }: any) => participantId);
+  const participantIds = defined(participants).map(({ participantId }: any) => participantId);
   const eventId = 'alternatesEvent';
   const result = tournamentEngine.executionQueue([
     { method: ADD_EVENT, params: { event: { eventId, eventName: 'Alternates' } } },

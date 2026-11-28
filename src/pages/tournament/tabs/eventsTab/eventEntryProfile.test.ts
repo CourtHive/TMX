@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
@@ -21,7 +22,7 @@ function seedEvent() {
   return eventId;
 }
 
-const getEvent = (eventId: string) => tournamentEngine.getEvent({ eventId }).event;
+const getEvent = (eventId: string) => defined(tournamentEngine.getEvent({ eventId }).event);
 const save = (eventId: string, form: any) => {
   const { entryProfile, refusal } = readEntryProfileForm({ form, event: getEvent(eventId) });
   expect(refusal).toBeUndefined();
@@ -131,7 +132,7 @@ describe('saving through the engine', () => {
       qualifyingDrawSize: '',
       wildcardCount: '3',
     });
-    expect(getEvent(eventId).entryProfile.qualifiersCount).toBeUndefined();
+    expect(defined(getEvent(eventId).entryProfile).qualifiersCount).toBeUndefined();
     result = tournamentEngine.getEventEntrySpace({ eventId });
     expect(result).toMatchObject({ qualifierPositions: 0, openPlaces: 9 });
   });

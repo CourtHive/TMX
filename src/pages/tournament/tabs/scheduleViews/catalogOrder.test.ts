@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
@@ -213,7 +214,7 @@ describe('structureSequences — each structure’s place in its draw’s play o
   // Real draws from the factory, so the test is about the order the generators and `structureSort` produce.
   const structuresOf = (drawProfile: any): any[] => {
     const { tournamentRecord } = mocksEngine.generateTournamentRecord({ drawProfiles: [drawProfile] });
-    return tournamentRecord.events[0].drawDefinitions[0].structures;
+    return defined(defined(defined(tournamentRecord.events)[0].drawDefinitions)[0].structures);
   };
   const named = (structures: any[]) => {
     const sequences = structureSequences(structures);
@@ -264,7 +265,7 @@ describe('matchUpStructureSequences — the draw lookup, per matchUp', () => {
     const calls: string[] = [];
     const structuresOf = (drawId: string) => {
       calls.push(drawId);
-      return tournamentEngine.getEvent({ drawId }).drawDefinition.structures;
+      return defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures);
     };
     return { matchUps, calls, structuresOf };
   };

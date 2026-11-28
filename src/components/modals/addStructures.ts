@@ -170,7 +170,7 @@ export function addStructures({
     }
 
     // Standard round-based playoffs
-    const checkedRanges = result.playoffRoundsRanges.filter(
+    const checkedRanges = result.playoffRoundsRanges!.filter(
       (range: any) => inputs[range.finishingPositionRange]?.checked,
     );
 
@@ -206,7 +206,7 @@ export function addStructures({
 
   const checkValid = () => {
     const pagePlayoffChecked = inputs[PAGE_PLAYOFF_FIELD]?.checked;
-    const checkedRanges = result.playoffRoundsRanges.filter(
+    const checkedRanges = result.playoffRoundsRanges!.filter(
       (range: any) => inputs[range.finishingPositionRange]?.checked,
     );
     modalHandle?.setButtonState('addStructure', { disabled: !pagePlayoffChecked && !checkedRanges.length });
@@ -227,7 +227,7 @@ export function addStructures({
 
   // a range's rounds cap is offered only while that range is checked
   const syncRoundsVisibility = ({ fields }: any) => {
-    for (const { finishingPositionRange } of result.playoffRoundsRanges) {
+    for (const { finishingPositionRange } of result.playoffRoundsRanges!) {
       const wrapper = fields?.[roundsField(finishingPositionRange)] as HTMLElement | undefined;
       if (wrapper) wrapper.style.display = inputs[finishingPositionRange]?.checked ? '' : NONE;
     }
@@ -239,7 +239,7 @@ export function addStructures({
 
   const relationships = [
     ...(pagePlayoffAvailable ? [{ control: PAGE_PLAYOFF_FIELD, onChange: onPagePlayoffChange }] : []),
-    ...result.playoffRoundsRanges.map(({ finishingPositionRange }: any) => ({
+    ...result.playoffRoundsRanges!.map(({ finishingPositionRange }: any) => ({
       control: finishingPositionRange,
       onChange: onRangeChange,
     })),

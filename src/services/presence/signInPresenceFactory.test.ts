@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { tournamentEngine, mocksEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 
@@ -25,7 +26,7 @@ function seededParticipants() {
   tournamentRecord.localTimeZone = 'UTC';
   tournamentEngine.setState(tournamentRecord, false);
 
-  const [a, b] = tournamentRecord.participants.map((p: any) => p.participantId);
+  const [a, b] = defined(tournamentRecord.participants).map((p: any) => p.participantId);
 
   tournamentEngine.modifyParticipantsSignInStatus({
     occurredAt: `${DATE}T13:00:00.000Z`,

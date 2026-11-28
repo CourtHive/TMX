@@ -172,7 +172,7 @@ export function createUnifiedEntriesPanel({
   const getTableData = () => {
     const { event, drawDefinition } = tournamentEngine.getEvent({ eventId, drawId });
     if (headerElement) headerElement.textContent = event?.eventName ?? '';
-    if (!event) return { error: 'EVENT_NOT_FOUND' };
+    if (!event) return { error: 'EVENT_NOT_FOUND' } as const;
 
     const { participants, derivedDrawInfo } =
       tournamentEngine.getParticipants({
@@ -183,7 +183,7 @@ export function createUnifiedEntriesPanel({
         withISO2: true,
       }) ?? {};
 
-    const hasDrawDefinitions = event?.drawDefinitions?.length > 0;
+    const hasDrawDefinitions = (event?.drawDefinitions?.length ?? 0) > 0;
     const categoryName = event.category?.categoryName ?? event.category?.ageCategoryCode;
     const isDoubles = event?.eventType === DOUBLES;
     const drawCreated = !!drawDefinition;
@@ -221,7 +221,7 @@ export function createUnifiedEntriesPanel({
     }
 
     const mapParams = {
-      eventType: event.eventType,
+      eventType: event.eventType!,
       participantDrawsMap,
       drawPositionMap,
       derivedDrawInfo,

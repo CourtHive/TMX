@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { drawDefinitionConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { completeMatchUps } from './devCompleteMatchUps';
@@ -26,7 +27,8 @@ describe('completeMatchUps', () => {
     const {
       drawIds: [drawId],
     } = mocksEngine.generateTournamentRecord({ drawProfiles: [{ drawSize, drawType: LUCKY_DRAW }], setState: true });
-    const structureId = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0].structureId;
+    const structureId = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0]
+      .structureId;
     return { drawId, structureId };
   }
 
