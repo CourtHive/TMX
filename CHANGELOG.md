@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.64.1](https://github.com/CourtHive/TMX/compare/v8.64.0...v8.64.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* **deps:** update courthive-components to 7.24.1 ([#2163](https://github.com/CourtHive/TMX/issues/2163)) ([bc5535c](https://github.com/CourtHive/TMX/commit/bc5535c18119f5bd064e4e2e57da1e433eac1826))
+* **deps:** update pdf-factory to 1.1.16 ([#2164](https://github.com/CourtHive/TMX/issues/2164)) ([02023ba](https://github.com/CourtHive/TMX/commit/02023bab81cfec8b03cbc62079d16972bcd026e8))
+* **deps:** update tods-competition-factory to 7.51.0 ([#2162](https://github.com/CourtHive/TMX/issues/2162)) ([118b1c9](https://github.com/CourtHive/TMX/commit/118b1c97669ad125938ec71afb8042adf6e5a989))
+
+
+### Documentation
+
+* **bulk-status:** describe how a bulk status call treats a refused outcome ([#2159](https://github.com/CourtHive/TMX/issues/2159)) ([a349592](https://github.com/CourtHive/TMX/commit/a349592b8a5af9b02384abf4b645fa48c083918a))
+
 ## [8.64.0](https://github.com/CourtHive/TMX/compare/v8.63.1...v8.64.0) (2026-11-26)
 
 
