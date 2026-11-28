@@ -459,7 +459,9 @@ function changeOnlineState({
   state: any;
   offline: boolean;
 }): void {
-  const itemValue = { ...tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue };
+  const itemValue = {
+    ...(tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue as Record<string, any> | undefined),
+  };
   if (offline) {
     itemValue.offline = { email: state.email };
   } else {
@@ -479,7 +481,8 @@ function changeOnlineState({
  * newer one. Local engine and IndexedDB only; repeating go-online reuses the save's commandId.
  */
 function restoreOfflineLocally(state: any): void {
-  const prior = tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue;
+  const prior = tournamentEngine.q.tournamentTimeItem({ itemType: 'TMX' })?.itemValue as
+    Record<string, unknown> | undefined;
   const itemValue = { ...prior, offline: { email: state.email } };
   tournamentEngine.addTournamentTimeItem({ removePriorValues: true, timeItem: { itemType: 'TMX', itemValue } });
   saveTournamentRecord();
@@ -542,7 +545,10 @@ export function createActionsPanel(): HTMLElement {
   panel.appendChild(btnContainer);
 
   const tournamentRecord = tournamentEngine.q.tournament();
-  const offline = tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue?.offline;
+  const offline = (
+    tournamentRecord?.timeItems?.find(({ itemType }: any) => itemType === 'TMX')?.itemValue as
+      { offline?: unknown } | undefined
+  )?.offline;
   const provider = tournamentRecord?.parentOrganisation;
   const providerId = provider?.organisationId;
   const state = getLoginState();

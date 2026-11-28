@@ -123,7 +123,7 @@ export function getEventControlItems({
         discover: true,
         eventId,
         drawId,
-      })?.extension?.value;
+      })?.extension?.value as Record<string, unknown> | undefined;
 
       const newCompositionName = isInlineActive ? 'Australian' : 'InlineScoring';
       const newComposition = compositions[newCompositionName];

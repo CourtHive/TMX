@@ -43,7 +43,7 @@ function resolveComposition(matchUp: any): any {
     discover: true,
     eventId,
     drawId,
-  })?.extension?.value;
+  })?.extension?.value as Record<string, any> | undefined;
 
   const display = storedValue?.admin ?? storedValue;
   const compositionName = display?.compositionName;
