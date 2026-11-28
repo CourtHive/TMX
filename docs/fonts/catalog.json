@@ -1,0 +1,19 @@
+{
+  "fonts": [
+    { "id": "helvetica", "label": "Helvetica (built-in)", "languages": ["en"], "builtin": true },
+    {
+      "id": "dejavu-sans",
+      "label": "DejaVu Sans",
+      "languages": ["en", "cs", "sk", "pl", "hu", "hr", "sl", "ro", "de", "fr", "es", "it", "tr"],
+      "builtin": false,
+      "files": { "normal": "/fonts/DejaVuSans.ttf", "bold": "/fonts/DejaVuSans-Bold.ttf" }
+    },
+    {
+      "id": "liberation-sans",
+      "label": "Liberation Sans",
+      "languages": ["en", "cs", "sk", "pl", "hu", "hr", "sl", "ro", "de", "fr", "es", "it", "tr"],
+      "builtin": false,
+      "files": { "normal": "/fonts/LiberationSans-Regular.ttf", "bold": "/fonts/LiberationSans-Bold.ttf" }
+    }
+  ]
+}
