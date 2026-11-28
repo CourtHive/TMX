@@ -6,10 +6,13 @@
  *
  * ## Refused before the first write, never rolled back
  *
- * `bulkMatchUpStatusUpdate` locates every outcome before writing any, but the status itself is decided by
- * `setMatchUpStatus`, one outcome at a time: a refusal for a later outcome comes back after the earlier ones have been
- * written. The standing rule is to refuse before the first write rather than lean on `rollbackOnError`, so this
- * pre-check asks the factory about every row first, and the batch is sent only when no row would be refused.
+ * `bulkMatchUpStatusUpdate` decides each outcome through `setMatchUpStatus`, one at a time, and a refused outcome does
+ * not stop the call: it writes nothing for that matchUp and the outcomes before and after it are still applied. The
+ * call then returns its first refusal as `error`, with `committed: true` when anything was saved and one `results`
+ * entry per outcome, and it announces only the outcomes it saved. TMX sends the batch with `rollbackOnError: true`,
+ * so a refusal at that point would undo the whole batch and announce nothing. The standing rule is to refuse before
+ * the first write rather than lean on that rollback, so this pre-check asks the factory about every row first, and
+ * the batch is sent only when no row would be refused.
  *
  * Two questions, both answered by the factory and neither re-derived here:
  *
