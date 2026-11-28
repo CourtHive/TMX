@@ -1,7 +1,7 @@
 import { orderResolutionModal } from 'components/modals/orderResolutionModal';
 import { tournamentEngine } from 'services/factory/engine';
 
-function findStructureById(structures: any[], structureId: string) {
+function findStructureById(structures: any[] | undefined, structureId: string) {
   return structures?.find((s) => s.structureId === structureId);
 }
 

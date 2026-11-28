@@ -3,6 +3,7 @@
  * `generateStatCrew`, its home and visitor, and the file name.
  */
 import { eventConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { setHomeMethod } from 'components/overlays/scorecard/homeTeam';
 import { describe, expect, it } from 'vitest';
 import {
@@ -78,7 +79,7 @@ describe('StatCrew export of a dual', () => {
       .filter((id: string) => id !== home.participantId && id !== visitor.participantId);
     for (const id of others) expect(content).not.toContain(`id="${id}"`);
 
-    const date = tournamentEngine.getTournament().tournamentRecord.startDate;
+    const date = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord').startDate;
     const homeFile = home.participant.participantName.replaceAll(' ', '-');
     const visitorFile = visitor.participant.participantName.replaceAll(' ', '-');
     expect(result.filename).toEqual(`StatCrew_${visitorFile}_at_${homeFile}_${date}.xml`);

@@ -5,13 +5,11 @@
 import { loadUserTieFormats } from 'pages/templates/tieFormatBridge';
 import { mutationRequest } from 'services/mutation/mutationRequest';
 import { ADD_PARTICIPANTS } from 'constants/mutationConstants';
+import { tieFormats as builtinTieFormats } from '@courthive/competition-catalogue';
 import { getGenerateTeamsModal } from 'courthive-components';
 import { tournamentEngine } from 'services/factory/engine';
-import { fixtures } from 'tods-competition-factory';
 import { escapeHtml } from 'utilities/escapeHtml';
 import { t } from 'i18n';
-
-const { tieFormats: builtinTieFormats } = fixtures;
 
 export async function generateTeams({ callback }: { callback?: () => void }): Promise<void> {
   const tournamentInfo = tournamentEngine.q.tournamentInfo() || {};

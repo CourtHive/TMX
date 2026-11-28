@@ -2,12 +2,15 @@ import { describeBulkRow, precheckBulkMatchUpStatus, type BulkStatusRow } from '
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it, vi } from 'vitest';
 
+/** The outcome the engine's setMatchUpStatus accepts. */
+type MatchUpOutcome = NonNullable<Parameters<typeof tournamentEngine.setMatchUpStatus>[0]>['outcome'];
+
 // The real engine: every answer below is the factory's, through the same module TMX calls.
 vi.mock('services/factory/engine', async () => ({
   tournamentEngine: (await import('tods-competition-factory')).tournamentEngine,
 }));
 
-const completed = (winningSide: number) => ({
+const completed = (winningSide: number): NonNullable<MatchUpOutcome> => ({
   matchUpStatus: 'COMPLETED',
   winningSide,
   score: {

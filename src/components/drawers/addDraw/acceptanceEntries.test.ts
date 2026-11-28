@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import {
   acceptanceEntries,
   composeEntryChanges,
@@ -182,8 +183,8 @@ describe('the changes', () => {
     ]);
     expect(result.success).toBe(true);
 
-    const after = tournamentEngine.getEvent({ eventId }).event;
-    expect(after.entries.filter(({ entryStatus }: any) => entryStatus === 'ALTERNATE')).toHaveLength(4);
+    const after = defined(tournamentEngine.getEvent({ eventId }).event);
+    expect(defined(after.entries).filter(({ entryStatus }: any) => entryStatus === 'ALTERNATE')).toHaveLength(4);
     expect(after.drawDefinitions).toHaveLength(1);
   });
 });

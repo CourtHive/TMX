@@ -24,6 +24,7 @@ import {
   fixtures,
   tools,
 } from 'tods-competition-factory';
+import { competitionFormats as catalogueCompetitionFormats } from '@courthive/competition-catalogue';
 import {
   EVENT_WEEKDAYS,
   buildSetEventDatesMethod,
@@ -48,9 +49,10 @@ const { DOUBLES, SINGLES, TEAM } = eventConstants;
 
 const { INDIVIDUAL, PAIR } = participantConstants;
 const { MAIN } = drawDefinitionConstants;
-const { competitionFormats } = fixtures;
+// TENNIS_STANDARD is the factory's own preset; league formats come from the competition catalogue
+const competitionFormats = { ...fixtures.competitionFormats, ...catalogueCompetitionFormats };
 
-// Keys mirror the fixture names shipped from tods-competition-factory.
+// Keys mirror the preset names in the factory and the competition catalogue.
 // Add new entries here when a new preset ships; the dropdown is data-driven.
 const COMPETITION_FORMAT_KEYS = ['TENNIS_STANDARD', 'INTENNSE_STANDARD'] as const;
 type CompetitionFormatKey = (typeof COMPETITION_FORMAT_KEYS)[number] | '';

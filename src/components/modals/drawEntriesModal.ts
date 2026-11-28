@@ -31,7 +31,8 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
     return;
   }
   const flightProfile = tournamentEngine.q.flightProfile({ event });
-  const drawInfo = drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
+  const drawInfo: { stage?: string; entries?: any[]; drawEntries?: any[] } | undefined =
+    drawDef || flightProfile?.flights?.find((flight: any) => flight.drawId === drawId);
 
   if (!drawInfo) {
     console.error('Draw not found', { eventId, drawId });
@@ -58,7 +59,7 @@ export function drawEntriesModal({ eventId, drawId, drawName, eventName }: DrawE
   const entryData = drawEntries
     .map((entry: any) =>
       mapEntry({
-        eventType: event.eventType,
+        eventType: event.eventType!,
         derivedDrawInfo,
         categoryName,
         participants,

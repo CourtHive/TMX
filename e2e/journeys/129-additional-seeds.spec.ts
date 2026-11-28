@@ -18,6 +18,7 @@
  * @see factory documentation/docs/concepts/additional-seeds.md
  */
 import { ensureDrawsTableMode, initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { TEMPLATE_SEEDING_ITF } from '@courthive/competition-catalogue';
 import { createMutationCollector } from '../helpers/mutation-collector';
 import { seedTournament, MockProfile } from '../helpers/seed';
 import { DrawFormDrawer } from '../pages/DrawFormDrawer';
@@ -47,10 +48,9 @@ const PROFILE_NO_DRAW: MockProfile = {
  */
 async function attachAllowancePolicy(page: any, maxCount: number, bases?: string[]) {
   await page.evaluate(
-    ({ maxCount, bases }: any) => {
+    ({ maxCount, bases, base }: any) => {
       const factory = dev.factory;
       const POLICY_TYPE_SEEDING = factory.policyConstants.POLICY_TYPE_SEEDING;
-      const base = factory.fixtures.policies.POLICY_SEEDING_ITF[POLICY_TYPE_SEEDING];
       factory.tournamentEngine.attachPolicies({
         policyDefinitions: {
           [POLICY_TYPE_SEEDING]: {
@@ -60,7 +60,7 @@ async function attachAllowancePolicy(page: any, maxCount: number, bases?: string
         },
       });
     },
-    { maxCount, bases },
+    { maxCount, bases, base: TEMPLATE_SEEDING_ITF.seeding },
   );
 }
 
@@ -84,29 +84,31 @@ async function openDrawForm(page: any): Promise<DrawFormDrawer> {
  * draw-form tests attach BEFORE any draw exists.
  */
 async function seedWithAllowance(page: any, tournamentId: string): Promise<string> {
-  return page.evaluate((tournamentId: string) => {
-    const factory = dev.factory;
-    const POLICY_TYPE_SEEDING = factory.policyConstants.POLICY_TYPE_SEEDING;
-    const base = factory.fixtures.policies.POLICY_SEEDING_ITF[POLICY_TYPE_SEEDING];
-    const { tournamentRecord } = factory.mocksEngine.generateTournamentRecord({
-      nonRandom: 1,
-      setState: true,
-      tournamentAttributes: { tournamentId },
-      participantsProfile: { scaledParticipantsCount: 32 },
-      drawProfiles: [
-        {
-          policyDefinitions: {
-            [POLICY_TYPE_SEEDING]: { ...base, additionalSeeds: { maxCount: 2, bases: ['PROTECTED_RANKING'] } },
+  return page.evaluate(
+    ({ tournamentId, base }: { tournamentId: string; base: any }) => {
+      const factory = dev.factory;
+      const POLICY_TYPE_SEEDING = factory.policyConstants.POLICY_TYPE_SEEDING;
+      const { tournamentRecord } = factory.mocksEngine.generateTournamentRecord({
+        nonRandom: 1,
+        setState: true,
+        tournamentAttributes: { tournamentId },
+        participantsProfile: { scaledParticipantsCount: 32 },
+        drawProfiles: [
+          {
+            policyDefinitions: {
+              [POLICY_TYPE_SEEDING]: { ...base, additionalSeeds: { maxCount: 2, bases: ['PROTECTED_RANKING'] } },
+            },
+            eventName: 'Singles',
+            participantsCount: 32,
+            seedsCount: 8,
+            drawSize: 32,
           },
-          eventName: 'Singles',
-          participantsCount: 32,
-          seedsCount: 8,
-          drawSize: 32,
-        },
-      ],
-    });
-    return dev.load(tournamentRecord).then(() => tournamentRecord.tournamentId as string);
-  }, tournamentId);
+        ],
+      });
+      return dev.load(tournamentRecord).then(() => tournamentRecord.tournamentId as string);
+    },
+    { tournamentId, base: TEMPLATE_SEEDING_ITF.seeding },
+  );
 }
 
 /* ─── Tests ─────────────────────────────────────────────────────────────── */
@@ -188,26 +190,28 @@ test.describe('Journey 129 — additional seeds', () => {
     // `nonRandom: 1` is what makes this assertable — seedTournament passes it, so positioning is
     // deterministic across both generations.
     const positionsFor = async (seedsCount: number) =>
-      page.evaluate((seedsCount: number) => {
-        const factory = dev.factory;
-        const POLICY_TYPE_SEEDING = factory.policyConstants.POLICY_TYPE_SEEDING;
-        const base = factory.fixtures.policies.POLICY_SEEDING_ITF[POLICY_TYPE_SEEDING];
-        const policyDefinitions = {
-          [POLICY_TYPE_SEEDING]: { ...base, additionalSeeds: { maxCount: 2 } },
-        };
-        const { tournamentRecord } = factory.mocksEngine.generateTournamentRecord({
-          nonRandom: 1,
-          drawProfiles: [{ drawSize: 32, participantsCount: 32, seedsCount, policyDefinitions }],
-        });
-        const structure = tournamentRecord.events[0].drawDefinitions[0].structures[0];
-        const positions = structure.positionAssignments;
-        return structure.seedAssignments
-          .map(
-            (assignment: any) =>
-              positions.find((position: any) => position.participantId === assignment.participantId)?.drawPosition,
-          )
-          .filter(Boolean);
-      }, seedsCount);
+      page.evaluate(
+        ({ seedsCount, base }: { seedsCount: number; base: any }) => {
+          const factory = dev.factory;
+          const POLICY_TYPE_SEEDING = factory.policyConstants.POLICY_TYPE_SEEDING;
+          const policyDefinitions = {
+            [POLICY_TYPE_SEEDING]: { ...base, additionalSeeds: { maxCount: 2 } },
+          };
+          const { tournamentRecord } = factory.mocksEngine.generateTournamentRecord({
+            nonRandom: 1,
+            drawProfiles: [{ drawSize: 32, participantsCount: 32, seedsCount, policyDefinitions }],
+          });
+          const structure = tournamentRecord.events[0].drawDefinitions[0].structures[0];
+          const positions = structure.positionAssignments;
+          return structure.seedAssignments
+            .map(
+              (assignment: any) =>
+                positions.find((position: any) => position.participantId === assignment.participantId)?.drawPosition,
+            )
+            .filter(Boolean);
+        },
+        { seedsCount, base: TEMPLATE_SEEDING_ITF.seeding },
+      );
 
     const baseline = await positionsFor(8);
     const extended = await positionsFor(10);

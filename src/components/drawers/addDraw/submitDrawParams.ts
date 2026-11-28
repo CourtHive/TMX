@@ -2,7 +2,8 @@
  * Submit draw parameters and generate draw structure.
  * Handles draw creation, qualifying structures, and tie format configuration.
  */
-import { drawDefinitionConstants, entryStatusConstants, tools } from 'tods-competition-factory';
+import { drawDefinitionConstants, entryStatusConstants, eventConstants, tools } from 'tods-competition-factory';
+import { resolveTieFormat } from '@courthive/competition-catalogue';
 import { getSeedingAllowance, getSeedingPolicyDefinition, INHERIT } from './seedingPolicies';
 import { editTieFormat } from 'components/overlays/editTieFormat.js/editTieFormat';
 import { getPlayoffDrawProps, getPlayoffGroups } from './playoffGroups';
@@ -418,11 +419,12 @@ function configureDrawOptions(params: {
 function handleDrawGeneration(params: {
   drawOptions: any;
   tieFormatName: string;
+  isTeamEvent: boolean;
   seedingPolicyDefinition: any;
   eventId: string;
   callback?: (result: any) => void;
 }): void {
-  const { drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback } = params;
+  const { drawOptions, tieFormatName, isTeamEvent, seedingPolicyDefinition, eventId, callback } = params;
 
   if (tieFormatName === CUSTOM) {
     const setTieFormat = (tieFormat: any) => {
@@ -433,7 +435,9 @@ function handleDrawGeneration(params: {
     };
     editTieFormat({ title: t('drawers.addDraw.customScorecard'), tieFormat: undefined, onClose: setTieFormat });
   } else {
-    drawOptions.tieFormatName = tieFormatName;
+    // The factory resolves no scorecard names: a TEAM draw is given the named scorecard's tieFormat object.
+    const tieFormat = isTeamEvent && tieFormatName ? resolveTieFormat(tieFormatName) : undefined;
+    if (tieFormat) drawOptions.tieFormat = tieFormat;
 
     if (seedingPolicyDefinition) {
       drawOptions.policyDefinitions = {
@@ -700,7 +704,14 @@ export function submitDrawParams({
   const effectiveCallback = buildQualifyingFirstCallback(!!isQualifyingFirst, automated, callback);
 
   if (drawSizeInteger) {
-    handleDrawGeneration({ drawOptions, tieFormatName, seedingPolicyDefinition, eventId, callback: effectiveCallback });
+    handleDrawGeneration({
+      isTeamEvent: event?.eventType === eventConstants.TEAM,
+      callback: effectiveCallback,
+      seedingPolicyDefinition,
+      tieFormatName,
+      drawOptions,
+      eventId,
+    });
   } else {
     tmxToast({
       message: t('drawers.addDraw.invalidDrawSize'),

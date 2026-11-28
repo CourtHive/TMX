@@ -1,3 +1,5 @@
+import { defined } from 'functions/testing/defined';
+import type { Participant } from 'tods-competition-factory';
 import { eventGovernor, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
@@ -92,7 +94,7 @@ describe('ageMembership', () => {
       participantsProfile: { participantsCount: 0 },
       eventProfiles: [{ eventName: 'U14', category: { ageCategoryCode: 'U14' } }],
     });
-    const person = (id: string, birthDate?: string) => ({
+    const person = (id: string, birthDate?: string): Participant => ({
       participantId: id,
       participantType: 'INDIVIDUAL',
       participantRole: 'COMPETITOR',
@@ -111,9 +113,9 @@ describe('ageMembership', () => {
       person('nodob'),
     ];
     tournamentEngine.setState(tournamentRecord);
-    const event = tournamentRecord.events[0];
-    const { buckets } = ageBuckets(tournamentRecord.events, tournamentRecord);
-    const rows = tournamentRecord.participants.map((participant: any) => ({
+    const event = defined(tournamentRecord.events)[0];
+    const { buckets } = ageBuckets(defined(tournamentRecord.events), tournamentRecord);
+    const rows = defined(tournamentRecord.participants).map((participant: any) => ({
       participantId: participant.participantId,
       participant,
     }));

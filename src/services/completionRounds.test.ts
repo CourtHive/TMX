@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { completionRounds, roundsToCompleteThrough, throughRoundSpan } from './completionRounds';
 import {
   drawDefinitionConstants,
@@ -19,7 +20,7 @@ function seed(drawProfile: any) {
   const {
     drawIds: [drawId],
   } = mocksEngine.generateTournamentRecord({ drawProfiles: [drawProfile], setState: true });
-  const structureId = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0].structureId;
+  const structureId = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0].structureId;
   return { drawId, structureId };
 }
 

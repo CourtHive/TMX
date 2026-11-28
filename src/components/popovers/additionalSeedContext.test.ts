@@ -1,4 +1,6 @@
-import { factoryConstants, fixtures, mocksEngine, policyConstants } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
+import { factoryConstants, mocksEngine, policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SEEDING_ITF } from '@courthive/competition-catalogue';
 import { tournamentEngine } from 'services/factory/engine';
 import { describe, expect, it } from 'vitest';
 
@@ -6,9 +8,9 @@ import { getAdditionalSeedContext } from './additionalSeedContext';
 
 const { POLICY_TYPE_SEEDING } = policyConstants;
 const { seedingBasisConstants } = factoryConstants;
-const ITF = fixtures.policies.POLICY_SEEDING_ITF;
+const ITF = TEMPLATE_SEEDING_ITF;
 
-// POLICY_SEEDING_ITF yields 8 seeds at drawSize 32 with 24+ participants. An `additionalSeeds`
+// TEMPLATE_SEEDING_ITF yields 8 seeds at drawSize 32 with 24+ participants. An `additionalSeeds`
 // allowance lets a governing body permit seeds ABOVE that, so a protected ranking is seeded
 // alongside the eight rather than in place of one of them.
 const withAllowance = (maxCount: number, bases?: string[]) => ({
@@ -23,8 +25,8 @@ function setup({ policyDefinitions, seedsCount = 8 }: any) {
     drawProfiles: [{ policyDefinitions, participantsCount: 32, drawSize: 32, seedsCount }],
   });
   tournamentEngine.setState(tournamentRecord);
-  const drawId = tournamentRecord.events?.[0]?.drawDefinitions?.[0]?.drawId;
-  const structure: any = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0];
+  const drawId = defined(tournamentRecord.events?.[0]?.drawDefinitions?.[0]?.drawId);
+  const structure: any = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0];
   const structureId = structure.structureId;
   const seeded = structure.seedAssignments.map((assignment: any) => assignment.participantId);
   const unseeded = structure.positionAssignments

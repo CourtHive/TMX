@@ -1,4 +1,5 @@
 import { entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { describe, expect, it } from 'vitest';
 import {
   buildPromoteAlternatesMethod,
@@ -24,7 +25,9 @@ function seedEvent({ accepted = 6, alternates = 3 } = {}) {
     participantsProfile: { participantsCount: accepted + alternates },
     setState: true,
   });
-  const entered = tournamentEngine.getEvent({ eventId }).event.entries.map(({ participantId }) => participantId);
+  const entered = defined(defined(tournamentEngine.getEvent({ eventId }).event).entries).map(
+    ({ participantId }) => participantId,
+  );
   const { participants = [] } = tournamentEngine.getParticipants();
   const alternateIds = participants
     .map(({ participantId }) => participantId)
@@ -41,11 +44,14 @@ function seedEvent({ accepted = 6, alternates = 3 } = {}) {
   return { eventId, alternateIds, acceptedIds: entered };
 }
 
-const getEvent = (eventId: string) => tournamentEngine.getEvent({ eventId }).event;
+const getEvent = (eventId: string) => defined(tournamentEngine.getEvent({ eventId }).event);
 // No factory mutation writes `entryProfile`; it arrives with an imported record. Round-trip the record to set it.
 const setEntryProfile = (eventId: string, entryProfile: any) => {
-  const { tournamentRecord } = tournamentEngine.getTournament();
-  const event = tournamentRecord.events.find((e: any) => e.eventId === eventId);
+  const tournamentRecord = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+  const event = defined(
+    defined(tournamentRecord.events, 'events').find((e: any) => e.eventId === eventId),
+    eventId,
+  );
   event.entryProfile = entryProfile;
   const result: any = tournamentEngine.setState(tournamentRecord);
   expect(result.success).toEqual(true);
@@ -135,7 +141,8 @@ describe('promoting through the engine', () => {
     const result: any = tournamentEngine.executionQueue([method]);
     expect(result.success).toEqual(true);
 
-    const statusOf = (id: string) => getEvent(eventId).entries.find((e: any) => e.participantId === id).entryStatus;
+    const statusOf = (id: string) =>
+      defined(defined(getEvent(eventId).entries).find((e: any) => e.participantId === id)).entryStatus;
     expect(participantIds.map(statusOf)).toEqual([DIRECT_ACCEPTANCE, DIRECT_ACCEPTANCE]);
     expect(statusOf(alternateIds[2])).toEqual(ALTERNATE);
 

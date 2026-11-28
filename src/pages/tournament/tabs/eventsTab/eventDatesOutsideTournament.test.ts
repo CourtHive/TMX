@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { SET_EVENT_DATES } from 'constants/mutationConstants';
 import { describe, expect, it } from 'vitest';
@@ -20,9 +21,9 @@ function seed(eventDates: { startDate: string; endDate: string; activeDates?: st
     tournamentAttributes: { startDate: TOURNAMENT_START, endDate: TOURNAMENT_END },
     drawProfiles: [{ drawSize: 4 }],
   });
-  Object.assign(tournamentRecord.events[0], eventDates);
+  Object.assign(defined(tournamentRecord.events)[0], eventDates);
   tournamentEngine.setState(tournamentRecord);
-  return tournamentRecord.events[0].eventId;
+  return defined(tournamentRecord.events)[0].eventId;
 }
 
 describe('events whose dates lie outside the tournament', () => {
@@ -75,6 +76,6 @@ describe('events whose dates lie outside the tournament', () => {
     const result: any = tournamentEngine.executionQueue([method]);
     expect(result.success).toBe(true);
     expect(getEventsWithDatesOutsideTournament()).toEqual([]);
-    expect(tournamentEngine.getEvent({ eventId }).event.activeDates).toEqual([jun(12), jun(13)]);
+    expect(defined(tournamentEngine.getEvent({ eventId }).event).activeDates).toEqual([jun(12), jun(13)]);
   });
 });

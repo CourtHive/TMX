@@ -1,4 +1,10 @@
 import { fixtures, policyConstants } from 'tods-competition-factory';
+import {
+  TEMPLATE_RANKING_POINTS_ATP,
+  TEMPLATE_RANKING_POINTS_ITF_JUNIOR,
+  TEMPLATE_RANKING_POINTS_ITF_WTT,
+  TEMPLATE_RANKING_POINTS_WTA,
+} from '@courthive/competition-catalogue';
 import { POLICY_SCHEDULING } from 'assets/policies/schedulingPolicy';
 import { POLICY_SCORING } from 'assets/policies/scoringPolicy';
 import { POLICY_SEEDING } from 'assets/policies/seedingPolicy';
@@ -8,15 +14,8 @@ import { tmx2db } from 'services/storage/tmx2db';
 const { POLICY_TYPE_SCHEDULING, POLICY_TYPE_SCORING, POLICY_TYPE_SEEDING, POLICY_TYPE_RANKING_POINTS } =
   policyConstants;
 
-const {
-  policies: {
-    POLICY_RANKING_POINTS_ATP,
-    POLICY_RANKING_POINTS_BASIC,
-    POLICY_RANKING_POINTS_WTA,
-    POLICY_RANKING_POINTS_ITF_WTT,
-    POLICY_RANKING_POINTS_ITF_JUNIOR,
-  },
-} = fixtures;
+// the factory keeps its provider-neutral presets; the organisation presets come from the catalogue
+const { POLICY_RANKING_POINTS_BASIC } = fixtures.policies;
 
 // Federation-specific ranking policies (USTA Junior, Tennis Europe, LTA,
 // Tennis Canada, Tennis Australia, CTS) used to live here as built-in
@@ -64,7 +63,7 @@ const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     policyType: POLICY_TYPE_RANKING_POINTS,
     source: 'builtin',
     description: 'PIF ATP Rankings — Grand Slams through ITF events, 15 tournament levels',
-    policyData: POLICY_RANKING_POINTS_ATP[POLICY_TYPE_RANKING_POINTS],
+    policyData: TEMPLATE_RANKING_POINTS_ATP[POLICY_TYPE_RANKING_POINTS],
   },
   {
     id: 'builtin-ranking-points-wta',
@@ -72,7 +71,7 @@ const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     policyType: POLICY_TYPE_RANKING_POINTS,
     source: 'builtin',
     description: 'PIF WTA Rankings — Grand Slams through WTA 125, with quality win bonuses',
-    policyData: POLICY_RANKING_POINTS_WTA[POLICY_TYPE_RANKING_POINTS],
+    policyData: TEMPLATE_RANKING_POINTS_WTA[POLICY_TYPE_RANKING_POINTS],
   },
   {
     id: 'builtin-ranking-points-itf-wtt',
@@ -80,7 +79,7 @@ const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     policyType: POLICY_TYPE_RANKING_POINTS,
     source: 'builtin',
     description: 'ITF World Tennis Tour — qualifying round points for $15K–$25K+H tournaments',
-    policyData: POLICY_RANKING_POINTS_ITF_WTT[POLICY_TYPE_RANKING_POINTS],
+    policyData: TEMPLATE_RANKING_POINTS_ITF_WTT[POLICY_TYPE_RANKING_POINTS],
   },
   {
     id: 'builtin-ranking-points-itf-junior',
@@ -88,7 +87,7 @@ const BUILTIN_POLICIES: PolicyCatalogItem[] = [
     policyType: POLICY_TYPE_RANKING_POINTS,
     source: 'builtin',
     description: 'ITF Junior Circuit — Grand Slams through J30, 9 levels with qualifying and consolation',
-    policyData: POLICY_RANKING_POINTS_ITF_JUNIOR[POLICY_TYPE_RANKING_POINTS],
+    policyData: TEMPLATE_RANKING_POINTS_ITF_JUNIOR[POLICY_TYPE_RANKING_POINTS],
   },
 ];
 

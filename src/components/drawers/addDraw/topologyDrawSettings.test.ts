@@ -1,4 +1,6 @@
 import { applyTopologyDrawSettings, topologyDrawSettings } from './topologyDrawSettings';
+import { defined } from 'functions/testing/defined';
+import { resolveTieFormat, tieFormatConstants } from '@courthive/competition-catalogue';
 import { drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -15,7 +17,7 @@ beforeAll(() => {
     eventProfiles: [{ participantsProfile: { participantsCount: 32 } }],
   });
   tournamentEngine.setState(tournamentRecord);
-  eventId = tournamentRecord.events[0].eventId;
+  eventId = defined(tournamentRecord.events)[0].eventId;
 });
 
 describe('topologyDrawSettings', () => {
@@ -60,12 +62,14 @@ describe('topologyDrawSettings', () => {
     const settings = topologyDrawSettings({ values: { creation: AUTOMATED, seedsCount: '8' }, eventId, main });
     expect(settings.seedingScaleName).toBe(eventId);
 
-    const record = tournamentEngine.getTournament().tournamentRecord;
-    record.events[0].category = { categoryName: '18U' };
+    const record = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    defined(record.events, 'events')[0].category = { categoryName: '18U' };
     tournamentEngine.setState(record);
-    const event = tournamentEngine.getEvent({ eventId }).event;
+    const event = defined(tournamentEngine.getEvent({ eventId }).event);
     expect(event.category?.categoryName).toBe('18U');
-    const seeded = event.entries.slice(0, 8).map((entry: any) => entry.participantId);
+    const seeded = defined(event.entries)
+      .slice(0, 8)
+      .map((entry: any) => entry.participantId);
     tournamentEngine.setParticipantScaleItems({
       scaleItemsWithParticipantIds: seeded.map((participantId: string, i: number) => ({
         participantId,
@@ -101,7 +105,18 @@ describe('topologyDrawSettings', () => {
       main,
     });
     expect(settings.matchUpFormat).toBeUndefined();
-    expect(settings.tieFormatName).toBeUndefined();
+    expect(settings.tieFormat).toBeUndefined();
+  });
+
+  it('passes a named scorecard as its tieFormat object, never as a name', () => {
+    const settings = topologyDrawSettings({
+      values: { creation: AUTOMATED, tieFormatName: tieFormatConstants.DOMINANT_DUO },
+      eventId,
+      main,
+    });
+    expect(settings).not.toHaveProperty('tieFormatName');
+    expect(settings.tieFormat).toEqual(resolveTieFormat(tieFormatConstants.DOMINANT_DUO));
+    expect(settings.tieFormat?.collectionDefinitions?.length).toBeGreaterThan(0);
   });
 });
 

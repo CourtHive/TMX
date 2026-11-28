@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import {
   summarizeRecordValidation,
   formatFinding,
@@ -46,8 +47,9 @@ describe('record validation (real ajv + real factory engine)', () => {
 
   it('a bad enum value yields a schema error at its instancePath', async () => {
     const tournamentRecord = mockRecord();
-    tournamentRecord.events[0].eventType = 'NOT_AN_EVENT_TYPE';
-    tournamentRecord.indoorOutdoor = 'SIDEWAYS';
+    // values the types rule out, written as a record edited outside the engine would carry them
+    Object.assign(defined(tournamentRecord.events)[0], { eventType: 'NOT_AN_EVENT_TYPE' });
+    Object.assign(tournamentRecord, { indoorOutdoor: 'SIDEWAYS' });
 
     const { schemaErrors } = await validateAgainstSchema(tournamentRecord);
     const paths = schemaErrors.map((error) => error.instancePath);
@@ -66,13 +68,13 @@ describe('record validation (real ajv + real factory engine)', () => {
   it("includes the factory's getTournamentInconsistencies findings in the same summary", async () => {
     const tournamentRecord = mockRecord();
     // an event that starts before the tournament: schema-valid, but an integrity finding
-    tournamentRecord.events[0].startDate = '1999-01-01';
+    defined(tournamentRecord.events)[0].startDate = '1999-01-01';
 
     const summary = await validateTournamentRecord({ tournamentRecord });
     expect(summary.schemaErrorCount).toEqual(0);
     const integrity = summary.findings.filter((finding) => finding.source === 'integrity');
     expect(integrity.map((finding) => finding.issueType)).toContain('EVENT_DATES_OUTSIDE_TOURNAMENT');
-    expect(integrity[0].path).toContain(`event ${tournamentRecord.events[0].eventId}`);
+    expect(integrity[0].path).toContain(`event ${defined(tournamentRecord.events)[0].eventId}`);
     expect(summary.inconsistencyCount).toEqual(integrity.length);
   });
 
@@ -80,12 +82,12 @@ describe('record validation (real ajv + real factory engine)', () => {
   // malformed code as an error and a code refused for new use as a warning, each naming where it is stored
   it('lists a malformed matchUpFormat as an integrity error, naming the code and where it is stored', async () => {
     const tournamentRecord = mockRecord();
-    tournamentRecord.events[0].matchUpFormat = 'NOT-A-FORMAT';
+    defined(tournamentRecord.events)[0].matchUpFormat = 'NOT-A-FORMAT';
 
     const summary = await validateTournamentRecord({ tournamentRecord });
     const finding = summary.findings.find((finding) => finding.issueType === 'MATCHUP_FORMAT_MALFORMED');
     expect(finding).toMatchObject({ source: 'integrity', severity: 'error' });
-    expect(finding?.path).toContain(`event ${tournamentRecord.events[0].eventId}`);
+    expect(finding?.path).toContain(`event ${defined(tournamentRecord.events)[0].eventId}`);
     expect(finding?.message).toContain('NOT-A-FORMAT (tournamentRecord.events[0].matchUpFormat)');
     expect(summary.text).toContain('[error] MATCHUP_FORMAT_MALFORMED');
   });
@@ -93,7 +95,7 @@ describe('record validation (real ajv + real factory engine)', () => {
   it('lists a matchUpFormat refused for new use as an integrity warning', async () => {
     const tournamentRecord = mockRecord();
     // well-formed, but an implicit best-of with an even count is refused when a format is set now
-    tournamentRecord.events[0].matchUpFormat = 'SET2-S:6/TB7';
+    defined(tournamentRecord.events)[0].matchUpFormat = 'SET2-S:6/TB7';
 
     const summary = await validateTournamentRecord({ tournamentRecord });
     const finding = summary.findings.find((finding) => finding.issueType === 'MATCHUP_FORMAT_REFUSED_FOR_NEW_USE');
@@ -151,7 +153,8 @@ describe('an integrity check that could not run is not a clean record', () => {
   it('still reports schema errors when the integrity check is unavailable', async () => {
     inconsistencies.override = () => ({ error: 'nope' });
     const tournamentRecord = mockRecord();
-    tournamentRecord.indoorOutdoor = 'SIDEWAYS';
+    // a value the type rules out, written as a record edited outside the engine would carry it
+    Object.assign(tournamentRecord, { indoorOutdoor: 'SIDEWAYS' });
 
     const summary = await validateTournamentRecord({ tournamentRecord });
     expect(summary.schemaErrorCount).toBeGreaterThan(0);

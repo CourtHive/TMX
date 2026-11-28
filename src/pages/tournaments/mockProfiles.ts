@@ -2,7 +2,8 @@
  * The example tournaments TMX offers to generate: pure data handed to mocksEngine, kept apart from
  * mockTournaments.ts (which saves and displays them) so it can be imported, and checked, without a DOM.
  */
-import { factoryConstants, drawDefinitionConstants, policyConstants, fixtures } from 'tods-competition-factory';
+import { factoryConstants, drawDefinitionConstants, policyConstants } from 'tods-competition-factory';
+import { TEMPLATE_SCORING_USTA } from '@courthive/competition-catalogue';
 import { SCHEDULER_DEMO_PROFILE } from 'pages/tournaments/schedulerDemoProfile';
 import { LIVE_SCHEDULE_PROFILE } from 'pages/tournaments/liveScheduleProfile';
 
@@ -30,12 +31,12 @@ const FORMAT_WIFFLE = 'INN4XA-S:O3-M:T50'; // BLW Wiffle Ball (4 innings, 3 outs
 
 /**
  * A governing body's reason-code vocabulary, attached to the mock below so the scoring modal's
- * reason control has something to offer. Taken from the factory fixture rather than restated here —
+ * reason control has something to offer. Taken from the competition catalogue rather than restated here —
  * a hand-copied vocabulary is how the scoring editor and the factory drifted apart while both
  * looked correct.
  */
 const REASON_CODE_SCORING_POLICY = {
-  [policyConstants.POLICY_TYPE_SCORING]: fixtures.policies.POLICY_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING],
+  [policyConstants.POLICY_TYPE_SCORING]: TEMPLATE_SCORING_USTA[policyConstants.POLICY_TYPE_SCORING],
 };
 
 const clubCourts = {

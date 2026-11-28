@@ -10,7 +10,7 @@ import { ADD_ONLINE_RESOURCE } from 'constants/mutationConstants';
 /**
  * Check whether the tournament already has an image (URL or court SVG).
  */
-function hasTournamentImage(): boolean {
+function hasTournamentImage(): boolean | undefined {
   const { tournamentRecord } = tournamentEngine.getTournament();
   return tournamentRecord?.onlineResources?.some(({ name }: any) => name === 'tournamentImage');
 }

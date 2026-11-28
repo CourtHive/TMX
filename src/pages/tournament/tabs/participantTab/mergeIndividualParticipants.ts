@@ -181,7 +181,7 @@ function openMergeReview(selected: any[], callback: () => void): void {
           status.textContent = t('participantMerge.failed');
           pending = true;
           render();
-          if (!isStandalone()) await refreshTournamentFromServer(tournamentId);
+          if (!isStandalone()) await refreshTournamentFromServer(tournamentId!);
           pending = false;
           resolutions = {};
           if (!closed) render();

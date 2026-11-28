@@ -86,7 +86,7 @@ describe('the raw extension write (the old Add flights write)', () => {
     const result: any = tournamentEngine.executionQueue([extensionWrite(eventId, generateFlights(eventId, 3))], true);
 
     expect(result.success).toEqual(true);
-    expect(storedExtension(eventId)?.value?.flights).toHaveLength(3);
+    expect((storedExtension(eventId)?.value as { flights?: unknown[] } | undefined)?.flights).toHaveLength(3);
     expect(flightDrawIds(eventId)).toEqual(drawIdsOf(flightProfile));
   });
 

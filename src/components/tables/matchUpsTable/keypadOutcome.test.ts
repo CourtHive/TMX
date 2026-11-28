@@ -10,6 +10,9 @@ vi.mock('services/factory/engine', async () => {
 import { keypadClearRefused, keypadOutcome } from './keypadOutcome';
 import { takesHotkeyEntry } from './hotkeyScoreField';
 
+/** The outcome the engine's setMatchUpStatus accepts. */
+type MatchUpOutcome = NonNullable<Parameters<typeof factoryEngine.setMatchUpStatus>[0]>['outcome'];
+
 const SCORE = '6-1 6-1';
 
 /** An 8-draw with R1 #1 ended by `status`; the rest of the path to the final is played when `decideLater`. */
@@ -25,7 +28,7 @@ function doubleExitBracket(status: string, decideLater: boolean) {
   const exited: any = factoryEngine.setMatchUpStatus({
     drawId: origin.drawId,
     matchUpId: origin.matchUpId,
-    outcome: { matchUpStatus: status },
+    outcome: { matchUpStatus: status } as NonNullable<MatchUpOutcome>,
   });
   expect(exited.success).toBe(true);
   // R2 #1 now holds the exit produced from R1 #1; R3 #1 is the later match that depends on it

@@ -1,3 +1,4 @@
+import type { Participant } from 'tods-competition-factory';
 import type { APIRequestContext } from '@playwright/test';
 import { mocksEngine } from 'tods-competition-factory';
 
@@ -65,7 +66,7 @@ async function seedProgramme(
  * tournament-local, so keying on it would give every programme a season exactly one fixture long:
  * plausible, and wrong with nothing to signal it.
  */
-function teamParticipant(programme: SeededProgramme, governingProviderId: string, localId: string) {
+function teamParticipant(programme: SeededProgramme, governingProviderId: string, localId: string): Participant {
   return {
     participantId: localId,
     participantName: programme.name,
@@ -97,7 +98,8 @@ export async function seedParticipationFixture(
     completeAllMatchUps: true,
   });
 
-  tournamentRecord.parentOrganisation = { organisationId: governingProviderId };
+  // the fixture sends only the provider's id, which the Organisation type does not allow on its own
+  Object.assign(tournamentRecord, { parentOrganisation: { organisationId: governingProviderId } });
   // `calendarListed: false` — the record is OWNED by the governing body and deliberately absent
   // from its calendar, exactly as the loaded duals are. An unlisted save does zero calendar IO.
   tournamentRecord.extensions = [...(tournamentRecord.extensions ?? []), { name: 'calendarListed', value: false }];

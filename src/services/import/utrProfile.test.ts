@@ -1,4 +1,5 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { applyUtrProfile, utrProfileItems, UTR_PROFILE_RESOURCE_NAME as NAME } from './utrProfile';
 import { describe, expect, it } from 'vitest';
 
@@ -36,9 +37,11 @@ function draft(utrProfile: string) {
 }
 
 function stored(participantId: string) {
-  return tournamentEngine
-    .getTournament()
-    .tournamentRecord.participants.find((p: any) => p.participantId === participantId);
+  const { participants } = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+  return defined(
+    defined(participants, 'participants').find((p: any) => p.participantId === participantId),
+    participantId,
+  );
 }
 
 describe('utrProfileItems', () => {
@@ -77,7 +80,7 @@ describe('applyUtrProfile, through the engine', () => {
     expect(result.success).toEqual(true);
     const resources = stored(participant.participantId).onlineResources;
     expect(resources).toEqual([{ resourceType: 'URL', resourceSubType: SUBTYPE, name: NAME, identifier: PROFILE_URL }]);
-    expect(stored(participant.participantId).person.personOtherIds).toEqual([
+    expect(defined(stored(participant.participantId).person, 'person').personOtherIds).toEqual([
       { uniqueOrganisationName: ORGANISATION, personId: '123456' },
     ]);
 
@@ -101,7 +104,7 @@ describe('applyUtrProfile, through the engine', () => {
 
     result = tournamentEngine.executionQueue([{ method: MODIFY_PARTICIPANT, params: { participant } }]);
     expect(result.success).toEqual(true);
-    const [resource] = stored(participant.participantId).onlineResources;
+    const [resource] = defined(stored(participant.participantId).onlineResources, 'onlineResources');
     expect(resource.resourceType).toEqual('URL');
     expect(resource).not.toHaveProperty('resource');
   });

@@ -35,7 +35,7 @@ const { POLICY_TYPE_SCORING } = policyConstants;
  * The reason-code vocabulary for this matchUp's event, or undefined when the tournament has no
  * scoring policy carrying one.
  *
- * TMX ships no built-in vocabulary by design (CA, 2026-09-20): the reason field appears only where
+ * TMX ships no built-in vocabulary by design: the reason field appears only where
  * a governing body's policy is attached. `undefined` here is therefore the ordinary case, and the
  * modal draws no control for it — not a degraded state to defend against.
  *
@@ -194,9 +194,9 @@ const DIALOG_APPROACHES: ScoreEntryApproach[] = ['dynamicSets', 'dialPad', 'free
  * The score-entry dialog: courthive-components' `openScoreEntryDialog`. It replaced the three separate
  * scoring modals (Dynamic Sets, Dial Pad, Free Score), which now live on as approaches inside it.
  *
- * The dialog reports an engine-ready `outcome` (`score.sets`, positional `matchUpStatusCodes`, the clear
- * shape, a changed `matchUpFormat`), so there is nothing to translate here — it goes to `dispatch` as it
- * is. A COPY, because `setMatchUpStatus` writes its derived score strings into the outcome it is handed
+ * The dialog reports an engine-ready `outcome` (`score.sets`, keyed `sideStatusCodes` / `matchUpStatusCode`, the
+ * clear shape with `clearStatusCodes`, a changed `matchUpFormat`), so there is nothing to translate here — it goes to
+ * `dispatch` as it is. A COPY, because `setMatchUpStatus` writes its derived score strings into the outcome it is handed
  * and the local apply would otherwise alter what the server was sent. Side names come from the
  * in-context matchUp; the dialog wants display names, not participants.
  */

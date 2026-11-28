@@ -242,8 +242,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
 
   const resolveEntryParticipants = (): string[] => {
     const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-    return drawDefinition.entries
-      .filter(
+    return drawDefinition!
+      .entries!.filter(
         ({ entryStatus, entryStage }: any) =>
           !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && (!entryStage || entryStage === structure.stage),
       )
@@ -259,8 +259,8 @@ export function addAdHocRound({ drawId, structure, structureId, callback }: AddA
       } else if (structure?.stage === VOLUNTARY_CONSOLATION) {
         const { drawDefinition } = tournamentEngine.getEvent({ drawId });
         const existingEntryIds = new Set<string>(
-          drawDefinition.entries
-            .filter(
+          drawDefinition!
+            .entries!.filter(
               ({ entryStatus, entryStage }: any) =>
                 !['WITHDRAWN', 'UNGROUPED'].includes(entryStatus) && entryStage === structure.stage,
             )

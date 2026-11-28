@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { tournamentDateChangeLines } from './tournamentDateChanges';
 import { describe, expect, it } from 'vitest';
@@ -146,7 +147,7 @@ describe('tournamentDateChangeLines', () => {
       endDate: END,
       setState: true,
     });
-    const { structureId } = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0];
+    const { structureId } = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0];
     for (const [scheduleDate, roundNumber] of [
       [START, 1],
       [DAY_2, 2],

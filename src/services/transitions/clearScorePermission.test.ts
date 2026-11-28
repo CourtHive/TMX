@@ -38,7 +38,7 @@ describe('clearPermitted', () => {
     const refused = factoryEngine.setMatchUpStatus({
       drawId: r1m1.drawId,
       matchUpId: r1m1.matchUpId,
-      outcome: { score: { sets: [] }, matchUpStatusCodes: [] },
+      outcome: { score: { sets: [] }, clearStatusCodes: true },
     });
     expect(refused.error).toBeDefined();
 
@@ -65,7 +65,7 @@ describe('clearPermitted', () => {
 describe('isClearingOutcome', () => {
   it('recognises a clear, in either outcome shape', () => {
     // openScoreEntryDialog, via engineOutcome
-    expect(isClearingOutcome({ score: { sets: [] }, matchUpStatusCodes: [] })).toBe(true);
+    expect(isClearingOutcome({ score: { sets: [] }, clearStatusCodes: true })).toBe(true);
     // the engine's own shape for an emptied result
     expect(isClearingOutcome({ score: { sets: [] }, matchUpStatus: undefined, winningSide: undefined })).toBe(true);
     expect(isClearingOutcome({ score: { sets: [] }, matchUpStatus: 'TO_BE_PLAYED' })).toBe(true);

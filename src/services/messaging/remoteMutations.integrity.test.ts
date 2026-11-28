@@ -1,4 +1,5 @@
 import { clearSyncIndicator, isSyncStale, markStaleNeedsRefresh, initRemoteMutationHandler } from './remoteMutations';
+import type { Tournament } from 'tods-competition-factory';
 import { notifyAuthoritativeRefreshRequired } from 'services/mutation/mutationObservers';
 const request = vi.hoisted(() => vi.fn());
 const recovery = vi.hoisted(() => ({ listener: undefined as undefined | ((ids: string[]) => void) }));
@@ -105,11 +106,13 @@ describe('tournamentReplaced', () => {
   };
   beforeEach(() => {
     vi.stubGlobal('document', { getElementById: () => null });
-    tournamentEngine.setState({
-      tournamentId: OWNER,
-      tournamentName: 'Current',
-      parentOrganisation: { organisationId: 'p-from' },
-    });
+    // the record carries only the provider's id, which the Organisation type does not allow on its own
+    tournamentEngine.setState(
+      Object.assign<Tournament, object>(
+        { tournamentId: OWNER, tournamentName: 'Current' },
+        { parentOrganisation: { organisationId: 'p-from' } },
+      ),
+    );
     clearSyncIndicator();
     request.mockReset();
     initRemoteMutationHandler();

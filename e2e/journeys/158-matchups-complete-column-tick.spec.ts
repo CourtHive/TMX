@@ -1,4 +1,5 @@
 import { initDevBridge, resetState, waitForAppReady } from '../helpers/dev-bridge';
+import { resolveTieFormat } from '@courthive/competition-catalogue';
 import { TournamentPage } from '../pages/TournamentPage';
 import { test, expect } from '@playwright/test';
 import { S } from '../helpers/selectors';
@@ -49,36 +50,39 @@ test.describe('Journey 158 — the complete column', () => {
   });
 
   test('every finished status shows a green tick; an unfinished matchUp shows no mark', async ({ page }) => {
-    const { tournamentId, completedStatuses, rowCount } = await page.evaluate(async (outcomes) => {
-      const engine = dev.factory.tournamentEngine;
-      dev.factory.mocksEngine.generateTournamentRecord({
-        drawProfiles: [
-          { drawSize: 32, outcomes },
-          { drawSize: 2, eventType: 'TEAM', tieFormatName: 'COLLEGE_D3' },
-        ],
-        policyDefinitions: { scoring: { requireParticipantsForScoring: false } },
-        tournamentAttributes: { tournamentId: 'e2e-complete-tick' },
-        nonRandom: 1,
-        setState: true,
-      });
-      const rubber = engine
-        .allTournamentMatchUps({ matchUpFilters: { matchUpTypes: ['SINGLES'] } })
-        .matchUps.find((m: any) => m.collectionId);
-      const deadRubber = engine.setMatchUpStatus({
-        outcome: { matchUpStatus: 'DEAD_RUBBER' },
-        matchUpId: rubber.matchUpId,
-        drawId: rubber.drawId,
-      });
-      if (!deadRubber.success) throw new Error(`DEAD_RUBBER refused: ${JSON.stringify(deadRubber.error)}`);
-      const { tournamentRecord } = engine.getTournament();
-      await dev.load(tournamentRecord);
-      const { matchUps } = dev.factory.tournamentEngine.allTournamentMatchUps();
-      return {
-        tournamentId: tournamentRecord.tournamentId as string,
-        completedStatuses: dev.factory.factoryConstants.completedMatchUpStatuses as string[],
-        rowCount: matchUps.filter((m: any) => m.matchUpStatus !== 'BYE').length,
-      };
-    }, OUTCOMES);
+    const { tournamentId, completedStatuses, rowCount } = await page.evaluate(
+      async ({ outcomes, tieFormat }) => {
+        const engine = dev.factory.tournamentEngine;
+        dev.factory.mocksEngine.generateTournamentRecord({
+          drawProfiles: [
+            { drawSize: 32, outcomes },
+            { drawSize: 2, eventType: 'TEAM', tieFormat },
+          ],
+          policyDefinitions: { scoring: { requireParticipantsForScoring: false } },
+          tournamentAttributes: { tournamentId: 'e2e-complete-tick' },
+          nonRandom: 1,
+          setState: true,
+        });
+        const rubber = engine
+          .allTournamentMatchUps({ matchUpFilters: { matchUpTypes: ['SINGLES'] } })
+          .matchUps.find((m: any) => m.collectionId);
+        const deadRubber = engine.setMatchUpStatus({
+          outcome: { matchUpStatus: 'DEAD_RUBBER' },
+          matchUpId: rubber.matchUpId,
+          drawId: rubber.drawId,
+        });
+        if (!deadRubber.success) throw new Error(`DEAD_RUBBER refused: ${JSON.stringify(deadRubber.error)}`);
+        const { tournamentRecord } = engine.getTournament();
+        await dev.load(tournamentRecord);
+        const { matchUps } = dev.factory.tournamentEngine.allTournamentMatchUps();
+        return {
+          tournamentId: tournamentRecord.tournamentId as string,
+          completedStatuses: dev.factory.factoryConstants.completedMatchUpStatuses as string[],
+          rowCount: matchUps.filter((m: any) => m.matchUpStatus !== 'BYE').length,
+        };
+      },
+      { outcomes: OUTCOMES, tieFormat: resolveTieFormat('COLLEGE_D3') },
+    );
 
     const tournament = new TournamentPage(page);
     await tournament.goto(tournamentId);

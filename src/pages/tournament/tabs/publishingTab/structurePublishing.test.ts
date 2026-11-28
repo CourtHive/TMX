@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 /**
  * Structure-level publishing, round-tripped through the real factory.
  *
@@ -48,7 +49,8 @@ function setup() {
     ],
   });
   const { drawDefinition } = tournamentEngine.getEvent({ drawId });
-  const structureIdOf = (stage: string) => drawDefinition.structures.find((s: any) => s.stage === stage).structureId;
+  const structureIdOf = (stage: string) =>
+    defined(defined(defined(drawDefinition).structures).find((s: any) => s.stage === stage)).structureId;
   return { eventId, drawId, qualifyingId: structureIdOf(QUALIFYING), mainId: structureIdOf(MAIN) };
 }
 

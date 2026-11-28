@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 /**
  * Resetting one structure, through the real engine: offered for a qualifying or consolation structure with results,
  * never for a first main structure linked to others; the factory's refusal names why.
@@ -13,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 const { CONSOLATION, FEED_IN_CHAMPIONSHIP, MAIN, QUALIFYING } = drawDefinitionConstants;
 
-const drawDefinitionOf = (drawId: string) => tournamentEngine.getEvent({ drawId }).drawDefinition;
+const drawDefinitionOf = (drawId: string) => defined(tournamentEngine.getEvent({ drawId }).drawDefinition);
 const structureIdOf = (drawId: string, stage: string) =>
-  drawDefinitionOf(drawId).structures.find((structure: any) => structure.stage === stage).structureId;
+  defined(defined(drawDefinitionOf(drawId).structures).find((structure: any) => structure.stage === stage)).structureId;
 const statusesOf = (stage: string) =>
   tournamentEngine
     .allTournamentMatchUps()

@@ -68,7 +68,7 @@ export function recordExitBeforeArrival({
     elem.appendChild(prompt);
     const formHolder = document.createElement('div');
     elem.appendChild(formHolder);
-    // until the opponent arrives a recorded exit can be changed (CA, 2026-10-04): start from what stands
+    // until the opponent arrives a recorded exit can be changed: start from what stands
     const recorded = payload.recorded;
     const current = recorded?.matchUpStatusCode
       ? `${recorded.matchUpStatus}${SEPARATOR}${recorded.matchUpStatusCode}`
@@ -94,15 +94,23 @@ export function recordExitBeforeArrival({
   const submit = ({ content }: any) => {
     const [matchUpStatus, matchUpStatusCode] = String(content?.exit?.value ?? '').split(SEPARATOR);
     if (!matchUpStatus) return;
+    // the reason is the exiting side's; choosing no reason clears any reason a changed exit held
     send({
       ...payload.outcome,
       matchUpStatus,
-      ...(matchUpStatusCode ? { matchUpStatusCodes: [matchUpStatusCode] } : {}),
+      ...(matchUpStatusCode
+        ? { sideStatusCodes: { [payload.exitingSideNumber]: matchUpStatusCode } }
+        : { clearStatusCodes: true }),
     });
   };
 
-  // until the opponent arrives a recorded exit can also be cleared — the outcome CLEAR_SCORE carries
-  const clear = () => send({ matchUpStatus: 'TO_BE_PLAYED', score: { scoreStringSide1: '', scoreStringSide2: '' } });
+  // until the opponent arrives a recorded exit can also be cleared — the outcome CLEAR_SCORE carries, with its reasons
+  const clear = () =>
+    send({
+      matchUpStatus: 'TO_BE_PLAYED',
+      score: { scoreStringSide1: '', scoreStringSide2: '' },
+      clearStatusCodes: true,
+    });
 
   openModal({
     title: t('modals.exitBeforeArrival.title'),

@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { drawDefinitionConstants, entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
@@ -199,14 +200,19 @@ describe('the overlapping-pair plan against the factory', () => {
     expect(result.success).toEqual(true);
 
     const refreshed = tournamentEngine.getEvent({ drawId: 'D' });
-    expect(refreshed.event.entries.find((e: any) => e.participantId === 'NEW-PAIR')?.entryStatus).toEqual(ALTERNATE);
-    expect(refreshed.drawDefinition.entries.find((e: any) => e.participantId === 'NEW-PAIR')?.entryStatus).toEqual(
-      DIRECT_ACCEPTANCE,
-    );
+    expect(
+      defined(defined(refreshed.event).entries).find((e: any) => e.participantId === 'NEW-PAIR')?.entryStatus,
+    ).toEqual(ALTERNATE);
+    expect(
+      defined(defined(refreshed.drawDefinition).entries).find((e: any) => e.participantId === 'NEW-PAIR')?.entryStatus,
+    ).toEqual(DIRECT_ACCEPTANCE);
 
     const pairIndividualsMap = getPairIndividualsMap(tournamentEngine.getParticipants().participants);
     expect(
-      drawHasSharedIndividuals({ drawEntries: refreshed.drawDefinition.entries, pairIndividuals: pairIndividualsMap }),
+      drawHasSharedIndividuals({
+        drawEntries: defined(refreshed.drawDefinition).entries,
+        pairIndividuals: pairIndividualsMap,
+      }),
     ).toEqual(true);
 
     // the event's accepted entries still share no individual, so a bracketed flight generates

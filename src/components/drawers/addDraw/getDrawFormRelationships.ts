@@ -361,7 +361,7 @@ export function getDrawFormRelationships({
     const drawSize = validators.numericValidator(drawSizeValue) ? Number.parseInt(drawSizeValue) : 0;
     typedDrawSize = drawSize || undefined;
     const entriesCount = acceptedEntriesCount({ drawId, event, stage });
-    const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount), 512);
+    const maxDrawSize = Math.max(tools.nextPowerOf2(entriesCount) || 0, 512);
     const valid = validators.numericRange(2, maxDrawSize)(drawSizeValue);
     if (generateButton) generateButton.disabled = !valid;
     const { validGroupSizes = [] } = tournamentEngine.getValidGroupSizes({ drawSize, groupSizeLimit: 8 });

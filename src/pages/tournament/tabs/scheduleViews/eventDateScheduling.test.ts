@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { competitionEngine, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { describe, expect, it } from 'vitest';
 import {
@@ -137,7 +138,7 @@ describe('a grid placement on a day the event does not play', () => {
 
 describe('the auto-scheduler skips', () => {
   function profileAndRun({ tournamentId, venueId, drawId, eventId }: any, params: any = {}) {
-    const { structureId } = tournamentEngine.getEvent({ drawId }).drawDefinition.structures[0];
+    const { structureId } = defined(defined(tournamentEngine.getEvent({ drawId }).drawDefinition).structures)[0];
     let result: any = competitionEngine.addSchedulingProfileRound({
       round: { tournamentId, eventId, drawId, structureId, roundNumber: 1 },
       scheduleDate: FRI,

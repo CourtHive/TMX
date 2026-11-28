@@ -1,4 +1,5 @@
 import { MODIFY_EVENT, SET_EVENT_DATES } from 'constants/mutationConstants';
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -31,7 +32,7 @@ beforeEach(() => {
   expect(result.success).toBe(true);
 });
 
-const storedEvent = () => tournamentEngine.getEvent({ eventId }).event;
+const storedEvent = () => defined(tournamentEngine.getEvent({ eventId }).event);
 
 describe('event dates: pure helpers', () => {
   it('lists the factory weekdays Monday first, with short labels from i18n', () => {
@@ -88,7 +89,7 @@ describe('event dates: building the method', () => {
 
     let result: any = tournamentEngine.executionQueue([
       { method: MODIFY_EVENT, params: { eventId, eventUpdates: { eventName: 'Event dates', startDate, endDate } } },
-      setDates,
+      defined(setDates, 'setDates'),
     ]);
     expect(result.success).toBe(true);
 
@@ -108,7 +109,7 @@ describe('event dates: building the method', () => {
       previous: { activeDates: event.activeDates, weekdays: event.weekdays },
     });
     expect(clear?.params).toMatchObject({ activeDates: [], weekdays: [] });
-    result = tournamentEngine.executionQueue([clear]);
+    result = tournamentEngine.executionQueue([defined(clear, 'clear')]);
     expect(result.success).toBe(true);
     event = storedEvent();
     expect(event.activeDates).toEqual([]);
@@ -131,10 +132,10 @@ describe('event dates: building the method', () => {
           event: { eventId: newEventId, eventName: 'New event', startDate: jun(1), endDate: jun(5) },
         },
       },
-      setDates,
+      defined(setDates, 'setDates'),
     ]);
     expect(result.success).toBe(true);
-    const { event } = tournamentEngine.getEvent({ eventId: newEventId });
+    const event = defined(tournamentEngine.getEvent({ eventId: newEventId }).event);
     expect(event.activeDates).toEqual([jun(2)]);
     expect(event.weekdays).toEqual(['TUE']);
   });

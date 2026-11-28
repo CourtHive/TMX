@@ -1,3 +1,4 @@
+import { defined } from 'functions/testing/defined';
 import { insufficientPositions } from './insufficientPositions';
 import { describe, expect, it } from 'vitest';
 
@@ -47,7 +48,7 @@ describe('insufficientPositions — what a refused generation means', () => {
       setState: true,
     });
     const { event } = tournamentEngine.getEvent({ eventId });
-    const drawOptions = { eventId, drawSize: 16, drawEntries: event.entries };
+    const drawOptions = { eventId, drawSize: 16, drawEntries: defined(event).entries };
     const result: any = tournamentEngine.generateDrawDefinition({ ...drawOptions, ignoreStageSpace: true });
     expect(result.error?.code).toBe('ERR_INSUFFICIENT_DRAW_POSITIONS');
     expect(insufficientPositions(drawOptions)).toEqual({ entries: 26, places: 16, over: 10 });

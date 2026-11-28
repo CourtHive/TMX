@@ -76,7 +76,8 @@ describe('paused local demo clock ownership', () => {
     expect(setDemoClockTime(START)).toBe(false);
     context.provider = undefined;
     const record = tournamentEngine.getTournament().tournamentRecord!;
-    const owned = { ...record, parentOrganisation: { organisationId: 'provider' } };
+    // the record carries only the provider's id, which the Organisation type does not allow on its own
+    const owned = Object.assign({ ...record }, { parentOrganisation: { organisationId: 'provider' } });
     tournamentEngine.setState(owned);
     noteLoadedTournament(owned);
     expect(setDemoClockTime(START)).toBe(false);
