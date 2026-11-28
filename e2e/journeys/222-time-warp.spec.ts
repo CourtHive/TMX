@@ -540,8 +540,10 @@ test('the warp clock offers its own day through the day after the end, and goes 
   // the shared date picker (CA 2026-11-22), not a native date input
   await page.locator(PANEL).getByRole('button', { name: 'Demo date', exact: true }).click();
   await page.getByPlaceholder('YYYY-MM-DD').click();
+  // every enabled cell, the leading and trailing days of the neighbouring months included: when the tournament ends on
+  // a month's last day, the day after the end is a trailing next-month cell of the month the picker opens on
   const enabled = await page
-    .locator('.datepicker-cell.day:not(.disabled):not(.prev):not(.next)')
+    .locator('.datepicker-cell.day:not(.disabled)')
     .evaluateAll((cells) => cells.map((cell) => Number((cell as HTMLElement).dataset.date)));
   const days = [...new Set(enabled.map(cellDay))].sort((a, b) => a.localeCompare(b));
   expect(days[0]).toBe(clockDay);
