@@ -1,4 +1,5 @@
 import { entryStatusConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { describe, expect, it } from 'vitest';
 import {
   buildPromoteAlternatesMethod,
@@ -44,8 +45,11 @@ function seedEvent({ accepted = 6, alternates = 3 } = {}) {
 const getEvent = (eventId: string) => tournamentEngine.getEvent({ eventId }).event;
 // No factory mutation writes `entryProfile`; it arrives with an imported record. Round-trip the record to set it.
 const setEntryProfile = (eventId: string, entryProfile: any) => {
-  const { tournamentRecord } = tournamentEngine.getTournament();
-  const event = tournamentRecord.events.find((e: any) => e.eventId === eventId);
+  const tournamentRecord = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+  const event = defined(
+    defined(tournamentRecord.events, 'events').find((e: any) => e.eventId === eventId),
+    eventId,
+  );
   event.entryProfile = entryProfile;
   const result: any = tournamentEngine.setState(tournamentRecord);
   expect(result.success).toEqual(true);

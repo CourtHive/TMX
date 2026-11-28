@@ -3,6 +3,7 @@
  * the dual's ⋮ menu send, run as the executionQueue runs them.
  */
 import { eventConstants, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { clearHomeMethod, dualHome, homeTeamMenu, inferredHome, saveHomeTeam, setHomeMethod } from './homeTeam';
 import { describe, expect, it } from 'vitest';
 
@@ -71,8 +72,12 @@ describe('dual home team', () => {
     let result: any = tournamentEngine.addVenue({ venue: { venueId, venueName: 'Home courts' } });
     expect(result.success).toEqual(true);
     // no engine method writes a TEAM's homeVenueIds (modifyParticipant drops it), so the record carries it
-    const { tournamentRecord } = tournamentEngine.getTournament();
-    tournamentRecord.participants.find((p: any) => p.participantId === side1).homeVenueIds = [venueId];
+    const tournamentRecord = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    const home = defined(
+      defined(tournamentRecord.participants, 'participants').find((p: any) => p.participantId === side1),
+      'side 1 team',
+    );
+    home.homeVenueIds = [venueId];
     tournamentEngine.setState(tournamentRecord);
     result = tournamentEngine.addMatchUpScheduleItems({ drawId, matchUpId, schedule: { venueId } });
     expect(result.success).toEqual(true);
@@ -91,8 +96,12 @@ describe('dual home team', () => {
 
     const venueId = 'home-venue';
     tournamentEngine.addVenue({ venue: { venueId, venueName: 'Home courts' } });
-    const { tournamentRecord } = tournamentEngine.getTournament();
-    tournamentRecord.participants.find((p: any) => p.participantId === side1).homeVenueIds = [venueId];
+    const tournamentRecord = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    const home = defined(
+      defined(tournamentRecord.participants, 'participants').find((p: any) => p.participantId === side1),
+      'side 1 team',
+    );
+    home.homeVenueIds = [venueId];
     tournamentEngine.setState(tournamentRecord);
     tournamentEngine.addMatchUpScheduleItems({ drawId, matchUpId, schedule: { venueId } });
 

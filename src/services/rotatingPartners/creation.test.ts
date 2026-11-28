@@ -1,4 +1,5 @@
 import { drawsGovernor, mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 vi.mock('services/factory/engine', async () => {
@@ -113,8 +114,8 @@ it.each(['AMERICANO', 'MEXICANO'] as const)(
   '%s builds a policy-preview profile, before a variant is chosen, that the factory accepts',
   (format) => {
     setup();
-    const { tournamentRecord } = tournamentEngine.getTournament();
-    const event = tournamentRecord.events[0];
+    const tournamentRecord = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    const event = defined(tournamentRecord.events, 'events')[0];
     const competitionProfile: any = rotatingProfile({ format, combinedPointTotal: 32, rounds: 3 }, 1);
     expect(competitionProfile.scoring).not.toHaveProperty('selectedVariant');
     const result: any = drawsGovernor.getRotatingPartnerScoringPolicy({

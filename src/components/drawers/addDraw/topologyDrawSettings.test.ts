@@ -1,4 +1,5 @@
 import { applyTopologyDrawSettings, topologyDrawSettings } from './topologyDrawSettings';
+import { defined } from 'functions/testing/defined';
 import { resolveTieFormat, tieFormatConstants } from '@courthive/competition-catalogue';
 import { drawDefinitionConstants, mocksEngine } from 'tods-competition-factory';
 import { tournamentEngine } from 'services/factory/engine';
@@ -61,8 +62,8 @@ describe('topologyDrawSettings', () => {
     const settings = topologyDrawSettings({ values: { creation: AUTOMATED, seedsCount: '8' }, eventId, main });
     expect(settings.seedingScaleName).toBe(eventId);
 
-    const record = tournamentEngine.getTournament().tournamentRecord;
-    record.events[0].category = { categoryName: '18U' };
+    const record = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    defined(record.events, 'events')[0].category = { categoryName: '18U' };
     tournamentEngine.setState(record);
     const event = tournamentEngine.getEvent({ eventId }).event;
     expect(event.category?.categoryName).toBe('18U');

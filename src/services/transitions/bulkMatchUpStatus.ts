@@ -171,7 +171,7 @@ export function precheckBulkMatchUpStatus({
     else offered.push(row);
   }
 
-  const outcomes = offered.map((row) => bulkOutcome(row, matchUpStatus, tournamentId));
+  const outcomes = offered.map((row) => bulkOutcome(row, matchUpStatus, tournamentId!));
   const mutation = offered.length ? dryRunRefusals(offered, outcomes) : { outcomes: [], refusals: [] };
 
   const allRefusals = [...refusals, ...mutation.refusals];

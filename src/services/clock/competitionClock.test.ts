@@ -1,4 +1,5 @@
 import { competitionNow, competitionNowMs, onCompetitionClockChange, setCompetitionClock } from './competitionClock';
+import { defined } from 'functions/testing/defined';
 import { venueNowClock, venueNowOnDate, venueToday } from 'functions/venueTimeFrame';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mocksEngine, tools } from 'tods-competition-factory';
@@ -125,9 +126,11 @@ describe('competitionClock, bound to the factory', () => {
     // a stamp a mutation writes agrees with the clock the desk is reading
     mocksEngine.generateTournamentRecord({ setState: true });
     tournamentEngine.addTournamentTimeItem({ timeItem: { itemType: 'NOTE', itemValue: 'x' } });
-    const note = tournamentEngine
-      .getTournament()
-      .tournamentRecord.timeItems.find((item: any) => item.itemType === 'NOTE');
+    const { timeItems } = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
+    const note = defined(
+      defined(timeItems, 'timeItems').find((item: any) => item.itemType === 'NOTE'),
+      'NOTE time item',
+    );
     expect(note.createdAt).toBe(new Date(INSTANT).toISOString());
 
     setCompetitionClock();

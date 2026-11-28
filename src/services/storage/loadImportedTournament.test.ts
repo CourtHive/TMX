@@ -1,4 +1,5 @@
 import { validateTournamentRecord } from 'services/validation/validateTournamentRecord';
+import { defined } from 'functions/testing/defined';
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { loadImportedTournament } from './loadImportedTournament';
 import { describe, expect, it, vi } from 'vitest';
@@ -49,7 +50,9 @@ describe('loadImportedTournament', () => {
 
     // the load returned synchronously, the record is in the engine, validation is still pending
     expect(order).toEqual(['loaded', STARTED]);
-    expect(tournamentEngine.getTournament().tournamentRecord.tournamentId).toEqual(tournamentId);
+    expect(defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord').tournamentId).toEqual(
+      tournamentId,
+    );
 
     releaseValidation();
     const summary = await result.validation;
@@ -92,7 +95,9 @@ describe('loadImportedTournament', () => {
 
       expect(result.error).toBeUndefined();
       expect(loaded).toHaveLength(1);
-      expect(tournamentEngine.getTournament().tournamentRecord.tournamentId).toEqual(tournamentId);
+      expect(defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord').tournamentId).toEqual(
+        tournamentId,
+      );
 
       const summary = await result.validation;
       expect(summary?.count).toEqual(0);

@@ -1,4 +1,5 @@
 import { mocksEngine, tournamentEngine } from 'tods-competition-factory';
+import { defined } from 'functions/testing/defined';
 import { placementsHoldCourts, timesOnlyPlacements } from './timesOnly';
 import { describe, expect, it } from 'vitest';
 
@@ -48,7 +49,7 @@ describe('timesOnlyPlacements', () => {
       endDate: DAY,
       setState: true,
     });
-    const { tournamentId } = tournamentEngine.getTournament().tournamentRecord;
+    const { tournamentId } = defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
     const courts: any[] = tournamentEngine.getVenuesAndCourts().courts ?? [];
     const roundOne: any[] =
       tournamentEngine.allTournamentMatchUps({ matchUpFilters: { roundNumbers: [1] } }).matchUps ?? [];

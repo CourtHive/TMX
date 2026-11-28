@@ -1,4 +1,5 @@
 import { buildLinkGroup } from 'pages/tournament/tabs/settingsTab/linkedTournamentsHelpers';
+import { defined } from 'functions/testing/defined';
 import { competitionEngine, mocksEngine, tournamentEngine } from 'tods-competition-factory';
 import { peerLinkedTournamentIds } from './peerLinkedTournamentIds';
 import { describe, expect, it } from 'vitest';
@@ -12,7 +13,7 @@ function legacyOnlyRecord(tournamentId: string, linkedIds: string[]) {
     extension: { name: LEGACY_EXTENSION, value: { tournamentIds: linkedIds } },
   });
   expect(result.success).toBe(true);
-  return tournamentEngine.getTournament().tournamentRecord;
+  return defined(tournamentEngine.getTournament().tournamentRecord, 'tournamentRecord');
 }
 
 describe('peerLinkedTournamentIds', () => {

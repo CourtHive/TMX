@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Tournament } from 'tods-competition-factory';
 import { tournamentEngine } from 'tods-competition-factory';
 
 /**
@@ -47,13 +48,12 @@ vi.mock('i18n', () => ({ t: (key: string) => key }));
 import { mutationRequest, replayServerMutation } from './mutationRequest';
 import { onAuthoritativeRefreshRequired } from './mutationObservers';
 
-const tournamentRecord = () => ({
-  tournamentId: 'tid-1',
-  tournamentName: 'Open',
-  startDate: '2026-01-01',
-  endDate: '2099-12-31',
-  parentOrganisation: { organisationId: 'prov-1' },
-});
+// the fixture carries only the provider's id, which the Organisation type does not allow on its own
+const tournamentRecord = () =>
+  Object.assign<Tournament, object>(
+    { tournamentId: 'tid-1', tournamentName: 'Open', startDate: '2026-01-01', endDate: '2099-12-31' },
+    { parentOrganisation: { organisationId: 'prov-1' } },
+  );
 
 async function settle(): Promise<void> {
   for (let i = 0; i < 5; i++) await Promise.resolve();

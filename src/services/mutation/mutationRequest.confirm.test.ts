@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Tournament } from 'tods-competition-factory';
 import { tournamentEngine } from 'tods-competition-factory';
 
 /**
@@ -39,13 +40,12 @@ vi.mock('i18n', () => ({ t: (key: string) => key }));
 import { mutationRequest } from './mutationRequest';
 import { context } from 'services/context';
 
-const record = (endDate: string) => ({
-  tournamentId: 'tid-1',
-  tournamentName: 'Open',
-  startDate: '2020-01-01',
-  endDate,
-  parentOrganisation: { organisationId: 'prov-1' },
-});
+// the fixture carries only the provider's id, which the Organisation type does not allow on its own
+const record = (endDate: string) =>
+  Object.assign<Tournament, object>(
+    { tournamentId: 'tid-1', tournamentName: 'Open', startDate: '2020-01-01', endDate },
+    { parentOrganisation: { organisationId: 'prov-1' } },
+  );
 const PAST = '2020-01-31';
 const FUTURE = '2099-12-31';
 const TRANSPORT_FAILURE = 'transport exploded';

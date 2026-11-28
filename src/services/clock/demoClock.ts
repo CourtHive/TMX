@@ -30,7 +30,7 @@ export function isDemoClockSessionEligible(): boolean {
  * Clock-eligible records seen loading: legacy Scheduling Labs or the active isMock Warp copy. Read from the record
  * already in hand, so frequent eligibility/time reads only compare the current engine id (never clone a record).
  */
-const demoTournaments = new Map<string, { startDate: string }>();
+const demoTournaments = new Map<string | undefined, { startDate: string }>();
 
 /** Called with the record being loaded; only explicitly disposable copies admit signed-in clock control. */
 export function noteLoadedTournament(record: any): void {
@@ -114,7 +114,7 @@ function readDemoNow(): number {
  * so it outlives `state`: Exit and route changes stop the clock, and a reopened clock resumes from here instead of
  * winding back under those stamps.
  */
-const highWater = new Map<string, number>();
+const highWater = new Map<string | undefined, number>();
 
 /** Where a (re)opened clock may start for the loaded tournament: `startMs`, or later if the clock already ran past it. */
 export function demoClockResumeAt(startMs: number): number {
@@ -157,7 +157,7 @@ export function retainDemoClockFor(tournamentId?: string): void {
 export function setDemoClockTime(nowMs: number, mode?: DemoClockMode): boolean {
   if (!canUseDemoClock() || state?.busy || !Number.isFinite(nowMs) || Number.isNaN(new Date(nowMs).getTime()))
     return false;
-  const tournamentId = tournamentEngine.getTournamentId();
+  const tournamentId = tournamentEngine.getTournamentId()!; // canUseDemoClock() holds only over a loaded demo tournament
   // Stored calls and results cannot be undone by winding a clock back, including by exiting and reopening it.
   const floor = Math.max(
     state?.nowMs ?? Number.NEGATIVE_INFINITY,
